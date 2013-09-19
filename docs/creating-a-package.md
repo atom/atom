@@ -42,6 +42,9 @@ directory are added alphabetically.
 - `keymaps`(**Optional**): an Array of Strings identifying the order of the
 key mappings your package needs to load. If not specified, mappings in the _keymaps_
 directory are added alphabetically.
+- `menus`(**Optional**): an Array of Strings identifying the order of
+the menu mappings your package needs to load. If not specified, mappings
+in the _keymap_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the _snippets_
 directory are added alphabetically.
@@ -134,6 +137,33 @@ array in your _package.json_ can specify which keymaps to load and in what order
 
 See the [main keymaps documentation](../internals/keymaps.md) for more information on
 how keymaps work.
+
+## Menus
+
+Menus are placed in the _menus_ subdirectory. It's useful to specify a
+context menu items if if commands are linked to a specific part of the
+interface, say for example adding a file in the tree-view.
+
+By default, all menus are loaded in alphabetical order. An optional
+`menus` array in your _package.json_ can specify which menus to load
+and in what order.
+
+Context menus are created by determining which element was selected and
+then adding all of the menu items whose selectors match that element (in
+the order which they were loaded). The process is then repeated for the
+elements until reaching the top of the dom tree.
+
+NOTE: Currently you can only specify items to be added to the context
+menu, the menu which appears when you right click. There are plans to
+add support for adding to global menu.
+
+```
+'context-menu':
+  '.tree-view':
+    'Add file': 'tree-view:add-file'
+  '#root-view':
+    'Inspect Element': 'core:inspect'
+```
 
 ## Snippets
 

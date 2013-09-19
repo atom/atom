@@ -17,6 +17,7 @@ class AtomPackage extends Package
 
   metadata: null
   keymaps: null
+  menus: null
   stylesheets: null
   grammars: null
   scopedProperties: null
@@ -30,10 +31,12 @@ class AtomPackage extends Package
       if @isTheme()
         @stylesheets = []
         @keymaps = []
+        @menus = []
         @grammars = []
         @scopedProperties = []
       else
         @loadKeymaps()
+        @loadMenus()
         @loadStylesheets()
         @loadGrammars()
         @loadScopedProperties()
@@ -75,6 +78,7 @@ class AtomPackage extends Package
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
+    atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     type = if @metadata.theme then 'theme' else 'bundled'
     applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
@@ -84,12 +88,22 @@ class AtomPackage extends Package
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
+  loadMenus: ->
+    @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
     if @metadata.keymaps
       @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
       fsUtils.listSync(keymapsDirPath, ['cson', 'json'])
+
+  getMenuPaths: ->
+    menusDirPath = path.join(@path, 'menus')
+    if @metadata.menus
+      @metadata.menus.map (name) -> fsUtils.resolve(menusDirPath, name, ['json', 'cson', ''])
+    else
+      fsUtils.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]

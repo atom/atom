@@ -9,7 +9,7 @@ remote = require 'remote'
 module.exports =
 class ContextMenuManager
   # Private:
-  constructor: ->
+  constructor: (@devMode=false) ->
     @definitions = {}
     @devModeDefinitions = {}
     @activeElement = null
@@ -21,7 +21,22 @@ class ContextMenuManager
       executeAtBuild: (e) ->
         @.commandOptions = x: e.pageX, y: e.pageY
 
-  # Public: Registers a command to be displayed when the relevant item is right
+  # Public: Creates menu definitions from the object specified by the menu
+  # cson API.
+  #
+  # * name: The path of the file that contains the menu definitions.
+  # * object: The 'context-menu' object specified in the menu cson API.
+  # * options:
+  #    + devMode - Determines whether the entries should only be shown when
+  #      the window is in dev mode.
+  #
+  # Returns nothing.
+  add: (name, object, {devMode}={}) ->
+    for selector, items of object
+      for label, command of items
+        @addBySelector(selector, {label, command}, {devMode})
+
+  # Private: Registers a command to be displayed when the relevant item is right
   # clicked.
   #
   # * selector: The css selector for the active element which should include
@@ -30,7 +45,7 @@ class ContextMenuManager
   # * options:
   #    + devMode: Indicates whether this command should only appear while the
   #      editor is in dev mode.
-  add: (selector, definition, {devMode}={}) ->
+  addBySelector: (selector, definition, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
     (definitions[selector] ?= []).push(definition)
 
@@ -62,7 +77,8 @@ class ContextMenuManager
   # development mode entries.
   combinedMenuTemplateForElement: (element) ->
     menuTemplate = @menuTemplateForMostSpecificElement(element)
-    menuTemplate.concat(@menuTemplateForMostSpecificElement(element, devMode: true))
+    menuTemplate = menuTemplate.concat(@menuTemplateForMostSpecificElement(element, devMode: true)) if @devMode
+    menuTemplate
 
   # Private: Executes `executeAtBuild` if defined for each menu item with
   # the provided event and then removes the `executeAtBuild` property from

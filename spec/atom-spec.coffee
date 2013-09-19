@@ -174,6 +174,32 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
               expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
+        describe "menu loading", ->
+          describe "when the metadata does not contain a 'menus' manifest", ->
+            it "loads all the .cson/.json files in the keymaps directory", ->
+              element = ($$ -> @div class: 'test-1')[0]
+
+              expect(atom.contextMenu.definitionsForElement(element)).toEqual []
+
+              atom.activatePackage("package-with-menus")
+
+              expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 1"
+              expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 2"
+              expect(atom.contextMenu.definitionsForElement(element)[2].label).toBe "Menu item 3"
+
+          describe "when the metadata contains a 'keymaps' manifest", ->
+            it "loads only the menus specified by the manifest, in the specified order", ->
+              element = ($$ -> @div class: 'test-1')[0]
+
+              expect(atom.contextMenu.definitionsForElement(element)).toEqual []
+
+              atom.activatePackage("package-with-menus-manifest")
+
+              expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 2"
+              expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
+              expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()
+
+
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->

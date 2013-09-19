@@ -17,7 +17,7 @@ window.atom =
   activePackages: {}
   packageStates: {}
   themes: new ThemeManager()
-  contextMenu: new ContextMenuManager()
+  contextMenu: new ContextMenuManager(remote.getCurrentWindow().loadSettings.devMode)
 
   getLoadSettings: ->
     remote.getCurrentWindow().loadSettings
