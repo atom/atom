@@ -1,5 +1,9 @@
 _ = require './underscore-extensions'
 
+# Public: Mixin for managing subscriptions of event listeners to different objects.
+#
+# Support unsubscribe from all register event listeners or just the listeners
+# registered on a given object.
 module.exports =
   subscribeWith: (eventEmitter, methodName, args) ->
     eventEmitter[methodName](args...)

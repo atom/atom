@@ -29,7 +29,7 @@ class Project
   # Private:
   @deserialize: (state) -> new Project(state)
 
-  # Public:
+  # Public: Find the local path for the given repository URL.
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')

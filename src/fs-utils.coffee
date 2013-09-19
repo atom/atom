@@ -6,6 +6,7 @@ async = require 'async'
 rimraf = require 'rimraf'
 path = require 'path'
 
+# Public: Useful extensions to node's built-in fs module
 fsExtensions =
   # Make the given path absolute by resolving it against the
   # current working directory.
