@@ -3,7 +3,6 @@ path = require 'path'
 fs = require './fs'
 CSON = require 'season'
 config = require './config'
-mkdir = require('mkdirp').sync
 optimist = require 'optimist'
 
 module.exports =
@@ -42,7 +41,7 @@ class Linker
 
     try
       fs.unlinkSync(targetPath) if fs.isLink(targetPath)
-      mkdir path.dirname(targetPath)
+      fs.mkdir path.dirname(targetPath)
       fs.symlinkSync(linkPath, targetPath)
       console.log "#{targetPath} -> #{linkPath}"
       callback()

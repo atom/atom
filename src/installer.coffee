@@ -1,9 +1,7 @@
-fs = require 'fs'
 path = require 'path'
 
 async = require 'async'
 _ = require 'underscore'
-mkdir = require('mkdirp').sync
 optimist = require 'optimist'
 temp = require 'temp'
 require 'colors'
@@ -51,7 +49,7 @@ class Installer extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
 
-    mkdir(@atomDirectory)
+    fs.mkdir(@atomDirectory)
     @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
       if code is 0
         process.stdout.write '\u2713\n'.green
@@ -74,7 +72,7 @@ class Installer extends Command
 
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
-    mkdir(nodeModulesDirectory)
+    fs.mkdir(nodeModulesDirectory)
     @fork @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='', stdout='') =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
@@ -134,9 +132,9 @@ class Installer extends Command
     path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'
 
   createAtomDirectories: ->
-    mkdir(@atomDirectory)
-    mkdir(@atomPackagesDirectory)
-    mkdir(@atomNodeDirectory)
+    fs.mkdir(@atomDirectory)
+    fs.mkdir(@atomPackagesDirectory)
+    fs.mkdir(@atomNodeDirectory)
 
   run: (options) ->
     {callback} = options
