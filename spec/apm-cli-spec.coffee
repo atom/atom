@@ -539,7 +539,7 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(packagePath, 'package.cson'))).toBeTruthy()
 
     describe "when creating a theme", ->
-      fit "generates the proper file structure", ->
+      it "generates the proper file structure", ->
         callback = jasmine.createSpy('callback')
         apm.run(['init', '--theme', 'fake-theme'], callback)
 
