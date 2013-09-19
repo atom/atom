@@ -1,4 +1,4 @@
-{_, fs} = require 'atom-api'
+{_, fs} = require 'atom'
 path = require 'path'
 {Site} = require 'telepath'
 

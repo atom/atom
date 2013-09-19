@@ -1,4 +1,4 @@
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 

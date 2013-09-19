@@ -1,5 +1,5 @@
 Git = require '../src/git'
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 path = require 'path'
 Task = require '../src/task'
 

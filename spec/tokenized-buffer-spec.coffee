@@ -1,5 +1,5 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
-{_} = require 'atom-api'
+{_} = require 'atom'
 
 describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []

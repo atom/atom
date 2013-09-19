@@ -1,4 +1,4 @@
-{View, $$} = require 'atom-api'
+{View, $$} = require 'atom'
 
 describe "SpacePen extensions", ->
   class TestView extends View

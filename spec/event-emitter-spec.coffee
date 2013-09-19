@@ -1,4 +1,4 @@
-{_} = require 'atom-api'
+{_} = require 'atom'
 EventEmitter = require '../src/event-emitter'
 
 describe "EventEmitter mixin", ->

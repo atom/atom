@@ -1,4 +1,4 @@
-{$, $$, fs, RootView}  = require 'atom-api'
+{$, $$, fs, RootView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
 

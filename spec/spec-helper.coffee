@@ -4,7 +4,7 @@ window.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
-{_, $, File, RootView, fs} = require 'atom-api'
+{_, $, File, RootView, fs} = require 'atom'
 Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'telepath'

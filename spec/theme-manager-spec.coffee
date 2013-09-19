@@ -1,4 +1,4 @@
-{$} = require 'atom-api'
+{$} = require 'atom'
 
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'

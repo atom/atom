@@ -1,4 +1,4 @@
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 path = require 'path'
 CSON = require 'season'
 

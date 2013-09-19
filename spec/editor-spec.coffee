@@ -1,4 +1,4 @@
-{_, $, $$, fs, RootView} = require 'atom-api'
+{_, $, $$, fs, RootView} = require 'atom'
 Editor = require '../src/editor'
 {Range} = require 'telepath'
 path = require 'path'

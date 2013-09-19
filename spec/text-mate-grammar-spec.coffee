@@ -1,6 +1,6 @@
 TextMateGrammar = require '../src/text-mate-grammar'
 TextMatePackage = require '../src/text-mate-package'
-{_, fs} = require 'atom-api'
+{_, fs} = require 'atom'
 
 describe "TextMateGrammar", ->
   grammar = null

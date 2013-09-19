@@ -1,4 +1,4 @@
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->

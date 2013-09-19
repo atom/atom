@@ -1,4 +1,4 @@
-{File, fs} = require 'atom-api'
+{File, fs} = require 'atom'
 path = require 'path'
 
 describe 'File', ->

@@ -1,5 +1,5 @@
 Keymap = require '../src/keymap'
-{$, $$, RootView} = require 'atom-api'
+{$, $$, RootView} = require 'atom'
 
 describe "Keymap", ->
   fragment = null

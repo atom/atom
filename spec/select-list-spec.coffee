@@ -1,5 +1,5 @@
 SelectList = require '../src/select-list'
-{$, $$} = require 'atom-api'
+{$, $$} = require 'atom'
 
 describe "SelectList", ->
   [selectList, array, list, miniEditor] = []

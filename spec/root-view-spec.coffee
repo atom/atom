@@ -1,4 +1,4 @@
-{$, $$, fs, RootView, View} = require 'atom-api'
+{$, $$, fs, RootView, View} = require 'atom'
 path = require 'path'
 Pane = require '../src/pane'
 

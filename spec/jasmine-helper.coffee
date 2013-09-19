@@ -1,5 +1,5 @@
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
-  {$, $$} = require 'atom-api'
+  {$, $$} = require 'atom'
   window[key] = value for key, value of require '../vendor/jasmine'
 
   require 'jasmine-focused'

@@ -1,6 +1,6 @@
 path = require 'path'
 {Site} = require 'telepath'
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 Project = require '../src/project'
 
 module.exports =

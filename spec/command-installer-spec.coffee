@@ -1,4 +1,4 @@
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 installer = require '../src/command-installer'
 
 describe "install(commandPath, callback)", ->

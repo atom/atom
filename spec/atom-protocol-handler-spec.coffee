@@ -1,4 +1,4 @@
-{$} = require 'atom-api'
+{$} = require 'atom'
 
 describe '"atom" protocol URL', ->
   it 'sends the file relative in the package as response', ->

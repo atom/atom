@@ -1,5 +1,5 @@
 Project = require '../src/project'
-{_, fs} = require 'atom-api'
+{_, fs} = require 'atom'
 path = require 'path'
 BufferedProcess = require '../src/buffered-process'
 

@@ -1,6 +1,6 @@
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
-{_, $, View, $$} = require 'atom-api'
+{_, $, View, $$} = require 'atom'
 
 describe "PaneContainer", ->
   [TestView, container, pane1, pane2, pane3] = []

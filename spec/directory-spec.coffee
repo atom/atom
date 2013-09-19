@@ -1,5 +1,5 @@
 Directory = require '../src/directory'
-{fs} = require 'atom-api'
+{fs} = require 'atom'
 path = require 'path'
 
 describe "Directory", ->

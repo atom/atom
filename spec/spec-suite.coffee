@@ -1,7 +1,6 @@
 measure 'spec suite require time', ->
-  {_, fs} = require 'atom-api'
+  {_, fs, Git} = require 'atom'
   path = require 'path'
-  Git = require '../src/git'
   require './spec-helper'
 
   requireSpecs = (specDirectory, specType) ->

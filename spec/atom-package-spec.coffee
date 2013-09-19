@@ -1,4 +1,4 @@
-{$} = require 'atom-api'
+{$} = require 'atom'
 path = require 'path'
 Package = require '../src/package'
 

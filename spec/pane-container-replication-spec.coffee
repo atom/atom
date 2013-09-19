@@ -1,5 +1,5 @@
 {Site} = require 'telepath'
-{View} = require 'atom-api'
+{View} = require 'atom'
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 Environment = require './environment'
