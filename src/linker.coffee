@@ -8,7 +8,7 @@ optimist = require 'optimist'
 
 module.exports =
 class Linker
-  @commandNames: ['link']
+  @commandNames: ['link', 'ln']
 
   parseOptions: (argv) ->
     options = optimist(argv)
