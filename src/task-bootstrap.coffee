@@ -30,7 +30,9 @@ setupGlobals = ->
 handleEvents = ->
   process.on 'uncaughtException', (error) ->
     console.error(error.message, error.stack)
-  process.on 'message', ({args}) ->
+  process.on 'message', ({event, args}={}) ->
+    return unless event is 'start'
+
     isAsync = false
     async = ->
       isAsync = true

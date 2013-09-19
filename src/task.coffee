@@ -86,7 +86,14 @@ class Task
 
     @handleEvents()
     @callback = args.pop() if _.isFunction(args[args.length - 1])
-    @childProcess.send({args})
+    @send({event: 'start', args})
+
+  # Public: Send message to the task
+  #
+  # * message:
+  #   The message to send
+  send: (message) ->
+    @childProcess.send(message)
 
   # Public: Forcefully stop the running task.
   #
