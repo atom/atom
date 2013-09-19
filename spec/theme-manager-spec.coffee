@@ -30,7 +30,7 @@ describe "ThemeManager", ->
       themeManager.load()
 
       config.set('core.themes', [])
-      expect($('style.userTheme').length).toBe 0
+      expect($('style.theme').length).toBe 0
       expect(reloadHandler).toHaveBeenCalled()
 
       config.set('core.themes', ['atom-dark-syntax'])
