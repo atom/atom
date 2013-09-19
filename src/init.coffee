@@ -13,12 +13,15 @@ class Generator extends Command
     options = optimist(argv)
 
     options.usage """
-      Usage: apm init -p <package-name>
+      Usage:
+        apm init -p <package-name>
+        apm init -t <theme-name>
 
       Generates code scaffolding for either a theme or package depending
       on option selected.
     """
     options.alias('p', 'package').describe('package', 'Generates a basic package')
+    options.alias('t', 'theme').describe('theme', 'Generates a basic theme')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
@@ -28,19 +31,24 @@ class Generator extends Command
     options = @parseOptions(options.commandArgs)
     if options.argv.package?
       packagePath = path.resolve(options.argv.package)
-      @generatePackage(packagePath)
+      templatePath = path.resolve(__dirname, '..', 'templates', 'package')
+      @generateFromTemplate(packagePath, templatePath)
+      callback()
+    else if options.argv.theme?
+      themePath = path.resolve(options.argv.theme)
+      templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+      @generateFromTemplate(themePath, templatePath)
       callback()
     else
-      callback('Error: You must specify either --project or --theme to `apm init`')
+      callback('Error: You must specify either --package or --theme to `apm init`')
 
-  generatePackage: (packagePath) ->
-    templatePath = path.resolve(__dirname, '..', 'templates', 'package')
+  generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
 
     fs.mkdir(packagePath)
 
     for childPath in fs.listRecursive(templatePath)
-      templateChildPath = path.resolve(__dirname, '..', 'templates', 'package', childPath)
+      templateChildPath = path.resolve(templatePath, childPath)
       relativePath = templateChildPath.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
       relativePath = relativePath.replace(/\.template$/, '')

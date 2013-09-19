@@ -510,12 +510,13 @@ describe 'apm command line interface', ->
           expect(fs.realpathSync(linkedRepoPath)).toBe fs.realpathSync(repoPath)
 
   describe "apm init", ->
-    [packagePath] = []
+    [packagePath, themePath] = []
 
     beforeEach ->
       currentDir = temp.mkdirSync('apm-init-')
       spyOn(process, 'cwd').andReturn(currentDir)
       packagePath = path.join(currentDir, 'fake-package')
+      themePath = path.join(currentDir, 'fake-theme')
 
     describe "when creating a package", ->
       it "generates the proper file structure", ->
@@ -536,4 +537,20 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.css'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'package.cson'))).toBeTruthy()
+
+    describe "when creating a theme", ->
+      fit "generates the proper file structure", ->
+        callback = jasmine.createSpy('callback')
+        apm.run(['init', '--theme', 'fake-theme'], callback)
+
+        waitsFor 'waiting for init to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(themePath)).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'stylesheets'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'stylesheets', 'base.less'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'index.less'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
 

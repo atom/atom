@@ -1,0 +1,19 @@
+{
+  "name": "__package-name__",
+  "theme": true,
+  "version": "0.0.0",
+  "description": "A short description of your theme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your/repo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your/repo/issues"
+  },
+  "engines": {
+    "atom": ">26.0"
+  },
+  "publishConfig": {
+    "registry": "https://atom.iriscouch.com/registry/_design/app/_rewrite"
+  }
+}
