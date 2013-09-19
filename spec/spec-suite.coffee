@@ -18,7 +18,7 @@ measure 'spec suite require time', ->
       requireSpecs(path.join(window.resourcePath, 'spec'))
       setSpecType('core')
 
-    fixturesPackagesPath = fs.resolveOnLoadPath('fixtures/packages')
+    fixturesPackagesPath = path.join(__dirname, 'fixtures', 'packages')
     packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
     packagePaths = _.groupBy packagePaths, (packagePath) ->
       if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
