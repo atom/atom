@@ -76,7 +76,7 @@ beforeEach ->
 
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
-  keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
+  keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
   atom.deactivatePackages()
   if rootView?
     rootView.remove?()
