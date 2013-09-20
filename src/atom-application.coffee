@@ -224,11 +224,12 @@ class AtomApplication
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen, initialLine)
     else
-      bootstrapScript = require.resolve('./window-bootstrap')
       if devMode
         resourcePath = global.devResourcePath
+        bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
       else
         resourcePath = @resourcePath
+        bootstrapScript = require.resolve('./window-bootstrap')
       openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode})
 
     if pidToKillWhenClosed?
