@@ -276,13 +276,21 @@ class AtomApplication
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
-    bootstrapScript = require.resolve('../spec/spec-bootstrap')
+    try
+      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'spec', 'spec-bootstrap'))
+    catch error
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'spec', 'spec-bootstrap'))
+
     isSpec = true
     devMode = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory})
 
   runBenchmarks: ->
-    bootstrapScript = 'benchmark/benchmark-bootstrap'
+    try
+      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
+    catch error
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'benchmark', 'benchmark-bootstrap'))
+
     isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
