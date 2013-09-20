@@ -1,6 +1,6 @@
-{$$} = require 'space-pen'
+{$$} = require 'atom'
 
-ContextMenuManager = require 'context-menu-manager'
+ContextMenuManager = require '../src/context-menu-manager'
 
 describe "ContextMenuManager", ->
   [contextMenu] = []
