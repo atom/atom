@@ -1,5 +1,5 @@
 {Site} = require 'telepath'
-Environment = require 'environment'
+Environment = require './environment'
 
 describe "EditSession replication", ->
   [env1, env2, editSession1, editSession2] = []

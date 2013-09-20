@@ -1,20 +1,10 @@
-window.nakedLoad = (file) ->
-  fsUtils = require 'fs-utils'
-  path = require 'path'
-  file = require.resolve(file)
-  code = fsUtils.read(file)
-  if path.extname(file) is '.coffee'
-    require('coffee-script').eval(code, filename: file)
-  else
-    window.eval("#{code}\n//@ sourceURL=#{file}")
-
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
-  {$$} = require 'space-pen'
-  nakedLoad 'jasmine'
+  {$, $$} = require 'atom'
+  window[key] = value for key, value of require '../vendor/jasmine'
+
   require 'jasmine-focused'
 
-  $ = require 'jquery'
-  TimeReporter = require 'time-reporter'
+  TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
   if atom.getLoadSettings().exitWhenDone
@@ -29,7 +19,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
         timeReporter.logLongestSpecs 10, (line) -> process.stdout.write("#{line}\n")
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
-    AtomReporter = require 'atom-reporter'
+    AtomReporter = require './atom-reporter'
     reporter = new AtomReporter()
 
   require specSuite

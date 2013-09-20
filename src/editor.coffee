@@ -1,13 +1,13 @@
-{View, $$} = require 'space-pen'
-TextBuffer = require 'text-buffer'
-Gutter = require 'gutter'
+{View, $$} = require './space-pen-extensions'
+TextBuffer = require './text-buffer'
+Gutter = require './gutter'
 {Point, Range} = require 'telepath'
-EditSession = require 'edit-session'
-CursorView = require 'cursor-view'
-SelectionView = require 'selection-view'
-fsUtils = require 'fs-utils'
-$ = require 'jquery'
-_ = require 'underscore'
+EditSession = require './edit-session'
+CursorView = require './cursor-view'
+SelectionView = require './selection-view'
+fsUtils = require './fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 
 # Private: Represents the entire visual pane in Atom.
 #

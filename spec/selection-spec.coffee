@@ -1,4 +1,4 @@
-EditSession = require 'edit-session'
+EditSession = require '../src/edit-session'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []

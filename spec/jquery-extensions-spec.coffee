@@ -1,6 +1,4 @@
-$ = require 'jquery'
-_ = require 'underscore'
-{View, $$} = require 'space-pen'
+{_, $, $$, View} = require 'atom'
 
 describe 'jQuery extensions', ->
   describe '$.fn.preempt(eventName, handler)', ->

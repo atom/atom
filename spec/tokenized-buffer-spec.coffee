@@ -1,6 +1,5 @@
-TokenizedBuffer = require 'tokenized-buffer'
-{Range} = require 'telepath'
-_ = require 'underscore'
+TokenizedBuffer = require '../src/tokenized-buffer'
+{_} = require 'atom'
 
 describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []

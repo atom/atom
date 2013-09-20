@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 
 # Public: Provides a list of functions that can be used in Atom for event management.
 #

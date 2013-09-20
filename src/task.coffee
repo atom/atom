@@ -1,6 +1,6 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 child_process = require 'child_process'
-EventEmitter = require 'event-emitter'
+EventEmitter = require './event-emitter'
 
 # Public: Run a node script in a separate process.
 #
@@ -11,7 +11,7 @@ EventEmitter = require 'event-emitter'
 # * task:log - Emitted when console.log is called within the task.
 # * task:warn - Emitted when console.warn is called within the task.
 # * task:error - Emitted when console.error is called within the task.
-# * task:complete - Emitted when the task has succeeded or failed.
+# * task:completed - Emitted when the task has succeeded or failed.
 module.exports =
 class Task
   _.extend @prototype, EventEmitter
@@ -43,14 +43,17 @@ class Task
   #   The path to the Coffeescript/Javascript file that exports a single
   #   function to execute.
   constructor: (taskPath) ->
+    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}');"
+    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}');"
+    taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      require('coffee-script');
-      require('coffee-cache');
+      #{coffeeScriptRequire}
+      #{coffeeCacheRequire}
       Object.defineProperty(require.extensions, '.coffee', {
         writable: false,
         value: require.extensions['.coffee']
       });
-      require('task-bootstrap');
+      #{taskBootstrapRequire}
     """
 
     taskPath = require.resolve(taskPath)
@@ -83,7 +86,14 @@ class Task
 
     @handleEvents()
     @callback = args.pop() if _.isFunction(args[args.length - 1])
-    @childProcess.send({args})
+    @send({event: 'start', args})
+
+  # Public: Send message to the task
+  #
+  # * message:
+  #   The message to send
+  send: (message) ->
+    @childProcess.send(message)
 
   # Public: Forcefully stop the running task.
   #

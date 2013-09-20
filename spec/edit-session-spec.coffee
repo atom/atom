@@ -1,6 +1,3 @@
-Project = require 'project'
-Buffer = require 'text-buffer'
-EditSession = require 'edit-session'
 clipboard = require 'clipboard'
 
 describe "EditSession", ->

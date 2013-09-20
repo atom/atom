@@ -1,17 +1,17 @@
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
 
-_ = require 'underscore'
-$ = require 'jquery'
+_ = require './underscore-extensions'
+$ = require './jquery-extensions'
 telepath = require 'telepath'
 {Range} = telepath
-TextBuffer = require 'text-buffer'
-EditSession = require 'edit-session'
-EventEmitter = require 'event-emitter'
-Directory = require 'directory'
-BufferedNodeProcess = require 'buffered-node-process'
-Git = require 'git'
+TextBuffer = require './text-buffer'
+EditSession = require './edit-session'
+EventEmitter = require './event-emitter'
+Directory = require './directory'
+BufferedNodeProcess = require './buffered-node-process'
+Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
 #
@@ -29,17 +29,7 @@ class Project
   # Private:
   @deserialize: (state) -> new Project(state)
 
-  @openers: []
-
-  # Public:
-  @registerOpener: (opener) ->
-    @openers.push(opener)
-
-  # Public:
-  @unregisterOpener: (opener) ->
-    _.remove(@openers, opener)
-
-  # Public:
+  # Public: Find the local path for the given repository URL.
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
@@ -48,7 +38,13 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
+  openers: null
 
+  # Public:
+  registerOpener: (opener) -> @openers.push(opener)
+
+  # Public:
+  unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Private:
   destroy: ->
@@ -66,6 +62,7 @@ class Project
   #
   # path - The {String} name of the path
   constructor: (pathOrState) ->
+    @openers = []
     @editSessions = []
     @buffers = []
 
@@ -193,7 +190,7 @@ class Project
   # Returns an {EditSession}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath) if filePath?
-    for opener in @constructor.openers
+    for opener in @openers
       return resource if resource = opener(filePath, options)
 
     @buildEditSessionForBuffer(@bufferForPath(filePath), options)

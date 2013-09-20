@@ -1,8 +1,7 @@
-Project = require 'project'
-fsUtils = require 'fs-utils'
+Project = require '../src/project'
+{_, fs} = require 'atom'
 path = require 'path'
-_ = require 'underscore'
-BufferedProcess = require 'buffered-process'
+BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
   beforeEach ->
@@ -42,7 +41,7 @@ describe "Project", ->
       editSession = project.open()
       editSession.saveAs('/tmp/atom-test-save-sets-project-path')
       expect(project.getPath()).toBe '/tmp'
-      fsUtils.remove('/tmp/atom-test-save-sets-project-path')
+      fs.remove('/tmp/atom-test-save-sets-project-path')
 
   describe "when an edit session is deserialized", ->
     it "emits an 'edit-session-created' event and stores the edit session", ->
@@ -63,7 +62,7 @@ describe "Project", ->
   describe ".open(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
-      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      absolutePath = require.resolve('./fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       project.on 'buffer-created', newBufferHandler
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
@@ -71,12 +70,12 @@ describe "Project", ->
 
       fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
       barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
-      Project.registerOpener(fooOpener)
-      Project.registerOpener(barOpener)
+      project.registerOpener(fooOpener)
+      project.registerOpener(barOpener)
 
     afterEach ->
-      Project.unregisterOpener(fooOpener)
-      Project.unregisterOpener(barOpener)
+      project.unregisterOpener(fooOpener)
+      project.unregisterOpener(barOpener)
 
     describe "when passed a path that doesn't match a custom opener", ->
       describe "when given an absolute path that hasn't been opened previously", ->
@@ -132,7 +131,7 @@ describe "Project", ->
   describe ".resolve(uri)", ->
     describe "when passed an absolute or relative path", ->
       it "returns an absolute path based on the project's root", ->
-        absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+        absolutePath = require.resolve('./fixtures/dir/a')
         expect(project.resolve('a')).toBe absolutePath
         expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
         expect(project.resolve('a/../a')).toBe absolutePath
@@ -144,15 +143,16 @@ describe "Project", ->
   describe ".setPath(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
-        project.setPath(fsUtils.resolveOnLoadPath('fixtures/dir/a'))
-        expect(project.getPath()).toEqual fsUtils.resolveOnLoadPath('fixtures/dir')
-        expect(project.getRootDirectory().path).toEqual fsUtils.resolveOnLoadPath('fixtures/dir')
+        project.setPath(require.resolve('./fixtures/dir/a'))
+        expect(project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        expect(project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
-        project.setPath(fsUtils.resolveOnLoadPath('fixtures/dir/a-dir'))
-        expect(project.getPath()).toEqual fsUtils.resolveOnLoadPath('fixtures/dir/a-dir')
-        expect(project.getRootDirectory().path).toEqual fsUtils.resolveOnLoadPath('fixtures/dir/a-dir')
+        directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
+        project.setPath(directory)
+        expect(project.getPath()).toEqual directory
+        expect(project.getRootDirectory().path).toEqual directory
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
@@ -183,7 +183,7 @@ describe "Project", ->
     describe "when config.core.hideGitIgnoredFiles is true", ->
       it "ignores files that are present in .gitignore if the project is a git repo", ->
         config.set "core.hideGitIgnoredFiles", true
-        project.setPath(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
+        project.setPath(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
         paths = null
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
@@ -195,11 +195,11 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
-        fsUtils.writeSync(ignoredFile, "")
+        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored.txt')
+        fs.writeSync(ignoredFile, "")
 
       afterEach ->
-        fsUtils.remove(ignoredFile)
+        fs.remove(ignoredFile)
 
       it "ignores ignored.txt file", ->
         paths = null
@@ -214,11 +214,11 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
-        fsUtils.writeSync(ignoredFile, "")
+        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored', 'ignored.txt')
+        fs.writeSync(ignoredFile, "")
 
       afterEach ->
-        fsUtils.remove(ignoredFile)
+        fs.remove(ignoredFile)
 
       it "ignores ignored folder", ->
         paths = null
@@ -262,7 +262,7 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
-        project.setPath(fsUtils.resolveOnLoadPath('fixtures/evil-files'))
+        project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
         paths = []
         matches = []
         waitsForPromise ->
@@ -294,7 +294,7 @@ describe "Project", ->
         project.scan /a+/, iterator
 
         stdout = BufferedProcess.prototype.bufferStream.argsForCall[0][1]
-        stdout ":#{fsUtils.resolveOnLoadPath('fixtures/dir/a')}\n"
+        stdout ":#{path.join(__dirname, 'fixtures', 'dir', 'a')}\n"
         stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
 
         expect(iterator.argsForCall[0][0]).toEqual
@@ -311,12 +311,12 @@ describe "Project", ->
         [projectPath, ignoredPath] = []
 
         beforeEach ->
-          projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
+          projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
           ignoredPath = path.join(projectPath, 'ignored.txt')
-          fsUtils.writeSync(ignoredPath, 'this match should not be included')
+          fs.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
-          fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
+          fs.remove(ignoredPath) if fs.exists(ignoredPath)
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
@@ -335,7 +335,7 @@ describe "Project", ->
       it "includes files and folders that begin with a '.'", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-file'
         filePath = path.join(projectPath, '.text')
-        fsUtils.writeSync(filePath, 'match this')
+        fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
@@ -352,7 +352,7 @@ describe "Project", ->
       it "excludes values in core.ignoredNames", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
         filePath = path.join(projectPath, 'test.txt')
-        fsUtils.writeSync(filePath, 'match this')
+        fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []

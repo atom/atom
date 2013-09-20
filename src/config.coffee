@@ -1,6 +1,6 @@
-fsUtils = require 'fs-utils'
-_ = require 'underscore'
-EventEmitter = require 'event-emitter'
+fsUtils = require './fs-utils'
+_ = require './underscore-extensions'
+EventEmitter = require './event-emitter'
 CSON = require 'season'
 fs = require 'fs'
 path = require 'path'
@@ -54,8 +54,8 @@ class Config
   # Private: Created during initialization, available as `global.config`
   constructor: ->
     @defaultSettings =
-      core: _.clone(require('root-view').configDefaults)
-      editor: _.clone(require('editor').configDefaults)
+      core: _.clone(require('./root-view').configDefaults)
+      editor: _.clone(require('./editor').configDefaults)
     @settings = {}
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(configDirPath, 'config.cson')

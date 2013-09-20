@@ -1,7 +1,7 @@
-BufferedProcess = require 'buffered-process'
+BufferedProcess = require './buffered-process'
 path = require 'path'
 
-# Private: Like BufferedProcess, but accepts a node script instead of an
+# Public: Like BufferedProcess, but accepts a node script instead of an
 # executable, on Unix which allows running scripts and executables, this seems
 # unnecessary, but on Windows we have to separate scripts from executables since
 # it doesn't support shebang strings.

@@ -1,11 +1,11 @@
-_ = require 'underscore'
-{View} = require 'space-pen'
-jQuery = require 'jquery'
-ConfigObserver = require 'config-observer'
-Subscriber = require 'subscriber'
+_ = require './underscore-extensions'
+spacePen = require 'space-pen'
+jQuery = require './jquery-extensions'
+ConfigObserver = require './config-observer'
+Subscriber = require './subscriber'
 
-_.extend View.prototype, ConfigObserver
-_.extend View.prototype, Subscriber
+_.extend spacePen.View.prototype, ConfigObserver
+_.extend spacePen.View.prototype, Subscriber
 
 originalCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
@@ -14,3 +14,5 @@ jQuery.cleanData = (elements) ->
       view.unobserveConfig()
       view.unsubscribe()
   originalCleanData(elements)
+
+module.exports = spacePen

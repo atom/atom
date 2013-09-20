@@ -1,14 +1,11 @@
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'
-$ = require 'jquery'
-_ = require 'underscore'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 remote = require 'remote'
 ipc = require 'ipc'
-WindowEventHandler = require 'window-event-handler'
-require 'jquery-extensions'
-require 'underscore-extensions'
-require 'space-pen-extensions'
+WindowEventHandler = require './window-event-handler'
 
 deserializers = {}
 deferredDeserializers = {}
@@ -33,10 +30,10 @@ window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
   window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
 
-  Config = require 'config'
-  Syntax = require 'syntax'
-  Pasteboard = require 'pasteboard'
-  Keymap = require 'keymap'
+  Config = require './config'
+  Syntax = require './syntax'
+  Pasteboard = require './pasteboard'
+  Keymap = require './keymap'
 
   window.rootViewParentSelector = 'body'
   window.config = new Config
@@ -86,11 +83,11 @@ window.unloadEditorWindow = ->
 
 window.installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
-  require('command-installer').install(commandPath, callback)
+  require('./command-installer').install(commandPath, callback)
 
 window.installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
-  require('command-installer').install(commandPath, callback)
+  require('./command-installer').install(commandPath, callback)
 
 window.onDrop = (e) ->
   e.preventDefault()
@@ -99,8 +96,8 @@ window.onDrop = (e) ->
   atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
 window.deserializeEditorWindow = ->
-  RootView = require 'root-view'
-  Project = require 'project'
+  RootView = require './root-view'
+  Project = require './project'
 
   windowState = atom.getWindowState()
 
@@ -155,7 +152,7 @@ window.loadStylesheet = (stylesheetPath) ->
 
 window.loadLessStylesheet = (lessStylesheetPath) ->
   unless lessCache?
-    LessCompileCache = require 'less-compile-cache'
+    LessCompileCache = require './less-compile-cache'
     lessCache = new LessCompileCache()
 
   try

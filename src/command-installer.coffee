@@ -1,9 +1,9 @@
 path = require 'path'
 fs = require 'fs'
-_ = require 'underscore'
+_ = require './underscore-extensions'
 async = require 'async'
 mkdirp = require 'mkdirp'
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   mkdirp path.dirname(destinationPath), (error) ->

@@ -1,5 +1,5 @@
-$ = require 'jquery'
-{View} = require 'space-pen'
+$ = require './jquery-extensions'
+{View} = require './space-pen-extensions'
 telepath = require 'telepath'
 
 ### Internal ###
@@ -61,7 +61,7 @@ class PaneAxis extends View
       primitiveRemove(child)
 
     container.adjustPaneDimensions()
-    Pane = require 'pane'
+    Pane = require './pane'
     container.trigger 'pane:removed', [child] if child instanceof Pane
 
   detachChild: (child) ->

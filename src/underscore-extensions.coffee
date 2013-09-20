@@ -166,3 +166,5 @@ _.mixin
     _.every potentialSubset, (element) -> _.include(potentialSuperset, element)
 
 _.isEqual = require 'tantamount'
+
+module.exports = _
