@@ -1,10 +1,10 @@
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
 plist = require 'plist'
-Token = require 'token'
+Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
-EventEmitter = require 'event-emitter'
+EventEmitter = require './event-emitter'
 {ScopeSelector} = require 'first-mate'
 
 pathSplitRegex = new RegExp("[#{path.sep}.]")

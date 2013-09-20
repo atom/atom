@@ -1,7 +1,7 @@
+path = require 'path'
 {Site} = require 'telepath'
-fsUtils = require 'fs-utils'
-Project = require 'project'
-Git = require 'git'
+Project = require '../src/project'
+Git = require '../src/git'
 
 describe "Project replication", ->
   [doc1, doc2, project1, project2] = []
@@ -12,8 +12,10 @@ describe "Project replication", ->
       getOriginUrl: -> 'git://server/project.git'
       destroy: ->
 
-    config.set('core.projectHome', fsUtils.resolveOnLoadPath('fixtures/replication/home-1'))
-    project1 = new Project(fsUtils.resolveOnLoadPath('fixtures/replication/home-1/project'))
+    projectHome1 = path.join(__dirname, 'fixtures', 'replication', 'home-1')
+    projectHome2 = path.join(__dirname, 'fixtures', 'replication', 'home-2')
+    config.set('core.projectHome', projectHome1)
+    project1 = new Project(path.join(projectHome1, 'project'))
     project1.bufferForPath('file-1.txt')
     project1.bufferForPath('file-1.txt')
     expect(project1.getBuffers().length).toBe 1
@@ -23,7 +25,7 @@ describe "Project replication", ->
     connection = doc1.connect(doc2)
 
     # pretend we're bootstrapping a joining window
-    config.set('core.projectHome', fsUtils.resolveOnLoadPath('fixtures/replication/home-2'))
+    config.set('core.projectHome', projectHome2)
     project2 = deserialize(doc2)
 
   afterEach ->

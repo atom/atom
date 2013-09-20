@@ -1,7 +1,6 @@
-$ = require 'jquery'
-fsUtils = require 'fs-utils'
+{$} = require 'atom'
 path = require 'path'
-Package = require 'package'
+Package = require '../src/package'
 
 describe "AtomPackage", ->
   describe "theme", ->

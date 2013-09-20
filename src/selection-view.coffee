@@ -1,5 +1,5 @@
 {Point, Range} = require 'telepath'
-{View, $$} = require 'space-pen'
+{View, $$} = require './space-pen-extensions'
 
 # Internal:
 module.exports =

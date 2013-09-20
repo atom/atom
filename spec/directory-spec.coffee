@@ -1,12 +1,12 @@
-Directory = require 'directory'
-fsUtils = require 'fs-utils'
+Directory = require '../src/directory'
+{fs} = require 'atom'
 path = require 'path'
 
 describe "Directory", ->
   directory = null
 
   beforeEach ->
-    directory = new Directory(fsUtils.resolveOnLoadPath('fixtures'))
+    directory = new Directory(path.join(__dirname, 'fixtures'))
 
   afterEach ->
     directory.off()
@@ -15,11 +15,11 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'temporary')
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      temporaryFilePath = path.join(__dirname, 'fixtures', 'temporary')
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
@@ -27,13 +27,13 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.writeSync(temporaryFilePath, '')
+        fs.writeSync(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        fsUtils.remove(temporaryFilePath)
+        fs.remove(temporaryFilePath)
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
@@ -42,10 +42,10 @@ describe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(directory.path, 'temporary')
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null
@@ -53,7 +53,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.writeSync(temporaryFilePath, '')
+        fs.writeSync(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0
 
@@ -62,7 +62,7 @@ describe "Directory", ->
         directory.off()
       waits 20
 
-      runs -> fsUtils.remove(temporaryFilePath)
+      runs -> fs.remove(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 
@@ -84,9 +84,9 @@ describe "Directory", ->
       expect(directory.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
 
     it "returns a relative path based on the directory's symlinked source path", ->
-      symlinkPath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'symlink-to-dir')
+      symlinkPath = path.join(__dirname, 'fixtures', 'symlink-to-dir')
       symlinkDirectory = new Directory(symlinkPath)
-      realFilePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      realFilePath = require.resolve('./fixtures/dir/a')
       expect(symlinkDirectory.relativize(symlinkPath)).toBe ''
       expect(symlinkDirectory.relativize(realFilePath)).toBe 'a'
 
@@ -97,13 +97,13 @@ describe "Directory", ->
     it "returns true if the path is a child of the directory's path", ->
       absolutePath = directory.getPath()
       expect(directory.contains(path.join(absolutePath, "b"))).toBe true
-      expect(directory.contains(path.join(absolutePath, "b/file.coffee"))).toBe true
+      expect(directory.contains(path.join(absolutePath, "b", "file.coffee"))).toBe true
       expect(directory.contains(path.join(absolutePath, "file.coffee"))).toBe true
 
     it "returns true if the path is a child of the directory's symlinked source path", ->
-      symlinkPath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'symlink-to-dir')
+      symlinkPath = path.join(__dirname, 'fixtures', 'symlink-to-dir')
       symlinkDirectory = new Directory(symlinkPath)
-      realFilePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      realFilePath = require.resolve('./fixtures/dir/a')
       expect(symlinkDirectory.contains(realFilePath)).toBe true
 
     it "returns false if the directory's path is not a prefix of the path", ->

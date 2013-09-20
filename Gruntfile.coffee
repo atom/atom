@@ -22,6 +22,7 @@ module.exports = (grunt) ->
       expand: true
       src: [
         'src/**/*.coffee'
+        'exports/**/*.coffee'
         'static/**/*.coffee'
       ]
       dest: appDir
@@ -89,6 +90,7 @@ module.exports = (grunt) ->
           level: 'ignore'
       src: [
         'dot-atom/**/*.coffee'
+        'exports/**/*.coffee'
         'src/**/*.coffee'
         'tasks/**/*.coffee'
         'Gruntfile.coffee'

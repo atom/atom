@@ -1,4 +1,4 @@
-textUtils = require 'text-utils'
+textUtils = require '../src/text-utils'
 
 describe 'text utilities', ->
   describe '.getCharacterCount(string)', ->

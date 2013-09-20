@@ -1,8 +1,8 @@
-$ = require 'jquery'
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
 
-Specificity = require 'specificity'
+Specificity = require '../vendor/specificity'
 PEG = require 'pegjs'
 
 ### Internal ###

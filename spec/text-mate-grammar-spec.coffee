@@ -1,8 +1,6 @@
-TextMateGrammar = require 'text-mate-grammar'
-TextMatePackage = require 'text-mate-package'
-plist = require 'plist'
-fsUtils = require 'fs-utils'
-_ = require 'underscore'
+TextMateGrammar = require '../src/text-mate-grammar'
+TextMatePackage = require '../src/text-mate-package'
+{_, fs} = require 'atom'
 
 describe "TextMateGrammar", ->
   grammar = null
@@ -19,13 +17,13 @@ describe "TextMateGrammar", ->
 
   describe "@loadSync(path)", ->
     it "loads grammars from plists", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('fixtures/sample.plist'))
+      grammar = TextMateGrammar.loadSync(require.resolve('./fixtures/sample.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('spec/fixtures/packages/package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(require.resolve('./fixtures/packages/package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]

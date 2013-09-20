@@ -1,6 +1,6 @@
-{View} = require 'space-pen'
+{View} = require './space-pen-extensions'
 {Point, Range} = require 'telepath'
-_ = require 'underscore'
+_ = require './underscore-extensions'
 
 ### Internal ###
 module.exports =

@@ -1,6 +1,6 @@
 {Site} = require 'telepath'
-Editor = require 'editor'
-Environment = require 'environment'
+Editor = require '../src/editor'
+Environment = require './environment'
 
 describe "Editor replication", ->
   [env1, env2, editSession1, editSession2, editor1, editor2] = []

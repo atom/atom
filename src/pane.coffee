@@ -1,10 +1,10 @@
 {dirname} = require 'path'
-{View} = require 'space-pen'
-$ = require 'jquery'
-_ = require 'underscore'
+{View} = require './space-pen-extensions'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 telepath = require 'telepath'
-PaneRow = require 'pane-row'
-PaneColumn = require 'pane-column'
+PaneRow = require './pane-row'
+PaneColumn = require './pane-column'
 
 # Public: A container which can contains multiple items to be switched between.
 #
@@ -402,7 +402,7 @@ class Pane extends View
 
   # Private:
   split: (items, axis, side) ->
-    PaneContainer = require 'pane-container'
+    PaneContainer = require './pane-container'
 
     parent = @parent().view()
     unless parent.hasClass(axis)

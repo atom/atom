@@ -1,6 +1,7 @@
+path = require 'path'
 {Site} = require 'telepath'
-fsUtils = require 'fs-utils'
-Project = require 'project'
+{fs} = require 'atom'
+Project = require '../src/project'
 
 module.exports =
 class Environment
@@ -10,7 +11,7 @@ class Environment
       @run => @project = deserialize(@state.get('project'))
     else
       @state = @site.createDocument({})
-      @project = new Project(projectPath ? fsUtils.resolveOnLoadPath('fixtures'))
+      @project = new Project(projectPath ? path.join(__dirname, 'fixtures'))
       @state.set(project: @project.getState())
 
   clone: (params) ->
