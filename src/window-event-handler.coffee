@@ -1,9 +1,9 @@
-$ = require 'jquery'
-_ = require 'underscore'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 ipc = require 'ipc'
 remote = require 'remote'
-Subscriber = require 'subscriber'
-fsUtils = require 'fs-utils'
+Subscriber = require './subscriber'
+fsUtils = require './fs-utils'
 
 # Private: Handles low-level events related to the window.
 module.exports =

@@ -1,7 +1,7 @@
-$ = require 'jquery'
+{$} = require 'atom'
 
-ThemeManager = require 'theme-manager'
-AtomPackage = require 'atom-package'
+ThemeManager = require '../src/theme-manager'
+AtomPackage = require '../src/atom-package'
 
 describe "ThemeManager", ->
   themeManager = null
@@ -30,7 +30,7 @@ describe "ThemeManager", ->
       themeManager.load()
 
       config.set('core.themes', [])
-      expect($('style.userTheme').length).toBe 0
+      expect($('style.theme').length).toBe 0
       expect(reloadHandler).toHaveBeenCalled()
 
       config.set('core.themes', ['atom-dark-syntax'])

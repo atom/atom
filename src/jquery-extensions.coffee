@@ -1,5 +1,5 @@
-$ = require 'jquery'
-_ = require 'underscore'
+$ = require '../vendor/jquery'
+_ = require './underscore-extensions'
 
 $.fn.scrollBottom = (newValue) ->
   if newValue?
@@ -126,3 +126,5 @@ $.fn.intValue = ->
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()
 $.Event.prototype.targetView = -> $(this.target).view()
+
+module.exports = $

@@ -1,7 +1,7 @@
-fsUtils = require 'fs-utils'
-$ = require 'jquery'
-_ = require 'underscore'
-Package = require 'package'
+fsUtils = require './fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
+Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'
 crypto = require 'crypto'
@@ -9,8 +9,8 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 telepath = require 'telepath'
-ThemeManager = require 'theme-manager'
-ContextMenuManager = require 'context-menu-manager'
+ThemeManager = require './theme-manager'
+ContextMenuManager = require './context-menu-manager'
 
 window.atom =
   loadedPackages: {}
@@ -147,7 +147,7 @@ window.atom =
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
-    requireStylesheet('atom')
+    requireStylesheet('../static/atom')
     if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
       requireStylesheet(nativeStylesheetPath)
 

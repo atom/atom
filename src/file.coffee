@@ -1,9 +1,9 @@
-EventEmitter = require 'event-emitter'
+EventEmitter = require './event-emitter'
 fs = require 'fs'
 path = require 'path'
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
-_ = require 'underscore'
+_ = require './underscore-extensions'
 
 # Public: Represents an individual file in the editor.
 #

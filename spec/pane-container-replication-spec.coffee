@@ -1,8 +1,8 @@
 {Site} = require 'telepath'
-{View} = require 'space-pen'
-PaneContainer = require 'pane-container'
-Pane = require 'pane'
-Environment = require 'environment'
+{View} = require 'atom'
+PaneContainer = require '../src/pane-container'
+Pane = require '../src/pane'
+Environment = require './environment'
 
 describe "PaneContainer replication", ->
   [env1, env2, envConnection, container1, container2, pane1a, pane1b, pane1c] = []

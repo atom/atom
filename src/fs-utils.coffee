@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'
@@ -6,7 +6,8 @@ async = require 'async'
 rimraf = require 'rimraf'
 path = require 'path'
 
-module.exports =
+# Public: Useful extensions to node's built-in fs module
+fsExtensions =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (relativePath) ->
@@ -301,3 +302,5 @@ module.exports =
       CSON.readFile(objectPath, done)
     else
       @readPlist(objectPath, done)
+
+module.exports = _.extend({}, fs, fsExtensions)

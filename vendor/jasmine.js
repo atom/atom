@@ -1,10 +1,10 @@
 // Modified line
 // - var isCommonJS = typeof window == "undefined" && typeof exports == "object";
-// +
+// + var isCommonJS = typeof exports == "object";
 //
 // Modified method jasmine.WaitsForBlock.prototype.execute
 
-var isCommonJS = typeof window == "undefined" && typeof exports == "object";
+var isCommonJS = typeof exports == "object";
 
 /**
  * Top level namespace for Jasmine, a lightweight JavaScript BDD/spec/testing framework.

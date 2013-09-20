@@ -5,8 +5,8 @@ CSON = require 'season'
 module.exports =
 class Package
   @build: (path) ->
-    TextMatePackage = require 'text-mate-package'
-    AtomPackage = require 'atom-package'
+    TextMatePackage = require './text-mate-package'
+    AtomPackage = require './atom-package'
 
     if TextMatePackage.testName(path)
       new TextMatePackage(path)

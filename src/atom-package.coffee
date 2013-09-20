@@ -1,11 +1,11 @@
-TextMateGrammar = require 'text-mate-grammar'
-Package = require 'package'
-fsUtils = require 'fs-utils'
+TextMateGrammar = require './text-mate-grammar'
+Package = require './package'
+fsUtils = require './fs-utils'
 path = require 'path'
-_ = require 'underscore'
-$ = require 'jquery'
+_ = require './underscore-extensions'
+$ = require './jquery-extensions'
 CSON = require 'season'
-EventEmitter = require 'event-emitter'
+EventEmitter = require './event-emitter'
 
 ### Internal: Loads and resolves packages. ###
 
@@ -24,6 +24,8 @@ class AtomPackage extends Package
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
+
+  getType: -> 'atom'
 
   load: ->
     try
