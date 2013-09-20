@@ -7,8 +7,8 @@ From the root of this repository:
 * Run the following to push the views (replace the `PASSWORD`):
 
 ```sh
-couchapp push lib/couch/app.js https://hubot:PASSWORD@atom.iriscouch.com/registry
+couchapp push lib/couch/app.js https://atom:PASSWORD@atom.cloudant.com/registry
 ```
 
-* Visit [here](http://atom.iriscouch.com/registry/_design/apm/_view/atom_packages)
+* Visit [here](http://atom.cloudant.com/registry/_design/apm/_view/atom_packages)
   to see the deployed view.
