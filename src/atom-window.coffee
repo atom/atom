@@ -1,6 +1,7 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 MenuItem = require 'menu-item'
+ContextMenu = require 'context-menu'
 app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
@@ -12,8 +13,6 @@ _ = require 'underscore'
 module.exports =
 class AtomWindow
   browserWindow: null
-  contextMenu: null
-  inspectElementMenuItem: null
   loaded: null
   isSpec: null
 
@@ -22,7 +21,6 @@ class AtomWindow
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
-    @createContextMenu()
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @browserWindow.restart = _.wrap _.bind(@browserWindow.restart, @browserWindow), (restart) =>
       @setupNodePath(@resourcePath)
@@ -84,9 +82,8 @@ class AtomWindow
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    @browserWindow.on 'context-menu', (x, y) =>
-      @inspectElementMenuItem.click = => @browserWindow.inspectElement(x, y)
-      @contextMenu.popup(@browserWindow)
+    @browserWindow.on 'context-menu', (menuTemplate) =>
+      new ContextMenu(menuTemplate)
 
     if @isSpec
       # Spec window's web view should always have focus
@@ -100,11 +97,6 @@ class AtomWindow
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
-  createContextMenu: ->
-    @contextMenu = new Menu
-    @inspectElementMenuItem = new MenuItem(label: 'Inspect Element')
-    @contextMenu.append(@inspectElementMenuItem)
-
   sendCommand: (command, args...) ->
     if @handlesAtomCommands()
       @sendAtomCommand(command, args...)
@@ -112,7 +104,8 @@ class AtomWindow
       @sendNativeCommand(command)
 
   sendAtomCommand: (command, args...) ->
-    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
+    action = if args[0]?.contextCommand then 'context-command' else 'command'
+    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
 
   sendNativeCommand: (command) ->
     switch command
