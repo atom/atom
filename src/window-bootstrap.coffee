@@ -1,7 +1,7 @@
 # Like sands through the hourglass, so are the days of our lives.
 date = new Date().getTime()
-require 'atom'
-require 'window'
+require './atom'
+require './window'
 
 window.setUpEnvironment('editor')
 window.startEditorWindow()

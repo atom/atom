@@ -1,6 +1,6 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require './underscore-extensions'
 LessCache = require 'less-cache'
 
 module.exports =

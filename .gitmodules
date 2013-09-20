@@ -1,6 +1,3 @@
-[submodule "vendor/bootstrap"]
-	path = vendor/bootstrap
-	url = https://github.com/twbs/bootstrap
 [submodule "vendor/apm"]
 	path = vendor/apm
 	url = https://github.com/atom/apm.git

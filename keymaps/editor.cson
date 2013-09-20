@@ -1,10 +1,16 @@
 '.editor':
+  'meta-d': 'editor:delete-line'
+  'ctrl-W': 'editor:select-word'
+  'meta-alt-p': 'editor:log-cursor-scope'
+  'meta-u': 'editor:upper-case'
+  'meta-U': 'editor:lower-case'
+
+'.editor:not(.mini)':
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'
   'meta-shift-enter': 'editor:newline-above'
   'tab': 'editor:indent'
   'meta-=': 'editor:auto-indent'
-  'meta-d': 'editor:delete-line'
 
   'ctrl-[': 'editor:fold-current-row'
   'ctrl-]': 'editor:unfold-current-row'
@@ -26,11 +32,8 @@
   'shift-tab': 'editor:outdent-selected-rows'
   'meta-[': 'editor:outdent-selected-rows'
   'meta-]': 'editor:indent-selected-rows'
+
   'meta-/': 'editor:toggle-line-comments'
-  'ctrl-W': 'editor:select-word'
-  'meta-alt-p': 'editor:log-cursor-scope'
-  'meta-u': 'editor:upper-case'
-  'meta-U': 'editor:lower-case'
   'ctrl-C': 'editor:copy-path'
   'ctrl-meta-up': 'editor:move-line-up'
   'ctrl-meta-down': 'editor:move-line-down'

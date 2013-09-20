@@ -1,6 +1,6 @@
-Token = require 'token'
-EventEmitter = require 'event-emitter'
-_ = require 'underscore'
+Token = require './token'
+EventEmitter = require './event-emitter'
+_ = require './underscore-extensions'
 
 ### Internal ###
 module.exports =

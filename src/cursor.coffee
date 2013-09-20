@@ -1,6 +1,6 @@
 {Point, Range} = require 'telepath'
-EventEmitter = require 'event-emitter'
-_ = require 'underscore'
+EventEmitter = require './event-emitter'
+_ = require './underscore-extensions'
 
 # Public: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.

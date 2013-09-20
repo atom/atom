@@ -1,15 +1,15 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 guid = require 'guid'
 telepath = require 'telepath'
 {Point, Range} = telepath
-TokenizedBuffer = require 'tokenized-buffer'
-RowMap = require 'row-map'
-EventEmitter = require 'event-emitter'
-Fold = require 'fold'
-Token = require 'token'
-DisplayBufferMarker = require 'display-buffer-marker'
-Subscriber = require 'subscriber'
-ConfigObserver = require 'config-observer'
+TokenizedBuffer = require './tokenized-buffer'
+RowMap = require './row-map'
+EventEmitter = require './event-emitter'
+Fold = require './fold'
+Token = require './token'
+DisplayBufferMarker = require './display-buffer-marker'
+Subscriber = require './subscriber'
+ConfigObserver = require './config-observer'
 
 # Private:
 module.exports =

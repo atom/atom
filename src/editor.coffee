@@ -1,13 +1,13 @@
-{View, $$} = require 'space-pen'
-TextBuffer = require 'text-buffer'
-Gutter = require 'gutter'
+{View, $$} = require './space-pen-extensions'
+TextBuffer = require './text-buffer'
+Gutter = require './gutter'
 {Point, Range} = require 'telepath'
-EditSession = require 'edit-session'
-CursorView = require 'cursor-view'
-SelectionView = require 'selection-view'
-fsUtils = require 'fs-utils'
-$ = require 'jquery'
-_ = require 'underscore'
+EditSession = require './edit-session'
+CursorView = require './cursor-view'
+SelectionView = require './selection-view'
+fsUtils = require './fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 
 # Private: Represents the entire visual pane in Atom.
 #
@@ -88,6 +88,7 @@ class Editor extends View
     @configure()
     @bindKeys()
     @handleEvents()
+    @handleInputEvents()
     @cursorViews = []
     @selectionViews = []
     @pendingChanges = []
@@ -125,12 +126,7 @@ class Editor extends View
       'core:paste': @paste
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
-      'editor:newline': @insertNewline
       'editor:consolidate-selections': @consolidateSelections
-      'editor:indent': @indent
-      'editor:auto-indent': @autoIndent
-      'editor:indent-selected-rows': @indentSelectedRows
-      'editor:outdent-selected-rows': @outdentSelectedRows
       'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
       'editor:backspace-to-beginning-of-line': @backspaceToBeginningOfLine
       'editor:delete-to-end-of-word': @deleteToEndOfWord
@@ -152,8 +148,6 @@ class Editor extends View
       'editor:select-to-next-word-boundary': @selectToNextWordBoundary
       'editor:select-to-previous-word-boundary': @selectToPreviousWordBoundary
       'editor:select-to-first-character-of-line': @selectToFirstCharacterOfLine
-      'editor:add-selection-below': @addSelectionBelow
-      'editor:add-selection-above': @addSelectionAbove
       'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
@@ -171,8 +165,15 @@ class Editor extends View
         'core:select-down': @selectDown
         'core:select-to-top': @selectToTop
         'core:select-to-bottom': @selectToBottom
+        'editor:indent': @indent
+        'editor:auto-indent': @autoIndent
+        'editor:indent-selected-rows': @indentSelectedRows
+        'editor:outdent-selected-rows': @outdentSelectedRows
+        'editor:newline': @insertNewline
         'editor:newline-below': @insertNewlineBelow
         'editor:newline-above': @insertNewlineAbove
+        'editor:add-selection-below': @addSelectionBelow
+        'editor:add-selection-above': @addSelectionAbove
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
@@ -677,10 +678,6 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
-    @on "textInput", (e) =>
-      @insertText(e.originalEvent.data)
-      false
-
     unless @mini
       @scrollView.on 'mousewheel', (e) =>
         if delta = e.originalEvent.wheelDeltaY
@@ -695,6 +692,33 @@ class Editor extends View
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
+
+  handleInputEvents: ->
+    @on 'cursor:moved', =>
+      cursorView = @getCursorView()
+      @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
+
+    selectedText = null
+    @hiddenInput.on 'compositionstart', =>
+      selectedText = @getSelectedText()
+      @hiddenInput.css('width', '100%')
+    @hiddenInput.on 'compositionupdate', (e) =>
+      @insertText(e.originalEvent.data, {select: true, skipUndo: true})
+    @hiddenInput.on 'compositionend', =>
+      @insertText(selectedText, {select: true, skipUndo: true})
+      @hiddenInput.css('width', '1px')
+
+    lastInput = ''
+    @on "textInput", (e) =>
+      # Work around of the accented character suggestion feature in OS X.
+      selectedLength = @hiddenInput[0].selectionEnd - @hiddenInput[0].selectionStart
+      if selectedLength is 1 and lastInput is @hiddenInput.val()
+        @selectLeft()
+
+      lastInput = e.originalEvent.data
+      @insertText(lastInput)
+      @hiddenInput.val(lastInput)
+      false
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null

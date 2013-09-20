@@ -1,7 +1,7 @@
-$ = require 'jquery'
-{ View } = require 'space-pen'
-Editor = require 'editor'
-fuzzyFilter = require 'fuzzy-filter'
+$ = require './jquery-extensions'
+{ View } = require './space-pen-extensions'
+Editor = require './editor'
+fuzzyFilter = require './fuzzy-filter'
 
 # Public: Provides a widget for users to make a selection from a list of
 # choices.

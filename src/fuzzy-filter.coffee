@@ -1,4 +1,4 @@
-stringScore = require 'stringscore'
+stringScore = require '../vendor/stringscore'
 path = require 'path'
 
 module.exports = (candidates, query, options={}) ->

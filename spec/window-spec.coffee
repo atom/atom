@@ -1,9 +1,6 @@
-$ = require 'jquery'
-{$$} = require 'space-pen'
-fsUtils = require 'fs-utils'
+{$, $$, fs} = require 'atom'
 path = require 'path'
-{less} = require 'less'
-WindowEventHandler = require 'window-event-handler'
+WindowEventHandler = require '../src/window-event-handler'
 
 describe "Window", ->
   [projectPath, windowEventHandler] = []
@@ -88,7 +85,7 @@ describe "Window", ->
 
       element = $('head style[id*="css.css"]')
       expect(element.attr('id')).toBe cssPath
-      expect(element.text()).toBe fsUtils.read(cssPath)
+      expect(element.text()).toBe fs.read(cssPath)
 
       # doesn't append twice
       requireStylesheet(cssPath)
@@ -120,9 +117,9 @@ describe "Window", ->
       $('head style[id*="sample.less"]').remove()
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
-      requireStylesheet 'fixtures/css'
+      requireStylesheet path.join(__dirname, 'fixtures', 'css')
       expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
-      requireStylesheet 'fixtures/sample'
+      requireStylesheet path.join(__dirname, 'fixtures', 'sample')
       expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
 
       $('head style[id*="css.css"]').remove()
@@ -130,7 +127,7 @@ describe "Window", ->
 
   describe ".removeStylesheet(path)", ->
     it "removes styling applied by given stylesheet path", ->
-      cssPath = require.resolve(path.join("fixtures", "css.css"))
+      cssPath = require.resolve('./fixtures/css.css')
 
       expect($(document.body).css('font-weight')).not.toBe("bold")
       requireStylesheet(cssPath)

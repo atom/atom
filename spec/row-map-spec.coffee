@@ -1,4 +1,4 @@
-RowMap = require 'row-map'
+RowMap = require '../src/row-map'
 
 describe "RowMap", ->
   map = null

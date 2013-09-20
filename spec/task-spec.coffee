@@ -1,4 +1,4 @@
-Task = require 'task'
+Task = require '../src/task'
 
 describe "Task", ->
   describe "populating the window with fake properties", ->
@@ -8,7 +8,7 @@ describe "Task", ->
         spyOn(console, 'error')
         spyOn(console, 'warn')
 
-        jqueryTask = new Task('fixtures/jquery-task-handler')
+        jqueryTask = new Task(require.resolve('./fixtures/jquery-task-handler'))
         jqueryLoaded = false
         jqueryTask.start (loaded) -> jqueryLoaded = loaded
 
@@ -24,7 +24,7 @@ describe "Task", ->
   describe "@once(taskPath, args..., callback)", ->
     it "terminates the process after it completes", ->
       handlerResult = null
-      task = Task.once 'fixtures/task-spec-handler', (result) ->
+      task = Task.once require.resolve('./fixtures/task-spec-handler'), (result) ->
         handlerResult = result
 
       processClosed = false

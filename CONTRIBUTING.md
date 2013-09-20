@@ -23,6 +23,7 @@
   * Commit messages that improve the format of the code start with :lipstick:
   * Commit messages that improve the performance start with :racehorse:
   * Commit messages that remove memory leaks start with :non-potable_water:
+  * Commit messages that improve documentation start with :memo:
   * Files end with a newline
   * Class variables and methods should be in the following order:
     * Class variables (variables starting with a `@`)
