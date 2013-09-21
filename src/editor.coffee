@@ -929,6 +929,7 @@ class Editor extends View
 
   # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
+    @setWidthInChars()
     @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
 
   calculateWidthInChars: ->
