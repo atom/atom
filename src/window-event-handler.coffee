@@ -25,7 +25,7 @@ class WindowEventHandler
       rootView?.open(pathToOpen, {initialLine}) unless fsUtils.isDirectorySync(pathToOpen)
     @subscribe $(window), 'beforeunload', =>
       confirmed = rootView?.confirmClose()
-      atom.hide() if confirmed and not @reloadRequested
+      atom.hide() if confirmed and not @reloadRequested and remote.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
