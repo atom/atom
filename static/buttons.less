@@ -6,8 +6,11 @@
   border: none;
   text-shadow: none;
 
+  height: @component-line-height + 2px;
+  line-height: @component-line-height;
+
+  padding: 0 @component-padding;
   font-size: @font-size;
-  padding: @component-padding/2 @component-padding;
   z-index: 0;
 
   background-color: @button-background-color;
@@ -26,15 +29,21 @@
 .btn-group-xs > .btn {
   padding: @component-padding/4 @component-padding/2;
   font-size: @font-size - 2px;
+  height: auto;
+  line-height: 1.3em;
 }
 .btn.btn-sm,
 .btn-group-sm > .btn {
   padding: @component-padding/4 @component-padding/2;
+  height: auto;
+  line-height: 1.3em;
 }
 .btn.btn-lg,
 .btn-group-lg > .btn {
   font-size: @font-size + 2px;
   padding: @component-padding - 2px  @component-padding + 2px;
+  height: auto;
+  line-height: 1.3em;
 }
 
 .btn-group > .btn {
