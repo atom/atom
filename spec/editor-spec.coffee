@@ -1,6 +1,4 @@
-{_, $, $$, fs, RootView} = require 'atom'
-Editor = require '../src/editor'
-{Range} = require 'telepath'
+{_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
 
 describe "Editor", ->
