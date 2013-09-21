@@ -3,13 +3,16 @@ fs = require 'fs'
 path = require 'path'
 
 CoffeeScript = require 'coffee-script'
+CSON = require 'season'
 mkdir = require('mkdirp').sync
 
-cacheDir = '/tmp/atom-compile-cache/coffee'
+cacheDir = '/tmp/atom-compile-cache'
+coffeeCacheDir = path.join(cacheDir, 'coffee')
+CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
 getCachePath = (coffee) ->
   digest = crypto.createHash('sha1').update(coffee, 'utf8').digest('hex')
-  path.join(cacheDir, "#{digest}.coffee")
+  path.join(coffeeCacheDir, "#{digest}.coffee")
 
 getCachedJavaScript = (cachePath) ->
   try
