@@ -1,5 +1,5 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
-{Point, Range} = require 'telepath'
+{Document, Point, Range} = require 'telepath'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -9,6 +9,7 @@ module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
+  Document: Document
   EventEmitter: require '../src/event-emitter'
   File: require '../src/file'
   fs: require '../src/fs-utils'
