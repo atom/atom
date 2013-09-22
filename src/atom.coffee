@@ -34,7 +34,9 @@ window.atom =
   activatePackage: (name, options) ->
     if pack = @loadPackage(name, options)
       @activePackages[pack.name] = pack
+      startTime = new Date().getTime()
       pack.activate(options)
+      pack.activateTime = new Date().getTime() - startTime
       pack
 
   deactivatePackages: ->
@@ -67,7 +69,9 @@ window.atom =
 
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
+      startTime = new Date().getTime()
       pack = Package.load(packagePath, options)
+      pack.loadTime = new Date().getTime() - startTime
       if pack.metadata.theme
         @themes.register(pack)
       else
