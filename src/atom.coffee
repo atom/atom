@@ -61,7 +61,7 @@ window.atom =
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
-    # of the first package isn't impacted by being the first to require atom
+    # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
