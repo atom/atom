@@ -16,9 +16,11 @@
 // Blocks
 
 // Must be div.block so as not to affect syntax highlighting.
+ul.block,
 div.block {
   margin-bottom: @component-padding;
 }
+div > ul.block:last-child,
 div > div.block:last-child {
   margin-bottom: 0;
 }
