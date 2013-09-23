@@ -7,7 +7,33 @@
   background-color: transparent;
   box-shadow: none;
 
+  &.bordered {
+    .panel-heading {
+      border-radius: @component-border-radius @component-border-radius 0 0;
+    }
+  }
+}
+
+.inset-panel {
   .panel-heading {
-    border-radius: 0;
+    border-radius: @component-border-radius @component-border-radius 0 0;
+  }
+}
+
+.panel-heading {
+  margin: 0;
+
+  border-radius: 0;
+
+  font-size: @font-size;
+  line-height: 1;
+
+  .btn {
+    @btn-height: @component-line-height - 5px;
+    height: @btn-height;
+    line-height: @btn-height;
+    font-size: @font-size - 2px;
+    position: relative;
+    top: -5px;
   }
 }
