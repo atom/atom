@@ -160,12 +160,12 @@ window.mousemoveEvent = (properties={}) ->
 
 window.waitsForPromise = (args...) ->
   if args.length > 1
-    { shouldReject } = args[0]
+    { shouldReject, timeout } = args[0]
   else
     shouldReject = false
   fn = _.last(args)
 
-  window.waitsFor (moveOn) ->
+  window.waitsFor timeout, (moveOn) ->
     promise = fn()
     if shouldReject
       promise.fail(moveOn)
