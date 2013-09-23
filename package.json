@@ -39,7 +39,7 @@
     "temp": "0.5.0",
     "underscore": "1.4.4",
 
-    "atom-light-ui": "0.1.1",
+    "atom-light-ui": "0.2.0",
     "atom-light-syntax": "0.2.0",
     "atom-dark-ui": "0.1.1",
     "atom-dark-syntax": "0.2.0",
