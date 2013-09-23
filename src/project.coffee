@@ -1,6 +1,7 @@
 fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
+{PathSearcher, PathScanner, search} = require 'scandal'
 
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
@@ -10,7 +11,6 @@ TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
 EventEmitter = require './event-emitter'
 Directory = require './directory'
-BufferedNodeProcess = require './buffered-node-process'
 Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
@@ -279,7 +279,7 @@ class Project
   # * regex:
   #   A RegExp to search with
   # * options:
-  #   - paths: an {Array} of path names to search within
+  #   - paths: an {Array} of glob patterns to search within
   # * iterator:
   #   A Function callback on each file found
   scan: (regex, options={}, iterator) ->
@@ -287,63 +287,22 @@ class Project
       iterator = options
       options = {}
 
-    bufferedData = ""
-    state = 'readingPath'
-    filePath = null
-
-    readPath = (line) ->
-      if /^[0-9,; ]+:/.test(line)
-        state = 'readingLines'
-      else if /^:/.test line
-        filePath = line.substr(1)
-      else
-        filePath += ('\n' + line)
-
-    readLine = (line) ->
-      if line.length == 0
-        state = 'readingPath'
-        filePath = null
-      else
-        colonIndex = line.indexOf(':')
-        matchInfo = line.substring(0, colonIndex)
-        lineText = line.substring(colonIndex + 1)
-        readMatches(matchInfo, lineText)
-
-    readMatches = (matchInfo, lineText) ->
-      [lineNumber, matchPositionsText] = matchInfo.match(/(\d+);(.+)/)[1..]
-      row = parseInt(lineNumber) - 1
-      matchPositions = matchPositionsText.split(',').map (positionText) -> positionText.split(' ').map (pos) -> parseInt(pos)
-
-      for [column, length] in matchPositions
-        range = new Range([row, column], [row, column + length])
-        matchText = lineText.substr(column, length)
-        iterator({path: filePath, range, matchText, lineText})
-
     deferred = $.Deferred()
-    errors = []
-    stderr = (data) ->
-      errors.push(data)
-    stdout = (data) ->
-      lines = data.split('\n')
-      lines.pop() # the last segment is a spurious '' because data always ends in \n due to bufferLines: true
-      for line in lines
-        readPath(line) if state is 'readingPath'
-        readLine(line) if state is 'readingLines'
-    exit = (code) ->
-      if code is 0
-        deferred.resolve()
-      else
-        console.error("Project scan failed: #{code}", errors.join('\n'))
-        deferred.reject({command, code})
+    searchOptions =
+      inclusions: options.paths
+      includeHidden: true
+      excludeVcsIgnores: config.get('core.excludeVcsIgnoredPaths')
+      # args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
 
-    command = require.resolve('.bin/nak')
-    args = ['--hidden', '--ackmate', regex.source, @getPath()]
-    ignoredNames = config.get('core.ignoredNames') ? []
-    args.unshift('--pathInclude', options.paths.join(',')) if options.paths and options.paths.length > 0
-    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
-    args.unshift('--ignoreCase') if regex.ignoreCase
-    args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
-    new BufferedNodeProcess({command, args, stdout, stderr, exit})
+    searcher = new PathSearcher()
+    scanner = new PathScanner(@getPath(), searchOptions)
+
+    searcher.on 'results-found', (result) ->
+      iterator(result)
+
+    search regex, scanner, searcher, ->
+      deferred.resolve()
+
     deferred
 
   # Private:

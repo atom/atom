@@ -1,3 +1,5 @@
+temp = require 'temp'
+fstream = require 'fstream'
 Project = require '../src/project'
 {_, fs} = require 'atom'
 path = require 'path'
@@ -238,17 +240,13 @@ describe "Project", ->
           project.scan /(a)+/, (match) -> matches.push(match)
 
         runs ->
-          expect(matches[0]).toEqual
-            path: project.resolve('a')
-            matchText: 'aaa'
-            lineText: 'aaa bbb'
-            range: [[0, 0], [0, 3]]
-
-          expect(matches[1]).toEqual
-            path: project.resolve('a')
-            matchText: 'aa'
-            lineText: 'cc aa cc'
-            range: [[1, 3], [1, 5]]
+          expect(matches).toHaveLength(3)
+          expect(matches[0].path).toBe project.resolve('a')
+          expect(matches[0].matches).toHaveLength(3)
+          expect(matches[0].matches[0]).toEqual
+              matchText: 'aaa'
+              lineText: 'aaa bbb'
+              range: [[0, 0], [0, 3]]
 
       it "works with with escaped literals (like $ and ^)", ->
         matches = []
@@ -258,8 +256,10 @@ describe "Project", ->
         runs ->
           expect(matches.length).toBe 1
 
+          {path: resultPath, matches} = matches[0]
+          expect(resultPath).toBe project.resolve('a')
+          expect(matches).toHaveLength 1
           expect(matches[0]).toEqual
-            path: project.resolve('a')
             matchText: '$bill'
             lineText: 'dollar$bill'
             range: [[2, 6], [2, 11]]
@@ -271,11 +271,11 @@ describe "Project", ->
         waitsForPromise ->
           project.scan /evil/, (result) ->
             paths.push(result.path)
-            matches.push(result.matchText)
+            matches = matches.concat(result.matches)
 
         runs ->
           expect(paths.length).toBe 5
-          matches.forEach (match) -> expect(match).toEqual 'evil'
+          matches.forEach (match) -> expect(match.matchText).toEqual 'evil'
           expect(paths[0]).toMatch /a_file_with_utf8.txt$/
           expect(paths[1]).toMatch /file with spaces.txt$/
           expect(paths[2]).toMatch /goddam\nnewlines$/m
@@ -283,62 +283,49 @@ describe "Project", ->
           expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "ignores case if the regex includes the `i` flag", ->
-        matches = []
+        results = []
         waitsForPromise ->
-          project.scan /DOLLAR/i, (match) -> matches.push(match)
+          project.scan /DOLLAR/i, (result) -> results.push(result)
 
         runs ->
-          expect(matches).toHaveLength 1
-
-      it "handles breaks in the search subprocess's output following the filename", ->
-        spyOn(BufferedProcess.prototype, 'bufferStream')
-
-        iterator = jasmine.createSpy('iterator')
-        project.scan /a+/, iterator
-
-        stdout = BufferedProcess.prototype.bufferStream.argsForCall[0][1]
-        stdout ":#{path.join(__dirname, 'fixtures', 'dir', 'a')}\n"
-        stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
-
-        expect(iterator.argsForCall[0][0]).toEqual
-          path: project.resolve('a')
-          matchText: 'aaa'
-          lineText: 'aaa bbb'
-          range: [[0, 0], [0, 3]]
-
-        expect(iterator.argsForCall[1][0]).toEqual
-          path: project.resolve('a')
-          matchText: 'aa'
-          lineText: 'cc aa cc'
-          range: [[1, 3], [1, 5]]
+          expect(results).toHaveLength 1
 
       describe "when the core.excludeVcsIgnoredPaths config is truthy", ->
         [projectPath, ignoredPath] = []
 
         beforeEach ->
-          projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-          ignoredPath = path.join(projectPath, 'ignored.txt')
-          fs.writeSync(ignoredPath, 'this match should not be included')
+          sourceProjectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
+          projectPath = path.join(temp.mkdirSync("atom"))
+
+          writerStream = fstream.Writer(projectPath)
+          fstream.Reader(sourceProjectPath).pipe(writerStream)
+
+          waitsFor (done) ->
+            writerStream.on 'close', done
+            writerStream.on 'error', done
+
+          runs ->
+            fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
+            ignoredPath = path.join(projectPath, 'ignored.txt')
+            fs.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
-          fs.remove(ignoredPath) if fs.exists(ignoredPath)
+          fs.remove(projectPath) if fs.exists(projectPath)
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
           config.set('core.excludeVcsIgnoredPaths', true)
-          paths = []
-          matches = []
+          resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
-            project.scan /match/, (result) ->
-              paths.push(result.path)
-              matches.push(result.matchText)
+            project.scan /match/, (results) ->
+              console.log results
+              resultHandler()
 
           runs ->
-            expect(paths.length).toBe 0
-            expect(matches.length).toBe 0
+            expect(resultHandler).not.toHaveBeenCalled()
 
       it "includes only files when a directory filter is specified", ->
-        projectPath = fsUtils.resolveOnLoadPath('fixtures/dir')
+        projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
         project.setPath(projectPath)
 
         filePath = path.join(projectPath, 'a-dir', 'oh-git')
@@ -348,7 +335,8 @@ describe "Project", ->
         waitsForPromise ->
           project.scan /aaa/, paths: ['a-dir/'], (result) ->
             paths.push(result.path)
-            matches.push(result.matchText)
+            console.log result
+            matches = matches.concat(result.matches)
 
         runs ->
           expect(paths.length).toBe 1
@@ -365,7 +353,7 @@ describe "Project", ->
         waitsForPromise ->
           project.scan /match this/, (result) ->
             paths.push(result.path)
-            matches.push(result.matchText)
+            matches = matches.concat(result.matches)
 
         runs ->
           expect(paths.length).toBe 1
