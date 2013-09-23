@@ -46,6 +46,8 @@ window.setUpEnvironment = (windowMode) ->
 #
 # This can be used by packages to have a minimum level of keybindings and
 # menus available when not using the standard editor window.
+#
+# This should only be called after setUpEnvironment() has been called.
 window.setUpDefaultEvents = ->
   windowEventHandler = new WindowEventHandler
   keymap.loadBundledKeymaps()
