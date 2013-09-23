@@ -1,5 +1,5 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
-{Document, Point, Range} = require 'telepath'
+{Document, Point, Range, Site} = require 'telepath'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -17,6 +17,7 @@ module.exports =
   Point: Point
   Range: Range
   ScrollView: require '../src/scroll-view'
+  Site: Site
   stringscore: require '../vendor/stringscore'
   Subscriber: require '../src/subscriber'
   View: View
