@@ -300,7 +300,9 @@ class Project
     searcher.on 'results-found', (result) ->
       iterator(result)
 
+    console.time("search")
     search regex, scanner, searcher, ->
+      console.timeEnd("search")
       deferred.resolve()
 
     deferred
