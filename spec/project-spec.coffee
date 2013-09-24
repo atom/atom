@@ -234,34 +234,37 @@ describe "Project", ->
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
-      it "calls the callback with all regex matches in all files in the project", ->
-        matches = []
+      it "calls the callback with all regex results in all files in the project", ->
+        results = []
         waitsForPromise ->
-          project.scan /(a)+/, (match) -> matches.push(match)
+          project.scan /(a)+/, (result) ->
+            results.push(result)
 
         runs ->
-          expect(matches).toHaveLength(3)
-          expect(matches[0].path).toBe project.resolve('a')
-          expect(matches[0].matches).toHaveLength(3)
-          expect(matches[0].matches[0]).toEqual
+          expect(results).toHaveLength(3)
+          expect(results[0].filePath).toBe project.resolve('a')
+          expect(results[0].matches).toHaveLength(3)
+          expect(results[0].matches[0]).toEqual
               matchText: 'aaa'
               lineText: 'aaa bbb'
+              lineTextOffset: 0
               range: [[0, 0], [0, 3]]
 
       it "works with with escaped literals (like $ and ^)", ->
-        matches = []
+        results = []
         waitsForPromise ->
-          project.scan /\$\w+/, (match) -> matches.push(match)
+          project.scan /\$\w+/, (result) -> results.push(result)
 
         runs ->
-          expect(matches.length).toBe 1
+          expect(results.length).toBe 1
 
-          {path: resultPath, matches} = matches[0]
-          expect(resultPath).toBe project.resolve('a')
+          {filePath, matches} = results[0]
+          expect(filePath).toBe project.resolve('a')
           expect(matches).toHaveLength 1
           expect(matches[0]).toEqual
             matchText: '$bill'
             lineText: 'dollar$bill'
+            lineTextOffset: 0
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
@@ -270,7 +273,7 @@ describe "Project", ->
         matches = []
         waitsForPromise ->
           project.scan /evil/, (result) ->
-            paths.push(result.path)
+            paths.push(result.filePath)
             matches = matches.concat(result.matches)
 
         runs ->
@@ -333,7 +336,7 @@ describe "Project", ->
         matches = []
         waitsForPromise ->
           project.scan /aaa/, paths: ['a-dir/'], (result) ->
-            paths.push(result.path)
+            paths.push(result.filePath)
             matches = matches.concat(result.matches)
 
         runs ->
@@ -350,7 +353,7 @@ describe "Project", ->
         matches = []
         waitsForPromise ->
           project.scan /match this/, (result) ->
-            paths.push(result.path)
+            paths.push(result.filePath)
             matches = matches.concat(result.matches)
 
         runs ->
