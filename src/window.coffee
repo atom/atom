@@ -41,6 +41,18 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
 
+
+# Set up the default event handlers and menus for a non-editor windows.
+#
+# This can be used by packages to have a minimum level of keybindings and
+# menus available when not using the standard editor window.
+#
+# This should only be called after setUpEnvironment() has been called.
+window.setUpDefaultEvents = ->
+  windowEventHandler = new WindowEventHandler
+  keymap.loadBundledKeymaps()
+  ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
+
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   installAtomCommand()
