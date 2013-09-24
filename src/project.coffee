@@ -1,7 +1,6 @@
 fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
-{PathSearcher, PathScanner, search} = require 'scandal'
 
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
@@ -11,6 +10,7 @@ TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
 EventEmitter = require './event-emitter'
 Directory = require './directory'
+Task = require './task'
 Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
@@ -288,22 +288,19 @@ class Project
       options = {}
 
     deferred = $.Deferred()
+
     searchOptions =
+      ignoreCase: regex.ignoreCase
       inclusions: options.paths
       includeHidden: true
       excludeVcsIgnores: config.get('core.excludeVcsIgnoredPaths')
       # args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
 
-    searcher = new PathSearcher()
-    scanner = new PathScanner(@getPath(), searchOptions)
-
-    searcher.on 'results-found', (result) ->
-      iterator(result)
-
-    console.time("search")
-    search regex, scanner, searcher, ->
-      console.timeEnd("search")
+    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
       deferred.resolve()
+
+    task.on 'scan:result-found', (result) =>
+      iterator(result)
 
     deferred
 
