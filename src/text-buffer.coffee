@@ -6,6 +6,7 @@ File = require './file'
 EventEmitter = require './event-emitter'
 Subscriber = require './subscriber'
 guid = require 'guid'
+{P} = require 'scandal'
 
 # Private: Represents the contents of a file.
 #
@@ -501,7 +502,10 @@ class TextBuffer
   # regex - A {RegExp} representing the text to find
   # iterator - A {Function} that's called on each match
   scan: (regex, iterator) ->
-    @scanInRange(regex, @getRange(), iterator)
+    @scanInRange regex, @getRange(), (result) =>
+      result.lineText = @lineForRow(result.range.start.row)
+      result.lineTextOffset = 0
+      iterator(result)
 
   # Scans for text in a given range, calling a function on each match.
   #
@@ -538,7 +542,8 @@ class TextBuffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator({match, range, stop, replace })
+      matchText = match[0]
+      iterator({ match, matchText, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)
