@@ -214,8 +214,9 @@ describe "RootView", ->
 
         it "can create multiple empty edit sessions as an item on a new pane", ->
           editSession = rootView.open()
-          editSession = rootView.open()
+          editSession2 = rootView.open()
           expect(rootView.getActivePane().getItems().length).toBe 2
+          expect(editSession).not.toBe editSession2
 
       describe "when called with a path", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
