@@ -294,7 +294,7 @@ class Project
       inclusions: options.paths
       includeHidden: true
       excludeVcsIgnores: config.get('core.excludeVcsIgnoredPaths')
-      # args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
+      exclusions: config.get('core.ignoredNames')
 
     task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
       deferred.resolve()

@@ -358,19 +358,17 @@ describe "Project", ->
           expect(paths[0]).toBe filePath
           expect(matches.length).toBe 1
 
-      xit "excludes values in core.ignoredNames", ->
-        # FIXME: this test doesnt make any sense. Why should it ignore the whole project dir?
-        projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
-        filePath = path.join(projectPath, 'test.txt')
-        fs.writeSync(filePath, 'match this')
-        project.setPath(projectPath)
-        paths = []
-        matches = []
+      it "excludes values in core.ignoredNames", ->
+        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
+        ignoredNames = config.get("core.ignoredNames")
+        ignoredNames.push("a")
+        config.set("core.ignoredNames", ignoredNames)
+
+        resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
-          project.scan /match/, (result) ->
-            paths.push(result.path)
-            matches.push(result.matchText)
+          project.scan /dollar/, (results) ->
+            console.log results
+            resultHandler()
 
         runs ->
-          expect(paths.length).toBe 0
-          expect(matches.length).toBe 0
+          expect(resultHandler).not.toHaveBeenCalled()
