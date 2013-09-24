@@ -4,7 +4,7 @@ module.exports = (rootPath, regexSource, options) ->
   callback = @async()
 
   searcher = new PathSearcher()
-  scanner = new PathScanner(rootPath, rootPath)
+  scanner = new PathScanner(rootPath, options)
 
   searcher.on 'results-found', (result) ->
     emit('scan:result-found', result)
