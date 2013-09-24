@@ -318,7 +318,6 @@ describe "Project", ->
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
             project.scan /match/, (results) ->
-              console.log results
               resultHandler()
 
           runs ->
@@ -335,7 +334,6 @@ describe "Project", ->
         waitsForPromise ->
           project.scan /aaa/, paths: ['a-dir/'], (result) ->
             paths.push(result.path)
-            console.log result
             matches = matches.concat(result.matches)
 
         runs ->
