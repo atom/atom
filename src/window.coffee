@@ -10,7 +10,6 @@ WindowEventHandler = require './window-event-handler'
 deserializers = {}
 deferredDeserializers = {}
 defaultWindowDimensions = {width: 800, height: 600}
-lessCache = null
 
 ### Internal ###
 

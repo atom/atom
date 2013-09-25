@@ -15,6 +15,7 @@ class ThemeManager
   constructor: ->
     @loadedThemes = []
     @activeThemes = []
+    @lessCache = null
 
   # Internal-only:
   register: (theme) ->
@@ -81,10 +82,10 @@ class ThemeManager
   loadLessStylesheet: (lessStylesheetPath) ->
     unless lessCache?
       LessCompileCache = require './less-compile-cache'
-      lessCache = new LessCompileCache()
+      @lessCache = new LessCompileCache()
 
     try
-      lessCache.read(lessStylesheetPath)
+      @lessCache.read(lessStylesheetPath)
     catch e
       console.error """
         Error compiling less stylesheet: #{lessStylesheetPath}
