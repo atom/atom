@@ -278,9 +278,15 @@ class Project
   #
   # * regex:
   #   A RegExp to search with
+  # * options:
+  #   - paths: an {Array} of path names to search within
   # * iterator:
   #   A Function callback on each file found
-  scan: (regex, iterator) ->
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
     bufferedData = ""
     state = 'readingPath'
     filePath = null
@@ -310,8 +316,8 @@ class Project
 
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
-        match = lineText.substr(column, length)
-        iterator({path: filePath, range, match})
+        matchText = lineText.substr(column, length)
+        iterator({path: filePath, range, matchText, lineText})
 
     deferred = $.Deferred()
     errors = []
@@ -333,6 +339,7 @@ class Project
     command = require.resolve('.bin/nak')
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
     ignoredNames = config.get('core.ignoredNames') ? []
+    args.unshift('--pathInclude', options.paths.join(',')) if options.paths and options.paths.length > 0
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--ignoreCase') if regex.ignoreCase
     args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
