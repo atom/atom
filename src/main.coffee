@@ -9,7 +9,6 @@ path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
 dialog = require 'dialog'
-_ = require 'underscore'
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
