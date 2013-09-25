@@ -1,3 +1,4 @@
+temp = require 'temp'
 Git = require '../src/git'
 {fs} = require 'atom'
 path = require 'path'
