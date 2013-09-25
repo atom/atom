@@ -10,13 +10,12 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
+PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
 window.atom =
-  loadedPackages: {}
-  activePackages: {}
-  packageStates: {}
+  packages: new PackageManager()
   themes: new ThemeManager()
   contextMenu: new ContextMenuManager(remote.getCurrentWindow().loadSettings.devMode)
 
@@ -26,120 +25,28 @@ window.atom =
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  getPackageState: (name) ->
-    @packageStates[name]
-
-  setPackageState: (name, state) ->
-    @packageStates[name] = state
-
-  activatePackages: ->
-    @activatePackage(pack.name) for pack in @getLoadedPackages()
-
-  activatePackage: (name, options) ->
-    if pack = @loadPackage(name, options)
-      @activePackages[pack.name] = pack
-      pack.activate(options)
-      pack
-
-  deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getActivePackages()
-
-  deactivatePackage: (name) ->
-    if pack = @getActivePackage(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
-      pack.deactivate()
-      delete @activePackages[pack.name]
-    else
-      throw new Error("No active package for name '#{name}'")
-
-  getActivePackage: (name) ->
-    @activePackages[name]
-
-  isPackageActive: (name) ->
-    @getActivePackage(name)?
-
-  getActivePackages: ->
-    _.values(@activePackages)
-
-  loadPackages: ->
-    # Ensure atom exports is already in the require cache so the load time
-    # of the first package isn't skewed by being the first to require atom
-    require '../exports/atom'
-
-    @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @watchThemes()
-
-  loadPackage: (name, options) ->
-    if @isPackageDisabled(name)
-      return console.warn("Tried to load disabled package '#{name}'")
-
-    if packagePath = @resolvePackagePath(name)
-      return pack if pack = @getLoadedPackage(name)
-      pack = Package.load(packagePath, options)
-      if pack.metadata.theme
-        @themes.register(pack)
-      else
-        @loadedPackages[pack.name] = pack
-      pack
-    else
-      throw new Error("Could not resolve '#{name}' to a package path")
-
-  unloadPackage: (name) ->
-    if @isPackageActive(name)
-      throw new Error("Tried to unload active package '#{name}'")
-
-    if pack = @getLoadedPackage(name)
-      delete @loadedPackages[pack.name]
-    else
-      throw new Error("No loaded package for name '#{name}'")
-
-  resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
-
-    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
-
-    packagePath = path.join(window.resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
-
-  isInternalPackage: (packagePath) ->
-    {engines} = Package.loadMetadata(packagePath, true)
-    engines?.atom?
-
-  getLoadedPackage: (name) ->
-    @loadedPackages[name]
-
-  isPackageLoaded: (name) ->
-    @getLoadedPackage(name)?
-
-  getLoadedPackages: ->
-    _.values(@loadedPackages)
-
-  isPackageDisabled: (name) ->
-    _.include(config.get('core.disabledPackages') ? [], name)
-
-  getAvailablePackagePaths: ->
-    packagePaths = []
-
-    for packageDirPath in config.packageDirPaths
-      for packagePath in fsUtils.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
-
-    for packagePath in fsUtils.listSync(path.join(window.resourcePath, 'node_modules'))
-      packagePaths.push(packagePath) if @isInternalPackage(packagePath)
-
-    _.uniq(packagePaths)
-
-  getAvailablePackageNames: ->
-    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
-
-  getAvailablePackageMetadata: ->
-    packages = []
-    for packagePath in atom.getAvailablePackagePaths()
-      name = path.basename(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
-      packages.push(metadata)
-    packages
+  #TODO Remove theses once packages have been migrated
+  getPackageState: (args...) -> @packages.getPackageState(args...)
+  setPackageState: (args...) -> @packages.setPackageState(args...)
+  activatePackages: (args...) -> @packages.activatePackages(args...)
+  activatePackage: (args...) -> @packages.activatePackage(args...)
+  deactivatePackages: (args...) -> @packages.deactivatePackage(args...)
+  deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
+  getActivePackage: (args...) -> @packages.getActivePackage(args...)
+  isPackageActive: (args...) -> @packages.isPackageActive(args...)
+  getActivePackages: (args...) -> @packages.getActivePackages(args...)
+  loadPackages: (args...) -> @packages.loadPackages(args...)
+  loadPackage: (args...) -> @packages.loadPackage(args...)
+  unloadPackage: (args...) -> @packages.unloadPackage(args...)
+  resolvePackagePath: (args...) -> @packages.resolvePackagePath(args...)
+  isInternalPackage: (args...) -> @packages.isInternalPackage(args...)
+  getLoadedPackage: (args...) -> @packages.getLoadedPackage(args...)
+  isPackageLoaded: (args...) -> @packages.isPackageLoaded(args...)
+  getLoadedPackages: (args...) -> @packages.getLoadedPackages(args...)
+  isPackageDisabled: (args...) -> @packages.isPackageDisabled(args...)
+  getAvailablePackagePaths: (args...) -> @packages.getAvailablePackagePaths(args...)
+  getAvailablePackageNames: (args...) -> @packages.getAvailablePackageNames(args...)
+  getAvailablePackageMetadata: (args...)-> @packages.getAvailablePackageMetadata(args...)
 
   loadThemes: ->
     @themes.load()
