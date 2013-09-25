@@ -39,3 +39,9 @@ class Package
 
   isTheme: ->
     !!@metadata?.theme
+
+  # Private:
+  measure: (key, fn) ->
+    startTime = new Date().getTime()
+    fn()
+    @[key] = new Date().getTime() - startTime

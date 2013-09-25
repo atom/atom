@@ -28,37 +28,39 @@ class AtomPackage extends Package
   getType: -> 'atom'
 
   load: ->
-    try
-      @metadata = Package.loadMetadata(@path)
-      if @isTheme()
-        @stylesheets = []
-        @keymaps = []
-        @menus = []
-        @grammars = []
-        @scopedProperties = []
-      else
-        @loadKeymaps()
-        @loadMenus()
-        @loadStylesheets()
-        @loadGrammars()
-        @loadScopedProperties()
-
-        if @metadata.activationEvents?
-          @registerDeferredDeserializers()
+    @measure 'loadTime', =>
+      try
+        @metadata = Package.loadMetadata(@path)
+        if @isTheme()
+          @stylesheets = []
+          @keymaps = []
+          @menus = []
+          @grammars = []
+          @scopedProperties = []
         else
-          @requireMainModule()
+          @loadKeymaps()
+          @loadMenus()
+          @loadStylesheets()
+          @loadGrammars()
+          @loadScopedProperties()
 
-    catch e
-      console.warn "Failed to load package named '#{@name}'", e.stack ? e
+          if @metadata.activationEvents?
+            @registerDeferredDeserializers()
+          else
+            @requireMainModule()
+
+      catch e
+        console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
   activate: ({immediate}={}) ->
-    @loadStylesheets() if @isTheme()
-    @activateResources()
-    if @metadata.activationEvents? and not immediate
-      @subscribeToActivationEvents()
-    else
-      @activateNow()
+    @measure 'activateTime', =>
+      @loadStylesheets() if @isTheme()
+      @activateResources()
+      if @metadata.activationEvents? and not immediate
+        @subscribeToActivationEvents()
+      else
+        @activateNow()
 
   activateNow: ->
     try
