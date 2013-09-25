@@ -63,6 +63,15 @@ describe "Editor", ->
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
+    it "does not scroll the editor (regression)", ->
+      editor.attachToDom(heightInLines: 2)
+      editor.selectAll()
+      editor.hiddenInput.blur()
+      editor.focus()
+
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+      expect($(editor[0]).scrollTop()).toBe 0
+
   describe "when the hidden input is focused / unfocused", ->
     it "assigns the isFocused flag on the editor and also adds/removes the .focused css class", ->
       editor.attachToDom()

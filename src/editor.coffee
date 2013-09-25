@@ -640,6 +640,7 @@ class Editor extends View
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @removeClass 'is-focused'
+      @hiddenInput.offset(top: 0, left: 0)
 
     @underlayer.on 'mousedown', (e) =>
       @renderedLines.trigger(e)
