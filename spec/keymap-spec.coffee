@@ -364,6 +364,10 @@ describe "Keymap", ->
       it "returns '<package-name>'", ->
         expect(keymap.determineSource('~/.atom/packages/dummy/keymaps/a.cson')).toEqual 'dummy'
 
+    describe "for a linked package", ->
+      it "returns '<package-name>'", ->
+        expect(keymap.determineSource('/Users/john/github/dummy/keymaps/a.cson')).toEqual 'dummy'
+
     describe "for a user defined keymap", ->
       it "returns 'User'", ->
         expect(keymap.determineSource('~/.atom/keymaps/a.cson')).toEqual 'User'
@@ -371,3 +375,7 @@ describe "Keymap", ->
     describe "for a core keymap", ->
       it "returns 'Core'", ->
         expect(keymap.determineSource('/Applications/Atom.app/.../node_modules/dummy/keymaps/a.cson')).toEqual 'Core'
+
+    describe "for a linked core keymap", ->
+      it "returns 'Core'", ->
+        expect(keymap.determineSource('/Users/john/github/atom/keymaps/a.cson')).toEqual 'Core'

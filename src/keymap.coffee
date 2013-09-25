@@ -82,13 +82,13 @@ class Keymap
     return 'Unknown' unless filePath
 
     pathParts = filePath.split(path.sep)
-    if _.contains(pathParts, '.atom') and _.contains(pathParts, 'packages')
-      packageNameIndex = pathParts.indexOf('keymaps') - 1
-      pathParts[packageNameIndex]
-    else if _.contains(pathParts, '.atom') and _.contains(pathParts, 'keymaps')
+    if _.contains(pathParts, 'node_modules') or _.contains(pathParts, 'atom') or _.contains(pathParts, 'src')
+      'Core'
+    else if _.contains(pathParts, '.atom') and _.contains(pathParts, 'keymaps') and !_.contains(pathParts, 'packages')
       'User'
     else
-      'Core'
+      packageNameIndex = pathParts.length - 3
+      pathParts[packageNameIndex]
 
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
