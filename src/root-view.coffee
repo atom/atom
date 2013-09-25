@@ -173,8 +173,10 @@ class RootView extends View
     initialLine = options.initialLine
     path = project.relativize(path)
     if activePane = @getActivePane()
-      editSession = activePane.itemForUri(path) if path
-      editSession ?= project.open(path, {initialLine})
+      if path
+        editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
+      else
+        editSession = project.open()
       activePane.showItem(editSession)
     else
       editSession = project.open(path, {initialLine})
