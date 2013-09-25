@@ -27,7 +27,6 @@
     "oniguruma": "0.20.0",
     "optimist": "0.4.0",
     "pathwatcher": "0.5.0",
-    "patrick": "0.4.0",
     "pegjs": "0.7.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "rimraf": "2.1.4",
