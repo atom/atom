@@ -65,6 +65,7 @@ class AtomPackage extends Package
   activateNow: ->
     try
       @activateConfig()
+      @activateStylesheets()
       if @requireMainModule()
         @mainModule.activate(atom.getPackageState(@name) ? {})
         @mainActivated = true
@@ -80,11 +81,13 @@ class AtomPackage extends Package
       @mainModule.activateConfig?()
     @configActivated = true
 
+  activateStylesheets: ->
+    type = if @metadata.theme then 'theme' else 'bundled'
+    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
+
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
-    type = if @metadata.theme then 'theme' else 'bundled'
-    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)
