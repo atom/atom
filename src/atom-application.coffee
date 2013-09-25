@@ -93,8 +93,8 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        {pathsToOpen, pidToKillWhenClosed, newWindow} = JSON.parse(data)
-        @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
+        options = JSON.parse(data)
+        @openPaths(options)
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
