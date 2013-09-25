@@ -53,7 +53,7 @@ window.atom =
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @loadedPackages
+      pack.reloadStylesheets?() for name, pack of @getLoadedPackages()
       null
 
   open: (options) ->
