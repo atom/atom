@@ -30,6 +30,10 @@ class ThemeManager
     _.clone(@activeThemes)
 
   # Internal-only:
+  getLoadedThemes: ->
+    _.clone(@loadedThemes)
+
+  # Internal-only:
   unload: ->
     removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
     theme.deactivate() while theme = @activeThemes.pop()
