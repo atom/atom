@@ -5,6 +5,7 @@ crashReporter = require 'crash-reporter'
 delegate = require 'atom-delegate'
 app = require 'app'
 fs = require 'fs'
+module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
@@ -46,10 +47,10 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     require('coffee-script')
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache'))
-      require('module').globalPaths.push(path.join(args.resourcePath, 'src'))
+      module.globalPaths.push(path.join(args.resourcePath, 'src'))
     else
       appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
-      require('module').globalPaths.push(appSrcPath)
+      module.globalPaths.push(appSrcPath)
 
     AtomApplication = require 'atom-application'
 
