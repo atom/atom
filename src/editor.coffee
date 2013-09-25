@@ -696,12 +696,10 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-  updateHiddenInputOffset: ->
-    cursorView = @getCursorView()
-    @hiddenInput.offset(cursorView.offset()) if cursorView?.is(':visible')
-
   handleInputEvents: ->
-    @on 'cursor:moved', => @updateHiddenInputOffset()
+    @on 'cursor:moved', =>
+      cursorView = @getCursorView()
+      @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
 
     selectedText = null
     @hiddenInput.on 'compositionstart', =>
