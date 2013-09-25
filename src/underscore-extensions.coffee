@@ -28,6 +28,9 @@ _.mixin
   escapeRegExp: (string) ->
     string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 
+  escapeAttribute: (string) ->
+    string.replace(/"/g, '&quot;').replace(/\n/g, '')
+
   humanizeEventName: (eventName, eventDoc) ->
     [namespace, event]  = eventName.split(':')
     return _.undasherize(namespace) unless event?
