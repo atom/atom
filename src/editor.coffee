@@ -630,13 +630,15 @@ class Editor extends View
 
   handleEvents: ->
     @on 'focus', =>
-      @updateHiddenInputOffset()
       @hiddenInput.focus()
       false
 
     @hiddenInput.on 'focus', =>
       @isFocused = true
       @addClass 'is-focused'
+
+    @hiddenInput.on 'blur', =>
+      @hiddenInput.offset(top: 0, left: 0)
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
@@ -696,10 +698,7 @@ class Editor extends View
 
   updateHiddenInputOffset: ->
     cursorView = @getCursorView()
-    if cursorView?.is(':visible')
-      offset = cursorView.offset()
-      offset.top = Math.min(@height(), offset.top)
-      @hiddenInput.offset(offset)
+    @hiddenInput.offset(cursorView.offset()) if cursorView?.is(':visible')
 
   handleInputEvents: ->
     @on 'cursor:moved', => @updateHiddenInputOffset()
