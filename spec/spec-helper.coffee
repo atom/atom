@@ -14,8 +14,8 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
 clipboard = require 'clipboard'
 
-atom.loadBaseStylesheets()
-requireStylesheet '../static/jasmine'
+atom.themes.loadBaseStylesheets()
+atom.themes.requireStylesheet '../static/jasmine'
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)

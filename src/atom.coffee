@@ -146,18 +146,8 @@ window.atom =
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      @reloadBaseStylesheets()
       pack.reloadStylesheets?() for name, pack of @loadedPackages
       null
-
-  loadBaseStylesheets: ->
-    requireStylesheet('bootstrap/less/bootstrap')
-    @reloadBaseStylesheets()
-
-  reloadBaseStylesheets: ->
-    requireStylesheet('../static/atom')
-    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
-      requireStylesheet(nativeStylesheetPath)
 
   open: (options) ->
     ipc.sendChannel('open', options)

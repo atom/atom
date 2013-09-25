@@ -62,7 +62,7 @@ window.startEditorWindow = ->
   restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
-  atom.loadBaseStylesheets()
+  atom.themes.loadBaseStylesheets()
   atom.loadPackages()
   atom.loadThemes()
   deserializeEditorWindow()
@@ -131,65 +131,6 @@ window.deserializeEditorWindow = ->
   project.on 'path-changed', ->
     projectPath = project.getPath()
     atom.getLoadSettings().initialPath = projectPath
-
-window.stylesheetElementForId = (id) ->
-  $("""head style[id="#{id}"]""")
-
-window.resolveStylesheet = (stylesheetPath) ->
-  if path.extname(stylesheetPath).length > 0
-    fsUtils.resolveOnLoadPath(stylesheetPath)
-  else
-    fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
-
-# Public: resolves and applies the stylesheet specified by the path.
-#
-# * stylesheetPath: String. Can be an absolute path or the name of a CSS or
-#   LESS file in the stylesheets path.
-#
-# Returns the absolute path to the stylesheet
-window.requireStylesheet = (stylesheetPath) ->
-  if fullPath = window.resolveStylesheet(stylesheetPath)
-    content = window.loadStylesheet(fullPath)
-    window.applyStylesheet(fullPath, content)
-  else
-    throw new Error("Could not find a file at path '#{stylesheetPath}'")
-
-  fullPath
-
-window.loadStylesheet = (stylesheetPath) ->
-  if path.extname(stylesheetPath) is '.less'
-    loadLessStylesheet(stylesheetPath)
-  else
-    fsUtils.read(stylesheetPath)
-
-window.loadLessStylesheet = (lessStylesheetPath) ->
-  unless lessCache?
-    LessCompileCache = require './less-compile-cache'
-    lessCache = new LessCompileCache()
-
-  try
-    lessCache.read(lessStylesheetPath)
-  catch e
-    console.error """
-      Error compiling less stylesheet: #{lessStylesheetPath}
-      Line number: #{e.line}
-      #{e.message}
-    """
-
-window.removeStylesheet = (stylesheetPath) ->
-  unless fullPath = window.resolveStylesheet(stylesheetPath)
-    throw new Error("Could not find a file at path '#{stylesheetPath}'")
-  window.stylesheetElementForId(fullPath).remove()
-
-window.applyStylesheet = (id, text, ttype = 'bundled') ->
-  styleElement = window.stylesheetElementForId(id)
-  if styleElement.length
-    styleElement.text(text)
-  else
-    if $("head style.#{ttype}").length
-      $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
-    else
-      $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.getDimensions = ->
   browserWindow = remote.getCurrentWindow()

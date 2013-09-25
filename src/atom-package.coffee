@@ -83,7 +83,8 @@ class AtomPackage extends Package
 
   activateStylesheets: ->
     type = if @metadata.theme then 'theme' else 'bundled'
-    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
+    for [stylesheetPath, content] in @stylesheets
+      atom.themes.applyStylesheet(stylesheetPath, content, type)
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
@@ -113,7 +114,8 @@ class AtomPackage extends Package
       fsUtils.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
+      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath)]
 
   getStylesheetsPath: ->
     path.join(@path, @constructor.stylesheetsDir)
@@ -165,17 +167,17 @@ class AtomPackage extends Package
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     keymap.remove(keymapPath) for [keymapPath] in @keymaps
-    removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
+    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
     @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
 
   reloadStylesheet: (stylesheetPath, content) ->
     type = if @metadata.theme then 'theme' else 'bundled'
-    window.applyStylesheet(stylesheetPath, content, type)
+    atom.themes.applyStylesheet(stylesheetPath, content, type)
 
   requireMainModule: ->
     return @mainModule if @mainModule?
