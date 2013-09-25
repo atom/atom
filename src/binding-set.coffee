@@ -23,11 +23,15 @@ class BindingSet
     @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
-  # Public:
+  # Private:
+  getName: ->
+    @name
+
+  # Private:
   getSelector: ->
     @selector
 
-  # Public:
+  # Private:
   getCommandsByKeystrokes: ->
     @commandsByKeystrokes
 

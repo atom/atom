@@ -347,3 +347,27 @@ describe "Keymap", ->
         bindings = keymap.bindingsForElement(fragment.find('.grandchild-node'))
         expect(Object.keys(bindings).length).toBe 1
         expect(bindings['g']).toEqual "command-and-grandchild-node"
+
+  describe ".getAllKeyMappings", ->
+    it "returns the all bindings", ->
+      keymap.bindKeys '~/.atom/packages/dummy/keymaps/a.cson', '.command-mode', 'k': 'c'
+
+      mappings = keymap.getAllKeyMappings()
+      expect(mappings.length).toBe 1
+      expect(mappings[0].source).toEqual 'dummy'
+      expect(mappings[0].keystrokes).toEqual 'k'
+      expect(mappings[0].command).toEqual 'c'
+      expect(mappings[0].selector).toEqual '.command-mode'
+
+  fdescribe ".determineSource", ->
+    describe "for a package", ->
+      it "returns '<package-name>'", ->
+        expect(keymap.determineSource('~/.atom/packages/dummy/keymaps/a.cson')).toEqual 'dummy'
+
+    describe "for a user defined keymap", ->
+      it "returns 'User'", ->
+        expect(keymap.determineSource('~/.atom/keymaps/a.cson')).toEqual 'User'
+
+    describe "for a core keymap", ->
+      it "returns 'Core'", ->
+        expect(keymap.determineSource('/Applications/Atom.app/.../node_modules/dummy/keymaps/a.cson')).toEqual 'Core'
