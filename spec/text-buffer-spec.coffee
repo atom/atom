@@ -602,6 +602,17 @@ describe 'TextBuffer', ->
       it "clips the range to the end of the buffer", ->
         expect(buffer.getTextInRange([[12], [13, Infinity]])).toBe buffer.lineForRow(12)
 
+  describe ".scan(regex, fn)", ->
+    it "retunrns lineText and lineTextOffset", ->
+      matches = []
+      buffer.scan /current/, (match) ->
+        matches.push(match)
+      expect(matches.length).toBe 1
+
+      expect(matches[0].matchText).toEqual 'current'
+      expect(matches[0].lineText).toEqual '    var pivot = items.shift(), current, left = [], right = [];'
+      expect(matches[0].lineTextOffset).toBe 0
+
   describe ".scanInRange(range, regex, fn)", ->
     describe "when given a regex with a ignore case flag", ->
       it "does a case-insensitive search", ->
