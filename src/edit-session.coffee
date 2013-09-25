@@ -377,6 +377,9 @@ class EditSession
   # {Delegates to: TextBuffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
 
+  # {Delegates to: TextBuffer.scan}
+  scan: (args...) -> @buffer.scan(args...)
+
   # {Delegates to: TextBuffer.scanInRange}
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
 
