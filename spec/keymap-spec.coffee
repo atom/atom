@@ -359,7 +359,7 @@ describe "Keymap", ->
       expect(mappings[0].command).toEqual 'c'
       expect(mappings[0].selector).toEqual '.command-mode'
 
-  fdescribe ".determineSource", ->
+  describe ".determineSource", ->
     describe "for a package", ->
       it "returns '<package-name>'", ->
         expect(keymap.determineSource('~/.atom/packages/dummy/keymaps/a.cson')).toEqual 'dummy'
