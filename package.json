@@ -137,6 +137,6 @@
   "private": true,
   "scripts": {
     "preinstall": "true",
-    "test": "grunt test"
+    "test": "script/test"
   }
 }
