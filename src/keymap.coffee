@@ -54,6 +54,10 @@ class Keymap
         keystroke = keystrokes.split(' ')[0]
         _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
 
+  # Public: Returns all registered {BindingSet}s.
+  getBindingSets: ->
+    @bindingSets
+
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
     [selector, bindings] = args
