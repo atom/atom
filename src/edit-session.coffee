@@ -117,6 +117,7 @@ class EditSession
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
+    @subscribe @buffer, "contents-modified", => @trigger "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
     @preserveCursorPositionOnBufferReload()
