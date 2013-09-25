@@ -245,10 +245,10 @@ describe "Project", ->
           expect(results[0].filePath).toBe project.resolve('a')
           expect(results[0].matches).toHaveLength(3)
           expect(results[0].matches[0]).toEqual
-              matchText: 'aaa'
-              lineText: 'aaa bbb'
-              lineTextOffset: 0
-              range: [[0, 0], [0, 3]]
+            matchText: 'aaa'
+            lineText: 'aaa bbb'
+            lineTextOffset: 0
+            range: [[0, 0], [0, 3]]
 
       it "works with with escaped literals (like $ and ^)", ->
         results = []
