@@ -105,8 +105,11 @@ module.exports =
   # Identifies how many events are registered.
   #
   # Returns a {Number}.
-  subscriptionCount: ->
+  getSubscriptionCount: ->
     count = 0
     for name, handlers of @eventHandlersByEventName
       count += handlers.length
     count
+
+  # Deprecated
+  subscriptionCount: -> @getSubscriptionCount()

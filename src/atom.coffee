@@ -8,7 +8,7 @@ crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
-telepath = require 'telepath'
+{Document} = require 'telepath'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
@@ -245,34 +245,28 @@ window.atom =
     if windowStatePath = @getWindowStatePath()
       if fsUtils.exists(windowStatePath)
         try
-          windowStateJson  = fsUtils.read(windowStatePath)
+          documentStateJson  = fsUtils.read(windowStatePath)
         catch error
           console.warn "Error reading window state: #{windowStatePath}", error.stack, error
     else
-      windowStateJson = @getLoadSettings().windowState
+      documentStateJson = @getLoadSettings().windowState
 
     try
-      windowState = JSON.parse(windowStateJson or '{}')
+      documentState = JSON.parse(documentStateJson) if documentStateJson?
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    {site, document} = windowState ? {}
-    if site? and document?
-      window.site = telepath.Site.deserialize(site)
-      window.site.deserializeDocument(document) ? window.site.createDocument({})
-    else
-      window.site = new telepath.Site(1)
-      window.site.createDocument({})
+    doc = Document.deserialize(state: documentState) if documentState?
+    doc ?= Document.create()
+    window.site = doc.site # TODO: Remove this when everything is using telepath models
+    doc
 
   saveWindowState: ->
-    windowState =
-      site: site.serialize()
-      document: @getWindowState().serialize()
-    windowStateJson = JSON.stringify(windowState)
+    windowState = @getWindowState()
     if windowStatePath = @getWindowStatePath()
-      fsUtils.writeSync(windowStatePath, "#{windowStateJson}\n")
+      windowState.saveSync(path: windowStatePath)
     else
-      @getLoadSettings().windowState = windowStateJson
+      @getLoadSettings().windowState = JSON.stringify(windowState.serialize())
 
   getWindowState: (keyPath) ->
     @windowState ?= @loadWindowState()
