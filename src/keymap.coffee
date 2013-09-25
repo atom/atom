@@ -54,8 +54,9 @@ class Keymap
         keystroke = keystrokes.split(' ')[0]
         _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
 
-  # Public: Returns an array of all objects which contain the following keys
-  # `source`, `selector`, `command`, `keyStrokes`.
+  # Public: Returns an array of objects that represent every keystroke to
+  # command mapping. Each object contains the following keys `source`,
+  # `selector`, `command`, `keystrokes`.
   getAllKeyMappings: ->
     mappings = []
     for bindingSet in @bindingSets
@@ -73,7 +74,6 @@ class Keymap
   #   The absolute path from which the keymap was loaded
   #
   # Returns one of:
-  #
   # * `Core` indicates it comes from a bundled package.
   # * `User` indicates that it was defined by a user.
   # * `<package-name>` the package which defined it.
