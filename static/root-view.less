@@ -39,16 +39,19 @@ h6 {
   }
 
   .dev-mode {
+
+    &:before {
+      content: ""; // This is not a space, it is a skull and crossbones
+    }
+
     position: absolute;
     top: 0;
     right: 0;
-    width: 10px;
-    height: 10px;
+    font-family: Wingdings;
+    font-size: 25px;
     z-index: 1000;
     opacity: 0.75;
-    border: 5px @background-color-warning solid;
-    border-bottom-color: transparent;
-    border-left-color: transparent;
+    color: @text-color-highlight;
   }
 }
 
