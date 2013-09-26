@@ -1,9 +1,9 @@
 # Like sands through the hourglass, so are the days of our lives.
 startTime = new Date().getTime()
 
-Atom = require './atom'
 require './window'
 
+Atom = require './atom'
 window.atom = new Atom()
 window.setUpEnvironment('editor')
 window.startEditorWindow()
