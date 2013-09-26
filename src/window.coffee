@@ -89,11 +89,11 @@ window.unloadEditorWindow = ->
   window.rootView = null
   window.project = null
 
-window.installAtomCommand = (callback) ->
+installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
   require('./command-installer').install(commandPath, callback)
 
-window.installApmCommand = (callback) ->
+installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('./command-installer').install(commandPath, callback)
 
