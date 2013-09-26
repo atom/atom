@@ -31,6 +31,7 @@ window.setUpEnvironment = (windowMode) ->
   Syntax = require './syntax'
 
   window.rootViewParentSelector = 'body'
+  #TODO remove once all packages use the atom globa
   window.config = atom.config
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = atom.pasteboard
@@ -103,29 +104,10 @@ window.onDrop = (e) ->
   atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
 window.deserializeEditorWindow = ->
-  RootView = require './root-view'
-  Project = require './project'
-
-  windowState = atom.getWindowState()
-
-  atom.packageStates = windowState.getObject('packageStates') ? {}
-  windowState.remove('packageStates')
-
-  window.project = deserialize(windowState.get('project'))
-  unless window.project?
-    window.project = new Project(atom.getLoadSettings().initialPath)
-    windowState.set('project', window.project.getState())
-
-  window.rootView = deserialize(windowState.get('rootView'))
-  unless window.rootView?
-    window.rootView = new RootView()
-    windowState.set('rootView', window.rootView.getState())
-
-  $(rootViewParentSelector).append(rootView)
-
-  project.on 'path-changed', ->
-    projectPath = project.getPath()
-    atom.getLoadSettings().initialPath = projectPath
+  atom.deserializeEditorWindow()
+  #TODO remove once all packages use the atom globa
+  window.project = atom.project
+  window.rootView = atom.rootView
 
 window.getDimensions = -> atom.getDimensions()
 

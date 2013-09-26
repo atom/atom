@@ -14,12 +14,15 @@ Config = require './config'
 Keymap = require './keymap'
 PackageManager = require './package-manager'
 Pasteboard = require './pasteboard'
+Project = require './project'
+RootView = require './root-view'
+Subscriber = require './subscriber'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 module.exports =
-class Atom
+class Atom extends Subscriber
   constructor: ->
     @packages = new PackageManager()
     @themes = new ThemeManager()
@@ -52,6 +55,28 @@ class Atom
 
   getLoadSettings: ->
     @getCurrentWindow().loadSettings
+
+  deserializeEditorWindow: ->
+    state = @getWindowState()
+
+    @packages.packageStates = state.getObject('packageStates') ? {}
+    state.remove('packageStates')
+
+    @project = deserialize(state.get('project'))
+    unless @project?
+      @project = new Project(@getLoadSettings().initialPath)
+      state.set('project', @project.getState())
+
+    @rootView = deserialize(state.get('rootView'))
+    unless @rootView?
+      @rootView = new RootView()
+      state.set('rootView', @rootView.getState())
+
+    $(rootViewParentSelector).append(rootView)
+
+    @subscribe @project, 'path-changed', ->
+      projectPath = project.getPath()
+      @getLoadSettings().initialPath = projectPath
 
   #TODO Remove theses once packages have been migrated
   getPackageState: (args...) -> @packages.getPackageState(args...)
