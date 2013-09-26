@@ -151,7 +151,7 @@ module.exports = (grunt) ->
 
     shell:
       'kill-atom':
-        command: 'pkill Atom'
+        command: 'pkill -9 Atom'
         options:
           stdout: false
           stderr: false
