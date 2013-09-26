@@ -275,8 +275,8 @@ describe "the `atom` global", ->
           atom.activatePackage('package-with-serialize-error',  immediate: true)
           atom.activatePackage('package-with-serialization', immediate: true)
           atom.deactivatePackages()
-          expect(atom.packageStates['package-with-serialize-error']).toBeUndefined()
-          expect(atom.packageStates['package-with-serialization']).toEqual someNumber: 1
+          expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+          expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
