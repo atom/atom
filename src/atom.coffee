@@ -21,11 +21,11 @@ class Atom
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
 
-  getLoadSettings: ->
-    @getCurrentWindow().loadSettings
-
   getCurrentWindow: ->
     remote.getCurrentWindow()
+
+  getLoadSettings: ->
+    @getCurrentWindow().loadSettings
 
   #TODO Remove theses once packages have been migrated
   getPackageState: (args...) -> @packages.getPackageState(args...)
@@ -109,8 +109,7 @@ class Atom
   close: ->
     @getCurrentWindow().close()
 
-  exit: (status) ->
-    app.exit(status)
+  exit: (status) -> app.exit(status)
 
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
