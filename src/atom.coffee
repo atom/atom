@@ -32,7 +32,7 @@ class Atom
     ContextMenuManager = require './context-menu-manager'
 
     @packages = new PackageManager()
-    @packages.on 'loaded', => @watchThemes()
+    @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
     @config = new Config()
