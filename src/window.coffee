@@ -33,7 +33,6 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = atom.pasteboard
   window.keymap = atom.keymap
 
-
 # Set up the default event handlers and menus for a non-editor windows.
 #
 # This can be used by packages to have a minimum level of keybindings and
