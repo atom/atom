@@ -1,3 +1,4 @@
+EventEmitter = require './event-emitter'
 fsUtils = require './fs-utils'
 _ = require './underscore-extensions'
 Package = require './package'
@@ -5,6 +6,7 @@ path = require 'path'
 
 module.exports =
 class PackageManager
+  _.extend @prototype, EventEmitter
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
@@ -50,7 +52,7 @@ class PackageManager
     require '../exports/atom'
 
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @watchThemes()
+    @trigger 'loaded'
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)
@@ -60,7 +62,7 @@ class PackageManager
       return pack if pack = @getLoadedPackage(name)
       pack = Package.load(packagePath, options)
       if pack.metadata.theme
-        @themes.register(pack)
+        atom.themes.register(pack)
       else
         @loadedPackages[pack.name] = pack
       pack
