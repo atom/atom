@@ -92,7 +92,7 @@ class AtomReporter extends View
 
       clearTimeout @timeoutId if @timeoutId?
       @specPopup.show()
-      spec = _.find(window.timedSpecs, (spec) -> description is spec.name)
+      spec = _.find(window.timedSpecs, ({fullName}) -> description is fullName)
       description = "#{description} #{spec.time}ms" if spec
       @specPopup.text description
       {left, top} = element.offset()
