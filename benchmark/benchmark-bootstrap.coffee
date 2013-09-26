@@ -1,4 +1,5 @@
-require '../src/atom'
+Atom = require '../src/atom'
+window.atom = new Atom()
 {runSpecSuite} = require '../spec/jasmine-helper'
 
 atom.openDevTools()

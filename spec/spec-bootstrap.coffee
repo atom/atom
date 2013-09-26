@@ -1,7 +1,8 @@
 try
-  require '../src/atom'
+  Atom = require '../src/atom'
   require '../src/window'
-  atom.show()
+  window.atom = new Atom()
+  window.atom.show()
   {runSpecSuite} = require './jasmine-helper'
 
   document.title = "Spec Suite"
