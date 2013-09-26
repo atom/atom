@@ -302,6 +302,10 @@ class Project
     task.on 'scan:result-found', (result) =>
       iterator(result)
 
+    if _.isFunction(options.onPathsSearched)
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+        options.onPathsSearched(numberOfPathsSearched)
+
     deferred
 
   # Private:
