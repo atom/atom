@@ -54,6 +54,42 @@ class Keymap
         keystroke = keystrokes.split(' ')[0]
         _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
 
+  # Public: Returns an array of objects that represent every keystroke to
+  # command mapping. Each object contains the following keys `source`,
+  # `selector`, `command`, `keystrokes`.
+  getAllKeyMappings: ->
+    mappings = []
+    for bindingSet in @bindingSets
+      selector = bindingSet.getSelector()
+      source = @determineSource(bindingSet.getName())
+      for keystrokes, command of bindingSet.getCommandsByKeystrokes()
+        mappings.push {keystrokes, command, selector, source}
+
+    mappings
+
+  # Private: Returns a user friendly description of where a keybinding was
+  # loaded from.
+  #
+  # * filePath:
+  #   The absolute path from which the keymap was loaded
+  #
+  # Returns one of:
+  # * `Core` indicates it comes from a bundled package.
+  # * `User` indicates that it was defined by a user.
+  # * `<package-name>` the package which defined it.
+  # * `Unknown` if an invalid path was passed in.
+  determineSource: (filePath) ->
+    return 'Unknown' unless filePath
+
+    pathParts = filePath.split(path.sep)
+    if _.contains(pathParts, 'node_modules') or _.contains(pathParts, 'atom') or _.contains(pathParts, 'src')
+      'Core'
+    else if _.contains(pathParts, '.atom') and _.contains(pathParts, 'keymaps') and !_.contains(pathParts, 'packages')
+      'User'
+    else
+      packageNameIndex = pathParts.length - 3
+      pathParts[packageNameIndex]
+
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
     [selector, bindings] = args

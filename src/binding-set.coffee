@@ -23,6 +23,18 @@ class BindingSet
     @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
+  # Private:
+  getName: ->
+    @name
+
+  # Private:
+  getSelector: ->
+    @selector
+
+  # Private:
+  getCommandsByKeystrokes: ->
+    @commandsByKeystrokes
+
   commandForEvent: (event) ->
     for keystrokes, command of @commandsByKeystrokes
       return command if event.keystrokes == keystrokes
