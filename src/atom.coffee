@@ -14,10 +14,12 @@ PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
-window.atom =
-  packages: new PackageManager()
-  themes: new ThemeManager()
-  contextMenu: new ContextMenuManager(remote.getCurrentWindow().loadSettings.devMode)
+module.exports =
+class Atom
+  constructor: ->
+    @packages = new PackageManager()
+    @themes = new ThemeManager()
+    @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
 
   getLoadSettings: ->
     @getCurrentWindow().loadSettings
