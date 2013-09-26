@@ -1,6 +1,6 @@
 try
-  Atom = require '../src/atom'
   require '../src/window'
+  Atom = require '../src/atom'
   window.atom = new Atom()
   window.atom.show()
   {runSpecSuite} = require './jasmine-helper'
