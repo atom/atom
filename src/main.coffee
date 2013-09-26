@@ -1,13 +1,15 @@
+startTime = new Date().getTime()
+
 autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
 delegate = require 'atom-delegate'
 app = require 'app'
 fs = require 'fs'
+module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
 dialog = require 'dialog'
-_ = require 'underscore'
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
@@ -45,14 +47,15 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     require('coffee-script')
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache'))
-      require('module').globalPaths.push(path.join(args.resourcePath, 'src'))
+      module.globalPaths.push(path.join(args.resourcePath, 'src'))
     else
       appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
-      require('module').globalPaths.push(appSrcPath)
+      module.globalPaths.push(appSrcPath)
 
     AtomApplication = require 'atom-application'
 
     AtomApplication.open(args)
+    console.log("App load time: #{new Date().getTime() - startTime}ms")
 
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 

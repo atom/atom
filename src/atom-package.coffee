@@ -28,41 +28,44 @@ class AtomPackage extends Package
   getType: -> 'atom'
 
   load: ->
-    try
-      @metadata = Package.loadMetadata(@path)
-      if @isTheme()
-        @stylesheets = []
-        @keymaps = []
-        @menus = []
-        @grammars = []
-        @scopedProperties = []
-      else
-        @loadKeymaps()
-        @loadMenus()
-        @loadStylesheets()
-        @loadGrammars()
-        @loadScopedProperties()
-
-        if @metadata.activationEvents?
-          @registerDeferredDeserializers()
+    @measure 'loadTime', =>
+      try
+        @metadata = Package.loadMetadata(@path)
+        if @isTheme()
+          @stylesheets = []
+          @keymaps = []
+          @menus = []
+          @grammars = []
+          @scopedProperties = []
         else
-          @requireMainModule()
+          @loadKeymaps()
+          @loadMenus()
+          @loadStylesheets()
+          @loadGrammars()
+          @loadScopedProperties()
 
-    catch e
-      console.warn "Failed to load package named '#{@name}'", e.stack ? e
+          if @metadata.activationEvents?
+            @registerDeferredDeserializers()
+          else
+            @requireMainModule()
+
+      catch e
+        console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
   activate: ({immediate}={}) ->
-    @loadStylesheets() if @isTheme()
-    @activateResources()
-    if @metadata.activationEvents? and not immediate
-      @subscribeToActivationEvents()
-    else
-      @activateNow()
+    @measure 'activateTime', =>
+      @loadStylesheets() if @isTheme()
+      @activateResources()
+      if @metadata.activationEvents? and not immediate
+        @subscribeToActivationEvents()
+      else
+        @activateNow()
 
   activateNow: ->
     try
       @activateConfig()
+      @activateStylesheets()
       if @requireMainModule()
         @mainModule.activate(atom.getPackageState(@name) ? {})
         @mainActivated = true
@@ -78,11 +81,13 @@ class AtomPackage extends Package
       @mainModule.activateConfig?()
     @configActivated = true
 
+  activateStylesheets: ->
+    type = if @metadata.theme then 'theme' else 'bundled'
+    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
+
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
-    type = if @metadata.theme then 'theme' else 'bundled'
-    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)

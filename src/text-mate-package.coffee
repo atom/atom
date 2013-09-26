@@ -29,18 +29,20 @@ class TextMatePackage extends Package
   getType: -> 'textmate'
 
   load: ({sync}={}) ->
-    @metadata = Package.loadMetadata(@path, true)
+    @measure 'loadTime', =>
+      @metadata = Package.loadMetadata(@path, true)
 
-    if sync
-      @loadGrammarsSync()
-      @loadScopedPropertiesSync()
-    else
-      TextMatePackage.getLoadQueue().push(this)
+      if sync
+        @loadGrammarsSync()
+        @loadScopedPropertiesSync()
+      else
+        TextMatePackage.getLoadQueue().push(this)
 
   activate: ->
-    syntax.addGrammar(grammar) for grammar in @grammars
-    for { selector, properties } in @scopedProperties
-      syntax.addProperties(@path, selector, properties)
+    @measure 'activateTime', =>
+      syntax.addGrammar(grammar) for grammar in @grammars
+      for { selector, properties } in @scopedProperties
+        syntax.addProperties(@path, selector, properties)
 
   activateConfig: -> # noop
 

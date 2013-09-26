@@ -126,7 +126,8 @@ class RootView extends View
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
 
-    _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
+    if @state.get('fullScreen')
+      _.nextTick => atom.setFullScreen(true)
 
   # Private:
   serialize: ->
@@ -173,8 +174,10 @@ class RootView extends View
     initialLine = options.initialLine
     path = project.relativize(path)
     if activePane = @getActivePane()
-      editSession = activePane.itemForUri(path) if path
-      editSession ?= project.open(path, {initialLine})
+      if path
+        editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
+      else
+        editSession = project.open()
       activePane.showItem(editSession)
     else
       editSession = project.open(path, {initialLine})

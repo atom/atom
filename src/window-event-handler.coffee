@@ -14,7 +14,7 @@ class WindowEventHandler
     @reloadRequested = false
 
     @subscribe ipc, 'command', (command, args...) ->
-      $(window).trigger(command, args...)
+      $(document.activeElement).trigger(command, args...)
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
