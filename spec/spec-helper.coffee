@@ -31,11 +31,12 @@ $('html,body').css('overflow', 'auto')
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 jasmine.getEnv().defaultTimeoutInterval = 5000
 
+specDirectory = atom.getLoadSettings().specDirectory ? __dirname
+specProjectPath = path.join(specDirectory, 'fixtures')
+
 beforeEach ->
   $.fx.off = true
-
-  specDirectory = atom.getLoadSettings().specDirectory ? __dirname
-  window.project = new Project(path.join(specDirectory, 'fixtures'))
+  window.project = new Project(specProjectPath)
 
   window.resetTimeouts()
   atom.packageStates = {}
