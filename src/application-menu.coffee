@@ -9,10 +9,9 @@ _ = require 'underscore'
 module.exports =
 class ApplicationMenu
   version: null
-  devMode: null
   menu: null
 
-  constructor: (@version, @devMode) ->
+  constructor: (@version) ->
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
 
@@ -149,7 +148,6 @@ class ApplicationMenu
       submenu: [ { label: 'In Development Mode', enabled: false } ]
 
     template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    template.push devMenu if @devMode
 
     @translateTemplate template, keystrokesByCommand
 

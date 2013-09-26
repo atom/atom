@@ -57,7 +57,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    @applicationMenu = new ApplicationMenu(@version, devMode)
+    @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
 
     @listenForArgumentsFromNewProcess()
