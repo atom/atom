@@ -14,6 +14,7 @@ PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
+# Public: Atom global for dealing with packages, themes, menus, and the window.
 module.exports =
 class Atom
   constructor: ->
