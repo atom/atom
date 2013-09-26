@@ -26,8 +26,9 @@ displayWindow = ->
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
-  #TODO remove once all packages use the atom global
   window.resourcePath = atom.getLoadSettings().resourcePath
+  atom.initialize()
+  #TODO remove once all packages use the atom global
   window.config = atom.config
   window.syntax = atom.syntax
   window.pasteboard = atom.pasteboard
@@ -99,9 +100,10 @@ window.onDrop = (e) ->
   atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
 window.deserializeEditorWindow = ->
-  atom.deserializeEditorWindow()
-  #TODO remove once all packages use the atom global
+  atom.deserializePackageStates()
+  atom.deserializeProject()
   window.project = atom.project
+  atom.deserializeRootView()
   window.rootView = atom.rootView
 
 window.getDimensions = -> atom.getDimensions()

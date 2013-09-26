@@ -10,28 +10,34 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
-Config = require './config'
-Keymap = require './keymap'
-PackageManager = require './package-manager'
-Pasteboard = require './pasteboard'
-Project = require './project'
-RootView = require './root-view'
-Syntax = require './syntax'
 Subscriber = require './subscriber'
-ThemeManager = require './theme-manager'
-ContextMenuManager = require './context-menu-manager'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 module.exports =
-class Atom extends Subscriber
+class Atom
+  _.extend @prototype, Subscriber
+
   constructor: ->
     @rootViewParentSelector = 'body'
+
+  initialize: ->
+    @unsubscribe()
+
+    Config = require './config'
+    Keymap = require './keymap'
+    PackageManager = require './package-manager'
+    Pasteboard = require './pasteboard'
+    Syntax = require './syntax'
+    ThemeManager = require './theme-manager'
+    ContextMenuManager = require './context-menu-manager'
+
     @packages = new PackageManager()
+    @packages.on 'loaded', => @watchThemes()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
     @config = new Config()
     @pasteboard = new Pasteboard()
-    @keymap = new KeyMap()
+    @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->
@@ -59,27 +65,27 @@ class Atom extends Subscriber
   getLoadSettings: ->
     @getCurrentWindow().loadSettings
 
-  deserializeEditorWindow: ->
+  deserializeProject: ->
+    Project = require './project'
     state = @getWindowState()
-
-    @packages.packageStates = state.getObject('packageStates') ? {}
-    state.remove('packageStates')
-
     @project = deserialize(state.get('project'))
     unless @project?
       @project = new Project(@getLoadSettings().initialPath)
       state.set('project', @project.getState())
 
+  deserializeRootView: ->
+    RootView = require './root-view'
+    state = @getWindowState()
     @rootView = deserialize(state.get('rootView'))
     unless @rootView?
       @rootView = new RootView()
       state.set('rootView', @rootView.getState())
+    $(@rootViewParentSelector).append(@rootView)
 
-    $(@rootViewParentSelector).append(rootView)
-
-    @subscribe @project, 'path-changed', ->
-      projectPath = project.getPath()
-      @getLoadSettings().initialPath = projectPath
+  deserializePackageStates: ->
+    state = @getWindowState()
+    @packages.packageStates = state.getObject('packageStates') ? {}
+    state.remove('packageStates')
 
   #TODO Remove theses once packages have been migrated
   getPackageState: (args...) -> @packages.getPackageState(args...)
@@ -92,6 +98,7 @@ class Atom extends Subscriber
   isPackageActive: (args...) -> @packages.isPackageActive(args...)
   getActivePackages: (args...) -> @packages.getActivePackages(args...)
   loadPackages: (args...) -> @packages.loadPackages(args...)
+
   loadPackage: (args...) -> @packages.loadPackage(args...)
   unloadPackage: (args...) -> @packages.unloadPackage(args...)
   resolvePackagePath: (args...) -> @packages.resolvePackagePath(args...)
@@ -188,7 +195,7 @@ class Atom extends Subscriber
           filename = "editor-#{sha1}"
 
     if filename
-      path.join(config.userStoragePath, filename)
+      path.join(@config.userStoragePath, filename)
     else
       null
 
@@ -241,7 +248,7 @@ class Atom extends Subscriber
     shell.beep()
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
     try
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
