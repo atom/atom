@@ -10,7 +10,10 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
+Config = require './config'
+Keymap = require './keymap'
 PackageManager = require './package-manager'
+Pasteboard = require './pasteboard'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
 
@@ -21,6 +24,9 @@ class Atom
     @packages = new PackageManager()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
+    @config = new Config()
+    @pasteboard = new Pasteboard()
+    @keymap = new KeyMap()
 
   getCurrentWindow: ->
     remote.getCurrentWindow()

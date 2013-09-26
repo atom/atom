@@ -29,16 +29,13 @@ window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
   window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
 
-  Config = require './config'
   Syntax = require './syntax'
-  Pasteboard = require './pasteboard'
-  Keymap = require './keymap'
 
   window.rootViewParentSelector = 'body'
-  window.config = new Config
+  window.config = atom.config
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
-  window.pasteboard = new Pasteboard
-  window.keymap = new Keymap()
+  window.pasteboard = atom.pasteboard
+  window.keymap = atom.keymap
 
 
 # Set up the default event handlers and menus for a non-editor windows.
