@@ -8,12 +8,6 @@ async = require 'async'
 pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
-nodeModulesDirPath = path.join(resourcePath, "node_modules")
-bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
-userPackagesDirPath = path.join(configDirPath, "packages")
-userPackageDirPaths = [userPackagesDirPath]
-userPackageDirPaths.unshift(path.join(configDirPath, "dev", "packages")) if atom.getLoadSettings().devMode
-userStoragePath = path.join(configDirPath, "storage")
 
 # Public: Used to access all of Atom's configuration details.
 #
@@ -36,23 +30,25 @@ module.exports =
 class Config
   _.extend @prototype, EventEmitter
 
-  configDirPath: configDirPath
-  bundledPackageDirPaths: [nodeModulesDirPath]
-  bundledKeymapsDirPath: bundledKeymapsDirPath
-  nodeModulesDirPath: nodeModulesDirPath
-  packageDirPaths: _.clone(userPackageDirPaths)
-  userPackageDirPaths: userPackageDirPaths
-  userStoragePath: userStoragePath
-  lessSearchPaths: [
-    path.join(resourcePath, 'static', 'variables')
-    path.join(resourcePath, 'static')
-  ]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
 
   # Private: Created during initialization, available as `global.config`
   constructor: ->
+    @configDirPath = configDirPath
+    @bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
+    @nodeModulesDirPath = path.join(resourcePath, "node_modules")
+    @bundledPackageDirPaths = [@nodeModulesDirPath]
+    @lessSearchPaths = [
+      path.join(resourcePath, 'static', 'variables')
+      path.join(resourcePath, 'static')
+    ]
+    @packageDirPaths = [path.join(configDirPath, "packages")]
+    if atom.getLoadSettings().devMode
+      @packageDirPaths.unshift(path.join(configDirPath, "dev", "packages"))
+    @userStoragePath = path.join(configDirPath, "storage")
+
     @defaultSettings =
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
