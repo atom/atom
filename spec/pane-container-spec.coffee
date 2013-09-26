@@ -1,6 +1,6 @@
 PaneContainer = require '../src/pane-container'
 
-describe "PaneContainer", ->
+fdescribe "PaneContainer", ->
   container = null
 
   beforeEach ->
@@ -9,18 +9,28 @@ describe "PaneContainer", ->
   describe "::createPane(items...)", ->
     describe "when there are no panes", ->
       it "creates a single pane as the root", ->
-        pane = container.createPane(project.open('sample.js'))
+        expect(container.root).toBe undefined
+        pane = container.createPane({title: 'Item 1'})
         expect(container.panes).toEqual [pane]
         expect(container.root).toBe pane
 
-  fdescribe "when a pane is split", ->
-    pane1 = null
+  describe "splitting and destroying panes", ->
+    it "inserts and removes pane axes of the corrent orientation as necessary", ->
+      # creation phase
+      pane1 = container.createPane({title: 'Item 1'})
 
-    beforeEach ->
-      pane1 = container.createPane({})
+      pane2 = pane1.splitRight({title: 'Item 2'})
+      row = container.root
+      expect(row.orientation).toBe 'horizontal'
+      expect(row.children).toEqual [pane1, pane2]
 
-    describe "when the pane is not contained by a PaneAxis of the desired split orientation", ->
-      it "replaces the pane with a correctly-oriented PaneAxis containing two panes", ->
-        pane2 = pane1.splitRight()
-        expect(container.root.orientation).toBe 'horizontal'
-        expect(container.root.children).toEqual [pane1, pane2]
+      pane3 = pane2.splitLeft({title: 'Item 3'})
+      expect(row.children).toEqual [pane1, pane3, pane2]
+
+      pane4 = pane3.splitDown({title: 'Item 4'})
+      column = container.root.children.get(1)
+      expect(column.orientation).toBe 'vertical'
+      expect(column.children).toEqual [pane3, pane4]
+
+      pane5 = pane4.splitUp({title: 'Item 5'})
+      expect(column.children).toEqual [pane3, pane5, pane4]
