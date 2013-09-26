@@ -108,6 +108,8 @@ window.getDimensions = -> atom.getDimensions()
 
 window.setDimensions = (args...) -> atom.setDimensions(args...)
 
+window.restoreDimensions = (args...) -> atom.restoreDimensions(args...)
+
 window.onerror = ->
   atom.openDevTools()
 
