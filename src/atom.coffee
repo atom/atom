@@ -92,7 +92,7 @@ class Atom
   setPackageState: (args...) -> @packages.setPackageState(args...)
   activatePackages: (args...) -> @packages.activatePackages(args...)
   activatePackage: (args...) -> @packages.activatePackage(args...)
-  deactivatePackages: (args...) -> @packages.deactivatePackage(args...)
+  deactivatePackages: (args...) -> @packages.deactivatePackages(args...)
   deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
   getActivePackage: (args...) -> @packages.getActivePackage(args...)
   isPackageActive: (args...) -> @packages.isPackageActive(args...)
