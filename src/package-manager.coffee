@@ -7,9 +7,11 @@ path = require 'path'
 module.exports =
 class PackageManager
   _.extend @prototype, EventEmitter
-  loadedPackages: {}
-  activePackages: {}
-  packageStates: {}
+
+  constructor: ->
+    @loadedPackages = {}
+    @activePackages = {}
+    @packageStates = {}
 
   getPackageState: (name) ->
     @packageStates[name]
