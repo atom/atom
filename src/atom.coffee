@@ -16,6 +16,7 @@ PackageManager = require './package-manager'
 Pasteboard = require './pasteboard'
 Project = require './project'
 RootView = require './root-view'
+Syntax = require './syntax'
 Subscriber = require './subscriber'
 ThemeManager = require './theme-manager'
 ContextMenuManager = require './context-menu-manager'
@@ -24,12 +25,14 @@ ContextMenuManager = require './context-menu-manager'
 module.exports =
 class Atom extends Subscriber
   constructor: ->
+    @rootViewParentSelector = 'body'
     @packages = new PackageManager()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
     @config = new Config()
     @pasteboard = new Pasteboard()
     @keymap = new KeyMap()
+    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -72,7 +75,7 @@ class Atom extends Subscriber
       @rootView = new RootView()
       state.set('rootView', @rootView.getState())
 
-    $(rootViewParentSelector).append(rootView)
+    $(@rootViewParentSelector).append(rootView)
 
     @subscribe @project, 'path-changed', ->
       projectPath = project.getPath()
