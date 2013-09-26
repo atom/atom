@@ -270,7 +270,7 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
-        temp = process.env['TEMP'] || process.env['TMPDIR']
+        temp = temp.mkdirSync("atom")
         target = path.join(temp, 'evil-files')
 
         if fs.exists(target)
@@ -278,7 +278,7 @@ describe "Project", ->
             fs.unlinkSync(path.join(target, f))
           fs.rmdirSync target
 
-        fs.mkdirSync target
+        fs.mkdirSync(target)
 
         inputs = []
         if (isWindows)
