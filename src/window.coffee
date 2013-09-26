@@ -9,7 +9,6 @@ WindowEventHandler = require './window-event-handler'
 
 deserializers = {}
 deferredDeserializers = {}
-defaultWindowDimensions = {width: 800, height: 600}
 
 ### Internal ###
 
@@ -128,25 +127,9 @@ window.deserializeEditorWindow = ->
     projectPath = project.getPath()
     atom.getLoadSettings().initialPath = projectPath
 
-window.getDimensions = ->
-  browserWindow = remote.getCurrentWindow()
-  [x, y] = browserWindow.getPosition()
-  [width, height] = browserWindow.getSize()
-  {x, y, width, height}
+window.getDimensions = -> atom.getDimensions()
 
-window.setDimensions = ({x, y, width, height}) ->
-  browserWindow = remote.getCurrentWindow()
-  browserWindow.setSize(width, height)
-  if x? and y?
-    browserWindow.setPosition(x, y)
-  else
-    browserWindow.center()
-
-window.restoreDimensions = ->
-  dimensions = atom.getWindowState().getObject('dimensions')
-  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
-  window.setDimensions(dimensions)
-  $(window).on 'unload', -> atom.getWindowState().set('dimensions', window.getDimensions())
+window.setDimensions = (args...) -> atom.setDimensions(args...)
 
 window.onerror = ->
   atom.openDevTools()

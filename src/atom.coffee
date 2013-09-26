@@ -31,6 +31,25 @@ class Atom
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
+  getDimensions: ->
+    browserWindow = @getCurrentWindow()
+    [x, y] = browserWindow.getPosition()
+    [width, height] = browserWindow.getSize()
+    {x, y, width, height}
+
+  setDimensions: ({x, y, width, height}) ->
+    browserWindow = @getCurrentWindow()
+    browserWindow.setSize(width, height)
+    if x? and y?
+      browserWindow.setPosition(x, y)
+    else
+      browserWindow.center()
+
+  restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+    dimensions = @getWindowState().getObject('dimensions')
+    dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
+    @setDimensions(dimensions)
+
   getLoadSettings: ->
     @getCurrentWindow().loadSettings
 

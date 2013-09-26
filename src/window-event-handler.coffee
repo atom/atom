@@ -28,6 +28,8 @@ class WindowEventHandler
       atom.hide() if confirmed and not @reloadRequested and remote.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed
+    @subscribe $(window), 'unload', ->
+      atom.getWindowState().set('dimensions', atom.getDimensions())
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', => atom.close()
     @subscribeToCommand $(window), 'window:reload', =>
