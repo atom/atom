@@ -5,6 +5,8 @@ Project = require '../src/project'
 path = require 'path'
 BufferedProcess = require '../src/buffered-process'
 
+isWindows = !!process.platform.match /^win/
+
 describe "Project", ->
   beforeEach ->
     project.setPath(project.resolve('dir'))
@@ -268,22 +270,60 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
-        project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
+        temp = process.env['TEMP'] || process.env['TMPDIR']
+        target = path.join(temp, 'evil-files')
+
+        if fs.exists(target)
+          (fs.readdirSync(target) || []).forEach (f) ->
+            fs.unlinkSync(path.join(target, f))
+          fs.rmdirSync target
+
+        fs.mkdirSync target
+
+        inputs = []
+        if (isWindows)
+          inputs = [
+            "a_file_with_utf8.txt",
+            "file with spaces.txt",
+            "utfa\u0306.md"
+          ]
+        else
+          inputs = [
+            "a_file_with_utf8.txt",
+            "file with spaces.txt",
+            "goddam\nnewlines",
+            "quote\".txt",
+            "utfa\u0306.md"
+          ]
+
+        inputs.forEach (filename) ->
+          fd = fs.writeFileSync(path.join(target, filename), 'evil files!', { flag: 'w' })
+          console.log(target)
+
+        project.setPath temp
+        console.log("path: " + project.getPath())
+
         paths = []
         matches = []
         waitsForPromise ->
           project.scan /evil/, (result) ->
-            paths.push(result.filePath)
-            matches = matches.concat(result.matches)
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
-          expect(paths.length).toBe 5
-          matches.forEach (match) -> expect(match.matchText).toEqual 'evil'
-          expect(paths[0]).toMatch /a_file_with_utf8.txt$/
-          expect(paths[1]).toMatch /file with spaces.txt$/
-          expect(paths[2]).toMatch /goddam\nnewlines$/m
-          expect(paths[3]).toMatch /quote".txt$/m
-          expect(path.basename(paths[4])).toBe "utfa\u0306.md"
+          console.log(matches)
+          console.log(paths)
+          try
+            expect(paths.length).toBe inputs.length
+            matches.forEach (match) ->
+              expect(match).toEqual 'evil'
+
+            inputs.forEach (file) ->
+              expect(_.some(paths, (p) -> p.endsWith(file)))
+          finally
+            inputs.forEach (input) ->
+              fs.unlinkSync (path.join(target, input))
+            fs.rmdirSync target
 
       it "ignores case if the regex includes the `i` flag", ->
         results = []
