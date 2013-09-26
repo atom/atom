@@ -454,3 +454,5 @@ class Pane extends View
       @getContainer().makeNextPaneActive()
 
     item.destroy?() for item in @getItems()
+    @activeItem = null
+    @activeView = null
