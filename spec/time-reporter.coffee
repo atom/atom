@@ -53,6 +53,7 @@ class TimeReporter extends jasmine.Reporter
     window.timedSpecs.push
       description: @description
       time: duration
+      fullName: spec.getFullName()
 
     if timedSuites[@suite]
       window.timedSuites[@suite] += duration
