@@ -315,11 +315,14 @@ describe "Project", ->
           console.log(paths)
           try
             expect(paths.length).toBe inputs.length
-            matches.forEach (match) ->
-              expect(match).toEqual 'evil'
 
             inputs.forEach (file) ->
-              expect(_.some(paths, (p) -> p.endsWith(file)))
+              itWorked = false
+              paths.forEach (p) ->
+                itWorked = itWorked || p.endsWith(file)
+
+              expect(itWorked)
+
           finally
             inputs.forEach (input) ->
               fs.unlinkSync (path.join(target, input))
