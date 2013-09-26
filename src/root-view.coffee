@@ -65,6 +65,8 @@ class RootView extends View
 
   # Private:
   initialize: (state={}) ->
+    @prepend("<div class='dev-mode'></div>") if atom.getLoadSettings().devMode
+
     if state instanceof telepath.Document
       @state = state
       panes = deserialize(state.get('panes'))
