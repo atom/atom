@@ -84,6 +84,9 @@ class SelectionView extends View
   unhighlight: ->
     @removeClass('highlighted')
 
+  beforeRemove: ->
+    @editor = null
+
   remove: ->
     @editor.removeSelectionView(this)
     super
