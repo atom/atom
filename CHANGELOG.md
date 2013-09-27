@@ -1,3 +1,4 @@
+* Improved: Double-click selection behavior between word/non-word
 * Added: Solarized theme now bundled by default
 * Added: Base16 Tomorrow Dark theme now bundled by default
 
