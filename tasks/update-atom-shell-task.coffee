@@ -26,7 +26,7 @@ module.exports = (grunt) ->
   findReleaseIdFromAtomShellVersion = (version, callback) ->
     callAtomShellReposApi '/releases', (error, response, data) ->
       if error?
-        grunt.log.error('Cannot get releases of atom-shell')
+        grunt.log.error('GitHub API failed to access atom-shell releases')
         callback(error)
       else
         for release in data when release.tag_name is version
