@@ -141,6 +141,9 @@ class Cursor
   # character. The non-word characters are defined by the
   # `editor.nonWordCharacters` config value.
   #
+  # This method returns false if the character before or after the cursor is
+  # whitespace.
+  #
   # Returns a Boolean.
   isBetweenWordAndNonWord: ->
     return false if @isAtBeginningOfLine() or @isAtEndOfLine()
@@ -148,11 +151,10 @@ class Cursor
     {row, column} = @getBufferPosition()
     range = [[row, column - 1], [row, column + 1]]
     [before, after] = @editSession.getTextInBufferRange(range)
-    if before and after
-      nonWordCharacters = config.get('editor.nonWordCharacters').split('')
-      _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
-    else
-      false
+    return false if /\s/.test(before) or /\s/.test(after)
+
+    nonWordCharacters = config.get('editor.nonWordCharacters').split('')
+    _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
   isInsideWord: ->

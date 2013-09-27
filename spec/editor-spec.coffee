@@ -456,6 +456,13 @@ describe "Editor", ->
           editor.renderedLines.trigger 'mouseup'
           expect(editor.getSelectedText()).toBe "items"
 
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "{"
+
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
