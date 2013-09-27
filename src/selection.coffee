@@ -1,11 +1,13 @@
 {Range} = require 'telepath'
 EventEmitter = require './event-emitter'
+Subscriber = require './subscriber'
 _ = require './underscore-extensions'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =
 class Selection
   _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
 
   cursor: null
   marker: null
@@ -14,13 +16,13 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-
   # Private:
   constructor: ({@cursor, @marker, @editSession}) ->
     @cursor.selection = this
-    @marker.on 'changed', => @screenRangeChanged()
-    @marker.on 'destroyed', =>
+    @subscribe @marker, 'changed', => @screenRangeChanged()
+    @subscribe @marker, 'destroyed', =>
       @destroyed = true
+      @unsubscribe()
       @editSession.removeSelection(this)
       @trigger 'destroyed' unless @editSession.destroyed
 
