@@ -102,7 +102,7 @@ class Cursor
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible
 
-  # Public: Get the RegExp used by the cursor to determin what a "word" is.
+  # Public: Get the RegExp used by the cursor to determine what a "word" is.
   #
   # * options:
   #    + includeNonWordCharacters:
@@ -328,7 +328,7 @@ class Cursor
 
     beginningOfWordPosition or currentBufferPosition
 
-  # Public: Retrieves buffer position of previous word boundry. It might be on
+  # Public: Retrieves buffer position of previous word boundary. It might be on
   # the current word, or the previous word.
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
@@ -350,7 +350,7 @@ class Cursor
 
     beginningOfWordPosition or currentBufferPosition
 
-  # Public: Retrieves buffer position of the next word boundry. It might be on
+  # Public: Retrieves buffer position of the next word boundary. It might be on
   # the current word, or the previous word.
   getMoveNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
