@@ -124,7 +124,7 @@ class EditSession
 
   # Private:
   setDisplayBuffer: (@displayBuffer) ->
-    @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
+    @subscribe @displayBuffer, 'marker-created', (marker) => @handleMarkerCreated(marker)
     @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
@@ -1428,7 +1428,7 @@ class EditSession
     @trigger 'grammar-changed'
 
   # Private:
-  handleMarkerCreated: (marker) =>
+  handleMarkerCreated: (marker) ->
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
 

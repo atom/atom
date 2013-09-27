@@ -47,9 +47,9 @@ class DisplayBuffer
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
-    @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
+    @subscribe @tokenizedBuffer, 'changed', (change) => @handleTokenizedBufferChange(change)
+    @subscribe @buffer, 'markers-updated', => @handleBufferMarkersUpdated()
+    @subscribe @buffer, 'marker-created', (marker) => @handleBufferMarkerCreated(marker)
 
     @subscribe @state, 'changed', ({key, newValue}) =>
       switch key
@@ -590,7 +590,7 @@ class DisplayBuffer
 
   ### Internal ###
 
-  handleTokenizedBufferChange: (tokenizedBufferChange) =>
+  handleTokenizedBufferChange: (tokenizedBufferChange) ->
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
 
@@ -683,12 +683,12 @@ class DisplayBuffer
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
 
-  handleBufferMarkersUpdated: =>
+  handleBufferMarkersUpdated: ->
     if event = @pendingChangeEvent
       @pendingChangeEvent = null
       @triggerChanged(event, false)
 
-  handleBufferMarkerCreated: (marker) =>
+  handleBufferMarkerCreated: (marker) ->
     @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
     @trigger 'marker-created', @getMarker(marker.id)
 
