@@ -137,6 +137,11 @@ class Cursor
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
     /^\s+$/.test @editSession.getTextInBufferRange(range)
 
+  # Public: Returns whether the cursor is currently between a word and non-word
+  # character. The non-word characters are defined by the
+  # `editor.nonWordCharacters` config value.
+  #
+  # Returns a Boolean.
   isBetweenWordAndNonWord: ->
     return false if @isAtBeginningOfLine() or @isAtEndOfLine()
 
@@ -148,7 +153,6 @@ class Cursor
       _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
     else
       false
-
 
   # Public: Returns whether this cursor is between a word's start and end.
   isInsideWord: ->
@@ -418,7 +422,6 @@ class Cursor
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
     endOptions = _.extend(_.clone(options), allowNext: false)
-
     new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
   # Public: Returns the buffer Range for the current line.
