@@ -440,6 +440,22 @@ describe "Editor", ->
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
+      describe "when clicking between a word and a non-word", ->
+        it "selects the word", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "function"
+
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "items"
+
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
