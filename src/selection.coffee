@@ -25,6 +25,9 @@ class Selection
       @unsubscribe()
       @editSession.removeSelection(this)
       @trigger 'destroyed' unless @editSession.destroyed
+      @editSession = null
+      @cursor = null
+      @marker = null
 
   # Private:
   destroy: ->
