@@ -20,7 +20,10 @@ window.atom =
   contextMenu: new ContextMenuManager(remote.getCurrentWindow().loadSettings.devMode)
 
   getLoadSettings: ->
-    remote.getCurrentWindow().loadSettings
+    @getCurrentWindow().loadSettings
+
+  getCurrentWindow: ->
+    remote.getCurrentWindow()
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -169,7 +172,7 @@ window.atom =
     chosen = @confirmSync(message, detailedMessage, buttons)
     callbacks[chosen]?()
 
-  confirmSync: (message, detailedMessage, buttons, browserWindow = null) ->
+  confirmSync: (message, detailedMessage, buttons, browserWindow=@getCurrentWindow()) ->
     dialog.showMessageBox browserWindow,
       type: 'info'
       message: message
@@ -181,30 +184,30 @@ window.atom =
 
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= project?.getPath()
-    currentWindow = remote.getCurrentWindow()
+    currentWindow = @getCurrentWindow()
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
   openDevTools: ->
-    remote.getCurrentWindow().openDevTools()
+    @getCurrentWindow().openDevTools()
 
   toggleDevTools: ->
-    remote.getCurrentWindow().toggleDevTools()
+    @getCurrentWindow().toggleDevTools()
 
   reload: ->
-    remote.getCurrentWindow().restart()
+    @getCurrentWindow().restart()
 
   focus: ->
-    remote.getCurrentWindow().focus()
+    @getCurrentWindow().focus()
     $(window).focus()
 
   show: ->
-    remote.getCurrentWindow().show()
+    @getCurrentWindow().show()
 
   hide: ->
-    remote.getCurrentWindow().hide()
+    @getCurrentWindow().hide()
 
   close: ->
-    remote.getCurrentWindow().close()
+    @getCurrentWindow().close()
 
   exit: (status) ->
     app.exit(status)
@@ -213,10 +216,10 @@ window.atom =
     @setFullScreen(!@isFullScreen())
 
   setFullScreen: (fullScreen=false) ->
-    remote.getCurrentWindow().setFullScreen(fullScreen)
+    @getCurrentWindow().setFullScreen(fullScreen)
 
   isFullScreen: ->
-    remote.getCurrentWindow().isFullScreen()
+    @getCurrentWindow().isFullScreen()
 
   getHomeDirPath: ->
     app.getHomeDir()
