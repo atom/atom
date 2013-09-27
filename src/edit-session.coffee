@@ -141,6 +141,7 @@ class EditSession
     @unsubscribe()
     @buffer.release()
     selection.destroy() for selection in @getSelections()
+    cursor.destroy() for cursor in @getCursors()
     @displayBuffer.destroy()
     @languageMode.destroy()
     project?.removeEditSession(this)
