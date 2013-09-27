@@ -7,21 +7,34 @@ module.exports = (grunt) ->
   {spawn, mkdir, rm, cp} = require('./task-helpers')(grunt)
 
   accessToken = null
-  getTokenFromKeychain = ->
+  getTokenFromKeychain = (callback) ->
     accessToken ?= process.env['ATOM_ACCESS_TOKEN']
+    if accessToken
+      callback(null, accessToken)
+      return
+
+    spawn {cmd: 'security', args: ['-q', 'find-generic-password', '-ws', 'GitHub API Token']}, (error, result, code) ->
+      accessToken = result unless error?
+      callback(error, accessToken)
 
   callAtomShellReposApi = (path, callback) ->
-    options =
-      url: "https://api.github.com/repos/atom/atom-shell#{path}"
-      proxy: process.env.http_proxy || process.env.https_proxy
-      headers:
-        authorization: "token #{getTokenFromKeychain()}"
-        accept: 'application/vnd.github.manifold-preview'
-    request options, (error, response, body) ->
-      if not error?
-        body = JSON.parse(body)
-        error = new Error(body.message) if response.statusCode != 200
-      callback(error, response, body)
+    getTokenFromKeychain (error, accessToken) ->
+      if error
+        callback(error)
+        return
+
+      options =
+        url: "https://api.github.com/repos/atom/atom-shell#{path}"
+        proxy: process.env.http_proxy || process.env.https_proxy
+        headers:
+          authorization: "token #{accessToken}"
+          accept: 'application/vnd.github.manifold-preview'
+
+      request options, (error, response, body) ->
+        if not error?
+          body = JSON.parse(body)
+          error = new Error(body.message) if response.statusCode != 200
+        callback(error, response, body)
 
   findReleaseIdFromAtomShellVersion = (version, callback) ->
     callAtomShellReposApi '/releases', (error, response, data) ->
@@ -60,7 +73,7 @@ module.exports = (grunt) ->
   isAtomShellVersionCached = (version) ->
     grunt.file.isFile(getCachePath(version), 'version')
 
-  downloadAtomShell = (version, url, callback) ->
+  getDownloadOptions = (version, url, callback) ->
     options =
       url: url
       followRedirect: false
@@ -69,30 +82,41 @@ module.exports = (grunt) ->
     # Only set headers for GitHub host, the url could also be a S3 link and
     # setting headers for it would make the request fail.
     if require('url').parse(url).hostname is 'api.github.com'
-      options.headers =
-        authorization: "token #{getTokenFromKeychain()}"
-        accept: 'application/octet-stream'
+      getTokenFromKeychain (error, accessToken) ->
+        options.headers =
+          authorization: "token #{accessToken}"
+          accept: 'application/octet-stream'
 
-    inputStream = request(options)
-    inputStream.on 'response', (response) ->
-      if response.statusCode is 302
-        # Manually handle redirection so headers would not be sent for S3.
-        downloadAtomShell(version, response.headers.location, callback)
-      else if response.statusCode is 200
-        grunt.log.writeln("Downloading atom-shell version #{version.cyan}")
-        cacheDirectory = getCachePath(version)
-        rm(cacheDirectory)
-        mkdir(cacheDirectory)
-        cacheFile = path.join(cacheDirectory, 'atom-shell.zip')
-        outputStream = fs.createWriteStream(cacheFile)
-        outputStream.on 'close', -> callback(null, cacheFile)
-        inputStream.pipe(outputStream)
-      else
-        if response.statusCode is 404
-          grunt.log.error("atom-shell #{version.cyan} not found")
+        callback(error, options)
+    else
+      callback(null, options)
+
+  downloadAtomShell = (version, url, callback) ->
+    getDownloadOptions version, url, (error, options) ->
+      if error
+        callback(error)
+        return
+
+      inputStream = request(options)
+      inputStream.on 'response', (response) ->
+        if response.statusCode is 302
+          # Manually handle redirection so headers would not be sent for S3.
+          downloadAtomShell(version, response.headers.location, callback)
+        else if response.statusCode is 200
+          grunt.log.writeln("Downloading atom-shell version #{version.cyan}")
+          cacheDirectory = getCachePath(version)
+          rm(cacheDirectory)
+          mkdir(cacheDirectory)
+          cacheFile = path.join(cacheDirectory, 'atom-shell.zip')
+          outputStream = fs.createWriteStream(cacheFile)
+          outputStream.on 'close', -> callback(null, cacheFile)
+          inputStream.pipe(outputStream)
         else
-          grunt.log.error("atom-shell #{version.cyan} request failed")
-        callback(false)
+          if response.statusCode is 404
+            grunt.log.error("atom-shell #{version.cyan} not found")
+          else
+            grunt.log.error("atom-shell #{version.cyan} request failed")
+          callback(false)
 
   downloadAtomShellOfVersion = (version, callback) ->
     findReleaseIdFromAtomShellVersion version, (error, releaseId) ->
