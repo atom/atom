@@ -99,11 +99,11 @@ class TokenizedBuffer
     @trigger "changed", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if not @visible or @pendingChunk
+    return if not @visible or @pendingChunk or @destroyed
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
-      @tokenizeNextChunk()
+      @tokenizeNextChunk() unless @destroyed
 
   tokenizeNextChunk: ->
     rowsRemaining = @chunkSize
@@ -249,6 +249,7 @@ class TokenizedBuffer
 
   destroy: ->
     @unsubscribe()
+    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
