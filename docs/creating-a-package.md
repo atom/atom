@@ -34,10 +34,12 @@ following to publish your package:
 
 ```sh
 cd my-package
-apm publish
+apm publish minor
 ```
 
-This will upload your package and it will now be available on [atom.io](http://atom.io).
+This will update your `package.json` to have a new minor `version`, commit
+the change, create a new [Git tag](http://git-scm.com/book/en/Git-Basics-Tagging),
+and then upload the package to the registry.
 
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
