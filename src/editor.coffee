@@ -696,6 +696,7 @@ class Editor extends View
 
   handleInputEvents: ->
     @on 'cursor:moved', =>
+      return unless @isFocused
       cursorView = @getCursorView()
       @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
 
