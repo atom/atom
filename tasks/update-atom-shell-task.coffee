@@ -18,7 +18,9 @@ module.exports = (grunt) ->
         authorization: "token #{getTokenFromKeychain()}"
         accept: 'application/vnd.github.manifold-preview'
     request options, (error, response, body) ->
-      body = JSON.parse(body) if not error?
+      if not error?
+        body = JSON.parse(body)
+        error = new Error(body.message) if response.statusCode != 200
       callback(error, response, body)
 
   findReleaseIdFromAtomShellVersion = (version, callback) ->
@@ -110,7 +112,7 @@ module.exports = (grunt) ->
     spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
       rm(zipPath)
       callback(error)
-        
+
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
     if newVersion and newVersion isnt previousVersion
@@ -137,10 +139,12 @@ module.exports = (grunt) ->
           rebuildNativeModules(currentAtomShellVersion, done)
         else
           downloadAtomShellOfVersion atomShellVersion, (error, zipPath) ->
-            if zipPath?
+            if error?
+              done(error)
+            else if zipPath?
               unzipAtomShell zipPath, (error) ->
                 if error?
-                  done(false)
+                  done(error)
                 else
                   grunt.log.writeln("Installing atom-shell #{atomShellVersion.cyan}")
                   installAtomShell(atomShellVersion)
