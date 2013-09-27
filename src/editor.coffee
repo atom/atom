@@ -1175,7 +1175,7 @@ class Editor extends View
   updateDisplay: (options={}) ->
     return unless @attached and @activeEditSession
     return if @activeEditSession.destroyed
-    unless @isVisible()
+    unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
 

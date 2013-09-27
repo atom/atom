@@ -35,7 +35,7 @@ $.fn.isOnDom = ->
   @closest(document.body).length is 1
 
 $.fn.isVisible = ->
-  @is(':visible')
+  @length > 0 and @css('display') != 'none'
 
 $.fn.isDisabled = ->
   !!@attr('disabled')
