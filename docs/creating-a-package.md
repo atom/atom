@@ -24,6 +24,24 @@ my-package/
   index.coffee
 ```
 
+## Publishing
+
+Atom bundles a command line utility called [apm](http://github.com/atom/apm)
+which can be used to publish Atom packages to the public registry.
+
+Once your package is written and ready for distribution you can run the
+following to publish your package:
+
+```sh
+cd my-package
+apm publish
+```
+
+This will upload your package and it will now be available on [atom.io](http://atom.io).
+
+Run `apm help publish` to see all the available options and `apm help` to see
+all the other available commands.
+
 ## package.json
 
 Similar to [npm packages][npm], Atom packages
