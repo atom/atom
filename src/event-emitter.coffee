@@ -52,7 +52,7 @@ module.exports =
           new Array(handlers...).forEach (handler) -> handler(args...)
       else
         if handlers = @eventHandlersByEventName?[eventName]
-          handlers.forEach (handler) -> handler(args...)
+          new Array(handlers...).forEach (handler) -> handler(args...)
 
   # Stops executing handlers for a registered event.
   #
