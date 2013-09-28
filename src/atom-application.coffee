@@ -150,6 +150,7 @@ class AtomApplication
       event.preventDefault()
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
       for window in @windows
+        @updateAvailable = true
         browserWindow = window.browserWindow
         ipc.sendChannel browserWindow.getProcessId(), browserWindow.getRoutingId(), 'command', 'window:update-available', version
 
