@@ -94,6 +94,8 @@ class Editor extends View
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
+    @lineId = 0
+    @pixelLeftCache = {}
 
     if editSession?
       @edit(editSession)
@@ -1425,9 +1427,9 @@ class Editor extends View
   htmlForScreenLine: (screenLine, screenRow) ->
     { tokens, text, lineEnding, fold, isSoftWrapped } =  screenLine
     if fold
-      attributes = { class: 'fold line', 'fold-id': fold.id }
+      attributes = { class: 'fold line', 'fold-id': fold.id, 'line-id': @lineId++ }
     else
-      attributes = { class: 'line' }
+      attributes = { class: 'line', 'line-id': @lineId++ }
 
     invisibles = @invisibles if @showInvisibles
     eolInvisibles = @getEndOfLineInvisibles(screenLine)
@@ -1518,6 +1520,14 @@ class Editor extends View
 
   positionLeftForLineAndColumn: (lineElement, column) ->
     return 0 if column is 0
+
+    @pixelLeftCache ?= {}
+    cacheKey = lineElement.getAttribute('line-id')+':'+column
+
+    if @pixelLeftCache[cacheKey]?
+      #console.log 'hit', cacheKey
+      return @pixelLeftCache[cacheKey]
+
     delta = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
     while textNode = iterator.nextNode()
@@ -1532,6 +1542,9 @@ class Editor extends View
     range.collapse()
     leftPixels = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
     range.detach()
+
+    @pixelLeftCache[cacheKey] = leftPixels
+
     leftPixels
 
   pixelOffsetForScreenPosition: (position) ->
