@@ -28,9 +28,20 @@ fdescribe "PaneContainer", ->
       expect(row.children).toEqual [pane1, pane3, pane2]
 
       pane4 = pane3.splitDown({title: 'Item 4'})
-      column = container.root.children.get(1)
+      column = row.children.get(1)
       expect(column.orientation).toBe 'vertical'
       expect(column.children).toEqual [pane3, pane4]
 
       pane5 = pane4.splitUp({title: 'Item 5'})
       expect(column.children).toEqual [pane3, pane5, pane4]
+
+      # destruction phase
+      pane5.destroy()
+      pane4.destroy()
+      expect(column.isAttached()).toBe false
+      expect(row.children).toEqual [pane1, pane3, pane2]
+
+      pane3.destroy()
+      pane2.destroy()
+      expect(row.isAttached()).toBe false
+      expect(container.root).toBe pane1

@@ -6,3 +6,14 @@ class PaneAxis extends Model
   @properties 'parentId', 'orientation'
 
   @relatesToMany 'children', -> @allComponents.where(parentId: @id)
+
+  @condition
+    when: -> @children.$length.becomesLessThan(2)
+    call: 'reparentLastChild'
+
+  @condition
+    when: -> @children.$length.becomesLessThan(1)
+    call: 'destroy'
+
+  reparentLastChild: ->
+    @children.getLast().parentId = @parentId
