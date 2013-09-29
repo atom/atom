@@ -8,9 +8,14 @@ class Pane extends Model
 
   @properties
     parentId: null
+    activeItemId: null
 
   @relatesToOne 'parent', -> @allComponents.where(id: @parentId)
   @hasMany 'items'
+  @relatesToOne 'activeItem', -> @items.where(id: @activeItemId)
+
+  afterAttach: ->
+    @activeItemId ?= @items.getFirst()?.get('id')
 
   splitLeft: (items...) ->
     @split('before', 'horizontal', items)
