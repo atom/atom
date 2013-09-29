@@ -17,6 +17,9 @@ class Pane extends Model
   afterAttach: ->
     @activeItemId ?= @items.getFirst()?.get('id')
 
+  addItem: (item) ->
+    @items.add(item)
+
   splitLeft: (items...) ->
     @split('before', 'horizontal', items)
 
