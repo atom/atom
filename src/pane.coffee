@@ -20,6 +20,11 @@ class Pane extends Model
   addItem: (item) ->
     @items.add(item)
 
+  showItem: (item) ->
+    item = @addItem(item) unless @items.contains(item)
+    @activeItemId = item.get('id')
+    item
+
   splitLeft: (items...) ->
     @split('before', 'horizontal', items)
 

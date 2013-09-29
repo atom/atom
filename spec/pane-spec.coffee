@@ -17,3 +17,14 @@ fdescribe "Pane", ->
       pane.addItem({title: "Item 4"})
       expect(pane.items.map('title')).toEqual ["Item 1", "Item 2", "Item 3", "Item 4"]
       expect(pane.activeItem).toBe pane.items.getFirst()
+
+  describe "::showItem(item)", ->
+    describe "when passed an object that is already part of items", ->
+      it "makes the given object the active item", ->
+        item = pane.showItem(pane.items.get(1))
+        expect(pane.activeItem).toBe item
+
+    describe "when passed an object that is not already part of items", ->
+      it "adds the given object as an item and makes it active", ->
+        item = pane.showItem({title: "Item 4"})
+        expect(pane.activeItem).toBe item
