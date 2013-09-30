@@ -2199,9 +2199,33 @@ describe "Editor", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
 
     describe "when the editor is attached and visible", ->
-      it "returns the top and left pixel positions", ->
+      beforeEach ->
         editor.attachToDom()
+
+      it "returns the top and left pixel positions", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
+      it "caches the left position", ->
+        editor.renderedLines.css('font-size', '16px')
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+        # make characters smaller
+        editor.renderedLines.css('font-size', '15px')
+
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+      it "breaks left position cache when line is changed", ->
+        editor.renderedLines.css('font-size', '16px')
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+        editor.setCursorBufferPosition([2, 8])
+        editor.insertText("a")
+
+        # make characters smaller
+        editor.renderedLines.css('font-size', '15px')
+
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 72
+
 
   describe "when clicking in the gutter", ->
     beforeEach ->

@@ -94,8 +94,7 @@ class Editor extends View
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
-    @lineId = 0
-    @pixelLeftCache = {}
+    @pixelLeftCache = new WeakMap()
 
     if editSession?
       @edit(editSession)
@@ -1330,10 +1329,6 @@ class Editor extends View
 
   clearDirtyRanges: (intactRanges) ->
     renderedLines = @renderedLines[0]
-    killLine = (line) ->
-      next = line.nextSibling
-      renderedLines.removeChild(line)
-      next
 
     if intactRanges.length == 0
       @renderedLines.empty()
@@ -1341,13 +1336,19 @@ class Editor extends View
       domPosition = 0
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
-          currentLine = killLine(currentLine)
+          currentLine = @clearLine(currentLine)
           domPosition++
         for i in [intactRange.start..intactRange.end]
           currentLine = currentLine.nextSibling
           domPosition++
       while currentLine
-        currentLine = killLine(currentLine)
+        currentLine = @clearLine(currentLine)
+
+  clearLine: (lineElement) ->
+    @pixelLeftCache.delete(lineElement)
+    next = lineElement.nextSibling
+    @renderedLines[0].removeChild(lineElement)
+    next
 
   fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
     renderedLines = @renderedLines[0]
@@ -1427,9 +1428,9 @@ class Editor extends View
   htmlForScreenLine: (screenLine, screenRow) ->
     { tokens, text, lineEnding, fold, isSoftWrapped } =  screenLine
     if fold
-      attributes = { class: 'fold line', 'fold-id': fold.id, 'line-id': @lineId++ }
+      attributes = { class: 'fold line', 'fold-id': fold.id }
     else
-      attributes = { class: 'line', 'line-id': @lineId++ }
+      attributes = { class: 'line' }
 
     invisibles = @invisibles if @showInvisibles
     eolInvisibles = @getEndOfLineInvisibles(screenLine)
@@ -1519,11 +1520,19 @@ class Editor extends View
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (lineElement, column) ->
-    chars = lineElement.find('.character')
+  positionLeftForLineAndColumn: (line, column) ->
+    lineCache = @pixelLeftCache.get(line[0])
+    @pixelLeftCache.set(line[0], lineCache = {}) unless lineCache?
+
+    return lineCache[column] if lineCache[column]?
+
+    chars = line.find('.character')
     left = 0
     for i in [0...column]
       left += chars[i].offsetWidth if chars[i]
+
+    lineCache[column] = left
+
     left
 
   pixelOffsetForScreenPosition: (position) ->
