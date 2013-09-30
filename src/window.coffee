@@ -49,16 +49,16 @@ window.startEditorWindow = ->
 
   windowEventHandler = new WindowEventHandler
   restoreDimensions()
-  config.load()
-  keymap.loadBundledKeymaps()
+  atom.config.load()
+  atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
-  atom.loadPackages()
-  atom.loadThemes()
+  atom.packages.loadPackages()
+  atom.themes.load()
   deserializeEditorWindow()
-  atom.activatePackages()
-  keymap.loadUserKeymaps()
+  atom.packages.activatePackages()
+  atom.keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
+  ipc.sendChannel 'update-application-menu', atom.keymap.keystrokesByCommandForSelector('body')
   $(window).on 'unload', ->
     $(document.body).hide()
     unloadEditorWindow()
@@ -69,16 +69,15 @@ window.startEditorWindow = ->
 window.unloadEditorWindow = ->
   return if not project and not rootView
   windowState = atom.getWindowState()
-  windowState.set('project', project.serialize())
-  windowState.set('syntax', syntax.serialize())
-  windowState.set('rootView', rootView.serialize())
-  atom.deactivatePackages()
+  windowState.set('project', atom.project.serialize())
+  windowState.set('syntax', atom.syntax.serialize())
+  windowState.set('rootView', atom.rootView.serialize())
+  atom.packages.deactivatePackages()
   windowState.set('packageStates', atom.packages.packageStates)
   atom.saveWindowState()
-  rootView.remove()
-  project.destroy()
+  atom.rootView.remove()
+  atom.project.destroy()
   windowEventHandler?.unsubscribe()
-  lessCache?.destroy()
   window.rootView = null
   window.project = null
 
