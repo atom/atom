@@ -38,7 +38,7 @@ beforeEach ->
   window.project = new Project(specProjectPath)
 
   window.resetTimeouts()
-  atom.packageStates = {}
+  atom.packages.packageStates = {}
   spyOn(atom, 'saveWindowState')
   syntax.clearGrammarOverrides()
   syntax.clearProperties()

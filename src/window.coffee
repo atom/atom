@@ -76,7 +76,7 @@ window.unloadEditorWindow = ->
   windowState.set('syntax', syntax.serialize())
   windowState.set('rootView', rootView.serialize())
   atom.deactivatePackages()
-  windowState.set('packageStates', atom.packageStates)
+  windowState.set('packageStates', atom.packages.packageStates)
   atom.saveWindowState()
   rootView.remove()
   project.destroy()
