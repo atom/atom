@@ -17,7 +17,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, @isSpec} = settings
+    {@resourcePath, pathToOpen, initialLine, @isSpec, @updateVersion} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
@@ -28,7 +28,7 @@ class AtomWindow
 
     @handleEvents()
 
-    loadSettings = _.extend({}, settings)
+    loadSettings = _.omit(settings, 'updateVersion')
     loadSettings.windowState ?= ''
     loadSettings.initialPath = pathToOpen
     try
@@ -96,6 +96,7 @@ class AtomWindow
     if @loaded
       @focus()
       @sendCommand('window:open-path', {pathToOpen, initialLine})
+      @sendCommand('window:update-available', @updateVersion) if @updateVersion
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 

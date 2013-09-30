@@ -24,7 +24,7 @@ socketPath = '/tmp/atom.sock'
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype
-  updateAvailable: false
+  updateVersion: null
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
@@ -148,11 +148,9 @@ class AtomApplication
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
+      @updateVersion = version
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
-      for window in @windows
-        @updateAvailable = true
-        browserWindow = window.browserWindow
-        ipc.sendChannel browserWindow.getProcessId(), browserWindow.getRoutingId(), 'command', 'window:update-available', version
+      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
@@ -236,7 +234,7 @@ class AtomApplication
       else
         resourcePath = @resourcePath
         bootstrapScript = require.resolve('./window-bootstrap')
-      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, @updateAvailable})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, @updateVersion})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -266,7 +264,7 @@ class AtomApplication
       console.log "Joining session #{sessionId}"
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode, @updateAvailable})
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode, @updateVersion})
     else
       console.log "Opening unknown url #{urlToOpen}"
 
@@ -290,7 +288,7 @@ class AtomApplication
 
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, @updateAvailable})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, @updateVersion})
 
   runBenchmarks: ->
     try
@@ -299,7 +297,7 @@ class AtomApplication
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'benchmark', 'benchmark-bootstrap'))
 
     isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
-    new AtomWindow({bootstrapScript, @resourcePath, isSpec, @updateAvailable})
+    new AtomWindow({bootstrapScript, @resourcePath, isSpec, @updateVersion})
 
   # Private: Opens a native dialog to prompt the user for a path.
   #
