@@ -1514,6 +1514,7 @@ class Editor extends View
     lineElement = existingLineElement = line[0]
     unless existingLineElement
       lineElement = @buildLineElementForScreenRow(actualRow)
+      line = $(lineElement)
       @renderedLines.append(lineElement)
     left = @positionLeftForLineAndColumn(line, column)
     unless existingLineElement
