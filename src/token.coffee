@@ -123,11 +123,6 @@ class Token
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
     invisibles ?= {}
     html = @value
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
 
     if @isHardTab
       classes = []
@@ -135,27 +130,58 @@ class Token
       classes.push('invisible-character') if invisibles.tab
       classes.push('hard-tab')
       classes = classes.join(' ')
-      html = html.replace /^./, (match) ->
+      html = html.replace /^./, (match) =>
         match = invisibles.tab ? match
-        "<span class='#{classes}'>#{match}</span>"
+        "<span class='#{classes}'>#{@wrapCharacters(match)}</span>"
     else
-      if hasLeadingWhitespace
+      startIndex = 0
+      endIndex = html.length
+
+      leadingHtml = ''
+      trailingHtml = ''
+
+      if hasLeadingWhitespace and match = /^[ ]+/.exec(html)
         classes = []
         classes.push('indent-guide') if hasIndentGuide
         classes.push('invisible-character') if invisibles.space
         classes.push('leading-whitespace')
         classes = classes.join(' ')
-        html = html.replace /^[ ]+/, (match) ->
-          match = match.replace(/./g, invisibles.space) if invisibles.space
-          "<span class='#{classes}'>#{match}</span>"
-      if hasTrailingWhitespace
+
+        match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
+        leadingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
+
+        startIndex = match[0].length
+
+      if hasTrailingWhitespace and match = /[ ]+$/.exec(html)
         classes = []
         classes.push('indent-guide') if hasIndentGuide and not hasLeadingWhitespace
         classes.push('invisible-character') if invisibles.space
         classes.push('trailing-whitespace')
         classes = classes.join(' ')
-        html = html.replace /[ ]+$/, (match) ->
-          match = match.replace(/./g, invisibles.space) if invisibles.space
-          "<span class='#{classes}'>#{match}</span>"
+
+        match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
+        trailingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
+
+        endIndex = match.index
+
+      html = leadingHtml + @wrapCharacters(html, startIndex, endIndex) + trailingHtml
 
     html
+
+  wrapCharacters: (str, startIndex, endIndex) ->
+    startIndex ?= 0
+    endIndex ?= str.length
+
+    ret = ''
+
+    for i in [startIndex...endIndex]
+      character = str[i]
+        .replace('&', '&amp;')
+        .replace('"', '&quot;')
+        .replace("'", '&#39;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+      ret += "<span class='character'>#{character}</span>"
+
+    ret
+

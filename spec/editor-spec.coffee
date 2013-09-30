@@ -1090,25 +1090,39 @@ describe "Editor", ->
         expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
         expect(span0.children('span:eq(0)').text()).toBe 'var'
 
-        span0_1 = span0.children('span:eq(1)')
-        expect(span0_1).toMatchSelector '.meta.function.js'
-        expect(span0_1.text()).toBe 'quicksort = function ()'
-        expect(span0_1.children('span:eq(0)')).toMatchSelector '.entity.name.function.js'
-        expect(span0_1.children('span:eq(0)').text()).toBe "quicksort"
-        expect(span0_1.children('span:eq(1)')).toMatchSelector '.keyword.operator.js'
-        expect(span0_1.children('span:eq(1)').text()).toBe "="
-        expect(span0_1.children('span:eq(2)')).toMatchSelector '.storage.type.function.js'
-        expect(span0_1.children('span:eq(2)').text()).toBe "function"
-        expect(span0_1.children('span:eq(3)')).toMatchSelector '.punctuation.definition.parameters.begin.js'
-        expect(span0_1.children('span:eq(3)').text()).toBe "("
-        expect(span0_1.children('span:eq(4)')).toMatchSelector '.punctuation.definition.parameters.end.js'
-        expect(span0_1.children('span:eq(4)').text()).toBe ")"
+        expect(span0.children('span:eq(1)')).toMatchSelector '.character'
+        expect(span0.children('span:eq(1)').text()).toBe " "
 
-        expect(span0.children('span:eq(2)')).toMatchSelector '.meta.brace.curly.js'
-        expect(span0.children('span:eq(2)').text()).toBe "{"
+        span0_2 = span0.children('span:eq(2)')
+        console.log span0
+        console.log span0_2[0]
+        expect(span0_2).toMatchSelector '.meta.function.js'
+        expect(span0_2.text()).toBe 'quicksort = function ()'
+        expect(span0_2.children('span:eq(0)')).toMatchSelector '.entity.name.function.js'
+        expect(span0_2.children('span:eq(0)').text()).toBe "quicksort"
+        expect(span0_2.children('span:eq(1)')).toMatchSelector '.character'
+        expect(span0_2.children('span:eq(1)').text()).toBe " "
+        expect(span0_2.children('span:eq(2)')).toMatchSelector '.keyword.operator.js'
+        expect(span0_2.children('span:eq(2)').text()).toBe "="
+        expect(span0_2.children('span:eq(3)')).toMatchSelector '.character'
+        expect(span0_2.children('span:eq(3)').text()).toBe " "
+        expect(span0_2.children('span:eq(4)')).toMatchSelector '.storage.type.function.js'
+        expect(span0_2.children('span:eq(4)').text()).toBe "function"
+        expect(span0_2.children('span:eq(5)')).toMatchSelector '.character'
+        expect(span0_2.children('span:eq(5)').text()).toBe " "
+        expect(span0_2.children('span:eq(6)')).toMatchSelector '.punctuation.definition.parameters.begin.js'
+        expect(span0_2.children('span:eq(6)').text()).toBe "("
+        expect(span0_2.children('span:eq(7)')).toMatchSelector '.punctuation.definition.parameters.end.js'
+        expect(span0_2.children('span:eq(7)').text()).toBe ")"
 
-        line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+        expect(span0.children('span:eq(3)')).toMatchSelector '.character'
+        expect(span0.children('span:eq(3)').text()).toBe " "
+
+        expect(span0.children('span:eq(4)')).toMatchSelector '.meta.brace.curly.js'
+        expect(span0.children('span:eq(4)').text()).toBe "{"
+
+        line12 = editor.renderedLines.find('.line:eq(11)').children('span:eq(0)')
+        expect(line12.children('span:eq(1)')).toMatchSelector '.keyword'
 
       it "wraps hard tabs in a span", ->
         editor.setText('\t<- hard tab')
@@ -1123,12 +1137,37 @@ describe "Editor", ->
         expect(span0_0).toMatchSelector '.leading-whitespace'
         expect(span0_0.text()).toBe '  '
 
-      it "wraps trailing whitespace in a span", ->
-        editor.setText('trailing whitespace ->   ')
+      it "wraps every character in a span", ->
+        text = '  leading and no trailing whitespace'
+        editor.setText(text)
         line0 = editor.renderedLines.find('.line:first')
-        span0_last = line0.children('span:eq(0)').children('span:last')
-        expect(span0_last).toMatchSelector '.trailing-whitespace'
-        expect(span0_last.text()).toBe '   '
+        characters = line0.find('.character')
+
+        renderedText = ''
+        renderedText += $(ch).text() for ch in characters
+
+        expect(characters).toHaveLength text.length
+        expect(renderedText).toEqual text
+
+      describe "when the line has trailing whitespace", ->
+        it "wraps trailing whitespace in a span", ->
+          editor.setText('trailing whitespace ->   ')
+          line0 = editor.renderedLines.find('.line:first')
+          span0_last = line0.children('span:eq(0)').children('span:last')
+          expect(span0_last).toMatchSelector '.trailing-whitespace'
+          expect(span0_last.text()).toBe '   '
+
+        it "wraps every character in a span", ->
+          text = '  leading and trailing whitespace   '
+          editor.setText(text)
+          line0 = editor.renderedLines.find('.line:first')
+          characters = line0.find('.character')
+
+          renderedText = ''
+          renderedText += $(ch).text() for ch in characters
+
+          expect(characters).toHaveLength text.length
+          expect(renderedText).toEqual text
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1476,7 +1515,7 @@ describe "Editor", ->
         editor.setShowInvisibles(true)
         editor.attachToDom()
         editor.setText "var"
-        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible-character">¬</span>'
+        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js"><span class="character">v</span><span class="character">a</span><span class="character">r</span></span></span><span class="invisible-character">¬</span>'
 
       it "allows invisible glyphs to be customized via config.editor.invisibles", ->
         editor.setText(" \t ")

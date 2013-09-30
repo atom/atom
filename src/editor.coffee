@@ -1509,43 +1509,22 @@ class Editor extends View
     {row, column} = Point.fromObject(position)
     actualRow = Math.floor(row)
 
-    lineElement = existingLineElement = @lineElementForScreenRow(actualRow)[0]
+    line = @lineElementForScreenRow(actualRow)
+    lineElement = existingLineElement = line[0]
     unless existingLineElement
       lineElement = @buildLineElementForScreenRow(actualRow)
       @renderedLines.append(lineElement)
-    left = @positionLeftForLineAndColumn(lineElement, column)
+    left = @positionLeftForLineAndColumn(line, column)
     unless existingLineElement
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
   positionLeftForLineAndColumn: (lineElement, column) ->
-    return 0 if column is 0
-
-    @pixelLeftCache ?= {}
-    cacheKey = lineElement.getAttribute('line-id')+':'+column
-
-    if @pixelLeftCache[cacheKey]?
-      #console.log 'hit', cacheKey
-      return @pixelLeftCache[cacheKey]
-
-    delta = 0
-    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-    while textNode = iterator.nextNode()
-      nextDelta = delta + textNode.textContent.length
-      if nextDelta >= column
-        offset = column - delta
-        break
-      delta = nextDelta
-
-    range = document.createRange()
-    range.setEnd(textNode, offset)
-    range.collapse()
-    leftPixels = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
-    range.detach()
-
-    @pixelLeftCache[cacheKey] = leftPixels
-
-    leftPixels
+    chars = lineElement.find('.character')
+    left = 0
+    for i in [0...column]
+      left += chars[i].offsetWidth if chars[i]
+    left
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
