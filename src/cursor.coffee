@@ -1,5 +1,6 @@
 {Point, Range} = require 'telepath'
 EventEmitter = require './event-emitter'
+Subscriber = require './subscriber'
 _ = require './underscore-extensions'
 
 # Public: The `Cursor` class represents the little blinking line identifying
@@ -10,6 +11,7 @@ _ = require './underscore-extensions'
 module.exports =
 class Cursor
   _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
 
   screenPosition: null
   bufferPosition: null
@@ -20,7 +22,7 @@ class Cursor
   # Private: Instantiated by an {EditSession}
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
-    @marker.on 'changed', (e) =>
+    @subscribe @marker, 'changed', (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
@@ -38,8 +40,9 @@ class Cursor
 
       @trigger 'moved', movedEvent
       @editSession.trigger 'cursor-moved', movedEvent
-    @marker.on 'destroyed', =>
+    @subscribe @marker, 'destroyed', =>
       @destroyed = true
+      @unsubscribe()
       @editSession.removeCursor(this)
       @trigger 'destroyed'
     @needsAutoscroll = true

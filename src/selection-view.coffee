@@ -13,8 +13,9 @@ class SelectionView extends View
 
   initialize: ({@editor, @selection} = {}) ->
     @regions = []
-    @selection.on 'screen-range-changed', => @editor.requestDisplayUpdate()
-    @selection.on 'destroyed', =>
+    @subscribe @selection, 'screen-range-changed', =>
+      @editor.requestDisplayUpdate()
+    @subscribe @selection, 'destroyed', =>
       @needsRemoval = true
       @editor.requestDisplayUpdate()
 
@@ -83,6 +84,9 @@ class SelectionView extends View
 
   unhighlight: ->
     @removeClass('highlighted')
+
+  beforeRemove: ->
+    @editor = null
 
   remove: ->
     @editor.removeSelectionView(this)

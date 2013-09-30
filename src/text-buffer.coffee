@@ -55,7 +55,7 @@ class TextBuffer
         version: @constructor.version
         text: @text
 
-    @subscribe @text, 'changed', @handleTextChange
+    @subscribe @text, 'changed', (event) => @handleTextChange(event)
     @subscribe @text, 'marker-created', (marker) => @trigger 'marker-created', marker
     @subscribe @text, 'markers-updated', => @trigger 'markers-updated'
 
@@ -68,7 +68,7 @@ class TextBuffer
 
   ### Internal ###
 
-  handleTextChange: (event) =>
+  handleTextChange: (event) ->
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
     bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')

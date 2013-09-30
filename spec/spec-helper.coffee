@@ -78,6 +78,7 @@ beforeEach ->
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
+  window.resetTimeouts()
   atom.deactivatePackages()
   if rootView?
     rootView.remove?()

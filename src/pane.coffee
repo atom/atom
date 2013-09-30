@@ -59,12 +59,12 @@ class Pane extends View
     unless activeItemUri? and @showItemForUri(activeItemUri)
       @showItem(@items[0]) if @items.length > 0
 
-    @command 'core:close', @destroyActiveItem
-    @command 'core:save', @saveActiveItem
-    @command 'core:save-as', @saveActiveItemAs
-    @command 'pane:save-items', @saveItems
-    @command 'pane:show-next-item', @showNextItem
-    @command 'pane:show-previous-item', @showPreviousItem
+    @command 'core:close', => @destroyActiveItem()
+    @command 'core:save',  => @saveActiveItem()
+    @command 'core:save-as', => @saveActiveItemAs()
+    @command 'pane:save-items', => @saveItems()
+    @command 'pane:show-next-item', => @showNextItem()
+    @command 'pane:show-previous-item', => @showPreviousItem()
 
     @command 'pane:show-item-1', => @showItemAtIndex(0)
     @command 'pane:show-item-2', => @showItemAtIndex(1)
@@ -127,7 +127,7 @@ class Pane extends View
     new Array(@items...)
 
   # Public: Switches to the next contained item.
-  showNextItem: =>
+  showNextItem: ->
     index = @getActiveItemIndex()
     if index < @items.length - 1
       @showItemAtIndex(index + 1)
@@ -135,7 +135,7 @@ class Pane extends View
       @showItemAtIndex(0)
 
   # Public: Switches to the previous contained item.
-  showPreviousItem: =>
+  showPreviousItem: ->
     index = @getActiveItemIndex()
     if index > 0
       @showItemAtIndex(index - 1)
@@ -161,13 +161,14 @@ class Pane extends View
   showItem: (item) ->
     return if !item? or item is @activeItem
 
-    if @activeItem
-      @activeItem.off? 'title-changed', @activeItemTitleChanged
+    if @activeItem?
+      @unsubscribe(@activeItem)
       @autosaveActiveItem()
 
     isFocused = @is(':has(:focus)')
     @addItem(item)
-    item.on? 'title-changed', @activeItemTitleChanged
+    if _.isFunction(item.on)
+      @subscribe item, 'title-changed', => @activeItemTitleChanged()
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
@@ -180,7 +181,7 @@ class Pane extends View
     @state.set('activeItemUri', item.getUri?())
 
   # Private:
-  activeItemTitleChanged: =>
+  activeItemTitleChanged: ->
     @trigger 'pane:active-item-title-changed'
 
   # Public: Add an additional item at the specified index.
@@ -194,7 +195,7 @@ class Pane extends View
     item
 
   # Public: Remove the currently active item.
-  destroyActiveItem: =>
+  destroyActiveItem: ->
     @destroyItem(@activeItem)
     false
 
@@ -236,11 +237,11 @@ class Pane extends View
       when 2 then true
 
   # Public: Saves the currently focused item.
-  saveActiveItem: =>
+  saveActiveItem: ->
     @saveItem(@activeItem)
 
   # Public: Save and prompt for path for the currently focused item.
-  saveActiveItemAs: =>
+  saveActiveItemAs: ->
     @saveItemAs(@activeItem)
 
   # Public: Saves the specified item and call the next action when complete.
@@ -264,7 +265,7 @@ class Pane extends View
       nextAction?()
 
   # Public: Saves all items in this pane.
-  saveItems: =>
+  saveItems: ->
     @saveItem(item) for item in @getItems()
 
   # Public: Autosaves the currently focused item.
@@ -283,7 +284,7 @@ class Pane extends View
   # Public: Just remove the item at the given index.
   removeItemAtIndex: (index, options={}) ->
     item = @items[index]
-    @activeItem.off? 'title-changed', @activeItemTitleChanged if item is @activeItem
+    @unsubscribe(@activeItem) if item is @activeItem
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
     @state.get('items').remove(index) if options.updateState ? true
@@ -453,3 +454,5 @@ class Pane extends View
       @getContainer().makeNextPaneActive()
 
     item.destroy?() for item in @getItems()
+    @activeItem = null
+    @activeView = null
