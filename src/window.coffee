@@ -7,9 +7,6 @@ remote = require 'remote'
 ipc = require 'ipc'
 WindowEventHandler = require './window-event-handler'
 
-deserializers = {}
-deferredDeserializers = {}
-
 ### Internal ###
 
 windowEventHandler = null
@@ -116,37 +113,17 @@ window.onerror = ->
   atom.openDevTools()
 
 window.registerDeserializers = (args...) ->
-  registerDeserializer(arg) for arg in args
-
-window.registerDeserializer = (klass) ->
-  deserializers[klass.name] = klass
-
-window.registerDeferredDeserializer = (name, fn) ->
-  deferredDeserializers[name] = fn
-
-window.unregisterDeserializer = (klass) ->
-  delete deserializers[klass.name]
-
-window.deserialize = (state, params) ->
-  return unless state?
-  if deserializer = getDeserializer(state)
-    stateVersion = state.get?('version') ? state.version
-    return if deserializer.version? and deserializer.version isnt stateVersion
-    if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
-      state = state.toObject()
-    deserializer.deserialize(state, params)
-  else
-    console.warn "No deserializer found for", state
-
-window.getDeserializer = (state) ->
-  return unless state?
-
-  name = state.get?('deserializer') ? state.deserializer
-  if deferredDeserializers[name]
-    deferredDeserializers[name]()
-    delete deferredDeserializers[name]
-
-  deserializers[name]
+  atom.deserializers.registerDeserializer(args...)
+window.registerDeserializer = (args...) ->
+  atom.deserializers.registerDeserializer(args...)
+window.registerDeferredDeserializer = (args...) ->
+  atom.deserializers.registerDeferredDeserializer(args...)
+window.unregisterDeserializer = (args...) ->
+  atom.deserializers.unregisterDeserializer(args...)
+window.deserialize = (args...) ->
+  atom.deserializers.deserialize(args...)
+window.getDeserializer = (args...) ->
+  atom.deserializer.getDeserializer(args...)
 
 window.requireWithGlobals = (id, globals={}) ->
   existingGlobals = {}

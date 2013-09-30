@@ -96,38 +96,6 @@ describe "Window", ->
 
       expect(buffer.subscriptionCount()).toBe 0
 
-  describe ".deserialize(state)", ->
-    class Foo
-      @deserialize: ({name}) -> new Foo(name)
-      constructor: (@name) ->
-
-    beforeEach ->
-      registerDeserializer(Foo)
-
-    afterEach ->
-      unregisterDeserializer(Foo)
-
-    it "calls deserialize on the deserializer for the given state object, or returns undefined if one can't be found", ->
-      spyOn(console, 'warn')
-      object = deserialize({ deserializer: 'Foo', name: 'Bar' })
-      expect(object.name).toBe 'Bar'
-      expect(deserialize({ deserializer: 'Bogus' })).toBeUndefined()
-
-    describe "when the deserializer has a version", ->
-      beforeEach ->
-        Foo.version = 2
-
-      describe "when the deserialized state has a matching version", ->
-        it "attempts to deserialize the state", ->
-          object = deserialize({ deserializer: 'Foo', version: 2, name: 'Bar' })
-          expect(object.name).toBe 'Bar'
-
-      describe "when the deserialized state has a non-matching version", ->
-        it "returns undefined", ->
-          expect(deserialize({ deserializer: 'Foo', version: 3, name: 'Bar' })).toBeUndefined()
-          expect(deserialize({ deserializer: 'Foo', version: 1, name: 'Bar' })).toBeUndefined()
-          expect(deserialize({ deserializer: 'Foo', name: 'Bar' })).toBeUndefined()
-
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
       dataTransfer =

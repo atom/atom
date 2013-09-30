@@ -10,6 +10,7 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
+DeserializerManager = require './deserializer-manager'
 Subscriber = require './subscriber'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
@@ -21,6 +22,7 @@ class Atom
 
   constructor: ->
     @rootViewParentSelector = 'body'
+    @deserializers = new DeserializerManager()
 
   initialize: ->
     @unsubscribe()
