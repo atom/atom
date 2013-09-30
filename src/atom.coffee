@@ -4,6 +4,7 @@ _ = require './underscore-extensions'
 Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'
+shell = require 'shell'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
@@ -283,6 +284,9 @@ window.atom =
 
   crashRenderProcess: ->
     process.crash()
+
+  beep: ->
+    shell.beep()
 
   requireUserInitScript: ->
     userInitScriptPath = path.join(config.configDirPath, "user.coffee")

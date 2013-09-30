@@ -181,7 +181,6 @@ describe "Config", ->
           expect(fs.exists(config.configDirPath)).toBeTruthy()
           expect(fs.exists(path.join(config.configDirPath, 'packages'))).toBeTruthy()
           expect(fs.exists(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
-          expect(fs.exists(path.join(config.configDirPath, 'themes'))).toBeTruthy()
           expect(fs.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
