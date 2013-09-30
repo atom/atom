@@ -1,7 +1,7 @@
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 ipc = require 'ipc'
-remote = require 'remote'
+shell = require 'shell'
 Subscriber = require './subscriber'
 fsUtils = require './fs-utils'
 
@@ -22,10 +22,10 @@ class WindowEventHandler
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
-      rootView?.open(pathToOpen, {initialLine}) unless fsUtils.isDirectorySync(pathToOpen)
+      atom.rootView?.open(pathToOpen, {initialLine}) unless fsUtils.isDirectorySync(pathToOpen)
     @subscribe $(window), 'beforeunload', =>
-      confirmed = rootView?.confirmClose()
-      atom.hide() if confirmed and not @reloadRequested and remote.getCurrentWindow().isWebViewFocused()
+      confirmed = atom.rootView?.confirmClose()
+      atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed
     @subscribe $(window), 'unload', ->
@@ -40,7 +40,7 @@ class WindowEventHandler
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
-    @subscribe $(document), 'keydown', keymap.handleKeyEvent
+    @subscribe $(document), 'keydown', atom.keymap.handleKeyEvent
 
     @subscribe $(document), 'drop', onDrop
     @subscribe $(document), 'dragover', (e) ->
@@ -56,7 +56,7 @@ class WindowEventHandler
   openLink: (event) =>
     location = $(event.target).attr('href')
     if location and location[0] isnt '#' and /^https?:\/\//.test(location)
-      require('shell').openExternal(location)
+      shell.openExternal(location)
     false
 
   eachTabIndexedElement: (callback) ->
