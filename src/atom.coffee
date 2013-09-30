@@ -13,6 +13,8 @@ app = remote.require 'app'
 Subscriber = require './subscriber'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
+#
+# An instance of this class is always available as the `atom` global.
 module.exports =
 class Atom
   _.extend @prototype, Subscriber
@@ -43,12 +45,26 @@ class Atom
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
+  # Public: Get the dimensions of this window.
+  #
+  # Returns an object with x, y, width, and height keys.
   getDimensions: ->
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
     [width, height] = browserWindow.getSize()
     {x, y, width, height}
 
+  # Public: Set the dimensions of the window.
+  #
+  # * dimensions:
+  #    + x:
+  #      The new x coordinate.
+  #    + y:
+  #      The new y coordinate.
+  #    + width:
+  #      The new width.
+  #    + height:
+  #      The new height.
   setDimensions: ({x, y, width, height}) ->
     browserWindow = @getCurrentWindow()
     browserWindow.setSize(width, height)
