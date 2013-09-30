@@ -114,7 +114,7 @@ describe "Window", ->
       it "opens it", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        window.onDrop(event)
+        $(document).trigger(event)
         expect(atom.open.callCount).toBe 1
         expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
@@ -122,7 +122,7 @@ describe "Window", ->
       it "does nothing", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [])
-        window.onDrop(event)
+        $(document).trigger(event)
         expect(atom.open).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->

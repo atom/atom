@@ -20,29 +20,43 @@ class WindowEventHandler
       $(atom.contextMenu.activeElement).trigger(command, args...)
 
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
+
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
+
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       atom.rootView?.open(pathToOpen, {initialLine}) unless fsUtils.isDirectorySync(pathToOpen)
+
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.rootView?.confirmClose()
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed
+
     @subscribe $(window), 'unload', ->
       atom.getWindowState().set('dimensions', atom.getDimensions())
+
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
+
     @subscribeToCommand $(window), 'window:close', => atom.close()
+
     @subscribeToCommand $(window), 'window:reload', =>
       @reloadRequested = true
       atom.reload()
+
     @subscribeToCommand $(window), 'window:toggle-dev-tools', => atom.toggleDevTools()
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
+
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
     @subscribe $(document), 'keydown', atom.keymap.handleKeyEvent
 
-    @subscribe $(document), 'drop', onDrop
+    @subscribe $(document), 'drop', (e) ->
+      e.preventDefault()
+      e.stopPropagation()
+      pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
+      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
     @subscribe $(document), 'dragover', (e) ->
       e.preventDefault()
       e.stopPropagation()

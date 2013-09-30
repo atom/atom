@@ -86,12 +86,6 @@ installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('./command-installer').install(commandPath, callback)
 
-window.onDrop = (e) ->
-  e.preventDefault()
-  e.stopPropagation()
-  pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
-  atom.open({pathsToOpen}) if pathsToOpen.length > 0
-
 window.deserializeEditorWindow = ->
   atom.deserializePackageStates()
   atom.deserializeProject()
