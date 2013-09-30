@@ -56,6 +56,9 @@ class Atom
 
   # Public: Set the dimensions of the window.
   #
+  # The window will be centered if either the x or y coordinate is not set
+  # in the dimensions parameter.
+  #
   # * dimensions:
   #    + x:
   #      The new x coordinate.
@@ -114,7 +117,6 @@ class Atom
   isPackageActive: (args...) -> @packages.isPackageActive(args...)
   getActivePackages: (args...) -> @packages.getActivePackages(args...)
   loadPackages: (args...) -> @packages.loadPackages(args...)
-
   loadPackage: (args...) -> @packages.loadPackage(args...)
   unloadPackage: (args...) -> @packages.unloadPackage(args...)
   resolvePackagePath: (args...) -> @packages.resolvePackagePath(args...)
