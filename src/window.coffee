@@ -123,20 +123,8 @@ window.deserialize = (args...) ->
   atom.deserializers.deserialize(args...)
 window.getDeserializer = (args...) ->
   atom.deserializer.getDeserializer(args...)
-
-window.requireWithGlobals = (id, globals={}) ->
-  existingGlobals = {}
-  for key, value of globals
-    existingGlobals[key] = window[key]
-    window[key] = value
-
-  require(id)
-
-  for key, value of existingGlobals
-    if value is undefined
-      delete window[key]
-    else
-      window[key] = value
+window.requireWithGlobals = (args...) ->
+  atom.requireWithGlobals(args...)
 
 window.measure = (description, fn) ->
   start = new Date().getTime()

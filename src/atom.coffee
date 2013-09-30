@@ -273,3 +273,17 @@ class Atom
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  requireWithGlobals: (id, globals={}) ->
+    existingGlobals = {}
+    for key, value of globals
+      existingGlobals[key] = window[key]
+      window[key] = value
+
+    require(id)
+
+    for key, value of existingGlobals
+      if value is undefined
+        delete window[key]
+      else
+        window[key] = value
