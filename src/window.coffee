@@ -36,8 +36,8 @@ window.setUpEnvironment = (windowMode) ->
 # This should only be called after setUpEnvironment() has been called.
 window.setUpDefaultEvents = ->
   windowEventHandler = new WindowEventHandler
-  keymap.loadBundledKeymaps()
-  ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
+  atom.keymap.loadBundledKeymaps()
+  ipc.sendChannel 'update-application-menu', atom.keymap.keystrokesByCommandForSelector('body')
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
