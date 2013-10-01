@@ -19,4 +19,4 @@ git submodule --quiet update --recursive --init
 
 npm install --silent vendor/apm
 echo ""
-./node_modules/.bin/apm install --silent
+./node_modules/.bin/apm install
