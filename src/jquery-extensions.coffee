@@ -40,7 +40,14 @@ $.fn.isVisible = ->
 $.fn.isHidden = ->
   # We used to check @is(':hidden'). But this is much faster than the
   # offsetWidth/offsetHeight check + all the pseudo selector mess in jquery.
-  @css('display') == 'none'
+  style = this[0].style
+
+  if style.display == 'none' or not @isOnDom()
+    true
+  else if style.display
+    false
+  else
+    getComputedStyle(this[0]).display == 'none'
 
 $.fn.isDisabled = ->
   !!@attr('disabled')
