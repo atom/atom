@@ -533,6 +533,8 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(packagePath, 'lib'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'lib', 'fake-package-view.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'lib', 'fake-package.coffee'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'menus'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'menus', 'fake-package.cson'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-view-spec.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.css'))).toBeTruthy()
