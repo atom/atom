@@ -2,7 +2,6 @@ BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 MenuItem = require 'menu-item'
 ContextMenu = require 'context-menu'
-app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -17,7 +16,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, @isSpec, @updateVersion} = settings
+    {@resourcePath, pathToOpen, initialLine, @isSpec} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
@@ -28,7 +27,7 @@ class AtomWindow
 
     @handleEvents()
 
-    loadSettings = _.omit(settings, 'updateVersion')
+    loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
     loadSettings.initialPath = pathToOpen
     try
@@ -96,7 +95,7 @@ class AtomWindow
     if @loaded
       @focus()
       @sendCommand('window:open-path', {pathToOpen, initialLine})
-      @sendCommand('window:update-available', @updateVersion) if @updateVersion
+      @sendCommand('window:update-available', global.atomApplication.getUpdateVersion()) if global.atomApplication.getUpdateVersion()
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 

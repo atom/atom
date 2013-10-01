@@ -234,7 +234,7 @@ class AtomApplication
       else
         resourcePath = @resourcePath
         bootstrapScript = require.resolve('./window-bootstrap')
-      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, @updateVersion})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -264,7 +264,7 @@ class AtomApplication
       console.log "Joining session #{sessionId}"
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode, @updateVersion})
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode})
     else
       console.log "Opening unknown url #{urlToOpen}"
 
@@ -288,7 +288,7 @@ class AtomApplication
 
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, @updateVersion})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory})
 
   runBenchmarks: ->
     try
@@ -297,7 +297,7 @@ class AtomApplication
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'benchmark', 'benchmark-bootstrap'))
 
     isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
-    new AtomWindow({bootstrapScript, @resourcePath, isSpec, @updateVersion})
+    new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
   # Private: Opens a native dialog to prompt the user for a path.
   #
@@ -310,3 +310,8 @@ class AtomApplication
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths({pathsToOpen, devMode})
+
+  # Public: If an update is available, it returns the new version string
+  # otherwise it returns null.
+  getUpdateVersion: ->
+    @updateVersion
