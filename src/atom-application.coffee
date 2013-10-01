@@ -24,6 +24,7 @@ socketPath = '/tmp/atom.sock'
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype
+  updateVersion: null
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
@@ -147,7 +148,9 @@ class AtomApplication
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
+      @updateVersion = version
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
+      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
@@ -307,3 +310,8 @@ class AtomApplication
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths({pathsToOpen, devMode})
+
+  # Public: If an update is available, it returns the new version string
+  # otherwise it returns null.
+  getUpdateVersion: ->
+    @updateVersion
