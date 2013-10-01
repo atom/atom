@@ -1400,14 +1400,18 @@ class Editor extends View
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    Math.floor(@scrollTop() / @lineHeight)
+    screenRow = Math.floor(@scrollTop() / @lineHeight)
+    screenRow = 0 if isNaN(screenRow)
+    screenRow
 
   # Retrieves the number of the row that is visible and currently at the bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
     calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
-    Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
+    screenRow = Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
+    screenRow = 0 if isNaN(screenRow)
+    screenRow
 
   # Given a row number, identifies if it is currently visible.
   #
