@@ -11,7 +11,7 @@ class Pane extends Model
     activeItemId: null
 
   @relatesToOne 'parent', -> @allComponents.where(id: @parentId)
-  @hasMany 'items'
+  @hasMany 'items', orderBy: 'itemLocation'
   @relatesToOne 'activeItem', -> @items.where(id: @activeItemId)
 
   afterAttach: ->
@@ -24,6 +24,9 @@ class Pane extends Model
     item = @addItem(item) unless @items.contains(item)
     @activeItemId = item.get('id')
     item
+
+  moveItem: (item, index) ->
+    @items.move(item, index)
 
   splitLeft: (items...) ->
     @split('before', 'horizontal', items)

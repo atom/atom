@@ -28,3 +28,11 @@ fdescribe "Pane", ->
       it "adds the given object as an item and makes it active", ->
         item = pane.showItem({title: "Item 4"})
         expect(pane.activeItem).toBe item
+
+  describe "::moveItem(item, index)", ->
+    it "moves the given item to the given index", ->
+      pane.moveItem(pane.items.get(0), 2)
+      expect(pane.items.map('title')).toEqual ["Item 2", "Item 1", "Item 3"]
+
+      pane.moveItem(pane.items.get(1), 3)
+      expect(pane.items.map('title')).toEqual ["Item 2", "Item 3", "Item 1"]
