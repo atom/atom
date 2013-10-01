@@ -41,9 +41,7 @@ class AtomWindow
     @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
-    paths = ['exports', 'node_modules']
-    paths = paths.map (relativePath) -> path.resolve(resourcePath, relativePath)
-    process.env['NODE_PATH'] = paths.join path.delimiter
+    process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
