@@ -536,7 +536,7 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-view-spec.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.css'))).toBeTruthy()
-          expect(fs.existsSync(path.join(packagePath, 'package.cson'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
 
     describe "when creating a theme", ->
       it "generates the proper file structure", ->
