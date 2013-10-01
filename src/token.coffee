@@ -2,6 +2,8 @@ _ = require './underscore-extensions'
 textUtils = require './text-utils'
 
 whitespaceRegexesByTabLength = {}
+LEADING_WHITESPACE_REGEX = /^[ ]+/
+TRAILING_WHITESPACE_REGEX = /[ ]+$/
 
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
@@ -125,11 +127,9 @@ class Token
     html = @value
 
     if @isHardTab
-      classes = []
-      classes.push('indent-guide') if hasIndentGuide
-      classes.push('invisible-character') if invisibles.tab
-      classes.push('hard-tab')
-      classes = classes.join(' ')
+      classes = 'hard-tab'
+      classes += ' indent-guide' if hasIndentGuide
+      classes += ' invisible-character' if invisibles.tab
       html = html.replace /^./, (match) =>
         match = invisibles.tab ? match
         "<span class='#{classes}'>#{@wrapCharacters(match)}</span>"
@@ -140,24 +140,20 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = /^[ ]+/.exec(html)
-        classes = []
-        classes.push('indent-guide') if hasIndentGuide
-        classes.push('invisible-character') if invisibles.space
-        classes.push('leading-whitespace')
-        classes = classes.join(' ')
+      if hasLeadingWhitespace and match = LEADING_WHITESPACE_REGEX.exec(html)
+        classes = 'leading-whitespace'
+        classes += ' indent-guide' if hasIndentGuide
+        classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
         leadingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = /[ ]+$/.exec(html)
-        classes = []
-        classes.push('indent-guide') if hasIndentGuide and not hasLeadingWhitespace
-        classes.push('invisible-character') if invisibles.space
-        classes.push('trailing-whitespace')
-        classes = classes.join(' ')
+      if hasTrailingWhitespace and match = TRAILING_WHITESPACE_REGEX.exec(html)
+        classes = 'trailing-whitespace'
+        classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
+        classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
         trailingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
@@ -175,13 +171,14 @@ class Token
     ret = ''
 
     for i in [startIndex...endIndex]
-      character = str[i]
-        .replace('&', '&amp;')
-        .replace('"', '&quot;')
-        .replace("'", '&#39;')
-        .replace('<', '&lt;')
-        .replace('>', '&gt;')
+      character = switch str[i]
+        when '&' then '&amp;'
+        when '"' then '&quot;'
+        when "'" then '&#39;'
+        when '<' then '&lt;'
+        when '>' then '&gt;'
+        else str[i]
+
       ret += "<span class='character'>#{character}</span>"
 
     ret
-
