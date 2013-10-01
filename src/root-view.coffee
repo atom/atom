@@ -195,7 +195,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle("atom - #{projectPath}")
+        @setTitle("#{projectPath}")
     else
       @setTitle('untitled')
 
