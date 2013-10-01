@@ -1,3 +1,4 @@
+app = require 'app'
 ipc = require 'ipc'
 Menu = require 'menu'
 _ = require 'underscore'
