@@ -17,6 +17,8 @@
         currentWindow.emit('window:loaded');
       }
       catch (error) {
+        currentWindow.setSize(800, 600);
+        currentWindow.center();
         currentWindow.show();
         currentWindow.openDevTools();
         console.error(error.stack || error);

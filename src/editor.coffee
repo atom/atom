@@ -498,6 +498,11 @@ class Editor extends View
   # {Delegates to: EditSession.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
+  # Private:
+  setHeightInLines: (heightInLines)->
+    heightInLines ?= @calculateHeightInLines()
+    @heightInLines = heightInLines if heightInLines
+
   # {Delegates to: EditSession.setEditorWidthInChars}
   setWidthInChars: (widthInChars) ->
     widthInChars ?= @calculateWidthInChars()
@@ -747,6 +752,7 @@ class Editor extends View
     @calculateDimensions()
     @setWidthInChars()
     @subscribe $(window), "resize.editor-#{@id}", =>
+      @setHeightInLines()
       @setWidthInChars()
       @requestDisplayUpdate()
     @focus() if @isFocused
@@ -937,6 +943,9 @@ class Editor extends View
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
+  calculateHeightInLines: ->
+    Math.ceil($(window).height() / @lineHeight)
+
   # Enables/disables soft wrap on the editor.
   #
   # softWrap - A {Boolean} which, if `true`, enables soft wrap
@@ -1125,6 +1134,7 @@ class Editor extends View
     @charWidth = charRect.width
     @charHeight = charRect.height
     fragment.remove()
+    @setHeightInLines()
 
   updateLayerDimensions: ->
     height = @lineHeight * @getScreenLineCount()
@@ -1227,15 +1237,15 @@ class Editor extends View
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
-    lastVisibleScreenRow = @getLastVisibleScreenRow()
+    lastScreenRowToRender = firstVisibleScreenRow + @heightInLines - 1
     lastScreenRow = @getLastScreenRow()
 
-    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastScreenRowToRender <= @lastRenderedScreenRow
       renderFrom = Math.min(lastScreenRow, @firstRenderedScreenRow)
       renderTo = Math.min(lastScreenRow, @lastRenderedScreenRow)
     else
       renderFrom = Math.min(lastScreenRow, Math.max(0, firstVisibleScreenRow - @lineOverdraw))
-      renderTo = Math.min(lastScreenRow, lastVisibleScreenRow + @lineOverdraw)
+      renderTo = Math.min(lastScreenRow, lastScreenRowToRender + @lineOverdraw)
 
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
@@ -1382,7 +1392,7 @@ class Editor extends View
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
-  # Retrieves the number of the row that is visible and currently at the top of the editor.
+  # Retrieves the number of the row that is visible and currently at the bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
