@@ -1139,6 +1139,14 @@ class Editor extends View
       @layerMinWidth = minWidth
       @trigger 'editor:min-width-changed'
 
+  # Override for speed. The base function checks computedStyle, unnecessary here.
+  isHidden: ->
+    style = this[0].style
+    if style.display == 'none' or not @isOnDom()
+      true
+    else
+      false
+
   clearRenderedLines: ->
     @renderedLines.empty()
     @firstRenderedScreenRow = null
@@ -1440,11 +1448,11 @@ class Editor extends View
     new Array(div.children...)
 
   htmlForScreenRows: (startRow, endRow) ->
-    htmlLines = []
+    htmlLines = ''
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
-      htmlLines.push(@htmlForScreenLine(line, screenRow++))
-    htmlLines.join('\n\n')
+      htmlLines += @htmlForScreenLine(line, screenRow++)
+    htmlLines
 
   htmlForScreenLine: (screenLine, screenRow) ->
     { tokens, text, lineEnding, fold, isSoftWrapped } =  screenLine
@@ -1629,30 +1637,9 @@ class Editor extends View
     scopeStack = []
     line = []
 
-    updateScopeStack = (desiredScopes) ->
-      excessScopes = scopeStack.length - desiredScopes.length
-      _.times(excessScopes, popScope) if excessScopes > 0
-
-      # pop until common prefix
-      for i in [scopeStack.length..0]
-        break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
-        popScope()
-
-      # push on top of common prefix until scopeStack == desiredScopes
-      for j in [i...desiredScopes.length]
-        pushScope(desiredScopes[j])
-
-    pushScope = (scope) ->
-      scopeStack.push(scope)
-      line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
-
-    popScope = ->
-      scopeStack.pop()
-      line.push("</span>")
-
-    attributePairs = []
-    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
-    line.push("<div #{attributePairs.join(' ')}>")
+    attributePairs = ''
+    attributePairs += " #{attributeName}=\"#{value}\"" for attributeName, value of attributes
+    line.push("<div #{attributePairs}>")
 
     if text == ''
       html = Editor.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini)
@@ -1663,19 +1650,43 @@ class Editor extends View
       lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in tokens
-        updateScopeStack(token.scopes)
+        @updateScopeStack(line, scopeStack, token.scopes)
         hasLeadingWhitespace =  position < firstNonWhitespacePosition
         hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
         hasIndentGuide = not mini and showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
         line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
-    popScope() while scopeStack.length > 0
+    @popScope(line, scopeStack) while scopeStack.length > 0
     line.push(htmlEolInvisibles) unless text == ''
     line.push("<span class='fold-marker'/>") if fold
 
     line.push('</div>')
     line.join('')
+
+  @updateScopeStack: (line, scopeStack, desiredScopes) ->
+    excessScopes = scopeStack.length - desiredScopes.length
+    if excessScopes > 0
+      @popScope(line, scopeStack) while excessScopes--
+
+    # pop until common prefix
+    for i in [scopeStack.length..0]
+      break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
+      @popScope(line, scopeStack)
+
+    # push on top of common prefix until scopeStack == desiredScopes
+    for j in [i...desiredScopes.length]
+      @pushScope(line, scopeStack, desiredScopes[j])
+
+    null
+
+  @pushScope: (line, scopeStack, scope) ->
+    scopeStack.push(scope)
+    line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
+
+  @popScope: (line, scopeStack)->
+    scopeStack.pop()
+    line.push("</span>")
 
   @buildEmptyLineHtml: (showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini) ->
     if not mini and showIndentGuide
