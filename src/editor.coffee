@@ -704,7 +704,12 @@ class Editor extends View
     @on 'cursor:moved', =>
       return unless @isFocused
       cursorView = @getCursorView()
-      @hiddenInput.offset(cursorView.offset()) if cursorView.isVisible()
+
+      if cursorView.isVisible()
+        # This is an order of magnitude faster than checking .offset().
+        style = cursorView[0].style
+        @hiddenInput[0].style.top = style.top
+        @hiddenInput[0].style.left = style.left
 
     selectedText = null
     @hiddenInput.on 'compositionstart', =>
