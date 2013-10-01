@@ -1,5 +1,5 @@
 __PackageName__View = require '../lib/__package-name__-view'
-RootView = require 'root-view'
+{RootView} = require 'atom'
 
 # This spec is focused because it starts with an `f`. Remove the `f`
 # to unfocus the spec.
