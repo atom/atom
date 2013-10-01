@@ -13,6 +13,8 @@ describe "Editor", ->
     editor.lineOverdraw = 2
     editor.isFocused = true
     editor.enableKeymap()
+    editor.calculateHeightInLines = ->
+      Math.ceil(@height() / @lineHeight)
     editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
       heightInLines ?= @getBuffer().getLineCount()
       @height(getLineHeight() * heightInLines)
