@@ -1213,7 +1213,6 @@ class Editor extends View
     should = (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow)
     should
 
-
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
       do (cursorView) -> cursorView.resetBlinking()
