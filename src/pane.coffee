@@ -13,6 +13,10 @@ class Pane extends Model
   @relatesToOne 'parent', -> @allComponents.where(id: @parentId)
   @hasMany 'items', orderBy: 'itemLocation'
   @relatesToOne 'activeItem', -> @items.where(id: @activeItemId)
+  
+  @condition
+    when: -> @items.$length.becomes(0)
+    call: 'destroy'
 
   afterAttach: ->
     @activeItemId ?= @items.getFirst()?.get('id')
@@ -27,6 +31,12 @@ class Pane extends Model
 
   moveItem: (item, index) ->
     @items.move(item, index)
+    
+  moveItemToPane: (item, targetPane, targetIndex) ->
+    targetIndex ?= targetPane.items.length
+    values = targetPane.items.inferValuesForIndex(targetIndex)
+    values.paneId = targetPane.id
+    item.set(values)
 
   splitLeft: (items...) ->
     @split('before', 'horizontal', items)

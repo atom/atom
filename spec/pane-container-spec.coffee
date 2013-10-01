@@ -45,3 +45,25 @@ fdescribe "PaneContainer", ->
       pane2.destroy()
       expect(row.isAttached()).toBe false
       expect(container.root).toBe pane1
+
+  describe "moving items between panes", ->
+    [pane1, pane2] = []
+
+    beforeEach ->
+      pane1 = container.createPane({title: 'Item 1'}, {title: 'Item 2'})
+      pane2 = pane1.splitRight({title: 'Item 3'}, {title: 'Item 4'})
+
+    it "removes the item from the source pane and moves it to the target pane at the desired index", ->
+      pane1.moveItemToPane(pane1.items.get(1), pane2, 1)
+      expect(pane1.items.map('title')).toEqual ['Item 1']
+      expect(pane2.items.map('title')).toEqual ['Item 3', 'Item 2', 'Item 4']
+
+      # default index to length of target pane's items
+      pane1.moveItemToPane(pane2.items.get(2), pane1)
+      expect(pane1.items.map('title')).toEqual ['Item 1', 'Item 4']
+      expect(pane2.items.map('title')).toEqual ['Item 3', 'Item 2']
+
+      # destroy the source pane when it loses all items
+      pane1.moveItemToPane(pane1.items.get(0), pane2)
+      pane1.moveItemToPane(pane1.items.get(0), pane2)
+      expect(pane1.isAttached()).toBe false
