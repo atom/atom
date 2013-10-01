@@ -10,7 +10,6 @@ describe "editor.", ->
     window.rootView = new RootView
     window.rootView.attachToDom()
 
-
     rootView.width(1024)
     rootView.height(768)
     rootView.open() # open blank editor
@@ -59,6 +58,24 @@ describe "editor.", ->
       benchmark "insert-delete", ->
         editor.insertText('"')
         editor.backspace()
+
+    describe "text-rendering.", ->
+      beforeEach ->
+        editor.scrollTop(200)
+
+      benchmark "resetDisplay", 20, ->
+        editor.resetDisplay()
+
+      benchmark "htmlForScreenRows", 50, ->
+        lastRow = editor.getLastScreenRow()
+        editor.htmlForScreenRows(0, lastRow)
+
+      benchmark "htmlForScreenRows.htmlParsing", 20, ->
+        lastRow = editor.getLastScreenRow()
+        html = editor.htmlForScreenRows(0, lastRow)
+
+        div = document.createElement('div')
+        div.innerHTML = html
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
