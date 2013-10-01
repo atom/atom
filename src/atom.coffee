@@ -36,6 +36,11 @@ class Atom
     ContextMenuManager = require './context-menu-manager'
 
     @packages = new PackageManager()
+
+    #TODO Remove once packages have been updated to not touch atom.packageStates directly
+    @__defineGetter__ 'packageStates', => @packages.packageStates
+    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
+
     @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
