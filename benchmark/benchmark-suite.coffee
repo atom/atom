@@ -1,8 +1,6 @@
 require './benchmark-helper'
-$ = require 'jquery'
-_ = require 'underscore'
-TokenizedBuffer = require 'tokenized-buffer'
-RootView = require 'root-view'
+{$, _, RootView} = require 'atom'
+TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editor.", ->
   editor = null
