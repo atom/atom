@@ -1245,10 +1245,11 @@ class Editor extends View
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
 
-    @gutter.updateLineNumbers(@pendingChanges, renderFrom, renderTo)
-    intactRanges = @computeIntactRanges()
-    @pendingChanges = []
-    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+    changes = @pendingChanges
+    intactRanges = @computeIntactRanges(renderFrom, renderTo)
+
+    @gutter.updateLineNumbers(changes, intactRanges, renderFrom, renderTo)
+
     @clearDirtyRanges(intactRanges)
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
     @firstRenderedScreenRow = renderFrom
@@ -1274,7 +1275,7 @@ class Editor extends View
 
     emptyLineChanges
 
-  computeIntactRanges: ->
+  computeIntactRanges: (renderFrom, renderTo) ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
@@ -1309,6 +1310,9 @@ class Editor extends View
               domStart: range.domStart + change.end + 1 - range.start
             )
       intactRanges = newIntactRanges
+
+    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+
     @pendingChanges = []
 
     intactRanges
@@ -1327,45 +1331,54 @@ class Editor extends View
       i++
     intactRanges.sort (a, b) -> a.domStart - b.domStart
 
-  clearDirtyRanges: (intactRanges) ->
-    renderedLines = @renderedLines[0]
+  # renderedLines - optional
+  # clearLine - optional
+  clearDirtyRanges: (intactRanges, renderedLines, clearLine) ->
+    renderedLines ?= @renderedLines[0]
+    clearLine ?= @clearLine
 
     if intactRanges.length == 0
-      @renderedLines.empty()
+      renderedLines.innerHTML = ''
     else if currentLine = renderedLines.firstChild
       domPosition = 0
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
-          currentLine = @clearLine(currentLine)
+          currentLine = clearLine(currentLine)
           domPosition++
         for i in [intactRange.start..intactRange.end]
           currentLine = currentLine.nextSibling
           domPosition++
       while currentLine
-        currentLine = @clearLine(currentLine)
+        currentLine = clearLine(currentLine)
 
-  clearLine: (lineElement) ->
+  clearLine: (lineElement) =>
     @pixelLeftCache.delete(lineElement)
     next = lineElement.nextSibling
     @renderedLines[0].removeChild(lineElement)
     next
 
-  fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
-    renderedLines = @renderedLines[0]
-    nextIntact = intactRanges.shift()
+  # renderedLines - optional
+  # buildLineElements - optional
+  fillDirtyRanges: (intactRanges, renderFrom, renderTo, renderedLines, buildLineElements) ->
+    renderedLines ?= @renderedLines[0]
+    buildLineElements ?= @buildLineElementsForScreenRows
+
+    i = 0
+    nextIntact = intactRanges[i]
     currentLine = renderedLines.firstChild
 
     row = renderFrom
     while row <= renderTo
       if row == nextIntact?.end + 1
-        nextIntact = intactRanges.shift()
+        nextIntact = intactRanges[++i]
+
       if !nextIntact or row < nextIntact.start
         if nextIntact
           dirtyRangeEnd = nextIntact.start - 1
         else
           dirtyRangeEnd = renderTo
 
-        for lineElement in @buildLineElementsForScreenRows(row, dirtyRangeEnd)
+        for lineElement in buildLineElements(row, dirtyRangeEnd)
           renderedLines.insertBefore(lineElement, currentLine)
           row++
       else
@@ -1413,7 +1426,7 @@ class Editor extends View
   buildLineElementForScreenRow: (screenRow) ->
     @buildLineElementsForScreenRows(screenRow, screenRow)[0]
 
-  buildLineElementsForScreenRows: (startRow, endRow) ->
+  buildLineElementsForScreenRows: (startRow, endRow) =>
     div = document.createElement('div')
     div.innerHTML = @htmlForScreenRows(startRow, endRow)
     new Array(div.children...)
