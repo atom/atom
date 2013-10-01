@@ -47,6 +47,7 @@ class Config
     @packageDirPaths = [path.join(configDirPath, "packages")]
     if atom.getLoadSettings().devMode
       @packageDirPaths.unshift(path.join(configDirPath, "dev", "packages"))
+    @userPackageDirPaths = _.clone(@packageDirPaths)
     @userStoragePath = path.join(configDirPath, "storage")
 
     @defaultSettings =
