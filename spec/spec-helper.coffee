@@ -82,12 +82,17 @@ afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
   atom.deactivatePackages()
-  if rootView?
-    rootView.remove?()
-    window.rootView = null
-  if project?
-    project.destroy()
-    window.project = null
+
+  window.rootView?.remove?()
+  atom.rootView?.remove?() if atom.rootView isnt window.rootView
+  window.rootView = null
+  atom.rootView = null
+
+  window.project?.destroy?()
+  atom.project?.destroy?() if atom.project isnt window.project
+  window.project = null
+  atom.project = null
+
   $('#jasmine-content').empty() unless window.debugContent
   delete atom.windowState
   jasmine.unspy(atom, 'saveWindowState')
