@@ -9,6 +9,8 @@ fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 
+MEASURE_RANGE = document.createRange()
+
 # Private: Represents the entire visual pane in Atom.
 #
 # The Editor manages the {EditSession}, which manages the file buffers.
@@ -1563,11 +1565,9 @@ class Editor extends View
         break
       delta = nextDelta
 
-    range = document.createRange()
-    range.setEnd(textNode, offset)
-    range.collapse()
-    left = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
-    range.detach()
+    MEASURE_RANGE.setEnd(textNode, offset)
+    MEASURE_RANGE.collapse()
+    left = MEASURE_RANGE.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
     lineCache[column] = left
     left

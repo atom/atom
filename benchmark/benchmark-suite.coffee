@@ -59,7 +59,7 @@ describe "editor.", ->
         editor.insertText('"')
         editor.backspace()
 
-    describe "calculating-pixel-position.", ->
+    fdescribe "calculating-pixel-position.", ->
       line = null
       beforeEach ->
         editor.scrollTop(2000)
