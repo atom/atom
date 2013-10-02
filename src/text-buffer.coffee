@@ -166,9 +166,6 @@ class TextBuffer
   getRelativePath: ->
     @state.get('relativePath')
 
-  setRelativePath: (relativePath) ->
-    @setPath(@project.resolve(relativePath))
-
   # Sets the path for the file.
   #
   # path - A {String} representing the new file path
