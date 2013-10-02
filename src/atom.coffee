@@ -188,7 +188,6 @@ class Atom
 
   show: ->
     @getCurrentWindow().show()
-    (_.nextTick => @getCurrentWindow().minimize()) if @getLoadSettings().exitWhenDone
 
   hide: ->
     @getCurrentWindow().hide()

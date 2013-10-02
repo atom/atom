@@ -2,7 +2,7 @@ try
   require '../src/window'
   Atom = require '../src/atom'
   window.atom = new Atom()
-  window.atom.show()
+  window.atom.show() unless atom.getLoadSettings().exitWhenDone
   {runSpecSuite} = require './jasmine-helper'
 
   document.title = "Spec Suite"
