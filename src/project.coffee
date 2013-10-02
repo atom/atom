@@ -1,6 +1,7 @@
 fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
+Q = require 'q'
 
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
@@ -179,7 +180,7 @@ class Project
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
-  # Public: Given a path to a file, this constructs and associates a new
+  # Public Given a path to a file, this constructs and associates a new
   # {EditSession}, showing the file.
   #
   # * filePath:
@@ -187,7 +188,20 @@ class Project
   # * editSessionOptions:
   #   Options that you can pass to the {EditSession} constructor
   #
-  # Returns an {EditSession}.
+  # Returns a promise that resolves to an {EditSession}.
+  openAsync: (filePath, options={}) ->
+    filePath = @resolve(filePath) if filePath?
+    for opener in @openers
+      return Q(resource) if resource = opener(filePath, options)
+
+    deferred = Q.defer()
+    @bufferForPathAsync(filePath).then (buffer) =>
+      editSession = @buildEditSessionForBuffer(buffer, options)
+      deferred.resolve(editSession)
+
+    deferred.promise
+
+  # Private: DEPRECATED
   open: (filePath, options={}) ->
     filePath = @resolve(filePath) if filePath?
     for opener in @openers
@@ -217,15 +231,7 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
-  # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
-  #
-  # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
-  # `text` is used as the contents of the new buffer.
-  #
-  # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
-  # text - The {String} text to use as a buffer, if the file doesn't have any contents
-  #
-  # Returns the {TextBuffer}.
+  # Private: DEPRECATED
   bufferForPath: (filePath, text) ->
     if filePath?
       filePath = @resolve(filePath)
@@ -234,6 +240,22 @@ class Project
         buffer or @buildBuffer(filePath, text)
     else
       @buildBuffer(null, text)
+
+  # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
+  #
+  # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
+  # `text` is used as the contents of the new buffer.
+  #
+  # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
+  # text - The {String} text to use as a buffer, if the file doesn't have any contents
+  #
+  # Returns a promise that resolves to the {TextBuffer}.
+  bufferForPathAsync: (filePath, text) ->
+    if filePath
+      filePath = @resolve(filePath)
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
+
+    Q(existingBuffer ? @buildBuffer(filePath, text))
 
   # Private:
   bufferForId: (id) ->

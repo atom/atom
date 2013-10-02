@@ -176,7 +176,7 @@ class RootView extends View
     activePane = @getActivePane()
 
     editSession = activePane.itemForUri(filePath) if activePane and filePath
-    promise = project.open(filePath, {initialLine}) if not editSession
+    promise = project.openAsync(filePath, {initialLine}) if not editSession
 
     returnedPromise = Q(editSession ? promise)
     returnedPromise.done (editSession) =>
