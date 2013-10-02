@@ -1554,13 +1554,22 @@ class Editor extends View
 
     return lineCache[column] if lineCache[column]?
 
-    chars = lineElement.getElementsByClassName('character')
-    left = 0
-    for i in [0...column]
-      left += chars[i].offsetWidth if chars[i]
+    delta = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+    while textNode = iterator.nextNode()
+      nextDelta = delta + textNode.textContent.length
+      if nextDelta >= column
+        offset = column - delta
+        break
+      delta = nextDelta
+
+    range = document.createRange()
+    range.setEnd(textNode, offset)
+    range.collapse()
+    left = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+    range.detach()
 
     lineCache[column] = left
-
     left
 
   pixelOffsetForScreenPosition: (position) ->

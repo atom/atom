@@ -179,6 +179,6 @@ class Token
         when '>' then '&gt;'
         else str[i]
 
-      ret += "<span class='character'>#{character}</span>"
+      ret += character
 
     ret
