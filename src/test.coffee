@@ -27,10 +27,10 @@ class Test extends Command
     args = @parseOptions(options.commandArgs)
     env = process.env
 
-    @spawn 'atom', ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code, stderr='', stdout='') ->
+    @spawn 'atom', ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
       if code is 0
         process.stdout.write 'Tests passed\n'.green
         callback()
       else
         process.stdout.write 'Tests failed\n'.red
-        callback(stdout + stderr)
+        callback(true)

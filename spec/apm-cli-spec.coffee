@@ -577,3 +577,35 @@ describe 'apm command line interface', ->
         expect(atomSpawn.mostRecentCall.args[1][2]).toEqual "--spec-directory=#{specPath}"
         expect(atomSpawn.mostRecentCall.args[2].streaming).toBeTruthy()
 
+    describe 'returning', ->
+      [callback] = []
+
+      returnWithCode = (type, code) ->
+        callback = jasmine.createSpy('callback')
+        atomReturnFn = (e, fn) -> fn(code) if e == type
+        spyOn(child_process, 'spawn').andReturn({ stdout: { on: -> }, stderr: { on: -> }, on: atomReturnFn })
+        apm.run(['test'], callback)
+
+      describe 'successfully', ->
+        beforeEach -> returnWithCode('close', 0)
+
+        it "prints success", ->
+          expect(callback).toHaveBeenCalled()
+          expect(callback.mostRecentCall.args[0]).toBeUndefined()
+          expect(process.stdout.write.mostRecentCall.args[0]).toEqual 'Tests passed\n'.green
+
+      describe 'with a failure', ->
+        beforeEach -> returnWithCode('close', 1)
+
+        it "prints success", ->
+          expect(callback).toHaveBeenCalled()
+          expect(callback.mostRecentCall.args[0]).toBeTruthy()
+          expect(process.stdout.write.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
+
+      describe 'with an error', ->
+        beforeEach -> returnWithCode('error')
+
+        it "prints success", ->
+          expect(callback).toHaveBeenCalled()
+          expect(callback.mostRecentCall.args[0]).toBeTruthy()
+          expect(process.stdout.write.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
