@@ -1,12 +1,15 @@
-_ = require './underscore-extensions'
-telepath = require 'telepath'
-{Point, Range} = telepath
-fsUtils = require './fs-utils'
-File = require './file'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
 guid = require 'guid'
+Q = require 'q'
 {P} = require 'scandal'
+telepath = require 'telepath'
+
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
+EventEmitter = require './event-emitter'
+File = require './file'
+Subscriber = require './subscriber'
+
+{Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
