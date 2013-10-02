@@ -23,6 +23,10 @@ describe "ThemeManager", ->
       expect(paths[0]).toContain 'atom-dark-ui'
       expect(paths[1]).toContain 'atom-light-ui'
 
+    it "ignores themes that cannot be resolved to a directory", ->
+      config.set('core.themes', ['definitely-not-a-theme'])
+      expect(-> themeManager.getImportPaths()).not.toThrow()
+
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()

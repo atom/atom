@@ -107,8 +107,10 @@ class ThemeManager
     if @activeThemes.length > 0
       themePaths = (theme.getStylesheetsPath() for theme in @activeThemes when theme)
     else
-      themeNames = config.get('core.themes')
-      themePaths = (path.join(@resolveThemePath(themeName), AtomPackage.stylesheetsDir) for themeName in themeNames)
+      themePaths = []
+      for themeName in config.get('core.themes') ? []
+        if themePath = @resolveThemePath(themeName)
+          themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
     themePath for themePath in themePaths when fsUtils.isDirectorySync(themePath)
 
