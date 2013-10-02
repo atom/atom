@@ -1,0 +1,22 @@
+{
+  "name": "__package-name__",
+  "main": "./lib/__package-name__",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "activationEvents": ["__package-name__:toggle"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/__package-name__.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/__package-name__/issues"
+  },
+  "engines": {
+    "atom": ">27.0"
+  },
+  "dependencies": {
+  },
+  "publishConfig": {
+    "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
+  }
+}
