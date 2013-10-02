@@ -170,33 +170,24 @@ class RootView extends View
   #   + initialLine: The buffer line number to open to.
   #
   # Returns a promise that resolves to the {EditSession} for the file URI.
-  openAsync: (filePath, options) ->
-    deferred = Q.defer()
-
+  openAsync: (filePath, options={}) ->
     filePath = project.relativize(filePath)
     initialLine = options.initialLine
-    if activePane = @getActivePane()
-      if filePath
-        if editSession = activePane.itemForUri(filePath)
-          deferred.resolve(editSession)
-        else
-          editSession = project.open(filePath, {initialLine})
-          deferred.resolve(editSession)
-      else
-        editSession = project.open()
-        deferred.resolve(editSession)
-    else
-      editSession = project.open(filePath, {initialLine})
-      deferred.resolve(editSession)
-      deferred.promise.done (editSession) =>
+    activePane = @getActivePane()
+
+    editSession = activePane.itemForUri(filePath) if activePane and filePath
+    promise = project.open(filePath, {initialLine}) if not editSession
+
+    returnedPromise = Q(editSession ? promise)
+    returnedPromise.done (editSession) =>
+      if not activePane
         activePane = new Pane(editSession)
         @panes.setRoot(activePane)
 
-    deferred.promise.done (editSession) ->
       activePane.showItem(editSession)
       activePane.focus()
 
-    deferred.promise
+    returnedPromise
 
   # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
   open: (filePath, options = {}) ->
