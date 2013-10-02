@@ -10,154 +10,139 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
-ThemeManager = require './theme-manager'
-ContextMenuManager = require './context-menu-manager'
+DeserializerManager = require './deserializer-manager'
+Subscriber = require './subscriber'
 
-window.atom =
-  loadedPackages: {}
-  activePackages: {}
-  packageStates: {}
-  themes: new ThemeManager()
-  contextMenu: new ContextMenuManager(remote.getCurrentWindow().loadSettings.devMode)
+# Public: Atom global for dealing with packages, themes, menus, and the window.
+#
+# An instance of this class is always available as the `atom` global.
+module.exports =
+class Atom
+  _.extend @prototype, Subscriber
 
-  getLoadSettings: ->
-    @getCurrentWindow().loadSettings
+  constructor: ->
+    @rootViewParentSelector = 'body'
+    @deserializers = new DeserializerManager()
+
+  initialize: ->
+    @unsubscribe()
+
+    Config = require './config'
+    Keymap = require './keymap'
+    PackageManager = require './package-manager'
+    Pasteboard = require './pasteboard'
+    Syntax = require './syntax'
+    ThemeManager = require './theme-manager'
+    ContextMenuManager = require './context-menu-manager'
+
+    @packages = new PackageManager()
+
+    #TODO Remove once packages have been updated to not touch atom.packageStates directly
+    @__defineGetter__ 'packageStates', => @packages.packageStates
+    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
+
+    @subscribe @packages, 'loaded', => @watchThemes()
+    @themes = new ThemeManager()
+    @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
+    @config = new Config()
+    @pasteboard = new Pasteboard()
+    @keymap = new Keymap()
+    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  getPackageState: (name) ->
-    @packageStates[name]
+  # Public: Get the dimensions of this window.
+  #
+  # Returns an object with x, y, width, and height keys.
+  getDimensions: ->
+    browserWindow = @getCurrentWindow()
+    [x, y] = browserWindow.getPosition()
+    [width, height] = browserWindow.getSize()
+    {x, y, width, height}
 
-  setPackageState: (name, state) ->
-    @packageStates[name] = state
-
-  activatePackages: ->
-    @activatePackage(pack.name) for pack in @getLoadedPackages()
-
-  activatePackage: (name, options) ->
-    if pack = @loadPackage(name, options)
-      @activePackages[pack.name] = pack
-      pack.activate(options)
-      pack
-
-  deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getActivePackages()
-
-  deactivatePackage: (name) ->
-    if pack = @getActivePackage(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
-      pack.deactivate()
-      delete @activePackages[pack.name]
+  # Public: Set the dimensions of the window.
+  #
+  # The window will be centered if either the x or y coordinate is not set
+  # in the dimensions parameter.
+  #
+  # * dimensions:
+  #    + x:
+  #      The new x coordinate.
+  #    + y:
+  #      The new y coordinate.
+  #    + width:
+  #      The new width.
+  #    + height:
+  #      The new height.
+  setDimensions: ({x, y, width, height}) ->
+    browserWindow = @getCurrentWindow()
+    browserWindow.setSize(width, height)
+    if x? and y?
+      browserWindow.setPosition(x, y)
     else
-      throw new Error("No active package for name '#{name}'")
+      browserWindow.center()
 
-  getActivePackage: (name) ->
-    @activePackages[name]
+  restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+    dimensions = @getWindowState().getObject('dimensions')
+    dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
+    @setDimensions(dimensions)
 
-  isPackageActive: (name) ->
-    @getActivePackage(name)?
+  getLoadSettings: ->
+    @getCurrentWindow().loadSettings
 
-  getActivePackages: ->
-    _.values(@activePackages)
+  deserializeProject: ->
+    Project = require './project'
+    state = @getWindowState()
+    @project = deserialize(state.get('project'))
+    unless @project?
+      @project = new Project(@getLoadSettings().initialPath)
+      state.set('project', @project.getState())
 
-  loadPackages: ->
-    # Ensure atom exports is already in the require cache so the load time
-    # of the first package isn't skewed by being the first to require atom
-    require '../exports/atom'
+  deserializeRootView: ->
+    RootView = require './root-view'
+    state = @getWindowState()
+    @rootView = deserialize(state.get('rootView'))
+    unless @rootView?
+      @rootView = new RootView()
+      state.set('rootView', @rootView.getState())
+    $(@rootViewParentSelector).append(@rootView)
 
-    @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @watchThemes()
+  deserializePackageStates: ->
+    state = @getWindowState()
+    @packages.packageStates = state.getObject('packageStates') ? {}
+    state.remove('packageStates')
 
-  loadPackage: (name, options) ->
-    if @isPackageDisabled(name)
-      return console.warn("Tried to load disabled package '#{name}'")
-
-    if packagePath = @resolvePackagePath(name)
-      return pack if pack = @getLoadedPackage(name)
-      pack = Package.load(packagePath, options)
-      if pack.metadata.theme
-        @themes.register(pack)
-      else
-        @loadedPackages[pack.name] = pack
-      pack
-    else
-      throw new Error("Could not resolve '#{name}' to a package path")
-
-  unloadPackage: (name) ->
-    if @isPackageActive(name)
-      throw new Error("Tried to unload active package '#{name}'")
-
-    if pack = @getLoadedPackage(name)
-      delete @loadedPackages[pack.name]
-    else
-      throw new Error("No loaded package for name '#{name}'")
-
-  resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
-
-    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
-
-    packagePath = path.join(window.resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
-
-  isInternalPackage: (packagePath) ->
-    {engines} = Package.loadMetadata(packagePath, true)
-    engines?.atom?
-
-  getLoadedPackage: (name) ->
-    @loadedPackages[name]
-
-  isPackageLoaded: (name) ->
-    @getLoadedPackage(name)?
-
-  getLoadedPackages: ->
-    _.values(@loadedPackages)
-
-  isPackageDisabled: (name) ->
-    _.include(config.get('core.disabledPackages') ? [], name)
-
-  getAvailablePackagePaths: ->
-    packagePaths = []
-
-    for packageDirPath in config.packageDirPaths
-      for packagePath in fsUtils.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
-
-    for packagePath in fsUtils.listSync(path.join(window.resourcePath, 'node_modules'))
-      packagePaths.push(packagePath) if @isInternalPackage(packagePath)
-
-    _.uniq(packagePaths)
-
-  getAvailablePackageNames: ->
-    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
-
-  getAvailablePackageMetadata: ->
-    packages = []
-    for packagePath in atom.getAvailablePackagePaths()
-      name = path.basename(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
-      packages.push(metadata)
-    packages
+  #TODO Remove theses once packages have been migrated
+  getPackageState: (args...) -> @packages.getPackageState(args...)
+  setPackageState: (args...) -> @packages.setPackageState(args...)
+  activatePackages: (args...) -> @packages.activatePackages(args...)
+  activatePackage: (args...) -> @packages.activatePackage(args...)
+  deactivatePackages: (args...) -> @packages.deactivatePackages(args...)
+  deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
+  getActivePackage: (args...) -> @packages.getActivePackage(args...)
+  isPackageActive: (args...) -> @packages.isPackageActive(args...)
+  getActivePackages: (args...) -> @packages.getActivePackages(args...)
+  loadPackages: (args...) -> @packages.loadPackages(args...)
+  loadPackage: (args...) -> @packages.loadPackage(args...)
+  unloadPackage: (args...) -> @packages.unloadPackage(args...)
+  resolvePackagePath: (args...) -> @packages.resolvePackagePath(args...)
+  isInternalPackage: (args...) -> @packages.isInternalPackage(args...)
+  getLoadedPackage: (args...) -> @packages.getLoadedPackage(args...)
+  isPackageLoaded: (args...) -> @packages.isPackageLoaded(args...)
+  getLoadedPackages: (args...) -> @packages.getLoadedPackages(args...)
+  isPackageDisabled: (args...) -> @packages.isPackageDisabled(args...)
+  getAvailablePackagePaths: (args...) -> @packages.getAvailablePackagePaths(args...)
+  getAvailablePackageNames: (args...) -> @packages.getAvailablePackageNames(args...)
+  getAvailablePackageMetadata: (args...)-> @packages.getAvailablePackageMetadata(args...)
 
   loadThemes: ->
     @themes.load()
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      @reloadBaseStylesheets()
-      pack.reloadStylesheets?() for name, pack of @loadedPackages
+      pack.reloadStylesheets?() for name, pack of @getLoadedPackages()
       null
-
-  loadBaseStylesheets: ->
-    requireStylesheet('bootstrap/less/bootstrap')
-    @reloadBaseStylesheets()
-
-  reloadBaseStylesheets: ->
-    requireStylesheet('../static/atom')
-    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
-      requireStylesheet(nativeStylesheetPath)
 
   open: (options) ->
     ipc.sendChannel('open', options)
@@ -210,8 +195,7 @@ window.atom =
   close: ->
     @getCurrentWindow().close()
 
-  exit: (status) ->
-    app.exit(status)
+  exit: (status) -> app.exit(status)
 
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
@@ -236,7 +220,7 @@ window.atom =
           filename = "editor-#{sha1}"
 
     if filename
-      path.join(config.userStoragePath, filename)
+      path.join(@config.userStoragePath, filename)
     else
       null
 
@@ -289,8 +273,22 @@ window.atom =
     shell.beep()
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
     try
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  requireWithGlobals: (id, globals={}) ->
+    existingGlobals = {}
+    for key, value of globals
+      existingGlobals[key] = window[key]
+      window[key] = value
+
+    require(id)
+
+    for key, value of existingGlobals
+      if value is undefined
+        delete window[key]
+      else
+        window[key] = value
