@@ -1,3 +1,4 @@
+child_process = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 temp = require 'temp'
@@ -553,4 +554,26 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(themePath, 'index.less'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
+
+  describe "apm test", ->
+    [specPath] = []
+
+    beforeEach ->
+      currentDir = temp.mkdirSync('apm-init-')
+      spyOn(process, 'cwd').andReturn(currentDir)
+      specPath = path.join(currentDir, 'spec')
+
+    it "calls atom to test", ->
+      atomSpawn = spyOn(child_process, 'spawn').andReturn({ stdout: { on: -> }, stderr: { on: -> }, on: -> })
+      apm.run(['test'])
+
+      waitsFor 'waiting for init to complete', ->
+        atomSpawn.callCount is 1
+
+      runs ->
+        expect(atomSpawn.mostRecentCall.args[0]).toEqual 'atom'
+        expect(atomSpawn.mostRecentCall.args[1][0]).toEqual '-d'
+        expect(atomSpawn.mostRecentCall.args[1][1]).toEqual '-t'
+        expect(atomSpawn.mostRecentCall.args[1][2]).toEqual "--spec-directory=#{specPath}"
+        expect(atomSpawn.mostRecentCall.args[2].streaming).toBeTruthy()
 

@@ -10,8 +10,19 @@ class Command
 
     errorChunks = []
     outputChunks = []
-    spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
-    spawned.stderr.on 'data', (chunk) -> errorChunks.push(chunk)
+
+    spawned.stdout.on 'data', (chunk) ->
+      if options.streaming
+        process.stdout.write chunk
+      else
+        outputChunks.push(chunk)
+
+    spawned.stderr.on 'data', (chunk) ->
+      if options.streaming
+        process.stderr.write chunk
+      else
+        errorChunks.push(chunk)
+
     spawned.on 'error', (error) ->
       callback(error, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
     spawned.on 'close', (code) ->
