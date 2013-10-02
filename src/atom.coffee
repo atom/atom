@@ -88,8 +88,12 @@ class Atom
     dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
     @setDimensions(dimensions)
 
+  # Public: Get the load settings for the current window.
+  #
+  # Returns an object containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @getCurrentWindow().loadSettings
+    @loadSettings ?= _.clone(@getCurrentWindow().loadSettings)
+    _.clone(@loadSettings)
 
   deserializeProject: ->
     Project = require './project'
@@ -254,7 +258,7 @@ class Atom
     if windowStatePath = @getWindowStatePath()
       windowState.saveSync(path: windowStatePath)
     else
-      @getLoadSettings().windowState = JSON.stringify(windowState.serialize())
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serialize())
 
   getWindowState: (keyPath) ->
     @windowState ?= @loadWindowState()
