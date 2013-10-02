@@ -29,7 +29,7 @@
     "pegjs": "0.7.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "rimraf": "2.1.4",
-    "scandal": "0.2.0",
+    "scandal": "0.3.0",
     "season": "0.13.0",
     "semver": "1.1.4",
     "space-pen": "1.2.0",
