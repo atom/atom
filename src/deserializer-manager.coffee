@@ -1,20 +1,25 @@
 {Document} = require 'telepath'
 
+# Public: Manages the deserializers used for serialized state
 module.exports =
 class DeserializerManager
   constructor: ->
     @deserializers = {}
     @deferredDeserializers = {}
 
-  registerDeserializer: (klasses...) ->
+  # Public: Add a deserializer.
+  add: (klasses...) ->
     @deserializers[klass.name] = klass for klass in klasses
 
-  registerDeferredDeserializer: (name, fn) ->
+  # Public: Add a deferred deserializer.
+  addDeferred: (name, fn) ->
     @deferredDeserializers[name] = fn
 
-  unregisterDeserializer: (klasses...) ->
+  # Public: Remove a deserializer.
+  remove: (klasses...) ->
     delete @deserializers[klass.name] for klass in klasses
 
+  # Public: Deserialize the state and params.
   deserialize: (state, params) ->
     return unless state?
 
@@ -27,7 +32,8 @@ class DeserializerManager
     else
       console.warn "No deserializer found for", state
 
-  getDeserializer: (state) ->
+  # Public: Get the deserializer for the state.
+  get: (state) ->
     return unless state?
 
     name = state.get?('deserializer') ? state.deserializer
