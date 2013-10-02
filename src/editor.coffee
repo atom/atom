@@ -1539,24 +1539,22 @@ class Editor extends View
     {row, column} = Point.fromObject(position)
     actualRow = Math.floor(row)
 
-    line = @lineElementForScreenRow(actualRow)
-    lineElement = existingLineElement = line[0]
+    lineElement = existingLineElement = @lineElementForScreenRow(actualRow)[0]
     unless existingLineElement
       lineElement = @buildLineElementForScreenRow(actualRow)
-      line = $(lineElement)
       @renderedLines.append(lineElement)
-    left = @positionLeftForLineAndColumn(line, column)
+    left = @positionLeftForLineAndColumn(lineElement, column)
     unless existingLineElement
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (line, column) ->
-    lineCache = @pixelLeftCache.get(line[0])
-    @pixelLeftCache.set(line[0], lineCache = {}) unless lineCache?
+  positionLeftForLineAndColumn: (lineElement, column) ->
+    lineCache = @pixelLeftCache.get(lineElement)
+    @pixelLeftCache.set(lineElement, lineCache = {}) unless lineCache?
 
     return lineCache[column] if lineCache[column]?
 
-    chars = line.find('.character')
+    chars = lineElement.getElementsByClassName('character')
     left = 0
     for i in [0...column]
       left += chars[i].offsetWidth if chars[i]
