@@ -23,7 +23,7 @@ class DeserializerManager
   deserialize: (state, params) ->
     return unless state?
 
-    if deserializer = @getDeserializer(state)
+    if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version
       return if deserializer.version? and deserializer.version isnt stateVersion
       if (state instanceof Document) and not deserializer.acceptsDocuments
