@@ -250,7 +250,7 @@ class Atom
 
     doc = Document.deserialize(state: documentState) if documentState?
     doc ?= Document.create()
-    window.site = doc.site # TODO: Remove this when everything is using telepath models
+    @site = doc.site # TODO: Remove this when everything is using telepath models
     doc
 
   saveWindowState: ->

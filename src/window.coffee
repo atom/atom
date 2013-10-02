@@ -27,6 +27,7 @@ window.setUpEnvironment = (windowMode) ->
   window.syntax = atom.syntax
   window.pasteboard = atom.pasteboard
   window.keymap = atom.keymap
+  window.site = atom.site
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
