@@ -14,12 +14,11 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
 clipboard = require 'clipboard'
 
-atom.loadBaseStylesheets()
-requireStylesheet '../static/jasmine'
+atom.themes.loadBaseStylesheets()
+atom.themes.requireStylesheet '../static/jasmine'
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
-config.packageDirPaths.unshift(fixturePackagesPath)
-keymap.loadBundledKeymaps()
+atom.keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 $(window).on 'core:close', -> window.close()
@@ -36,20 +35,22 @@ specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
   $.fx.off = true
-  window.project = new Project(specProjectPath)
+  atom.project = new Project(specProjectPath)
+  window.project = atom.project
 
   window.resetTimeouts()
-  atom.packageStates = {}
+  atom.packages.packageStates = {}
   spyOn(atom, 'saveWindowState')
-  syntax.clearGrammarOverrides()
-  syntax.clearProperties()
+  atom.syntax.clearGrammarOverrides()
+  atom.syntax.clearProperties()
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
   bindingSetsByFirstKeystrokeToRestore = _.clone(keymap.bindingSetsByFirstKeystroke)
 
   # reset config before each spec; don't load or save from/to `config.json`
-  window.config = new Config()
+  config = new Config()
+  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontFamily", "Courier"
@@ -57,6 +58,8 @@ beforeEach ->
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception"]
   config.save.reset()
+  atom.config = config
+  window.config = config
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()

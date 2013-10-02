@@ -6,29 +6,6 @@ describe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
 
-  describe "base stylesheet loading", ->
-    beforeEach ->
-      rootView.append $$ -> @div class: 'editor'
-      rootView.attachToDom()
-      atom.themes.load()
-      atom.watchThemes()
-
-    afterEach ->
-      atom.themes.unload()
-      config.set('core.themes', [])
-      atom.reloadBaseStylesheets()
-
-    it "loads the correct values from the theme's ui-variables file", ->
-      config.set('core.themes', ['theme-with-ui-variables'])
-
-      # an override loaded in the base css
-      expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
-
-      # from within the theme itself
-      expect($(".editor").css("padding-top")).toBe "150px"
-      expect($(".editor").css("padding-right")).toBe "150px"
-      expect($(".editor").css("padding-bottom")).toBe "150px"
-
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->
@@ -205,15 +182,15 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-              expect(stylesheetElementForId(one)).not.toExist()
-              expect(stylesheetElementForId(two)).not.toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
               atom.activatePackage("package-with-stylesheets-manifest")
 
-              expect(stylesheetElementForId(one)).toExist()
-              expect(stylesheetElementForId(two)).toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toExist()
+              expect(atom.themes.stylesheetElementForId(two)).toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
               expect($('#jasmine-content').css('font-size')).toBe '1px'
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
@@ -221,14 +198,14 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.css")
-              expect(stylesheetElementForId(one)).not.toExist()
-              expect(stylesheetElementForId(two)).not.toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
               atom.activatePackage("package-with-stylesheets")
-              expect(stylesheetElementForId(one)).toExist()
-              expect(stylesheetElementForId(two)).toExist()
-              expect(stylesheetElementForId(three)).toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toExist()
+              expect(atom.themes.stylesheetElementForId(two)).toExist()
+              expect(atom.themes.stylesheetElementForId(three)).toExist()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
         describe "grammar loading", ->
@@ -298,8 +275,8 @@ describe "the `atom` global", ->
           atom.activatePackage('package-with-serialize-error',  immediate: true)
           atom.activatePackage('package-with-serialization', immediate: true)
           atom.deactivatePackages()
-          expect(atom.packageStates['package-with-serialize-error']).toBeUndefined()
-          expect(atom.packageStates['package-with-serialization']).toEqual someNumber: 1
+          expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+          expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
@@ -320,9 +297,9 @@ describe "the `atom` global", ->
           one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
           two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
           three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-          expect(stylesheetElementForId(one)).not.toExist()
-          expect(stylesheetElementForId(two)).not.toExist()
-          expect(stylesheetElementForId(three)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
         it "removes the package's scoped-properties", ->
           atom.activatePackage("package-with-scoped-properties")
