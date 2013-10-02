@@ -1,4 +1,5 @@
 {$, $$, fs, RootView, View} = require 'atom'
+Q = require 'q'
 path = require 'path'
 Pane = require '../src/pane'
 
@@ -280,26 +281,103 @@ describe "RootView", ->
           expect(activePane.focus).not.toHaveBeenCalled()
 
   describe ".openAsync(filePath)", ->
-    describe "when there is an active pane", ->
-      [activePane] = []
+    beforeEach ->
+      spyOn(Pane.prototype, 'focus')
+
+    describe "when there is no active pane", ->
       beforeEach ->
-        activePane = rootView.getActivePane()
-        spyOn(activePane, 'focus')
+        rootView.getActivePane().remove()
+        expect(rootView.getActivePane()).toBeUndefined()
+
+      describe "when called with no path", ->
+        it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
+          promise = rootView.openAsync().then (editSession) ->
+            expect(rootView.getActivePane().activeItem).toBe editSession
+            expect(editSession.getPath()).toBeUndefined()
+            expect(rootView.getActivePane().focus).toHaveBeenCalled()
+
+          waitsForPromise ->
+            promise
+
+        it "can create multiple empty edit sessions as items on a pane", ->
+          editSession1 = null
+          editSession2 = null
+
+          waitsForPromise ->
+            rootView.openAsync()
+              .then (o) ->
+                console.log "first"
+                editSession1 = o
+                rootView.openAsync()
+              .then (o) ->
+                console.log "second"
+                editSession2 = o
+
+          runs ->
+            expect(rootView.getActivePane().getItems().length).toBe 2
+            expect(editSession1).not.toBe editSession2
 
       describe "when called with a path", ->
-        describe "when the active pane does not have an edit session item for the path being opened", ->
-          it "creates a new edit session for the given path in the active editor and returns a promise", ->
-            openHandler = jasmine.createSpy("Open Handler")
-            promise = rootView.openAsync('b', openHandler)
-            expect(activePane.items.length).toBe 1
-            expect(activePane.focus).not.toHaveBeenCalled()
+        it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
+          editSession = null
+          waitsForPromise ->
+            rootView.openAsync('b').then (o) -> editSession = o
 
+          runs ->
+            expect(rootView.getActivePane().activeItem).toBe editSession
+            expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/b')
+            expect(rootView.getActivePane().focus).toHaveBeenCalled()
+
+    describe "when there is an active pane", ->
+      [activePane] = []
+
+      beforeEach ->
+        activePane = rootView.getActivePane()
+
+      describe "when called with no path", ->
+        it "opens an edit session with an empty buffer as an item on the active pane and focuses it", ->
+          editSession = null
+
+          waitsForPromise ->
+            rootView.openAsync().then (o) -> editSession = o
+
+          runs ->
+            expect(activePane.getItems().length).toBe 2
+            expect(activePane.activeItem).toBe editSession
+            expect(editSession.getPath()).toBeUndefined()
+            expect(activePane.focus).toHaveBeenCalled()
+
+      describe "when called with a path", ->
+        describe "when the active pane already has an item for the given path", ->
+          it "shows the existing edit session on the pane", ->
+            previousEditSession = activePane.activeItem
+
+            editSession = null
             waitsForPromise ->
-              promise.then (editSession) ->
-                expect(activePane.activeItem).toBe editSession
+              rootView.openAsync('b').then (o) -> editSession = o
 
             runs ->
-              expect(activePane.items.length).toBe 2
+              expect(activePane.activeItem).toBe editSession
+              expect(editSession).not.toBe previousEditSession
+
+            waitsForPromise ->
+              rootView.openAsync(previousEditSession.getPath()).then (o) -> editSession = o
+
+            runs ->
+              expect(editSession).toBe previousEditSession
+              expect(activePane.activeItem).toBe editSession
+              expect(activePane.focus).toHaveBeenCalled()
+
+        describe "when the active pane does not have an existing item for the given path", ->
+          it "creates a new edit session for the given path in the active pane", ->
+            editSession = null
+
+            waitsForPromise ->
+              rootView.openAsync('b').then (o) -> editSession = o
+
+            runs ->
+              expect(activePane.activeItem).toBe editSession
+              expect(activePane.getItems().length).toBe 2
               expect(activePane.focus).toHaveBeenCalled()
 
   describe "window:toggle-invisibles event", ->
