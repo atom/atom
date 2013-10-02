@@ -3,7 +3,6 @@ path = require 'path'
 optimist = require 'optimist'
 
 Command = require './command'
-fs = require './fs'
 
 module.exports =
 class Test extends Command
