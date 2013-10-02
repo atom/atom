@@ -205,7 +205,7 @@ describe "RootView", ->
       rootView.trigger 'window:decrease-font-size'
       expect(config.get('editor.fontSize')).toBe 1
 
-  describe ".open(path, options)", ->
+  describe ".open(filePath, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
         spyOn(Pane.prototype, 'focus')
@@ -278,6 +278,29 @@ describe "RootView", ->
         it "does not focus the active pane", ->
           editSession = rootView.open('b', changeFocus: false)
           expect(activePane.focus).not.toHaveBeenCalled()
+
+  describe ".openAsync(filePath)", ->
+    describe "when there is an active pane", ->
+      [activePane] = []
+      beforeEach ->
+        activePane = rootView.getActivePane()
+        spyOn(activePane, 'focus')
+
+      describe "when called with a path", ->
+        describe "when the active pane does not have an edit session item for the path being opened", ->
+          it "creates a new edit session for the given path in the active editor and returns a promise", ->
+            openHandler = jasmine.createSpy("Open Handler")
+            promise = rootView.openAsync('b', openHandler)
+            expect(activePane.items.length).toBe 1
+            expect(activePane.focus).not.toHaveBeenCalled()
+
+            waitsForPromise ->
+              promise.then (editSession) ->
+                expect(activePane.activeItem).toBe editSession
+
+            runs ->
+              expect(activePane.items.length).toBe 2
+              expect(activePane.focus).toHaveBeenCalled()
 
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->

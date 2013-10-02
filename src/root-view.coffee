@@ -1,5 +1,6 @@
 ipc = require 'ipc'
 path = require 'path'
+Q = require 'q'
 $ = require './jquery-extensions'
 {$$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
@@ -162,31 +163,60 @@ class RootView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Public: Opens a given a filepath in Atom.
+  # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # * path: A file path
+  # * filePath: A file path
   # * options
-  #    + initialLine:
-  #      The buffer line number to open to.
+  #   + initialLine: The buffer line number to open to.
   #
-  # Returns the {EditSession} for the file URI.
-  open: (path, options = {}) ->
+  # Returns a promise that resolves to the {EditSession} for the file URI.
+  openAsync: (filePath, options) ->
+    deferred = Q.defer()
+
+    filePath = project.relativize(filePath)
+    initialLine = options.initialLine
+    if activePane = @getActivePane()
+      if filePath
+        if editSession = activePane.itemForUri(filePath)
+          deferred.resolve(editSession)
+        else
+          editSession = project.open(filePath, {initialLine})
+          deferred.resolve(editSession)
+      else
+        editSession = project.open()
+        deferred.resolve(editSession)
+    else
+      editSession = project.open(filePath, {initialLine})
+      deferred.resolve(editSession)
+      deferred.promise.done (editSession) =>
+        activePane = new Pane(editSession)
+        @panes.setRoot(activePane)
+
+    deferred.promise.done (editSession) ->
+      activePane.showItem(editSession)
+      activePane.focus()
+
+    deferred.promise
+
+  # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
+  open: (filePath, options = {}) ->
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
-    path = project.relativize(path)
+    filePath = project.relativize(filePath)
     if activePane = @getActivePane()
-      if path
-        editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
+      if filePath
+        editSession = activePane.itemForUri(filePath) ? project.open(filePath, {initialLine})
       else
         editSession = project.open()
       activePane.showItem(editSession)
     else
-      editSession = project.open(path, {initialLine})
+      editSession = project.open(filePath, {initialLine})
       activePane = new Pane(editSession)
       @panes.setRoot(activePane)
 
     activePane.focus() if changeFocus
     editSession
+
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
