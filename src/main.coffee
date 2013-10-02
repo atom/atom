@@ -82,6 +82,7 @@ parseCommandLine = ->
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.alias('s', 'spec-directory').string('s').describe('s', 'Sets the directory to load specs from, useful for packages.')
   args = options.argv
 
   if args.h
@@ -97,6 +98,7 @@ parseCommandLine = ->
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
+  specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
 
@@ -112,4 +114,4 @@ parseCommandLine = ->
     devMode = false
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory}

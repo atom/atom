@@ -51,7 +51,7 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -67,7 +67,7 @@ class AtomApplication
     @checkForUpdates()
 
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
     else if urlsToOpen.length > 0
