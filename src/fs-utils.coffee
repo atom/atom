@@ -25,7 +25,7 @@ fsExtensions =
 
   # Returns true if a file or folder at the specified path exists.
   exists: (pathToCheck) ->
-    pathToCheck? and fs.statSyncNoException(pathToCheck)
+    pathToCheck? and fs.statSyncNoException(pathToCheck) isnt false
 
   # Returns true if the specified path is a directory that exists.
   isDirectorySync: (directoryPath) ->
