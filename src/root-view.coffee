@@ -280,5 +280,5 @@ class RootView extends View
   # Private: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
-    project.destroy()
+    project?.destroy()
     super
