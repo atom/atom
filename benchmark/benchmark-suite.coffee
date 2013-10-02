@@ -59,22 +59,47 @@ describe "editor.", ->
         editor.insertText('"')
         editor.backspace()
 
+    describe "calculating-pixel-position.", ->
+      line = null
+      beforeEach ->
+        editor.scrollTop(2000)
+        editor.resetDisplay()
+        line = editor.lineElementForScreenRow(106)[0]
+
+      benchmark "positionLeftForLineAndColumn", 20000, ->
+        editor.positionLeftForLineAndColumn(line, 82)
+        editor.pixelLeftCache.delete(line)
+
+      benchmark "positionLeftForLineAndColumn.cached", 20000, ->
+        editor.positionLeftForLineAndColumn(line, 82)
+
     describe "text-rendering.", ->
       beforeEach ->
-        editor.scrollTop(200)
+        editor.scrollTop(2000)
 
-      benchmark "resetDisplay", 20, ->
+      benchmark "resetDisplay", 50, ->
         editor.resetDisplay()
 
       benchmark "htmlForScreenRows", 50, ->
         lastRow = editor.getLastScreenRow()
         editor.htmlForScreenRows(0, lastRow)
 
-      benchmark "htmlForScreenRows.htmlParsing", 20, ->
+      benchmark "htmlForScreenRows.htmlParsing", 50, ->
         lastRow = editor.getLastScreenRow()
         html = editor.htmlForScreenRows(0, lastRow)
 
         div = document.createElement('div')
+        div.innerHTML = html
+
+    describe "line-htmlification.", ->
+      div = null
+      html = null
+      beforeEach ->
+        lastRow = editor.getLastScreenRow()
+        html = editor.htmlForScreenRows(0, lastRow)
+        div = document.createElement('div')
+
+      benchmark "setInnerHTML", 1, ->
         div.innerHTML = html
 
   describe "9000-line-file.", ->
