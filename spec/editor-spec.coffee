@@ -288,15 +288,13 @@ describe "Editor", ->
 
   describe "font family", ->
     beforeEach ->
-      expect(editor.css('font-family')).not.toBe 'Courier'
+      expect(editor.css('font-family')).toBe 'Courier'
 
     it "when there is no config in fontFamily don't set it", ->
-      expect($("head style.font-family")).not.toExist()
+      atom.config.set('editor.fontFamily', null)
+      expect(editor.css('font-family')).toBe ''
 
     describe "when the font family changes", ->
-      afterEach ->
-        editor.clearFontFamily()
-
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editor.attachToDom(12)
         lineHeightBefore = editor.lineHeight
@@ -305,7 +303,6 @@ describe "Editor", ->
 
         config.set("editor.fontFamily", "PCMyungjo")
         expect(editor.css('font-family')).toBe 'PCMyungjo'
-        expect($("head style.editor-font-family").text()).toMatch "{font-family: PCMyungjo}"
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
@@ -319,8 +316,7 @@ describe "Editor", ->
       expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
-      expect($("head style.font-size")).toExist()
-      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+      expect(editor.css('font-size')).toBe "#{config.get('editor.fontSize')}px"
 
     describe "when the font size changes", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
@@ -405,9 +401,6 @@ describe "Editor", ->
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
-
-        afterEach ->
-          editor.clearFontFamily()
 
         it "positions the cursor to the clicked row and column", ->
           {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
@@ -916,9 +909,6 @@ describe "Editor", ->
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
-
-        afterEach ->
-          editor.clearFontFamily()
 
         it "correctly positions the cursor", ->
           editor.setCursorBufferPosition([3, 30])
