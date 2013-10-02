@@ -84,6 +84,7 @@ class Atom
       browserWindow.center()
 
   restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+    return if @getLoadSettings().exitWhenDone
     dimensions = @getWindowState().getObject('dimensions')
     dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
     @setDimensions(dimensions)
