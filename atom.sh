@@ -9,7 +9,7 @@ if [ ! -d $ATOM_PATH ]; then
   exit 1
 fi
 
-while getopts ":whvft-:" opt; do
+while getopts ":whvfts-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
