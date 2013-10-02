@@ -567,7 +567,7 @@ describe 'apm command line interface', ->
       atomSpawn = spyOn(child_process, 'spawn').andReturn({ stdout: { on: -> }, stderr: { on: -> }, on: -> })
       apm.run(['test'])
 
-      waitsFor 'waiting for init to complete', ->
+      waitsFor 'waiting for test to complete', ->
         atomSpawn.callCount is 1
 
       runs ->
