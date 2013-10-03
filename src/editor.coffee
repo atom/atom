@@ -1598,7 +1598,9 @@ class Editor extends View
           # i + 1 to measure to the end of the current character
           MeasureRange.setEnd(textNode, i + 1)
           MeasureRange.collapse()
-          left = MeasureRange.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+          rects = MeasureRange.getClientRects()
+          return 0 if rects.length == 0
+          left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
           @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
 
