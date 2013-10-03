@@ -166,6 +166,8 @@ class Project
   #
   # Returns a String.
   resolve: (uri) ->
+    return uri unless uri?
+
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
@@ -190,7 +192,6 @@ class Project
   #
   # Returns a promise that resolves to an {EditSession}.
   openAsync: (filePath, options={}) ->
-    filePath = @resolve(filePath) if filePath?
     for opener in @openers
       return Q(resource) if resource = opener(filePath, options)
 
@@ -203,7 +204,7 @@ class Project
 
   # Private: DEPRECATED
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath) if filePath?
+    filePath = @resolve(filePath)
     for opener in @openers
       return resource if resource = opener(filePath, options)
 
@@ -233,13 +234,12 @@ class Project
 
   # Private: DEPRECATED
   bufferForPath: (filePath, text) ->
-    if filePath?
-      filePath = @resolve(filePath)
-      if filePath
-        buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-        buffer or @buildBuffer(filePath, text)
-    else
-      @buildBuffer(null, text)
+    absoluteFilePath = @resolve(filePath)
+
+    if filePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+
+    existingBuffer ? @buildBuffer(absoluteFilePath, text)
 
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -251,15 +251,22 @@ class Project
   #
   # Returns a promise that resolves to the {TextBuffer}.
   bufferForPathAsync: (filePath, text) ->
-    if filePath
-      filePath = @resolve(filePath)
-      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
+    absoluteFilePath = @resolve(filePath)
+    if absoluteFilePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    Q(existingBuffer ? @buildBuffer(filePath, text))
+    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
+
+  # Private: DEPRECATED
+  buildBuffer: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.load()
+    @addBuffer(buffer)
+    buffer
 
   # Private: Given a file path, this sets its {TextBuffer}.
   #
