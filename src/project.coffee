@@ -255,7 +255,7 @@ class Project
     if absoluteFilePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
+    Q(existingBuffer ? @buildBufferAsync(absoluteFilePath, text))
 
   # Private:
   bufferForId: (id) ->
@@ -270,15 +270,15 @@ class Project
 
   # Private: Given a file path, this sets its {TextBuffer}.
   #
-  # filePath - A {String} representing a path
+  # absoluteFilePath - A {String} representing a path
   # text - The {String} text to use as a buffer
   #
-  # Returns the {TextBuffer}.
-  buildBuffer: (filePath, initialText) ->
-    filePath = @resolve(filePath) if filePath?
-    buffer = new TextBuffer({project: this, filePath, initialText})
-    @addBuffer(buffer)
-    buffer
+  # Returns a promise that resolves to the {TextBuffer}.
+  buildBufferAsync: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.loadAsync().then (buffer) =>
+      @addBuffer(buffer)
+      buffer
 
   # Private:
   addBuffer: (buffer, options={}) ->

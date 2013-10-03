@@ -25,7 +25,9 @@ class TextBuffer
   registerDeserializer(this)
 
   @deserialize: (state, params) ->
-    new this(state, params)
+    buffer = new this(state, params)
+    buffer.load()
+    buffer
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -46,28 +48,34 @@ class TextBuffer
       @id = @state.get('id')
       filePath = @state.get('relativePath')
       @text = @state.get('text')
-      reloadFromDisk = @state.get('isModified') is false
+      @loadFromDisk = @state.get('isModified') == false
     else
       {@project, filePath, initialText} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
-      reloadFromDisk = true
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version
         text: @text
+      @loadFromDisk = not initialText
 
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @trigger 'marker-created', marker
     @subscribe @text, 'markers-updated', => @trigger 'markers-updated'
 
-    if filePath
-      @setPath(@project.resolve(filePath))
-      if fsUtils.exists(@getPath())
-        @updateCachedDiskContents()
-        @reload() if reloadFromDisk and @isModified()
+    @setPath(@project.resolve(filePath)) if @project
+
+  load: ->
+    @updateCachedDiskContents()
+    @reload() if @loadFromDisk and @isModified()
     @text.clearUndoStack()
+
+  loadAsync: ->
+    @updateCachedDiskContents()
+    @reload() if @loadFromDisk and @isModified()
+    @text.clearUndoStack()
+    Q(this)
 
   ### Internal ###
 
@@ -108,9 +116,10 @@ class TextBuffer
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
-      if @isModified()
-        @conflict = true
-        @updateCachedDiskContents()
+      @conflict = true if @isModified()
+      @updateCachedDiskContents()
+
+      if @conflict
         @trigger "contents-conflicted"
       else
         @reload()
@@ -134,10 +143,9 @@ class TextBuffer
 
   # Reloads a file in the {EditSession}.
   #
-  # Essentially, this performs a force read of the file.
+  # Sets the buffer's content to the cached disk contents
   reload: ->
     @trigger 'will-reload'
-    @updateCachedDiskContents()
     @setText(@cachedDiskContents)
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
@@ -146,7 +154,7 @@ class TextBuffer
   #
   # Essentially, this performs a force read of the file on disk.
   updateCachedDiskContents: ->
-    @cachedDiskContents = @file.read()
+    @cachedDiskContents = @file?.read() ? ""
 
   # Gets the file's basename--that is, the file without any directory information.
   #
@@ -173,9 +181,13 @@ class TextBuffer
     return if path == @getPath()
 
     @file?.off()
-    @file = new File(path)
-    @file.read() if @file.exists()
-    @subscribeToFile()
+
+    if path
+      @file = new File(path)
+      @subscribeToFile()
+    else
+      @file = null
+
     @state.set('relativePath', @project.relativize(path))
     @trigger "path-changed", this
 
@@ -397,7 +409,10 @@ class TextBuffer
   # Returns a {Boolean}.
   isModified: ->
     if @file
-      @getText() != @cachedDiskContents
+      if @file.exists()
+        @getText() != @cachedDiskContents
+      else
+        true
     else
       not @isEmpty()
 

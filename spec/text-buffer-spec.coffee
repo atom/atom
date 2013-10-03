@@ -1,5 +1,6 @@
 {_, fs} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 {Site} = require 'telepath'
 
 describe 'TextBuffer', ->
@@ -80,15 +81,14 @@ describe 'TextBuffer', ->
     filePath = null
 
     beforeEach ->
-      filePath = "/tmp/tmp.txt"
-      fs.writeSync(filePath, "first")
       buffer.release()
+      filePath = temp.openSync('atom').path
+      fs.writeSync(filePath, "first")
       buffer = project.bufferForPath(filePath).retain()
 
     afterEach ->
       buffer.release()
       buffer = null
-      fs.remove(filePath) if fs.exists(filePath)
 
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -176,7 +176,7 @@ describe 'TextBuffer', ->
 
     it "resumes watching of the file when it is re-saved", ->
       bufferToDelete.save()
-      expect(fsUtils.exists(bufferToDelete.getPath())).toBeTruthy()
+      expect(fs.exists(bufferToDelete.getPath())).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
       fs.writeSync(filePath, 'moo')
@@ -946,7 +946,9 @@ describe 'TextBuffer', ->
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
-        buffer.setPath(undefined)
+        buffer.release()
+
+        buffer = project.bufferForPath()
         buffer.setText("abc")
 
         state = buffer.serialize()
