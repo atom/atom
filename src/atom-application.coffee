@@ -50,7 +50,8 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
+  constructor: (options) ->
+    {@resourcePath, @version} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -65,6 +66,10 @@ class AtomApplication
     @handleEvents()
     @checkForUpdates()
 
+    @openBasedOnOptions(options)
+
+  # Private: Opens a new window based on the options provided.
+  openBasedOnOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
     else if pathsToOpen.length > 0
@@ -93,8 +98,7 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        options = JSON.parse(data)
-        @openPaths(options)
+        @openBasedOnOptions(JSON.parse(data))
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
