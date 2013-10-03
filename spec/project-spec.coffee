@@ -38,12 +38,12 @@ describe "Project", ->
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
+      tempFile = temp.openSync().path
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
       editSession = project.open()
-      editSession.saveAs('/tmp/atom-test-save-sets-project-path')
-      expect(project.getPath()).toBe '/tmp'
-      fs.remove('/tmp/atom-test-save-sets-project-path')
+      editSession.saveAs(tempFile)
+      expect(project.getPath()).toBe path.dirname(tempFile)
 
   describe "when an edit session is deserialized", ->
     it "emits an 'edit-session-created' event and stores the edit session", ->
@@ -450,7 +450,7 @@ describe "Project", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        projectPath = '/tmp/atom-tests/folder-with-dot-file'
+        projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
         fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)
