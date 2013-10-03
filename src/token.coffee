@@ -4,6 +4,7 @@ textUtils = require './text-utils'
 whitespaceRegexesByTabLength = {}
 LEADING_WHITESPACE_REGEX = /^[ ]+/
 TRAILING_WHITESPACE_REGEX = /[ ]+$/
+EscapeRegex = /[&"'<>]/g
 
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
@@ -132,7 +133,7 @@ class Token
       classes += ' invisible-character' if invisibles.tab
       html = html.replace /^./, (match) =>
         match = invisibles.tab ? match
-        "<span class='#{classes}'>#{@wrapCharacters(match)}</span>"
+        "<span class='#{classes}'>#{@escapeString(match)}</span>"
     else
       startIndex = 0
       endIndex = html.length
@@ -146,7 +147,7 @@ class Token
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
-        leadingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
+        leadingHtml = "<span class='#{classes}'>#{@escapeString(match[0])}</span>"
 
         startIndex = match[0].length
 
@@ -156,29 +157,28 @@ class Token
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
-        trailingHtml = "<span class='#{classes}'>#{@wrapCharacters(match[0])}</span>"
+        trailingHtml = "<span class='#{classes}'>#{@escapeString(match[0])}</span>"
 
         endIndex = match.index
 
-      html = leadingHtml + @wrapCharacters(html, startIndex, endIndex) + trailingHtml
+      html = leadingHtml + @escapeString(html, startIndex, endIndex) + trailingHtml
 
     html
 
-  wrapCharacters: (str, startIndex, endIndex) ->
+  escapeString: (str, startIndex, endIndex) ->
+    strLength = str.length
+
     startIndex ?= 0
-    endIndex ?= str.length
+    endIndex ?= strLength
 
-    ret = ''
+    str = str.slice(startIndex, endIndex) if startIndex > 0 or endIndex < strLength
+    str.replace(EscapeRegex, @escapeStringReplace)
 
-    for i in [startIndex...endIndex]
-      character = switch str[i]
-        when '&' then '&amp;'
-        when '"' then '&quot;'
-        when "'" then '&#39;'
-        when '<' then '&lt;'
-        when '>' then '&gt;'
-        else str[i]
-
-      ret += character
-
-    ret
+  escapeStringReplace: (match) ->
+    switch match
+      when '&' then '&amp;'
+      when '"' then '&quot;'
+      when "'" then '&#39;'
+      when '<' then '&lt;'
+      when '>' then '&gt;'
+      else match

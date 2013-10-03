@@ -95,7 +95,7 @@ describe "editor.", ->
       benchmark "resetDisplay", 50, ->
         editor.resetDisplay()
 
-      benchmark "htmlForScreenRows", 50, ->
+      benchmark "htmlForScreenRows", 1000, ->
         lastRow = editor.getLastScreenRow()
         editor.htmlForScreenRows(0, lastRow)
 
