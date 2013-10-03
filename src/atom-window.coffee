@@ -37,6 +37,7 @@ class AtomWindow
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
+    @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
 
