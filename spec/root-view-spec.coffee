@@ -168,7 +168,7 @@ describe "RootView", ->
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
 
       describe "when the last pane item is removed", ->
-        it "update the title to contain the project's path", ->
+        it "updates the title to contain the project's path", ->
           rootView.getActivePane().remove()
           expect(rootView.getActivePaneItem()).toBeUndefined()
           expect(rootView.title).toBe project.getPath()
@@ -180,6 +180,13 @@ describe "RootView", ->
           initialTitle = rootView.title
           pane.showNextItem()
           expect(rootView.title).toBe initialTitle
+
+    describe "when the root view is deserialized", ->
+      it "updates the title to contain the project's path", ->
+        rootView2 = atom.deserializers.deserialize(rootView.serialize())
+        item = rootView.getActivePaneItem()
+        expect(rootView2.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+        rootView2.remove()
 
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
