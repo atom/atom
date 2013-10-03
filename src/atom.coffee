@@ -145,7 +145,7 @@ class Atom
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @getLoadedPackages()
+      pack.reloadStylesheets?() for name, pack of @packages.getActivePackages()
       null
 
   open: (options) ->
