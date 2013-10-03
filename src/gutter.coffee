@@ -64,7 +64,7 @@ class Gutter extends View
 
   ### Internal ###
 
-  updateLineNumbers: (changes, intactRanges, renderFrom, renderTo) ->
+  updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true
     else if @getEditor().getLastScreenRow() < @lastScreenRow
@@ -75,9 +75,9 @@ class Gutter extends View
           performUpdate = true
           break
 
-    @renderLineNumbers(intactRanges, renderFrom, renderTo) if performUpdate
+    @renderLineNumbers(renderFrom, renderTo) if performUpdate
 
-  renderLineNumbers: (intactRanges, startScreenRow, endScreenRow) ->
+  renderLineNumbers: (startScreenRow, endScreenRow) ->
     @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow

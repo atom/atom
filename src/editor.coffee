@@ -1270,7 +1270,7 @@ class Editor extends View
     changes = @pendingChanges
     intactRanges = @computeIntactRanges(renderFrom, renderTo)
 
-    @gutter.updateLineNumbers(changes, intactRanges, renderFrom, renderTo)
+    @gutter.updateLineNumbers(changes, renderFrom, renderTo)
 
     @clearDirtyRanges(intactRanges)
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
@@ -1353,40 +1353,30 @@ class Editor extends View
       i++
     intactRanges.sort (a, b) -> a.domStart - b.domStart
 
-  # renderedLines - optional
-  # clearLine - optional
-  clearDirtyRanges: (intactRanges, renderedLines, clearLine) ->
-    renderedLines ?= @renderedLines[0]
-    clearLine ?= @clearLine
-
+  clearDirtyRanges: (intactRanges) ->
     if intactRanges.length == 0
-      renderedLines.innerHTML = ''
-    else if currentLine = renderedLines.firstChild
+      @renderedLines[0].innerHTML = ''
+    else if currentLine = @renderedLines[0].firstChild
       domPosition = 0
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
-          currentLine = clearLine(currentLine)
+          currentLine = @clearLine(currentLine)
           domPosition++
         for i in [intactRange.start..intactRange.end]
           currentLine = currentLine.nextSibling
           domPosition++
       while currentLine
-        currentLine = clearLine(currentLine)
+        currentLine = @clearLine(currentLine)
 
   clearLine: (lineElement) =>
     next = lineElement.nextSibling
     @renderedLines[0].removeChild(lineElement)
     next
 
-  # renderedLines - optional
-  # buildLineElements - optional
-  fillDirtyRanges: (intactRanges, renderFrom, renderTo, renderedLines, buildLineElements) ->
-    renderedLines ?= @renderedLines[0]
-    buildLineElements ?= @buildLineElementsForScreenRows
-
+  fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
     i = 0
     nextIntact = intactRanges[i]
-    currentLine = renderedLines.firstChild
+    currentLine = @renderedLines[0].firstChild
 
     row = renderFrom
     while row <= renderTo
@@ -1399,8 +1389,8 @@ class Editor extends View
         else
           dirtyRangeEnd = renderTo
 
-        for lineElement in buildLineElements(row, dirtyRangeEnd)
-          renderedLines.insertBefore(lineElement, currentLine)
+        for lineElement in @buildLineElementsForScreenRows(row, dirtyRangeEnd)
+          @renderedLines[0].insertBefore(lineElement, currentLine)
           row++
       else
         currentLine = currentLine.nextSibling
