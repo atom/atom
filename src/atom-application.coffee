@@ -1,7 +1,6 @@
 AtomWindow = require 'atom-window'
 ApplicationMenu = require 'application-menu'
 AtomProtocolHandler = require 'atom-protocol-handler'
-BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
