@@ -59,19 +59,34 @@ describe "editor.", ->
         editor.insertText('"')
         editor.backspace()
 
-    fdescribe "calculating-pixel-position.", ->
+    describe "positionLeftForLineAndColumn.", ->
       line = null
       beforeEach ->
         editor.scrollTop(2000)
         editor.resetDisplay()
         line = editor.lineElementForScreenRow(106)[0]
 
-      benchmark "positionLeftForLineAndColumn", 20000, ->
-        editor.positionLeftForLineAndColumn(line, 82)
-        editor.pixelLeftCache.delete(line)
+      describe "one-line.", ->
+        beforeEach ->
+          editor.clearCharacterWidthCache()
 
-      benchmark "positionLeftForLineAndColumn.cached", 20000, ->
-        editor.positionLeftForLineAndColumn(line, 82)
+        benchmark "uncached", 5000, ->
+          editor.positionLeftForLineAndColumn(line, 106, 82)
+          editor.clearCharacterWidthCache()
+
+        benchmark "cached", 5000, ->
+          editor.positionLeftForLineAndColumn(line, 106, 82)
+
+      describe "multiple-lines.", ->
+        [firstRow, lastRow] = []
+        beforeEach ->
+          firstRow = editor.getFirstVisibleScreenRow()
+          lastRow = editor.getLastVisibleScreenRow()
+
+        benchmark "cache-entire-visible-area", 100, ->
+          for i in [firstRow..lastRow]
+            line = editor.lineElementForScreenRow(i)[0]
+            editor.positionLeftForLineAndColumn(line, i, Math.max(0, editor.lineLengthForBufferRow(i)))
 
     describe "text-rendering.", ->
       beforeEach ->
