@@ -78,22 +78,13 @@ class Gutter extends View
     @renderLineNumbers(intactRanges, renderFrom, renderTo) if performUpdate
 
   renderLineNumbers: (intactRanges, startScreenRow, endScreenRow) ->
-    editor = @getEditor()
-
-    editor.clearDirtyRanges(intactRanges, @lineNumbers[0], @clearLine)
-    editor.fillDirtyRanges(intactRanges, startScreenRow, endScreenRow, @lineNumbers[0], @buildLineElements)
-
+    @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
 
-  clearLine: (lineElement) =>
-    next = lineElement.nextSibling
-    @lineNumbers[0].removeChild(lineElement)
-    next
-
-  buildLineElements: (startScreenRow, endScreenRow) =>
+  buildLineElementsHtml: (startScreenRow, endScreenRow) =>
     editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length
     rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
@@ -114,9 +105,7 @@ class Gutter extends View
 
       lastScreenRow = row
 
-    div = document.createElement('div')
-    div.innerHTML = html
-    new Array(div.children...)
+    html
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers
