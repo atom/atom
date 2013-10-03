@@ -139,7 +139,7 @@ window.measure = (description, fn) ->
 #   A String descrption that will be available in the Profiles tab of the dev
 #   tools.
 # * fn:
-#   A function to profile.
+#   A Function to profile.
 #
 # Return the value returned by the given function.
 window.profile = (description, fn) ->
