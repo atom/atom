@@ -10,12 +10,15 @@ $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 
 MEASURE_RANGE = document.createRange()
+TEXT_NODE_FILTER = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
+NO_SCOPE = ['no-scope']
 
 # Private: Represents the entire visual pane in Atom.
 #
 # The Editor manages the {EditSession}, which manages the file buffers.
 module.exports =
 class Editor extends View
+  @characterWidthCache: {}
   @configDefaults:
     fontSize: 20
     showInvisibles: false
@@ -96,7 +99,6 @@ class Editor extends View
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
-    @pixelLeftCache = new WeakMap()
 
     if editSession?
       @edit(editSession)
@@ -969,6 +971,9 @@ class Editor extends View
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
     @css('font-size', "#{fontSize}px}")
+
+    @clearCharacterWidthCache()
+
     if @isOnDom()
       @redraw()
     else
@@ -985,6 +990,9 @@ class Editor extends View
   # fontFamily - A {String} identifying the CSS `font-family`,
   setFontFamily: (fontFamily='') ->
     @css('font-family', fontFamily)
+
+    @clearCharacterWidthCache()
+
     @redraw()
 
   # Gets the font family for the editor.
@@ -1366,7 +1374,6 @@ class Editor extends View
         currentLine = clearLine(currentLine)
 
   clearLine: (lineElement) =>
-    @pixelLeftCache.delete(lineElement)
     next = lineElement.nextSibling
     @renderedLines[0].removeChild(lineElement)
     next
@@ -1545,32 +1552,90 @@ class Editor extends View
     unless existingLineElement
       lineElement = @buildLineElementForScreenRow(actualRow)
       @renderedLines.append(lineElement)
-    left = @positionLeftForLineAndColumn(lineElement, column)
+    left = @positionLeftForLineAndColumn(lineElement, actualRow, column)
     unless existingLineElement
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (lineElement, column) ->
-    lineCache = @pixelLeftCache.get(lineElement)
-    @pixelLeftCache.set(lineElement, lineCache = {}) unless lineCache?
+  positionLeftForLineAndColumn: (lineElement, screenRow, column) ->
+    return 0 if column == 0
 
-    return lineCache[column] if lineCache[column]?
+    bufferRow = @bufferRowsForScreenRows(screenRow)[0] ? screenRow
+    tokenizedLine = @activeEditSession.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
 
-    delta = 0
-    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-    while textNode = iterator.nextNode()
-      nextDelta = delta + textNode.textContent.length
-      if nextDelta >= column
-        offset = column - delta
-        break
-      delta = nextDelta
+    left = 0
+    index = 0
+    for token in tokenizedLine.tokens
+      for char in token.value
+        return left if index >= column
 
-    MEASURE_RANGE.setEnd(textNode, offset)
-    MEASURE_RANGE.collapse()
-    left = MEASURE_RANGE.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+        val = @checkCharacterWidthCache(token.scopes, char)
+        if val?
+          left += val
+        else
+          return @measureToColumn(lineElement, tokenizedLine, column)
 
-    lineCache[column] = left
+        index++
     left
+
+  scopesForColumn: (tokenizedLine, column) ->
+    index = 0
+    for token in tokenizedLine.tokens
+      for char in token.value
+        return token.scopes if index == column
+        index++
+    null
+
+  measureToColumn: (lineElement, tokenizedLine, column) ->
+    left = oldLeft = index = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TEXT_NODE_FILTER)
+
+    returnLeft = null
+
+    while textNode = iterator.nextNode()
+      content = textNode.textContent
+
+      for char, i in content
+
+        # Dont return right away, finish caching the whole line
+        returnLeft = left if index == column
+        oldLeft = left
+
+        scopes = @scopesForColumn(tokenizedLine, index)
+        cachedVal = @checkCharacterWidthCache(scopes, char)
+
+        if cachedVal?
+          left = oldLeft + cachedVal
+        else
+          # i + 1 to measure to the end of the current character
+          MEASURE_RANGE.setEnd(textNode, i + 1)
+          MEASURE_RANGE.collapse()
+          left = MEASURE_RANGE.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+
+          @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
+
+        index++
+
+    returnLeft ? left
+
+  checkCharacterWidthCache: (scopes, char) ->
+    scopes ?= NO_SCOPE
+    obj = Editor.characterWidthCache
+    for scope in scopes
+      obj = obj[scope]
+      return null unless obj?
+    obj[char]
+
+  setCharacterWidthCache: (scopes, char, val) ->
+    scopes ?= NO_SCOPE
+    obj = Editor.characterWidthCache
+    for scope in scopes
+      obj[scope] ?= {}
+      obj = obj[scope]
+    obj[char] = val
+
+  clearCharacterWidthCache: ->
+    Editor.characterWidthCache = {}
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
