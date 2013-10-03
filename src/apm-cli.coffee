@@ -14,6 +14,7 @@ commandClasses = [
   require './lister'
   require './publisher'
   require './rebuilder'
+  require './test'
   require './uninstaller'
   require './unlinker'
   require './updater'
