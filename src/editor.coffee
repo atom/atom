@@ -1560,7 +1560,7 @@ class Editor extends View
   positionLeftForLineAndColumn: (lineElement, screenRow, column) ->
     return 0 if column == 0
 
-    bufferRow = @bufferRowsForScreenRows(screenRow)[0] ? screenRow
+    bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
     tokenizedLine = @activeEditSession.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
 
     left = 0

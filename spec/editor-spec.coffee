@@ -1,7 +1,7 @@
 {_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
