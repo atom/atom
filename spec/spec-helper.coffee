@@ -24,6 +24,7 @@ atom.keymap.loadBundledKeymaps()
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->
   atom.windowMode = 'spec'
+  atom.getWindowState().set('dimensions', atom.getDimensions())
   atom.saveWindowState()
 $('html,body').css('overflow', 'auto')
 
