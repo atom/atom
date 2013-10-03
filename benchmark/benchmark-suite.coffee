@@ -59,6 +59,23 @@ describe "editor.", ->
         editor.insertText('"')
         editor.backspace()
 
+    describe "empty-vs-set-innerHTML.", ->
+      [firstRow, lastRow] = []
+      beforeEach ->
+        firstRow = editor.getFirstVisibleScreenRow()
+        lastRow = editor.getLastVisibleScreenRow()
+
+      benchmark "build-gutter-html.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+
+      benchmark "set-innerHTML.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editor.gutter.lineNumbers[0].innerHtml = ''
+
+      benchmark "empty.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editor.gutter.lineNumbers.empty()
+
     describe "positionLeftForLineAndColumn.", ->
       line = null
       beforeEach ->
@@ -95,7 +112,7 @@ describe "editor.", ->
       benchmark "resetDisplay", 50, ->
         editor.resetDisplay()
 
-      fbenchmark "htmlForScreenRows", 1000, ->
+      benchmark "htmlForScreenRows", 1000, ->
         lastRow = editor.getLastScreenRow()
         editor.htmlForScreenRows(0, lastRow)
 
