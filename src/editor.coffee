@@ -960,14 +960,7 @@ class Editor extends View
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
-    headTag = $("head")
-    styleTag = headTag.find("style.font-size")
-    if styleTag.length == 0
-      styleTag = $$ -> @style class: 'font-size'
-      headTag.append styleTag
-
-    styleTag.text(".editor {font-size: #{fontSize}px}")
-
+    @css('font-size', "#{fontSize}px}")
     if @isOnDom()
       @redraw()
     else
@@ -982,18 +975,8 @@ class Editor extends View
   # Sets the font family for the editor.
   #
   # fontFamily - A {String} identifying the CSS `font-family`,
-  setFontFamily: (fontFamily) ->
-    headTag = $("head")
-    styleTag = headTag.find("style.editor-font-family")
-
-    if fontFamily?
-      if styleTag.length == 0
-        styleTag = $$ -> @style class: 'editor-font-family'
-        headTag.append styleTag
-      styleTag.text(".editor {font-family: #{fontFamily}}")
-    else
-      styleTag.remove()
-
+  setFontFamily: (fontFamily='') ->
+    @css('font-family', fontFamily)
     @redraw()
 
   # Gets the font family for the editor.
@@ -1001,11 +984,7 @@ class Editor extends View
   # Returns a {String} identifying the CSS `font-family`,
   getFontFamily: -> @css("font-family")
 
-  # Clears the CSS `font-family` property from the editor.
-  clearFontFamily: ->
-    $('head style.editor-font-family').remove()
-
-  # Clears the CSS `font-family` property from the editor.
+  # Redraw the editor
   redraw: ->
     return unless @hasParent()
     return unless @attached
