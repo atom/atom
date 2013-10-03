@@ -33,7 +33,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if not fs.existsSync socketPath
+    if (not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
 
@@ -50,7 +50,8 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
+  constructor: (options) ->
+    {@resourcePath, @version} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -65,6 +66,10 @@ class AtomApplication
     @handleEvents()
     @checkForUpdates()
 
+    @openWithOptions(options)
+
+  # Private: Opens a new window based on the options provided.
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
     else if pathsToOpen.length > 0
@@ -93,8 +98,7 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        options = JSON.parse(data)
-        @openPaths(options)
+        @openWithOptions(JSON.parse(data))
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
