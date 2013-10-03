@@ -1,7 +1,7 @@
 {_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
@@ -119,36 +119,37 @@ describe "Editor", ->
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
       editor.attachToDom(heightInLines: 5, widthInChars: 30)
-      editor.setCursorBufferPosition([3, 5])
+      editor.setCursorBufferPosition([6, 13])
       editor.scrollToBottom()
       editor.scrollLeft(150)
       previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
       previousScrollTop = editor.scrollTop()
       previousScrollLeft = editor.scrollLeft()
 
-      newEditSession.setScrollTop(120)
+      newEditSession.setScrollTop(900)
       newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
 
       editor.edit(newEditSession)
       { firstRenderedScreenRow, lastRenderedScreenRow } = editor
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editor.lastRenderedScreenRow)
-      expect(editor.scrollTop()).toBe 120
+      expect(editor.scrollTop()).toBe 900
       expect(editor.scrollLeft()).toBe 0
       expect(editor.getSelectionView().regions[0].position().top).toBe 40 * editor.lineHeight
       editor.insertText("hello")
       expect(editor.lineElementForScreenRow(40).text()).toBe "hello3"
 
       editor.edit(editSession)
+      console.log editor.scrollTop(), editSession.getCursorScreenPosition()
       { firstRenderedScreenRow, lastRenderedScreenRow } = editor
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe buffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editor.lastRenderedScreenRow)
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editor.scrollTop()).toBe previousScrollTop
       expect(editor.scrollLeft()).toBe previousScrollLeft
-      expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
+      expect(editor.getCursorView().position()).toEqual { top: 6 * editor.lineHeight, left: 13 * editor.charWidth }
       editor.insertText("goodbye")
-      expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
+      expect(editor.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = "/tmp/atom-changed-file.txt"
@@ -904,7 +905,8 @@ describe "Editor", ->
 
       it "moves the hiddenInput to the same position with cursor's view", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
-        expect(editor.getCursorView().offset()).toEqual(editor.hiddenInput.offset())
+        expect(editor.getCursorView()[0].style.left).toEqual(editor.hiddenInput[0].style.left)
+        expect(editor.getCursorView()[0].style.top).toEqual(editor.hiddenInput[0].style.top)
 
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
@@ -915,6 +917,8 @@ describe "Editor", ->
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
           editor.setCursorBufferPosition([3, Infinity])
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+          console.log Editor.CHARACTER_WIDTH_CACHE
+
 
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
@@ -1090,36 +1094,22 @@ describe "Editor", ->
         expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
         expect(span0.children('span:eq(0)').text()).toBe 'var'
 
-        expect(span0.children('span:eq(1)')).toMatchSelector '.character'
-        expect(span0.children('span:eq(1)').text()).toBe " "
+        span0_1 = span0.children('span:eq(1)')
+        expect(span0_1).toMatchSelector '.meta.function.js'
+        expect(span0_1.text()).toBe 'quicksort = function ()'
+        expect(span0_1.children('span:eq(0)')).toMatchSelector '.entity.name.function.js'
+        expect(span0_1.children('span:eq(0)').text()).toBe "quicksort"
+        expect(span0_1.children('span:eq(1)')).toMatchSelector '.keyword.operator.js'
+        expect(span0_1.children('span:eq(1)').text()).toBe "="
+        expect(span0_1.children('span:eq(2)')).toMatchSelector '.storage.type.function.js'
+        expect(span0_1.children('span:eq(2)').text()).toBe "function"
+        expect(span0_1.children('span:eq(3)')).toMatchSelector '.punctuation.definition.parameters.begin.js'
+        expect(span0_1.children('span:eq(3)').text()).toBe "("
+        expect(span0_1.children('span:eq(4)')).toMatchSelector '.punctuation.definition.parameters.end.js'
+        expect(span0_1.children('span:eq(4)').text()).toBe ")"
 
-        span0_2 = span0.children('span:eq(2)')
-        console.log span0
-        console.log span0_2[0]
-        expect(span0_2).toMatchSelector '.meta.function.js'
-        expect(span0_2.text()).toBe 'quicksort = function ()'
-        expect(span0_2.children('span:eq(0)')).toMatchSelector '.entity.name.function.js'
-        expect(span0_2.children('span:eq(0)').text()).toBe "quicksort"
-        expect(span0_2.children('span:eq(1)')).toMatchSelector '.character'
-        expect(span0_2.children('span:eq(1)').text()).toBe " "
-        expect(span0_2.children('span:eq(2)')).toMatchSelector '.keyword.operator.js'
-        expect(span0_2.children('span:eq(2)').text()).toBe "="
-        expect(span0_2.children('span:eq(3)')).toMatchSelector '.character'
-        expect(span0_2.children('span:eq(3)').text()).toBe " "
-        expect(span0_2.children('span:eq(4)')).toMatchSelector '.storage.type.function.js'
-        expect(span0_2.children('span:eq(4)').text()).toBe "function"
-        expect(span0_2.children('span:eq(5)')).toMatchSelector '.character'
-        expect(span0_2.children('span:eq(5)').text()).toBe " "
-        expect(span0_2.children('span:eq(6)')).toMatchSelector '.punctuation.definition.parameters.begin.js'
-        expect(span0_2.children('span:eq(6)').text()).toBe "("
-        expect(span0_2.children('span:eq(7)')).toMatchSelector '.punctuation.definition.parameters.end.js'
-        expect(span0_2.children('span:eq(7)').text()).toBe ")"
-
-        expect(span0.children('span:eq(3)')).toMatchSelector '.character'
-        expect(span0.children('span:eq(3)').text()).toBe " "
-
-        expect(span0.children('span:eq(4)')).toMatchSelector '.meta.brace.curly.js'
-        expect(span0.children('span:eq(4)').text()).toBe "{"
+        expect(span0.children('span:eq(2)')).toMatchSelector '.meta.brace.curly.js'
+        expect(span0.children('span:eq(2)').text()).toBe "{"
 
         line12 = editor.renderedLines.find('.line:eq(11)').children('span:eq(0)')
         expect(line12.children('span:eq(1)')).toMatchSelector '.keyword'
@@ -1137,18 +1127,6 @@ describe "Editor", ->
         expect(span0_0).toMatchSelector '.leading-whitespace'
         expect(span0_0.text()).toBe '  '
 
-      it "wraps every character in a span", ->
-        text = '  leading and no trailing whitespace'
-        editor.setText(text)
-        line0 = editor.renderedLines.find('.line:first')
-        characters = line0.find('.character')
-
-        renderedText = ''
-        renderedText += $(ch).text() for ch in characters
-
-        expect(characters).toHaveLength text.length
-        expect(renderedText).toEqual text
-
       describe "when the line has trailing whitespace", ->
         it "wraps trailing whitespace in a span", ->
           editor.setText('trailing whitespace ->   ')
@@ -1156,18 +1134,6 @@ describe "Editor", ->
           span0_last = line0.children('span:eq(0)').children('span:last')
           expect(span0_last).toMatchSelector '.trailing-whitespace'
           expect(span0_last.text()).toBe '   '
-
-        it "wraps every character in a span", ->
-          text = '  leading and trailing whitespace   '
-          editor.setText(text)
-          line0 = editor.renderedLines.find('.line:first')
-          characters = line0.find('.character')
-
-          renderedText = ''
-          renderedText += $(ch).text() for ch in characters
-
-          expect(characters).toHaveLength text.length
-          expect(renderedText).toEqual text
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1515,7 +1481,7 @@ describe "Editor", ->
         editor.setShowInvisibles(true)
         editor.attachToDom()
         editor.setText "var"
-        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js"><span class="character">v</span><span class="character">a</span><span class="character">r</span></span></span><span class="invisible-character">¬</span>'
+        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible-character">¬</span>'
 
       it "allows invisible glyphs to be customized via config.editor.invisibles", ->
         editor.setText(" \t ")
@@ -2213,19 +2179,6 @@ describe "Editor", ->
         editor.renderedLines.css('font-size', '15px')
 
         expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
-
-      it "breaks left position cache when line is changed", ->
-        editor.renderedLines.css('font-size', '16px')
-        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
-
-        editor.setCursorBufferPosition([2, 8])
-        editor.insertText("a")
-
-        # make characters smaller
-        editor.renderedLines.css('font-size', '15px')
-
-        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 72
-
 
   describe "when clicking in the gutter", ->
     beforeEach ->
