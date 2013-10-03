@@ -26,6 +26,18 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer2.buffer).toBe tokenizedBuffer1.buffer
       expect(tokenizedBuffer2.getTabLength()).toBe tokenizedBuffer1.getTabLength()
 
+  describe "when the buffer is destroyed", ->
+    beforeEach ->
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      startTokenizing(tokenizedBuffer)
+
+    it "stops tokenization", ->
+      tokenizedBuffer.destroy()
+      spyOn(tokenizedBuffer, 'tokenizeNextChunk')
+      advanceClock()
+      expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
+
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = project.bufferForPath('sample.js')

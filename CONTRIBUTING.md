@@ -16,8 +16,6 @@
     styleguides
   * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
     specs
-  * Style new elements in both the light and dark default themes when
-    appropriate
   * Add 3rd-party packages as a `package.json` dependency
   * Commit messages are in the present tense
   * Commit messages that improve the format of the code start with :lipstick:

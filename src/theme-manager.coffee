@@ -4,7 +4,7 @@ Package = require './package'
 AtomPackage = require './atom-package'
 
 _ = require './underscore-extensions'
-
+$ = require './jquery-extensions'
 fsUtils = require './fs-utils'
 
 # Private: Handles discovering and loading available themes.
@@ -15,6 +15,7 @@ class ThemeManager
   constructor: ->
     @loadedThemes = []
     @activeThemes = []
+    @lessCache = null
 
   # Internal-only:
   register: (theme) ->
@@ -34,8 +35,84 @@ class ThemeManager
     _.clone(@loadedThemes)
 
   # Internal-only:
+  loadBaseStylesheets: ->
+    @requireStylesheet('bootstrap/less/bootstrap')
+    @reloadBaseStylesheets()
+
+  # Internal-only:
+  reloadBaseStylesheets: ->
+    @requireStylesheet('../static/atom')
+    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+      @requireStylesheet(nativeStylesheetPath)
+
+  # Internal-only:
+  stylesheetElementForId: (id) ->
+    $("""head style[id="#{id}"]""")
+
+  # Internal-only:
+  resolveStylesheet: (stylesheetPath) ->
+    if path.extname(stylesheetPath).length > 0
+      fsUtils.resolveOnLoadPath(stylesheetPath)
+    else
+      fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
+
+  # Public: resolves and applies the stylesheet specified by the path.
+  #
+  # * stylesheetPath: String. Can be an absolute path or the name of a CSS or
+  #   LESS file in the stylesheets path.
+  #
+  # Returns the absolute path to the stylesheet
+  requireStylesheet: (stylesheetPath) ->
+    if fullPath = @resolveStylesheet(stylesheetPath)
+      content = @loadStylesheet(fullPath)
+      @applyStylesheet(fullPath, content)
+    else
+      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+
+    fullPath
+
+  # Internal-only:
+  loadStylesheet: (stylesheetPath) ->
+    if path.extname(stylesheetPath) is '.less'
+      @loadLessStylesheet(stylesheetPath)
+    else
+      fsUtils.read(stylesheetPath)
+
+  # Internal-only:
+  loadLessStylesheet: (lessStylesheetPath) ->
+    unless lessCache?
+      LessCompileCache = require './less-compile-cache'
+      @lessCache = new LessCompileCache()
+
+    try
+      @lessCache.read(lessStylesheetPath)
+    catch e
+      console.error """
+        Error compiling less stylesheet: #{lessStylesheetPath}
+        Line number: #{e.line}
+        #{e.message}
+      """
+
+  # Internal-only:
+  removeStylesheet: (stylesheetPath) ->
+    unless fullPath = @resolveStylesheet(stylesheetPath)
+      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+    @stylesheetElementForId(fullPath).remove()
+
+  # Internal-only:
+  applyStylesheet: (id, text, ttype = 'bundled') ->
+    styleElement = @stylesheetElementForId(id)
+    if styleElement.length
+      styleElement.text(text)
+    else
+      if $("head style.#{ttype}").length
+        $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+      else
+        $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+
+  # Internal-only:
   unload: ->
-    removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
     theme.deactivate() while theme = @activeThemes.pop()
 
   # Internal-only:
@@ -50,7 +127,7 @@ class ThemeManager
 
       @activateTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
-
+      @reloadBaseStylesheets()
       @trigger('reloaded')
 
   # Private:
@@ -107,8 +184,10 @@ class ThemeManager
     if @activeThemes.length > 0
       themePaths = (theme.getStylesheetsPath() for theme in @activeThemes when theme)
     else
-      themeNames = config.get('core.themes')
-      themePaths = (path.join(@resolveThemePath(themeName), AtomPackage.stylesheetsDir) for themeName in themeNames)
+      themePaths = []
+      for themeName in config.get('core.themes') ? []
+        if themePath = @resolveThemePath(themeName)
+          themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
     themePath for themePath in themePaths when fsUtils.isDirectorySync(themePath)
 
@@ -116,5 +195,5 @@ class ThemeManager
   loadUserStylesheet: ->
     if userStylesheetPath = @getUserStylesheetPath()
       @userStylesheetPath = userStylesheetPath
-      userStylesheetContents = loadStylesheet(userStylesheetPath)
-      applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
+      userStylesheetContents = @loadStylesheet(userStylesheetPath)
+      @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')

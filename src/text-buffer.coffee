@@ -81,6 +81,7 @@ class TextBuffer
       @unsubscribe()
       @destroyed = true
       @project?.removeBuffer(this)
+      @trigger 'destroyed'
 
   isRetained: -> @refcount > 0
 

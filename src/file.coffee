@@ -1,5 +1,4 @@
 EventEmitter = require './event-emitter'
-fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
@@ -23,9 +22,7 @@ class File
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
-    try
-      if fs.statSync(@path).isDirectorySync()
-        throw new Error("#{@path} is a directory")
+    throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
 
   # Private: Sets the path for the file.
   setPath: (@path) ->

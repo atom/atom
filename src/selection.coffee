@@ -115,6 +115,8 @@ class Selection
   selectWord: ->
     options = {}
     options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
+    if @cursor.isBetweenWordAndNonWord()
+      options.includeNonWordCharacters = false
 
     @setBufferRange(@cursor.getCurrentWordBufferRange(options))
     @wordwise = true

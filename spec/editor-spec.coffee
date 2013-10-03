@@ -13,6 +13,8 @@ describe "Editor", ->
     editor.lineOverdraw = 2
     editor.isFocused = true
     editor.enableKeymap()
+    editor.calculateHeightInLines = ->
+      Math.ceil(@height() / @lineHeight)
     editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
       heightInLines ?= @getBuffer().getLineCount()
       @height(getLineHeight() * heightInLines)
@@ -286,15 +288,13 @@ describe "Editor", ->
 
   describe "font family", ->
     beforeEach ->
-      expect(editor.css('font-family')).not.toBe 'Courier'
+      expect(editor.css('font-family')).toBe 'Courier'
 
     it "when there is no config in fontFamily don't set it", ->
-      expect($("head style.font-family")).not.toExist()
+      atom.config.set('editor.fontFamily', null)
+      expect(editor.css('font-family')).toBe ''
 
     describe "when the font family changes", ->
-      afterEach ->
-        editor.clearFontFamily()
-
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editor.attachToDom(12)
         lineHeightBefore = editor.lineHeight
@@ -303,7 +303,6 @@ describe "Editor", ->
 
         config.set("editor.fontFamily", "PCMyungjo")
         expect(editor.css('font-family')).toBe 'PCMyungjo'
-        expect($("head style.editor-font-family").text()).toMatch "{font-family: PCMyungjo}"
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
@@ -317,8 +316,7 @@ describe "Editor", ->
       expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
-      expect($("head style.font-size")).toExist()
-      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+      expect(editor.css('font-size')).toBe "#{config.get('editor.fontSize')}px"
 
     describe "when the font size changes", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
@@ -404,9 +402,6 @@ describe "Editor", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
 
-        afterEach ->
-          editor.clearFontFamily()
-
         it "positions the cursor to the clicked row and column", ->
           {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
@@ -439,6 +434,29 @@ describe "Editor", ->
 
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
+
+      describe "when clicking between a word and a non-word", ->
+        it "selects the word", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "function"
+
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "items"
+
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "{"
 
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
@@ -891,9 +909,6 @@ describe "Editor", ->
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
-
-        afterEach ->
-          editor.clearFontFamily()
 
         it "correctly positions the cursor", ->
           editor.setCursorBufferPosition([3, 30])

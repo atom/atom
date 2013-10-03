@@ -498,6 +498,11 @@ class Editor extends View
   # {Delegates to: EditSession.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
+  # Private:
+  setHeightInLines: (heightInLines)->
+    heightInLines ?= @calculateHeightInLines()
+    @heightInLines = heightInLines if heightInLines
+
   # {Delegates to: EditSession.setEditorWidthInChars}
   setWidthInChars: (widthInChars) ->
     widthInChars ?= @calculateWidthInChars()
@@ -696,6 +701,7 @@ class Editor extends View
 
   handleInputEvents: ->
     @on 'cursor:moved', =>
+      return unless @isFocused
       cursorView = @getCursorView()
       @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
 
@@ -746,6 +752,7 @@ class Editor extends View
     @calculateDimensions()
     @setWidthInChars()
     @subscribe $(window), "resize.editor-#{@id}", =>
+      @setHeightInLines()
       @setWidthInChars()
       @requestDisplayUpdate()
     @focus() if @isFocused
@@ -936,6 +943,9 @@ class Editor extends View
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
+  calculateHeightInLines: ->
+    Math.ceil($(window).height() / @lineHeight)
+
   # Enables/disables soft wrap on the editor.
   #
   # softWrap - A {Boolean} which, if `true`, enables soft wrap
@@ -950,14 +960,7 @@ class Editor extends View
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
-    headTag = $("head")
-    styleTag = headTag.find("style.font-size")
-    if styleTag.length == 0
-      styleTag = $$ -> @style class: 'font-size'
-      headTag.append styleTag
-
-    styleTag.text(".editor {font-size: #{fontSize}px}")
-
+    @css('font-size', "#{fontSize}px}")
     if @isOnDom()
       @redraw()
     else
@@ -972,18 +975,8 @@ class Editor extends View
   # Sets the font family for the editor.
   #
   # fontFamily - A {String} identifying the CSS `font-family`,
-  setFontFamily: (fontFamily) ->
-    headTag = $("head")
-    styleTag = headTag.find("style.editor-font-family")
-
-    if fontFamily?
-      if styleTag.length == 0
-        styleTag = $$ -> @style class: 'editor-font-family'
-        headTag.append styleTag
-      styleTag.text(".editor {font-family: #{fontFamily}}")
-    else
-      styleTag.remove()
-
+  setFontFamily: (fontFamily='') ->
+    @css('font-family', fontFamily)
     @redraw()
 
   # Gets the font family for the editor.
@@ -991,11 +984,7 @@ class Editor extends View
   # Returns a {String} identifying the CSS `font-family`,
   getFontFamily: -> @css("font-family")
 
-  # Clears the CSS `font-family` property from the editor.
-  clearFontFamily: ->
-    $('head style.editor-font-family').remove()
-
-  # Clears the CSS `font-family` property from the editor.
+  # Redraw the editor
   redraw: ->
     return unless @hasParent()
     return unless @attached
@@ -1124,6 +1113,7 @@ class Editor extends View
     @charWidth = charRect.width
     @charHeight = charRect.height
     fragment.remove()
+    @setHeightInLines()
 
   updateLayerDimensions: ->
     height = @lineHeight * @getScreenLineCount()
@@ -1174,7 +1164,7 @@ class Editor extends View
   updateDisplay: (options={}) ->
     return unless @attached and @activeEditSession
     return if @activeEditSession.destroyed
-    unless @isVisible()
+    unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
 
@@ -1226,15 +1216,15 @@ class Editor extends View
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
-    lastVisibleScreenRow = @getLastVisibleScreenRow()
+    lastScreenRowToRender = firstVisibleScreenRow + @heightInLines - 1
     lastScreenRow = @getLastScreenRow()
 
-    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastScreenRowToRender <= @lastRenderedScreenRow
       renderFrom = Math.min(lastScreenRow, @firstRenderedScreenRow)
       renderTo = Math.min(lastScreenRow, @lastRenderedScreenRow)
     else
       renderFrom = Math.min(lastScreenRow, Math.max(0, firstVisibleScreenRow - @lineOverdraw))
-      renderTo = Math.min(lastScreenRow, lastVisibleScreenRow + @lineOverdraw)
+      renderTo = Math.min(lastScreenRow, lastScreenRowToRender + @lineOverdraw)
 
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
@@ -1381,7 +1371,7 @@ class Editor extends View
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
-  # Retrieves the number of the row that is visible and currently at the top of the editor.
+  # Retrieves the number of the row that is visible and currently at the bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->

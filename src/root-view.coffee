@@ -79,15 +79,14 @@ class RootView extends View
 
     @panes.replaceWith(panes)
     @panes = panes
+    @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
     project.on 'path-changed', => @updateTitle()
-    @on 'pane:became-active', => @updateTitle()
-    @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
-    @on 'pane:removed', => @updateTitle() unless @getActivePane()
+    @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
     @command 'application:about', -> ipc.sendChannel('command', 'application:about')
@@ -195,7 +194,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle("atom - #{projectPath}")
+        @setTitle(projectPath)
     else
       @setTitle('untitled')
 
@@ -280,5 +279,5 @@ class RootView extends View
   # Private: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
-    project.destroy()
+    project?.destroy()
     super

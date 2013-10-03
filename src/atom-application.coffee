@@ -1,7 +1,6 @@
 AtomWindow = require 'atom-window'
 ApplicationMenu = require 'application-menu'
 AtomProtocolHandler = require 'atom-protocol-handler'
-BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
@@ -24,6 +23,7 @@ socketPath = '/tmp/atom.sock'
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype
+  updateVersion: null
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
@@ -33,7 +33,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if not fs.existsSync socketPath
+    if (not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
 
@@ -50,7 +50,8 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow}) ->
+  constructor: (options) ->
+    {@resourcePath, @version} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -65,8 +66,12 @@ class AtomApplication
     @handleEvents()
     @checkForUpdates()
 
+    @openWithOptions(options)
+
+  # Private: Opens a new window based on the options provided.
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
     else if urlsToOpen.length > 0
@@ -93,8 +98,7 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        options = JSON.parse(data)
-        @openPaths(options)
+        @openWithOptions(JSON.parse(data))
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
@@ -147,7 +151,9 @@ class AtomApplication
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
+      @updateVersion = version
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
+      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
@@ -307,3 +313,8 @@ class AtomApplication
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths({pathsToOpen, devMode})
+
+  # Public: If an update is available, it returns the new version string
+  # otherwise it returns null.
+  getUpdateVersion: ->
+    @updateVersion

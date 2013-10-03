@@ -2,7 +2,6 @@ BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 MenuItem = require 'menu-item'
 ContextMenu = require 'context-menu'
-app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -38,13 +37,12 @@ class AtomWindow
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
+    @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
-    paths = ['exports', 'node_modules']
-    paths = paths.map (relativePath) -> path.resolve(resourcePath, relativePath)
-    process.env['NODE_PATH'] = paths.join path.delimiter
+    process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
@@ -96,6 +94,7 @@ class AtomWindow
     if @loaded
       @focus()
       @sendCommand('window:open-path', {pathToOpen, initialLine})
+      @sendCommand('window:update-available', global.atomApplication.getUpdateVersion()) if global.atomApplication.getUpdateVersion()
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
