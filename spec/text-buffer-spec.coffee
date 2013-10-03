@@ -176,7 +176,7 @@ describe 'TextBuffer', ->
 
     it "resumes watching of the file when it is re-saved", ->
       bufferToDelete.save()
-      expect(bufferToDelete.fileExists()).toBeTruthy()
+      expect(fsUtils.exists(bufferToDelete.getPath())).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
       fs.writeSync(filePath, 'moo')

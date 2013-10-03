@@ -610,12 +610,6 @@ class TextBuffer
     return unless path
     @project.getRepo()?.checkoutHead(path)
 
-  # Checks to see if a file exists.
-  #
-  # Returns a {Boolean}.
-  fileExists: ->
-    @file? && @file.exists()
-
   ### Internal ###
 
   transact: (fn) -> @text.transact fn
