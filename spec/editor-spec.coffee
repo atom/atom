@@ -140,7 +140,6 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(40).text()).toBe "hello3"
 
       editor.edit(editSession)
-      console.log editor.scrollTop(), editSession.getCursorScreenPosition()
       { firstRenderedScreenRow, lastRenderedScreenRow } = editor
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe buffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editor.lastRenderedScreenRow)
@@ -917,7 +916,6 @@ describe "Editor", ->
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
           editor.setCursorBufferPosition([3, Infinity])
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
-          console.log Editor.CHARACTER_WIDTH_CACHE
 
 
       describe "autoscrolling", ->
