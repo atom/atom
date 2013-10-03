@@ -82,9 +82,12 @@ class AtomPackage extends Package
     @configActivated = true
 
   activateStylesheets: ->
+    return if @stylesheetsActivated
+
     type = if @metadata.theme then 'theme' else 'bundled'
     for [stylesheetPath, content] in @stylesheets
       atom.themes.applyStylesheet(stylesheetPath, content, type)
+    @stylesheetsActivated = true
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
@@ -196,7 +199,9 @@ class AtomPackage extends Package
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
-      registerDeferredDeserializer deserializerName, => @requireMainModule()
+      registerDeferredDeserializer deserializerName, =>
+        @activateStylesheets()
+        @requireMainModule()
 
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
