@@ -1,9 +1,9 @@
 _ = require './underscore-extensions'
 textUtils = require './text-utils'
 
-whitespaceRegexesByTabLength = {}
-LEADING_WHITESPACE_REGEX = /^[ ]+/
-TRAILING_WHITESPACE_REGEX = /[ ]+$/
+WhitespaceRegexesByTabLength = {}
+LeadingWhitespaceRegex = /^[ ]+/
+TrailingWhitespaceRegex = /[ ]+$/
 EscapeRegex = /[&"'<>]/g
 
 # Private: Represents a single unit of text as selected by a grammar.
@@ -36,7 +36,7 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   whitespaceRegexForTabLength: (tabLength) ->
-    whitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+    WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
     if @hasSurrogatePair
@@ -141,7 +141,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = LEADING_WHITESPACE_REGEX.exec(html)
+      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(html)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -151,7 +151,7 @@ class Token
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = TRAILING_WHITESPACE_REGEX.exec(html)
+      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(html)
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
