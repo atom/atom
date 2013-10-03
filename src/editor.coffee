@@ -1761,6 +1761,7 @@ class Editor extends View
     line.push("</span>")
 
   @buildEmptyLineHtml: (showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini) ->
+    indentCharIndex = 0
     if not mini and showIndentGuide
       if indentation > 0
         tabLength = activeEditSession.getTabLength()
@@ -1768,7 +1769,7 @@ class Editor extends View
         for level in [0...indentation]
           indentLevelHtml = "<span class='indent-guide'>"
           for characterPosition in [0...tabLength]
-            if invisible = eolInvisibles.shift()
+            if invisible = eolInvisibles[indentCharIndex++]
               indentLevelHtml += "<span class='invisible-character'>#{invisible}</span>"
             else
               indentLevelHtml += ' '
