@@ -306,11 +306,9 @@ describe "RootView", ->
           waitsForPromise ->
             rootView.openAsync()
               .then (o) ->
-                console.log "first"
                 editSession1 = o
                 rootView.openAsync()
               .then (o) ->
-                console.log "second"
                 editSession2 = o
 
           runs ->
