@@ -5,6 +5,10 @@ WhitespaceRegexesByTabLength = {}
 LeadingWhitespaceRegex = /^[ ]+/
 TrailingWhitespaceRegex = /[ ]+$/
 EscapeRegex = /[&"'<>]/g
+CharacterRegex = /./g
+StartCharacterRegex = /^./
+StartDotRegex = /^\.?/
+WhitespaceRegex = /\S/
 
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
@@ -115,10 +119,10 @@ class Token
     )
 
   isOnlyWhitespace: ->
-    not /\S/.test(@value)
+    not WhitespaceRegex.test(@value)
 
   matchesScopeSelector: (selector) ->
-    targetClasses = selector.replace(/^\.?/, '').split('.')
+    targetClasses = selector.replace(StartDotRegex, '').split('.')
     _.any @scopes, (scope) ->
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
@@ -131,7 +135,7 @@ class Token
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if invisibles.tab
-      html = html.replace /^./, (match) =>
+      html = html.replace StartCharacterRegex, (match) =>
         match = invisibles.tab ? match
         "<span class='#{classes}'>#{@escapeString(match)}</span>"
     else
@@ -146,8 +150,8 @@ class Token
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
 
-        match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
-        leadingHtml = "<span class='#{classes}'>#{@escapeString(match[0])}</span>"
+        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
+        leadingHtml = "<span class='#{classes}'>#{match[0]}</span>"
 
         startIndex = match[0].length
 
@@ -156,8 +160,8 @@ class Token
         classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
 
-        match[0] = match[0].replace(/./g, invisibles.space) if invisibles.space
-        trailingHtml = "<span class='#{classes}'>#{@escapeString(match[0])}</span>"
+        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
+        trailingHtml = "<span class='#{classes}'>#{match[0]}</span>"
 
         endIndex = match.index
 
