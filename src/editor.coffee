@@ -1215,8 +1215,7 @@ class Editor extends View
     return false unless cursorView.needsUpdate
 
     pos = cursorView.getScreenPosition()
-    should = pos.row >= @firstRenderedScreenRow and pos.row <= @lastRenderedScreenRow
-    should
+    pos.row >= @firstRenderedScreenRow and pos.row <= @lastRenderedScreenRow
 
   updateSelectionViews: ->
     if @newSelections.length > 0
@@ -1233,8 +1232,7 @@ class Editor extends View
     screenRange = selectionView.getScreenRange()
     startRow = screenRange.start.row
     endRow = screenRange.end.row
-    should = (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow)
-    should
+    (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow)
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
