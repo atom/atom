@@ -9,9 +9,9 @@ fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 
-MEASURE_RANGE = document.createRange()
-TEXT_NODE_FILTER = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
-NO_SCOPE = ['no-scope']
+MeasureRange = document.createRange()
+TextNodeFileter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
+NoScope = ['no-scope']
 
 # Private: Represents the entire visual pane in Atom.
 #
@@ -1588,7 +1588,7 @@ class Editor extends View
 
   measureToColumn: (lineElement, tokenizedLine, column) ->
     left = oldLeft = index = 0
-    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TEXT_NODE_FILTER)
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFileter)
 
     returnLeft = null
 
@@ -1608,9 +1608,9 @@ class Editor extends View
           left = oldLeft + cachedVal
         else
           # i + 1 to measure to the end of the current character
-          MEASURE_RANGE.setEnd(textNode, i + 1)
-          MEASURE_RANGE.collapse()
-          left = MEASURE_RANGE.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+          MeasureRange.setEnd(textNode, i + 1)
+          MeasureRange.collapse()
+          left = MeasureRange.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
           @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
 
@@ -1619,7 +1619,7 @@ class Editor extends View
     returnLeft ? left
 
   checkCharacterWidthCache: (scopes, char) ->
-    scopes ?= NO_SCOPE
+    scopes ?= NoScope
     obj = Editor.characterWidthCache
     for scope in scopes
       obj = obj[scope]
@@ -1627,7 +1627,7 @@ class Editor extends View
     obj[char]
 
   setCharacterWidthCache: (scopes, char, val) ->
-    scopes ?= NO_SCOPE
+    scopes ?= NoScope
     obj = Editor.characterWidthCache
     for scope in scopes
       obj[scope] ?= {}
