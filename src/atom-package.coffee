@@ -171,6 +171,7 @@ class AtomPackage extends Package
     syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @stylesheetsActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
