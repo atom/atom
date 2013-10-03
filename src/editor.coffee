@@ -1764,21 +1764,21 @@ class Editor extends View
     if not mini and showIndentGuide
       if indentation > 0
         tabLength = activeEditSession.getTabLength()
-        indentGuideHtml = []
+        indentGuideHtml = ''
         for level in [0...indentation]
-          indentLevelHtml = ["<span class='indent-guide'>"]
+          indentLevelHtml = "<span class='indent-guide'>"
           for characterPosition in [0...tabLength]
             if invisible = eolInvisibles.shift()
-              indentLevelHtml.push("<span class='invisible-character'>#{invisible}</span>")
+              indentLevelHtml += "<span class='invisible-character'>#{invisible}</span>"
             else
-              indentLevelHtml.push(' ')
-          indentLevelHtml.push("</span>")
-          indentGuideHtml.push(indentLevelHtml.join(''))
+              indentLevelHtml += ' '
+          indentLevelHtml += "</span>"
+          indentGuideHtml += indentLevelHtml
 
         for invisible in eolInvisibles
-          indentGuideHtml.push("<span class='invisible-character'>#{invisible}</span>")
+          indentGuideHtml += "<span class='invisible-character'>#{invisible}</span>"
 
-        return indentGuideHtml.join('')
+        return indentGuideHtml
 
     if htmlEolInvisibles.length > 0
       htmlEolInvisibles
