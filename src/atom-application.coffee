@@ -33,7 +33,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if not fs.existsSync socketPath
+    if (not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
 
