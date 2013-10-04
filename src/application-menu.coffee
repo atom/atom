@@ -144,10 +144,6 @@ class ApplicationMenu
         { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
       ]
 
-    devMenu =
-      label: '\uD83D\uDC80' # Skull emoji
-      submenu: [ { label: 'In Development Mode', enabled: false } ]
-
     template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
 
     @translateTemplate template, keystrokesByCommand
