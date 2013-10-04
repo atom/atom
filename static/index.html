@@ -9,10 +9,6 @@
       try {
         require('coffee-script');
         require('../src/coffee-cache').register();
-        Object.defineProperty(require.extensions, '.coffee', {
-          writable: false,
-          value: require.extensions['.coffee']
-        });
         require(currentWindow.loadSettings.bootstrapScript);
         currentWindow.emit('window:loaded');
       }

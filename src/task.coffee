@@ -49,10 +49,6 @@ class Task
     bootstrap = """
       #{coffeeScriptRequire}
       #{coffeeCacheRequire}
-      Object.defineProperty(require.extensions, '.coffee', {
-        writable: false,
-        value: require.extensions['.coffee']
-      });
       #{taskBootstrapRequire}
     """
 

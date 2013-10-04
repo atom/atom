@@ -34,4 +34,8 @@ requireCoffeeScript = (module, filePath) ->
 
 module.exports =
   cacheDir: cacheDir
-  register: -> require.extensions['.coffee'] = requireCoffeeScript
+  register: ->
+    Object.defineProperty(require.extensions, '.coffee', {
+      writable: false
+      value: requireCoffeeScript
+    })
