@@ -72,10 +72,10 @@ class TextBuffer
     @text.clearUndoStack()
 
   loadAsync: ->
-    @updateCachedDiskContents()
-    @reload() if @loadFromDisk and @isModified()
-    @text.clearUndoStack()
-    Q(this)
+    @updateCachedDiskContentsAsync().then ->
+      @reload() if @loadFromDisk and @isModified()
+      @text.clearUndoStack()
+      Q(this)
 
   ### Internal ###
 
@@ -117,16 +117,15 @@ class TextBuffer
   subscribeToFile: ->
     @file.on "contents-changed", =>
       @conflict = true if @isModified()
-      @updateCachedDiskContents()
-
-      if @conflict
-        @trigger "contents-conflicted"
-      else
-        @reload()
+      @updateCachedDiskContentsAsync().done =>
+        if @conflict
+          @trigger "contents-conflicted"
+        else
+          @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents()
-      @triggerModifiedStatusChanged(@isModified())
+      @updateCachedDiskContents().done =>
+        @triggerModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
       @state.set('relativePath', @project.relativize(@getPath()))
@@ -150,11 +149,14 @@ class TextBuffer
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
-  # Rereads the contents of the file, and stores them in the cache.
-  #
-  # Essentially, this performs a force read of the file on disk.
+  # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
     @cachedDiskContents = @file?.read() ? ""
+
+  # Private: Rereads the contents of the file, and stores them in the cache.
+  updateCachedDiskContentsAsync: ->
+    Q(@file.read() ? "").then (contents) ->
+      @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
   #
