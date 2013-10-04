@@ -26,6 +26,7 @@ class MenuManager
   # Returns nothing.
   add: (items) ->
     @merge(@template, item) for item in items
+    @update()
 
   # Public: Refreshes the currently visible menu.
   update: ->
@@ -38,15 +39,16 @@ class MenuManager
       data = CSON.readFileSync(menuPath)
       @add(data.menu)
 
-  # Private: Merges an item in a menu aware way such that new items are always
-  # appended to the bottom.
-  merge: (template, item) ->
-    if match = _.find(template, (t) -> t.label == item.label)
-      match.submenu = match.submenu.concat(item.submenu)
+  # Private: Merges an item in a submenu aware way such that new items are always
+  # appended to the bottom of existing menus where possible.
+  merge: (menu, item) ->
+    if item.submenu? and match = _.find(menu, (o) -> o.submenu? and o.label == item.label)
+      @merge(match.submenu, i) for i in item.submenu
     else
-      template.push(item)
+      menu.push(item)
 
   # Private
   sendToBrowserProcess: ->
+    return unless atom.keymap
     ipc.sendChannel 'update-application-menu', @template, atom.keymap.keystrokesByCommandForSelector('body')
 
