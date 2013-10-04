@@ -1366,7 +1366,7 @@ class Editor extends View
       while currentLine
         currentLine = @clearLine(currentLine)
 
-  clearLine: (lineElement) =>
+  clearLine: (lineElement) ->
     next = lineElement.nextSibling
     @renderedLines[0].removeChild(lineElement)
     next
@@ -1439,7 +1439,7 @@ class Editor extends View
   buildLineElementForScreenRow: (screenRow) ->
     @buildLineElementsForScreenRows(screenRow, screenRow)[0]
 
-  buildLineElementsForScreenRows: (startRow, endRow) =>
+  buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
     div.innerHTML = @htmlForScreenRows(startRow, endRow)
     new Array(div.children...)
