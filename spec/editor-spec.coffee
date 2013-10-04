@@ -917,7 +917,6 @@ describe "Editor", ->
           editor.setCursorBufferPosition([3, Infinity])
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
 
-
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
@@ -1880,7 +1879,6 @@ describe "Editor", ->
 
         # doesn't allow regular editors to set grammars
         expect(-> editor.setGrammar()).toThrow()
-
 
     describe "when config.editor.showLineNumbers is false", ->
       it "doesn't render any line numbers", ->
