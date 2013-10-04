@@ -1557,7 +1557,7 @@ class Editor extends View
       for char in token.value
         return left if index >= column
 
-        val = @checkCharacterWidthCache(token.scopes, char)
+        val = @getCharacterWidthCache(token.scopes, char)
         if val?
           left += val
         else
@@ -1590,7 +1590,7 @@ class Editor extends View
         oldLeft = left
 
         scopes = @scopesForColumn(tokenizedLine, index)
-        cachedVal = @checkCharacterWidthCache(scopes, char)
+        cachedVal = @getCharacterWidthCache(scopes, char)
 
         if cachedVal?
           left = oldLeft + cachedVal
@@ -1608,7 +1608,7 @@ class Editor extends View
 
     returnLeft ? left
 
-  checkCharacterWidthCache: (scopes, char) ->
+  getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
     obj = Editor.characterWidthCache
     for scope in scopes
@@ -1746,7 +1746,7 @@ class Editor extends View
     scopeStack.push(scope)
     line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
 
-  @popScope: (line, scopeStack)->
+  @popScope: (line, scopeStack) ->
     scopeStack.pop()
     line.push("</span>")
 
