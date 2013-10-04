@@ -30,7 +30,7 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    @sendToBrowserProcess()
+    @sendToBrowserProcess(@template, atom.keymap.keystrokesByCommandForSelector('body'))
 
   # Private
   loadCoreItems: ->
@@ -48,7 +48,6 @@ class MenuManager
       menu.push(item)
 
   # Private
-  sendToBrowserProcess: ->
-    return unless atom.keymap
-    ipc.sendChannel 'update-application-menu', @template, atom.keymap.keystrokesByCommandForSelector('body')
+  sendToBrowserProcess: (template, keystrokesByCommand) ->
+    ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
 

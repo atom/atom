@@ -36,6 +36,8 @@ class Atom
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
 
+    @config = new Config()
+    @keymap = new Keymap()
     @packages = new PackageManager()
 
     #TODO Remove once packages have been updated to not touch atom.packageStates directly
@@ -43,12 +45,10 @@ class Atom
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
     @subscribe @packages, 'loaded', => @watchThemes()
-    @config = new Config()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
     @menu = new MenuManager()
     @pasteboard = new Pasteboard()
-    @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->
