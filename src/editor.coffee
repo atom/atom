@@ -10,7 +10,7 @@ $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 
 MeasureRange = document.createRange()
-TextNodeFileter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
+TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 NoScope = ['no-scope']
 
 # Private: Represents the entire visual pane in Atom.
@@ -1576,7 +1576,7 @@ class Editor extends View
 
   measureToColumn: (lineElement, tokenizedLine, column) ->
     left = oldLeft = index = 0
-    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFileter)
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
 
     returnLeft = null
 
