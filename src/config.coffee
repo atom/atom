@@ -38,6 +38,7 @@ class Config
   constructor: ->
     @configDirPath = configDirPath
     @bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
+    @bundledMenusDirPath = path.join(resourcePath, "menus")
     @nodeModulesDirPath = path.join(resourcePath, "node_modules")
     @bundledPackageDirPaths = [@nodeModulesDirPath]
     @lessSearchPaths = [

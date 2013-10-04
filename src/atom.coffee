@@ -43,10 +43,10 @@ class Atom
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
     @subscribe @packages, 'loaded', => @watchThemes()
+    @config = new Config()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
     @menu = new MenuManager()
-    @config = new Config()
     @pasteboard = new Pasteboard()
     @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
