@@ -115,6 +115,7 @@
   },
   "devDependencies": {
     "biscotto": "0.0.17",
+    "formidable": "~1.0.14",
     "fstream": "0.1.24",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9",
