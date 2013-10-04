@@ -2,6 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 request = require 'request'
+formidable = require 'formidable'
 
 module.exports = (grunt) ->
   {spawn, mkdir, rm, cp} = require('./task-helpers')(grunt)
@@ -107,10 +108,17 @@ module.exports = (grunt) ->
           cacheDirectory = getCachePath(version)
           rm(cacheDirectory)
           mkdir(cacheDirectory)
-          cacheFile = path.join(cacheDirectory, 'atom-shell.zip')
-          outputStream = fs.createWriteStream(cacheFile)
-          outputStream.on 'close', -> callback(null, cacheFile)
-          inputStream.pipe(outputStream)
+
+          form = new formidable.IncomingForm()
+          form.uploadDir = cacheDirectory
+          form.maxFieldsSize = 100 * 1024 * 1024
+          form.on 'file', (name, file) ->
+            cacheFile = path.join(cacheDirectory, 'atom-shell.zip')
+            fs.renameSync(file.path, cacheFile)
+            callback(null, cacheFile)
+          form.parse response, (error) ->
+            if error
+              grunt.log.error("atom-shell #{version.cyan} failed to download")
         else
           if response.statusCode is 404
             grunt.log.error("atom-shell #{version.cyan} not found")
