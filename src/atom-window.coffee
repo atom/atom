@@ -99,16 +99,23 @@ class AtomWindow
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
   sendCommand: (command, args...) ->
-    if @handlesAtomCommands()
-      @sendAtomCommand(command, args...)
+    if @isSpecWindow()
+      unless @sendCommandToFirstResponder(command)
+        switch command
+          when 'window:reload' then @reload()
+          when 'window:toggle-dev-tools' then @toggleDevTools()
+          when 'window:close' then @close()
+    else if @isWebViewFocused()
+      @sendCommandToBrowserWindow(command, args...)
     else
-      @sendNativeCommand(command)
+      unless @sendCommandToFirstResponder(command)
+        @sendCommandToBrowserWindow(command, args...)
 
-  sendAtomCommand: (command, args...) ->
+  sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
 
-  sendNativeCommand: (command) ->
+  sendCommandToFirstResponder: (command) ->
     switch command
       when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
       when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
@@ -116,9 +123,8 @@ class AtomWindow
       when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
       when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
       when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
-      when 'window:reload' then @reload()
-      when 'window:toggle-dev-tools' then @toggleDevTools()
-      when 'window:close' then @close()
+      else return false
+    true
 
   close: -> @browserWindow.close()
 
