@@ -7,7 +7,7 @@ ipc = require 'ipc'
 module.exports =
 class MenuManager
   # Private:
-  constructor: () ->
+  constructor: ->
     @template = {}
 
   # Public: Refreshes the currently visible menu.
