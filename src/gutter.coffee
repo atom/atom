@@ -62,6 +62,56 @@ class Gutter extends View
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
+  # Get all the line-number divs.
+  #
+  # Returns a list of {HTMLElement}s.
+  getLineNumberElements: ->
+    @lineNumbers[0].getElementsByClassName('line-number')
+
+  # Get a single line-number div.
+  #
+  # * lineNumber: 0 based line number
+  #
+  # Returns a {HTMLElement}
+  getLineNumberElement: (lineNumber) ->
+    @lineNumbers[0].getElementsByClassName("line-number-#{lineNumber}")[0]
+
+  # Add a class to all line-number divs.
+  #
+  # * clas: string class name
+  #
+  # Returns a list of {HTMLElement}s.
+  addClassToAllLines: (clas)->
+    $.fn.addClass.call(@getLineNumberElements(), clas)
+
+  # Remove a class from all line-number divs.
+  #
+  # * clas: string class name
+  #
+  # Returns a list of {HTMLElement}s.
+  removeClassFromAllLines: (clas)->
+    $.fn.removeClass.call(@getLineNumberElements(), clas)
+
+  # Add a class to a single line-number div
+  #
+  # * lineNumber: 0 based line number
+  # * clas: string class name
+  #
+  # Returns the {HTMLElement} on which the class was set. undefined if the line was not found
+  addClassToLine: (lineNumber, clas)->
+    line = @lineNumbers[0].getElementsByClassName("line-number-#{lineNumber}")
+    $.fn.addClass.call(line, clas) if line
+
+  # Remove a class from a single line-number div
+  #
+  # * lineNumber: 0 based line number
+  # * clas: string class name
+  #
+  # Returns the {HTMLElement} on which the class was set. undefined if the line was not found
+  removeClassFromLine: (lineNumber, clas)->
+    line = @lineNumbers[0].getElementsByClassName("line-number-#{lineNumber}")
+    $.fn.removeClass.call(line, clas) if line
+
   ### Internal ###
 
   updateLineNumbers: (changes, renderFrom, renderTo) ->
@@ -96,12 +146,12 @@ class Gutter extends View
       else
         rowValue = (row + 1).toString()
 
-      classes = 'line-number'
+      classes = "line-number line-number-#{row}"
       classes += ' fold' if editor.isFoldedAtBufferRow(row)
 
       rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
 
-      html += """<div class="#{classes}" lineNumber="#{row}">#{rowValuePadding}#{rowValue}</div>"""
+      html += """<div class="#{classes}">#{rowValuePadding}#{rowValue}</div>"""
 
       lastScreenRow = row
 

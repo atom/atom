@@ -1886,6 +1886,36 @@ describe "Editor", ->
         config.set("editor.showLineNumbers", false)
         expect(editor.gutter.lineNumbers).not.toBeVisible()
 
+    describe "using gutter's api", ->
+      it "can get all the line number elements", ->
+        elements = editor.gutter.getLineNumberElements()
+        len = editor.gutter.lastScreenRow - editor.gutter.firstScreenRow + 1
+        expect(elements).toHaveLength(len)
+
+      it "can get a single line number element", ->
+        element = editor.gutter.getLineNumberElement(3)
+
+        expect(element).toBeTruthy()
+        expect($(element)).toHaveClass('line-number')
+        expect($(element)).toHaveClass('line-number-3')
+
+      it "returns falsy when there is no line element", ->
+        expect(editor.gutter.getLineNumberElement(42)).toBeFalsy()
+
+      it "can add and remove classes to all the line numbers", ->
+        elements = editor.gutter.addClassToAllLines('heyok')
+        expect($(elements)).toHaveClass('heyok')
+
+        elements = editor.gutter.removeClassFromAllLines('heyok')
+        expect($(elements)).not.toHaveClass('heyok')
+
+      it "can add and remove classes from a single line number", ->
+        element = editor.gutter.addClassToLine(3, 'heyok')
+        expect($(element)).toHaveClass('heyok')
+
+        element = editor.gutter.getLineNumberElement(2)
+        expect($(element)).not.toHaveClass('heyok')
+
   describe "gutter line highlighting", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
