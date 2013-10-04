@@ -34,6 +34,7 @@ class Atom
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
+    MenuManager = require './menu-manager'
 
     @packages = new PackageManager()
 
@@ -44,6 +45,7 @@ class Atom
     @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
+    @menu = new MenuManager()
     @config = new Config()
     @pasteboard = new Pasteboard()
     @keymap = new Keymap()

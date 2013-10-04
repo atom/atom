@@ -38,7 +38,7 @@ window.setUpEnvironment = (windowMode) ->
 window.setUpDefaultEvents = ->
   windowEventHandler = new WindowEventHandler
   atom.keymap.loadBundledKeymaps()
-  ipc.sendChannel 'update-application-menu', atom.keymap.keystrokesByCommandForSelector('body')
+  atom.menu.update()
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
@@ -56,7 +56,7 @@ window.startEditorWindow = ->
   atom.packages.activatePackages()
   atom.keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  ipc.sendChannel 'update-application-menu', atom.keymap.keystrokesByCommandForSelector('body')
+  atom.menu.update()
   $(window).on 'unload', ->
     $(document.body).hide()
     unloadEditorWindow()
