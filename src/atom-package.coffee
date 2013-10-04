@@ -90,7 +90,7 @@ class AtomPackage extends Package
     @stylesheetsActivated = true
 
   activateResources: ->
-    keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
+    atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
     syntax.addGrammar(grammar) for grammar in @grammars
@@ -170,7 +170,7 @@ class AtomPackage extends Package
   deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
-    keymap.remove(keymapPath) for [keymapPath] in @keymaps
+    atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false
 
