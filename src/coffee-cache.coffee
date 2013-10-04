@@ -26,10 +26,12 @@ compileCoffeeScript = (coffee, filePath, cachePath) ->
     fs.writeFileSync(cachePath, js)
   js
 
-require.extensions['.coffee'] = (module, filePath) ->
+requireCoffeeScript = (module, filePath) ->
   coffee = fs.readFileSync(filePath, 'utf8')
   cachePath = getCachePath(coffee)
   js = getCachedJavaScript(cachePath) ? compileCoffeeScript(coffee, filePath, cachePath)
   module._compile(js, filePath)
 
-module.exports = {cacheDir}
+module.exports =
+  cacheDir: cacheDir
+  register: -> require.extensions['.coffee'] = requireCoffeeScript

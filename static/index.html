@@ -8,7 +8,7 @@
       var currentWindow = require('remote').getCurrentWindow();
       try {
         require('coffee-script');
-        require('../src/coffee-cache');
+        require('../src/coffee-cache').register();
         Object.defineProperty(require.extensions, '.coffee', {
           writable: false,
           value: require.extensions['.coffee']
