@@ -244,7 +244,7 @@ class Atom
       documentStateJson = @getLoadSettings().windowState
 
     try
-      documentState = JSON.parse(documentStateJson) if documentStateJson?
+      documentState = JSON.parse(documentStateJson) if documentStateJson
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
