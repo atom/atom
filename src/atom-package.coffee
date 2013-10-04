@@ -92,6 +92,7 @@ class AtomPackage extends Package
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
+    atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)

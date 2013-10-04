@@ -24,8 +24,8 @@ class MenuManager
   #   https://github.com/atom/atom-shell/blob/master/docs/api/browser/menu.md
   #
   # Returns nothing.
-  add: (item) ->
-    @merge(@template, item)
+  add: (items) ->
+    @merge(@template, item) for item in items
 
   # Public: Refreshes the currently visible menu.
   update: ->
@@ -36,7 +36,7 @@ class MenuManager
     menuPaths = fsUtils.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
     for menuPath in menuPaths
       data = CSON.readFileSync(menuPath)
-      @add(item) for item in data.menu
+      @add(data.menu)
 
   # Private: Merges an item in a menu aware way such that new items are always
   # appended to the bottom.
