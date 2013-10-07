@@ -51,7 +51,7 @@ class AtomApplication
   version: null
 
   constructor: (options) ->
-    {@resourcePath, @version} = options
+    {@resourcePath, @version, @devMode} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -147,7 +147,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl(urlToOpen)
+      @openUrl({urlToOpen, @devMode})
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
@@ -253,8 +253,6 @@ class AtomApplication
 
   # Private: Handles an atom:// url.
   #
-  # Currently only supports atom://session/<session-id> urls.
-  #
   # * options
   #    + urlToOpen:
   #      The atom:// url to open.
@@ -262,14 +260,27 @@ class AtomApplication
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
-    if parsedUrl.host is 'session'
-      sessionId = parsedUrl.path.split('/')[1]
-      console.log "Joining session #{sessionId}"
-      if sessionId
-        bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode})
+    packageName = parsedUrl.host
+    unless @packages?
+      PackageManager = require './package-manager'
+      fsUtils = require './fs-utils'
+      @packages = new PackageManager({
+        devMode: devMode
+        configDirPath: fsUtils.absolute('~/.atom')
+        resourcePath: @resourcePath
+      })
+
+    pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
+    if pack?
+      console.log(pack)
+      if pack.urlMain
+        packagePath = @packages.resolvePackagePath(packageName)
+        bootstrapScript = path.resolve(packagePath, pack.urlMain)
+        new AtomWindow({bootstrapScript, @resourcePath, devMode})
+      else
+        console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
-      console.log "Opening unknown url #{urlToOpen}"
+      console.log "Opening unknown url: #{urlToOpen}"
 
   # Private: Opens up a new {AtomWindow} to run specs within.
   #
