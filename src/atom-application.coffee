@@ -272,7 +272,6 @@ class AtomApplication
 
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
     if pack?
-      console.log(pack)
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
