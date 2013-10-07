@@ -251,7 +251,11 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  # Private: Handles an atom:// url.
+  # Private: Open an atom:// url.
+  #
+  # The host of the URL being opened is assumed to be the package name
+  # responsible for opening the URL.  A new window will be created with
+  # that package's `urlMain` as the bootstrap script.
   #
   # * options
   #    + urlToOpen:
