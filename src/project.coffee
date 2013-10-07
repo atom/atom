@@ -182,7 +182,7 @@ class Project
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
-  # Public Given a path to a file, this constructs and associates a new
+  # Public: Given a path to a file, this constructs and associates a new
   # {EditSession}, showing the file.
   #
   # * filePath:
@@ -201,7 +201,7 @@ class Project
       @bufferForPathAsync(filePath).then (buffer) =>
         editSession = @buildEditSessionForBuffer(buffer, options)
 
-  # Private: DEPRECATED
+  # Private: Only be used in specs
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     for opener in @openers
