@@ -123,6 +123,41 @@ describe "editor.", ->
         div = document.createElement('div')
         div.innerHTML = html
 
+    describe "gutter-api.", ->
+      describe "getLineNumberElementsForClass.", ->
+        beforeEach ->
+          editor.gutter.addClassToLine(20, 'omgwow')
+          editor.gutter.addClassToLine(40, 'omgwow')
+
+        benchmark "DOM", 20000, ->
+          editor.gutter.getLineNumberElementsForClass('omgwow')
+
+      benchmark "getLineNumberElement.DOM", 20000, ->
+        editor.gutter.getLineNumberElement(12)
+
+      benchmark "toggle-class", 2000, ->
+        editor.gutter.addClassToLine(40, 'omgwow')
+        editor.gutter.removeClassFromLine(40, 'omgwow')
+
+      describe "find-then-unset.", ->
+        classes = ['one', 'two', 'three', 'four']
+
+        benchmark "single-class", 200, ->
+          editor.gutter.addClassToLine(30, 'omgwow')
+          editor.gutter.addClassToLine(40, 'omgwow')
+          editor.gutter.removeClassFromAllLines('omgwow')
+
+        benchmark "multiple-class", 200, ->
+          editor.gutter.addClassToLine(30, 'one')
+          editor.gutter.addClassToLine(30, 'two')
+
+          editor.gutter.addClassToLine(40, 'two')
+          editor.gutter.addClassToLine(40, 'three')
+          editor.gutter.addClassToLine(40, 'four')
+
+          for klass in classes
+            editor.gutter.removeClassFromAllLines(klass)
+
     describe "line-htmlification.", ->
       div = null
       html = null
