@@ -62,7 +62,22 @@ class File
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache
-      promise = Q.nfcall fsUtils.readFile, @getPath(), 'utf8'
+      deferred = Q.defer()
+      promise = deferred.promise
+
+      content = []
+      size = 0
+      readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
+      readStream.on 'data', (chunk) ->
+        content.push(chunk)
+        size += chunk.length
+        deferred.notify(size)
+
+      readStream.on 'end', ->
+        deferred.resolve(content.join())
+
+      readStream.on 'error', (error) ->
+        deferred.reject(error ? "REPLACE THIS ERROR MESSAGE, fs.readStream doesn't output an error message!")
     else
       promise = Q(@cachedContents)
 

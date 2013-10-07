@@ -193,6 +193,18 @@ describe "Project", ->
           project.openAsync("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
+    it "returns number of read bytes as progress indicator", ->
+      filePath = project.resolve 'a'
+      totalBytes = 0
+      promise = project.openAsync(filePath)
+      promise.progress (bytesRead) -> totalBytes = bytesRead
+
+      waitsForPromise ->
+        promise
+
+      runs ->
+        expect(totalBytes).toBe fs.statSync(filePath).size
+
   describe ".bufferForPath(path)", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
