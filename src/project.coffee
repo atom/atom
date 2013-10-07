@@ -192,15 +192,14 @@ class Project
   #
   # Returns a promise that resolves to an {EditSession}.
   openAsync: (filePath, options={}) ->
-    for opener in @openers
-      return Q(resource) if resource = opener(filePath, options)
+    resource = null
+    _.find @openers, (opener) -> resource = opener(filePath, options)
 
-    deferred = Q.defer()
-    @bufferForPathAsync(filePath).then (buffer) =>
-      editSession = @buildEditSessionForBuffer(buffer, options)
-      deferred.resolve(editSession)
-
-    deferred.promise
+    if resource
+      Q(resource)
+    else
+      @bufferForPathAsync(filePath).then (buffer) =>
+        editSession = @buildEditSessionForBuffer(buffer, options)
 
   # Private: DEPRECATED
   open: (filePath, options={}) ->

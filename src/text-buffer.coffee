@@ -75,7 +75,7 @@ class TextBuffer
     @updateCachedDiskContentsAsync().then =>
       @reload() if @loadFromDisk and @isModified()
       @text.clearUndoStack()
-      Q(this)
+      this
 
   ### Internal ###
 
