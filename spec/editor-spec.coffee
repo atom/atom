@@ -1894,24 +1894,24 @@ describe "Editor", ->
 
       it "can get a single line number element", ->
         element = editor.gutter.getLineNumberElement(3)
-
         expect(element).toBeTruthy()
-        expect($(element)).toHaveClass('line-number')
-        expect($(element)).toHaveClass('line-number-3')
 
       it "returns falsy when there is no line element", ->
-        expect(editor.gutter.getLineNumberElement(42).length).toBeFalsy()
+        expect(editor.gutter.getLineNumberElement(42)).toHaveLength 0
 
       it "can add and remove classes to all the line numbers", ->
-        elements = editor.gutter.addClassToAllLines('heyok')
+        wasAdded = editor.gutter.addClassToAllLines('heyok')
+        expect(wasAdded).toBe true
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
         expect($(elements)).toHaveClass('heyok')
 
-        elements = editor.gutter.removeClassFromAllLines('heyok')
-        expect($(elements)).not.toHaveClass('heyok')
+        editor.gutter.removeClassFromAllLines('heyok')
+        expect($(editor.gutter.getLineNumberElements())).not.toHaveClass('heyok')
 
       it "can add and remove classes from a single line number", ->
-        element = editor.gutter.addClassToLine(3, 'heyok')
-        expect($(element)).toHaveClass('heyok')
+        wasAdded = editor.gutter.addClassToLine(3, 'heyok')
+        expect(wasAdded).toBe true
 
         element = editor.gutter.getLineNumberElement(2)
         expect($(element)).not.toHaveClass('heyok')

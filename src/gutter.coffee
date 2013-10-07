@@ -78,7 +78,8 @@ class Gutter extends View
   #
   # * bufferRow: 0 based line number
   #
-  # Returns a list of {HTMLElement}s that correspond to the bufferRow
+  # Returns a list of {HTMLElement}s that correspond to the bufferRow. More than
+  # one in the list indicates a wrapped line.
   getLineNumberElement: (bufferRow) ->
     @getLineNumberElementsForClass("line-number-#{bufferRow}")
 
@@ -86,37 +87,50 @@ class Gutter extends View
   #
   # * klass: string class name
   #
-  # Returns a list of {HTMLElement}s.
+  # Returns true if the class was added to any lines
   addClassToAllLines: (klass)->
-    $.fn.addClass.call(@getLineNumberElements(), klass)
+    elements = @getLineNumberElements()
+    el.classList.add(klass) for el in elements
+    !!elements.length
 
   # Remove a class from all line-number divs.
   #
-  # * klass: string class name
+  # * klass: string class name. Can only be one class name. i.e. 'my-class'
   #
-  # Returns a list of {HTMLElement}s.
+  # Returns true if the class was removed from any lines
   removeClassFromAllLines: (klass)->
-    $.fn.removeClass.call(@getLineNumberElements(), klass)
+    # This is faster than calling $.removeClass on all lines, and faster than
+    # making a new array and iterating through it.
+    elements = @getLineNumberElementsForClass(klass)
+    willRemoveClasses = !!elements.length
+    elements[0].classList.remove(klass) while elements.length > 0
+    willRemoveClasses
 
   # Add a class to a single line-number div
   #
   # * bufferRow: 0 based line number
   # * klass: string class name
   #
-  # Returns the {HTMLElement} on which the class was set. undefined if the line was not found
+  # Returns true if there were lines the class was added to
   addClassToLine: (bufferRow, klass)->
-    line = @getLineNumberElement(bufferRow)
-    $.fn.addClass.call(line, klass) if line and line.length
+    elements = @getLineNumberElement(bufferRow)
+    el.classList.add(klass) for el in elements
+    !!elements.length
 
   # Remove a class from a single line-number div
   #
   # * bufferRow: 0 based line number
   # * klass: string class name
   #
-  # Returns the {HTMLElement} on which the class was set. undefined if the line was not found
+  # Returns true if there were lines the class was removed from
   removeClassFromLine: (bufferRow, klass)->
-    line = @getLineNumberElement(bufferRow)
-    $.fn.removeClass.call(line, klass) if line and line.length
+    classesRemoved = false
+    elements = @getLineNumberElement(bufferRow)
+    for el in elements
+      hasClass = el.classList.contains(klass)
+      classesRemoved |= hasClass
+      el.classList.remove(klass) if hasClass
+    classesRemoved
 
   ### Internal ###
 
