@@ -166,7 +166,7 @@ class Project
   #
   # Returns a String.
   resolve: (uri) ->
-    return uri unless uri?
+    return unless uri
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
