@@ -270,7 +270,6 @@ class AtomApplication
         configDirPath: fsUtils.absolute('~/.atom')
         devMode: devMode
         resourcePath: @resourcePath
-        urlToOpen: urlToOpen
 
     packageName = url.parse(urlToOpen).host
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
@@ -278,7 +277,7 @@ class AtomApplication
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
-        new AtomWindow({bootstrapScript, @resourcePath, devMode})
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
