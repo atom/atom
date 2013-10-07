@@ -1,3 +1,4 @@
+{fs} = require 'atom'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
@@ -171,6 +172,7 @@ class RootView extends View
   #
   # Returns a promise that resolves to the {EditSession} for the file URI.
   openAsync: (filePath, options={}) ->
+    absoluteFilePath = filePath
     filePath = project.relativize(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
@@ -178,19 +180,24 @@ class RootView extends View
     editSession = activePane.itemForUri(filePath) if activePane and filePath
     promise = project.openAsync(filePath, {initialLine}) if not editSession
 
-    returnedPromise = Q(editSession ? promise)
-    returnedPromise.done (editSession) =>
-      if not activePane
-        activePane = new Pane(editSession)
-        @panes.setRoot(activePane)
+    fileSize = 0
+    fileSize = fs.statSync(absoluteFilePath).size if fs.exists(absoluteFilePath)
 
-      activePane.showItem(editSession)
-      activePane.focus()
+    Q(editSession ? promise)
+      .then (editSession) =>
+        if not activePane
+          activePane = new Pane(editSession)
+          @panes.setRoot(activePane)
 
-    returnedPromise
+        activePane.showItem(editSession)
+        activePane.focus()
+      .progress (value) =>
+        console.log "#{filepath} read #{100 * (value / fileSize)}"
+
 
   # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
   open: (filePath, options = {}) ->
+    console.warn("RootView::open is deprecated")
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
     filePath = project.relativize(filePath)
