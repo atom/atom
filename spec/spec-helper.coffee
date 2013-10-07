@@ -51,7 +51,9 @@ beforeEach ->
   bindingSetsByFirstKeystrokeToRestore = _.clone(keymap.bindingSetsByFirstKeystroke)
 
   # reset config before each spec; don't load or save from/to `config.json`
-  config = new Config()
+  config = new Config
+    resourcePath: window.resourcePath
+    configDirPath: atom.getConfigDirPath()
   config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')

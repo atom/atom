@@ -28,6 +28,7 @@ class Atom
     @unsubscribe()
 
     {devMode, resourcePath} = atom.getLoadSettings()
+    configDirPath = @getConfigDirPath()
 
     Config = require './config'
     Keymap = require './keymap'
@@ -37,19 +38,20 @@ class Atom
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
 
-    @themes = new ThemeManager()
-    @contextMenu = new ContextMenuManager(devMode)
-    @config = new Config()
-    @pasteboard = new Pasteboard()
-    @keymap = new Keymap()
-    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
-
-    @packages = new PackageManager({devMode, resourcePath, configDirPath: @config.getDirectoryPath()})
-    @subscribe @packages, 'loaded', => @watchThemes()
+    @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     #TODO Remove once packages have been updated to not touch atom.packageStates directly
     @__defineGetter__ 'packageStates', => @packages.packageStates
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
+
+    @subscribe @packages, 'loaded', => @watchThemes()
+    @themes = new ThemeManager()
+    @contextMenu = new ContextMenuManager(devMode)
+    @config = new Config({configDirPath, resourcePath})
+    @pasteboard = new Pasteboard()
+    @keymap = new Keymap()
+    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -214,6 +216,10 @@ class Atom
 
   getHomeDirPath: ->
     app.getHomeDir()
+
+  # Public: Get the directory path to Atom's configuration area.
+  getConfigDirPath: ->
+    @configDirPath ?= fsUtils.absolute('~/.atom')
 
   getWindowStatePath: ->
     switch @windowMode
