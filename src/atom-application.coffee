@@ -269,8 +269,8 @@ class AtomApplication
       PackageManager = require './package-manager'
       fsUtils = require './fs-utils'
       @packages = new PackageManager
-        devMode: devMode
         configDirPath: fsUtils.absolute('~/.atom')
+        devMode: devMode
         resourcePath: @resourcePath
         urlToOpen: urlToOpen
 
