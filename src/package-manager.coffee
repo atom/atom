@@ -122,8 +122,8 @@ class PackageManager
 
   getAvailablePackageMetadata: ->
     packages = []
-    for packagePath in atom.getAvailablePackagePaths()
+    for packagePath in @getAvailablePackagePaths()
       name = path.basename(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
