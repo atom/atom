@@ -8,7 +8,11 @@ module.exports =
 class PackageManager
   _.extend @prototype, EventEmitter
 
-  constructor: ->
+  constructor: ({configDirPath, devMode, @resourcePath}) ->
+    @packageDirPaths = [path.join(configDirPath, "packages")]
+    if devMode
+      @packageDirPaths.unshift(path.join(configDirPath, "dev", "packages"))
+
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
@@ -83,10 +87,10 @@ class PackageManager
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectorySync(name)
 
-    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
+    packagePath = fsUtils.resolve(@packageDirPaths..., name)
     return packagePath if fsUtils.isDirectorySync(packagePath)
 
-    packagePath = path.join(window.resourcePath, 'node_modules', name)
+    packagePath = path.join(@resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
 
   isInternalPackage: (packagePath) ->
@@ -108,11 +112,11 @@ class PackageManager
   getAvailablePackagePaths: ->
     packagePaths = []
 
-    for packageDirPath in config.packageDirPaths
+    for packageDirPath in @packageDirPaths
       for packagePath in fsUtils.listSync(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
-    for packagePath in fsUtils.listSync(path.join(window.resourcePath, 'node_modules'))
+    for packagePath in fsUtils.listSync(path.join(@resourcePath, 'node_modules'))
       packagePaths.push(packagePath) if @isInternalPackage(packagePath)
 
     _.uniq(packagePaths)
@@ -122,8 +126,8 @@ class PackageManager
 
   getAvailablePackageMetadata: ->
     packages = []
-    for packagePath in atom.getAvailablePackagePaths()
+    for packagePath in @getAvailablePackagePaths()
       name = path.basename(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
