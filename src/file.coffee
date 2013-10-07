@@ -48,7 +48,7 @@ class File
   #   copy is acceptable.
   #
   # Returns a String.
-  read: (flushCache)->
+  read: (flushCache) ->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
