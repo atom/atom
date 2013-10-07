@@ -18,6 +18,7 @@ atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
+atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
