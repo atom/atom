@@ -9,11 +9,16 @@ fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
 
+MeasureRange = document.createRange()
+TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
+NoScope = ['no-scope']
+
 # Private: Represents the entire visual pane in Atom.
 #
 # The Editor manages the {EditSession}, which manages the file buffers.
 module.exports =
 class Editor extends View
+  @characterWidthCache: {}
   @configDefaults:
     fontSize: 20
     showInvisibles: false
@@ -703,7 +708,12 @@ class Editor extends View
     @on 'cursor:moved', =>
       return unless @isFocused
       cursorView = @getCursorView()
-      @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
+
+      if cursorView.isVisible()
+        # This is an order of magnitude faster than checking .offset().
+        style = cursorView[0].style
+        @hiddenInput[0].style.top = style.top
+        @hiddenInput[0].style.left = style.left
 
     selectedText = null
     @hiddenInput.on 'compositionstart', =>
@@ -961,6 +971,9 @@ class Editor extends View
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
     @css('font-size', "#{fontSize}px}")
+
+    @clearCharacterWidthCache()
+
     if @isOnDom()
       @redraw()
     else
@@ -977,6 +990,9 @@ class Editor extends View
   # fontFamily - A {String} identifying the CSS `font-family`,
   setFontFamily: (fontFamily='') ->
     @css('font-family', fontFamily)
+
+    @clearCharacterWidthCache()
+
     @redraw()
 
   # Gets the font family for the editor.
@@ -1133,6 +1149,14 @@ class Editor extends View
       @layerMinWidth = minWidth
       @trigger 'editor:min-width-changed'
 
+  # Override for speed. The base function checks computedStyle, unnecessary here.
+  isHidden: ->
+    style = this[0].style
+    if style.display == 'none' or not @isOnDom()
+      true
+    else
+      false
+
   clearRenderedLines: ->
     @renderedLines.empty()
     @firstRenderedScreenRow = null
@@ -1184,8 +1208,14 @@ class Editor extends View
     for cursorView in @getCursorViews()
       if cursorView.needsRemoval
         cursorView.remove()
-      else if cursorView.needsUpdate
+      else if @shouldUpdateCursor(cursorView)
         cursorView.updateDisplay()
+
+  shouldUpdateCursor: (cursorView) ->
+    return false unless cursorView.needsUpdate
+
+    pos = cursorView.getScreenPosition()
+    pos.row >= @firstRenderedScreenRow and pos.row <= @lastRenderedScreenRow
 
   updateSelectionViews: ->
     if @newSelections.length > 0
@@ -1195,8 +1225,14 @@ class Editor extends View
     for selectionView in @getSelectionViews()
       if selectionView.needsRemoval
         selectionView.remove()
-      else
+      else if @shouldUpdateSelection(selectionView)
         selectionView.updateDisplay()
+
+  shouldUpdateSelection: (selectionView) ->
+    screenRange = selectionView.getScreenRange()
+    startRow = screenRange.start.row
+    endRow = screenRange.end.row
+    (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow)
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
@@ -1229,10 +1265,11 @@ class Editor extends View
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
 
-    @gutter.updateLineNumbers(@pendingChanges, renderFrom, renderTo)
-    intactRanges = @computeIntactRanges()
-    @pendingChanges = []
-    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+    changes = @pendingChanges
+    intactRanges = @computeIntactRanges(renderFrom, renderTo)
+
+    @gutter.updateLineNumbers(changes, renderFrom, renderTo)
+
     @clearDirtyRanges(intactRanges)
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
     @firstRenderedScreenRow = renderFrom
@@ -1258,7 +1295,7 @@ class Editor extends View
 
     emptyLineChanges
 
-  computeIntactRanges: ->
+  computeIntactRanges: (renderFrom, renderTo) ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
@@ -1293,6 +1330,9 @@ class Editor extends View
               domStart: range.domStart + change.end + 1 - range.start
             )
       intactRanges = newIntactRanges
+
+    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+
     @pendingChanges = []
 
     intactRanges
@@ -1312,35 +1352,35 @@ class Editor extends View
     intactRanges.sort (a, b) -> a.domStart - b.domStart
 
   clearDirtyRanges: (intactRanges) ->
-    renderedLines = @renderedLines[0]
-    killLine = (line) ->
-      next = line.nextSibling
-      renderedLines.removeChild(line)
-      next
-
     if intactRanges.length == 0
-      @renderedLines.empty()
-    else if currentLine = renderedLines.firstChild
+      @renderedLines[0].innerHTML = ''
+    else if currentLine = @renderedLines[0].firstChild
       domPosition = 0
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
-          currentLine = killLine(currentLine)
+          currentLine = @clearLine(currentLine)
           domPosition++
         for i in [intactRange.start..intactRange.end]
           currentLine = currentLine.nextSibling
           domPosition++
       while currentLine
-        currentLine = killLine(currentLine)
+        currentLine = @clearLine(currentLine)
+
+  clearLine: (lineElement) ->
+    next = lineElement.nextSibling
+    @renderedLines[0].removeChild(lineElement)
+    next
 
   fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
-    renderedLines = @renderedLines[0]
-    nextIntact = intactRanges.shift()
-    currentLine = renderedLines.firstChild
+    i = 0
+    nextIntact = intactRanges[i]
+    currentLine = @renderedLines[0].firstChild
 
     row = renderFrom
     while row <= renderTo
       if row == nextIntact?.end + 1
-        nextIntact = intactRanges.shift()
+        nextIntact = intactRanges[++i]
+
       if !nextIntact or row < nextIntact.start
         if nextIntact
           dirtyRangeEnd = nextIntact.start - 1
@@ -1348,7 +1388,7 @@ class Editor extends View
           dirtyRangeEnd = renderTo
 
         for lineElement in @buildLineElementsForScreenRows(row, dirtyRangeEnd)
-          renderedLines.insertBefore(lineElement, currentLine)
+          @renderedLines[0].insertBefore(lineElement, currentLine)
           row++
       else
         currentLine = currentLine.nextSibling
@@ -1369,14 +1409,18 @@ class Editor extends View
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    Math.floor(@scrollTop() / @lineHeight)
+    screenRow = Math.floor(@scrollTop() / @lineHeight)
+    screenRow = 0 if isNaN(screenRow)
+    screenRow
 
   # Retrieves the number of the row that is visible and currently at the bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
     calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
-    Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
+    screenRow = Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
+    screenRow = 0 if isNaN(screenRow)
+    screenRow
 
   # Given a row number, identifies if it is currently visible.
   #
@@ -1401,11 +1445,11 @@ class Editor extends View
     new Array(div.children...)
 
   htmlForScreenRows: (startRow, endRow) ->
-    htmlLines = []
+    htmlLines = ''
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
-      htmlLines.push(@htmlForScreenLine(line, screenRow++))
-    htmlLines.join('\n\n')
+      htmlLines += @htmlForScreenLine(line, screenRow++)
+    htmlLines
 
   htmlForScreenLine: (screenLine, screenRow) ->
     { tokens, text, lineEnding, fold, isSoftWrapped } =  screenLine
@@ -1496,28 +1540,92 @@ class Editor extends View
     unless existingLineElement
       lineElement = @buildLineElementForScreenRow(actualRow)
       @renderedLines.append(lineElement)
-    left = @positionLeftForLineAndColumn(lineElement, column)
+    left = @positionLeftForLineAndColumn(lineElement, actualRow, column)
     unless existingLineElement
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (lineElement, column) ->
-    return 0 if column is 0
-    delta = 0
-    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-    while textNode = iterator.nextNode()
-      nextDelta = delta + textNode.textContent.length
-      if nextDelta >= column
-        offset = column - delta
-        break
-      delta = nextDelta
+  positionLeftForLineAndColumn: (lineElement, screenRow, column) ->
+    return 0 if column == 0
 
-    range = document.createRange()
-    range.setEnd(textNode, offset)
-    range.collapse()
-    leftPixels = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
-    range.detach()
-    leftPixels
+    bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
+    tokenizedLine = @activeEditSession.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
+
+    left = 0
+    index = 0
+    for token in tokenizedLine.tokens
+      for char in token.value
+        return left if index >= column
+
+        val = @getCharacterWidthCache(token.scopes, char)
+        if val?
+          left += val
+        else
+          return @measureToColumn(lineElement, tokenizedLine, column)
+
+        index++
+    left
+
+  scopesForColumn: (tokenizedLine, column) ->
+    index = 0
+    for token in tokenizedLine.tokens
+      for char in token.value
+        return token.scopes if index == column
+        index++
+    null
+
+  measureToColumn: (lineElement, tokenizedLine, column) ->
+    left = oldLeft = index = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
+
+    returnLeft = null
+
+    while textNode = iterator.nextNode()
+      content = textNode.textContent
+
+      for char, i in content
+
+        # Dont return right away, finish caching the whole line
+        returnLeft = left if index == column
+        oldLeft = left
+
+        scopes = @scopesForColumn(tokenizedLine, index)
+        cachedVal = @getCharacterWidthCache(scopes, char)
+
+        if cachedVal?
+          left = oldLeft + cachedVal
+        else
+          # i + 1 to measure to the end of the current character
+          MeasureRange.setEnd(textNode, i + 1)
+          MeasureRange.collapse()
+          rects = MeasureRange.getClientRects()
+          return 0 if rects.length == 0
+          left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+
+          @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
+
+        index++
+
+    returnLeft ? left
+
+  getCharacterWidthCache: (scopes, char) ->
+    scopes ?= NoScope
+    obj = Editor.characterWidthCache
+    for scope in scopes
+      obj = obj[scope]
+      return null unless obj?
+    obj[char]
+
+  setCharacterWidthCache: (scopes, char, val) ->
+    scopes ?= NoScope
+    obj = Editor.characterWidthCache
+    for scope in scopes
+      obj[scope] ?= {}
+      obj = obj[scope]
+    obj[char] = val
+
+  clearCharacterWidthCache: ->
+    Editor.characterWidthCache = {}
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
@@ -1591,30 +1699,9 @@ class Editor extends View
     scopeStack = []
     line = []
 
-    updateScopeStack = (desiredScopes) ->
-      excessScopes = scopeStack.length - desiredScopes.length
-      _.times(excessScopes, popScope) if excessScopes > 0
-
-      # pop until common prefix
-      for i in [scopeStack.length..0]
-        break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
-        popScope()
-
-      # push on top of common prefix until scopeStack == desiredScopes
-      for j in [i...desiredScopes.length]
-        pushScope(desiredScopes[j])
-
-    pushScope = (scope) ->
-      scopeStack.push(scope)
-      line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
-
-    popScope = ->
-      scopeStack.pop()
-      line.push("</span>")
-
-    attributePairs = []
-    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
-    line.push("<div #{attributePairs.join(' ')}>")
+    attributePairs = ''
+    attributePairs += " #{attributeName}=\"#{value}\"" for attributeName, value of attributes
+    line.push("<div #{attributePairs}>")
 
     if text == ''
       html = Editor.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini)
@@ -1625,39 +1712,64 @@ class Editor extends View
       lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in tokens
-        updateScopeStack(token.scopes)
+        @updateScopeStack(line, scopeStack, token.scopes)
         hasLeadingWhitespace =  position < firstNonWhitespacePosition
         hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
         hasIndentGuide = not mini and showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
         line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
-    popScope() while scopeStack.length > 0
+    @popScope(line, scopeStack) while scopeStack.length > 0
     line.push(htmlEolInvisibles) unless text == ''
     line.push("<span class='fold-marker'/>") if fold
 
     line.push('</div>')
     line.join('')
 
+  @updateScopeStack: (line, scopeStack, desiredScopes) ->
+    excessScopes = scopeStack.length - desiredScopes.length
+    if excessScopes > 0
+      @popScope(line, scopeStack) while excessScopes--
+
+    # pop until common prefix
+    for i in [scopeStack.length..0]
+      break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
+      @popScope(line, scopeStack)
+
+    # push on top of common prefix until scopeStack == desiredScopes
+    for j in [i...desiredScopes.length]
+      @pushScope(line, scopeStack, desiredScopes[j])
+
+    null
+
+  @pushScope: (line, scopeStack, scope) ->
+    scopeStack.push(scope)
+    line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
+
+  @popScope: (line, scopeStack) ->
+    scopeStack.pop()
+    line.push("</span>")
+
   @buildEmptyLineHtml: (showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini) ->
+    indentCharIndex = 0
     if not mini and showIndentGuide
       if indentation > 0
         tabLength = activeEditSession.getTabLength()
-        indentGuideHtml = []
+        indentGuideHtml = ''
         for level in [0...indentation]
-          indentLevelHtml = ["<span class='indent-guide'>"]
+          indentLevelHtml = "<span class='indent-guide'>"
           for characterPosition in [0...tabLength]
-            if invisible = eolInvisibles.shift()
-              indentLevelHtml.push("<span class='invisible-character'>#{invisible}</span>")
+            if invisible = eolInvisibles[indentCharIndex++]
+              indentLevelHtml += "<span class='invisible-character'>#{invisible}</span>"
             else
-              indentLevelHtml.push(' ')
-          indentLevelHtml.push("</span>")
-          indentGuideHtml.push(indentLevelHtml.join(''))
+              indentLevelHtml += ' '
+          indentLevelHtml += "</span>"
+          indentGuideHtml += indentLevelHtml
 
         for invisible in eolInvisibles
-          indentGuideHtml.push("<span class='invisible-character'>#{invisible}</span>")
+          indentGuideHtml += "<span class='invisible-character'>#{invisible}</span>"
 
-        return indentGuideHtml.join('')
+        return indentGuideHtml
 
     if htmlEolInvisibles.length > 0
       htmlEolInvisibles

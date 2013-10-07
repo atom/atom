@@ -78,29 +78,34 @@ class Gutter extends View
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
-    editor = @getEditor()
-    maxDigits = editor.getLineCount().toString().length
-    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
-
-    cursorScreenRow = editor.getCursorScreenPosition().row
-    @lineNumbers[0].innerHTML = $$$ ->
-      for row in rows
-        if row == lastScreenRow
-          rowValue = '•'
-        else
-          rowValue = (row + 1).toString()
-        classes = ['line-number']
-        classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div linenumber: row, class: classes.join(' '), =>
-          rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
-          @raw("#{rowValuePadding}#{rowValue}")
-
-        lastScreenRow = row
-
+    @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
+
+  buildLineElementsHtml: (startScreenRow, endScreenRow) =>
+    editor = @getEditor()
+    maxDigits = editor.getLineCount().toString().length
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
+
+    html = ''
+    for row in rows
+      if row == lastScreenRow
+        rowValue = '•'
+      else
+        rowValue = (row + 1).toString()
+
+      classes = 'line-number'
+      classes += ' fold' if editor.isFoldedAtBufferRow(row)
+
+      rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
+
+      html += """<div class="#{classes}" lineNumber="#{row}">#{rowValuePadding}#{rowValue}</div>"""
+
+      lastScreenRow = row
+
+    html
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

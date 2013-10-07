@@ -1,8 +1,6 @@
 require './benchmark-helper'
-$ = require 'jquery'
-_ = require 'underscore'
-TokenizedBuffer = require 'tokenized-buffer'
-RootView = require 'root-view'
+{$, _, RootView} = require 'atom'
+TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editor.", ->
   editor = null
@@ -11,7 +9,6 @@ describe "editor.", ->
     window.rootViewParentSelector = '#jasmine-content'
     window.rootView = new RootView
     window.rootView.attachToDom()
-
 
     rootView.width(1024)
     rootView.height(768)
@@ -61,6 +58,81 @@ describe "editor.", ->
       benchmark "insert-delete", ->
         editor.insertText('"')
         editor.backspace()
+
+    describe "empty-vs-set-innerHTML.", ->
+      [firstRow, lastRow] = []
+      beforeEach ->
+        firstRow = editor.getFirstVisibleScreenRow()
+        lastRow = editor.getLastVisibleScreenRow()
+
+      benchmark "build-gutter-html.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+
+      benchmark "set-innerHTML.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editor.gutter.lineNumbers[0].innerHtml = ''
+
+      benchmark "empty.", 1000, ->
+        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editor.gutter.lineNumbers.empty()
+
+    describe "positionLeftForLineAndColumn.", ->
+      line = null
+      beforeEach ->
+        editor.scrollTop(2000)
+        editor.resetDisplay()
+        line = editor.lineElementForScreenRow(106)[0]
+
+      describe "one-line.", ->
+        beforeEach ->
+          editor.clearCharacterWidthCache()
+
+        benchmark "uncached", 5000, ->
+          editor.positionLeftForLineAndColumn(line, 106, 82)
+          editor.clearCharacterWidthCache()
+
+        benchmark "cached", 5000, ->
+          editor.positionLeftForLineAndColumn(line, 106, 82)
+
+      describe "multiple-lines.", ->
+        [firstRow, lastRow] = []
+        beforeEach ->
+          firstRow = editor.getFirstVisibleScreenRow()
+          lastRow = editor.getLastVisibleScreenRow()
+
+        benchmark "cache-entire-visible-area", 100, ->
+          for i in [firstRow..lastRow]
+            line = editor.lineElementForScreenRow(i)[0]
+            editor.positionLeftForLineAndColumn(line, i, Math.max(0, editor.lineLengthForBufferRow(i)))
+
+    describe "text-rendering.", ->
+      beforeEach ->
+        editor.scrollTop(2000)
+
+      benchmark "resetDisplay", 50, ->
+        editor.resetDisplay()
+
+      benchmark "htmlForScreenRows", 1000, ->
+        lastRow = editor.getLastScreenRow()
+        editor.htmlForScreenRows(0, lastRow)
+
+      benchmark "htmlForScreenRows.htmlParsing", 50, ->
+        lastRow = editor.getLastScreenRow()
+        html = editor.htmlForScreenRows(0, lastRow)
+
+        div = document.createElement('div')
+        div.innerHTML = html
+
+    describe "line-htmlification.", ->
+      div = null
+      html = null
+      beforeEach ->
+        lastRow = editor.getLastScreenRow()
+        html = editor.htmlForScreenRows(0, lastRow)
+        div = document.createElement('div')
+
+      benchmark "setInnerHTML", 1, ->
+        div.innerHTML = html
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->

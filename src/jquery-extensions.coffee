@@ -38,18 +38,16 @@ $.fn.isVisible = ->
   !@isHidden()
 
 $.fn.isHidden = ->
-  # Implementation taken from jQuery's `:hidden` expression code:
-  # https://github.com/jquery/jquery/blob/master/src/css/hiddenVisibleSelectors.js
-  #
-  # We were using a pseudo selector: @is(':hidden'). But jQuery's pseudo
-  # selector code checks the element's webkitMatchesSelector, which is always
-  # false, and is really really really slow.
+  # We used to check @is(':hidden'). But this is much faster than the
+  # offsetWidth/offsetHeight check + all the pseudo selector mess in jquery.
+  style = this[0].style
 
-  elem = this[0]
-
-  return null unless elem
-
-  elem.offsetWidth <= 0 and elem.offsetHeight <= 0
+  if style.display == 'none' or not @isOnDom()
+    true
+  else if style.display
+    false
+  else
+    getComputedStyle(this[0]).display == 'none'
 
 $.fn.isDisabled = ->
   !!@attr('disabled')

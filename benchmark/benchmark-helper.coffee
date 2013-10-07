@@ -1,11 +1,9 @@
 require '../spec/spec-helper'
 
-$ = require 'jquery'
-_ = require 'underscore'
-{Point} = require 'telepath'
-Project = require 'project'
-fsUtils = require 'fs-utils'
-TokenizedBuffer = require 'tokenized-buffer'
+{$, _, Point, fs} = require 'atom'
+Project = require '../src/project'
+fsUtils = require '../src/fs-utils'
+TokenizedBuffer = require '../src/tokenized-buffer'
 
 defaultCount = 100
 window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
@@ -13,7 +11,7 @@ window.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
 window.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
 window.pfbenchmark = window.fpbenchmark
 
-window.benchmarkFixturesProject = new Project(fsUtils.resolveOnLoadPath('benchmark/fixtures'))
+window.benchmarkFixturesProject = new Project(fsUtils.resolveOnLoadPath('../benchmark/fixtures'))
 
 beforeEach ->
   window.project = window.benchmarkFixturesProject
