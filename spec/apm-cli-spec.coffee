@@ -599,15 +599,13 @@ describe 'apm command line interface', ->
       describe 'with a failure', ->
         beforeEach -> returnWithCode('close', 1)
 
-        it "prints success", ->
+        it "prints failure", ->
           expect(callback).toHaveBeenCalled()
-          expect(callback.mostRecentCall.args[0]).toBeTruthy()
-          expect(process.stdout.write.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
+          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
 
       describe 'with an error', ->
         beforeEach -> returnWithCode('error')
 
-        it "prints success", ->
+        it "prints failure", ->
           expect(callback).toHaveBeenCalled()
-          expect(callback.mostRecentCall.args[0]).toBeTruthy()
-          expect(process.stdout.write.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
+          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
