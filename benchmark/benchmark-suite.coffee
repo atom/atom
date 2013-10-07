@@ -123,6 +123,19 @@ describe "editor.", ->
         div = document.createElement('div')
         div.innerHTML = html
 
+    describe "gutter-api.", ->
+      describe "getLineNumberElementsForClass.", ->
+        beforeEach ->
+          editor.gutter.addClassToLine(20, 'omgwow')
+          editor.gutter.addClassToLine(40, 'omgwow')
+
+        benchmark "DOM", 20000, ->
+          editor.gutter.getLineNumberElementsForClass('omgwow')
+
+      describe "getLineNumberElement.", ->
+        benchmark "DOM", 20000, ->
+          editor.gutter.getLineNumberElementDOM(12)
+
     describe "line-htmlification.", ->
       div = null
       html = null
