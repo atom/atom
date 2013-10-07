@@ -155,7 +155,7 @@ class TextBuffer
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsAsync: ->
-    Q(@file?.read() ? "").then (contents) =>
+    Q(@file?.readAsync() ? "").then (contents) =>
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.

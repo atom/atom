@@ -1,3 +1,4 @@
+Q = require 'q'
 EventEmitter = require './event-emitter'
 path = require 'path'
 fsUtils = require './fs-utils'
@@ -41,13 +42,7 @@ class File
     fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
-  # Public: Reads the contents of the file.
-  #
-  # * flushCache:
-  #   A Boolean indicating whether to require a direct read or if a cached
-  #   copy is acceptable.
-  #
-  # Returns a String.
+  # Private: Deprecated
   read: (flushCache) ->
     if not @exists()
       @cachedContents = null
@@ -55,6 +50,24 @@ class File
       @cachedContents = fsUtils.read(@getPath())
     else
       @cachedContents
+
+  # public: Reads the contents of the file.
+  #
+  # * flushCache:
+  #   A Boolean indicating whether to require a direct read or if a cached
+  #   copy is acceptable.
+  #
+  # Returns a promise that resovles to a String.
+  readAsync: (flushCache) ->
+    if not @exists()
+      promise = Q(null)
+    else if not @cachedContents? or flushCache
+      promise = Q.nfcall fsUtils.readFile, @getPath(), 'utf8'
+    else
+      promise = Q(@cachedContents)
+
+    promise.then (contents) ->
+      @cachedContents = contents
 
   # Public: Returns whether a file exists.
   exists: ->
