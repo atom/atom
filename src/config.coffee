@@ -41,18 +41,18 @@ class Config
       path.join(@resourcePath, 'static', 'variables')
       path.join(@resourcePath, 'static')
     ]
-    @packageDirPaths = [path.join(configDirPath, "packages")]
+    @packageDirPaths = [path.join(@configDirPath, "packages")]
     if atom.getLoadSettings().devMode
-      @packageDirPaths.unshift(path.join(configDirPath, "dev", "packages"))
+      @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
     @userPackageDirPaths = _.clone(@packageDirPaths)
-    @userStoragePath = path.join(configDirPath, "storage")
+    @userStoragePath = path.join(@configDirPath, "storage")
 
     @defaultSettings =
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
     @settings = {}
-    @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(configDirPath, 'config.cson')
+    @configFilePath = fsUtils.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
   # Private:
   initializeConfigDirectory: (done) ->
