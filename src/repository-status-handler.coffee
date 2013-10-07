@@ -9,9 +9,11 @@ module.exports = (repoPath) ->
     for filePath, status of repo.getStatus()
       statuses[path.join(workingDirectoryPath, filePath)] = status
     upstream = repo.getAheadBehindCount()
+    branch = repo.getHead()
     repo.release()
   else
     upstream = {}
     statuses = {}
+    branch = {}
 
-  {statuses, upstream}
+  {statuses, upstream, branch}

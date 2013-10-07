@@ -44,6 +44,7 @@ class Git
   path: null
   statuses: null
   upstream: null
+  branch: null
   statusTask: null
 
   # Private: Creates a new `Git` object.
@@ -269,8 +270,9 @@ class Git
 
   # Private:
   refreshStatus: ->
-    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)
+    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream, branch}) =>
+      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)and _.isEqual(branch, @branch)
       @statuses = statuses
       @upstream = upstream
+      @branch = branch
       @trigger 'statuses-changed' unless statusesUnchanged
