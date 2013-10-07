@@ -264,12 +264,11 @@ class AtomApplication
     unless @packages?
       PackageManager = require './package-manager'
       fsUtils = require './fs-utils'
-      @packages = new PackageManager({
+      @packages = new PackageManager
         devMode: devMode
         configDirPath: fsUtils.absolute('~/.atom')
         resourcePath: @resourcePath
         urlToOpen: urlToOpen
-      })
 
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
     if pack?
