@@ -32,5 +32,4 @@ class Test extends Command
         process.stdout.write 'Tests passed\n'.green
         callback()
       else
-        process.stdout.write 'Tests failed\n'.red
-        callback(true)
+        callback('Tests failed\n'.red)
