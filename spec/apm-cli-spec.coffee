@@ -601,11 +601,11 @@ describe 'apm command line interface', ->
 
         it "prints failure", ->
           expect(callback).toHaveBeenCalled()
-          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
+          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed'.red
 
       describe 'with an error', ->
         beforeEach -> returnWithCode('error')
 
         it "prints failure", ->
           expect(callback).toHaveBeenCalled()
-          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed\n'.red
+          expect(callback.mostRecentCall.args[0]).toEqual 'Tests failed'.red
