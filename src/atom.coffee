@@ -52,7 +52,6 @@ class Atom
     @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
-
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
