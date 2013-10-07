@@ -268,6 +268,7 @@ class AtomApplication
         devMode: devMode
         configDirPath: fsUtils.absolute('~/.atom')
         resourcePath: @resourcePath
+        urlToOpen: urlToOpen
       })
 
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
