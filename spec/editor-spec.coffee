@@ -1900,7 +1900,7 @@ describe "Editor", ->
         expect($(element)).toHaveClass('line-number-3')
 
       it "returns falsy when there is no line element", ->
-        expect(editor.gutter.getLineNumberElement(42)).toBeFalsy()
+        expect(editor.gutter.getLineNumberElement(42).length).toBeFalsy()
 
       it "can add and remove classes to all the line numbers", ->
         elements = editor.gutter.addClassToAllLines('heyok')
@@ -1915,6 +1915,19 @@ describe "Editor", ->
 
         element = editor.gutter.getLineNumberElement(2)
         expect($(element)).not.toHaveClass('heyok')
+
+      it "can fetch line numbers by their class", ->
+        editor.gutter.addClassToLine(1, 'heyok')
+        editor.gutter.addClassToLine(3, 'heyok')
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
+        expect(elements.length).toBe 2
+
+        expect($(elements[0])).toHaveClass 'line-number-1'
+        expect($(elements[0])).toHaveClass 'heyok'
+
+        expect($(elements[1])).toHaveClass 'line-number-3'
+        expect($(elements[1])).toHaveClass 'heyok'
 
   describe "gutter line highlighting", ->
     beforeEach ->
