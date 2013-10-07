@@ -263,8 +263,6 @@ class AtomApplication
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
-    parsedUrl = url.parse(urlToOpen)
-    packageName = parsedUrl.host
     unless @packages?
       PackageManager = require './package-manager'
       fsUtils = require './fs-utils'
@@ -274,6 +272,7 @@ class AtomApplication
         resourcePath: @resourcePath
         urlToOpen: urlToOpen
 
+    packageName = url.parse(urlToOpen).host
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
     if pack?
       if pack.urlMain
