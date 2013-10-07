@@ -72,7 +72,7 @@ class TextBuffer
     @text.clearUndoStack()
 
   loadAsync: ->
-    @updateCachedDiskContentsAsync().then ->
+    @updateCachedDiskContentsAsync().then =>
       @reload() if @loadFromDisk and @isModified()
       @text.clearUndoStack()
       Q(this)
@@ -124,7 +124,7 @@ class TextBuffer
           @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents().done =>
+      @updateCachedDiskContentsAsync().done =>
         @triggerModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
@@ -155,7 +155,7 @@ class TextBuffer
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsAsync: ->
-    Q(@file.read() ? "").then (contents) ->
+    Q(@file?.read() ? "").then (contents) =>
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
