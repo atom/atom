@@ -14,6 +14,6 @@
     "atom": ">26.0"
   },
   "publishConfig": {
-    "registry": "https://atom.iriscouch.com/registry/_design/app/_rewrite"
+    "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
   }
 }

@@ -3,7 +3,112 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@import "colors";
+
+.editor-colors {
+  background-color: @base03;
+  color: @base0;
+}
 
 .editor {
-  color: fade(@text-color, 20%);
+  .invisible-character,
+  .indent-guide {
+    color: @base01;
+  }
+
+  .gutter {
+    background-color: @base02;
+  }
+
+  .gutter .line-number {
+    opacity: 1;
+  }
+
+  .gutter .line-number.fold,
+  .gutter .line-number:after,
+  .fold-marker:after {
+    color: @magenta;
+  }
+
+  .cursor {
+    border-color: @base3;
+  }
+
+  .selection .region {
+    background-color: @base01;
+    color: @base03;
+  }
+
+  .line-number.cursor-line-no-selection {
+    background-color: @base01;
+  }
+}
+
+.bracket-matcher {
+  background-color: @base1;
+  opacity: 0.7;
+}
+
+.comment {
+  color: @base01;
+  font-style: italic;
+}
+
+.entity {
+  color: @yellow;
+}
+
+.keyword {
+  color: @green;
+}
+
+.storage.type {
+  color: @green;
+}
+
+.constant {
+  color: @yellow;
+
+  &.numeric,
+  &.boolean {
+    color: @cyan;
+  }
+}
+
+.variable {
+  color: @blue;
+}
+
+.delimiter, .brace {
+  color: @red;
+}
+
+.delimiter.period {
+  color: @green;
+}
+
+.invalid.deprecated {
+  text-decoration: underline;
+  color: @red;
+}
+
+.invalid.illegal {
+  color: @red;
+}
+
+.string {
+  color: @cyan;
+
+  .constant.character.escape {
+    color: @red;
+  }
+
+  &.regexp {
+    color: @cyan;
+
+    .source.ruby.embedded,
+    .string.regexp.arbitrary-repitition {
+      color: @red;
+    }
+  }
 }
