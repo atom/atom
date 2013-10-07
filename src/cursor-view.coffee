@@ -54,6 +54,14 @@ class CursorView extends View
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
+  # Override for speed. The base function checks the computedStyle
+  isHidden: ->
+    style = this[0].style
+    if style.display == 'none' or not @isOnDom()
+      true
+    else
+      false
+
   needsAutoscroll: ->
     @cursor.needsAutoscroll
 
