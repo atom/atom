@@ -51,7 +51,7 @@ class File
     else
       @cachedContents
 
-  # public: Reads the contents of the file.
+  # Public: Reads the contents of the file.
   #
   # * flushCache:
   #   A Boolean indicating whether to require a direct read or if a cached
@@ -66,18 +66,18 @@ class File
       promise = deferred.promise
 
       content = []
-      size = 0
+      bytesRead = 0
       readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
       readStream.on 'data', (chunk) ->
         content.push(chunk)
-        size += chunk.length
-        deferred.notify(size)
+        bytesRead += chunk.length
+        deferred.notify(bytesRead)
 
       readStream.on 'end', ->
         deferred.resolve(content.join())
 
       readStream.on 'error', (error) ->
-        deferred.reject(error ? "REPLACE THIS ERROR MESSAGE, fs.readStream doesn't output an error message!")
+        deferred.reject(error)
     else
       promise = Q(@cachedContents)
 
