@@ -27,6 +27,8 @@ class Atom
   initialize: ->
     @unsubscribe()
 
+    {devMode, resourcePath} = atom.getLoadSettings()
+
     Config = require './config'
     Keymap = require './keymap'
     PackageManager = require './package-manager'
@@ -35,19 +37,19 @@ class Atom
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
 
-    @packages = new PackageManager()
-
-    #TODO Remove once packages have been updated to not touch atom.packageStates directly
-    @__defineGetter__ 'packageStates', => @packages.packageStates
-    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
-
-    @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
-    @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
+    @contextMenu = new ContextMenuManager(devMode)
     @config = new Config()
     @pasteboard = new Pasteboard()
     @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+
+    @packages = new PackageManager({devMode, resourcePath, configDirPath: @config.getDirectoryPath()})
+    @subscribe @packages, 'loaded', => @watchThemes()
+
+    #TODO Remove once packages have been updated to not touch atom.packageStates directly
+    @__defineGetter__ 'packageStates', => @packages.packageStates
+    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
