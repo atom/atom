@@ -50,6 +50,9 @@ beforeEach ->
   bindingSetsToRestore = _.clone(keymap.bindingSets)
   bindingSetsByFirstKeystrokeToRestore = _.clone(keymap.bindingSetsByFirstKeystroke)
 
+  # prevent specs from modifying Atom's menus
+  spyOn(atom.menu, 'sendToBrowserProcess')
+
   # reset config before each spec; don't load or save from/to `config.json`
   config = new Config
     resourcePath: window.resourcePath

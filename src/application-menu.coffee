@@ -18,11 +18,13 @@ class ApplicationMenu
 
   # Public: Updates the entire menu with the given keybindings.
   #
+  # * template:
+  #   The Object which describes the menu to display.
   # * keystrokesByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
   #   the keystrokes.
-  update: (keystrokesByCommand) ->
-    template = @getTemplate(keystrokesByCommand)
+  update: (template, keystrokesByCommand) ->
+    @translateTemplate template, keystrokesByCommand
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
 
@@ -76,81 +78,6 @@ class ApplicationMenu
           { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
     ]
-
-  # Private: The complete list of menu items.
-  #
-  # * keystrokesByCommand:
-  #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
-  #
-  # Returns a complete menu configuration Object for use with atom-shell's
-  #   native menu API.
-  getTemplate: (keystrokesByCommand) ->
-    atomMenu =
-      label: 'Atom'
-      submenu: [
-        { label: 'About Atom', command: 'application:about' }
-        { label: "Version #{@version}", enabled: false }
-        { label: "Install update", command: 'application:install-update', visible: false }
-        { type: 'separator' }
-        { label: 'Preferences...', command: 'application:show-settings' }
-        { label: 'Hide Atom', command: 'application:hide' }
-        { label: 'Hide Others', command: 'application:hide-other-applications' }
-        { label: 'Show All', command: 'application:unhide-all-applications' }
-        { type: 'separator' }
-        { label: 'Run Atom Specs', command: 'application:run-all-specs' }
-        { type: 'separator' }
-        { label: 'Quit', command: 'application:quit' }
-      ]
-
-    fileMenu =
-      label: 'File'
-      submenu: [
-        { label: 'New Window', command: 'application:new-window' }
-        { label: 'New File', command: 'application:new-file' }
-        { type: 'separator' }
-        { label: 'Open...', command: 'application:open' }
-        { label: 'Open In Dev Mode...', command: 'application:open-dev' }
-        { type: 'separator' }
-        { label: 'Close Window', command: 'window:close' }
-      ]
-
-    editMenu =
-      label: 'Edit'
-      submenu: [
-        { label: 'Undo', command: 'core:undo' }
-        { label: 'Redo', command: 'core:redo' }
-        { type: 'separator' }
-        { label: 'Cut', command: 'core:cut' }
-        { label: 'Copy', command: 'core:copy' }
-        { label: 'Paste', command: 'core:paste' }
-        { label: 'Select All', command: 'core:select-all' }
-      ]
-
-    viewMenu =
-      label: 'View'
-      submenu: [
-        { label: 'Reload', command: 'window:reload' }
-        { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
-        { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
-      ]
-
-    windowMenu =
-      label: 'Window'
-      submenu: [
-        { label: 'Minimize', command: 'application:minimize' }
-        { label: 'Zoom', command: 'application:zoom' }
-        { type: 'separator' }
-        { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
-      ]
-
-    devMenu =
-      label: '\uD83D\uDC80' # Skull emoji
-      submenu: [ { label: 'In Development Mode', enabled: false } ]
-
-    template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-
-    @translateTemplate template, keystrokesByCommand
 
   # Private: Combines a menu template with the appropriate keystrokes.
   #

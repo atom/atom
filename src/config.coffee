@@ -10,19 +10,19 @@ pathWatcher = require 'pathwatcher'
 # Public: Used to access all of Atom's configuration details.
 #
 # A global instance of this class is available to all plugins which can be
-# referenced using `global.config`
+# referenced using `atom.config`
 #
-# ### Best practices ###
+# ### Best practices
 #
 # * Create your own root keypath using your package's name.
 # * Don't depend on (or write to) configuration keys outside of your keypath.
 #
-# ### Example ###
+# ### Example
 #
 # ```coffeescript
-# global.config.set('myplugin.key', 'value')
-# global.observe 'myplugin.key', ->
-#   console.log 'My configuration changed:', global.config.get('myplugin.key')
+# atom.config.set('myplugin.key', 'value')
+# atom.config.observe 'myplugin.key', ->
+#   console.log 'My configuration changed:', atom.config.get('myplugin.key')
 # ```
 module.exports =
 class Config
@@ -35,6 +35,7 @@ class Config
   # Private: Created during initialization, available as `global.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
     @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
+    @bundledMenusDirPath = path.join(resourcePath, "menus")
     @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
     @bundledPackageDirPaths = [@nodeModulesDirPath]
     @lessSearchPaths = [
