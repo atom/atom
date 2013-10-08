@@ -30,9 +30,8 @@ class AtomWindow
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
     loadSettings.initialPath = pathToOpen
-    try
-      if fs.statSync(pathToOpen).isFile()
-        loadSettings.initialPath = path.dirname(pathToOpen)
+    if fs.statSyncNoException(pathToOpen).isFile()
+      loadSettings.initialPath = path.dirname(pathToOpen)
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
