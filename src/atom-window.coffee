@@ -55,6 +55,8 @@ class AtomWindow
       false
     else if pathToCheck is initialPath
       true
+    else if fs.statSyncNoException(pathToCheck).isDirectory()
+      false
     else if pathToCheck.indexOf(path.join(initialPath, path.sep)) is 0
       true
     else
