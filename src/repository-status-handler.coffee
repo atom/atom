@@ -14,6 +14,6 @@ module.exports = (repoPath) ->
   else
     upstream = {}
     statuses = {}
-    branch = {}
+    branch = null
 
   {statuses, upstream, branch}
