@@ -151,7 +151,9 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
         describe "menu loading", ->
-          beforeEach -> atom.contextMenu.definitions = []
+          beforeEach ->
+            atom.contextMenu.definitions = []
+            atom.menu.template = []
 
           describe "when the metadata does not contain a 'menus' manifest", ->
             it "loads all the .cson/.json files in the menus directory", ->
@@ -161,6 +163,8 @@ describe "the `atom` global", ->
 
               atom.activatePackage("package-with-menus")
 
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
               expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 2"
               expect(atom.contextMenu.definitionsForElement(element)[2].label).toBe "Menu item 3"
@@ -173,6 +177,8 @@ describe "the `atom` global", ->
 
               atom.activatePackage("package-with-menus-manifest")
 
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
               expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 2"
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()

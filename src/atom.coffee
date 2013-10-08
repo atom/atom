@@ -37,7 +37,10 @@ class Atom
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
+    MenuManager = require './menu-manager'
 
+    @config = new Config({configDirPath, resourcePath})
+    @keymap = new Keymap()
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     #TODO Remove once packages have been updated to not touch atom.packageStates directly
@@ -47,9 +50,8 @@ class Atom
     @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
     @contextMenu = new ContextMenuManager(devMode)
-    @config = new Config({configDirPath, resourcePath})
+    @menu = new MenuManager()
     @pasteboard = new Pasteboard()
-    @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->

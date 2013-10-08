@@ -165,8 +165,8 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.once 'update-application-menu', (processId, routingId, keystrokesByCommand) =>
-      @applicationMenu.update(keystrokesByCommand)
+    ipc.on 'update-application-menu', (processId, routingId, template, keystrokesByCommand) =>
+      @applicationMenu.update(template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (processId, routingId, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})

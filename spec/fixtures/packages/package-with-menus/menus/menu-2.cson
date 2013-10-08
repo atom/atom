@@ -1,3 +1,7 @@
-"context-menu":
-  ".test-1":
-    "Menu item 2": "command-2"
+'menu': [
+  { 'label': 'Last' }
+]
+
+'context-menu':
+  '.test-1':
+    'Menu item 2': 'command-2'
