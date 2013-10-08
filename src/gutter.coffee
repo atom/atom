@@ -138,7 +138,7 @@ class Gutter extends View
   ### Internal ###
 
   updateLineNumbers: (changes, startScreenRow, endScreenRow) ->
-    # Check that we have something already rendered that overlaps the requested range
+    # Check if we have something already rendered that overlaps the requested range
     updateAllLines = not (startScreenRow? and endScreenRow?)
     updateAllLines |= endScreenRow <= @firstScreenRow or startScreenRow >= @lastScreenRow
 
@@ -151,7 +151,6 @@ class Gutter extends View
 
     if updateAllLines
       @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
-
     else
       # When scrolling or adding/removing lines, we just add/remove lines from the ends.
       if startScreenRow < @firstScreenRow
@@ -173,24 +172,22 @@ class Gutter extends View
     anchor = @lineNumbers[0].children[0]
     return appendLineElements(lineElements) unless anchor?
     @lineNumbers[0].insertBefore(lineElements[0], anchor) while lineElements.length > 0
-    null
+    null # defeat coffeescript array return
 
   appendLineElements: (lineElements) ->
     @lineNumbers[0].appendChild(lineElements[0]) while lineElements.length > 0
-    null
+    null # defeat coffeescript array return
 
   removeLineElements: (numberOfElements) ->
     children = @getLineNumberElements()
 
+    # children is a live NodeList, so remove from the desired end {numberOfElements} times
     if numberOfElements < 0
-      while numberOfElements
-        @lineNumbers[0].removeChild(children[children.length-1])
-        numberOfElements++
-
+      @lineNumbers[0].removeChild(children[children.length-1]) while numberOfElements++
     else if numberOfElements > 0
-      while numberOfElements
-        @lineNumbers[0].removeChild(children[0])
-        numberOfElements--
+      @lineNumbers[0].removeChild(children[0]) while numberOfElements--
+
+    null # defeat coffeescript array return
 
   buildLineElements: (startScreenRow, endScreenRow) ->
     @elementBuilder.innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
