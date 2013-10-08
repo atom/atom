@@ -257,7 +257,6 @@ class Git
 
   # Public: Gets all the local and remote references.
   #
-  #
   # Returns an object with three keys: `heads`, `remotes`, and `tags`. Each key
   # can be an array of strings containing the reference names.
   getReferences: -> @getRepo().getReferences()
