@@ -62,6 +62,76 @@ class Gutter extends View
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
+  # Get all the line-number divs.
+  #
+  # Returns a list of {HTMLElement}s.
+  getLineNumberElements: ->
+    @lineNumbers[0].childNodes
+
+  # Get all the line-number divs.
+  #
+  # Returns a list of {HTMLElement}s.
+  getLineNumberElementsForClass: (klass) ->
+    @lineNumbers[0].getElementsByClassName(klass)
+
+  # Get a single line-number div.
+  #
+  # * bufferRow: 0 based line number
+  #
+  # Returns a list of {HTMLElement}s that correspond to the bufferRow. More than
+  # one in the list indicates a wrapped line.
+  getLineNumberElement: (bufferRow) ->
+    @getLineNumberElementsForClass("line-number-#{bufferRow}")
+
+  # Add a class to all line-number divs.
+  #
+  # * klass: string class name
+  #
+  # Returns true if the class was added to any lines
+  addClassToAllLines: (klass)->
+    elements = @getLineNumberElements()
+    el.classList.add(klass) for el in elements
+    !!elements.length
+
+  # Remove a class from all line-number divs.
+  #
+  # * klass: string class name. Can only be one class name. i.e. 'my-class'
+  #
+  # Returns true if the class was removed from any lines
+  removeClassFromAllLines: (klass)->
+    # This is faster than calling $.removeClass on all lines, and faster than
+    # making a new array and iterating through it.
+    elements = @getLineNumberElementsForClass(klass)
+    willRemoveClasses = !!elements.length
+    elements[0].classList.remove(klass) while elements.length > 0
+    willRemoveClasses
+
+  # Add a class to a single line-number div
+  #
+  # * bufferRow: 0 based line number
+  # * klass: string class name
+  #
+  # Returns true if there were lines the class was added to
+  addClassToLine: (bufferRow, klass)->
+    elements = @getLineNumberElement(bufferRow)
+    el.classList.add(klass) for el in elements
+    !!elements.length
+
+  # Remove a class from a single line-number div
+  #
+  # * bufferRow: 0 based line number
+  # * klass: string class name
+  #
+  # Returns true if there were lines the class was removed from
+  removeClassFromLine: (bufferRow, klass)->
+    classesRemoved = false
+    elements = @getLineNumberElement(bufferRow)
+    for el in elements
+      hasClass = el.classList.contains(klass)
+      classesRemoved |= hasClass
+      el.classList.remove(klass) if hasClass
+    classesRemoved
+
   ### Internal ###
 
   updateLineNumbers: (changes, renderFrom, renderTo) ->
@@ -78,29 +148,34 @@ class Gutter extends View
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
-    editor = @getEditor()
-    maxDigits = editor.getLineCount().toString().length
-    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
-
-    cursorScreenRow = editor.getCursorScreenPosition().row
-    @lineNumbers[0].innerHTML = $$$ ->
-      for row in rows
-        if row == lastScreenRow
-          rowValue = '•'
-        else
-          rowValue = (row + 1).toString()
-        classes = ['line-number']
-        classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div linenumber: row, class: classes.join(' '), =>
-          rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
-          @raw("#{rowValuePadding}#{rowValue}")
-
-        lastScreenRow = row
-
+    @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
+
+  buildLineElementsHtml: (startScreenRow, endScreenRow) =>
+    editor = @getEditor()
+    maxDigits = editor.getLineCount().toString().length
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
+
+    html = ''
+    for row in rows
+      if row == lastScreenRow
+        rowValue = '•'
+      else
+        rowValue = (row + 1).toString()
+
+      classes = "line-number line-number-#{row}"
+      classes += ' fold' if editor.isFoldedAtBufferRow(row)
+
+      rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
+
+      html += """<div class="#{classes}">#{rowValuePadding}#{rowValue}</div>"""
+
+      lastScreenRow = row
+
+    html
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

@@ -51,7 +51,7 @@ class AtomApplication
   version: null
 
   constructor: (options) ->
-    {@resourcePath, @version} = options
+    {@resourcePath, @version, @devMode} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -147,7 +147,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl(urlToOpen)
+      @openUrl({urlToOpen, @devMode})
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
@@ -221,9 +221,10 @@ class AtomApplication
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
-    [basename, initialLine] = path.basename(pathToOpen).split(':')
-    pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-    initialLine -= 1 if initialLine # Convert line numbers to a base of 0
+    if pathToOpen
+      [basename, initialLine] = path.basename(pathToOpen).split(':')
+      pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
+      initialLine -= 1 if initialLine # Convert line numbers to a base of 0
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -251,9 +252,11 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  # Private: Handles an atom:// url.
+  # Private: Open an atom:// url.
   #
-  # Currently only supports atom://session/<session-id> urls.
+  # The host of the URL being opened is assumed to be the package name
+  # responsible for opening the URL.  A new window will be created with
+  # that package's `urlMain` as the bootstrap script.
   #
   # * options
   #    + urlToOpen:
@@ -261,15 +264,25 @@ class AtomApplication
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
-    parsedUrl = url.parse(urlToOpen)
-    if parsedUrl.host is 'session'
-      sessionId = parsedUrl.path.split('/')[1]
-      console.log "Joining session #{sessionId}"
-      if sessionId
-        bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode})
+    unless @packages?
+      PackageManager = require './package-manager'
+      fsUtils = require './fs-utils'
+      @packages = new PackageManager
+        configDirPath: fsUtils.absolute('~/.atom')
+        devMode: devMode
+        resourcePath: @resourcePath
+
+    packageName = url.parse(urlToOpen).host
+    pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
+    if pack?
+      if pack.urlMain
+        packagePath = @packages.resolvePackagePath(packageName)
+        bootstrapScript = path.resolve(packagePath, pack.urlMain)
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen})
+      else
+        console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
-      console.log "Opening unknown url #{urlToOpen}"
+      console.log "Opening unknown url: #{urlToOpen}"
 
   # Private: Opens up a new {AtomWindow} to run specs within.
   #

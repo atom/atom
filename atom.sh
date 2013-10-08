@@ -32,6 +32,7 @@ done
 
 if [ $EXPECT_OUTPUT ]; then
   $ATOM_BINARY --executed-from="$(pwd)" --pid=$$ $@
+  exit $?
 else
   open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ $@
 fi

@@ -27,6 +27,9 @@ class Atom
   initialize: ->
     @unsubscribe()
 
+    {devMode, resourcePath} = atom.getLoadSettings()
+    configDirPath = @getConfigDirPath()
+
     Config = require './config'
     Keymap = require './keymap'
     PackageManager = require './package-manager'
@@ -36,9 +39,9 @@ class Atom
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
 
-    @config = new Config()
+    @config = new Config({configDirPath, resourcePath})
     @keymap = new Keymap()
-    @packages = new PackageManager()
+    @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     #TODO Remove once packages have been updated to not touch atom.packageStates directly
     @__defineGetter__ 'packageStates', => @packages.packageStates
@@ -46,7 +49,7 @@ class Atom
 
     @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
-    @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
+    @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
     @pasteboard = new Pasteboard()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
@@ -215,6 +218,10 @@ class Atom
   getHomeDirPath: ->
     app.getHomeDir()
 
+  # Public: Get the directory path to Atom's configuration area.
+  getConfigDirPath: ->
+    @configDirPath ?= fsUtils.absolute('~/.atom')
+
   getWindowStatePath: ->
     switch @windowMode
       when 'spec'
@@ -246,7 +253,7 @@ class Atom
       documentStateJson = @getLoadSettings().windowState
 
     try
-      documentState = JSON.parse(documentStateJson) if documentStateJson?
+      documentState = JSON.parse(documentStateJson) if documentStateJson
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
