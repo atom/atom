@@ -142,6 +142,12 @@ class Git
   # Public: Determine if the given path is new.
   isPathNew: (path) -> @isStatusNew(@getPathStatus(path))
 
+  # Public: Is the project at the root of this repository?
+  #
+  # Returns true if at the root, false if in a subfolder of the repository.
+  isProjectAtRoot: ->
+    @projectAtRoot ?= project.relativize(@getWorkingDirectory()) is ''
+
   # Public: Makes a path relative to the repository's working directory.
   relativize: (path) -> @getRepo().relativize(path)
 
