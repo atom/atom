@@ -30,7 +30,7 @@ class AtomWindow
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
     loadSettings.initialPath = pathToOpen
-    if fs.statSyncNoException(pathToOpen).isFile()
+    if fs.statSyncNoException(pathToOpen).isFile?()
       loadSettings.initialPath = path.dirname(pathToOpen)
 
     @browserWindow.loadSettings = loadSettings
@@ -54,7 +54,7 @@ class AtomWindow
       false
     else if pathToCheck is initialPath
       true
-    else if fs.statSyncNoException(pathToCheck).isDirectory()
+    else if fs.statSyncNoException(pathToCheck).isDirectory?()
       false
     else if pathToCheck.indexOf(path.join(initialPath, path.sep)) is 0
       true
