@@ -88,9 +88,10 @@ class Atom
     else
       browserWindow.center()
 
-  restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+  restoreDimensions: ->
     dimensions = @getWindowState().getObject('dimensions')
-    dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
+    unless dimensions?.width and dimensions?.height
+      dimensions = x: 0, y: 0, width: screen.availWidth, height: screen.availHeight
     @setDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
