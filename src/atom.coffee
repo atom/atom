@@ -91,7 +91,10 @@ class Atom
   restoreDimensions: ->
     dimensions = @getWindowState().getObject('dimensions')
     unless dimensions?.width and dimensions?.height
-      dimensions = x: 0, y: 0, width: screen.availWidth, height: screen.availHeight
+      {height, width} = @getLoadSettings().initialSize ? {}
+      height ?= screen.availHeight
+      width ?= Math.min(screen.availWidth, 1024)
+      dimensions = {width, height}
     @setDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
