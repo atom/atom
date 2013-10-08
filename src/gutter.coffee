@@ -15,8 +15,11 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
-  firstScreenRow: Infinity
-  lastScreenRow: -1
+  firstScreenRow: null
+  lastScreenRow: null
+
+  initialize: ->
+    @elementBuilder = document.createElement('div')
 
   afterAttach: (onDom) ->
     return if @attached or not onDom
@@ -66,7 +69,7 @@ class Gutter extends View
   #
   # Returns a list of {HTMLElement}s.
   getLineNumberElements: ->
-    @lineNumbers[0].childNodes
+    @lineNumbers[0].children
 
   # Get all the line-number divs.
   #
@@ -134,25 +137,64 @@ class Gutter extends View
 
   ### Internal ###
 
-  updateLineNumbers: (changes, renderFrom, renderTo) ->
-    if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
-      performUpdate = true
-    else if @getEditor().getLastScreenRow() < @lastScreenRow
-      performUpdate = true
+  updateLineNumbers: (changes, startScreenRow, endScreenRow) ->
+    # Check that we have something already rendered that overlaps the requested range
+    updateAllLines = not (startScreenRow? and endScreenRow?)
+    updateAllLines |= endScreenRow <= @firstScreenRow or startScreenRow >= @lastScreenRow
+
+    for change in changes
+      # When there is a change to the bufferRow -> screenRow map (i.e. a fold),
+      # then rerender everything.
+      if (change.screenDelta or change.bufferDelta) and change.screenDelta != change.bufferDelta
+        updateAllLines = true
+        break
+
+    if updateAllLines
+      @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
+
     else
-      for change in changes
-        if change.screenDelta or change.bufferDelta
-          performUpdate = true
-          break
+      # When scrolling or adding/removing lines, we just add/remove lines from the ends.
+      if startScreenRow < @firstScreenRow
+        @prependLineElements(@buildLineElements(startScreenRow, @firstScreenRow-1))
+      else if startScreenRow != @firstScreenRow
+        @removeLineElements(startScreenRow - @firstScreenRow)
 
-    @renderLineNumbers(renderFrom, renderTo) if performUpdate
+      if endScreenRow > @lastScreenRow
+        @appendLineElements(@buildLineElements(@lastScreenRow+1, endScreenRow))
+      else if endScreenRow != @lastScreenRow
+        @removeLineElements(endScreenRow - @lastScreenRow)
 
-  renderLineNumbers: (startScreenRow, endScreenRow) ->
-    @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
+
+  prependLineElements: (lineElements) ->
+    anchor = @lineNumbers[0].children[0]
+    return appendLineElements(lineElements) unless anchor?
+    @lineNumbers[0].insertBefore(lineElements[0], anchor) while lineElements.length > 0
+    null
+
+  appendLineElements: (lineElements) ->
+    @lineNumbers[0].appendChild(lineElements[0]) while lineElements.length > 0
+    null
+
+  removeLineElements: (numberOfElements) ->
+    children = @getLineNumberElements()
+
+    if numberOfElements < 0
+      while numberOfElements
+        @lineNumbers[0].removeChild(children[children.length-1])
+        numberOfElements++
+
+    else if numberOfElements > 0
+      while numberOfElements
+        @lineNumbers[0].removeChild(children[0])
+        numberOfElements--
+
+  buildLineElements: (startScreenRow, endScreenRow) ->
+    @elementBuilder.innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
+    @elementBuilder.children
 
   buildLineElementsHtml: (startScreenRow, endScreenRow) =>
     editor = @getEditor()
