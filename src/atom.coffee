@@ -88,17 +88,21 @@ class Atom
     else
       browserWindow.center()
 
-  restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+  restoreDimensions: ->
     dimensions = @getWindowState().getObject('dimensions')
-    dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
+    unless dimensions?.width and dimensions?.height
+      {height, width} = @getLoadSettings().initialSize ? {}
+      height ?= screen.availHeight
+      width ?= Math.min(screen.availWidth, 1024)
+      dimensions = {width, height}
     @setDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
   #
   # Returns an object containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @loadSettings ?= _.clone(@getCurrentWindow().loadSettings)
-    _.clone(@loadSettings)
+    @loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings)
+    _.deepClone(@loadSettings)
 
   deserializeProject: ->
     Project = require './project'

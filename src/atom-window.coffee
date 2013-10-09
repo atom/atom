@@ -131,6 +131,8 @@ class AtomWindow
 
   focus: -> @browserWindow.focus()
 
+  getSize: -> @browserWindow.getSize()
+
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
 
