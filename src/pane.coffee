@@ -28,7 +28,6 @@ class Pane extends View
 
   activeItem: null
   items: null
-  viewsByClassName: null # Views with a setModel() method are stored here
   viewsByItem: null      # Views without a setModel() method are stored here
 
   # Private:
@@ -53,7 +52,6 @@ class Pane extends View
       return if site is @state.site.id
       @showItemForUri(newValue) if key is 'activeItemUri'
 
-    @viewsByClassName = {}
     @viewsByItem = new WeakMap()
     activeItemUri = @state.get('activeItemUri')
     unless activeItemUri? and @showItemForUri(activeItemUri)
@@ -322,16 +320,8 @@ class Pane extends View
   cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
-    else
-      if viewToRemove = @viewsByItem.get(item)
-        @viewsByItem.delete(item)
-      else
-        viewClass = item.getViewClass()
-        otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
-        unless otherItemsForView.length
-          viewToRemove = @viewsByClassName[viewClass.name]
-          viewToRemove?.setModel(null)
-          delete @viewsByClassName[viewClass.name]
+    else if @viewsByItem.get(item)
+      @viewsByItem.delete(item)
 
     if @items.length > 0
       if @isMovingItem and item is viewToRemove
@@ -350,14 +340,8 @@ class Pane extends View
       view
     else
       viewClass = item.getViewClass()
-      if view = @viewsByClassName[viewClass.name]
-        view.setModel(item)
-      else
-        view = new viewClass(item)
-        if _.isFunction(view.setModel)
-          @viewsByClassName[viewClass.name] = view
-        else
-          @viewsByItem.set(item, view)
+      view = new viewClass(item)
+      @viewsByItem.set(item, view)
       view
 
   # Private:

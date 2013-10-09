@@ -830,9 +830,6 @@ class Editor extends View
   getModel: ->
     @activeEditSession
 
-  setModel: (editSession) ->
-    @edit(editSession)
-
   showBufferConflictAlert: (editSession) ->
     atom.confirm(
       editSession.getPath(),
