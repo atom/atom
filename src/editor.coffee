@@ -42,9 +42,9 @@ class Editor extends View
     _.extend(attributes, params.attributes) if params.attributes
     @div attributes, =>
       @subview 'gutter', new Gutter
-      @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'scroll-view', outlet: 'scrollView', =>
-        @div class: 'overlayer', outlet: 'overlayer'
+        @div class: 'overlayer', outlet: 'overlayer', =>
+          @input class: 'hidden-input', outlet: 'hiddenInput'
         @div class: 'lines', outlet: 'renderedLines'
         @div class: 'underlayer', outlet: 'underlayer'
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
