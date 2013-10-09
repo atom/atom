@@ -101,8 +101,8 @@ class Atom
   #
   # Returns an object containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @loadSettings ?= _.clone(@getCurrentWindow().loadSettings)
-    _.clone(@loadSettings)
+    @loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings)
+    _.deepClone(@loadSettings)
 
   deserializeProject: ->
     Project = require './project'
