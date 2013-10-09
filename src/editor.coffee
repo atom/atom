@@ -1232,7 +1232,9 @@ class Editor extends View
     screenRange = selectionView.getScreenRange()
     startRow = screenRange.start.row
     endRow = screenRange.end.row
-    (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow)
+    (startRow >= @firstRenderedScreenRow and startRow <= @lastRenderedScreenRow) or # startRow in range
+      (endRow >= @firstRenderedScreenRow and endRow <= @lastRenderedScreenRow) or # endRow in range
+      (startRow <= @firstRenderedScreenRow and endRow >= @lastRenderedScreenRow) # selection surrounds the rendered items
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
