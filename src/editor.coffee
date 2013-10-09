@@ -739,7 +739,7 @@ class Editor extends View
       false
 
   bringHiddenInputIntoView: ->
-    @hiddenInput.css(top: @scrollTop() + 'px', left: 0)
+    @hiddenInput.css(top: @scrollTop() + 'px', left: @scrollLeft())
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
