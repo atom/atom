@@ -89,6 +89,8 @@ module.exports = (grunt) ->
           level: 'error'
         max_line_length:
           level: 'ignore'
+        indentation:
+          level: 'ignore'
       src: [
         'dot-atom/**/*.coffee'
         'exports/**/*.coffee'
