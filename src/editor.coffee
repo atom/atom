@@ -640,7 +640,6 @@ class Editor extends View
 
   handleEvents: ->
     @on 'focus', =>
-      @bringHiddenInputIntoView()
       @hiddenInput.focus()
       false
 
