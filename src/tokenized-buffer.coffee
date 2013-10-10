@@ -30,6 +30,8 @@ class TokenizedBuffer
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
+
+      # TODO: This needs to be made async, but should wait until the new Telepath changes land
       @buffer = project.bufferForPath(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState

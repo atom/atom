@@ -28,6 +28,7 @@
     "pathwatcher": "0.5.0",
     "pegjs": "0.7.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
+    "q": "0.9.7",
     "rimraf": "2.1.4",
     "scandal": "0.5.0",
     "season": "0.13.0",
@@ -37,12 +38,14 @@
     "telepath": "0.8.1",
     "temp": "0.5.0",
     "underscore": "1.4.4",
+
     "atom-light-ui": "0.4.0",
     "atom-light-syntax": "0.4.0",
     "atom-dark-ui": "0.4.0",
     "atom-dark-syntax": "0.4.0",
     "base16-tomorrow-dark-theme": "0.2.0",
     "solarized-dark-syntax": "0.3.0",
+
     "archive-view": "0.8.0",
     "autocomplete": "0.6.0",
     "autoflow": "0.3.0",
