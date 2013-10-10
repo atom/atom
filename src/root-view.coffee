@@ -194,7 +194,6 @@ class RootView extends View
       .progress (value) =>
         console.log "#{filepath} read #{100 * (value / fileSize)}"
 
-
   # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
   open: (filePath, options = {}) ->
     console.warn("RootView::open is deprecated")
@@ -214,7 +213,6 @@ class RootView extends View
 
     activePane.focus() if changeFocus
     editSession
-
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
