@@ -19,6 +19,7 @@ class Test extends Command
       to the current working directory).
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('p', 'path').describe('path', 'Path to atom command')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
@@ -27,7 +28,8 @@ class Test extends Command
     args = @parseOptions(options.commandArgs)
     env = process.env
 
-    @spawn 'atom', ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
+    atomCommand = args.path ? 'atom'
+    @spawn atomCommand, ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
       if code is 0
         process.stdout.write 'Tests passed\n'.green
         callback()
