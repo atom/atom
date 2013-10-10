@@ -1,7 +1,6 @@
 AtomWindow = require 'atom-window'
 ApplicationMenu = require 'application-menu'
 AtomProtocolHandler = require 'atom-protocol-handler'
-BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
@@ -34,7 +33,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if not fs.existsSync socketPath
+    if (not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
 
@@ -51,7 +50,8 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
+  constructor: (options) ->
+    {@resourcePath, @version, @devMode} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -66,6 +66,10 @@ class AtomApplication
     @handleEvents()
     @checkForUpdates()
 
+    @openWithOptions(options)
+
+  # Private: Opens a new window based on the options provided.
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
     else if pathsToOpen.length > 0
@@ -94,8 +98,7 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        options = JSON.parse(data)
-        @openPaths(options)
+        @openWithOptions(JSON.parse(data))
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
@@ -126,7 +129,8 @@ class AtomApplication
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
     @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
     @on 'application:unhide-all-applications', -> Menu.sendActionToFirstResponder('unhideAllApplications:')
-    @on 'application:new-window', ->  @openPath()
+    @on 'application:new-window', ->
+      @openPath(initialSize: @getFocusedWindowSize())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPath()
     @on 'application:open-dev', -> @promptForPath(devMode: true)
@@ -144,7 +148,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl(urlToOpen)
+      @openUrl({urlToOpen, @devMode})
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
@@ -162,8 +166,8 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.once 'update-application-menu', (processId, routingId, keystrokesByCommand) =>
-      @applicationMenu.update(keystrokesByCommand)
+    ipc.on 'update-application-menu', (processId, routingId, template, keystrokesByCommand) =>
+      @applicationMenu.update(template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (processId, routingId, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
@@ -192,6 +196,17 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
+  # Public: Get the height and width of the focused window.
+  #
+  # Returns an object with height and width keys or null if there is no
+  # focused window.
+  getFocusedWindowSize: ->
+    if focusedWindow = @focusedWindow()
+      [width, height] = focusedWindow.getSize()
+      {width, height}
+    else
+      null
+
   # Public: Opens multiple paths, in existing windows if possible.
   #
   # * options
@@ -217,10 +232,13 @@ class AtomApplication
   #      Boolean of whether this should be opened in a new window.
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
-    [basename, initialLine] = path.basename(pathToOpen).split(':')
-    pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-    initialLine -= 1 if initialLine # Convert line numbers to a base of 0
+  #    + initialSize:
+  #      Object with height and width keys.
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, initialSize}={}) ->
+    if pathToOpen
+      [basename, initialLine] = path.basename(pathToOpen).split(':')
+      pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
+      initialLine -= 1 if initialLine # Convert line numbers to a base of 0
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -234,7 +252,7 @@ class AtomApplication
       else
         resourcePath = @resourcePath
         bootstrapScript = require.resolve('./window-bootstrap')
-      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, initialSize})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -248,9 +266,11 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  # Private: Handles an atom:// url.
+  # Private: Open an atom:// url.
   #
-  # Currently only supports atom://session/<session-id> urls.
+  # The host of the URL being opened is assumed to be the package name
+  # responsible for opening the URL.  A new window will be created with
+  # that package's `urlMain` as the bootstrap script.
   #
   # * options
   #    + urlToOpen:
@@ -258,15 +278,25 @@ class AtomApplication
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
-    parsedUrl = url.parse(urlToOpen)
-    if parsedUrl.host is 'session'
-      sessionId = parsedUrl.path.split('/')[1]
-      console.log "Joining session #{sessionId}"
-      if sessionId
-        bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode})
+    unless @packages?
+      PackageManager = require './package-manager'
+      fsUtils = require './fs-utils'
+      @packages = new PackageManager
+        configDirPath: fsUtils.absolute('~/.atom')
+        devMode: devMode
+        resourcePath: @resourcePath
+
+    packageName = url.parse(urlToOpen).host
+    pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
+    if pack?
+      if pack.urlMain
+        packagePath = @packages.resolvePackagePath(packageName)
+        bootstrapScript = path.resolve(packagePath, pack.urlMain)
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, initialSize: getFocusedWindowSize()})
+      else
+        console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
-      console.log "Opening unknown url #{urlToOpen}"
+      console.log "Opening unknown url: #{urlToOpen}"
 
   # Private: Opens up a new {AtomWindow} to run specs within.
   #

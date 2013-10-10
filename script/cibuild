@@ -7,6 +7,12 @@ cd "$(dirname "$0")/.."
 rm -rf ~/.atom
 git clean -dff
 
+ATOM_CREDENTIALS_FILE=/var/lib/jenkins/config/atomcredentials
+if [ -f $ATOM_CREDENTIALS_FILE ]; then
+  . $ATOM_CREDENTIALS_FILE
+  export ATOM_ACCESS_TOKEN=$ATOM_ACCESS_TOKEN # make it visibile to grunt.
+fi
+
 ./script/bootstrap
 ./node_modules/.bin/apm clean
 ./node_modules/.bin/grunt ci --stack --no-color

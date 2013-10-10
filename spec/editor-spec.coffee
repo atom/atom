@@ -119,21 +119,21 @@ describe "Editor", ->
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
       editor.attachToDom(heightInLines: 5, widthInChars: 30)
-      editor.setCursorBufferPosition([3, 5])
+      editor.setCursorBufferPosition([6, 13])
       editor.scrollToBottom()
       editor.scrollLeft(150)
       previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
       previousScrollTop = editor.scrollTop()
       previousScrollLeft = editor.scrollLeft()
 
-      newEditSession.setScrollTop(120)
+      newEditSession.setScrollTop(900)
       newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
 
       editor.edit(newEditSession)
       { firstRenderedScreenRow, lastRenderedScreenRow } = editor
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editor.lastRenderedScreenRow)
-      expect(editor.scrollTop()).toBe 120
+      expect(editor.scrollTop()).toBe 900
       expect(editor.scrollLeft()).toBe 0
       expect(editor.getSelectionView().regions[0].position().top).toBe 40 * editor.lineHeight
       editor.insertText("hello")
@@ -146,9 +146,9 @@ describe "Editor", ->
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editor.scrollTop()).toBe previousScrollTop
       expect(editor.scrollLeft()).toBe previousScrollLeft
-      expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
+      expect(editor.getCursorView().position()).toEqual { top: 6 * editor.lineHeight, left: 13 * editor.charWidth }
       editor.insertText("goodbye")
-      expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
+      expect(editor.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = "/tmp/atom-changed-file.txt"
@@ -1107,8 +1107,8 @@ describe "Editor", ->
         expect(span0.children('span:eq(2)')).toMatchSelector '.meta.brace.curly.js'
         expect(span0.children('span:eq(2)').text()).toBe "{"
 
-        line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+        line12 = editor.renderedLines.find('.line:eq(11)').children('span:eq(0)')
+        expect(line12.children('span:eq(1)')).toMatchSelector '.keyword'
 
       it "wraps hard tabs in a span", ->
         editor.setText('\t<- hard tab')
@@ -1123,12 +1123,13 @@ describe "Editor", ->
         expect(span0_0).toMatchSelector '.leading-whitespace'
         expect(span0_0.text()).toBe '  '
 
-      it "wraps trailing whitespace in a span", ->
-        editor.setText('trailing whitespace ->   ')
-        line0 = editor.renderedLines.find('.line:first')
-        span0_last = line0.children('span:eq(0)').children('span:last')
-        expect(span0_last).toMatchSelector '.trailing-whitespace'
-        expect(span0_last.text()).toBe '   '
+      describe "when the line has trailing whitespace", ->
+        it "wraps trailing whitespace in a span", ->
+          editor.setText('trailing whitespace ->   ')
+          line0 = editor.renderedLines.find('.line:first')
+          span0_last = line0.children('span:eq(0)').children('span:last')
+          expect(span0_last).toMatchSelector '.trailing-whitespace'
+          expect(span0_last.text()).toBe '   '
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1878,12 +1879,54 @@ describe "Editor", ->
         # doesn't allow regular editors to set grammars
         expect(-> editor.setGrammar()).toThrow()
 
-
     describe "when config.editor.showLineNumbers is false", ->
       it "doesn't render any line numbers", ->
         expect(editor.gutter.lineNumbers).toBeVisible()
         config.set("editor.showLineNumbers", false)
         expect(editor.gutter.lineNumbers).not.toBeVisible()
+
+    describe "using gutter's api", ->
+      it "can get all the line number elements", ->
+        elements = editor.gutter.getLineNumberElements()
+        len = editor.gutter.lastScreenRow - editor.gutter.firstScreenRow + 1
+        expect(elements).toHaveLength(len)
+
+      it "can get a single line number element", ->
+        element = editor.gutter.getLineNumberElement(3)
+        expect(element).toBeTruthy()
+
+      it "returns falsy when there is no line element", ->
+        expect(editor.gutter.getLineNumberElement(42)).toHaveLength 0
+
+      it "can add and remove classes to all the line numbers", ->
+        wasAdded = editor.gutter.addClassToAllLines('heyok')
+        expect(wasAdded).toBe true
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
+        expect($(elements)).toHaveClass('heyok')
+
+        editor.gutter.removeClassFromAllLines('heyok')
+        expect($(editor.gutter.getLineNumberElements())).not.toHaveClass('heyok')
+
+      it "can add and remove classes from a single line number", ->
+        wasAdded = editor.gutter.addClassToLine(3, 'heyok')
+        expect(wasAdded).toBe true
+
+        element = editor.gutter.getLineNumberElement(2)
+        expect($(element)).not.toHaveClass('heyok')
+
+      it "can fetch line numbers by their class", ->
+        editor.gutter.addClassToLine(1, 'heyok')
+        editor.gutter.addClassToLine(3, 'heyok')
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
+        expect(elements.length).toBe 2
+
+        expect($(elements[0])).toHaveClass 'line-number-1'
+        expect($(elements[0])).toHaveClass 'heyok'
+
+        expect($(elements[1])).toHaveClass 'line-number-3'
+        expect($(elements[1])).toHaveClass 'heyok'
 
   describe "gutter line highlighting", ->
     beforeEach ->
@@ -2160,9 +2203,20 @@ describe "Editor", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
 
     describe "when the editor is attached and visible", ->
-      it "returns the top and left pixel positions", ->
+      beforeEach ->
         editor.attachToDom()
+
+      it "returns the top and left pixel positions", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
+      it "caches the left position", ->
+        editor.renderedLines.css('font-size', '16px')
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+        # make characters smaller
+        editor.renderedLines.css('font-size', '15px')
+
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
 
   describe "when clicking in the gutter", ->
     beforeEach ->

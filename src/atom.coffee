@@ -27,6 +27,9 @@ class Atom
   initialize: ->
     @unsubscribe()
 
+    {devMode, resourcePath} = atom.getLoadSettings()
+    configDirPath = @getConfigDirPath()
+
     Config = require './config'
     Keymap = require './keymap'
     PackageManager = require './package-manager'
@@ -34,8 +37,11 @@ class Atom
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
+    MenuManager = require './menu-manager'
 
-    @packages = new PackageManager()
+    @config = new Config({configDirPath, resourcePath})
+    @keymap = new Keymap()
+    @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     #TODO Remove once packages have been updated to not touch atom.packageStates directly
     @__defineGetter__ 'packageStates', => @packages.packageStates
@@ -43,10 +49,9 @@ class Atom
 
     @subscribe @packages, 'loaded', => @watchThemes()
     @themes = new ThemeManager()
-    @contextMenu = new ContextMenuManager(@getLoadSettings().devMode)
-    @config = new Config()
+    @contextMenu = new ContextMenuManager(devMode)
+    @menu = new MenuManager()
     @pasteboard = new Pasteboard()
-    @keymap = new Keymap()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
   getCurrentWindow: ->
@@ -83,17 +88,21 @@ class Atom
     else
       browserWindow.center()
 
-  restoreDimensions: (defaultDimensions={width: 800, height: 600})->
+  restoreDimensions: ->
     dimensions = @getWindowState().getObject('dimensions')
-    dimensions = defaultDimensions unless dimensions?.width and dimensions?.height
+    unless dimensions?.width and dimensions?.height
+      {height, width} = @getLoadSettings().initialSize ? {}
+      height ?= screen.availHeight
+      width ?= Math.min(screen.availWidth, 1024)
+      dimensions = {width, height}
     @setDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
   #
   # Returns an object containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @loadSettings ?= _.clone(@getCurrentWindow().loadSettings)
-    _.clone(@loadSettings)
+    @loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings)
+    _.deepClone(@loadSettings)
 
   deserializeProject: ->
     Project = require './project'
@@ -213,6 +222,10 @@ class Atom
   getHomeDirPath: ->
     app.getHomeDir()
 
+  # Public: Get the directory path to Atom's configuration area.
+  getConfigDirPath: ->
+    @configDirPath ?= fsUtils.absolute('~/.atom')
+
   getWindowStatePath: ->
     switch @windowMode
       when 'spec'
@@ -244,7 +257,7 @@ class Atom
       documentStateJson = @getLoadSettings().windowState
 
     try
-      documentState = JSON.parse(documentStateJson) if documentStateJson?
+      documentState = JSON.parse(documentStateJson) if documentStateJson
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 

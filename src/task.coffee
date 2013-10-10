@@ -44,15 +44,11 @@ class Task
   #   function to execute.
   constructor: (taskPath) ->
     coffeeScriptRequire = "require('#{require.resolve('coffee-script')}');"
-    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}');"
+    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
       #{coffeeScriptRequire}
       #{coffeeCacheRequire}
-      Object.defineProperty(require.extensions, '.coffee', {
-        writable: false,
-        value: require.extensions['.coffee']
-      });
       #{taskBootstrapRequire}
     """
 
