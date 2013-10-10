@@ -120,7 +120,7 @@ class ApplicationMenu
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
               .replace(/meta/ig, "Command")
-              .replace(/ctrl/ig, "MacCtrl")
+              .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
 
     keys = modifiers.concat([key.toUpperCase()])
