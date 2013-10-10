@@ -279,8 +279,8 @@ class AtomApplication
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
-      PackageManager = require './package-manager'
-      fsUtils = require './fs-utils'
+      PackageManager = require '../package-manager'
+      fsUtils = require '../fs-utils'
       @packages = new PackageManager
         configDirPath: fsUtils.absolute('~/.atom')
         devMode: devMode
