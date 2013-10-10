@@ -11,7 +11,7 @@ describe "RootView", ->
     pathToOpen = project.resolve('a')
     window.rootView = new RootView
     rootView.enableKeymap()
-    rootView.open(pathToOpen)
+    rootView.openSync(pathToOpen)
     rootView.focus()
 
   describe "@deserialize()", ->
@@ -29,7 +29,7 @@ describe "RootView", ->
     describe "when the serialized RootView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
         rootView.attachToDom()
-        rootView.open()
+        rootView.openSync()
         editor1 = rootView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
@@ -149,7 +149,7 @@ describe "RootView", ->
 
     describe "when the project has a path", ->
       beforeEach ->
-        rootView.open('b')
+        rootView.openSync('b')
 
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
@@ -215,27 +215,27 @@ describe "RootView", ->
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
-          editSession = rootView.open()
+          editSession = rootView.openSync()
           expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
           expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
         it "can create multiple empty edit sessions as an item on a new pane", ->
-          editSession = rootView.open()
-          editSession2 = rootView.open()
+          editSession = rootView.openSync()
+          editSession2 = rootView.openSync()
           expect(rootView.getActivePane().getItems().length).toBe 2
           expect(editSession).not.toBe editSession2
 
       describe "when called with a path", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
-          editSession = rootView.open('b')
+          editSession = rootView.openSync('b')
           expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/b')
           expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
         it "does not focus the new pane", ->
-          editSession = rootView.open('b', changeFocus: false)
+          editSession = rootView.openSync('b', changeFocus: false)
           expect(rootView.getActivePane().focus).not.toHaveBeenCalled()
 
     describe "when there is an active pane", ->
@@ -247,7 +247,7 @@ describe "RootView", ->
 
       describe "when called with no path", ->
         it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
-          editSession = rootView.open()
+          editSession = rootView.openSync()
           expect(activePane.getItems().length).toBe initialItemCount + 1
           expect(activePane.activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
@@ -258,11 +258,11 @@ describe "RootView", ->
           it "shows the existing edit session in the pane", ->
             previousEditSession = activePane.activeItem
 
-            editSession = rootView.open('b')
+            editSession = rootView.openSync('b')
             expect(activePane.activeItem).toBe editSession
             expect(editSession).not.toBe previousEditSession
 
-            editSession = rootView.open(previousEditSession.getPath())
+            editSession = rootView.openSync(previousEditSession.getPath())
             expect(editSession).toBe previousEditSession
             expect(activePane.activeItem).toBe editSession
 
@@ -270,14 +270,14 @@ describe "RootView", ->
 
         describe "when the active pane does not have an edit session item for the path being opened", ->
           it "creates a new edit session for the given path in the active editor", ->
-            editSession = rootView.open('b')
+            editSession = rootView.openSync('b')
             expect(activePane.items.length).toBe 2
             expect(activePane.activeItem).toBe editSession
             expect(activePane.focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
         it "does not focus the active pane", ->
-          editSession = rootView.open('b', changeFocus: false)
+          editSession = rootView.openSync('b', changeFocus: false)
           expect(activePane.focus).not.toHaveBeenCalled()
 
   describe ".openAsync(filePath)", ->
@@ -452,6 +452,7 @@ describe "RootView", ->
 
     it "invokes the callback for existing buffer", ->
       count = 0
+      count = 0
       callbackBuffer = null
       callback = (buffer) ->
         callbackBuffer = buffer
@@ -470,6 +471,6 @@ describe "RootView", ->
       rootView.eachBuffer(callback)
       count = 0
       callbackBuffer = null
-      rootView.open(require.resolve('./fixtures/sample.txt'))
+      rootView.openSync(require.resolve('./fixtures/sample.txt'))
       expect(count).toBe 1
       expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()

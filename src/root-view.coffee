@@ -171,7 +171,7 @@ class RootView extends View
   #   + initialLine: The buffer line number to open to.
   #
   # Returns a promise that resolves to the {EditSession} for the file URI.
-  openAsync: (filePath, options={}) ->
+  open: (filePath, options={}) ->
     filePath = project.resolve(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
@@ -192,8 +192,8 @@ class RootView extends View
         activePane.focus()
         editSession
 
-  # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
-  open: (filePath, options = {}) ->
+  # Private: Only used in specs
+  openSync: (filePath, options = {}) ->
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
     filePath = project.relativize(filePath)

@@ -2672,7 +2672,7 @@ describe "Editor", ->
     describe "when the editor's text is changed", ->
       it "redraws the editor when it is next shown", ->
         window.rootView = new RootView
-        rootView.open('sample.js')
+        rootView.openSync('sample.js')
         rootView.attachToDom()
         editor = rootView.getActiveView()
 
@@ -2726,7 +2726,7 @@ describe "Editor", ->
   describe "when the editor is removed", ->
     it "fires a editor:will-be-removed event", ->
       window.rootView = new RootView
-      rootView.open('sample.js')
+      rootView.openSync('sample.js')
       rootView.attachToDom()
       editor = rootView.getActiveView()
 

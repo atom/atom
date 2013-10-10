@@ -84,7 +84,7 @@ describe "the `atom` global", ->
               expect(mainModule.activate).toHaveBeenCalled()
 
             it "triggers the activation event on all handlers registered during activation", ->
-              rootView.open()
+              rootView.openSync()
               editor = rootView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
               editor.command 'activation-event', eventHandler
