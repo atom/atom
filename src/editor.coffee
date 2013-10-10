@@ -42,11 +42,11 @@ class Editor extends View
     _.extend(attributes, params.attributes) if params.attributes
     @div attributes, =>
       @subview 'gutter', new Gutter
-      @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'scroll-view', outlet: 'scrollView', =>
         @div class: 'overlayer', outlet: 'overlayer'
         @div class: 'lines', outlet: 'renderedLines'
-        @div class: 'underlayer', outlet: 'underlayer'
+        @div class: 'underlayer', outlet: 'underlayer', =>
+          @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -648,9 +648,9 @@ class Editor extends View
       @addClass 'is-focused'
 
     @hiddenInput.on 'focusout', =>
+      @bringHiddenInputIntoView()
       @isFocused = false
       @removeClass 'is-focused'
-      @hiddenInput.offset(top: 0, left: 0)
 
     @underlayer.on 'mousedown', (e) =>
       @renderedLines.trigger(e)
@@ -736,6 +736,9 @@ class Editor extends View
       @insertText(lastInput)
       @hiddenInput.val(lastInput)
       false
+
+  bringHiddenInputIntoView: ->
+    @hiddenInput.css(top: @scrollTop(), left: @scrollLeft())
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
@@ -851,6 +854,7 @@ class Editor extends View
     @underlayer.css('top', -scrollTop)
     @overlayer.css('top', -scrollTop)
     @gutter.lineNumbers.css('top', -scrollTop)
+
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
     @activeEditSession.setScrollTop(@scrollTop())
