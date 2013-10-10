@@ -18,7 +18,7 @@
     "first-mate": "0.4.0",
     "git-utils": "0.26.0",
     "guid": "0.0.10",
-    "jasmine-focused": "~0.14.0",
+    "jasmine-focused": "~0.15.0",
     "mkdirp": "0.3.5",
     "less": "git://github.com/nathansobo/less.js.git",
     "less-cache": "0.8.0",
