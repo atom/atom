@@ -320,16 +320,23 @@ class Pane extends View
   cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
-    else if @viewsByItem.get(item)
+    else if viewToRemove = @viewsByItem.get(item)
       @viewsByItem.delete(item)
 
     if @items.length > 0
       if @isMovingItem and item is viewToRemove
         viewToRemove?.detach()
+      else if @isMovingItem and viewToRemove?.setModel
+        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
+        viewToRemove.remove()
       else
         viewToRemove?.remove()
     else
-      viewToRemove?.detach() if @isMovingItem and item is viewToRemove
+      if @isMovingItem and item is viewToRemove
+        viewToRemove?.detach()
+      else if @isMovingItem and viewToRemove?.setModel
+        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
+
       @parent().view().removeChild(this, updateState: false)
 
   # Private:
