@@ -25,7 +25,7 @@ class WindowEventHandler
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       unless fsUtils.isDirectorySync(pathToOpen)
-        atom.rootView?.openAsync(pathToOpen, initialLine)
+        atom.rootView?.openAsync(pathToOpen, {initialLine})
 
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.rootView?.confirmClose()
