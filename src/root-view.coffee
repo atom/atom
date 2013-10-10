@@ -1,4 +1,4 @@
-{fs} = require 'atom'
+fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
@@ -181,7 +181,7 @@ class RootView extends View
     promise = project.openAsync(filePath, {initialLine}) if not editSession
 
     fileSize = 0
-    fileSize = fs.statSync(absoluteFilePath).size if fs.exists(absoluteFilePath)
+    fileSize = fs.statSync(absoluteFilePath).size if fsUtils.exists(absoluteFilePath)
 
     Q(editSession ? promise)
       .then (editSession) =>
