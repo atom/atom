@@ -294,7 +294,7 @@ describe "RootView", ->
           editSession = null
 
           waitsForPromise ->
-            rootView.openAsync().then (o) -> editSession = o
+            rootView.open().then (o) -> editSession = o
 
           runs ->
             expect(rootView.getActivePane().activeItem).toBe editSession
@@ -306,10 +306,10 @@ describe "RootView", ->
           editSession2 = null
 
           waitsForPromise ->
-            rootView.openAsync()
+            rootView.open()
               .then (o) ->
                 editSession1 = o
-                rootView.openAsync()
+                rootView.open()
               .then (o) ->
                 editSession2 = o
 
@@ -321,7 +321,7 @@ describe "RootView", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editSession = null
           waitsForPromise ->
-            rootView.openAsync('b').then (o) -> editSession = o
+            rootView.open('b').then (o) -> editSession = o
 
           runs ->
             expect(rootView.getActivePane().activeItem).toBe editSession
@@ -339,7 +339,7 @@ describe "RootView", ->
           editSession = null
 
           waitsForPromise ->
-            rootView.openAsync().then (o) -> editSession = o
+            rootView.open().then (o) -> editSession = o
 
           runs ->
             expect(activePane.getItems().length).toBe 2
@@ -354,14 +354,14 @@ describe "RootView", ->
 
             editSession = null
             waitsForPromise ->
-              rootView.openAsync('b').then (o) -> editSession = o
+              rootView.open('b').then (o) -> editSession = o
 
             runs ->
               expect(activePane.activeItem).toBe editSession
               expect(editSession).not.toBe previousEditSession
 
             waitsForPromise ->
-              rootView.openAsync(previousEditSession.getPath()).then (o) -> editSession = o
+              rootView.open(previousEditSession.getPath()).then (o) -> editSession = o
 
             runs ->
               expect(editSession).toBe previousEditSession
@@ -373,7 +373,7 @@ describe "RootView", ->
             editSession = null
 
             waitsForPromise ->
-              rootView.openAsync('b').then (o) -> editSession = o
+              rootView.open('b').then (o) -> editSession = o
 
             runs ->
               expect(activePane.activeItem).toBe editSession
