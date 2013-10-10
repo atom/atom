@@ -291,13 +291,15 @@ describe "RootView", ->
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
-          promise = rootView.openAsync().then (editSession) ->
+          editSession = null
+
+          waitsForPromise ->
+            rootView.openAsync().then (o) -> editSession = o
+
+          runs ->
             expect(rootView.getActivePane().activeItem).toBe editSession
             expect(editSession.getPath()).toBeUndefined()
             expect(rootView.getActivePane().focus).toHaveBeenCalled()
-
-          waitsForPromise ->
-            promise
 
         it "can create multiple empty edit sessions as items on a pane", ->
           editSession1 = null
