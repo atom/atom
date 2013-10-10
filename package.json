@@ -15,7 +15,7 @@
     "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0",
     "coffee-script": "1.6.2",
     "coffeestack": "0.6.0",
-    "first-mate": "0.2.0",
+    "first-mate": "0.3.0",
     "git-utils": "0.26.0",
     "guid": "0.0.10",
     "jasmine-focused": "~0.14.0",
