@@ -191,8 +191,7 @@ class RootView extends View
 
         activePane.showItem(editSession)
         activePane.focus()
-      .progress (value) =>
-        console.log "#{filepath} read #{100 * (value / fileSize)}"
+        editSession
 
   # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
   open: (filePath, options = {}) ->
