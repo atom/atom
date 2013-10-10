@@ -35,7 +35,15 @@ $('html,body').css('overflow', 'auto')
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 jasmine.getEnv().defaultTimeoutInterval = 5000
 
-specDirectory = atom.getLoadSettings().specDirectory ? __dirname
+specPackageName = null
+specPackagePath = null
+
+if specDirectory = atom.getLoadSettings().specDirectory
+  specPackagePath = path.resolve(specDirectory, '..')
+  try
+    specPackageName = fs.readObjectSync(path.join(specPackagePath, 'package.json'))?.name
+else
+  specDirectory = __dirname
 specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
@@ -48,6 +56,14 @@ beforeEach ->
   spyOn(atom, 'saveWindowState')
   atom.syntax.clearGrammarOverrides()
   atom.syntax.clearProperties()
+
+  if specPackageName
+    spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
+      if packageName is specPackageName
+        resolvePackagePath(specPackagePath)
+      else
+        resolvePackagePath(packageName)
+    resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
