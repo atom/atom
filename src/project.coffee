@@ -192,6 +192,7 @@ class Project
   #
   # Returns a promise that resolves to an {EditSession}.
   openAsync: (filePath, options={}) ->
+    filePath = @resolve(filePath)
     resource = null
     _.find @openers, (opener) -> resource = opener(filePath, options)
 
