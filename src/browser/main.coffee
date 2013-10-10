@@ -52,7 +52,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
       module.globalPaths.push(appSrcPath)
 
-    AtomApplication = require 'browser/atom-application'
+    AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
     console.log("App load time: #{new Date().getTime() - startTime}ms")
