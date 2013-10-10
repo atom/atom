@@ -236,6 +236,7 @@ describe "Pane", ->
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
+        pane.showItem(editSession1)
         pane.showItem(editSession2)
         pane.removeItem(editSession2)
         expect(pane.itemViews.find('.editor')).toExist()
