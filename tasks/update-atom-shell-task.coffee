@@ -30,6 +30,7 @@ module.exports = (grunt) ->
         headers:
           authorization: "token #{accessToken}"
           accept: 'application/vnd.github.manifold-preview'
+          'user-agent': 'Atom'
 
       request options, (error, response, body) ->
         if not error?
@@ -87,6 +88,7 @@ module.exports = (grunt) ->
         options.headers =
           authorization: "token #{accessToken}"
           accept: 'application/octet-stream'
+          'user-agent': 'Atom'
 
         callback(error, options)
     else
