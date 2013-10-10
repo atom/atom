@@ -231,7 +231,7 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
-  # Private: DEPRECATED
+  # Private: Only to be used in specs
   bufferForPath: (filePath, text) ->
     absoluteFilePath = @resolve(filePath)
 
