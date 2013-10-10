@@ -134,7 +134,7 @@ describe "RootView", ->
 
       window.keymap.bindKeys('*', 'x': 'foo-command')
 
-    describe "when a keydown event is triggered on the RootView", ->
+    describe "when a keydown event is triggered in the RootView", ->
       it "triggers matching keybindings for that event", ->
         event = keydownEvent 'x', target: rootView[0]
 
@@ -246,7 +246,7 @@ describe "RootView", ->
         initialItemCount = activePane.getItems().length
 
       describe "when called with no path", ->
-        it "opens an edit session with an empty buffer as an item on the active pane and focuses it", ->
+        it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
           editSession = rootView.open()
           expect(activePane.getItems().length).toBe initialItemCount + 1
           expect(activePane.activeItem).toBe editSession
@@ -255,7 +255,7 @@ describe "RootView", ->
 
       describe "when called with a path", ->
         describe "when the active pane already has an edit session item for the path being opened", ->
-          it "shows the existing edit session on the pane", ->
+          it "shows the existing edit session in the pane", ->
             previousEditSession = activePane.activeItem
 
             editSession = rootView.open('b')
@@ -333,7 +333,7 @@ describe "RootView", ->
         activePane = rootView.getActivePane()
 
       describe "when called with no path", ->
-        it "opens an edit session with an empty buffer as an item on the active pane and focuses it", ->
+        it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
           editSession = null
 
           waitsForPromise ->
@@ -347,7 +347,7 @@ describe "RootView", ->
 
       describe "when called with a path", ->
         describe "when the active pane already has an item for the given path", ->
-          it "shows the existing edit session on the pane", ->
+          it "shows the existing edit session in the pane", ->
             previousEditSession = activePane.activeItem
 
             editSession = null
