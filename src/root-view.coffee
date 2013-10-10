@@ -172,16 +172,15 @@ class RootView extends View
   #
   # Returns a promise that resolves to the {EditSession} for the file URI.
   openAsync: (filePath, options={}) ->
-    absoluteFilePath = filePath
-    filePath = project.relativize(filePath)
+    filePath = project.resolve(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
 
-    editSession = activePane.itemForUri(filePath) if activePane and filePath
+    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
     promise = project.openAsync(filePath, {initialLine}) if not editSession
 
     fileSize = 0
-    fileSize = fs.statSync(absoluteFilePath).size if fsUtils.exists(absoluteFilePath)
+    fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
 
     Q(editSession ? promise)
       .then (editSession) =>
