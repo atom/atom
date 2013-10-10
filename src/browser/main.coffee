@@ -51,12 +51,9 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     require('coffee-script')
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
-      module.globalPaths.push(path.join(args.resourcePath, 'src'))
+      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     else
-      appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
-      module.globalPaths.push(appSrcPath)
-
-    AtomApplication = require './atom-application'
+      AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
     console.log("App load time: #{new Date().getTime() - startTime}ms")
