@@ -14,6 +14,10 @@ dialog = require 'dialog'
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
+process.on 'uncaughtException', (error={}) ->
+  nslog(error.message) if error.message?
+  nslog(error.stack) if error.stack?
+
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
 
