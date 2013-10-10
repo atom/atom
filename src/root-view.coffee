@@ -195,7 +195,6 @@ class RootView extends View
 
   # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
   open: (filePath, options = {}) ->
-    console.warn("RootView::open is deprecated")
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
     filePath = project.relativize(filePath)
