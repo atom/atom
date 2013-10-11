@@ -10,6 +10,7 @@ module.exports = (grunt) ->
     passed = true
     done = @async()
     appDir = grunt.config.get('atom.appDir')
+    rootDir = grunt.config.get('atom.shellAppDir')
     atomPath = path.join(appDir, 'atom.sh')
     apmPath = path.join(appDir, 'node_modules/.bin/apm')
 
@@ -19,6 +20,7 @@ module.exports = (grunt) ->
         args: ['test', '--path', atomPath]
         opts:
           cwd: packagePath
+          env: _.extend({}, process.env, ATOM_PATH: rootDir)
       grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
       spawn options, (error, results, code) ->
         passed = passed and code is 0
