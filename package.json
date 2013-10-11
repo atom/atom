@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "version": "31.0.0",
-  "main": "./src/main.js",
+  "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/atom/atom.git"
