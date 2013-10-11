@@ -104,7 +104,6 @@ describe "Pane", ->
 
         it "creates a new view with the item", ->
           initialViewCount = pane.itemViews.find('.test-view').length
-          console.log 'initial', initialViewCount
 
           model1 =
             id: 'test-model-1'
