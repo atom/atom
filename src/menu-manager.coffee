@@ -15,7 +15,7 @@ class MenuManager
   # Private:
   constructor: ->
     @template = []
-    @loadCoreItems()
+    atom.keymap.on 'bundled-keymaps-loaded', => @loadCoreItems()
 
   # Public: Adds the given item definition to the existing template.
   #
@@ -50,4 +50,3 @@ class MenuManager
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
-

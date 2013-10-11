@@ -33,7 +33,7 @@ describe "RootView", ->
         editor1 = rootView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(rootView.getActiveView()).toBe rootView.getEditors()[1]
+        expect(rootView.getActiveView()).toBe rootView.getEditors()[2]
 
         refreshRootViewAndProject()
 

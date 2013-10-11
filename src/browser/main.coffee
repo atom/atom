@@ -14,6 +14,10 @@ dialog = require 'dialog'
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
+process.on 'uncaughtException', (error={}) ->
+  nslog(error.message) if error.message?
+  nslog(error.stack) if error.stack?
+
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
 
@@ -47,12 +51,9 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     require('coffee-script')
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
-      module.globalPaths.push(path.join(args.resourcePath, 'src'))
+      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     else
-      appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
-      module.globalPaths.push(appSrcPath)
-
-    AtomApplication = require 'atom-application'
+      AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
     console.log("App load time: #{new Date().getTime() - startTime}ms")
@@ -112,6 +113,6 @@ parseCommandLine = ->
     fs.statSync resourcePath
   catch e
     devMode = false
-    resourcePath = path.dirname(__dirname)
+    resourcePath = path.dirname(path.dirname(__dirname))
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory}
