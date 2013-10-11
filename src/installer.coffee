@@ -34,6 +34,7 @@ class Installer extends Command
       directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('d', 'dev').describe('dev', 'Install dev dependencies of atom packages being installed')
     options.boolean('silent').describe('silent', 'Minimize output')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
@@ -88,6 +89,15 @@ class Installer extends Command
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
 
+    @forkInstallCommand options, (code, stderr='', stdout='') =>
+      if code is 0
+        process.stdout.write '\u2713\n'.green
+        callback()
+      else
+        process.stdout.write '\u2717\n'.red
+        callback(stdout.red + stderr.red)
+
+  forkInstallCommand: (options, callback) ->
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
@@ -95,14 +105,10 @@ class Installer extends Command
     installArgs.push('--msvs_version=2012') if config.isWin32()
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
+    installOptions = {env}
+    installOptions.cwd = options.cwd if options.cwd
 
-    @fork @atomNpmPath, installArgs, {env}, (code, stderr='', stdout='') ->
-      if code is 0
-        process.stdout.write '\u2713\n'.green
-        callback()
-      else
-        process.stdout.write '\u2717\n'.red
-        callback(stdout.red + stderr.red)
+    @fork(@atomNpmPath, installArgs, installOptions, callback)
 
   installPackage: (options, modulePath, callback) ->
     commands = []
@@ -115,6 +121,33 @@ class Installer extends Command
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
+    if options.argv.dev
+      commands.push (callback) => @installDevDependencies(options, callback)
+
+    async.waterfall commands, callback
+
+  isAtomPackageWithDevDependencies: (packagePath) ->
+    try
+      metadata = fs.readFileSync(path.join(packagePath, 'package.json'), 'utf8')
+      {engines, devDependencies} = JSON.parse(metadata) ? {}
+      engines?.atom? and devDependencies and Object.keys(devDependencies).length > 0
+    catch error
+      false
+
+  installDevDependencies: (options, callback) ->
+    commands = []
+    modulesDirectory = path.resolve('node_modules')
+    for child in fs.readdirSync(modulesDirectory)
+      packagePath = path.join(modulesDirectory, child)
+      continue unless @isAtomPackageWithDevDependencies(packagePath)
+      do (child, packagePath) =>
+        commands.push (callback) =>
+          options.cwd = packagePath
+          @forkInstallCommand options, (code, stderr='', stdout='') =>
+            if code is 0
+              callback()
+            else
+              callback(stdout.red + stderr.red)
 
     async.waterfall commands, callback
 
