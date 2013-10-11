@@ -326,7 +326,7 @@ class AtomApplication
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
-    isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
+    isSpec = true
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
   # Private: Opens a native dialog to prompt the user for a path.
