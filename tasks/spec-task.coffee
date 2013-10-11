@@ -53,6 +53,8 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
+    startTime = Date.now()
     async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecPassed, packageSpecsPassed] = results
+      grunt.log.writeln("Total spec time: #{(Date.now() - startTime)/1000}s")
       done(coreSpecPassed and packageSpecsPassed)
