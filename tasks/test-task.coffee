@@ -7,11 +7,10 @@ async = require 'async'
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'run-specs', 'Run the specs', ->
+  runPackageSpecs = (callback) ->
     passed = true
-    done = @async()
-    appDir = grunt.config.get('atom.appDir')
     rootDir = grunt.config.get('atom.shellAppDir')
+    appDir = grunt.config.get('atom.appDir')
     atomPath = path.join(appDir, 'atom.sh')
     apmPath = path.join(appDir, 'node_modules/.bin/apm')
 
@@ -34,5 +33,21 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       queue.push(packagePath)
 
-    queue.concurrency = 2
-    queue.drain = -> done(passed)
+    queue.concurrency = 1
+    queue.drain = -> callback(passed)
+
+  runCoreSpecs = (callback) ->
+    contentsDir = grunt.config.get('atom.contentsDir')
+    appPath = path.join(contentsDir, 'MacOS', 'Atom')
+    resourcePath = process.cwd()
+    coreSpecsPath = path.resolve('spec')
+
+    options =
+      cmd: appPath
+      args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+    spawn options, (error, results, code) ->
+      callback(code is 0)
+
+  grunt.registerTask 'run-specs', 'Run the specs', ->
+    passed = true
+    async.parallel([runCoreSpecs, runPackageSpecs], @async())

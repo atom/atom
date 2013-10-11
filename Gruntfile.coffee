@@ -160,15 +160,6 @@ module.exports = (grunt) ->
           stderr: false
           failOnError: false
 
-      test:
-        command: "#{path.join(contentsDir, 'MacOS', 'Atom')} --test --resource-path=#{__dirname}"
-        options:
-          stdout: true
-          stderr: true
-          callback: (error, stdout, stderr, callback) ->
-            grunt.warn('Specs failed') if error?
-            callback()
-
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-cson')
@@ -181,7 +172,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
+  grunt.registerTask('test', ['shell:kill-atom', 'run-core-specs', 'run-specs'])
   grunt.registerTask('ci', ['lint', 'update-atom-shell', 'build', 'set-development-version', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
