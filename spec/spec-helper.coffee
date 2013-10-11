@@ -12,7 +12,10 @@ Project = require '../src/project'
 Editor = require '../src/editor'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
+platform = require './spec-helper-platform'
 clipboard = require 'clipboard'
+
+platform.generateEvilFiles()
 
 atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
