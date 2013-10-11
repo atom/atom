@@ -5,7 +5,7 @@ a few rules.
 
 ### Philosophy
 
-1. Method and argument names **should** clearily communicate its use.
+1. Method and argument names **should** clearly communicate its use.
 1. Use documentation to enhance and not correct method/argument names.
 
 #### Basic
