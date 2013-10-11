@@ -1,6 +1,5 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
-MenuItem = require 'menu-item'
 ContextMenu = require './context-menu'
 dialog = require 'dialog'
 ipc = require 'ipc'
