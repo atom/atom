@@ -132,19 +132,6 @@ class Project
   getRootDirectory: ->
     @rootDirectory
 
-  # Public: Fetches the name of every file (that's not `git ignore`d) in the
-  # project.
-  #
-  # Returns an {Array} of {String}s.
-  getFilePaths: ->
-    deferred = $.Deferred()
-    paths = []
-    onFile = (path) => paths.push(path) unless @isPathIgnored(path)
-    onDirectory = -> true
-    fsUtils.traverseTreeSync(@getPath(), onFile, onDirectory)
-    deferred.resolve(paths)
-    deferred.promise()
-
   # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
     for segment in path.split("/")
