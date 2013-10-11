@@ -9,11 +9,12 @@ module.exports = (grunt) ->
   grunt.registerTask 'run-specs', 'Run the specs', ->
     passed = true
     done = @async()
+    atomPath = path.resolve('atom.sh')
 
     queue = async.queue (packagePath, callback) ->
       options =
         cmd: path.resolve('node_modules/.bin/apm')
-        args: ['test', '-p', path.resolve('atom.sh')]
+        args: ['test', '-p', atomPath]
         opts:
           cwd: packagePath
       spawn options, (error, results, code) ->
