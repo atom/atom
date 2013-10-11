@@ -28,26 +28,28 @@ class AtomPackage extends Package
   getType: -> 'atom'
 
   load: ->
+    @metadata = {}
+    @stylesheets = []
+    @keymaps = []
+    @menus = []
+    @grammars = []
+    @scopedProperties = []
+
     @measure 'loadTime', =>
       try
         @metadata = Package.loadMetadata(@path)
-        if @isTheme()
-          @stylesheets = []
-          @keymaps = []
-          @menus = []
-          @grammars = []
-          @scopedProperties = []
-        else
-          @loadKeymaps()
-          @loadMenus()
-          @loadStylesheets()
-          @loadGrammars()
-          @loadScopedProperties()
+        return if @isTheme()
 
-          if @metadata.activationEvents?
-            @registerDeferredDeserializers()
-          else
-            @requireMainModule()
+        @loadKeymaps()
+        @loadMenus()
+        @loadStylesheets()
+        @loadGrammars()
+        @loadScopedProperties()
+
+        if @metadata.activationEvents?
+          @registerDeferredDeserializers()
+        else
+          @requireMainModule()
 
       catch e
         console.warn "Failed to load package named '#{@name}'", e.stack ? e

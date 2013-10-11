@@ -66,8 +66,9 @@ class PackageManager
 
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
+
       pack = Package.load(packagePath, options)
-      if pack.metadata.theme
+      if pack.metadata?.theme
         atom.themes.register(pack)
       else
         @loadedPackages[pack.name] = pack

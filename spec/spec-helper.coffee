@@ -63,7 +63,8 @@ beforeEach ->
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception"]
+  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+    "package-with-broken-package-json", "package-with-broken-keymap"]
   config.save.reset()
   atom.config = config
   window.config = config
