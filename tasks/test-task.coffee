@@ -17,6 +17,7 @@ module.exports = (grunt) ->
         args: ['test', '-p', atomPath]
         opts:
           cwd: packagePath
+      grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
       spawn options, (error, results, code) ->
         passed = passed and code is 0
         callback()
