@@ -4,7 +4,6 @@ url = require 'url'
 Q = require 'q'
 
 _ = require './underscore-extensions'
-$ = require './jquery-extensions'
 telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'
@@ -303,7 +302,7 @@ class Project
       iterator = options
       options = {}
 
-    deferred = $.Deferred()
+    deferred = Q.defer()
 
     searchOptions =
       ignoreCase: regex.ignoreCase
@@ -322,7 +321,7 @@ class Project
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
-    deferred
+    deferred.promise
 
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
