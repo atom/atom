@@ -10,10 +10,11 @@ module.exports = (grunt) ->
     passed = true
     done = @async()
     atomPath = path.resolve('atom.sh')
+    apmPath = path.resolve('node_modules/.bin/apm')
 
     queue = async.queue (packagePath, callback) ->
       options =
-        cmd: path.resolve('node_modules/.bin/apm')
+        cmd: apmPath
         args: ['test', '-p', atomPath]
         opts:
           cwd: packagePath
