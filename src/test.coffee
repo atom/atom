@@ -28,7 +28,7 @@ class Test extends Command
     args = @parseOptions(options.commandArgs)
     env = process.env
 
-    atomCommand = args.path ? 'atom'
+    atomCommand = args.argv.path ? 'atom'
     @spawn atomCommand, ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
       if code is 0
         process.stdout.write 'Tests passed\n'.green
