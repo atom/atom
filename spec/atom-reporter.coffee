@@ -92,7 +92,7 @@ class AtomReporter extends View
 
       clearTimeout @timeoutId if @timeoutId?
       @specPopup.show()
-      spec = _.find(window.timedSpecs, (spec) -> description is spec.name)
+      spec = _.find(window.timedSpecs, ({fullName}) -> description is fullName)
       description = "#{description} #{spec.time}ms" if spec
       @specPopup.text description
       {left, top} = element.offset()
@@ -113,7 +113,7 @@ class AtomReporter extends View
       specCount = "#{@completeSpecCount - @skippedCount}/#{@totalSpecCount - @skippedCount} (#{@skippedCount} skipped)"
     else
       specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
-    @specCount.text specCount
+    @specCount[0].textContent = specCount
 
   updateStatusView: (spec) ->
     if @failedCount > 0
@@ -127,7 +127,7 @@ class AtomReporter extends View
 
     time = "#{Math.round((spec.endedAt - @startedAt.getTime()) / 10)}"
     time = "0#{time}" if time.length < 3
-    @time.text "#{time[0...-2]}.#{time[-2..]}s"
+    @time[0].textContent = "#{time[0...-2]}.#{time[-2..]}s"
 
   addSpecs: (specs) ->
     coreSpecs = 0

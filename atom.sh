@@ -9,7 +9,7 @@ if [ ! -d $ATOM_PATH ]; then
   exit 1
 fi
 
-while getopts ":whvft-:" opt; do
+while getopts ":wtfvhs-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
@@ -32,6 +32,7 @@ done
 
 if [ $EXPECT_OUTPUT ]; then
   $ATOM_BINARY --executed-from="$(pwd)" --pid=$$ $@
+  exit $?
 else
   open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ $@
 fi

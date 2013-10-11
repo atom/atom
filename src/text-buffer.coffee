@@ -1,12 +1,15 @@
-_ = require './underscore-extensions'
-telepath = require 'telepath'
-{Point, Range} = telepath
-fsUtils = require './fs-utils'
-File = require './file'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
 guid = require 'guid'
+Q = require 'q'
 {P} = require 'scandal'
+telepath = require 'telepath'
+
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
+EventEmitter = require './event-emitter'
+File = require './file'
+Subscriber = require './subscriber'
+
+{Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
@@ -22,7 +25,9 @@ class TextBuffer
   registerDeserializer(this)
 
   @deserialize: (state, params) ->
-    new this(state, params)
+    buffer = new this(state, params)
+    buffer.load()
+    buffer
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -43,28 +48,34 @@ class TextBuffer
       @id = @state.get('id')
       filePath = @state.get('relativePath')
       @text = @state.get('text')
-      reloadFromDisk = @state.get('isModified') is false
+      @loadFromDisk = @state.get('isModified') == false
     else
       {@project, filePath, initialText} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
-      reloadFromDisk = true
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version
         text: @text
+      @loadFromDisk = not initialText
 
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @trigger 'marker-created', marker
     @subscribe @text, 'markers-updated', => @trigger 'markers-updated'
 
-    if filePath
-      @setPath(@project.resolve(filePath))
-      if fsUtils.exists(@getPath())
-        @updateCachedDiskContents()
-        @reload() if reloadFromDisk and @isModified()
+    @setPath(@project.resolve(filePath)) if @project
+
+  load: ->
+    @updateCachedDiskContents()
+    @reload() if @loadFromDisk and @isModified()
     @text.clearUndoStack()
+
+  loadAsync: ->
+    @updateCachedDiskContentsAsync().then =>
+      @reload() if @loadFromDisk and @isModified()
+      @text.clearUndoStack()
+      this
 
   ### Internal ###
 
@@ -81,6 +92,7 @@ class TextBuffer
       @unsubscribe()
       @destroyed = true
       @project?.removeBuffer(this)
+      @trigger 'destroyed'
 
   isRetained: -> @refcount > 0
 
@@ -104,16 +116,16 @@ class TextBuffer
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
-      if @isModified()
-        @conflict = true
-        @updateCachedDiskContents()
-        @trigger "contents-conflicted"
-      else
-        @reload()
+      @conflict = true if @isModified()
+      @updateCachedDiskContentsAsync().done =>
+        if @conflict
+          @trigger "contents-conflicted"
+        else
+          @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents()
-      @triggerModifiedStatusChanged(@isModified())
+      @updateCachedDiskContentsAsync().done =>
+        @triggerModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
       @state.set('relativePath', @project.relativize(@getPath()))
@@ -130,19 +142,21 @@ class TextBuffer
 
   # Reloads a file in the {EditSession}.
   #
-  # Essentially, this performs a force read of the file.
+  # Sets the buffer's content to the cached disk contents
   reload: ->
     @trigger 'will-reload'
-    @updateCachedDiskContents()
     @setText(@cachedDiskContents)
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
-  # Rereads the contents of the file, and stores them in the cache.
-  #
-  # Essentially, this performs a force read of the file on disk.
+  # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
-    @cachedDiskContents = @file.read()
+    @cachedDiskContents = @file?.read() ? ""
+
+  # Private: Rereads the contents of the file, and stores them in the cache.
+  updateCachedDiskContentsAsync: ->
+    Q(@file?.readAsync() ? "").then (contents) =>
+      @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
   #
@@ -162,9 +176,6 @@ class TextBuffer
   getRelativePath: ->
     @state.get('relativePath')
 
-  setRelativePath: (relativePath) ->
-    @setPath(@project.resolve(relativePath))
-
   # Sets the path for the file.
   #
   # path - A {String} representing the new file path
@@ -172,9 +183,13 @@ class TextBuffer
     return if path == @getPath()
 
     @file?.off()
-    @file = new File(path)
-    @file.read() if @file.exists()
-    @subscribeToFile()
+
+    if path
+      @file = new File(path)
+      @subscribeToFile()
+    else
+      @file = null
+
     @state.set('relativePath', @project.relativize(path))
     @trigger "path-changed", this
 
@@ -396,7 +411,10 @@ class TextBuffer
   # Returns a {Boolean}.
   isModified: ->
     if @file
-      @getText() != @cachedDiskContents
+      if @file.exists()
+        @getText() != @cachedDiskContents
+      else
+        true
     else
       not @isEmpty()
 
@@ -608,12 +626,6 @@ class TextBuffer
     path = @getPath()
     return unless path
     @project.getRepo()?.checkoutHead(path)
-
-  # Checks to see if a file exists.
-  #
-  # Returns a {Boolean}.
-  fileExists: ->
-    @file? && @file.exists()
 
   ### Internal ###
 

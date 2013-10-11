@@ -1,8 +1,6 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
-MenuItem = require 'menu-item'
-ContextMenu = require 'context-menu'
-app = require 'app'
+ContextMenu = require './context-menu'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -31,20 +29,18 @@ class AtomWindow
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
     loadSettings.initialPath = pathToOpen
-    try
-      if fs.statSync(pathToOpen).isFile()
-        loadSettings.initialPath = path.dirname(pathToOpen)
+    if fs.statSyncNoException(pathToOpen).isFile?()
+      loadSettings.initialPath = path.dirname(pathToOpen)
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
+    @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
-    paths = ['exports', 'node_modules']
-    paths = paths.map (relativePath) -> path.resolve(resourcePath, relativePath)
-    process.env['NODE_PATH'] = paths.join path.delimiter
+    process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
@@ -57,6 +53,8 @@ class AtomWindow
       false
     else if pathToCheck is initialPath
       true
+    else if fs.statSyncNoException(pathToCheck).isDirectory?()
+      false
     else if pathToCheck.indexOf(path.join(initialPath, path.sep)) is 0
       true
     else
@@ -85,7 +83,7 @@ class AtomWindow
         when 1 then @browserWindow.restart()
 
     @browserWindow.on 'context-menu', (menuTemplate) =>
-      new ContextMenu(menuTemplate)
+      new ContextMenu(menuTemplate, @browserWindow)
 
     if @isSpec
       # Spec window's web view should always have focus
@@ -96,20 +94,28 @@ class AtomWindow
     if @loaded
       @focus()
       @sendCommand('window:open-path', {pathToOpen, initialLine})
+      @sendCommand('window:update-available', global.atomApplication.getUpdateVersion()) if global.atomApplication.getUpdateVersion()
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
   sendCommand: (command, args...) ->
-    if @handlesAtomCommands()
-      @sendAtomCommand(command, args...)
+    if @isSpecWindow()
+      unless @sendCommandToFirstResponder(command)
+        switch command
+          when 'window:reload' then @reload()
+          when 'window:toggle-dev-tools' then @toggleDevTools()
+          when 'window:close' then @close()
+    else if @isWebViewFocused()
+      @sendCommandToBrowserWindow(command, args...)
     else
-      @sendNativeCommand(command)
+      unless @sendCommandToFirstResponder(command)
+        @sendCommandToBrowserWindow(command, args...)
 
-  sendAtomCommand: (command, args...) ->
+  sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
 
-  sendNativeCommand: (command) ->
+  sendCommandToFirstResponder: (command) ->
     switch command
       when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
       when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
@@ -117,13 +123,14 @@ class AtomWindow
       when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
       when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
       when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
-      when 'window:reload' then @reload()
-      when 'window:toggle-dev-tools' then @toggleDevTools()
-      when 'window:close' then @close()
+      else return false
+    true
 
   close: -> @browserWindow.close()
 
   focus: -> @browserWindow.focus()
+
+  getSize: -> @browserWindow.getSize()
 
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()

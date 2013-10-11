@@ -15,8 +15,11 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
-  firstScreenRow: Infinity
-  lastScreenRow: -1
+  firstScreenRow: null
+  lastScreenRow: null
+
+  initialize: ->
+    @elementBuilder = document.createElement('div')
 
   afterAttach: (onDom) ->
     return if @attached or not onDom
@@ -62,45 +65,156 @@ class Gutter extends View
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
+  # Get all the line-number divs.
+  #
+  # Returns a list of {HTMLElement}s.
+  getLineNumberElements: ->
+    @lineNumbers[0].children
+
+  # Get all the line-number divs.
+  #
+  # Returns a list of {HTMLElement}s.
+  getLineNumberElementsForClass: (klass) ->
+    @lineNumbers[0].getElementsByClassName(klass)
+
+  # Get a single line-number div.
+  #
+  # * bufferRow: 0 based line number
+  #
+  # Returns a list of {HTMLElement}s that correspond to the bufferRow. More than
+  # one in the list indicates a wrapped line.
+  getLineNumberElement: (bufferRow) ->
+    @getLineNumberElementsForClass("line-number-#{bufferRow}")
+
+  # Add a class to all line-number divs.
+  #
+  # * klass: string class name
+  #
+  # Returns true if the class was added to any lines
+  addClassToAllLines: (klass)->
+    elements = @getLineNumberElements()
+    el.classList.add(klass) for el in elements
+    !!elements.length
+
+  # Remove a class from all line-number divs.
+  #
+  # * klass: string class name. Can only be one class name. i.e. 'my-class'
+  #
+  # Returns true if the class was removed from any lines
+  removeClassFromAllLines: (klass)->
+    # This is faster than calling $.removeClass on all lines, and faster than
+    # making a new array and iterating through it.
+    elements = @getLineNumberElementsForClass(klass)
+    willRemoveClasses = !!elements.length
+    elements[0].classList.remove(klass) while elements.length > 0
+    willRemoveClasses
+
+  # Add a class to a single line-number div
+  #
+  # * bufferRow: 0 based line number
+  # * klass: string class name
+  #
+  # Returns true if there were lines the class was added to
+  addClassToLine: (bufferRow, klass)->
+    elements = @getLineNumberElement(bufferRow)
+    el.classList.add(klass) for el in elements
+    !!elements.length
+
+  # Remove a class from a single line-number div
+  #
+  # * bufferRow: 0 based line number
+  # * klass: string class name
+  #
+  # Returns true if there were lines the class was removed from
+  removeClassFromLine: (bufferRow, klass)->
+    classesRemoved = false
+    elements = @getLineNumberElement(bufferRow)
+    for el in elements
+      hasClass = el.classList.contains(klass)
+      classesRemoved |= hasClass
+      el.classList.remove(klass) if hasClass
+    classesRemoved
+
   ### Internal ###
 
-  updateLineNumbers: (changes, renderFrom, renderTo) ->
-    if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
-      performUpdate = true
-    else if @getEditor().getLastScreenRow() < @lastScreenRow
-      performUpdate = true
+  updateLineNumbers: (changes, startScreenRow, endScreenRow) ->
+    # Check if we have something already rendered that overlaps the requested range
+    updateAllLines = not (startScreenRow? and endScreenRow?)
+    updateAllLines |= endScreenRow <= @firstScreenRow or startScreenRow >= @lastScreenRow
+
+    for change in changes
+      # When there is a change to the bufferRow -> screenRow map (i.e. a fold),
+      # then rerender everything.
+      if (change.screenDelta or change.bufferDelta) and change.screenDelta != change.bufferDelta
+        updateAllLines = true
+        break
+
+    if updateAllLines
+      @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
     else
-      for change in changes
-        if change.screenDelta or change.bufferDelta
-          performUpdate = true
-          break
+      # When scrolling or adding/removing lines, we just add/remove lines from the ends.
+      if startScreenRow < @firstScreenRow
+        @prependLineElements(@buildLineElements(startScreenRow, @firstScreenRow-1))
+      else if startScreenRow != @firstScreenRow
+        @removeLineElements(startScreenRow - @firstScreenRow)
 
-    @renderLineNumbers(renderFrom, renderTo) if performUpdate
-
-  renderLineNumbers: (startScreenRow, endScreenRow) ->
-    editor = @getEditor()
-    maxDigits = editor.getLineCount().toString().length
-    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
-
-    cursorScreenRow = editor.getCursorScreenPosition().row
-    @lineNumbers[0].innerHTML = $$$ ->
-      for row in rows
-        if row == lastScreenRow
-          rowValue = '•'
-        else
-          rowValue = (row + 1).toString()
-        classes = ['line-number']
-        classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div linenumber: row, class: classes.join(' '), =>
-          rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
-          @raw("#{rowValuePadding}#{rowValue}")
-
-        lastScreenRow = row
+      if endScreenRow > @lastScreenRow
+        @appendLineElements(@buildLineElements(@lastScreenRow+1, endScreenRow))
+      else if endScreenRow != @lastScreenRow
+        @removeLineElements(endScreenRow - @lastScreenRow)
 
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
+
+  prependLineElements: (lineElements) ->
+    anchor = @lineNumbers[0].children[0]
+    return appendLineElements(lineElements) unless anchor?
+    @lineNumbers[0].insertBefore(lineElements[0], anchor) while lineElements.length > 0
+    null # defeat coffeescript array return
+
+  appendLineElements: (lineElements) ->
+    @lineNumbers[0].appendChild(lineElements[0]) while lineElements.length > 0
+    null # defeat coffeescript array return
+
+  removeLineElements: (numberOfElements) ->
+    children = @getLineNumberElements()
+
+    # children is a live NodeList, so remove from the desired end {numberOfElements} times
+    if numberOfElements < 0
+      @lineNumbers[0].removeChild(children[children.length-1]) while numberOfElements++
+    else if numberOfElements > 0
+      @lineNumbers[0].removeChild(children[0]) while numberOfElements--
+
+    null # defeat coffeescript array return
+
+  buildLineElements: (startScreenRow, endScreenRow) ->
+    @elementBuilder.innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
+    @elementBuilder.children
+
+  buildLineElementsHtml: (startScreenRow, endScreenRow) =>
+    editor = @getEditor()
+    maxDigits = editor.getLineCount().toString().length
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
+
+    html = ''
+    for row in rows
+      if row == lastScreenRow
+        rowValue = '•'
+      else
+        rowValue = (row + 1).toString()
+
+      classes = "line-number line-number-#{row}"
+      classes += ' fold' if editor.isFoldedAtBufferRow(row)
+
+      rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
+
+      html += """<div class="#{classes}">#{rowValuePadding}#{rowValue}</div>"""
+
+      lastScreenRow = row
+
+    html
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

@@ -1,6 +1,7 @@
 fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
+Q = require 'q'
 
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
@@ -165,6 +166,8 @@ class Project
   #
   # Returns a String.
   resolve: (uri) ->
+    return unless uri
+
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
@@ -187,9 +190,21 @@ class Project
   # * editSessionOptions:
   #   Options that you can pass to the {EditSession} constructor
   #
-  # Returns an {EditSession}.
+  # Returns a promise that resolves to an {EditSession}.
+  openAsync: (filePath, options={}) ->
+    filePath = @resolve(filePath)
+    resource = null
+    _.find @openers, (opener) -> resource = opener(filePath, options)
+
+    if resource
+      Q(resource)
+    else
+      @bufferForPathAsync(filePath).then (buffer) =>
+        editSession = @buildEditSessionForBuffer(buffer, options)
+
+  # Private: Only be used in specs
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath) if filePath?
+    filePath = @resolve(filePath)
     for opener in @openers
       return resource if resource = opener(filePath, options)
 
@@ -217,6 +232,15 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
+  # Private: Only to be used in specs
+  bufferForPath: (filePath, text) ->
+    absoluteFilePath = @resolve(filePath)
+
+    if filePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+
+    existingBuffer ? @buildBuffer(absoluteFilePath, text)
+
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
@@ -225,31 +249,36 @@ class Project
   # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
   # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
-  # Returns the {TextBuffer}.
-  bufferForPath: (filePath, text) ->
-    if filePath?
-      filePath = @resolve(filePath)
-      if filePath
-        buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-        buffer or @buildBuffer(filePath, text)
-    else
-      @buildBuffer(null, text)
+  # Returns a promise that resolves to the {TextBuffer}.
+  bufferForPathAsync: (filePath, text) ->
+    absoluteFilePath = @resolve(filePath)
+    if absoluteFilePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+
+    Q(existingBuffer ? @buildBufferAsync(absoluteFilePath, text))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Private: Given a file path, this sets its {TextBuffer}.
-  #
-  # filePath - A {String} representing a path
-  # text - The {String} text to use as a buffer
-  #
-  # Returns the {TextBuffer}.
-  buildBuffer: (filePath, initialText) ->
-    filePath = @resolve(filePath) if filePath?
-    buffer = new TextBuffer({project: this, filePath, initialText})
+  # Private: DEPRECATED
+  buildBuffer: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.load()
     @addBuffer(buffer)
     buffer
+
+  # Private: Given a file path, this sets its {TextBuffer}.
+  #
+  # absoluteFilePath - A {String} representing a path
+  # text - The {String} text to use as a buffer
+  #
+  # Returns a promise that resolves to the {TextBuffer}.
+  buildBufferAsync: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.loadAsync().then (buffer) =>
+      @addBuffer(buffer)
+      buffer
 
   # Private:
   addBuffer: (buffer, options={}) ->
@@ -301,6 +330,10 @@ class Project
 
     task.on 'scan:result-found', (result) =>
       iterator(result)
+
+    if _.isFunction(options.onPathsSearched)
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+        options.onPathsSearched(numberOfPathsSearched)
 
     deferred
 

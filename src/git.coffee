@@ -44,6 +44,7 @@ class Git
   path: null
   statuses: null
   upstream: null
+  branch: null
   statusTask: null
 
   # Private: Creates a new `Git` object.
@@ -142,6 +143,12 @@ class Git
   # Public: Determine if the given path is new.
   isPathNew: (path) -> @isStatusNew(@getPathStatus(path))
 
+  # Public: Is the project at the root of this repository?
+  #
+  # Returns true if at the root, false if in a subfolder of the repository.
+  isProjectAtRoot: ->
+    @projectAtRoot ?= project.relativize(@getWorkingDirectory()) is ''
+
   # Public: Makes a path relative to the repository's working directory.
   relativize: (path) -> @getRepo().relativize(path)
 
@@ -170,6 +177,15 @@ class Git
     headCheckedOut = @getRepo().checkoutHead(@relativize(path))
     @getPathStatus(path) if headCheckedOut
     headCheckedOut
+
+  # Public: Checks out a branch in your repository.
+  #
+  # reference - The {String} reference to checkout
+  # create - A {Boolean} value which, if `true` creates the new reference if it doesn't exist.
+  #
+  # Returns a {Boolean} that's `true` if the method was successful.
+  checkoutReference: (reference, create) ->
+    @getRepo().checkoutReference(reference, create)
 
   # Public: Retrieves the number of lines added and removed to a path.
   #
@@ -239,6 +255,12 @@ class Git
   # Public: ?
   getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
 
+  # Public: Gets all the local and remote references.
+  #
+  # Returns an object with three keys: `heads`, `remotes`, and `tags`. Each key
+  # can be an array of strings containing the reference names.
+  getReferences: -> @getRepo().getReferences()
+
   # Public: ?
   getAheadBehindCount: (reference) -> @getRepo().getAheadBehindCount(reference)
 
@@ -247,8 +269,9 @@ class Git
 
   # Private:
   refreshStatus: ->
-    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)
+    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream, branch}) =>
+      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream) and _.isEqual(branch, @branch)
       @statuses = statuses
       @upstream = upstream
+      @branch = branch
       @trigger 'statuses-changed' unless statusesUnchanged

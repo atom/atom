@@ -1,5 +1,5 @@
+Q = require 'q'
 EventEmitter = require './event-emitter'
-fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
@@ -23,9 +23,7 @@ class File
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
-    try
-      if fs.statSync(@path).isDirectorySync()
-        throw new Error("#{@path} is a directory")
+    throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
 
   # Private: Sets the path for the file.
   setPath: (@path) ->
@@ -44,20 +42,47 @@ class File
     fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
-  # Public: Reads the contents of the file.
-  #
-  # * flushCache:
-  #   A Boolean indicating whether to require a direct read or if a cached
-  #   copy is acceptable.
-  #
-  # Returns a String.
-  read: (flushCache)->
+  # Private: Deprecated
+  read: (flushCache) ->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
       @cachedContents = fsUtils.read(@getPath())
     else
       @cachedContents
+
+  # Public: Reads the contents of the file.
+  #
+  # * flushCache:
+  #   A Boolean indicating whether to require a direct read or if a cached
+  #   copy is acceptable.
+  #
+  # Returns a promise that resovles to a String.
+  readAsync: (flushCache) ->
+    if not @exists()
+      promise = Q(null)
+    else if not @cachedContents? or flushCache
+      deferred = Q.defer()
+      promise = deferred.promise
+
+      content = []
+      bytesRead = 0
+      readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
+      readStream.on 'data', (chunk) ->
+        content.push(chunk)
+        bytesRead += chunk.length
+        deferred.notify(bytesRead)
+
+      readStream.on 'end', ->
+        deferred.resolve(content.join())
+
+      readStream.on 'error', (error) ->
+        deferred.reject(error)
+    else
+      promise = Q(@cachedContents)
+
+    promise.then (contents) ->
+      @cachedContents = contents
 
   # Public: Returns whether a file exists.
   exists: ->

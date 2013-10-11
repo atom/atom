@@ -7,58 +7,53 @@ path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
 
-configDirPath = fsUtils.absolute("~/.atom")
-nodeModulesDirPath = path.join(resourcePath, "node_modules")
-bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
-userPackagesDirPath = path.join(configDirPath, "packages")
-userPackageDirPaths = [userPackagesDirPath]
-userPackageDirPaths.unshift(path.join(configDirPath, "dev", "packages")) if atom.getLoadSettings().devMode
-userStoragePath = path.join(configDirPath, "storage")
-
 # Public: Used to access all of Atom's configuration details.
 #
 # A global instance of this class is available to all plugins which can be
-# referenced using `global.config`
+# referenced using `atom.config`
 #
-# ### Best practices ###
+# ### Best practices
 #
 # * Create your own root keypath using your package's name.
 # * Don't depend on (or write to) configuration keys outside of your keypath.
 #
-# ### Example ###
+# ### Example
 #
 # ```coffeescript
-# global.config.set('myplugin.key', 'value')
-# global.observe 'myplugin.key', ->
-#   console.log 'My configuration changed:', global.config.get('myplugin.key')
+# atom.config.set('myplugin.key', 'value')
+# atom.config.observe 'myplugin.key', ->
+#   console.log 'My configuration changed:', atom.config.get('myplugin.key')
 # ```
 module.exports =
 class Config
   _.extend @prototype, EventEmitter
 
-  configDirPath: configDirPath
-  bundledPackageDirPaths: [nodeModulesDirPath]
-  bundledKeymapsDirPath: bundledKeymapsDirPath
-  nodeModulesDirPath: nodeModulesDirPath
-  packageDirPaths: _.clone(userPackageDirPaths)
-  userPackageDirPaths: userPackageDirPaths
-  userStoragePath: userStoragePath
-  lessSearchPaths: [
-    path.join(resourcePath, 'static', 'variables')
-    path.join(resourcePath, 'static')
-  ]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
 
   # Private: Created during initialization, available as `global.config`
-  constructor: ->
+  constructor: ({@configDirPath, @resourcePath}={}) ->
+    @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
+    @bundledMenusDirPath = path.join(resourcePath, "menus")
+    @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
+    @bundledPackageDirPaths = [@nodeModulesDirPath]
+    @lessSearchPaths = [
+      path.join(@resourcePath, 'static', 'variables')
+      path.join(@resourcePath, 'static')
+    ]
+    @packageDirPaths = [path.join(@configDirPath, "packages")]
+    if atom.getLoadSettings().devMode
+      @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
+    @userPackageDirPaths = _.clone(@packageDirPaths)
+    @userStoragePath = path.join(@configDirPath, "storage")
+
     @defaultSettings =
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
     @settings = {}
-    @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(configDirPath, 'config.cson')
+    @configFilePath = fsUtils.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
   # Private:
   initializeConfigDirectory: (done) ->
@@ -70,7 +65,7 @@ class Config
       fsUtils.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 
-    templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
+    templateConfigDirPath = fsUtils.resolve(@resourcePath, 'dot-atom')
     onConfigDirFile = (sourcePath) =>
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)

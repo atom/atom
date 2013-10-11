@@ -14,6 +14,10 @@ dialog = require 'dialog'
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
+process.on 'uncaughtException', (error={}) ->
+  nslog(error.message) if error.message?
+  nslog(error.stack) if error.stack?
+
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
 
@@ -46,13 +50,10 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
     require('coffee-script')
     if args.devMode
-      require(path.join(args.resourcePath, 'src', 'coffee-cache'))
-      module.globalPaths.push(path.join(args.resourcePath, 'src'))
+      require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
+      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     else
-      appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
-      module.globalPaths.push(appSrcPath)
-
-    AtomApplication = require 'atom-application'
+      AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
     console.log("App load time: #{new Date().getTime() - startTime}ms")
@@ -76,11 +77,12 @@ parseCommandLine = ->
     Usage: atom [options] [file ...]
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
+  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
-  options.alias('t', 'test').boolean('t').describe('t', 'Run the Atom specs and exit with error code on failures.')
+  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which specs are loaded (default: Atom\'s spec directory).')
+  options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
-  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
 
@@ -97,6 +99,7 @@ parseCommandLine = ->
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
+  specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
 
@@ -110,6 +113,6 @@ parseCommandLine = ->
     fs.statSync resourcePath
   catch e
     devMode = false
-    resourcePath = path.dirname(__dirname)
+    resourcePath = path.dirname(path.dirname(__dirname))
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory}

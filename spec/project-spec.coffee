@@ -40,12 +40,12 @@ describe "Project", ->
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
+      tempFile = temp.openSync().path
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
       editSession = project.open()
-      editSession.saveAs('/tmp/atom-test-save-sets-project-path')
-      expect(project.getPath()).toBe '/tmp'
-      fs.remove('/tmp/atom-test-save-sets-project-path')
+      editSession.saveAs(tempFile)
+      expect(project.getPath()).toBe path.dirname(tempFile)
 
   describe "when an edit session is deserialized", ->
     it "emits an 'edit-session-created' event and stores the edit session", ->
@@ -118,6 +118,95 @@ describe "Project", ->
         expect(project.open(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
         expect(project.open("bar://baz")).toEqual { bar: "bar://baz" }
 
+  describe ".openAsync(path)", ->
+    [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
+
+    beforeEach ->
+      absolutePath = require.resolve('./fixtures/dir/a')
+      newBufferHandler = jasmine.createSpy('newBufferHandler')
+      project.on 'buffer-created', newBufferHandler
+      newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
+      project.on 'edit-session-created', newEditSessionHandler
+
+      fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
+      barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
+      project.registerOpener(fooOpener)
+      project.registerOpener(barOpener)
+
+    afterEach ->
+      project.unregisterOpener(fooOpener)
+      project.unregisterOpener(barOpener)
+
+    describe "when passed a path that doesn't match a custom opener", ->
+      describe "when given an absolute path that isn't currently open", ->
+        it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.openAsync(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when given a relative path that isn't currently opened", ->
+        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.openAsync(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when passed the path to a buffer that is currently opened", ->
+        it "returns a new edit session containing currently opened buffer and emits a 'edit-session-created' event", ->
+          editSession = null
+          waitsForPromise ->
+            project.openAsync(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            newBufferHandler.reset()
+            expect(project.open(absolutePath).buffer).toBe editSession.buffer
+            expect(project.open('a').buffer).toBe editSession.buffer
+            expect(newBufferHandler).not.toHaveBeenCalled()
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when not passed a path", ->
+        it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.openAsync().then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBeUndefined()
+            expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+    describe "when passed a path that matches a custom opener", ->
+      it "returns the resource returned by the custom opener", ->
+        waitsForPromise ->
+          pathToOpen = project.resolve('a.foo')
+          project.openAsync(pathToOpen, hey: "there").then (item) ->
+            expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
+
+        waitsForPromise ->
+          project.openAsync("bar://baz").then (item) ->
+            expect(item).toEqual { bar: "bar://baz" }
+
+    it "returns number of read bytes as progress indicator", ->
+      filePath = project.resolve 'a'
+      totalBytes = 0
+      promise = project.openAsync(filePath)
+      promise.progress (bytesRead) -> totalBytes = bytesRead
+
+      waitsForPromise ->
+        promise
+
+      runs ->
+        expect(totalBytes).toBe fs.statSync(filePath).size
+
   describe ".bufferForPath(path)", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
@@ -131,6 +220,34 @@ describe "Project", ->
       it "creates a new buffer if the previous buffer was destroyed", ->
         buffer = project.bufferForPath("a").retain().release()
         expect(project.bufferForPath("a").retain().release()).not.toBe buffer
+
+  describe ".bufferForPathAsync(path)", ->
+    [buffer] = []
+    beforeEach ->
+      waitsForPromise ->
+        project.bufferForPathAsync("a").then (o) ->
+          buffer = o
+          buffer.retain()
+
+    afterEach ->
+      buffer.release()
+
+    describe "when opening a previously opened path", ->
+      it "does not create a new buffer", ->
+        waitsForPromise ->
+          project.bufferForPathAsync("a").then (anotherBuffer) ->
+            expect(anotherBuffer).toBe buffer
+
+        waitsForPromise ->
+          project.bufferForPathAsync("b").then (anotherBuffer) ->
+            expect(anotherBuffer).not.toBe buffer
+
+      it "creates a new buffer if the previous buffer was destroyed", ->
+        buffer.release()
+
+        waitsForPromise ->
+          project.bufferForPathAsync("b").then (anotherBuffer) ->
+            expect(anotherBuffer).not.toBe buffer
 
   describe ".resolve(uri)", ->
     describe "when passed an absolute or relative path", ->
@@ -388,7 +505,7 @@ describe "Project", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        projectPath = '/tmp/atom-tests/folder-with-dot-file'
+        projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
         fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)

@@ -1,16 +1,8 @@
-fsUtils = require './fs-utils'
 path = require 'path'
-telepath = require 'telepath'
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
-remote = require 'remote'
 ipc = require 'ipc'
 WindowEventHandler = require './window-event-handler'
-
-deserializers = {}
-deferredDeserializers = {}
-defaultWindowDimensions = {width: 800, height: 600}
-lessCache = null
 
 ### Internal ###
 
@@ -28,19 +20,14 @@ displayWindow = ->
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
-  window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
-
-  Config = require './config'
-  Syntax = require './syntax'
-  Pasteboard = require './pasteboard'
-  Keymap = require './keymap'
-
-  window.rootViewParentSelector = 'body'
-  window.config = new Config
-  window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
-  window.pasteboard = new Pasteboard
-  window.keymap = new Keymap()
-
+  window.resourcePath = atom.getLoadSettings().resourcePath
+  atom.initialize()
+  #TODO remove once all packages use the atom global
+  window.config = atom.config
+  window.syntax = atom.syntax
+  window.pasteboard = atom.pasteboard
+  window.keymap = atom.keymap
+  window.site = atom.site
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
@@ -50,8 +37,8 @@ window.setUpEnvironment = (windowMode) ->
 # This should only be called after setUpEnvironment() has been called.
 window.setUpDefaultEvents = ->
   windowEventHandler = new WindowEventHandler
-  keymap.loadBundledKeymaps()
-  ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
+  atom.keymap.loadBundledKeymaps()
+  atom.menu.update()
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
@@ -60,16 +47,16 @@ window.startEditorWindow = ->
 
   windowEventHandler = new WindowEventHandler
   restoreDimensions()
-  config.load()
-  keymap.loadBundledKeymaps()
-  atom.loadBaseStylesheets()
-  atom.loadPackages()
-  atom.loadThemes()
+  atom.config.load()
+  atom.keymap.loadBundledKeymaps()
+  atom.themes.loadBaseStylesheets()
+  atom.packages.loadPackages()
+  atom.themes.load()
   deserializeEditorWindow()
-  atom.activatePackages()
-  keymap.loadUserKeymaps()
+  atom.packages.activatePackages()
+  atom.keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
+  atom.menu.update()
   $(window).on 'unload', ->
     $(document.body).hide()
     unloadEditorWindow()
@@ -78,189 +65,67 @@ window.startEditorWindow = ->
   displayWindow()
 
 window.unloadEditorWindow = ->
-  return if not project and not rootView
+  return if not atom.project and not atom.rootView
   windowState = atom.getWindowState()
-  windowState.set('project', project.serialize())
-  windowState.set('syntax', syntax.serialize())
-  windowState.set('rootView', rootView.serialize())
-  atom.deactivatePackages()
-  windowState.set('packageStates', atom.packageStates)
+  windowState.set('project', atom.project.serialize())
+  windowState.set('syntax', atom.syntax.serialize())
+  windowState.set('rootView', atom.rootView.serialize())
+  atom.packages.deactivatePackages()
+  windowState.set('packageStates', atom.packages.packageStates)
   atom.saveWindowState()
-  rootView.remove()
-  project.destroy()
+  atom.rootView.remove()
+  atom.project.destroy()
   windowEventHandler?.unsubscribe()
-  lessCache?.destroy()
   window.rootView = null
   window.project = null
 
-window.installAtomCommand = (callback) ->
+installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
   require('./command-installer').install(commandPath, callback)
 
-window.installApmCommand = (callback) ->
+installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('./command-installer').install(commandPath, callback)
 
-window.onDrop = (e) ->
-  e.preventDefault()
-  e.stopPropagation()
-  pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
-  atom.open({pathsToOpen}) if pathsToOpen.length > 0
-
 window.deserializeEditorWindow = ->
-  RootView = require './root-view'
-  Project = require './project'
+  atom.deserializePackageStates()
+  atom.deserializeProject()
+  window.project = atom.project
+  atom.deserializeRootView()
+  window.rootView = atom.rootView
 
-  windowState = atom.getWindowState()
+window.getDimensions = -> atom.getDimensions()
 
-  atom.packageStates = windowState.getObject('packageStates') ? {}
-  windowState.remove('packageStates')
+window.setDimensions = (args...) -> atom.setDimensions(args...)
 
-  window.project = deserialize(windowState.get('project'))
-  unless window.project?
-    window.project = new Project(atom.getLoadSettings().initialPath)
-    windowState.set('project', window.project.getState())
-
-  window.rootView = deserialize(windowState.get('rootView'))
-  unless window.rootView?
-    window.rootView = new RootView()
-    windowState.set('rootView', window.rootView.getState())
-
-  $(rootViewParentSelector).append(rootView)
-
-  project.on 'path-changed', ->
-    projectPath = project.getPath()
-    atom.getLoadSettings().initialPath = projectPath
-
-window.stylesheetElementForId = (id) ->
-  $("""head style[id="#{id}"]""")
-
-window.resolveStylesheet = (stylesheetPath) ->
-  if path.extname(stylesheetPath).length > 0
-    fsUtils.resolveOnLoadPath(stylesheetPath)
-  else
-    fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
-
-# Public: resolves and applies the stylesheet specified by the path.
-#
-# * stylesheetPath: String. Can be an absolute path or the name of a CSS or
-#   LESS file in the stylesheets path.
-#
-# Returns the absolute path to the stylesheet
-window.requireStylesheet = (stylesheetPath) ->
-  if fullPath = window.resolveStylesheet(stylesheetPath)
-    content = window.loadStylesheet(fullPath)
-    window.applyStylesheet(fullPath, content)
-  else
-    throw new Error("Could not find a file at path '#{stylesheetPath}'")
-
-  fullPath
-
-window.loadStylesheet = (stylesheetPath) ->
-  if path.extname(stylesheetPath) is '.less'
-    loadLessStylesheet(stylesheetPath)
-  else
-    fsUtils.read(stylesheetPath)
-
-window.loadLessStylesheet = (lessStylesheetPath) ->
-  unless lessCache?
-    LessCompileCache = require './less-compile-cache'
-    lessCache = new LessCompileCache()
-
-  try
-    lessCache.read(lessStylesheetPath)
-  catch e
-    console.error """
-      Error compiling less stylesheet: #{lessStylesheetPath}
-      Line number: #{e.line}
-      #{e.message}
-    """
-
-window.removeStylesheet = (stylesheetPath) ->
-  unless fullPath = window.resolveStylesheet(stylesheetPath)
-    throw new Error("Could not find a file at path '#{stylesheetPath}'")
-  window.stylesheetElementForId(fullPath).remove()
-
-window.applyStylesheet = (id, text, ttype = 'bundled') ->
-  styleElement = window.stylesheetElementForId(id)
-  if styleElement.length
-    styleElement.text(text)
-  else
-    if $("head style.#{ttype}").length
-      $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
-    else
-      $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
-
-window.getDimensions = ->
-  browserWindow = remote.getCurrentWindow()
-  [x, y] = browserWindow.getPosition()
-  [width, height] = browserWindow.getSize()
-  {x, y, width, height}
-
-window.setDimensions = ({x, y, width, height}) ->
-  browserWindow = remote.getCurrentWindow()
-  browserWindow.setSize(width, height)
-  if x? and y?
-    browserWindow.setPosition(x, y)
-  else
-    browserWindow.center()
-
-window.restoreDimensions = ->
-  dimensions = atom.getWindowState().getObject('dimensions')
-  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
-  window.setDimensions(dimensions)
-  $(window).on 'unload', -> atom.getWindowState().set('dimensions', window.getDimensions())
+window.restoreDimensions = (args...) -> atom.restoreDimensions(args...)
 
 window.onerror = ->
   atom.openDevTools()
 
 window.registerDeserializers = (args...) ->
-  registerDeserializer(arg) for arg in args
+  atom.deserializers.add(args...)
+window.registerDeserializer = (args...) ->
+  atom.deserializers.add(args...)
+window.registerDeferredDeserializer = (args...) ->
+  atom.deserializers.addDeferred(args...)
+window.unregisterDeserializer = (args...) ->
+  atom.deserializers.remove(args...)
+window.deserialize = (args...) ->
+  atom.deserializers.deserialize(args...)
+window.getDeserializer = (args...) ->
+  atom.deserializers.get(args...)
+window.requireWithGlobals = (args...) ->
+  atom.requireWithGlobals(args...)
 
-window.registerDeserializer = (klass) ->
-  deserializers[klass.name] = klass
-
-window.registerDeferredDeserializer = (name, fn) ->
-  deferredDeserializers[name] = fn
-
-window.unregisterDeserializer = (klass) ->
-  delete deserializers[klass.name]
-
-window.deserialize = (state, params) ->
-  return unless state?
-  if deserializer = getDeserializer(state)
-    stateVersion = state.get?('version') ? state.version
-    return if deserializer.version? and deserializer.version isnt stateVersion
-    if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
-      state = state.toObject()
-    deserializer.deserialize(state, params)
-  else
-    console.warn "No deserializer found for", state
-
-window.getDeserializer = (state) ->
-  return unless state?
-
-  name = state.get?('deserializer') ? state.deserializer
-  if deferredDeserializers[name]
-    deferredDeserializers[name]()
-    delete deferredDeserializers[name]
-
-  deserializers[name]
-
-window.requireWithGlobals = (id, globals={}) ->
-  existingGlobals = {}
-  for key, value of globals
-    existingGlobals[key] = window[key]
-    window[key] = value
-
-  require(id)
-
-  for key, value of existingGlobals
-    if value is undefined
-      delete window[key]
-    else
-      window[key] = value
-
+# Public: Measure how long a function takes to run.
+#
+# * description:
+#   A String description that will be logged to the console.
+# * fn:
+#   A Function to measure the duration of.
+#
+# Returns the value returned by the given function.
 window.measure = (description, fn) ->
   start = new Date().getTime()
   value = fn()
@@ -268,6 +133,15 @@ window.measure = (description, fn) ->
   console.log description, result
   value
 
+# Public: Create a dev tools profile for a function.
+#
+# * description:
+#   A String descrption that will be available in the Profiles tab of the dev
+#   tools.
+# * fn:
+#   A Function to profile.
+#
+# Return the value returned by the given function.
 window.profile = (description, fn) ->
   measure description, ->
     console.profile(description)

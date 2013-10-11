@@ -25,14 +25,14 @@ fsExtensions =
 
   # Returns true if a file or folder at the specified path exists.
   exists: (pathToCheck) ->
-    pathToCheck? and fs.existsSync(pathToCheck)
+    pathToCheck? and fs.statSyncNoException(pathToCheck) isnt false
 
   # Returns true if the specified path is a directory that exists.
   isDirectorySync: (directoryPath) ->
     return false unless directoryPath?.length > 0
-    try
-      fs.statSync(directoryPath).isDirectory()
-    catch e
+    if stat = fs.statSyncNoException(directoryPath)
+      stat.isDirectory()
+    else
       false
 
   isDirectory: (directoryPath, done) ->
@@ -50,17 +50,17 @@ fsExtensions =
   # Returns true if the specified path is a regular file that exists.
   isFileSync: (filePath) ->
     return false unless filePath?.length > 0
-    try
-      fs.statSync(filePath).isFile()
-    catch e
+    if stat = fs.statSyncNoException(filePath)
+      stat.isFile()
+    else
       false
 
   # Returns true if the specified path is executable.
   isExecutableSync: (pathToCheck) ->
     return false unless pathToCheck?.length > 0
-    try
-      (fs.statSync(pathToCheck).mode & 0o777 & 1) isnt 0
-    catch e
+    if stat = fs.statSyncNoException(pathToCheck)
+      (stat.mode & 0o777 & 1) isnt 0
+    else
       false
 
   # Returns an array with the paths of the files and folders
@@ -156,8 +156,8 @@ fsExtensions =
         childPath = path.join(directoryPath, file)
         stats = fs.lstatSync(childPath)
         if stats.isSymbolicLink()
-          try
-            stats = fs.statSync(childPath)
+          if linkStats = fs.statSyncNoException(childPath)
+            stats = linkStats
         if stats.isDirectory()
           traverse(childPath, onFile, onDirectory) if onDirectory(childPath)
         else if stats.isFile()

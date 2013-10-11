@@ -15,8 +15,9 @@ getCachePath = (coffee) ->
   path.join(coffeeCacheDir, "#{digest}.coffee")
 
 getCachedJavaScript = (cachePath) ->
-  try
-    fs.readFileSync(cachePath, 'utf8') if fs.statSync(cachePath).isFile()
+  if stat = fs.statSyncNoException(cachePath)
+    try
+      fs.readFileSync(cachePath, 'utf8') if stat.isFile()
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
   js = CoffeeScript.compile(coffee, filename: filePath)
@@ -25,10 +26,16 @@ compileCoffeeScript = (coffee, filePath, cachePath) ->
     fs.writeFileSync(cachePath, js)
   js
 
-require.extensions['.coffee'] = (module, filePath) ->
+requireCoffeeScript = (module, filePath) ->
   coffee = fs.readFileSync(filePath, 'utf8')
   cachePath = getCachePath(coffee)
   js = getCachedJavaScript(cachePath) ? compileCoffeeScript(coffee, filePath, cachePath)
   module._compile(js, filePath)
 
-module.exports = {cacheDir}
+module.exports =
+  cacheDir: cacheDir
+  register: ->
+    Object.defineProperty(require.extensions, '.coffee', {
+      writable: false
+      value: requireCoffeeScript
+    })

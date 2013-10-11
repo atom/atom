@@ -94,43 +94,41 @@ describe "Pane", ->
           expect(editor.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
-        describe "when the view has a setModel method", ->
-          it "recycles the existing view by assigning the selected item to it", ->
-            pane.showItem(editSession1)
-            pane.showItem(editSession2)
-            expect(pane.itemViews.find('.editor').length).toBe 1
-            editor = pane.activeView
-            expect(editor.css('display')).toBe ''
-            expect(editor.activeEditSession).toBe editSession2
+        it "multiple views are created for multiple items", ->
+          pane.showItem(editSession1)
+          pane.showItem(editSession2)
+          expect(pane.itemViews.find('.editor').length).toBe 2
+          editor = pane.activeView
+          expect(editor.css('display')).toBe ''
+          expect(editor.activeEditSession).toBe editSession2
 
-        describe "when the view does not have a setModel method", ->
-          it "creates a new view with the item", ->
-            initialViewCount = pane.itemViews.find('.test-view').length
+        it "creates a new view with the item", ->
+          initialViewCount = pane.itemViews.find('.test-view').length
 
-            model1 =
-              id: 'test-model-1'
-              text: 'Test Model 1'
-              serialize: -> {@id, @text}
-              getViewClass: -> TestView
+          model1 =
+            id: 'test-model-1'
+            text: 'Test Model 1'
+            serialize: -> {@id, @text}
+            getViewClass: -> TestView
 
-            model2 =
-              id: 'test-model-2'
-              text: 'Test Model 2'
-              serialize: -> {@id, @text}
-              getViewClass: -> TestView
+          model2 =
+            id: 'test-model-2'
+            text: 'Test Model 2'
+            serialize: -> {@id, @text}
+            getViewClass: -> TestView
 
-            pane.showItem(model1)
-            pane.showItem(model2)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
+          pane.showItem(model1)
+          pane.showItem(model2)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-            pane.showPreviousItem()
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
+          pane.showPreviousItem()
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-            pane.removeItem(model2)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
+          pane.removeItem(model2)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
 
-            pane.removeItem(model1)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
+          pane.removeItem(model1)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
 
     describe "when showing a view item", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
@@ -237,6 +235,7 @@ describe "Pane", ->
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
+        pane.showItem(editSession1)
         pane.showItem(editSession2)
         pane.removeItem(editSession2)
         expect(pane.itemViews.find('.editor')).toExist()

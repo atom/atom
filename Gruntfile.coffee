@@ -54,6 +54,7 @@ module.exports = (grunt) ->
     glob_to_multiple:
       expand: true
       src: [
+        'menus/*.cson'
         'keymaps/*.cson'
         'static/**/*.cson'
       ]
@@ -87,6 +88,8 @@ module.exports = (grunt) ->
         no_empty_param_list:
           level: 'error'
         max_line_length:
+          level: 'ignore'
+        indentation:
           level: 'ignore'
       src: [
         'dot-atom/**/*.coffee'

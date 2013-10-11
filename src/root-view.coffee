@@ -1,5 +1,7 @@
+fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
+Q = require 'q'
 $ = require './jquery-extensions'
 {$$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
@@ -65,6 +67,8 @@ class RootView extends View
 
   # Private:
   initialize: (state={}) ->
+    @prepend($$ -> @div class: 'dev-mode') if atom.getLoadSettings().devMode
+
     if state instanceof telepath.Document
       @state = state
       panes = deserialize(state.get('panes'))
@@ -77,15 +81,14 @@ class RootView extends View
 
     @panes.replaceWith(panes)
     @panes = panes
+    @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
     project.on 'path-changed', => @updateTitle()
-    @on 'pane:became-active', => @updateTitle()
-    @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
-    @on 'pane:removed', => @updateTitle() unless @getActivePane()
+    @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
     @command 'application:about', -> ipc.sendChannel('command', 'application:about')
@@ -126,7 +129,8 @@ class RootView extends View
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
 
-    _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
+    if @state.get('fullScreen')
+      _.nextTick => atom.setFullScreen(true)
 
   # Private:
   serialize: ->
@@ -160,26 +164,47 @@ class RootView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Public: Opens a given a filepath in Atom.
+  # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # * path: A file path
+  # * filePath: A file path
   # * options
-  #    + initialLine:
-  #      The buffer line number to open to.
+  #   + initialLine: The buffer line number to open to.
   #
-  # Returns the {EditSession} for the file URI.
-  open: (path, options = {}) ->
+  # Returns a promise that resolves to the {EditSession} for the file URI.
+  openAsync: (filePath, options={}) ->
+    filePath = project.resolve(filePath)
+    initialLine = options.initialLine
+    activePane = @getActivePane()
+
+    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
+    promise = project.openAsync(filePath, {initialLine}) if not editSession
+
+    fileSize = 0
+    fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
+
+    Q(editSession ? promise)
+      .then (editSession) =>
+        if not activePane
+          activePane = new Pane(editSession)
+          @panes.setRoot(activePane)
+
+        activePane.showItem(editSession)
+        activePane.focus()
+        editSession
+
+  # Private: DEPRECATED Synchronously Opens a given a filepath in Atom.
+  open: (filePath, options = {}) ->
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
-    path = project.relativize(path)
+    filePath = project.relativize(filePath)
     if activePane = @getActivePane()
-      if path
-        editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
+      if filePath
+        editSession = activePane.itemForUri(filePath) ? project.open(filePath, {initialLine})
       else
         editSession = project.open()
       activePane.showItem(editSession)
     else
-      editSession = project.open(path, {initialLine})
+      editSession = project.open(filePath, {initialLine})
       activePane = new Pane(editSession)
       @panes.setRoot(activePane)
 
@@ -192,7 +217,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle("atom - #{projectPath}")
+        @setTitle(projectPath)
     else
       @setTitle('untitled')
 
@@ -277,5 +302,5 @@ class RootView extends View
   # Private: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
-    project.destroy()
+    project?.destroy()
     super

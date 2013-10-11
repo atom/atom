@@ -1,3 +1,4 @@
+app = require 'app'
 ipc = require 'ipc'
 Menu = require 'menu'
 _ = require 'underscore'
@@ -9,20 +10,22 @@ _ = require 'underscore'
 module.exports =
 class ApplicationMenu
   version: null
-  devMode: null
   menu: null
 
-  constructor: (@version, @devMode) ->
+  constructor: (@version) ->
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
 
   # Public: Updates the entire menu with the given keybindings.
   #
+  # * template:
+  #   The Object which describes the menu to display.
   # * keystrokesByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
   #   the keystrokes.
-  update: (keystrokesByCommand) ->
-    template = @getTemplate(keystrokesByCommand)
+  update: (template, keystrokesByCommand) ->
+    @translateTemplate(template, keystrokesByCommand)
+    @substituteVersion(template)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
 
@@ -32,11 +35,24 @@ class ApplicationMenu
   #   A complete menu configuration object for atom-shell's menu API.
   #
   # Returns an Array of native menu items.
-  allItems: (menu=@menu) ->
+  flattenMenuItems: (menu) ->
     items = []
     for index, item of menu.items or {}
       items.push(item)
-      items = items.concat(@allItems(item.submenu)) if item.submenu
+      items = items.concat(@flattenMenuItems(item.submenu)) if item.submenu
+    items
+
+  # Private: Flattens the given menu template into an single Array.
+  #
+  # * template:
+  #   An object describing the menu item.
+  #
+  # Returns an Array of native menu items.
+  flattenMenuTemplate: (template) ->
+    items = []
+    for item in template
+      items.push(item)
+      items = items.concat(@flattenMenuTemplate(item.submenu)) if item.submenu
     items
 
   # Public: Used to make all window related menu items are active.
@@ -45,8 +61,13 @@ class ApplicationMenu
   #   If true enables all window specific items, if false disables all  window
   #   specific items.
   enableWindowSpecificItems: (enable) ->
-    for item in @allItems()
+    for item in @flattenMenuItems(@menu)
       item.enabled = enable if item.metadata?['windowSpecific']
+
+  # Private: Replaces VERSION with the current version.
+  substituteVersion: (template) ->
+    if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
+      item.label = "Version #{@version}"
 
   # Public: Makes the download menu item visible if available.
   #
@@ -58,10 +79,9 @@ class ApplicationMenu
   # * quitAndUpdateCallback:
   #   Function to call when the install menu item has been clicked.
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
-    downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
-    if downloadUpdateItem
-      downloadUpdateItem.visible = true
-      downloadUpdateItem.click = quitAndUpdateCallback
+    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Install update'))
+      item.visible = true
+      item.click = quitAndUpdateCallback
 
   # Private: Default list of menu items.
   #
@@ -76,82 +96,6 @@ class ApplicationMenu
           { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
     ]
-
-  # Private: The complete list of menu items.
-  #
-  # * keystrokesByCommand:
-  #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
-  #
-  # Returns a complete menu configuration Object for use with atom-shell's
-  #   native menu API.
-  getTemplate: (keystrokesByCommand) ->
-    atomMenu =
-      label: 'Atom'
-      submenu: [
-        { label: 'About Atom', command: 'application:about' }
-        { label: "Version #{@version}", enabled: false }
-        { label: "Install update", command: 'application:install-update', visible: false }
-        { type: 'separator' }
-        { label: 'Preferences...', command: 'application:show-settings' }
-        { label: 'Hide Atom', command: 'application:hide' }
-        { label: 'Hide Others', command: 'application:hide-other-applications' }
-        { label: 'Show All', command: 'application:unhide-all-applications' }
-        { type: 'separator' }
-        { label: 'Run Atom Specs', command: 'application:run-all-specs' }
-        { type: 'separator' }
-        { label: 'Quit', command: 'application:quit' }
-      ]
-
-    fileMenu =
-      label: 'File'
-      submenu: [
-        { label: 'New Window', command: 'application:new-window' }
-        { label: 'New File', command: 'application:new-file' }
-        { type: 'separator' }
-        { label: 'Open...', command: 'application:open' }
-        { label: 'Open In Dev Mode...', command: 'application:open-dev' }
-        { type: 'separator' }
-        { label: 'Close Window', command: 'window:close' }
-      ]
-
-    editMenu =
-      label: 'Edit'
-      submenu: [
-        { label: 'Undo', command: 'core:undo' }
-        { label: 'Redo', command: 'core:redo' }
-        { type: 'separator' }
-        { label: 'Cut', command: 'core:cut' }
-        { label: 'Copy', command: 'core:copy' }
-        { label: 'Paste', command: 'core:paste' }
-        { label: 'Select All', command: 'core:select-all' }
-      ]
-
-    viewMenu =
-      label: 'View'
-      submenu: [
-        { label: 'Reload', command: 'window:reload' }
-        { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
-        { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
-      ]
-
-    windowMenu =
-      label: 'Window'
-      submenu: [
-        { label: 'Minimize', command: 'application:minimize' }
-        { label: 'Zoom', command: 'application:zoom' }
-        { type: 'separator' }
-        { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
-      ]
-
-    devMenu =
-      label: '\uD83D\uDC80' # Skull emoji
-      submenu: [ { label: 'In Development Mode', enabled: false } ]
-
-    template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    template.push devMenu if @devMode
-
-    @translateTemplate template, keystrokesByCommand
 
   # Private: Combines a menu template with the appropriate keystrokes.
   #
@@ -194,7 +138,7 @@ class ApplicationMenu
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
               .replace(/meta/ig, "Command")
-              .replace(/ctrl/ig, "MacCtrl")
+              .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
 
     keys = modifiers.concat([key.toUpperCase()])

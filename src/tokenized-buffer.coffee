@@ -30,6 +30,8 @@ class TokenizedBuffer
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
+
+      # TODO: This needs to be made async, but should wait until the new Telepath changes land
       @buffer = project.bufferForPath(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState
@@ -99,11 +101,11 @@ class TokenizedBuffer
     @trigger "changed", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if not @visible or @pendingChunk
+    return if not @visible or @pendingChunk or @destroyed
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
-      @tokenizeNextChunk()
+      @tokenizeNextChunk() unless @destroyed
 
   tokenizeNextChunk: ->
     rowsRemaining = @chunkSize
@@ -249,6 +251,7 @@ class TokenizedBuffer
 
   destroy: ->
     @unsubscribe()
+    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

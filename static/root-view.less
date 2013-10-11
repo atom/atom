@@ -37,6 +37,23 @@ h6 {
     -webkit-flex: 1;
     -webkit-flex-flow: column;
   }
+
+  .dev-mode {
+
+    &:before {
+      content: ""; // This is not a space, it is a skull and crossbones
+    }
+
+    padding: @component-icon-padding;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: Wingdings;
+    font-size: 25px;
+    z-index: 1000;
+    opacity: 0.75;
+    color: @text-color-highlight;
+  }
 }
 
 #panes {

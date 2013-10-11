@@ -1,4 +1,9 @@
-require '../src/atom'
+require '../src/window'
+Atom = require '../src/atom'
+atom = new Atom()
+atom.show() unless atom.getLoadSettings().exitWhenDone
+window.atom = atom
+
 {runSpecSuite} = require '../spec/jasmine-helper'
 
 atom.openDevTools()
