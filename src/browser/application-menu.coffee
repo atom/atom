@@ -24,7 +24,8 @@ class ApplicationMenu
   #   An Object where the keys are commands and the values are Arrays containing
   #   the keystrokes.
   update: (template, keystrokesByCommand) ->
-    @translateTemplate template, keystrokesByCommand
+    @translateTemplate(template, keystrokesByCommand)
+    @substituteVersion(template)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
 
@@ -34,11 +35,24 @@ class ApplicationMenu
   #   A complete menu configuration object for atom-shell's menu API.
   #
   # Returns an Array of native menu items.
-  allItems: (menu=@menu) ->
+  flattenMenuItems: (menu) ->
     items = []
     for index, item of menu.items or {}
       items.push(item)
-      items = items.concat(@allItems(item.submenu)) if item.submenu
+      items = items.concat(@flattenMenuItems(item.submenu)) if item.submenu
+    items
+
+  # Private: Flattens the given menu template into an single Array.
+  #
+  # * template:
+  #   An object describing the menu item.
+  #
+  # Returns an Array of native menu items.
+  flattenMenuTemplate: (template) ->
+    items = []
+    for item in template
+      items.push(item)
+      items = items.concat(@flattenMenuTemplate(item.submenu)) if item.submenu
     items
 
   # Public: Used to make all window related menu items are active.
@@ -47,8 +61,13 @@ class ApplicationMenu
   #   If true enables all window specific items, if false disables all  window
   #   specific items.
   enableWindowSpecificItems: (enable) ->
-    for item in @allItems()
+    for item in @flattenMenuItems(@menu)
       item.enabled = enable if item.metadata?['windowSpecific']
+
+  # Private: Replaces VERSION with the current version.
+  substituteVersion: (template) ->
+    if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
+      item.label = "Version #{@version}"
 
   # Public: Makes the download menu item visible if available.
   #
@@ -60,10 +79,9 @@ class ApplicationMenu
   # * quitAndUpdateCallback:
   #   Function to call when the install menu item has been clicked.
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
-    downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
-    if downloadUpdateItem
-      downloadUpdateItem.visible = true
-      downloadUpdateItem.click = quitAndUpdateCallback
+    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Install update'))
+      item.visible = true
+      item.click = quitAndUpdateCallback
 
   # Private: Default list of menu items.
   #
