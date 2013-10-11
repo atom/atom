@@ -15,7 +15,7 @@ module.exports = (grunt) ->
     queue = async.queue (packagePath, callback) ->
       options =
         cmd: apmPath
-        args: ['test', '-p', atomPath]
+        args: ['test', '--path', atomPath]
         opts:
           cwd: packagePath
       grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
