@@ -96,7 +96,7 @@ describe "PaneContainer replication", ->
   # FIXME: We need to get this passing again on master
   xit "replicates splitting of panes containing edit sessions", ->
     env1.run ->
-      pane1a.showItem(project.open('dir/a'))
+      pane1a.showItem(project.openSync('dir/a'))
       pane1a.splitDown()
 
       expect(project.getBuffers().length).toBe 1

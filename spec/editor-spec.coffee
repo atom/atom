@@ -7,7 +7,7 @@ describe "Editor", ->
   beforeEach ->
     atom.activatePackage('text-tmbundle', sync: true)
     atom.activatePackage('javascript-tmbundle', sync: true)
-    editSession = project.open('sample.js')
+    editSession = project.openSync('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
     editor.lineOverdraw = 2
@@ -32,7 +32,7 @@ describe "Editor", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new Editor(editSession: project.open('sample.js'))
+    editorForMeasurement = new Editor(editSession: project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -88,7 +88,7 @@ describe "Editor", ->
     it "triggers an alert", ->
       filePath = "/tmp/atom-changed-file.txt"
       fs.writeSync(filePath, "")
-      editSession = project.open(filePath)
+      editSession = project.openSync(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
 
@@ -114,7 +114,7 @@ describe "Editor", ->
     [newEditSession, newBuffer] = []
 
     beforeEach ->
-      newEditSession = project.open('two-hundred.txt')
+      newEditSession = project.openSync('two-hundred.txt')
       newBuffer = newEditSession.buffer
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
@@ -153,7 +153,7 @@ describe "Editor", ->
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = "/tmp/atom-changed-file.txt"
       fs.writeSync(filePath, "")
-      tempEditSession = project.open(filePath)
+      tempEditSession = project.openSync(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
 
@@ -262,7 +262,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -270,7 +270,7 @@ describe "Editor", ->
       oldBuffer = editor.getBuffer()
       editor.on 'editor:path-changed', eventHandler
 
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1438,7 +1438,7 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.edit(project.open('two-hundred.txt'))
+        editor.edit(project.openSync('two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
 
         expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1690,7 +1690,7 @@ describe "Editor", ->
       expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
     it "does not wrap the lines of any newly assigned buffers", ->
-      otherEditSession = project.open()
+      otherEditSession = project.openSync()
       otherEditSession.buffer.setText([1..100].join(''))
       editor.edit(otherEditSession)
       expect(editor.renderedLines.find('.line').length).toBe(1)
@@ -1722,7 +1722,7 @@ describe "Editor", ->
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new Editor(editSession: project.open('sample.js'))
+      otherEditor = new Editor(editSession: project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
@@ -1827,7 +1827,7 @@ describe "Editor", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditSession = project.open(null)
+        emptyEditSession = project.openSync(null)
         editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
@@ -2031,7 +2031,7 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = project.open('two-hundred.txt')
+      editSession = project.openSync('two-hundred.txt')
       buffer = editSession.buffer
       editor.edit(editSession)
       editor.attachToDom()
@@ -2169,7 +2169,7 @@ describe "Editor", ->
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
       originalPathText = fs.read(filePath)
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -2301,7 +2301,7 @@ describe "Editor", ->
       fs.remove(filePath) if fs.exists(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(editor.getGrammar().name).toBe 'Plain Text'
       syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
@@ -2321,7 +2321,7 @@ describe "Editor", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
 
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on('editor:grammar-changed', eventHandler)

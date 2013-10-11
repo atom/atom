@@ -191,7 +191,7 @@ class Project
   #   Options that you can pass to the {EditSession} constructor
   #
   # Returns a promise that resolves to an {EditSession}.
-  openAsync: (filePath, options={}) ->
+  open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     resource = null
     _.find @openers, (opener) -> resource = opener(filePath, options)
@@ -200,10 +200,10 @@ class Project
       Q(resource)
     else
       @bufferForPathAsync(filePath).then (buffer) =>
-        editSession = @buildEditSessionForBuffer(buffer, options)
+        @buildEditSessionForBuffer(buffer, options)
 
   # Private: Only be used in specs
-  open: (filePath, options={}) ->
+  openSync: (filePath, options={}) ->
     filePath = @resolve(filePath)
     for opener in @openers
       return resource if resource = opener(filePath, options)

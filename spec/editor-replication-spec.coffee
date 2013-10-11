@@ -12,7 +12,7 @@ describe "Editor replication", ->
     doc2 = null
 
     env1.run ->
-      editSession1 = project.open('sample.js')
+      editSession1 = project.openSync('sample.js')
       editSession1.setSelectedBufferRange([[1, 2], [3, 4]])
       doc1 = editSession1.getState()
       doc2 = doc1.clone(env2.site)

@@ -177,20 +177,19 @@ class RootView extends View
     activePane = @getActivePane()
 
     editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
-    promise = project.openAsync(filePath, {initialLine}) if not editSession
+    promise = project.open(filePath, {initialLine}) if not editSession
 
     fileSize = 0
     fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
 
-    Q(editSession ? promise)
-      .then (editSession) =>
-        if not activePane
-          activePane = new Pane(editSession)
-          @panes.setRoot(activePane)
+    Q(editSession ? promise).then (editSession) =>
+      if not activePane
+        activePane = new Pane(editSession)
+        @panes.setRoot(activePane)
 
-        activePane.showItem(editSession)
-        activePane.focus()
-        editSession
+      activePane.showItem(editSession)
+      activePane.focus()
+      editSession
 
   # Private: Only used in specs
   openSync: (filePath, options = {}) ->
@@ -199,12 +198,12 @@ class RootView extends View
     filePath = project.relativize(filePath)
     if activePane = @getActivePane()
       if filePath
-        editSession = activePane.itemForUri(filePath) ? project.open(filePath, {initialLine})
+        editSession = activePane.itemForUri(filePath) ? project.openSync(filePath, {initialLine})
       else
-        editSession = project.open()
+        editSession = project.openSync()
       activePane.showItem(editSession)
     else
-      editSession = project.open(filePath, {initialLine})
+      editSession = project.openSync(filePath, {initialLine})
       activePane = new Pane(editSession)
       @panes.setRoot(activePane)
 

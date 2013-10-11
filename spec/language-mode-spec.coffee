@@ -7,7 +7,7 @@ describe "LanguageMode", ->
   describe "javascript", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      editSession = project.open('sample.js', autoIndent: false)
+      editSession = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
@@ -98,7 +98,7 @@ describe "LanguageMode", ->
   describe "coffeescript", ->
     beforeEach ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
-      editSession = project.open('coffee.coffee', autoIndent: false)
+      editSession = project.openSync('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -145,7 +145,7 @@ describe "LanguageMode", ->
   describe "css", ->
     beforeEach ->
       atom.activatePackage('css-tmbundle', sync: true)
-      editSession = project.open('css.css', autoIndent: false)
+      editSession = project.openSync('css.css', autoIndent: false)
       {buffer, languageMode} = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -187,7 +187,7 @@ describe "LanguageMode", ->
     beforeEach ->
       atom.activatePackage('less-tmbundle', sync: true)
       atom.activatePackage('css-tmbundle', sync: true)
-      editSession = project.open('sample.less', autoIndent: false)
+      editSession = project.openSync('sample.less', autoIndent: false)
       {buffer, languageMode} = editSession
 
     describe "when commenting lines", ->
@@ -198,7 +198,7 @@ describe "LanguageMode", ->
   describe "folding", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      editSession = project.open('sample.js', autoIndent: false)
+      editSession = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
     it "maintains cursor buffer position when a folding/unfolding", ->
@@ -288,7 +288,7 @@ describe "LanguageMode", ->
   describe "folding with comments", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      editSession = project.open('sample-with-comments.js', autoIndent: false)
+      editSession = project.openSync('sample-with-comments.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
     describe ".unfoldAll()", ->
@@ -342,7 +342,7 @@ describe "LanguageMode", ->
     beforeEach ->
       atom.activatePackage('source-tmbundle', sync: true)
       atom.activatePackage('css-tmbundle', sync: true)
-      editSession = project.open('css.css', autoIndent: true)
+      editSession = project.openSync('css.css', autoIndent: true)
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->

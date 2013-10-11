@@ -109,7 +109,7 @@ describe "PaneContainer", ->
 
       describe "when the last-closed pane item is an edit session", ->
         it "reopens the edit session (regression)", ->
-          editSession = project.open('sample.js')
+          editSession = project.openSync('sample.js')
           pane3.showItem(editSession)
           pane3.destroyItem(editSession)
           expect(container.reopenItem()).toBeTruthy()
