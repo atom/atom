@@ -3,9 +3,8 @@ fstream = require 'fstream'
 Project = require '../src/project'
 {_, fs} = require 'atom'
 path = require 'path'
+platform = require './spec-helper-platform'
 BufferedProcess = require '../src/buffered-process'
-
-isWindows = !!process.platform.match /^win/
 
 describe "Project", ->
   beforeEach ->
@@ -387,63 +386,29 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
-        temp = temp.mkdirSync("atom")
-        target = path.join(temp, 'evil-files')
-
-        if fs.exists(target)
-          (fs.readdirSync(target) || []).forEach (f) ->
-            fs.unlinkSync(path.join(target, f))
-          fs.rmdirSync target
-
-        fs.mkdirSync(target)
-
-        inputs = []
-        if (isWindows)
-          inputs = [
-            "a_file_with_utf8.txt",
-            "file with spaces.txt",
-            "utfa\u0306.md"
-          ]
-        else
-          inputs = [
-            "a_file_with_utf8.txt",
-            "file with spaces.txt",
-            "goddam\nnewlines",
-            "quote\".txt",
-            "utfa\u0306.md"
-          ]
-
-        inputs.forEach (filename) ->
-          fd = fs.writeFileSync(path.join(target, filename), 'evil files!', { flag: 'w' })
-          console.log(target)
-
-        project.setPath temp
-        console.log("path: " + project.getPath())
-
+        project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
         paths = []
         matches = []
         waitsForPromise ->
           project.scan /evil/, (result) ->
-            paths.push(result.path)
-            matches.push(result.match)
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
 
         runs ->
-          console.log(matches)
-          console.log(paths)
-          try
-            expect(paths.length).toBe inputs.length
+          _.each(matches, (m) -> expect(m.matchText).toEqual 'evil')
 
-            inputs.forEach (file) ->
-              itWorked = false
-              paths.forEach (p) ->
-                itWorked = itWorked || p.endsWith(file)
-
-              expect(itWorked)
-
-          finally
-            inputs.forEach (input) ->
-              fs.unlinkSync (path.join(target, input))
-            fs.rmdirSync target
+          if platform.isWindows()
+            expect(paths.length).toBe 3
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(path.basename(paths[2])).toBe "utfa\u0306.md"
+          else
+            expect(paths.length).toBe 5
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(paths[2]).toMatch /goddam\nnewlines$/m
+            expect(paths[3]).toMatch /quote".txt$/m
+            expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "ignores case if the regex includes the `i` flag", ->
         results = []
