@@ -29,7 +29,6 @@ module.exports = (grunt) ->
       try
         {engines} = grunt.file.readJSON(path.join(packagePath, 'package.json')) ? {}
         queue.push(packagePath) if engines.atom?
-        break
 
     queue.concurrency = 1
     queue.drain = -> done(passed)
