@@ -1,7 +1,6 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
-MenuItem = require 'menu-item'
-ContextMenu = require 'context-menu'
+ContextMenu = require './context-menu'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -84,7 +83,7 @@ class AtomWindow
         when 1 then @browserWindow.restart()
 
     @browserWindow.on 'context-menu', (menuTemplate) =>
-      new ContextMenu(menuTemplate)
+      new ContextMenu(menuTemplate, @browserWindow)
 
     if @isSpec
       # Spec window's web view should always have focus

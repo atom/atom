@@ -1,12 +1,11 @@
 Menu = require 'menu'
-BrowserWindow =  require 'browser-window'
 
 module.exports =
 class ContextMenu
-  constructor: (template) ->
+  constructor: (template, browserWindow) ->
     template = @createClickHandlers(template)
     menu = Menu.buildFromTemplate(template)
-    menu.popup(BrowserWindow.getFocusedWindow())
+    menu.popup(browserWindow)
 
   # Private: It's necessary to build the event handlers in this process, otherwise
   # closures are drug across processes and failed to be garbage collected

@@ -1,6 +1,6 @@
-AtomWindow = require 'atom-window'
-ApplicationMenu = require 'application-menu'
-AtomProtocolHandler = require 'atom-protocol-handler'
+AtomWindow = require './atom-window'
+ApplicationMenu = require './application-menu'
+AtomProtocolHandler = require './atom-protocol-handler'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
@@ -251,7 +251,7 @@ class AtomApplication
         bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
       else
         resourcePath = @resourcePath
-        bootstrapScript = require.resolve('./window-bootstrap')
+        bootstrapScript = require.resolve('../window-bootstrap')
       openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, initialSize})
 
     if pidToKillWhenClosed?
@@ -279,8 +279,8 @@ class AtomApplication
   #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
-      PackageManager = require './package-manager'
-      fsUtils = require './fs-utils'
+      PackageManager = require '../package-manager'
+      fsUtils = require '../fs-utils'
       @packages = new PackageManager
         configDirPath: fsUtils.absolute('~/.atom')
         devMode: devMode
@@ -314,7 +314,7 @@ class AtomApplication
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'spec', 'spec-bootstrap'))
     catch error
-      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'spec', 'spec-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'spec-bootstrap'))
 
     isSpec = true
     devMode = true
@@ -324,9 +324,9 @@ class AtomApplication
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
-      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'benchmark', 'benchmark-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
-    isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
+    isSpec = true
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
   # Private: Opens a native dialog to prompt the user for a path.
