@@ -34,5 +34,5 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       queue.push(packagePath)
 
-    queue.concurrency = 1
+    queue.concurrency = 2
     queue.drain = -> done(passed)
