@@ -19,6 +19,10 @@ describe "the `atom` global", ->
           expect(object.data).toBe 5
           expect(pack.activateStylesheets).toHaveBeenCalled()
 
+        it "continues if the package fails to load", ->
+          config.set("core.disabledPackages", [])
+          expect(-> atom.loadPackage("package-that-throws-on-load")).not.toThrow()
+
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
         it "throws an error", ->
