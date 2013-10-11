@@ -19,9 +19,13 @@ describe "the `atom` global", ->
           expect(object.data).toBe 5
           expect(pack.activateStylesheets).toHaveBeenCalled()
 
-        it "continues if the package fails to load", ->
+        it "continues if the package has an invalid package.json", ->
           config.set("core.disabledPackages", [])
-          expect(-> atom.loadPackage("package-that-throws-on-load")).not.toThrow()
+          expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
+
+        it "continues if the package has an invalid keymap", ->
+          config.set("core.disabledPackages", [])
+          expect(-> atom.loadPackage("package-with-broken-keymap")).not.toThrow()
 
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
