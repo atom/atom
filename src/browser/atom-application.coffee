@@ -314,7 +314,7 @@ class AtomApplication
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'spec', 'spec-bootstrap'))
     catch error
-      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'spec', 'spec-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'spec-bootstrap'))
 
     isSpec = true
     devMode = true
@@ -324,7 +324,7 @@ class AtomApplication
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
-      bootstrapScript = require.resolve(path.resolve(__dirname, '..', 'benchmark', 'benchmark-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
     isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
