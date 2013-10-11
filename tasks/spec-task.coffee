@@ -34,7 +34,7 @@ module.exports = (grunt) ->
       queue.push(packagePath)
 
     queue.concurrency = 1
-    queue.drain = -> callback(passed)
+    queue.drain = -> callback(null, passed)
 
   runCoreSpecs = (callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
@@ -46,8 +46,10 @@ module.exports = (grunt) ->
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     spawn options, (error, results, code) ->
-      callback(code is 0)
+      callback(null, code is 0)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
-    passed = true
-    async.parallel([runCoreSpecs, runPackageSpecs], @async())
+    done = @async()
+    async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
+      [coreSpecPassed, packageSpecsPassed] = results
+      done(coreSpecPassed and packageSpecsPassed)
