@@ -1,5 +1,5 @@
 {Range} = require 'telepath'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 _ = require './underscore-extensions'
 
 # Public: Represents a selection in the {EditSession}.

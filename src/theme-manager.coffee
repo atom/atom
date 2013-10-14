@@ -1,5 +1,5 @@
 path = require 'path'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 Package = require './package'
 AtomPackage = require './atom-package'
 

@@ -3,7 +3,7 @@ jQuery = require './jquery-extensions'
 Specificity = require '../vendor/specificity'
 {$$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 NullGrammar = require './null-grammar'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 

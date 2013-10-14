@@ -1,4 +1,4 @@
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 fsUtils = require './fs-utils'
 _ = require './underscore-extensions'
 Package = require './package'

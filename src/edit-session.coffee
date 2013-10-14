@@ -8,8 +8,8 @@ LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Selection = require './selection'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
+{EventEmitter} = require 'emissary'
+{Subscriber} = require 'emissary'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.

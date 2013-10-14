@@ -4,7 +4,7 @@ fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 
 # Internal: Associates keymaps with actions.
 #

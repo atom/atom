@@ -1,5 +1,5 @@
 Q = require 'q'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'

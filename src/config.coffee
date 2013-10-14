@@ -1,6 +1,6 @@
 fsUtils = require './fs-utils'
 _ = require './underscore-extensions'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 CSON = require 'season'
 fs = require 'fs'
 path = require 'path'

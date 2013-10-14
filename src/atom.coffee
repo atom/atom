@@ -11,7 +11,7 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
 DeserializerManager = require './deserializer-manager'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #

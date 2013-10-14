@@ -1,7 +1,7 @@
 {Range} = require 'telepath'
 _ = require './underscore-extensions'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
+{EventEmitter} = require 'emissary'
+{Subscriber} = require 'emissary'
 
 # Private:
 module.exports =

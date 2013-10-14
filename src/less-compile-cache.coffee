@@ -2,10 +2,11 @@ path = require 'path'
 
 _ = require './underscore-extensions'
 LessCache = require 'less-cache'
+{Subscriber} = require 'emissary'
 
 module.exports =
 class LessCompileCache
-  _.extend @prototype, require('./subscriber')
+  _.extend @prototype, Subscriber
 
   @cacheDir: '/tmp/atom-compile-cache/less'
 

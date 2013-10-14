@@ -4,7 +4,7 @@ path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
 File = require './file'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =

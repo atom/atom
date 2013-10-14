@@ -1,5 +1,5 @@
 Token = require './token'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 _ = require './underscore-extensions'
 
 ### Internal ###

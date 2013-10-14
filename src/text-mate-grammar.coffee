@@ -4,7 +4,7 @@ plist = require 'plist'
 Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 {ScopeSelector} = require 'first-mate'
 
 pathSplitRegex = new RegExp("[#{path.sep}.]")

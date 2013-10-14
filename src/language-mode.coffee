@@ -1,8 +1,8 @@
 {Range} = require 'telepath'
 _ = require './underscore-extensions'
 {OnigRegExp} = require 'oniguruma'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
+{EventEmitter} = require 'emissary'
+{Subscriber} = require 'emissary'
 
 ### Internal ###
 

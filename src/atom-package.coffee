@@ -5,7 +5,7 @@ path = require 'path'
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
 CSON = require 'season'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 
 ### Internal: Loads and resolves packages. ###
 

@@ -5,9 +5,9 @@ telepath = require 'telepath'
 
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 File = require './file'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 
 {Point, Range} = telepath
 

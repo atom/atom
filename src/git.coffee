@@ -1,7 +1,7 @@
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-Subscriber = require './subscriber'
-EventEmitter = require './event-emitter'
+{Subscriber} = require 'emissary'
+{EventEmitter} = require 'emissary'
 Task = require './task'
 GitUtils = require 'git-utils'
 

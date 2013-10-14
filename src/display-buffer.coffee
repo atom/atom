@@ -4,11 +4,11 @@ telepath = require 'telepath'
 {Point, Range} = telepath
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
-EventEmitter = require './event-emitter'
+{EventEmitter} = require 'emissary'
 Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 ConfigObserver = require './config-observer'
 
 # Private:

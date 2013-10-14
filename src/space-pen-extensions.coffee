@@ -2,7 +2,7 @@ _ = require './underscore-extensions'
 spacePen = require 'space-pen'
 jQuery = require './jquery-extensions'
 ConfigObserver = require './config-observer'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 
 _.extend spacePen.View.prototype, ConfigObserver
 _.extend spacePen.View.prototype, Subscriber
