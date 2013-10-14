@@ -2,10 +2,6 @@
 {Document, Point, Range, Site} = require 'telepath'
 {Emitter, Subscriber} = require 'emissary'
 
-#FIXME remove once all packages have been updated
-Emitter::trigger = (args...) => @emit(args...)
-Emitter::subscriptionCount = (args...) => @getSubscriptionCount(args...)
-
 module.exports =
   _: require '../src/underscore-extensions'
   $: require '../src/jquery-extensions'
