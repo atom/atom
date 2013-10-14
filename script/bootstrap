@@ -1,21 +1,6 @@
 #!/usr/bin/env node
-var exec = require('child_process').exec;
+var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
-
-function safeSpawn(command, options, callback) {
-  if (!callback) {
-    callback = options;
-    options = {};
-  }
-  var child = exec(command, options, function(error, stdout, stderr) {
-    if (error)
-      process.exit(error.code);
-    else
-      callback();
-  });
-  child.stderr.pipe(process.stderr);
-  child.stdout.pipe(process.stdout);
-}
 
 var apmDir = path.join('vendor', 'apm');
 var commands = [
@@ -32,7 +17,7 @@ process.chdir(path.dirname(__dirname));
 var i = 0;
 var startCommands = function() {
   if (i < commands.length)
-    safeSpawn(commands[i++], startCommands);
+    safeExec(commands[i++], startCommands);
   else
     process.exit(0);
 }
