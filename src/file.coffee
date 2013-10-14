@@ -32,7 +32,7 @@ class File
 
     subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
     @on subscriptionsAdded.join(' '), =>
-      @subscribeToNativeChangeEvents()
+      @subscribeToNativeChangeEvents() if @exists()
 
     subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
     @on subscriptionsRemoved.join(' '), =>
