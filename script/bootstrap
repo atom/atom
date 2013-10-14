@@ -1,22 +1,37 @@
-#!/bin/sh
+#!/usr/bin/env node
+var exec = require('child_process').exec;
+var path = require('path');
 
-# exit on subprocess errors
-set -o errexit
-
-exit_unless_npm_exists() {
-  if ! hash npm 2> /dev/null; then
-    echo "ERROR: Atom requires npm"
-    exit 1
-  fi
+function safeSpawn(command, options, callback) {
+  if (!callback) {
+    callback = options;
+    options = {};
+  }
+  var child = exec(command, options, function(error, stdout, stderr) {
+    if (error)
+      process.exit(error.code);
+    else
+      callback();
+  });
+  child.stderr.pipe(process.stderr);
+  child.stdout.pipe(process.stdout);
 }
 
-exit_unless_npm_exists
+var apmDir = path.join('vendor', 'apm');
+var commands = [
+  'git submodule --quiet sync',
+  'git submodule --quiet update --recursive --init',
+  'cd vendor/apm; npm install --silent .',
+  'npm install --silent vendor/apm',
+  'echo',
+  'node node_modules/.bin/apm install --silent',
+];
 
-git submodule --quiet sync
-git submodule --quiet update --recursive --init
-
-(cd vendor/apm && npm install --silent .)
-
-npm install --silent vendor/apm
-echo ""
-./node_modules/.bin/apm install --silent
+var i = 0;
+var startCommands = function() {
+  if (i < commands.length)
+    safeSpawn(commands[i++], startCommands);
+  else
+    process.exit(0);
+}
+startCommands();
