@@ -1,3 +1,8 @@
+#FIXME remove once all packages have been updated
+{Emitter} = require 'emissary'
+Emitter::trigger = (args...) => @emit(args...)
+Emitter::subscriptionCount = (args...) => @getSubscriptionCount(args...)
+
 fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
 _ = require './underscore-extensions'
