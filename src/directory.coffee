@@ -96,8 +96,9 @@ class Directory
 
   # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType) =>
-      @emit "contents-changed" if eventType is "change"
+    if @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType) =>
+        @emit "contents-changed" if eventType is "change"
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->
