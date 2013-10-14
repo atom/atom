@@ -26,7 +26,7 @@ class Task
   #   The Array of arguments to pass to the exported function.
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
-    task.one 'task:completed', -> task.terminate()
+    task.once 'task:completed', -> task.terminate()
     task.start(args...)
     task
 

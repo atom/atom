@@ -5,7 +5,7 @@ ConfigObserver = require './config-observer'
 {Subscriber} = require 'emissary'
 
 _.extend spacePen.View.prototype, ConfigObserver
-_.extend spacePen.View.prototype, Subscriber
+Subscriber.includeInto(spacePen.View)
 
 originalCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
