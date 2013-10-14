@@ -38,8 +38,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # why that is.
 module.exports =
 class EditSession
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   @acceptsDocuments: true
 

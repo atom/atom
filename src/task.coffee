@@ -14,6 +14,7 @@ child_process = require 'child_process'
 # * task:completed - Emitted when the task has succeeded or failed.
 module.exports =
 class Task
+  Emitter.includeInto(this)
   _.extend @prototype, Emitter
 
   # Public: A helper method to easily launch and run a task once.

@@ -11,7 +11,7 @@ _ = require './underscore-extensions'
 # {Directory} and access the {File} objects that it creates.
 module.exports =
 class File
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   path: null
   cachedContents: null

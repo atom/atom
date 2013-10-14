@@ -13,7 +13,7 @@ pathSplitRegex = new RegExp("[#{path.sep}.]")
 
 module.exports =
 class TextMateGrammar
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   @load: (grammarPath, done) ->
     fsUtils.readObject grammarPath, (error, object) ->

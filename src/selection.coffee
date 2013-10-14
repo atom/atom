@@ -1,11 +1,10 @@
 {Range} = require 'telepath'
 {Emitter} = require 'emissary'
-_ = require './underscore-extensions'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =
 class Selection
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   cursor: null
   marker: null

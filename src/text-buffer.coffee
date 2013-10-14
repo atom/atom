@@ -16,8 +16,8 @@ File = require './file'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   @acceptsDocuments: true
   @version: 2

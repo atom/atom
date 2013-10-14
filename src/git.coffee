@@ -17,8 +17,8 @@ GitUtils = require 'git-utils'
 # ```
 module.exports =
 class Git
-  _.extend @prototype, Subscriber
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   # Private: Creates a new `Git` instance.
   #

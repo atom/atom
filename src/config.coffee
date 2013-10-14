@@ -26,7 +26,7 @@ pathWatcher = require 'pathwatcher'
 # ```
 module.exports =
 class Config
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   defaultSettings: null
   settings: null

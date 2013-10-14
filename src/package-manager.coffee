@@ -6,7 +6,7 @@ path = require 'path'
 
 module.exports =
 class PackageManager
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]

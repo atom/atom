@@ -9,8 +9,8 @@ telepath = require 'telepath'
 
 module.exports =
 class TokenizedBuffer
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   grammar: null
   currentGrammarScore: null

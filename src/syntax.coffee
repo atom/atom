@@ -11,7 +11,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 module.exports =
 class Syntax
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   registerDeserializer(this)
 

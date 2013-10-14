@@ -7,8 +7,8 @@ _ = require './underscore-extensions'
 
 module.exports =
 class LanguageMode
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   buffer: null
   grammar: null

@@ -1,4 +1,3 @@
-_ = require './underscore-extensions'
 fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
@@ -9,7 +8,7 @@ File = require './file'
 # Public: Represents a directory using {File}s
 module.exports =
 class Directory
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   path: null
   realPath: null

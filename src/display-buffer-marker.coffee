@@ -5,8 +5,8 @@ _ = require './underscore-extensions'
 # Private:
 module.exports =
 class DisplayBufferMarker
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   bufferMarkerSubscription: null
   oldHeadBufferPosition: null

@@ -9,7 +9,7 @@ _ = require './underscore-extensions'
 # of a {StringMarker}.
 module.exports =
 class Cursor
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   screenPosition: null
   bufferPosition: null

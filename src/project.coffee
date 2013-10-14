@@ -19,7 +19,7 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   @acceptsDocuments: true
   @version: 1

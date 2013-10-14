@@ -21,7 +21,7 @@ BindingSet = require './binding-set'
 # key, you define one or more key:value pairs, associating keystrokes with a command to execute.
 module.exports =
 class Keymap
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   bindingSets: null
   nextBindingSetIndex: 0

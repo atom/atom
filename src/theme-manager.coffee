@@ -10,7 +10,7 @@ fsUtils = require './fs-utils'
 # Private: Handles discovering and loading available themes.
 module.exports =
 class ThemeManager
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   constructor: ->
     @loadedThemes = []

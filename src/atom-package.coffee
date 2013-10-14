@@ -11,7 +11,7 @@ CSON = require 'season'
 
 module.exports =
 class AtomPackage extends Package
-  _.extend @prototype, Emitter
+  Emitter.includeInto(this)
 
   @stylesheetsDir: 'stylesheets'
 

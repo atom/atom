@@ -13,8 +13,8 @@ ConfigObserver = require './config-observer'
 # Private:
 module.exports =
 class DisplayBuffer
-  _.extend @prototype, Emitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
   _.extend @prototype, ConfigObserver
 
   @acceptsDocuments: true
