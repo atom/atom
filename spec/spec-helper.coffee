@@ -12,7 +12,10 @@ Project = require '../src/project'
 Editor = require '../src/editor'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
+platform = require './spec-helper-platform'
 clipboard = require 'clipboard'
+
+platform.generateEvilFiles()
 
 atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
@@ -32,12 +35,22 @@ $('html,body').css('overflow', 'auto')
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 jasmine.getEnv().defaultTimeoutInterval = 5000
 
-specDirectory = atom.getLoadSettings().specDirectory ? __dirname
-specProjectPath = path.join(specDirectory, 'fixtures')
+specPackageName = null
+specPackagePath = null
+specProjectPath = null
+
+if specDirectory = atom.getLoadSettings().specDirectory
+  specPackagePath = path.resolve(specDirectory, '..')
+  try
+    specPackageName = fs.readObjectSync(path.join(specPackagePath, 'package.json'))?.name
+  specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
   $.fx.off = true
-  atom.project = new Project(specProjectPath)
+  if specProjectPath
+    atom.project = new Project(specProjectPath)
+  else
+    atom.project = new Project(path.join(@specDirectory, 'fixtures'))
   window.project = atom.project
 
   window.resetTimeouts()
@@ -45,6 +58,14 @@ beforeEach ->
   spyOn(atom, 'saveWindowState')
   atom.syntax.clearGrammarOverrides()
   atom.syntax.clearProperties()
+
+  if specPackageName
+    spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
+      if packageName is specPackageName
+        resolvePackagePath(specPackagePath)
+      else
+        resolvePackagePath(packageName)
+    resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -63,7 +84,8 @@ beforeEach ->
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception"]
+  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+    "package-with-broken-package-json", "package-with-broken-keymap"]
   config.save.reset()
   atom.config = config
   window.config = config

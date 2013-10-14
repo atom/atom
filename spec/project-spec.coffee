@@ -3,6 +3,7 @@ fstream = require 'fstream'
 Project = require '../src/project'
 {_, fs} = require 'atom'
 path = require 'path'
+platform = require './spec-helper-platform'
 BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
@@ -279,76 +280,6 @@ describe "Project", ->
         expect(project.getPath()?).toBeFalsy()
         expect(project.getRootDirectory()?).toBeFalsy()
 
-  describe ".getFilePaths()", ->
-    it "returns file paths using a promise", ->
-      paths = null
-      waitsForPromise ->
-        project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-      runs ->
-        expect(paths.length).toBeGreaterThan 0
-
-    it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'isPathIgnored').andCallFake (filePath) -> path.basename(filePath).match /a$/
-
-      paths = null
-      waitsForPromise ->
-        project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-      runs ->
-        expect(paths).not.toContain(project.resolve('a'))
-        expect(paths).toContain(project.resolve('b'))
-
-    describe "when config.core.hideGitIgnoredFiles is true", ->
-      it "ignores files that are present in .gitignore if the project is a git repo", ->
-        config.set "core.hideGitIgnoredFiles", true
-        project.setPath(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-        paths = null
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored.txt')
-
-    describe "ignored file name", ->
-      ignoredFile = null
-
-      beforeEach ->
-        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored.txt')
-        fs.writeSync(ignoredFile, "")
-
-      afterEach ->
-        fs.remove(ignoredFile)
-
-      it "ignores ignored.txt file", ->
-        paths = null
-        config.pushAtKeyPath("core.ignoredNames", "ignored.txt")
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored.txt')
-
-    describe "ignored folder name", ->
-      ignoredFile = null
-
-      beforeEach ->
-        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored', 'ignored.txt')
-        fs.writeSync(ignoredFile, "")
-
-      afterEach ->
-        fs.remove(ignoredFile)
-
-      it "ignores ignored folder", ->
-        paths = null
-        config.get("core.ignoredNames").push("ignored.txt")
-        config.set("core.ignoredNames", config.get("core.ignoredNames"))
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored/ignored.txt')
-
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex results in all files in the project", ->
@@ -394,13 +325,20 @@ describe "Project", ->
             matches = matches.concat(result.matches)
 
         runs ->
-          expect(paths.length).toBe 5
-          matches.forEach (match) -> expect(match.matchText).toEqual 'evil'
-          expect(paths[0]).toMatch /a_file_with_utf8.txt$/
-          expect(paths[1]).toMatch /file with spaces.txt$/
-          expect(paths[2]).toMatch /goddam\nnewlines$/m
-          expect(paths[3]).toMatch /quote".txt$/m
-          expect(path.basename(paths[4])).toBe "utfa\u0306.md"
+          _.each(matches, (m) -> expect(m.matchText).toEqual 'evil')
+
+          if platform.isWindows()
+            expect(paths.length).toBe 3
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(path.basename(paths[2])).toBe "utfa\u0306.md"
+          else
+            expect(paths.length).toBe 5
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(paths[2]).toMatch /goddam\nnewlines$/m
+            expect(paths[3]).toMatch /quote".txt$/m
+            expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "ignores case if the regex includes the `i` flag", ->
         results = []

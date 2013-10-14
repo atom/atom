@@ -4,7 +4,6 @@ url = require 'url'
 Q = require 'q'
 
 _ = require './underscore-extensions'
-$ = require './jquery-extensions'
 telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'
@@ -131,19 +130,6 @@ class Project
   # Public: Returns the name of the root directory.
   getRootDirectory: ->
     @rootDirectory
-
-  # Public: Fetches the name of every file (that's not `git ignore`d) in the
-  # project.
-  #
-  # Returns an {Array} of {String}s.
-  getFilePaths: ->
-    deferred = $.Deferred()
-    paths = []
-    onFile = (path) => paths.push(path) unless @isPathIgnored(path)
-    onDirectory = -> true
-    fsUtils.traverseTreeSync(@getPath(), onFile, onDirectory)
-    deferred.resolve(paths)
-    deferred.promise()
 
   # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
@@ -316,7 +302,7 @@ class Project
       iterator = options
       options = {}
 
-    deferred = $.Deferred()
+    deferred = Q.defer()
 
     searchOptions =
       ignoreCase: regex.ignoreCase
@@ -335,7 +321,7 @@ class Project
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
-    deferred
+    deferred.promise
 
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
