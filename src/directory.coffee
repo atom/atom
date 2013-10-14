@@ -20,6 +20,11 @@ class Directory
   # + symlink:
   #   A {Boolean} indicating if the path is a symlink
   constructor: (@path, @symlink=false) ->
+    @on 'first-contents-changed-subscription-will-be-added', =>
+      @subscribeToNativeChangeEvents()
+
+    @on 'last-contents-changed-subscription-removed', =>
+      @unsubscribeFromNativeChangeEvents()
 
   # Public: Returns the basename of the directory.
   getBaseName: ->
@@ -88,14 +93,6 @@ class Directory
         files.push(new File(entryPath, symlink))
 
     directories.concat(files)
-
-  # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   # Private:
   subscribeToNativeChangeEvents: ->

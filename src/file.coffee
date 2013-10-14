@@ -25,6 +25,20 @@ class File
   constructor: (@path, @symlink=false) ->
     throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
 
+    @handleEventSubscriptions()
+
+  handleEventSubscriptions: ->
+    eventNames = ['contents-changed', 'moved', 'removed']
+
+    subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
+    @on subscriptionsAdded.join(' '), =>
+      @subscribeToNativeChangeEvents()
+
+    subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
+    @on subscriptionsRemoved.join(' '), =>
+      subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
+      @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
+
   # Private: Sets the path for the file.
   setPath: (@path) ->
 
@@ -89,14 +103,6 @@ class File
     fsUtils.exists(@getPath())
 
   # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
-
-  # Private:
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
@@ -125,11 +131,12 @@ class File
 
   # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
-      @handleNativeChangeEvent(eventType, path)
+    unless @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
+        @handleNativeChangeEvent(eventType, path)
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->
-    if @watchSubscription
+    if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null
