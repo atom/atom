@@ -1,6 +1,6 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -11,7 +11,7 @@ module.exports =
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
   Document: Document
-  EventEmitter: EventEmitter
+  Emitter: Emitter
   File: require '../src/file'
   fs: require '../src/fs-utils'
   Git: require '../src/git'
