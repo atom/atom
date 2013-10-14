@@ -1,5 +1,5 @@
 path = require 'path'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 Package = require './package'
 AtomPackage = require './atom-package'
 
@@ -10,7 +10,7 @@ fsUtils = require './fs-utils'
 # Private: Handles discovering and loading available themes.
 module.exports =
 class ThemeManager
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   constructor: ->
     @loadedThemes = []

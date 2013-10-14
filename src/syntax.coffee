@@ -3,7 +3,7 @@ jQuery = require './jquery-extensions'
 Specificity = require '../vendor/specificity'
 {$$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 NullGrammar = require './null-grammar'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
@@ -11,7 +11,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 module.exports =
 class Syntax
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   registerDeserializer(this)
 

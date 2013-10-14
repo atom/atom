@@ -1,6 +1,6 @@
 fsUtils = require './fs-utils'
 _ = require './underscore-extensions'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 CSON = require 'season'
 fs = require 'fs'
 path = require 'path'
@@ -26,7 +26,7 @@ pathWatcher = require 'pathwatcher'
 # ```
 module.exports =
 class Config
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   defaultSettings: null
   settings: null

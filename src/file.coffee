@@ -1,5 +1,5 @@
 Q = require 'q'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
@@ -11,7 +11,7 @@ _ = require './underscore-extensions'
 # {Directory} and access the {File} objects that it creates.
 module.exports =
 class File
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   path: null
   cachedContents: null

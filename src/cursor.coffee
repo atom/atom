@@ -1,5 +1,5 @@
 {Point, Range} = require 'telepath'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 _ = require './underscore-extensions'
 
 # Public: The `Cursor` class represents the little blinking line identifying
@@ -9,7 +9,7 @@ _ = require './underscore-extensions'
 # of a {StringMarker}.
 module.exports =
 class Cursor
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   screenPosition: null
   bufferPosition: null

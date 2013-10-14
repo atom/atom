@@ -4,12 +4,12 @@ path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
 File = require './file'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =
 class Directory
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   path: null
   realPath: null

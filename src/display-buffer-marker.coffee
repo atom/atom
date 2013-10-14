@@ -1,11 +1,11 @@
 {Range} = require 'telepath'
 _ = require './underscore-extensions'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 
 # Private:
 module.exports =
 class DisplayBufferMarker
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
 
   bufferMarkerSubscription: null

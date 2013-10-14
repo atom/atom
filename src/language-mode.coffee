@@ -1,13 +1,13 @@
 {Range} = require 'telepath'
 _ = require './underscore-extensions'
 {OnigRegExp} = require 'oniguruma'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 
 ### Internal ###
 
 module.exports =
 class LanguageMode
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
 
   buffer: null

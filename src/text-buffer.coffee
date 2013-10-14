@@ -1,4 +1,4 @@
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
@@ -16,7 +16,7 @@ File = require './file'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
 
   @acceptsDocuments: true

@@ -1,5 +1,5 @@
 _ = require './underscore-extensions'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 telepath = require 'telepath'
 {Point, Range} = telepath
@@ -13,7 +13,7 @@ ConfigObserver = require './config-observer'
 # Private:
 module.exports =
 class DisplayBuffer
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
   _.extend @prototype, ConfigObserver
 

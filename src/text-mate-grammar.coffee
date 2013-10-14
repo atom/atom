@@ -4,7 +4,7 @@ plist = require 'plist'
 Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 {ScopeSelector} = require 'first-mate'
 
 pathSplitRegex = new RegExp("[#{path.sep}.]")
@@ -13,7 +13,7 @@ pathSplitRegex = new RegExp("[#{path.sep}.]")
 
 module.exports =
 class TextMateGrammar
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   @load: (grammarPath, done) ->
     fsUtils.readObject grammarPath, (error, object) ->

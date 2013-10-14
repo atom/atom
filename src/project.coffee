@@ -8,7 +8,7 @@ telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
 Git = require './git'
@@ -19,7 +19,7 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   @acceptsDocuments: true
   @version: 1

@@ -8,7 +8,7 @@ LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Selection = require './selection'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.
@@ -38,7 +38,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # why that is.
 module.exports =
 class EditSession
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
 
   @acceptsDocuments: true

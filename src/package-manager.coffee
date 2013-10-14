@@ -1,4 +1,4 @@
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 fsUtils = require './fs-utils'
 _ = require './underscore-extensions'
 Package = require './package'
@@ -6,7 +6,7 @@ path = require 'path'
 
 module.exports =
 class PackageManager
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]

@@ -1,7 +1,7 @@
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
 Task = require './task'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.
@@ -18,7 +18,7 @@ GitUtils = require 'git-utils'
 module.exports =
 class Git
   _.extend @prototype, Subscriber
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   # Private: Creates a new `Git` instance.
   #

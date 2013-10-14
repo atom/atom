@@ -5,13 +5,13 @@ path = require 'path'
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
 CSON = require 'season'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 
 ### Internal: Loads and resolves packages. ###
 
 module.exports =
 class AtomPackage extends Package
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   @stylesheetsDir: 'stylesheets'
 

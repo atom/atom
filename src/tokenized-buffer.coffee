@@ -1,6 +1,6 @@
 _ = require './underscore-extensions'
 TokenizedLine = require './tokenized-line'
-{EventEmitter, Subscriber} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 Token = require './token'
 telepath = require 'telepath'
 {Point, Range} = telepath
@@ -9,7 +9,7 @@ telepath = require 'telepath'
 
 module.exports =
 class TokenizedBuffer
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
   _.extend @prototype, Subscriber
 
   grammar: null

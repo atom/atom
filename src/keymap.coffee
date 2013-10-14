@@ -4,7 +4,7 @@ fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
-{EventEmitter} = require 'emissary'
+{Emitter} = require 'emissary'
 
 # Internal: Associates keymaps with actions.
 #
@@ -21,7 +21,7 @@ BindingSet = require './binding-set'
 # key, you define one or more key:value pairs, associating keystrokes with a command to execute.
 module.exports =
 class Keymap
-  _.extend @prototype, EventEmitter
+  _.extend @prototype, Emitter
 
   bindingSets: null
   nextBindingSetIndex: 0
