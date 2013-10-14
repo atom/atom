@@ -4,6 +4,7 @@
 
 #FIXME remove once all packages have been updated
 Emitter::trigger = (args...) => @emit(args...)
+Emitter::subscriptionCount = (args...) => @getSubscriptionCount(args...)
 
 module.exports =
   _: require '../src/underscore-extensions'
