@@ -29,3 +29,10 @@ module.exports = (grunt) ->
     grunt.util.spawn options, (error, results, code) ->
       grunt.log.errorlns results.stderr if results.stderr
       callback(error, results, code)
+
+  isAtomPackage: (packagePath) ->
+    try
+      {engines} = grunt.file.readJSON(path.join(packagePath, 'package.json'))
+      engines?.atom?
+    catch error
+      false
