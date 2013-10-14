@@ -11,7 +11,7 @@ exports.safeExec = function(command, options, callback) {
     if (error)
       process.exit(error.code);
     else
-      callback(0);
+      callback(null);
   });
   child.stderr.pipe(process.stderr);
   child.stdout.pipe(process.stdout);
@@ -30,6 +30,6 @@ exports.safeSpawn = function(command, args, options, callback) {
     if (code != 0)
       process.exit(code);
     else
-      callback(code);
+      callback(null);
   });
 }
