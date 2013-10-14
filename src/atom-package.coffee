@@ -163,7 +163,7 @@ class AtomPackage extends Package
     @deactivateResources()
     @deactivateConfig()
     @mainModule?.deactivate?() if @mainActivated
-    @trigger('deactivated')
+    @emit('deactivated')
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()

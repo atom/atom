@@ -58,7 +58,7 @@ class PackageManager
     require '../exports/atom'
 
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @trigger 'loaded'
+    @emit 'loaded'
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)

@@ -1,3 +1,4 @@
+{EventEmitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
@@ -5,9 +6,7 @@ telepath = require 'telepath'
 
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-{EventEmitter} = require 'emissary'
 File = require './file'
-{Subscriber} = require 'emissary'
 
 {Point, Range} = telepath
 

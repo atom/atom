@@ -34,7 +34,7 @@ class Keymap
 
   loadBundledKeymaps: ->
     @loadDirectory(config.bundledKeymapsDirPath)
-    @trigger('bundled-keymaps-loaded')
+    @emit('bundled-keymaps-loaded')
 
   loadUserKeymaps: ->
     @loadDirectory(path.join(config.configDirPath, 'keymaps'))

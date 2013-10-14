@@ -88,7 +88,7 @@ class Config
       userConfig = CSON.readFileSync(@configFilePath)
       _.extend(@settings, userConfig)
       @configFileHasErrors = false
-      @trigger 'updated'
+      @emit 'updated'
     catch e
       @configFileHasErrors = true
       console.error "Failed to load user config '#{@configFilePath}'", e.message
@@ -219,7 +219,7 @@ class Config
   update: ->
     return if @configFileHasErrors
     @save()
-    @trigger 'updated'
+    @emit 'updated'
 
   # Private:
   save: ->

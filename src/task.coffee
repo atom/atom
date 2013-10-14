@@ -69,7 +69,7 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @trigger(event, args...)
+      @emit(event, args...)
 
   # Public: Starts the task.
   #

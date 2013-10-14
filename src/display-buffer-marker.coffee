@@ -1,7 +1,6 @@
 {Range} = require 'telepath'
 _ = require './underscore-extensions'
-{EventEmitter} = require 'emissary'
-{Subscriber} = require 'emissary'
+{EventEmitter, Subscriber} = require 'emissary'
 
 # Private:
 module.exports =
@@ -184,7 +183,7 @@ class DisplayBufferMarker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @trigger 'destroyed'
+    @emit 'destroyed'
 
   notifyObservers: ({textChanged}) ->
     textChanged ?= false
@@ -203,7 +202,7 @@ class DisplayBufferMarker
     changed = true unless _.isEqual(isValid, @wasValid)
     return unless changed
 
-    @trigger 'changed', {
+    @emit 'changed', {
       @oldHeadScreenPosition, newHeadScreenPosition,
       @oldTailScreenPosition, newTailScreenPosition,
       @oldHeadBufferPosition, newHeadBufferPosition,

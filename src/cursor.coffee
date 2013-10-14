@@ -36,12 +36,12 @@ class Cursor
         newScreenPosition: newHeadScreenPosition
         textChanged: textChanged
 
-      @trigger 'moved', movedEvent
-      @editSession.trigger 'cursor-moved', movedEvent
+      @emit 'moved', movedEvent
+      @editSession.emit 'cursor-moved', movedEvent
     @marker.on 'destroyed', =>
       @destroyed = true
       @editSession.removeCursor(this)
-      @trigger 'destroyed'
+      @emit 'destroyed'
     @needsAutoscroll = true
 
   # Private:
@@ -54,7 +54,7 @@ class Cursor
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
-      @trigger 'autoscrolled' if @needsAutoscroll
+      @emit 'autoscrolled' if @needsAutoscroll
 
   # Public: Moves a cursor to a given screen position.
   #
@@ -97,7 +97,7 @@ class Cursor
     if @visible != visible
       @visible = visible
       @needsAutoscroll ?= true if @visible and @isLastCursor()
-      @trigger 'visibility-changed', @visible
+      @emit 'visibility-changed', @visible
 
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible

@@ -103,12 +103,12 @@ class File
       @detectResurrectionAfterDelay()
     else if eventType is "rename"
       @setPath(path)
-      @trigger "moved"
+      @emit "moved"
     else if eventType is "change"
       oldContents = @cachedContents
       newContents = @read(true)
       return if oldContents == newContents
-      @trigger 'contents-changed'
+      @emit 'contents-changed'
 
   # Private:
   detectResurrectionAfterDelay: ->
@@ -121,7 +121,7 @@ class File
       @handleNativeChangeEvent("change", @getPath())
     else
       @cachedContents = null
-      @trigger "removed"
+      @emit "removed"
 
   # Private:
   subscribeToNativeChangeEvents: ->

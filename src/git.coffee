@@ -1,8 +1,7 @@
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-{Subscriber} = require 'emissary'
-{EventEmitter} = require 'emissary'
 Task = require './task'
+{EventEmitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.
@@ -125,7 +124,7 @@ class Git
     else
       delete @statuses[path]
     if currentPathStatus isnt pathStatus
-      @trigger 'status-changed', path, pathStatus
+      @emit 'status-changed', path, pathStatus
     pathStatus
 
   # Public: Determines if the given path is ignored.
@@ -274,4 +273,4 @@ class Git
       @statuses = statuses
       @upstream = upstream
       @branch = branch
-      @trigger 'statuses-changed' unless statusesUnchanged
+      @emit 'statuses-changed' unless statusesUnchanged

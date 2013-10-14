@@ -8,8 +8,7 @@ LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Selection = require './selection'
-{EventEmitter} = require 'emissary'
-{Subscriber} = require 'emissary'
+{EventEmitter, Subscriber} = require 'emissary'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.
@@ -104,9 +103,9 @@ class EditSession
     @subscribe @state, 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
-          @trigger 'scroll-top-changed', newValue
+          @emit 'scroll-top-changed', newValue
         when 'scrollLeft'
-          @trigger 'scroll-left-changed', newValue
+          @emit 'scroll-left-changed', newValue
 
     project.addEditSession(this) if registerEditSession
 
@@ -115,20 +114,20 @@ class EditSession
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
-      @trigger "title-changed"
-      @trigger "path-changed"
-    @subscribe @buffer, "contents-modified", => @trigger "contents-modified"
-    @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
-    @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
+      @emit "title-changed"
+      @emit "path-changed"
+    @subscribe @buffer, "contents-modified", => @emit "contents-modified"
+    @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
+    @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
     @preserveCursorPositionOnBufferReload()
 
   # Private:
   setDisplayBuffer: (@displayBuffer) ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
-    @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
+    @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
-    @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @trigger 'soft-wrap-changed', args...
+    @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
   # Private:
   getViewClass: ->
@@ -144,7 +143,7 @@ class EditSession
     @displayBuffer.destroy()
     @languageMode.destroy()
     project?.removeEditSession(this)
-    @trigger 'destroyed'
+    @emit 'destroyed'
     @off()
 
   # Private:
@@ -871,7 +870,7 @@ class EditSession
       @cursors.push(cursor)
     else
       @remoteCursors.push(cursor)
-    @trigger 'cursor-added', cursor
+    @emit 'cursor-added', cursor
     cursor
 
   # Public: Removes and returns a cursor from the `EditSession`.
@@ -904,7 +903,7 @@ class EditSession
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
-      @trigger 'selection-added', selection
+      @emit 'selection-added', selection
       selection
 
   # Public: Given a buffer range, this adds a new selection for it.
@@ -1424,7 +1423,7 @@ class EditSession
   # Private:
   handleGrammarChange: ->
     @unfoldAll()
-    @trigger 'grammar-changed'
+    @emit 'grammar-changed'
 
   # Private:
   handleMarkerCreated: (marker) =>

@@ -70,7 +70,7 @@ class TextMateGrammar
     return false unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
     syntax.grammarUpdated(@scopeName)
-    @trigger 'grammar-updated'
+    @emit 'grammar-updated'
     true
 
   getScore: (filePath, contents) ->

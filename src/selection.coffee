@@ -22,7 +22,7 @@ class Selection
     @marker.on 'destroyed', =>
       @destroyed = true
       @editSession.removeSelection(this)
-      @trigger 'destroyed' unless @editSession.destroyed
+      @emit 'destroyed' unless @editSession.destroyed
 
   # Private:
   destroy: ->
@@ -607,4 +607,4 @@ class Selection
   # Private:
   screenRangeChanged: ->
     screenRange = @getScreenRange()
-    @trigger 'screen-range-changed', screenRange
+    @emit 'screen-range-changed', screenRange
