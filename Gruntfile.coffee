@@ -173,7 +173,7 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['lint', 'update-atom-shell', 'build', 'set-development-version', 'test'])
+  grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
