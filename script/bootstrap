@@ -2,7 +2,6 @@
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
 
-var apmDir = path.join('vendor', 'apm');
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
