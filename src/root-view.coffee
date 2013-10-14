@@ -190,6 +190,7 @@ class RootView extends View
 
       activePane.showItem(editSession)
       activePane.focus() if changeFocus
+      @trigger "uri-opened"
       editSession
 
   # Private: Only used in specs
