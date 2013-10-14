@@ -172,6 +172,7 @@ class RootView extends View
   #
   # Returns a promise that resolves to the {EditSession} for the file URI.
   open: (filePath, options={}) ->
+    changeFocus = options.changeFocus ? true
     filePath = project.resolve(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
@@ -188,7 +189,7 @@ class RootView extends View
         @panes.setRoot(activePane)
 
       activePane.showItem(editSession)
-      activePane.focus()
+      activePane.focus() if changeFocus
       editSession
 
   # Private: Only used in specs
