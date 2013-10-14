@@ -25,6 +25,7 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
       grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
       spawn options, (error, results, code) ->
+        grunt.log.writeln()
         passed = passed and code is 0
         callback()
 
@@ -48,6 +49,7 @@ module.exports = (grunt) ->
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     spawn options, (error, results, code) ->
+      grunt.log.writeln()
       packageSpecQueue.concurrency = 2
       callback(null, code is 0)
 
