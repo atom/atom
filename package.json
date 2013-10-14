@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/atom/atom/issues"
   },
-  "atomShellVersion": "0.6.0",
+  "atomShellVersion": "0.6.1",
   "dependencies": {
     "async": "0.2.6",
     "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0",
