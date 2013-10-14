@@ -1,8 +1,18 @@
-#!/bin/sh
+#!/usr/bin/env node
+var spawn = require('child_process').spawn;
+var path = require('path');
 
-set -e
+process.chdir(path.dirname(__dirname));
 
-cd "$(dirname "$0")/.."
+var child = spawn(process.execPath, [path.join('script', 'bootstrap')]);
+child.stderr.pipe(process.stderr);
+child.stdout.pipe(process.stdout);
+child.on('exit', function(code) {
+  if (code != 0) process.exit(code);
 
-./script/bootstrap
-./node_modules/.bin/grunt "$@"
+  var gruntPath = path.join('node_modules', '.bin', 'grunt');
+  var grunt = spawn(process.execPath, [gruntPath].concat(process.argv.slice(2)));
+  grunt.stderr.pipe(process.stderr);
+  grunt.stdout.pipe(process.stdout);
+  grunt.on('exit', process.exit);
+});

@@ -27,6 +27,8 @@ var commands = [
   'node node_modules/.bin/apm install --silent',
 ];
 
+process.chdir(path.dirname(__dirname));
+
 var i = 0;
 var startCommands = function() {
   if (i < commands.length)
