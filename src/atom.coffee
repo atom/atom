@@ -18,7 +18,7 @@ DeserializerManager = require './deserializer-manager'
 # An instance of this class is always available as the `atom` global.
 module.exports =
 class Atom
-  _.extend @prototype, Subscriber
+  Subscriber.includeInto(this)
 
   constructor: ->
     @rootViewParentSelector = 'body'

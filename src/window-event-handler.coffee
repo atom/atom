@@ -8,7 +8,7 @@ fsUtils = require './fs-utils'
 # Private: Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  _.extend @prototype, Subscriber
+  Subscriber.includeInto(this)
 
   constructor: ->
     @reloadRequested = false
