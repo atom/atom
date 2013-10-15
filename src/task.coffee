@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 child_process = require 'child_process'
 {Emitter} = require 'emissary'
 

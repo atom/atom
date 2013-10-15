@@ -3,7 +3,7 @@ Q = require 'q'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 # Public: Represents an individual file in the editor.
 #

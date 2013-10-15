@@ -1,6 +1,6 @@
 {Point, Range} = require 'telepath'
 {Emitter} = require 'emissary'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 # Public: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.

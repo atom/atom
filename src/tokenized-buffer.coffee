@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 TokenizedLine = require './tokenized-line'
 {Emitter, Subscriber} = require 'emissary'
 Token = require './token'

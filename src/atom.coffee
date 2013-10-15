@@ -6,7 +6,7 @@ Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
 fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'

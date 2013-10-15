@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 telepath = require 'telepath'

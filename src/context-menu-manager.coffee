@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 remote = require 'remote'
 
 # Public: Provides a registry for commands that you'd like to appear in the
