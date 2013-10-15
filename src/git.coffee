@@ -80,6 +80,7 @@ class Git
         @getPathStatus(path)
     @subscribe buffer, 'saved', bufferStatusHandler
     @subscribe buffer, 'reloaded', bufferStatusHandler
+    @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
   # Public:  Destroy this `Git` object. This destroys any tasks and
   # subscriptions and releases the underlying libgit2 repository handle.
