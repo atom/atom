@@ -1,7 +1,3 @@
-{{{
-"title": "Customizing Atom"
-}}}
-
 # Customizing Atom
 
 To change a setting, configure a theme, or install a package just open the
@@ -20,8 +16,8 @@ Themes` section on the `Packages` tab within the Settings panel.
 
 ## Installing Packages
 
-You can install non-bundled packages by going to the `Available Packages` section
-on the `Packages` tab within the Settings panel (`cmd-,`).
+You can install non-bundled packages by going to the `Available Packages`
+section on the `Packages` tab within the Settings panel (`cmd-,`).
 
 ## Customizing Key Bindings
 
@@ -118,8 +114,8 @@ If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to
 _user.less_ in your _~/.atom_ directory.
 
-For example, to change the color of the highlighted line number for the line that
-contains the cursor, you could add the following style to _user.less_:
+For example, to change the color of the highlighted line number for the line
+that contains the cursor, you could add the following style to _user.less_:
 
 ```less
 @highlight-color: pink;

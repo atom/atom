@@ -1,12 +1,8 @@
-{{{
-"title": "Creating a Package"
-}}}
-
 # Authoring Packages
 
-Packages are at the core of Atom. Nearly everything outside of the main editor manipulation
-is handled by a package. That includes "core" pieces like the command panel, status bar,
-file tree, and more.
+Packages are at the core of Atom. Nearly everything outside of the main editor
+manipulation is handled by a package. That includes "core" pieces like the
+command panel, status bar, file tree, and more.
 
 A package can contain a variety of different resource types to change Atom's
 behavior. The basic package layout is as follows (though not every package will
@@ -26,8 +22,8 @@ my-package/
 
 ## Publishing
 
-Atom bundles a command line utility called [apm](http://github.com/atom/apm)
-which can be used to publish Atom packages to the public registry.
+Atom bundles a command line utility called [apm][apm] which can be used to
+publish Atom packages to the public registry.
 
 Once your package is written and ready for distribution you can run the
 following to publish your package:
@@ -37,40 +33,40 @@ cd my-package
 apm publish minor
 ```
 
-This will update your `package.json` to have a new minor `version`, commit
-the change, create a new [Git tag](http://git-scm.com/book/en/Git-Basics-Tagging),
-and then upload the package to the registry.
+This will update your `package.json` to have a new minor `version`, commit the
+change, create a new [Git tag][git-tag], and then upload the package to the
+registry.
 
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
 
 ## package.json
 
-Similar to [npm packages][npm], Atom packages
-can contain a _package.json_ file in their top-level directory. This file contains metadata
-about the package, such as the path to its "main" module, library dependencies,
-and manifests specifying the order in which its resources should be loaded.
+Similar to [npm packages][npm], Atom packages can contain a _package.json_ file
+in their top-level directory. This file contains metadata about the package,
+such as the path to its "main" module, library dependencies, and manifests
+specifying the order in which its resources should be loaded.
 
-In addition to the regular [npm package.json keys](https://npmjs.org/doc/json.html)
-available, Atom package.json files have their own additions.
+In addition to the regular [npm package.json keys][npm-keys] available, Atom
+package.json files have their own additions.
 
 - `main` (**Required**): the path to the CoffeeScript file that's the entry point
 to your package
 - `stylesheets` (**Optional**): an Array of Strings identifying the order of the
-stylesheets your package needs to load. If not specified, stylesheets in the _stylesheets_
-directory are added alphabetically.
+stylesheets your package needs to load. If not specified, stylesheets in the
+_stylesheets_ directory are added alphabetically.
 - `keymaps`(**Optional**): an Array of Strings identifying the order of the
-key mappings your package needs to load. If not specified, mappings in the _keymaps_
-directory are added alphabetically.
+key mappings your package needs to load. If not specified, mappings in the
+_keymaps_ directory are added alphabetically.
 - `menus`(**Optional**): an Array of Strings identifying the order of
 the menu mappings your package needs to load. If not specified, mappings
 in the _keymap_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
-snippets your package needs to load. If not specified, snippets in the _snippets_
-directory are added alphabetically.
+snippets your package needs to load. If not specified, snippets in the
+_snippets_ directory are added alphabetically.
 - `activationEvents` (**Optional**): an Array of Strings identifying events that
-trigger your package's activation. You can delay the loading of your package until
-one of these events is trigged.
+trigger your package's activation. You can delay the loading of your package
+until one of these events is trigged.
 
 ## Source Code
 
@@ -135,8 +131,8 @@ please collaborate with us if you need an API that doesn't exist. Our goal is
 to build out Atom's API organically based on the needs of package authors like
 you.
 
-See [Atom's built-in packages](https://github.com/atom/atom/)
-for examples of Atom's API in action.
+See [wrap-guide][wrap-guide] for examples of Atom's API in
+action.
 
 ## Stylesheets
 
@@ -144,19 +140,22 @@ Stylesheets for your package should be placed in the _stylesheets_ directory.
 Any stylesheets in this directory will be loaded and attached to the DOM when
 your package is activated. Stylesheets can be written as CSS or LESS.
 
-An optional `stylesheets` array in your _package.json_ can list the stylesheets by
-name to specify a loading order; otherwise, stylesheets are loaded alphabetically.
+An optional `stylesheets` array in your _package.json_ can list the stylesheets
+by name to specify a loading order; otherwise, stylesheets are loaded
+alphabetically.
 
 ## Keymaps
 
 Keymaps are placed in the _keymaps_ subdirectory. It's a good idea to provide
-default keymaps for your extension, especially if you're also adding a new command.
+default keymaps for your extension, especially if you're also adding a new
+command.
 
 By default, all keymaps are loaded in alphabetical order. An optional `keymaps`
-array in your _package.json_ can specify which keymaps to load and in what order.
+array in your _package.json_ can specify which keymaps to load and in what
+order.
 
-See the [main keymaps documentation](../internals/keymaps.md) for more information on
-how keymaps work.
+See the [main keymaps documentation][keymaps] for more
+information on how keymaps work.
 
 ## Menus
 
@@ -168,14 +167,15 @@ By default, all menus are loaded in alphabetical order. An optional
 `menus` array in your _package.json_ can specify which menus to load
 and in what order.
 
+FIXME: Describe how to create an application menu item.
+
 Context menus are created by determining which element was selected and
 then adding all of the menu items whose selectors match that element (in
 the order which they were loaded). The process is then repeated for the
 elements until reaching the top of the dom tree.
 
 NOTE: Currently you can only specify items to be added to the context
-menu, the menu which appears when you right click. There are plans to
-add support for adding to global menu.
+menu, the menu which appears when you right click.
 
 ```
 'context-menu':
@@ -203,24 +203,26 @@ be `.cson` or `.json` files. Here's an example:
     """
 ```
 
-A snippets file contains scope selectors at its top level (`.source.coffee .spec`).
-Each scope selector contains a hash of snippets keyed by their name (`Expect`, `Describe`).
-Each snippet also specifies a `prefix` and a `body` key. The `prefix` represents
-the first few letters to type before hitting the `tab` key to autocomplete. The
-`body` defines the autofilled text. You can use placeholders like `$1`, `$2`, to indicate
-regions in the body the user can navigate to every time they hit `tab`.
+A snippets file contains scope selectors at its top level (`.source.coffee
+.spec`). Each scope selector contains a hash of snippets keyed by their name
+(`Expect`, `Describe`). Each snippet also specifies a `prefix` and a `body` key.
+The `prefix` represents the first few letters to type before hitting the `tab`
+key to autocomplete. The `body` defines the autofilled text. You can use
+placeholders like `$1`, `$2`, to indicate regions in the body the user can
+navigate to every time they hit `tab`.
 
-All files in the directory are automatically loaded, unless the
-_package.json_ supplies a `snippets` key. As with all scoped
-items, snippets loaded later take precedence over earlier snippets when two
-snippets match a scope with the same specificity.
+All files in the directory are automatically loaded, unless the _package.json_
+supplies a `snippets` key. As with all scoped items, snippets loaded later take
+precedence over earlier snippets when two snippets match a scope with the same
+specificity.
 
 ## Language Grammars
 
 If you're developing a new language grammar, you'll want to place your file in
 the _grammars_ directory. Each grammar is a pairing of two keys, `match` and
-`captures`. `match` is a regular expression identifying the pattern to highlight,
-while `captures` is an object representing what to do with each matching group.
+`captures`. `match` is a regular expression identifying the pattern to
+highlight, while `captures` is an object representing what to do with each
+matching group.
 
 For example:
 
@@ -245,14 +247,14 @@ To capture a single group, simply use the `name` key instead:
 }
 ```
 
-This indicates that Markdown header lines (`#`, `##`, `###`) should be applied with
-the `markup.heading.gfm` token.
+This indicates that Markdown header lines (`#`, `##`, `###`) should be applied
+with the `markup.heading.gfm` token.
 
 More information about the significance of these tokens can be found in
-[section 12.4 of the TextMate Manual](http://manual.macromates.com/en/language_grammars.html).
+[section 12.4 of the TextMate Manual][tm-tokens].
 
-Your grammar should also include a `filetypes` array, which is a list of file extensions
-your grammar supports:
+Your grammar should also include a `filetypes` array, which is a list of file
+extensions your grammar supports:
 
 ```coffeescript
 'fileTypes': [
@@ -279,12 +281,15 @@ You can also use the `atom` protocol URLs in themes.
 
 ## Writing Tests
 
-Your package **should** have tests, and if they're placed in the _spec_ directory,
-they can be run by Atom.
+Your package **should** have tests, and if they're placed in the _spec_
+directory, they can be run by Atom.
 
-Under the hood, [Jasmine](https://github.com/pivotal/jasmine) is being used to
-execute the tests, so you can assume that any DSL available there is available
-to your package as well.
+Under the hood, [Jasmine] is being used to execute the tests, so you can
+assume that any DSL available there is available to your package as well.
+
+## Running tests
+
+FIXME: Describe  `apm test`
 
 # Full Example
 
@@ -292,13 +297,13 @@ Let's take a look at creating our first package.
 
 Atom has a command you can enter that'll create a package for you:
 `package-generator:generate`. Otherwise, you can hit `cmd-p`, and start typing
-"Package Generator." Once you activate this package, it'll ask you for a name for
-your new package. Let's call ours _changer_.
+"Package Generator." Once you activate this package, it'll ask you for a name
+for your new package. Let's call ours _changer_.
 
-Now, _changer_ is going to have a default set of folders and files created for us.
-Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer." You'll
-see a new `Changer:Toggle` command which, if selected, pops up a new message. So
-far, so good!
+Now, _changer_ is going to have a default set of folders and files created for
+us. Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer."
+You'll see a new `Changer:Toggle` command which, if selected, pops up a new
+message. So far, so good!
 
 In order to demonstrate the capabilities of Atom and its API, our Changer plugin
 is going to do two things:
@@ -311,9 +316,9 @@ Let's get started!
 
 ## Changing Keybindings and Commands
 
-Since Changer is primarily concerned with the file tree, let's write a keybinding
-that works only when the tree is focused. Instead of using the default `toggle`,
-our keybinding executes a new command called `magic`.
+Since Changer is primarily concerned with the file tree, let's write a
+keybinding that works only when the tree is focused. Instead of using the
+default `toggle`, our keybinding executes a new command called `magic`.
 
 _keymaps/changer.cson_ can easily become this:
 
@@ -325,10 +330,11 @@ _keymaps/changer.cson_ can easily become this:
 Notice that the keybinding is called `ctrl-V`--that's actually `ctrl-shift-v`.
 You can use capital letters to denote using `shift` for your binding.
 
-`.tree-view-scroller` represents the parent container for the tree view. Keybindings
-only work within the context of where they're entered. For example, hitting `ctrl-V`
-anywhere other than tree won't do anything. You can map to `body` if you want
-to scope to anywhere in Atom, or just `.editor` for the editor portion.
+`.tree-view-scroller` represents the parent container for the tree view.
+Keybindings only work within the context of where they're entered. For example,
+hitting `ctrl-V` anywhere other than tree won't do anything. You can map to
+`body` if you want to scope to anywhere in Atom, or just `.editor` for the
+editor portion.
 
 To bind keybindings to a command, we'll use the `rootView.command` method. This
 takes a command name and executes a function in the code. For example:
@@ -337,15 +343,17 @@ takes a command name and executes a function in the code. For example:
 rootView.command "changer:magic", => @magic()
 ```
 
-It's common practice to namespace your commands with your package name, and separate
-it with a colon (`:`). Rename the existing `toggle` method to `magic` to get the
-binding to work.
+It's common practice to namespace your commands with your package name, and
+separate it with a colon (`:`). Rename the existing `toggle` method to `magic`
+to get the binding to work.
 
-Reload the editor, click on the tree, hit your keybinding, and...nothing happens! What the heck?!
+Reload the editor, click on the tree, hit your keybinding, and...nothing
+happens! What the heck?!
 
-Open up the _package.json_ file, and notice the key that says `activationEvents`.
-Basically, this tells Atom to not load a package until it hears a certain event.
-Let's change the event to `changer:magic` and reload the editor.
+Open up the _package.json_ file, and notice the key that says
+`activationEvents`. Basically, this tells Atom to not load a package until it
+hears a certain event. Let's change the event to `changer:magic` and reload the
+editor.
 
 Hitting the key binding on the tree now works!
 
@@ -363,7 +371,8 @@ Let's bring in jQuery:
 $ = require 'jquery'
 ```
 
-Now, we can query the tree to get us a list of every file that _wasn't_ modified:
+Now, we can query the tree to get us a list of every file that _wasn't_
+modified:
 
 ```coffeescript
 magic: ->
@@ -393,9 +402,9 @@ ol.entries .hide-me {
 }
 ```
 
-Refresh atom, and run the `changer` command. You'll see all the non-changed files
-disappear from the tree. There are a number of ways you can get the list back;
-let's just naively iterate over the same elements and remove the class:
+Refresh atom, and run the `changer` command. You'll see all the non-changed
+files disappear from the tree. There are a number of ways you can get the list
+back; let's just naively iterate over the same elements and remove the class:
 
 ```coffeescript
 magic: ->
@@ -412,11 +421,11 @@ magic: ->
 The next goal of this package is to append a pane to the Atom editor that lists
 some information about the modified files.
 
-To do that, we're going to first create a new class method called `content`. Every
-package that extends from the `View` class can provide an optional class method
-called `content`. The `content` method constructs the DOM that your package uses
-as its UI. The principals of `content` are built entirely on [SpacePen](https://github.com/nathansobo/space-pen),
-which we'll touch upon only briefly here.
+To do that, we're going to first create a new class method called `content`.
+Every package that extends from the `View` class can provide an optional class
+method called `content`. The `content` method constructs the DOM that your
+package uses as its UI. The principals of `content` are built entirely on
+[SpacePen][space-pen], which we'll touch upon only briefly here.
 
 Our display will simply be an unordered list of the file names, and their
 modified times. Let's start by carving out a `div` to hold the filenames:
@@ -429,9 +438,9 @@ modified times. Let's start by carving out a `div` to hold the filenames:
       @li 'Test2'
 ```
 
-You can add any HTML5 attribute you like. `outlet` names the variable
-your package can uses to manipulate the element directly. The fat pipe (`=>`) indicates
-that the next set are nested children.
+You can add any HTML5 attribute you like. `outlet` names the variable your
+package can uses to manipulate the element directly. The fat pipe (`=>`)
+indicates that the next set are nested children.
 
 We'll add one more line to `magic` to make this pane appear:
 
@@ -442,8 +451,8 @@ rootView.vertical.append(this)
 If you hit the key command, you'll see a box appear right underneath the editor.
 Success!
 
-Before we populate this, let's apply some logic to toggle the pane off and on, just
-like we did with the tree view:
+Before we populate this, let's apply some logic to toggle the pane off and on,
+just like we did with the tree view:
 
 ```coffeescript
 # toggles the pane
@@ -454,12 +463,12 @@ else
 ```
 
 There are about a hundred different ways to toggle a pane on and off, and this
-might not be the most efficient one. If you know your package needs to be toggled
-on and off more freely, it might be better to draw the UI during the initialization,
-then immediately call `hide()` on the element to remove it from the view. You can
-then swap between `show()` and `hide()`, and instead of forcing Atom to add and remove
-the element as we're doing here, it'll just set a CSS property to control your package's
-visibility.
+might not be the most efficient one. If you know your package needs to be
+toggled on and off more freely, it might be better to draw the UI during the
+initialization, then immediately call `hide()` on the element to remove it from
+the view. You can then swap between `show()` and `hide()`, and instead of
+forcing Atom to add and remove the element as we're doing here, it'll just set a
+CSS property to control your package's visibility.
 
 You might have noticed that our two `li` elements aren't showing up. Let's set
 a color on them so that they pop. Open up `changer.css` and add this CSS:
@@ -474,8 +483,8 @@ Refresh Atom, hit the key combo, and see your brilliantly white test list.
 
 ## Calling Node.js Code
 
-Since Atom is built on top of Node.js, you can call any of its libraries, including
-other modules that your package requires.
+Since Atom is built on top of Node.js, you can call any of its libraries,
+including other modules that your package requires.
 
 We'll iterate through our resulting tree, and construct the path to our modified
 file based on its depth in the tree:
@@ -501,14 +510,14 @@ $('ol.entries li.file.modified span.name').each (i, el) ->
   modifiedFiles.push modifiedFilePath
 ```
 
-`modifiedFiles` is an array containing a list of our modified files. We're also using
-the node.js [`path` library](http://nodejs.org/docs/latest/api/path.html) to get
-the proper directory separator for our system.
+`modifiedFiles` is an array containing a list of our modified files. We're also
+using the node.js [`path` library][path] to get the proper directory separator
+for our system.
 
-Let's remove the two `@li` elements we added in `@content`, so that we can populate
-our `modifiedFilesList` with real information. We'll do that by iterating over
-`modifiedFiles`, accessing a file's last modified time, and appending it to
-`modifiedFilesList`:
+Let's remove the two `@li` elements we added in `@content`, so that we can
+populate our `modifiedFilesList` with real information. We'll do that by
+iterating over `modifiedFiles`, accessing a file's last modified time, and
+appending it to `modifiedFilesList`:
 
 ```coffeescript
 # toggles the pane
@@ -522,11 +531,11 @@ else
   rootView.vertical.append(this)
 ```
 
-When you toggle the modified files list, your pane is now populated with the filenames
-and modified times of files in your project. You might notice that subsequent calls
-to this command reduplicate information. We could provide an elegant way of rechecking
-files already in the list, but for this demonstration, we'll just clear the `modifiedFilesList`
-each time it's closed:
+When you toggle the modified files list, your pane is now populated with the
+filenames and modified times of files in your project. You might notice that
+subsequent calls to this command reduplicate information. We could provide an
+elegant way of rechecking files already in the list, but for this demonstration,
+we'll just clear the `modifiedFilesList` each time it's closed:
 
 ```coffeescript
 # toggles the pane
@@ -543,14 +552,27 @@ else
 
 # Included Libraries
 
-In addition to core node.js modules, all packages can `require` the following popular
-libraries into their packages:
+FIXME: Describe `require 'atom'
 
-* [SpacePen](https://github.com/nathansobo/space-pen) (as `require 'space-pen'`)
-* [jQuery](http://jquery.com/) (as `require 'jquery'`)
-* [Underscore](http://underscorejs.org/) (as `require 'underscore'`)
+In addition to core node.js modules, all packages can `require` the following
+popular libraries into their packages:
+
+* [SpacePen] (as `require 'space-pen'`)
+* [jQuery] (as `require 'jquery'`)
+* [Underscore] (as `require 'underscore'`)
 
 Additional libraries can be found by browsing Atom's _node_modules_ folder.
 
 
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
+[npm-keys]: https://npmjs.org/doc/json.html
+[apm]: https://github.com/atom/apm
+[git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
+[wrap-guide]: https://github.com/atom/wrap-guide/
+[keymaps]: internals/keymaps.md
+[tm-tokens]: http://manual.macromates.com/en/language_grammars.html
+[spacepen]: https://github.com/nathansobo/space-pen
+[path]: http://nodejs.org/docs/latest/api/path.html
+[jquery]: http://jquery.com/
+[underscore]: http://underscorejs.org/
+[jasmine]: https://github.com/pivotal/jasmine

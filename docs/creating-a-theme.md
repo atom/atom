@@ -1,7 +1,3 @@
-{{{
-"title": "Creating a Theme"
-}}}
-
 # Creating a Theme
 
 ## Overview
@@ -47,12 +43,12 @@ a few things before starting:
   1. Open `package.json` and update the relevant parts.
   1. Open `stylesheets/colors.less` to change the various colors variables which
      have been already been defined.
-  1. Open `stylesheets/base.less` and modify the various syntax CSS selectors that
-     have been already been defined.
-  1. When you're ready update the `README.md` and include an example screenshot of
-     your new theme in action.
-1. Open a terminal, find your new theme's directory, initialize the git repository
-   and push it to repository on  GitHub.
+  1. Open `stylesheets/base.less` and modify the various syntax CSS selectors
+     that have been already been defined.
+  1. When you're ready update the `README.md` and include an example screenshot
+     of your new theme in action.
+1. Open a terminal, find your new theme's directory, initialize the git
+   repository and push it to repository on  GitHub.
 1. Once you're ready for others to use your theme run `apm publish` from within
    that directory to make it available to other Atom users.
 
@@ -72,10 +68,10 @@ to make but you aren't sure how to reference an element. That's when the
 devtools become really useful, just open them up (`cmd+alt+i`), switch to the
 `Elements` tab and inspect the element you're interested in.
 
-[LESS]: http://lesscss.org/
+[less]: http://lesscss.org/
 [git]: http://git-scm.com/
-[Atom]: https://atom.io/
-[GitHub]: https://github.com/
+[atom]: https://atom.io/
+[github]: https://github.com/
 [less-tutorial]: https://speakerdeck.com/danmatthews/less-css
 [devtools-tutorial]: https://developers.google.com/chrome-developer-tools/docs/elements
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less

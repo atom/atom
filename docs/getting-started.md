@@ -1,7 +1,3 @@
-{{{
-"title": "Getting Started"
-}}}
-
 # Getting Started
 
 Welcome to Atom! This guide provides a quick introduction so you can be
@@ -15,18 +11,17 @@ can always hit `cmd-p` to bring up a list of commands that are relevant to the
 currently focused UI element. If there is a key binding for a given command, it
 is also displayed. This is a great way to explore the system and get to know the
 key commands interactively. If you'd like to learn about adding or changing a
-binding for a command, refer to the [key bindings](#customizing-key-bindings)
-section below.
+binding for a command, refer to the [key bindings][key-bindings] section below.
 
-![Command Palette](https://f.cloud.github.com/assets/1424/1091618/ee7c3554-166a-11e3-9955-aaa61bb5509c.png)
+![Command Palette]
 
 ## The Basics
 
 ### Working With Files
 
-Atom windows are scoped to the directory in which they're opened from. So if
-you launch Atom from the command line, everything will be relative to the
-current directory. This means that the tree view on the left will only show files
+Atom windows are scoped to the directory in which they're opened from. So if you
+launch Atom from the command line, everything will be relative to the current
+directory. This means that the tree view on the left will only show files
 contained within that directory.
 
 This can be a useful way to organize multiple projects, as each project will be
@@ -62,12 +57,13 @@ FIXME: Describe https://github.com/atom/find-and-replace
 #### Navigating By Symbols
 
 If you want to jump to a method, the `cmd-j` binding opens a list of all symbols
-in the current file. `cmd-.` jumps to the tag for the word currently under the cursor.
+in the current file. `cmd-.` jumps to the tag for the word currently under the
+cursor.
 
 To search for symbols across your project use `cmd-shift-j`, but you'll need to
 make sure you have a tags file generated for the project Also, if you're editing
 CoffeeScript, it's a good idea to update your `~/.ctags` file to understand the
-language. Here is [a good example](https://github.com/kevinsawicki/dotfiles/blob/master/.ctags).
+language. Here is [a good example][ctags].
 
 ### Split Panes
 
@@ -102,7 +98,10 @@ To install a package, open the configuration panel and select the packages tab.
 
 FIXME: Needs more details.
 
-[configuring]: customizing-atom.html
-[theming]: creating-a-theme.html
-[extending]: creating-a-package.html
-[customization]: customizing-atom.html
+[configuring]: customizing-atom.md
+[theming]: creating-a-theme.md
+[extending]: creating-a-package.md
+[customization]: customizing-atom.md
+[key-bindings]: #customizing-key-bindings
+[command palette]: https://f.cloud.github.com/assets/1424/1091618/ee7c3554-166a-11e3-9955-aaa61bb5509c.png
+[ctags]: https://github.com/kevinsawicki/dotfiles/blob/master/.ctags
