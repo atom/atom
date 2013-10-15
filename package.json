@@ -20,7 +20,7 @@
     "apm": "./bin/apm"
   },
   "scripts": {
-    "prepublish": "grunt clean lint coffee",
+    "prepublish": "grunt clean coffee lint",
     "test": "grunt test"
   },
   "dependencies": {
