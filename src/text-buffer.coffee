@@ -1,3 +1,4 @@
+{Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
@@ -5,9 +6,7 @@ telepath = require 'telepath'
 
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-EventEmitter = require './event-emitter'
 File = require './file'
-Subscriber = require './subscriber'
 
 {Point, Range} = telepath
 
@@ -17,8 +16,8 @@ Subscriber = require './subscriber'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
-  _.extend @prototype, EventEmitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   @acceptsDocuments: true
   @version: 2
@@ -61,8 +60,8 @@ class TextBuffer
       @loadFromDisk = not initialText
 
     @subscribe @text, 'changed', @handleTextChange
-    @subscribe @text, 'marker-created', (marker) => @trigger 'marker-created', marker
-    @subscribe @text, 'markers-updated', => @trigger 'markers-updated'
+    @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
+    @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
     @setPath(@project.resolve(filePath)) if @project
 
@@ -83,7 +82,7 @@ class TextBuffer
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
     bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
-    @trigger 'changed', bufferChangeEvent
+    @emit 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
 
   destroy: ->
@@ -92,7 +91,7 @@ class TextBuffer
       @unsubscribe()
       @destroyed = true
       @project?.removeBuffer(this)
-      @trigger 'destroyed'
+      @emit 'destroyed'
 
   isRetained: -> @refcount > 0
 
@@ -119,17 +118,17 @@ class TextBuffer
       @conflict = true if @isModified()
       @updateCachedDiskContentsAsync().done =>
         if @conflict
-          @trigger "contents-conflicted"
+          @emit "contents-conflicted"
         else
           @reload()
 
     @file.on "removed", =>
       @updateCachedDiskContentsAsync().done =>
-        @triggerModifiedStatusChanged(@isModified())
+        @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
       @state.set('relativePath', @project.relativize(@getPath()))
-      @trigger "path-changed", this
+      @emit "path-changed", this
 
   ### Public ###
 
@@ -144,10 +143,10 @@ class TextBuffer
   #
   # Sets the buffer's content to the cached disk contents
   reload: ->
-    @trigger 'will-reload'
+    @emit 'will-reload'
     @setText(@cachedDiskContents)
-    @triggerModifiedStatusChanged(false)
-    @trigger 'reloaded'
+    @emitModifiedStatusChanged(false)
+    @emit 'reloaded'
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
@@ -191,7 +190,7 @@ class TextBuffer
       @file = null
 
     @state.set('relativePath', @project.relativize(path))
-    @trigger "path-changed", this
+    @emit "path-changed", this
 
   # Retrieves the current buffer's file extension.
   #
@@ -399,12 +398,12 @@ class TextBuffer
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
-    @trigger 'will-be-saved'
+    @emit 'will-be-saved'
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
-    @triggerModifiedStatusChanged(false)
-    @trigger 'saved'
+    @emitModifiedStatusChanged(false)
+    @emit 'saved'
 
   # Identifies if the buffer was modified.
   #
@@ -653,14 +652,14 @@ class TextBuffer
     stoppedChangingCallback = =>
       @stoppedChangingTimeout = null
       modifiedStatus = @isModified()
-      @trigger 'contents-modified', modifiedStatus
-      @triggerModifiedStatusChanged(modifiedStatus)
+      @emit 'contents-modified', modifiedStatus
+      @emitModifiedStatusChanged(modifiedStatus)
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
-  triggerModifiedStatusChanged: (modifiedStatus) ->
+  emitModifiedStatusChanged: (modifiedStatus) ->
     return if modifiedStatus is @previousModifiedStatus
     @previousModifiedStatus = modifiedStatus
-    @trigger 'modified-status-changed', modifiedStatus
+    @emit 'modified-status-changed', modifiedStatus
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

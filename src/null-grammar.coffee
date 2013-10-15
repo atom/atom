@@ -1,11 +1,10 @@
 Token = require './token'
-EventEmitter = require './event-emitter'
-_ = require './underscore-extensions'
+{Emitter} = require 'emissary'
 
 ### Internal ###
 module.exports =
 class NullGrammar
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   name: 'Null Grammar'
   scopeName: 'text.plain.null-grammar'

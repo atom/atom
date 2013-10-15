@@ -1,5 +1,5 @@
 path = require 'path'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 Package = require './package'
 AtomPackage = require './atom-package'
 
@@ -10,7 +10,7 @@ fsUtils = require './fs-utils'
 # Private: Handles discovering and loading available themes.
 module.exports =
 class ThemeManager
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   constructor: ->
     @loadedThemes = []
@@ -128,7 +128,7 @@ class ThemeManager
       @activateTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
       @reloadBaseStylesheets()
-      @trigger('reloaded')
+      @emit('reloaded')
 
   # Private:
   loadTheme: (name, options) ->
@@ -167,7 +167,7 @@ class ThemeManager
       theme = @loadTheme(name)
       theme.activate()
       @activeThemes.push(theme)
-      @trigger('theme-activated', theme)
+      @emit('theme-activated', theme)
     catch error
       console.warn("Failed to load theme #{name}", error.stack ? error)
 

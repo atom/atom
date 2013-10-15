@@ -1,8 +1,7 @@
 _ = require './underscore-extensions'
 fsUtils = require './fs-utils'
-Subscriber = require './subscriber'
-EventEmitter = require './event-emitter'
 Task = require './task'
+{Emitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.
@@ -18,8 +17,8 @@ GitUtils = require 'git-utils'
 # ```
 module.exports =
 class Git
-  _.extend @prototype, Subscriber
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   # Private: Creates a new `Git` instance.
   #
@@ -81,6 +80,7 @@ class Git
         @getPathStatus(path)
     @subscribe buffer, 'saved', bufferStatusHandler
     @subscribe buffer, 'reloaded', bufferStatusHandler
+    @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
   # Public:  Destroy this `Git` object. This destroys any tasks and
   # subscriptions and releases the underlying libgit2 repository handle.
@@ -125,7 +125,7 @@ class Git
     else
       delete @statuses[path]
     if currentPathStatus isnt pathStatus
-      @trigger 'status-changed', path, pathStatus
+      @emit 'status-changed', path, pathStatus
     pathStatus
 
   # Public: Determines if the given path is ignored.
@@ -274,4 +274,4 @@ class Git
       @statuses = statuses
       @upstream = upstream
       @branch = branch
-      @trigger 'statuses-changed' unless statusesUnchanged
+      @emit 'statuses-changed' unless statusesUnchanged
