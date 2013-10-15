@@ -67,7 +67,7 @@ namespaces: `core` and `editor`.
   - `disabledPackages`: An array of package names to disable
   - `excludeVcsIgnoredPaths`: Don't search within files specified by _.gitignore_
   - `hideGitIgnoredFiles`: Whether files in the _.gitignore_ should be hidden
-  - `ignoredNames`: File names to ignore across all of Atom (not fully implemented)
+  - `ignoredNames`: File names to ignore across all of Atom
   - `projectHome`: The directory where projects are assumed to be located
   - `themes`: An array of theme names to load, in cascading order
 - `editor`
