@@ -1,8 +1,12 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
 
+_ = require 'underscore-plus'
+#TODO Remove once all packages have been updated
+_.nextTick = process.nextTick
+
 module.exports =
-  _: require 'underscore-plus'
+  _: _
   $: require '../src/jquery-extensions'
   $$: $$
   $$$: $$$

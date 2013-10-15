@@ -13,7 +13,7 @@ windowEventHandler = null
 # This is done in a next tick to prevent a white flicker from occurring
 # if called synchronously.
 displayWindow = ->
-  _.nextTick ->
+  process.nextTick ->
     atom.show()
     atom.focus()
 
