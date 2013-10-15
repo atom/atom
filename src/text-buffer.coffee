@@ -66,12 +66,12 @@ class TextBuffer
 
     @setPath(@project.resolve(filePath)) if @project
 
-  load: ->
+  loadSync: ->
     @updateCachedDiskContents()
     @reload() if @loadFromDisk and @isModified()
     @text.clearUndoStack()
 
-  loadAsync: ->
+  load: ->
     @updateCachedDiskContentsAsync().then =>
       @reload() if @loadFromDisk and @isModified()
       @text.clearUndoStack()

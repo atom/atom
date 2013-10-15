@@ -250,7 +250,7 @@ class Project
   # Private: DEPRECATED
   buildBufferSync: (absoluteFilePath, initialText) ->
     buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
-    buffer.load()
+    buffer.loadSync()
     @addBuffer(buffer)
     buffer
 
@@ -262,7 +262,7 @@ class Project
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath, initialText) ->
     buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
-    buffer.loadAsync().then (buffer) =>
+    buffer.load().then (buffer) =>
       @addBuffer(buffer)
       buffer
 
