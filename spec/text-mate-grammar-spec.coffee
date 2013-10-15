@@ -214,7 +214,7 @@ fdescribe "TextMateGrammar", ->
             atom.activatePackage('html-tmbundle', sync: true)
             atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-            grammar = syntax.selectGrammar('foo.html.erb')
+            grammar = syntax.grammarForScopeName('text.html.ruby')
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
             expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
@@ -263,7 +263,7 @@ fdescribe "TextMateGrammar", ->
             atom.deactivatePackage('html-tmbundle')
             atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-            grammar = syntax.selectGrammar('foo.html.erb')
+            grammar = syntax.grammarForScopeName('text.html.ruby')
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
             expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
             expect(tokens[1]).toEqual value: '<%=', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
