@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 spacePen = require 'space-pen'
 jQuery = require './jquery-extensions'
 ConfigObserver = require './config-observer'

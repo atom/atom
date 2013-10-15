@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 jQuery = require './jquery-extensions'
 Specificity = require '../vendor/specificity'
 {$$} = require './space-pen-extensions'

@@ -4,7 +4,7 @@ Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
 
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 File = require './file'
 

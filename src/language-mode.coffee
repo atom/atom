@@ -1,5 +1,5 @@
 {Range} = require 'telepath'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
 

@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'

@@ -3,7 +3,7 @@ path = require 'path'
 url = require 'url'
 Q = require 'q'
 
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'

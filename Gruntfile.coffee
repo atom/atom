@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 fm = require 'json-front-matter'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 packageJson = require './package.json'
 

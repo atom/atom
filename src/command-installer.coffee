@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 async = require 'async'
 mkdirp = require 'mkdirp'
 fsUtils = require './fs-utils'

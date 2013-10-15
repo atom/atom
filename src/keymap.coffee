@@ -1,5 +1,5 @@
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
