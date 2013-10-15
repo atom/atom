@@ -1,7 +1,7 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
-
 _ = require 'underscore-plus'
+
 #TODO Remove once all packages have been updated
 _.nextTick = setImmediate
 
