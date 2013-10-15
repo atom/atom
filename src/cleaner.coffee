@@ -3,6 +3,7 @@ path = require 'path'
 async = require 'async'
 CSON = require 'season'
 optimist = require 'optimist'
+_ = require 'underscore'
 
 Command = require './command'
 config = require './config'
@@ -16,18 +17,36 @@ class Cleaner extends Command
   constructor: ->
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
+  getDependencies: (modulePath, allDependencies) ->
+    try
+      {dependencies} = CSON.readFileSync(CSON.resolve(path.join(modulePath, 'package'))) ? {}
+    catch error
+      return
+
+    _.extend(allDependencies, dependencies)
+
+    modulesPath = path.join(modulePath, 'node_modules')
+    for installedModule in fs.list(modulesPath) when installedModule isnt '.bin'
+      @getDependencies(path.join(modulesPath, installedModule), allDependencies)
+
   getModulesToRemove: ->
     {devDependencies, dependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
     devDependencies ?= {}
     dependencies ?= {}
 
     modulesToRemove = []
-    for installedModule in fs.list('node_modules')
-      continue if installedModule is '.bin'
-      continue if installedModule is 'atom-package-manager'
+    modulesPath = path.resolve('node_modules')
+    installedModules = fs.list(modulesPath).filter (modulePath) ->
+      modulePath isnt '.bin' and modulePath isnt 'atom-package-manager'
+
+    # Find all dependencies of all installed modules recursively
+    for installedModule in installedModules
+      @getDependencies(path.join(modulesPath, installedModule), dependencies)
+
+    # Only remove dependencies that aren't referenced by any installed modules
+    for installedModule in installedModules
       continue if dependencies.hasOwnProperty(installedModule)
       continue if devDependencies.hasOwnProperty(installedModule)
-
       modulesToRemove.push(installedModule)
 
     modulesToRemove
