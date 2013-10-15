@@ -17,7 +17,7 @@ module.exports =
 class ThemeManager
   Emitter.includeInto(this)
 
-  constructor: ({@packageManager, @resourcePath}) ->
+  constructor: ({@packageManager, @resourcePath, @configDirPath}) ->
     @lessCache = null
     @packageManager.registerPackageActivator(this, ['theme'])
 
@@ -87,7 +87,7 @@ class ThemeManager
 
   # Public:
   getUserStylesheetPath: ->
-    stylesheetPath = fs.resolve(path.join(atom.config.configDirPath, 'user'), ['css', 'less'])
+    stylesheetPath = fs.resolve(path.join(@configDirPath, 'user'), ['css', 'less'])
     if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else

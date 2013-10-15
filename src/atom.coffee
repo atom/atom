@@ -62,7 +62,7 @@ class Atom
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     @subscribe @packages, 'activated', => @watchThemes()
-    @themes = new ThemeManager({packageManager: @packages, resourcePath})
+    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
