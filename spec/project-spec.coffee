@@ -62,7 +62,7 @@ describe "Project", ->
       expect(project.getEditSessions()[0]).toBe editSession1
       expect(project.getEditSessions()[1]).toBe editSession2
 
-  describe ".open(path)", ->
+  describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
@@ -117,7 +117,7 @@ describe "Project", ->
         expect(project.openSync(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
         expect(project.openSync("bar://baz")).toEqual { bar: "bar://baz" }
 
-  describe ".openAsync(path)", ->
+  describe ".open(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
 
     beforeEach ->
@@ -141,7 +141,7 @@ describe "Project", ->
         it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
           editSession = null
           waitsForPromise ->
-            project.openAsync(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editSession = o
 
           runs ->
             expect(editSession.buffer.getPath()).toBe absolutePath
@@ -152,7 +152,7 @@ describe "Project", ->
         it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
           editSession = null
           waitsForPromise ->
-            project.openAsync(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editSession = o
 
           runs ->
             expect(editSession.buffer.getPath()).toBe absolutePath
@@ -163,7 +163,7 @@ describe "Project", ->
         it "returns a new edit session containing currently opened buffer and emits a 'edit-session-created' event", ->
           editSession = null
           waitsForPromise ->
-            project.openAsync(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editSession = o
 
           runs ->
             newBufferHandler.reset()
@@ -176,7 +176,7 @@ describe "Project", ->
         it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
           editSession = null
           waitsForPromise ->
-            project.openAsync().then (o) -> editSession = o
+            project.open().then (o) -> editSession = o
 
           runs ->
             expect(editSession.buffer.getPath()).toBeUndefined()
@@ -187,17 +187,17 @@ describe "Project", ->
       it "returns the resource returned by the custom opener", ->
         waitsForPromise ->
           pathToOpen = project.resolve('a.foo')
-          project.openAsync(pathToOpen, hey: "there").then (item) ->
+          project.open(pathToOpen, hey: "there").then (item) ->
             expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
 
         waitsForPromise ->
-          project.openAsync("bar://baz").then (item) ->
+          project.open("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
     it "returns number of read bytes as progress indicator", ->
       filePath = project.resolve 'a'
       totalBytes = 0
-      promise = project.openAsync(filePath)
+      promise = project.open(filePath)
       promise.progress (bytesRead) -> totalBytes = bytesRead
 
       waitsForPromise ->
@@ -220,11 +220,11 @@ describe "Project", ->
         buffer = project.bufferForPathSync("a").retain().release()
         expect(project.bufferForPathSync("a").retain().release()).not.toBe buffer
 
-  describe ".bufferForPathAsync(path)", ->
+  describe ".bufferForPath(path)", ->
     [buffer] = []
     beforeEach ->
       waitsForPromise ->
-        project.bufferForPathAsync("a").then (o) ->
+        project.bufferForPath("a").then (o) ->
           buffer = o
           buffer.retain()
 
@@ -234,18 +234,18 @@ describe "Project", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
         waitsForPromise ->
-          project.bufferForPathAsync("a").then (anotherBuffer) ->
+          project.bufferForPath("a").then (anotherBuffer) ->
             expect(anotherBuffer).toBe buffer
 
         waitsForPromise ->
-          project.bufferForPathAsync("b").then (anotherBuffer) ->
+          project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
 
       it "creates a new buffer if the previous buffer was destroyed", ->
         buffer.release()
 
         waitsForPromise ->
-          project.bufferForPathAsync("b").then (anotherBuffer) ->
+          project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
 
   describe ".resolve(uri)", ->
