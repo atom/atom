@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {View, $$} = require 'space-pen'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 
 sourceMaps = {}
