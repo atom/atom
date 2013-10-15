@@ -11,7 +11,7 @@ window.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
 window.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
 window.pfbenchmark = window.fpbenchmark
 
-window.benchmarkFixturesProject = new Project(fsUtils.resolveOnLoadPath('../benchmark/fixtures'))
+window.benchmarkFixturesProject = new Project(path.join(__dirname, 'fixtures'))
 
 beforeEach ->
   window.project = window.benchmarkFixturesProject
