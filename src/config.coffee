@@ -33,7 +33,6 @@ class Config
 
   # Private: Created during initialization, available as `global.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
-    @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
     @bundledMenusDirPath = path.join(resourcePath, "menus")
     @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
     @bundledPackageDirPaths = [@nodeModulesDirPath]
