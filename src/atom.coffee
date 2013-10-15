@@ -1,4 +1,4 @@
-#FIXME remove once all packages have been updated
+#TODO remove once all packages have been updated
 {Emitter} = require 'emissary'
 Emitter::one = (args...) -> @once(args...)
 Emitter::trigger = (args...) -> @emit(args...)
