@@ -64,7 +64,7 @@ class Atom
     @subscribe @packages, 'activated', => @watchThemes()
     @themes = new ThemeManager({packageManager: @packages, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
-    @menu = new MenuManager()
+    @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
