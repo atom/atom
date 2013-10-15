@@ -1,6 +1,6 @@
 ChildProcess = require 'child_process'
 path = require 'path'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 # Public: A wrapper which provides buffering for ChildProcess.
 module.exports =

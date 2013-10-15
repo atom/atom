@@ -1,5 +1,5 @@
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 CSON = require 'season'
 fs = require 'fs'

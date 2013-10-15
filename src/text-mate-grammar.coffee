@@ -1,4 +1,4 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 plist = require 'plist'
 Token = require './token'

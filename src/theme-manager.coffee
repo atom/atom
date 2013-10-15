@@ -3,7 +3,7 @@ path = require 'path'
 Package = require './package'
 AtomPackage = require './atom-package'
 
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 $ = require './jquery-extensions'
 fsUtils = require './fs-utils'
 

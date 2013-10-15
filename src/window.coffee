@@ -1,6 +1,6 @@
 path = require 'path'
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 ipc = require 'ipc'
 WindowEventHandler = require './window-event-handler'
 

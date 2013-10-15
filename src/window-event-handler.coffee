@@ -1,5 +1,5 @@
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'

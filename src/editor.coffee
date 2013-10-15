@@ -7,7 +7,7 @@ CursorView = require './cursor-view'
 SelectionView = require './selection-view'
 fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 MeasureRange = document.createRange()
 TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }

@@ -2,7 +2,7 @@
 {Document, Point, Range, Site} = require 'telepath'
 
 module.exports =
-  _: require '../src/underscore-extensions'
+  _: require 'underscore-plus'
   $: require '../src/jquery-extensions'
   $$: $$
   $$$: $$$

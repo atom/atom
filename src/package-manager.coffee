@@ -1,6 +1,6 @@
 {Emitter} = require 'emissary'
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
 
