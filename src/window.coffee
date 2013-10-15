@@ -49,6 +49,8 @@ window.startEditorWindow = ->
   windowEventHandler = new WindowEventHandler
   atom.restoreDimensions()
   atom.config.load()
+  atom.config.setDefaults('core', require('./root-view').configDefaults)
+  atom.config.setDefaults('editor', require('./editor').configDefaults)
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()

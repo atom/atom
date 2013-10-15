@@ -42,9 +42,7 @@ class Config
       @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
     @userPackageDirPaths = _.clone(@packageDirPaths)
 
-    @defaultSettings =
-      core: _.clone(require('./root-view').configDefaults)
-      editor: _.clone(require('./editor').configDefaults)
+    @defaultSettings = {}
     @settings = {}
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
