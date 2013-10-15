@@ -4,7 +4,7 @@ describe "TextBuffer replication", ->
   [buffer1, buffer2] = []
 
   beforeEach ->
-    buffer1 = project.buildBuffer('sample.js')
+    buffer1 = project.buildBufferSync('sample.js')
     buffer1.insert([0, 0], 'changed\n')
     doc1 = buffer1.getState()
     doc2 = doc1.clone(new Site(2))

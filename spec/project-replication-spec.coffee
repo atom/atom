@@ -16,8 +16,8 @@ describe "Project replication", ->
     projectHome2 = path.join(__dirname, 'fixtures', 'replication', 'home-2')
     config.set('core.projectHome', projectHome1)
     project1 = new Project(path.join(projectHome1, 'project'))
-    project1.bufferForPath('file-1.txt')
-    project1.bufferForPath('file-1.txt')
+    project1.bufferForPathSync('file-1.txt')
+    project1.bufferForPathSync('file-1.txt')
     expect(project1.getBuffers().length).toBe 1
 
     doc1 = project1.getState()
@@ -39,13 +39,13 @@ describe "Project replication", ->
     expect(project2.getBuffers()[0].getPath()).not.toBe project1.getBuffers()[0].getPath()
 
   it "replicates insertion and removal of open buffers", ->
-    project2.bufferForPath('file-2.txt')
+    project2.bufferForPathSync('file-2.txt')
     expect(project1.getBuffers().length).toBe 2
     expect(project2.getBuffers()[0].getRelativePath()).toBe project1.getBuffers()[0].getRelativePath()
     expect(project2.getBuffers()[1].getRelativePath()).toBe project1.getBuffers()[1].getRelativePath()
     expect(project2.getBuffers()[0].getRelativePath()).not.toBe project1.getBuffers()[0].getPath()
     expect(project2.getBuffers()[1].getRelativePath()).not.toBe project1.getBuffers()[1].getPath()
 
-    project1.removeBuffer(project1.bufferForPath('file-2.txt'))
+    project1.removeBuffer(project1.bufferForPathSync('file-2.txt'))
     expect(project1.getBuffers().length).toBe 1
     expect(project2.getBuffers()[0].getRelativePath()).toBe project1.getBuffers()[0].getRelativePath()

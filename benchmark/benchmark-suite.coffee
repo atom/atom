@@ -31,7 +31,7 @@ describe "editor.", ->
 
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->
-      buffer = project.bufferForPath('medium.coffee')
+      buffer = project.bufferForPathSync('medium.coffee')
 
   describe "empty-file.", ->
     benchmark "insert-delete", ->

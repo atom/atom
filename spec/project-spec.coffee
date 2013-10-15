@@ -17,7 +17,7 @@ describe "Project", ->
       deserializedProject?.destroy()
 
     it "destroys unretained buffers and does not include them in the serialized state", ->
-      project.bufferForPath('a')
+      project.bufferForPathSync('a')
       expect(project.getBuffers().length).toBe 1
       deserializedProject = deserialize(project.serialize())
       expect(deserializedProject.getBuffers().length).toBe 0
@@ -206,19 +206,19 @@ describe "Project", ->
       runs ->
         expect(totalBytes).toBe fs.statSync(filePath).size
 
-  describe ".bufferForPath(path)", ->
+  describe ".bufferForPathSync(path)", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
-        buffer = project.bufferForPath("a").retain()
-        expect(project.bufferForPath("a")).toBe buffer
+        buffer = project.bufferForPathSync("a").retain()
+        expect(project.bufferForPathSync("a")).toBe buffer
 
-        alternativeBuffer = project.bufferForPath("b").retain().release()
+        alternativeBuffer = project.bufferForPathSync("b").retain().release()
         expect(alternativeBuffer).not.toBe buffer
         buffer.release()
 
       it "creates a new buffer if the previous buffer was destroyed", ->
-        buffer = project.bufferForPath("a").retain().release()
-        expect(project.bufferForPath("a").retain().release()).not.toBe buffer
+        buffer = project.bufferForPathSync("a").retain().release()
+        expect(project.bufferForPathSync("a").retain().release()).not.toBe buffer
 
   describe ".bufferForPathAsync(path)", ->
     [buffer] = []
