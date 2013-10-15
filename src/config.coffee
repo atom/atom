@@ -41,7 +41,6 @@ class Config
     if atom.getLoadSettings().devMode
       @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
     @userPackageDirPaths = _.clone(@packageDirPaths)
-    @userStoragePath = path.join(@configDirPath, "storage")
 
     @defaultSettings =
       core: _.clone(require('./root-view').configDefaults)

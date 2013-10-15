@@ -251,6 +251,10 @@ class Atom
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
 
+  # Public: Get the directory path to Atom's storage area.
+  getStorageDirPath: ->
+    @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
+
   getWindowStatePath: ->
     switch @windowMode
       when 'spec'
@@ -262,7 +266,7 @@ class Atom
           filename = "editor-#{sha1}"
 
     if filename
-      path.join(@config.userStoragePath, filename)
+      path.join(@getStorageDirPath(), filename)
     else
       null
 
