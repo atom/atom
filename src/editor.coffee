@@ -1185,7 +1185,7 @@ class Editor extends View
     return if @pendingDisplayUpdate
     return unless @isVisible()
     @pendingDisplayUpdate = true
-    process.nextTick =>
+    setImmediate =>
       @updateDisplay()
       @pendingDisplayUpdate = false
 

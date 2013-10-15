@@ -130,7 +130,7 @@ class RootView extends View
       @panes.reopenItem()
 
     if @state.get('fullScreen')
-      process.nextTick => atom.setFullScreen(true)
+      setImmediate => atom.setFullScreen(true)
 
   # Private:
   serialize: ->

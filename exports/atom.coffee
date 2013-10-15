@@ -3,7 +3,7 @@
 
 _ = require 'underscore-plus'
 #TODO Remove once all packages have been updated
-_.nextTick = process.nextTick
+_.nextTick = setImmediate
 
 module.exports =
   _: _
