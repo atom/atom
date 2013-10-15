@@ -1,6 +1,5 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
-{Emitter, Subscriber} = require 'emissary'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -11,7 +10,6 @@ module.exports =
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
   Document: Document
-  Emitter: Emitter
   File: require '../src/file'
   fs: require '../src/fs-utils'
   Git: require '../src/git'
@@ -20,7 +18,6 @@ module.exports =
   ScrollView: require '../src/scroll-view'
   Site: Site
   stringscore: require '../vendor/stringscore'
-  Subscriber: Subscriber
   View: View
 
 # The following classes can't be used from a Task handler and should therefore
