@@ -925,9 +925,14 @@ describe 'TextBuffer', ->
         state.get('text').insert([0, 0], 'simulate divergence of on-disk contents from serialized contents')
 
         buffer2 = deserialize(state, {project})
-        expect(buffer2.isModified()).toBeFalsy()
-        expect(buffer2.getPath()).toBe(buffer.getPath())
-        expect(buffer2.getText()).toBe(buffer.getText())
+
+        waitsFor ->
+          buffer2.cachedDiskContents
+
+        runs ->
+          expect(buffer2.isModified()).toBeFalsy()
+          expect(buffer2.getPath()).toBe(buffer.getPath())
+          expect(buffer2.getText()).toBe(buffer.getText())
 
     describe "when the serialized buffer had unsaved changes", ->
       it "restores the previous unsaved state of the buffer", ->
@@ -938,11 +943,16 @@ describe 'TextBuffer', ->
         expect(state.getObject('text')).toBe 'abc'
 
         buffer2 = deserialize(state, {project})
-        expect(buffer2.getPath()).toBe(buffer.getPath())
-        expect(buffer2.getText()).toBe(buffer.getText())
-        expect(buffer2.isModified()).toBeTruthy()
-        buffer2.setText(previousText)
-        expect(buffer2.isModified()).toBeFalsy()
+
+        waitsFor ->
+          buffer2.cachedDiskContents
+
+        runs ->
+          expect(buffer2.getPath()).toBe(buffer.getPath())
+          expect(buffer2.getText()).toBe(buffer.getText())
+          expect(buffer2.isModified()).toBeTruthy()
+          buffer2.setText(previousText)
+          expect(buffer2.isModified()).toBeFalsy()
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
