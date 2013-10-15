@@ -1,7 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 async = require 'async'
 
 module.exports = (grunt) ->
