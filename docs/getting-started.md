@@ -2,16 +2,17 @@
 
 Welcome to Atom! This guide provides a quick introduction so you can be
 productive as quickly as possible. There are also guides which cover
-[configuring][configuring], [theming][theming], and [extending][extending] Atom.
+[configuring], [theming], and [extending] Atom.
 
 ## The Command Palette
 
 If there's one key-command you must remember in Atom, it should be `cmd-p`. You
 can always hit `cmd-p` to bring up a list of commands that are relevant to the
-currently focused UI element. If there is a key binding for a given command, it
-is also displayed. This is a great way to explore the system and get to know the
-key commands interactively. If you'd like to learn about adding or changing a
-binding for a command, refer to the [key bindings][key-bindings] section below.
+currently focused interface element. If there is a key binding for a given
+command, it is also displayed. This is a great way to explore the system and get
+to know the key commands interactively. If you'd like to learn about adding or
+changing a binding for a command, refer to the [key bindings][key-bindings]
+section below.
 
 ![Command Palette]
 
@@ -52,7 +53,8 @@ To delete a file, select it in the tree view and hit `delete`.
 
 #### Find and Replace
 
-FIXME: Describe https://github.com/atom/find-and-replace
+To search within a buffer use `cmd-f`. To search the entire project use
+`cmd-shift-f`. To find and replace within the current buffer use `cmd-alt-f`.
 
 #### Navigating By Symbols
 
@@ -67,7 +69,7 @@ language. Here is [a good example][ctags].
 
 ### Split Panes
 
-You can split any editor pane horizontally or vertically by using `ctrl-\` or
+You can split any editor pane horizontally or vertically by using `ctrl-w s` or
 `ctrl-w v`. Once you have a split pane, you can move focus between them with
 `ctrl-tab` or `ctrl-w w`. To close a pane, close all tabs inside it.
 
@@ -75,8 +77,7 @@ You can split any editor pane horizontally or vertically by using `ctrl-\` or
 
 You can fold everything with `ctrl-{` and unfold everything with
 `ctrl-}`. Or, you can fold / unfold by a single level with `ctrl-[` and
-`ctrl-]`. The user interaction around folds is still a bit rough, but we're
-planning to improve it soon.
+`ctrl-]`.
 
 ### Soft-Wrap
 
@@ -87,16 +88,10 @@ command.
 ## Configuration
 
 If you press `cmd-,`, a configuration panel will appear in the currently focused
-pane. This will serve as the primary interface for adjusting configuration
-settings, adding and changing key bindings, tweaking styles, etc.
+pane. This serves as the primary interface for adjusting settings, installing
+packages and changing themes.
 
 For more advanced configuration see the [customization guide][customization].
-
-## Installing Packages
-
-To install a package, open the configuration panel and select the packages tab.
-
-FIXME: Needs more details.
 
 [configuring]: customizing-atom.md
 [theming]: creating-a-theme.md
