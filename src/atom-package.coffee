@@ -5,13 +5,13 @@ path = require 'path'
 _ = require './underscore-extensions'
 $ = require './jquery-extensions'
 CSON = require 'season'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 ### Internal: Loads and resolves packages. ###
 
 module.exports =
 class AtomPackage extends Package
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   @stylesheetsDir: 'stylesheets'
 
@@ -163,7 +163,7 @@ class AtomPackage extends Package
     @deactivateResources()
     @deactivateConfig()
     @mainModule?.deactivate?() if @mainActivated
-    @trigger('deactivated')
+    @emit('deactivated')
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()

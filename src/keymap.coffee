@@ -4,7 +4,7 @@ fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 # Internal: Associates keymaps with actions.
 #
@@ -21,7 +21,7 @@ EventEmitter = require './event-emitter'
 # key, you define one or more key:value pairs, associating keystrokes with a command to execute.
 module.exports =
 class Keymap
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   bindingSets: null
   nextBindingSetIndex: 0
@@ -34,7 +34,7 @@ class Keymap
 
   loadBundledKeymaps: ->
     @loadDirectory(config.bundledKeymapsDirPath)
-    @trigger('bundled-keymaps-loaded')
+    @emit('bundled-keymaps-loaded')
 
   loadUserKeymaps: ->
     @loadDirectory(path.join(config.configDirPath, 'keymaps'))

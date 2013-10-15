@@ -4,7 +4,7 @@ plist = require 'plist'
 Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 {ScopeSelector} = require 'first-mate'
 
 pathSplitRegex = new RegExp("[#{path.sep}.]")
@@ -13,7 +13,7 @@ pathSplitRegex = new RegExp("[#{path.sep}.]")
 
 module.exports =
 class TextMateGrammar
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   @load: (grammarPath, done) ->
     fsUtils.readObject grammarPath, (error, object) ->
@@ -70,7 +70,7 @@ class TextMateGrammar
     return false unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
     syntax.grammarUpdated(@scopeName)
-    @trigger 'grammar-updated'
+    @emit 'grammar-updated'
     true
 
   getScore: (filePath, contents) ->

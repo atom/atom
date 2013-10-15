@@ -1,15 +1,14 @@
-_ = require './underscore-extensions'
 fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
 File = require './file'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =
 class Directory
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   path: null
   realPath: null
@@ -21,6 +20,11 @@ class Directory
   # + symlink:
   #   A {Boolean} indicating if the path is a symlink
   constructor: (@path, @symlink=false) ->
+    @on 'first-contents-changed-subscription-will-be-added', =>
+      @subscribeToNativeChangeEvents()
+
+    @on 'last-contents-changed-subscription-removed', =>
+      @unsubscribeFromNativeChangeEvents()
 
   # Public: Returns the basename of the directory.
   getBaseName: ->
@@ -91,17 +95,10 @@ class Directory
     directories.concat(files)
 
   # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
-
-  # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType) =>
-      @trigger "contents-changed" if eventType is "change"
+    unless @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType) =>
+        @emit "contents-changed" if eventType is "change"
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->
