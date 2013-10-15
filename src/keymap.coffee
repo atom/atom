@@ -35,7 +35,7 @@ class Keymap
     @bindingSetsByFirstKeystroke = {}
 
   loadBundledKeymaps: ->
-    @loadDirectory(path.join(@resourcePath, 'keymaps')
+    @loadDirectory(path.join(@resourcePath, 'keymaps'))
     @emit('bundled-keymaps-loaded')
 
   loadUserKeymap: ->
