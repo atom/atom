@@ -24,7 +24,7 @@ describe "Window", ->
 
   describe "when the window is blurred", ->
     beforeEach ->
-      $(window).trigger 'blur'
+      $(window).trigger 'focusout'
 
     afterEach ->
       $('body').removeClass('is-blurred')
@@ -34,7 +34,7 @@ describe "Window", ->
 
     describe "when the window is focused again", ->
       it "removes the .is-blurred class from the body", ->
-        $(window).trigger 'focus'
+        $(window).trigger 'focusin'
         expect($("body")).not.toHaveClass("is-blurred")
 
   describe "window:close event", ->
