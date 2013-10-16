@@ -36,7 +36,7 @@ describe "Pane", ->
       expect(pane.activeItem).toBe view1
       pane.showItem(view2)
       expect(view1.css('display')).toBe 'none'
-      expect(view2.css('display')).toBe ''
+      expect(view2.css('display')).not.toBe 'none'
       expect(pane.activeItem).toBe view2
 
     it "triggers 'pane:active-item-changed' if the item isn't already the activeItem", ->
@@ -90,7 +90,7 @@ describe "Pane", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
           pane.showItem(editSession1)
           editor = pane.activeView
-          expect(editor.css('display')).toBe ''
+          expect(editor.css('display')).not.toBe 'none'
           expect(editor.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
@@ -99,7 +99,7 @@ describe "Pane", ->
           pane.showItem(editSession2)
           expect(pane.itemViews.find('.editor').length).toBe 2
           editor = pane.activeView
-          expect(editor.css('display')).toBe ''
+          expect(editor.css('display')).not.toBe 'none'
           expect(editor.activeEditSession).toBe editSession2
 
         it "creates a new view with the item", ->
