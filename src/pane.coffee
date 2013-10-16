@@ -412,6 +412,7 @@ class Pane extends View
       when 'before' then parent.insertChildBefore(this, newPane)
       when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
+    newPane.makeActive()
     newPane.focus()
     newPane
 
