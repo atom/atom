@@ -2,7 +2,7 @@ TextMateGrammar = require '../src/text-mate-grammar'
 TextMatePackage = require '../src/text-mate-package'
 {_, fs} = require 'atom'
 
-fdescribe "TextMateGrammar", ->
+describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
