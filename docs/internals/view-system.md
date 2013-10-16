@@ -2,9 +2,8 @@
 
 ### SpacePen Basics
 
-Atom's view system is built around the [SpacePen](http://github.com/nathansobo/space-pen)
-view framework. SpacePen view objects inherit from the jQuery prototype, and
-wrap DOM nodes
+Atom's view system is built around the [SpacePen] view framework. SpacePen
+view objects inherit from the jQuery prototype, and wrap DOM nodes
 
 View objects are actually jQuery wrappers around DOM fragments, supporting all
 the typical jQuery traversal and manipulation methods. In addition, view objects
@@ -28,8 +27,7 @@ editorView = editorElement.view()
 editorView.setCursorBufferPosition([1, 2])
 ```
 
-Refer to the [SpacePen](http://github.com/nathansobo/space-pen) documentation
-for more details.
+Refer to the [SpacePen] documentation for more details.
 
 ### RootView
 
@@ -38,7 +36,7 @@ singleton instance of the `RootView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
 `alt-cmd-i`, you can see the internal structure of `RootView`:
 
-![RootView in the inspector](https://f.cloud.github.com/assets/1424/1091631/1932c2d6-166b-11e3-8adf-9690fe82d3b8.png)
+![RootView in the inspector][rootview-inspector]
 
 #### Panes
 
@@ -62,3 +60,6 @@ rootView.horizontal.prepend(new MyView)
 # place a view below the panes (or use .prepend() to place it above)
 rootView.vertical.append(new MyOtherView)
 ```
+
+[spacepen]: http://github.com/nathansobo/space-pen
+[rootview-inspector]: https://f.cloud.github.com/assets/1424/1091631/1932c2d6-166b-11e3-8adf-9690fe82d3b8.png
