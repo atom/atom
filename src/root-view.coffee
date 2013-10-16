@@ -55,7 +55,7 @@ class RootView extends View
 
   # Private:
   @content: (state) ->
-    @div id: 'root-view', =>
+    @div id: 'root-view', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div outlet: 'panes'
