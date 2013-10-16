@@ -19,9 +19,9 @@ class WindowEventHandler
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
 
-    @subscribe $(window), 'focusin', -> $("body").removeClass('is-blurred')
+    @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
 
-    @subscribe $(window), 'focusout', -> $("body").addClass('is-blurred')
+    @subscribe $(window), 'blur', -> $("body").addClass('is-blurred')
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       unless fsUtils.isDirectorySync(pathToOpen)
