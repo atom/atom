@@ -1,4 +1,4 @@
-$ = require './jquery-extensions'
+{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 path = require 'path'

@@ -1,4 +1,4 @@
-$ = require './jquery-extensions'
+{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 ipc = require 'ipc'
 shell = require 'shell'
@@ -21,7 +21,7 @@ class WindowEventHandler
 
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
 
-    @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
+    @subscribe $(window), 'blur', -> $("body").addClass('is-blurred')
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       unless fsUtils.isDirectorySync(pathToOpen)

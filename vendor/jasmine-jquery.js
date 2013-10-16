@@ -175,4 +175,4 @@ beforeEach(function() {
 afterEach(function() {
   jasmine.JQuery.events.cleanUp();
 });
-})(require('jquery'));
+})(require('../src/space-pen-extensions').jQuery);

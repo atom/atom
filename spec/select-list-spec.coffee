@@ -160,7 +160,7 @@ describe "SelectList", ->
   describe "when the mini editor loses focus", ->
     it "triggers the cancelled hook and detaches the select list", ->
       spyOn(selectList, 'detach')
-      miniEditor.trigger 'focusout'
+      miniEditor.hiddenInput.trigger 'focusout'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
 
