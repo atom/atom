@@ -167,7 +167,7 @@ class Pane extends View
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show() if @attach
+    view.show() if @attached
     view.focus() if isFocused
     @activeItem = item
     @activeView = view
