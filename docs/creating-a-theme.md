@@ -45,10 +45,11 @@ a few things before starting:
      that have been already been defined.
   1. When you're ready update the `README.md` and include an example screenshot
      of your new theme in action.
-1. Open a terminal, find your new theme's directory, initialize the git
-   repository and push it to repository on  GitHub.
-1. Once you're ready for others to use your theme, run `apm publish` from within
-   that directory to make it available.
+1. Open a terminal to your new theme directory
+  1. Run `apm link` to install it locally.
+  1. Reload Atom (`cmd-r`) and your theme should now be applied.
+  1. To publish, initialize a git repository, push to GitHub, and run
+     `apm publish`.
 
 ## Interface Themes
 
