@@ -43,7 +43,7 @@ class CursorView extends View
     pixelPosition = @getPixelPosition()
 
     unless _.isEqual(@lastPixelPosition, pixelPosition)
-      changedPosition = true
+      @lastPixelPosition = pixelPosition
       @css(pixelPosition)
       @trigger 'cursor:moved'
 
