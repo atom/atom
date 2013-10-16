@@ -10,9 +10,9 @@ themes which are loaded later (the order is controlled from within the Settings
 pane).
 
 This flexibility is helpful for users which prefer a light interface with a dark
-syntax theme. Atom currently has interface and syntax themes but it's easy see
-how one might want to create their own  language specific syntax theme for very
-specific styling.
+syntax theme. Atom currently has only interface and syntax themes but it is
+possible to create a theme to style something specific &mdash; say a changing
+the colors in the tree view or creating a language specific syntax theme.
 
 ## Getting Started
 
@@ -32,9 +32,9 @@ a few things before starting:
   inspect the current state of the interface. Checkout Google's
   [extensive tutorial][devtools-tutorial] for a short introduction.
 
-# Creating a Minimal Syntax Theme
+## Creating a Minimal Syntax Theme
 
-1. Open the Command Palette (`cmd+p`)
+1. Open the Command Palette (`cmd-p`)
 1. Search for `Package Generator: Generate Theme` and select it.
 1. Choose a name for the folder which will contain your theme.
 1. An Atom window will open with your newly created theme.
@@ -60,12 +60,44 @@ contains all of the variables provided by the [core themes][ui-variables].
 Syntax themes don't need to provide any variables to other themes and only
 target elements within the editor.
 
-## How to Style a Specific Element
+## Development workflow
 
-Once you've got the basics down you'll find that there will be changes you want
-to make but you aren't sure how to reference an element. That's when the
-devtools become really useful. To open them use `cmd+alt+i` and switch to the
-`Elements` tab to inspect the element you're interested in.
+There are a few of tools to help make theme development much faster.
+
+### Live Reload
+
+Reloading via `cmd-r` after you make changes to your theme is slow. Atom
+supports [live updating][livereload] of styles on Dev Mode Atom windows.
+
+1. Open your theme directory in a dev window by either using the
+__File > Open in Dev Mode__ menu or the `cmd-shift-o` shortcut
+1. Make a change to your theme file and save &mdash; your change should be
+immediately applied!
+
+If you'd like to reload all styles at any time, you can use the shortcut
+`cmd-ctrl-shift-r`.
+
+### Developer Tools
+
+Atom is based on the Chrome browser, and supports Chrome's Developer Tools. You
+can open them by selecting the __View > Toggle Developer Tools__ or by using the
+`cmd-option-i` shortcut.
+
+The dev tools allow you to inspect elements and take a look at their CSS
+properties.
+
+![devtools-img]
+
+### Atom Styleguide
+
+If you are creating an interface theme, you'll want a way to see how your theme
+changes affect all the components in the system. The [styleguide] is a page with
+every component Atom supports rendered.
+
+To open the styleguide, open the command palette (`cmd-p`) and search for
+styleguide or use the shortcut `cmd-ctrl-shift-g`.
+
+![styleguide-img]
 
 [less]: http://lesscss.org/
 [git]: http://git-scm.com/
@@ -74,3 +106,7 @@ devtools become really useful. To open them use `cmd+alt+i` and switch to the
 [less-tutorial]: https://speakerdeck.com/danmatthews/less-css
 [devtools-tutorial]: https://developers.google.com/chrome-developer-tools/docs/elements
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
+[livereload]: https://github.com/atom/dev-live-reload
+[styleguide]: https://github.com/atom/styleguide
+[styleguide-img]: https://f.cloud.github.com/assets/69169/1347390/2d431d98-36af-11e3-8f8e-3f4ce1e67adb.png
+[devtools-img]: https://f.cloud.github.com/assets/69169/1347391/2d51f91c-36af-11e3-806f-f7b334af43e9.png
