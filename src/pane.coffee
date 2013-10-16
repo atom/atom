@@ -17,7 +17,7 @@ class Pane extends View
   @acceptsDocuments: true
 
   @content: (wrappedView) ->
-    @div class: 'pane', =>
+    @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
 
   @deserialize: (state) ->
