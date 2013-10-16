@@ -75,6 +75,7 @@
     "snippets": "0.9.0",
     "spell-check": "0.7.0",
     "status-bar": "0.14.0",
+    "styleguide": "0.8.0",
     "symbols-view": "0.11.0",
     "tabs": "0.7.0",
     "terminal": "0.12.0",
@@ -82,9 +83,9 @@
     "to-the-hubs": "0.7.0",
     "toml": "0.3.0",
     "tree-view": "0.17.0",
-    "styleguide": "0.8.0",
     "whitespace": "0.7.0",
     "wrap-guide": "0.4.0",
+
     "c-tmbundle": "1.0.0",
     "coffee-script-tmbundle": "1.0.0",
     "css-tmbundle": "1.0.0",
