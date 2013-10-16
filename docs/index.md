@@ -1,16 +1,12 @@
-{{{
-"title": "Guides"
-}}}
-
 ## Guides
 
-* [Getting Started](getting-started.html)
-* [Customizing Atom](customizing-atom.html)
-* [Creating a Package](creating-a-package.html)
-* [Creating a Theme](creating-a-theme.html)
+* [Getting Started](getting-started.md)
+* [Customizing Atom](customizing-atom.md)
+* [Creating a Package](creating-a-package.md)
+* [Creating a Theme](creating-a-theme.md)
 
 ### Advanced Topics
-* [Configuration](internals/configuration.html)
-* [Keymaps](internals/keymaps.html)
-* [Serialization](internals/serialization.html)
-* [View System](internals/view-system.html)
+* [Configuration](internals/configuration.md)
+* [Keymaps](internals/keymaps.md)
+* [Serialization](internals/serialization.md)
+* [View System](internals/view-system.md)

@@ -1,58 +1,23 @@
-{{{
-"title": "Customizing Atom"
-}}}
+# Customizing Atom
 
-# Configuration Settings
+To change a setting, configure a theme, or install a package just open the
+Settings pane in the current window by pressing `cmd+,`.
 
-## Your .atom Directory
+## Changing The Theme
 
-When you install Atom, an _.atom_ directory is created in your home directory.
-If you press `cmd-,`, that directory is opened in a new window. For the
-time being, this serves as the primary interface for adjusting configuration
-settings, adding and changing key bindings, tweaking styles, etc.
+Because Atom themes are based on CSS, it's possible (and encouraged) to have
+multiple themes active at the same time. Atom comes with both light and dark
+interface themes as well as several syntax themes (you can also [create your
+own][create-theme]).
 
-Atom loads configuration settings from the `config.cson` file in your _~/.atom_
-directory, which contains CoffeeScript-style JSON:
+To change the active themes just open the Settings pane (`cmd-,`) and select the
+`Themes` tab. You can install non-bundled themes by going to the `Available
+Themes` section on the `Packages` tab within the Settings panel.
 
-```coffeescript
-core:
-  hideGitIgnoredFiles: true
-editor:
-  fontSize: 18
-```
+## Installing Packages
 
-Configuration is broken into namespaces, which are defined by the config hash's
-top-level keys. In addition to Atom's core components, each package may define
-its own namespace.
-
-## Glossary of Config Keys
-
-- `core`
-  - `disablePackages`: An array of package names to disable
-  - `hideGitIgnoredFiles`: Whether files in the _.gitignore_ should be hidden
-  - `ignoredNames`: File names to ignore across all of Atom (not fully implemented)
-  - `themes`: An array of theme names to load, in cascading order
-  - `autosave`: Save a buffer when its view loses focus
-- `editor`
-  - `autoIndent`: Enable/disable basic auto-indent (defaults to `true`)
-  - `autoIndentOnPaste`: Enable/disable auto-indented pasted text (defaults to `false`)
-  - `nonWordCharacters`: A string of non-word characters to define word boundaries
-  - `fontSize`: The editor font size
-  - `fontFamily`: The editor font family
-  - `invisibles`: Specify characters that Atom renders for invisibles in this hash
-      - `tab`: Hard tab characters
-      - `cr`: Carriage return (for Microsoft-style line endings)
-      - `eol`: `\n` characters
-      - `space`: Leading and trailing space characters
-  - `preferredLineLength`: Identifies the length of a line (defaults to `80`)
-  - `showInvisibles`: Whether to render placeholders for invisible characters (defaults to `false`)
-- `fuzzyFinder`
-  - `ignoredNames`: Files to ignore *only* in the fuzzy-finder
-- `whitespace`
-  - `ensureSingleTrailingNewline`: Whether to reduce multiple newlines to one at the end of files
-- `wrapGuide`
-  - `columns`: Array of hashes with a `pattern` and `column` key to match the
-             the path of the current editor to a column position.
+You can install non-bundled packages by going to the `Available Packages`
+section on the `Packages` tab within the Settings panel (`cmd-,`).
 
 ## Customizing Key Bindings
 
@@ -66,7 +31,7 @@ built-in keymaps:
   'enter': 'editor:newline'
 
 ".select-list .editor.mini":
-  'enter': 'core:confirm',
+  'enter': 'core:confirm'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
@@ -80,32 +45,68 @@ in alphabetical order when Atom is started. They will always be loaded last,
 giving you the chance to override bindings that are defined by Atom's core
 keymaps or third-party packages.
 
-## Changing The Theme
+## Advanced Configuration
 
-Atom comes bundled with two themes `atom-dark-*` and `atom-light-*`.
+Atom loads configuration settings from the `config.cson` file in your _~/.atom_
+directory, which contains CoffeeScript-style JSON:
 
-Because Atom themes are based on CSS, it's possible to have multiple themes
-active at the same time.
+```coffeescript
+core:
+  hideGitIgnoredFiles: true
+editor:
+  fontSize: 18
+```
 
-For example, you'll usually select a theme for the UI and another theme for
-syntax highlighting.  You can change themes from the preferences pane.
+The configuration itself is grouped by the package name or one of the two core
+namespaces: `core` and `editor`.
 
-You install new themes by placing them in the _~/.atom/themes_ directory. A
-theme can be a single LESS file or a directory containing multiple LESS files.
+### Configuration Key Reference
 
-## Installing Packages
+- `core`
+  - `autosave`: Save a buffer when its view loses focus
+  - `disabledPackages`: An array of package names to disable
+  - `excludeVcsIgnoredPaths`: Don't search within files specified by _.gitignore_
+  - `hideGitIgnoredFiles`: Whether files in the _.gitignore_ should be hidden
+  - `ignoredNames`: File names to ignore across all of Atom
+  - `projectHome`: The directory where projects are assumed to be located
+  - `themes`: An array of theme names to load, in cascading order
+- `editor`
+  - `autoIndent`: Enable/disable basic auto-indent (defaults to `true`)
+  - `autoIndentOnPaste`: Enable/disable auto-indented pasted text (defaults to `false`)
+  - `nonWordCharacters`: A string of non-word characters to define word boundaries
+  - `fontSize`: The editor font size
+  - `fontFamily`: The editor font family
+  - `invisibles`: Specify characters that Atom renders for invisibles in this hash
+      - `tab`: Hard tab characters
+      - `cr`: Carriage return (for Microsoft-style line endings)
+      - `eol`: `\n` characters
+      - `space`: Leading and trailing space characters
+  - `normalizeIndentOnPaste`: Enable/disable conversion of pasted tabs to spaces
+  - `preferredLineLength`: Identifies the length of a line (defaults to `80`)
+  - `showInvisibles`: Whether to render placeholders for invisible characters (defaults to `false`)
+  - `showIndentGuide`: Show/hide indent indicators within the editor
+  - `showLineNumbers`: Show/hide line numbers within the gutter
+  - `softWrap`: Enable/disable soft wrapping of text within the editor
+  - `softWrapAtPreferredLineLength`: Enable/disable soft line wrapping at `preferredLineLength`
+  - `tabLength`: Number of spaces within a tab (defaults to `2`)
+- `fuzzyFinder`
+  - `ignoredNames`: Files to ignore *only* in the fuzzy-finder
+- `whitespace`
+  - `ensureSingleTrailingNewline`: Whether to reduce multiple newlines to one at the end of files
+  - `removeTrailingWhitespace`: Enable/disable striping of whitespace at the end of lines (defaults to `true`)
+- `wrapGuide`
+  - `columns`: Array of hashes with a `pattern` and `column` key to match the
+             the path of the current editor to a column position.
 
-FIXME: Rewrite for the new dialog.
-
-## Quick Personal Hacks
+### Quick Personal Hacks
 
 ### user.coffee
 
 When Atom finishes loading, it will evaluate _user.coffee_ in your _~/.atom_
 directory, giving you a chance to run arbitrary personal CoffeeScript code to
 make customizations. You have full access to Atom's API from code in this file.
-Please refer to the [Atom Internals Guide](./internals/intro,md) for more information. If your
-customizations become extensive, consider [creating a package](./packages/creating_packages.md).
+If customizations become extensive, consider [creating a
+package][create-a-package].
 
 ### user.less
 
@@ -113,8 +114,8 @@ If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to
 _user.less_ in your _~/.atom_ directory.
 
-For example, to change the color of the highlighted line number for the line that
-contains the cursor, you could add the following style to _user.less_:
+For example, to change the color of the highlighted line number for the line
+that contains the cursor, you could add the following style to _user.less_:
 
 ```less
 @highlight-color: pink;
@@ -123,3 +124,6 @@ contains the cursor, you could add the following style to _user.less_:
   color: @highlight-color;
 }
 ```
+
+[create-a-package]: creating-packages.md
+[create-theme]: creating-a-theme.md
