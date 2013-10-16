@@ -67,12 +67,12 @@ class TextBuffer
     @setPath(@project.resolve(filePath)) if @project
 
   loadSync: ->
-    @updateCachedDiskContents()
+    @updateCachedDiskContentsSync()
     @reload() if @loadFromDisk
     @text.clearUndoStack()
 
   load: ->
-    @updateCachedDiskContentsAsync().then =>
+    @updateCachedDiskContents().then =>
       @reload() if @loadFromDisk
       @text.clearUndoStack()
       this
@@ -117,14 +117,14 @@ class TextBuffer
   subscribeToFile: ->
     @file.on "contents-changed", =>
       @conflict = true if @isModified()
-      @updateCachedDiskContentsAsync().done =>
+      @updateCachedDiskContents().done =>
         if @conflict
           @emit "contents-conflicted"
         else
           @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContentsAsync().done =>
+      @updateCachedDiskContents().done =>
         @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
@@ -150,12 +150,12 @@ class TextBuffer
     @emit 'reloaded'
 
   # Private: Rereads the contents of the file, and stores them in the cache.
-  updateCachedDiskContents: ->
+  updateCachedDiskContentsSync: ->
     @loaded = true
     @cachedDiskContents = @file?.read() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
-  updateCachedDiskContentsAsync: ->
+  updateCachedDiskContents: ->
     Q(@file?.readAsync() ? "").then (contents) =>
       @loaded = true
       @cachedDiskContents = contents
