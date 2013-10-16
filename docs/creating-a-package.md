@@ -1,8 +1,8 @@
 # Authoring Packages
 
 Packages are at the core of Atom. Nearly everything outside of the main editor
-manipulation is handled by a package. That includes "core" pieces like the
-command panel, status bar, file tree, and more.
+is handled by a package. That includes "core" pieces like the command panel,
+status bar, file tree, and more.
 
 A package can contain a variety of different resource types to change Atom's
 behavior. The basic package layout is as follows (though not every package will
@@ -10,35 +10,16 @@ have all of these directories):
 
 ```text
 my-package/
-  lib/
-  stylesheets/
-  keymaps/
-  snippets/
   grammars/
+  keymaps/
+  lib/
+  menus/
   spec/
-  package.json
+  snippets/
+  stylesheets/
   index.coffee
+  package.json
 ```
-
-## Publishing
-
-Atom bundles a command line utility called [apm][apm] which can be used to
-publish Atom packages to the public registry.
-
-Once your package is written and ready for distribution you can run the
-following to publish your package:
-
-```sh
-cd my-package
-apm publish minor
-```
-
-This will update your `package.json` to have a new minor `version`, commit the
-change, create a new [Git tag][git-tag], and then upload the package to the
-registry.
-
-Run `apm help publish` to see all the available options and `apm help` to see
-all the other available commands.
 
 ## package.json
 
@@ -123,22 +104,21 @@ module.exports =
   serialize: -> # ...
 ```
 
-Beyond this simple contract, your package has full access to Atom's internal
-API. Anything we call internally, you can call as well. Be aware that since we
-are early in development, APIs are subject to change and we have not yet
-established clear boundaries between what is public and what is private. Also,
-please collaborate with us if you need an API that doesn't exist. Our goal is
-to build out Atom's API organically based on the needs of package authors like
-you.
+Beyond this simple contract, your package has access to Atom's API. Be aware
+that since we are early in development, APIs are subject to change and we have
+not yet established clear boundaries between what is public and what is private.
+Also, please collaborate with us if you need an API that doesn't exist. Our goal
+is to build out Atom's API organically based on the needs of package authors
+like you.
 
-See [wrap-guide][wrap-guide] for examples of Atom's API in
-action.
+Check out [wrap-guide] for a simple example of Atom's package API in action.
 
 ## Stylesheets
 
 Stylesheets for your package should be placed in the _stylesheets_ directory.
 Any stylesheets in this directory will be loaded and attached to the DOM when
-your package is activated. Stylesheets can be written as CSS or LESS.
+your package is activated. Stylesheets can be written as CSS or [LESS] (but LESS
+is recommended).
 
 An optional `stylesheets` array in your _package.json_ can list the stylesheets
 by name to specify a loading order; otherwise, stylesheets are loaded
@@ -146,38 +126,61 @@ alphabetically.
 
 ## Keymaps
 
-Keymaps are placed in the _keymaps_ subdirectory. It's a good idea to provide
-default keymaps for your extension, especially if you're also adding a new
-command.
+```coffeescript
+'.tree-view-scroller':
+  'ctrl-V': 'changer:magic'
+```
 
-By default, all keymaps are loaded in alphabetical order. An optional `keymaps`
-array in your _package.json_ can specify which keymaps to load and in what
-order.
+It's recommended that you provide key bindings for commonly used actions for
+your extension, especially if you're also adding a new command.
 
-See the [main keymaps documentation][keymaps] for more
-information on how keymaps work.
+Keymaps are placed in the _keymaps_ subdirectory. By default, all keymaps are
+loaded in alphabetical order. An optional `keymaps` array in your _package.json_
+can specify which keymaps to load and in what order.
+
+See the [main keymaps documentation][keymaps] for more detailed information on
+how keymaps work.
 
 ## Menus
 
-Menus are placed in the _menus_ subdirectory. It's useful to specify a
-context menu items if if commands are linked to a specific part of the
-interface, say for example adding a file in the tree-view.
+Menus are placed in the _menus_ subdirectory. By default, all menus are loaded
+in alphabetical order. An optional `menus` array in your _package.json_ can
+specify which menus to load and in what order.
 
-By default, all menus are loaded in alphabetical order. An optional
-`menus` array in your _package.json_ can specify which menus to load
-and in what order.
+### Application Menu
 
-FIXME: Describe how to create an application menu item.
-
-Context menus are created by determining which element was selected and
-then adding all of the menu items whose selectors match that element (in
-the order which they were loaded). The process is then repeated for the
-elements until reaching the top of the dom tree.
-
-NOTE: Currently you can only specify items to be added to the context
-menu, the menu which appears when you right click.
-
+```coffee-script
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      {
+        'label': 'My Package'
+        'submenu': [
+          {
+            'label': 'Toggle'
+            'command': 'my-package:toggle'
+          }
+        ]
+      }
+    ]
+  }
+]
 ```
+
+It's recommended that you create an application menu item for common actions
+with your package that aren't tied to a specific element.
+
+To add your own item to the application menu simply create a top level `menu`
+key in any menu configuration file in _menus_ (since the above is [CSON] it
+should end with `.cson`)
+
+The menu templates you specify are merged with all other templates provided
+by other packages in the order which they were loaded.
+
+### Context Menu
+
+```coffee-script
 'context-menu':
   '.tree-view':
     'Add file': 'tree-view:add-file'
@@ -185,10 +188,25 @@ menu, the menu which appears when you right click.
     'Inspect Element': 'core:inspect'
 ```
 
+It's recommended to specify a context menu item for commands that are linked to
+specific parts of the interface, like adding a file in the tree-view.
+
+To add your own item to the application menu simply create a top level
+`context-menu` key in any menu configuration file in _menus_ (since the above is
+[CSON] it should end with `.cson`)
+
+Context menus are created by determining which element was selected and
+then adding all of the menu items whose selectors match that element (in
+the order which they were loaded). The process is then repeated for the
+elements until reaching the top of the DOM tree.
+
+In the example above, the `Add file` item will only appear when the focused item
+or one of its parents has the `tree-view` class applied to it.
+
 ## Snippets
 
-An extension can supply language snippets in the _snippets_ directory. These can
-be `.cson` or `.json` files. Here's an example:
+An extension can supply language snippets in the _snippets_ directory which
+allows the user to enter repetitive text quickly.
 
 ```coffeescript
 ".source.coffee .specs":
@@ -287,18 +305,48 @@ directory, they can be run by Atom.
 Under the hood, [Jasmine] is being used to execute the tests, so you can
 assume that any DSL available there is available to your package as well.
 
+**FIXME: Explain the following**
+
+* jasmine
+* jasmine-focused
+* `spec/fixtures` and global.project
+* setTimeout
+* whatever else is different in spec-helper
+
 ## Running tests
 
-FIXME: Describe  `apm test`
+Once you've got your test suite written, the recommended way to run it is `apm
+test`. `apm test` prints its output to the console and returns the proper status
+code depending on whether tests passed or failed.
+
+## Publishing
+
+Atom bundles a command line utility called [apm] which can be used to publish
+Atom packages to the public registry.
+
+Once your package is written and ready for distribution you can run the
+following to publish your package:
+
+```sh
+cd my-package
+apm publish minor
+```
+
+This will update your `package.json` to have a new minor `version`, commit the
+change, create a new [Git tag][git-tag], and then upload the package to the
+registry.
+
+Run `apm help publish` to see all the available options and `apm help` to see
+all the other available commands.
+
 
 # Full Example
 
 Let's take a look at creating our first package.
 
-Atom has a command you can enter that'll create a package for you:
-`package-generator:generate`. Otherwise, you can hit `cmd-p`, and start typing
-"Package Generator." Once you activate this package, it'll ask you for a name
-for your new package. Let's call ours _changer_.
+To get started hit `cmd-p`, and start typing "Package Generator." to generate
+the package. Once you select the package generator command, it'll ask you for a
+name for your new package. Let's call ours _changer_.
 
 Now, _changer_ is going to have a default set of folders and files created for
 us. Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer."
@@ -317,7 +365,7 @@ Let's get started!
 ## Changing Keybindings and Commands
 
 Since Changer is primarily concerned with the file tree, let's write a
-keybinding that works only when the tree is focused. Instead of using the
+key binding that works only when the tree is focused. Instead of using the
 default `toggle`, our keybinding executes a new command called `magic`.
 
 _keymaps/changer.cson_ can easily become this:
@@ -357,7 +405,7 @@ editor.
 
 Hitting the key binding on the tree now works!
 
-## Working with styles
+## Working with Styles
 
 The next step is to hide elements in the tree that aren't modified. To do that,
 we'll first try and get a list of files that have not changed.
@@ -368,7 +416,7 @@ some of the bundled libraries Atom provides by default](#included-libraries).
 Let's bring in jQuery:
 
 ```coffeescript
-$ = require 'jquery'
+{$} = require 'atom'
 ```
 
 Now, we can query the tree to get us a list of every file that _wasn't_
@@ -425,7 +473,7 @@ To do that, we're going to first create a new class method called `content`.
 Every package that extends from the `View` class can provide an optional class
 method called `content`. The `content` method constructs the DOM that your
 package uses as its UI. The principals of `content` are built entirely on
-[SpacePen][space-pen], which we'll touch upon only briefly here.
+[SpacePen], which we'll touch upon only briefly here.
 
 Our display will simply be an unordered list of the file names, and their
 modified times. Let's start by carving out a `div` to hold the filenames:
@@ -464,7 +512,7 @@ else
 
 There are about a hundred different ways to toggle a pane on and off, and this
 might not be the most efficient one. If you know your package needs to be
-toggled on and off more freely, it might be better to draw the UI during the
+toggled on and off more freely, it might be better to draw the interface during the
 initialization, then immediately call `hide()` on the element to remove it from
 the view. You can then swap between `show()` and `hide()`, and instead of
 forcing Atom to add and remove the element as we're doing here, it'll just set a
@@ -563,7 +611,6 @@ popular libraries into their packages:
 
 Additional libraries can be found by browsing Atom's _node_modules_ folder.
 
-
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
 [npm-keys]: https://npmjs.org/doc/json.html
 [apm]: https://github.com/atom/apm
@@ -576,3 +623,5 @@ Additional libraries can be found by browsing Atom's _node_modules_ folder.
 [jquery]: http://jquery.com/
 [underscore]: http://underscorejs.org/
 [jasmine]: https://github.com/pivotal/jasmine
+[cson]: https://github.com/atom/season
+[less]: http://lesscss.org
