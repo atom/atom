@@ -1,7 +1,7 @@
 app = require 'app'
 ipc = require 'ipc'
 Menu = require 'menu'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 # Private: Used to manage the global application menu.
 #

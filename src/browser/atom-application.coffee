@@ -11,7 +11,7 @@ path = require 'path'
 net = require 'net'
 url = require 'url'
 {EventEmitter} = require 'events'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 socketPath = '/tmp/atom.sock'
 
