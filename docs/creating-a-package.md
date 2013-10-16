@@ -120,6 +120,15 @@ Any stylesheets in this directory will be loaded and attached to the DOM when
 your package is activated. Stylesheets can be written as CSS or [LESS] (but LESS
 is recommended).
 
+Ideally you will not need much in the way of styling. We've provided a standard
+set of components. You can view all components by using the command palette
+(`cmd-p`) and searching for "styleguide" or just `cmd+ctrl+D`.
+
+If you do need styling, we try to keep only structural styles in the package
+stylesheets. Colors and sizing should be taken from the active theme's
+[ui-variables.less][ui-variables]. If you follow this guideline, your package
+will look good out of the box with any theme!
+
 An optional `stylesheets` array in your _package.json_ can list the stylesheets
 by name to specify a loading order; otherwise, stylesheets are loaded
 alphabetically.
@@ -625,3 +634,4 @@ Additional libraries can be found by browsing Atom's _node_modules_ folder.
 [jasmine]: https://github.com/pivotal/jasmine
 [cson]: https://github.com/atom/season
 [less]: http://lesscss.org
+[ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
