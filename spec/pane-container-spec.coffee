@@ -87,6 +87,9 @@ describe "PaneContainer", ->
       expect(panes).toEqual []
 
   describe ".reopenItem()", ->
+    beforeEach ->
+      pane3.makeActive()
+
     describe "when there is an active pane", ->
       it "reconstructs and shows the last-closed pane item", ->
         expect(container.getActivePane()).toBe pane3
