@@ -1,6 +1,5 @@
-{View} = require './space-pen-extensions'
+{$, View} = require './space-pen-extensions'
 Pane = require './pane'
-$ = require './jquery-extensions'
 telepath = require 'telepath'
 
 # Private: Manages the list of panes within a {RootView}

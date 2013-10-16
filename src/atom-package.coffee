@@ -3,7 +3,7 @@ Package = require './package'
 fsUtils = require './fs-utils'
 path = require 'path'
 _ = require 'underscore-plus'
-$ = require './jquery-extensions'
+{$} = require './space-pen-extensions'
 CSON = require 'season'
 {Emitter} = require 'emissary'
 
@@ -236,7 +236,7 @@ class AtomPackage extends Package
     disabledHandler = ->
     element = $(event.target)
     while element.length
-      if eventHandlers = element.data('events')?[event.type]
+      if eventHandlers = element.handlers()?[event.type]
         for eventHandler in eventHandlers
           eventHandler.disabledHandler = eventHandler.handler
           eventHandler.handler = disabledHandler
