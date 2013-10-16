@@ -216,6 +216,9 @@ class Atom
 
   exit: (status) -> app.exit(status)
 
+  inDevMode: ->
+    @getLoadSettings().devMode
+
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
