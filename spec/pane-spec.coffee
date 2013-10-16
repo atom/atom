@@ -498,6 +498,9 @@ describe "Pane", ->
       expect(pane2.getNextPane()).toBe pane
 
   describe "when the pane is focused", ->
+    beforeEach ->
+      container.attachToDom()
+
     it "focuses the active item view", ->
       focusHandler = jasmine.createSpy("focusHandler")
       pane.activeItem.on 'focus', focusHandler
