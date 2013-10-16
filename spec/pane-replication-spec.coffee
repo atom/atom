@@ -7,8 +7,8 @@ describe "Pane replication", ->
   [editSession2a, editSession2b, container2, pane2, doc2] = []
 
   beforeEach ->
-    editSession1a = project.open('sample.js')
-    editSession1b = project.open('sample.txt')
+    editSession1a = project.openSync('sample.js')
+    editSession1b = project.openSync('sample.txt')
     container1 = new PaneContainer
     pane1 = new Pane(editSession1a, editSession1b)
     container1.setRoot(pane1)
@@ -24,7 +24,7 @@ describe "Pane replication", ->
     expect(pane2.items).toEqual(pane1.items)
 
   it "replicates addition and removal of pane items", ->
-    pane1.addItem(project.open('css.css'), 1)
+    pane1.addItem(project.openSync('css.css'), 1)
     expect(pane2.items).toEqual(pane1.items)
     pane1.removeItemAtIndex(2)
     expect(pane2.items).toEqual(pane1.items)

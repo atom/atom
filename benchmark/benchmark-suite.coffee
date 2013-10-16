@@ -12,7 +12,7 @@ describe "editor.", ->
 
     rootView.width(1024)
     rootView.height(768)
-    rootView.open() # open blank editor
+    rootView.openSync() # open blank editor
     editor = rootView.getActiveView()
 
   afterEach ->
@@ -31,7 +31,7 @@ describe "editor.", ->
 
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->
-      buffer = project.bufferForPath('medium.coffee')
+      buffer = project.bufferForPathSync('medium.coffee')
 
   describe "empty-file.", ->
     benchmark "insert-delete", ->
@@ -40,7 +40,7 @@ describe "editor.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      rootView.open('medium.coffee')
+      rootView.openSync('medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -171,11 +171,11 @@ describe "editor.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      rootView.open('huge.js')
+      rootView.openSync('huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
-        rootView.open('huge.js')
+        rootView.openSync('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
@@ -210,7 +210,7 @@ describe "TokenizedBuffer.", ->
     [languageMode, buffer] = []
 
     beforeEach ->
-      editSession = benchmarkFixturesProject.open('medium.coffee')
+      editSession = benchmarkFixturesProject.openSync('medium.coffee')
       { languageMode, buffer } = editSession
 
     benchmark "construction", 20, ->

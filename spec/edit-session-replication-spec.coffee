@@ -10,7 +10,7 @@ describe "EditSession replication", ->
     doc2 = null
 
     env1.run ->
-      editSession1 = project.open('sample.js')
+      editSession1 = project.openSync('sample.js')
       editSession1.setScrollTop(5)
       editSession1.setScrollLeft(5)
       editSession1.setCursorScreenPosition([0, 5])

@@ -8,7 +8,7 @@ describe "EditSession", ->
 
   describe "with an initial line option", ->
     beforeEach ->
-      editSession = project.open('sample.js', initialLine: 2)
+      editSession = project.openSync('sample.js', initialLine: 2)
       buffer = editSession.buffer
 
     it "opens the file and positions the cursor on line 2", ->
@@ -17,7 +17,7 @@ describe "EditSession", ->
   describe "with default options", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      editSession = project.open('sample.js', autoIndent: false)
+      editSession = project.openSync('sample.js', autoIndent: false)
       buffer = editSession.buffer
       lineLengths = buffer.getLines().map (line) -> line.length
 
@@ -60,7 +60,7 @@ describe "EditSession", ->
         config.set('editor.tabLength', 4)
         config.set('editor.softWrap', true)
         config.set('editor.softTabs', false)
-        editSession1 = project.open('a')
+        editSession1 = project.openSync('a')
         expect(editSession1.getTabLength()).toBe 4
         expect(editSession1.getSoftWrap()).toBe true
         expect(editSession1.getSoftTabs()).toBe false
@@ -68,7 +68,7 @@ describe "EditSession", ->
         config.set('editor.tabLength', 100)
         config.set('editor.softWrap', false)
         config.set('editor.softTabs', true)
-        editSession2 = project.open('b')
+        editSession2 = project.openSync('b')
         expect(editSession2.getTabLength()).toBe 100
         expect(editSession2.getSoftWrap()).toBe false
         expect(editSession2.getSoftTabs()).toBe true
@@ -1184,7 +1184,7 @@ describe "EditSession", ->
           expect(selection.isEmpty()).toBeTruthy()
 
       it "does not share selections between different edit sessions for the same buffer", ->
-        editSession2 = project.open('sample.js')
+        editSession2 = project.openSync('sample.js')
         editSession.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
         editSession2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
         expect(editSession2.getSelectedBufferRanges()).not.toEqual editSession.getSelectedBufferRanges()
@@ -2033,7 +2033,7 @@ describe "EditSession", ->
 
         it "does not explode if the current language mode has no comment regex", ->
           editSession.destroy()
-          editSession = project.open(null, autoIndent: false)
+          editSession = project.openSync(null, autoIndent: false)
           editSession.setSelectedBufferRange([[4, 5], [4, 5]])
           editSession.toggleLineCommentsInSelection()
           expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
@@ -2356,13 +2356,13 @@ describe "EditSession", ->
 
     describe "soft-tabs detection", ->
       it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-        editSession = project.open('sample.js', softTabs: false)
+        editSession = project.openSync('sample.js', softTabs: false)
         expect(editSession.getSoftTabs()).toBeTruthy()
 
-        editSession = project.open('sample-with-tabs.coffee', softTabs: true)
+        editSession = project.openSync('sample-with-tabs.coffee', softTabs: true)
         expect(editSession.getSoftTabs()).toBeFalsy()
 
-        editSession = project.open(null, softTabs: false)
+        editSession = project.openSync(null, softTabs: false)
         expect(editSession.getSoftTabs()).toBeFalsy()
 
     describe ".indentLevelForLine(line)", ->
@@ -2391,7 +2391,7 @@ describe "EditSession", ->
         jsGrammar = syntax.selectGrammar('a.js')
         syntax.removeGrammar(jsGrammar)
 
-        editSession = project.open('sample.js', autoIndent: false)
+        editSession = project.openSync('sample.js', autoIndent: false)
         expect(editSession.getGrammar()).toBe syntax.nullGrammar
         expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
@@ -2605,7 +2605,7 @@ describe "EditSession", ->
         expect(editSession.shouldPromptToSave()).toBeFalsy()
         buffer.setText('changed')
         expect(editSession.shouldPromptToSave()).toBeTruthy()
-        editSession2 = project.open('sample.js', autoIndent: false)
+        editSession2 = project.openSync('sample.js', autoIndent: false)
         expect(editSession.shouldPromptToSave()).toBeFalsy()
         editSession2.destroy()
         expect(editSession.shouldPromptToSave()).toBeTruthy()

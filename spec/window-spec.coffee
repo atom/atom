@@ -56,7 +56,7 @@ describe "Window", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
         spyOn(rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'beforeunload'
         expect(rootView.confirmClose).toHaveBeenCalled()
@@ -64,14 +64,14 @@ describe "Window", ->
 
       it "prompts user to save and handler returns true if don't save", ->
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
         expect(window.onbeforeunload(new Event('beforeunload'))).toBeTruthy()
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
         spyOn(atom, "confirmSync").andReturn(1)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
         expect(window.onbeforeunload(new Event('beforeunload'))).toBeFalsy()
         expect(atom.confirmSync).toHaveBeenCalled()
@@ -88,7 +88,7 @@ describe "Window", ->
       expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
-      rootView.open('sample.js')
+      rootView.openSync('sample.js')
       buffer = rootView.getActivePaneItem().buffer
       rootView.getActivePane().splitRight()
       expect(window.rootView.find('.editor').length).toBe 2

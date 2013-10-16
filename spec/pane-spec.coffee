@@ -19,8 +19,8 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editSession1 = project.open('sample.js')
-    editSession2 = project.open('sample.txt')
+    editSession1 = project.openSync('sample.js')
+    editSession2 = project.openSync('sample.txt')
     pane = new Pane(view1, editSession1, view2, editSession2)
     container.setRoot(pane)
 

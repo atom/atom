@@ -6,7 +6,7 @@ describe "DisplayBuffer", ->
   beforeEach ->
     tabLength = 2
     atom.activatePackage('javascript-tmbundle', sync: true)
-    buffer = project.bufferForPath('sample.js')
+    buffer = project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
@@ -154,7 +154,7 @@ describe "DisplayBuffer", ->
 
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
-          buffer = project.buildBuffer(null, '')
+          buffer = project.buildBufferSync(null, '')
           displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
@@ -206,7 +206,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       displayBuffer.destroy()
       buffer.release()
-      buffer = project.bufferForPath('two-hundred.txt')
+      buffer = project.bufferForPathSync('two-hundred.txt')
       displayBuffer = new DisplayBuffer({buffer, tabLength})
       displayBuffer.on 'changed', changeHandler
 

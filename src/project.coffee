@@ -177,7 +177,7 @@ class Project
   #   Options that you can pass to the {EditSession} constructor
   #
   # Returns a promise that resolves to an {EditSession}.
-  openAsync: (filePath, options={}) ->
+  open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     resource = null
     _.find @openers, (opener) -> resource = opener(filePath, options)
@@ -185,16 +185,16 @@ class Project
     if resource
       Q(resource)
     else
-      @bufferForPathAsync(filePath).then (buffer) =>
-        editSession = @buildEditSessionForBuffer(buffer, options)
+      @bufferForPath(filePath).then (buffer) =>
+        @buildEditSessionForBuffer(buffer, options)
 
   # Private: Only be used in specs
-  open: (filePath, options={}) ->
+  openSync: (filePath, options={}) ->
     filePath = @resolve(filePath)
     for opener in @openers
       return resource if resource = opener(filePath, options)
 
-    @buildEditSessionForBuffer(@bufferForPath(filePath), options)
+    @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
 
   # Public: Retrieves all {EditSession}s for all open files.
   #
@@ -219,13 +219,13 @@ class Project
     new Array(@buffers...)
 
   # Private: Only to be used in specs
-  bufferForPath: (filePath, text) ->
+  bufferForPathSync: (filePath, text) ->
     absoluteFilePath = @resolve(filePath)
 
     if filePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    existingBuffer ? @buildBuffer(absoluteFilePath, text)
+    existingBuffer ? @buildBufferSync(absoluteFilePath, text)
 
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -236,21 +236,21 @@ class Project
   # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPathAsync: (filePath, text) ->
+  bufferForPath: (filePath, text) ->
     absoluteFilePath = @resolve(filePath)
     if absoluteFilePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    Q(existingBuffer ? @buildBufferAsync(absoluteFilePath, text))
+    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
   # Private: DEPRECATED
-  buildBuffer: (absoluteFilePath, initialText) ->
+  buildBufferSync: (absoluteFilePath, initialText) ->
     buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
-    buffer.load()
+    buffer.loadSync()
     @addBuffer(buffer)
     buffer
 
@@ -260,9 +260,9 @@ class Project
   # text - The {String} text to use as a buffer
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  buildBufferAsync: (absoluteFilePath, initialText) ->
+  buildBuffer: (absoluteFilePath, initialText) ->
     buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
-    buffer.loadAsync().then (buffer) =>
+    buffer.load().then (buffer) =>
       @addBuffer(buffer)
       buffer
 

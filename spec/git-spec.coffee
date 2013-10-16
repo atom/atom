@@ -213,7 +213,7 @@ describe "Git", ->
       fs.writeSync(editSession.getPath(), originalContent)
 
     it "emits a status-changed event", ->
-      editSession = project.open('sample.js')
+      editSession = project.openSync('sample.js')
       originalContent = editSession.getText()
       editSession.insertNewline()
 
@@ -230,7 +230,7 @@ describe "Git", ->
       fs.writeSync(editSession.getPath(), originalContent)
 
     it "emits a status-changed event", ->
-      editSession = project.open('sample.js')
+      editSession = project.openSync('sample.js')
       originalContent = editSession.getText()
       fs.writeSync(editSession.getPath(), 'changed')
 
@@ -250,7 +250,7 @@ describe "Git", ->
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
-      project.open('sample.js')
+      project.openSync('sample.js')
       project2 = deserialize(project.serialize())
       buffer = project2.getBuffers()[0]
       originalContent = buffer.getText()
