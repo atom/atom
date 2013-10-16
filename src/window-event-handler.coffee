@@ -1,14 +1,14 @@
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 ipc = require 'ipc'
 shell = require 'shell'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 fsUtils = require './fs-utils'
 
 # Private: Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  _.extend @prototype, Subscriber
+  Subscriber.includeInto(this)
 
   constructor: ->
     @reloadRequested = false

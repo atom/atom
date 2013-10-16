@@ -1,6 +1,6 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 child_process = require 'child_process'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 # Public: Run a node script in a separate process.
 #
@@ -14,7 +14,8 @@ EventEmitter = require './event-emitter'
 # * task:completed - Emitted when the task has succeeded or failed.
 module.exports =
 class Task
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
+  _.extend @prototype, Emitter
 
   # Public: A helper method to easily launch and run a task once.
   #
@@ -25,7 +26,7 @@ class Task
   #   The Array of arguments to pass to the exported function.
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
-    task.one 'task:completed', -> task.terminate()
+    task.once 'task:completed', -> task.terminate()
     task.start(args...)
     task
 
@@ -69,7 +70,7 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @trigger(event, args...)
+      @emit(event, args...)
 
   # Public: Starts the task.
   #

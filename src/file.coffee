@@ -1,9 +1,9 @@
 Q = require 'q'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 # Public: Represents an individual file in the editor.
 #
@@ -11,7 +11,7 @@ _ = require './underscore-extensions'
 # {Directory} and access the {File} objects that it creates.
 module.exports =
 class File
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   path: null
   cachedContents: null
@@ -24,6 +24,20 @@ class File
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
     throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
+
+    @handleEventSubscriptions()
+
+  handleEventSubscriptions: ->
+    eventNames = ['contents-changed', 'moved', 'removed']
+
+    subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
+    @on subscriptionsAdded.join(' '), =>
+      @subscribeToNativeChangeEvents() if @exists()
+
+    subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
+    @on subscriptionsRemoved.join(' '), =>
+      subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
+      @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
   # Private: Sets the path for the file.
   setPath: (@path) ->
@@ -89,26 +103,18 @@ class File
     fsUtils.exists(@getPath())
 
   # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
-
-  # Private:
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
       @detectResurrectionAfterDelay()
     else if eventType is "rename"
       @setPath(path)
-      @trigger "moved"
+      @emit "moved"
     else if eventType is "change"
       oldContents = @cachedContents
       newContents = @read(true)
       return if oldContents == newContents
-      @trigger 'contents-changed'
+      @emit 'contents-changed'
 
   # Private:
   detectResurrectionAfterDelay: ->
@@ -121,15 +127,16 @@ class File
       @handleNativeChangeEvent("change", @getPath())
     else
       @cachedContents = null
-      @trigger "removed"
+      @emit "removed"
 
   # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
-      @handleNativeChangeEvent(eventType, path)
+    unless @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
+        @handleNativeChangeEvent(eventType, path)
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->
-    if @watchSubscription
+    if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null

@@ -386,8 +386,8 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
-      atom.activatePackage('ruby-tmbundle', sync: true)
       atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+      atom.activatePackage('ruby-tmbundle', sync: true)
 
       buffer = project.bufferForPathSync(null, "<div class='name'><%= User.find(2).full_name %></div>")
       tokenizedBuffer = new TokenizedBuffer({buffer})

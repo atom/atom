@@ -5,7 +5,7 @@ Q = require 'q'
 $ = require './jquery-extensions'
 {$$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 Editor = require './editor'
 Pane = require './pane'
@@ -130,7 +130,7 @@ class RootView extends View
       @panes.reopenItem()
 
     if @state.get('fullScreen')
-      _.nextTick => atom.setFullScreen(true)
+      setImmediate => atom.setFullScreen(true)
 
   # Private:
   serialize: ->

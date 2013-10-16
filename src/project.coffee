@@ -3,12 +3,12 @@ path = require 'path'
 url = require 'url'
 Q = require 'q'
 
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
 Git = require './git'
@@ -19,7 +19,7 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   @acceptsDocuments: true
   @version: 1
@@ -125,7 +125,7 @@ class Project
     if originUrl = @repo?.getOriginUrl()
       @state.set('repoUrl', originUrl)
 
-    @trigger "path-changed"
+    @emit "path-changed"
 
   # Public: Returns the name of the root directory.
   getRootDirectory: ->
@@ -205,7 +205,7 @@ class Project
   # Public: Add the given {EditSession}.
   addEditSession: (editSession) ->
     @editSessions.push editSession
-    @trigger 'edit-session-created', editSession
+    @emit 'edit-session-created', editSession
 
   # Public: Return and removes the given {EditSession}.
   removeEditSession: (editSession) ->
@@ -274,7 +274,7 @@ class Project
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers[index] = buffer
     @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
-    @trigger 'buffer-created', buffer
+    @emit 'buffer-created', buffer
 
   # Private: Removes a {TextBuffer} association from the project.
   #

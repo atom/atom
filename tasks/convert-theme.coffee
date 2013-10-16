@@ -1,6 +1,6 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 plist = require 'plist'
 {ScopeSelector} = require 'first-mate'
 

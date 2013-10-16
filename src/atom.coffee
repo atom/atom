@@ -1,6 +1,12 @@
+#TODO remove once all packages have been updated
+{Emitter} = require 'emissary'
+Emitter::one = (args...) -> @once(args...)
+Emitter::trigger = (args...) -> @emit(args...)
+Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
+
 fsUtils = require './fs-utils'
 $ = require './jquery-extensions'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'
@@ -11,14 +17,14 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
 DeserializerManager = require './deserializer-manager'
-Subscriber = require './subscriber'
+{Subscriber} = require 'emissary'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
 class Atom
-  _.extend @prototype, Subscriber
+  Subscriber.includeInto(this)
 
   constructor: ->
     @rootViewParentSelector = 'body'

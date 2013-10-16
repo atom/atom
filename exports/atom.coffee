@@ -1,8 +1,12 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
+_ = require 'underscore-plus'
+
+#TODO Remove once all packages have been updated
+_.nextTick = setImmediate
 
 module.exports =
-  _: require '../src/underscore-extensions'
+  _: _
   $: require '../src/jquery-extensions'
   $$: $$
   $$$: $$$
@@ -10,7 +14,6 @@ module.exports =
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
   Document: Document
-  EventEmitter: require '../src/event-emitter'
   File: require '../src/file'
   fs: require '../src/fs-utils'
   Git: require '../src/git'
@@ -19,7 +22,6 @@ module.exports =
   ScrollView: require '../src/scroll-view'
   Site: Site
   stringscore: require '../vendor/stringscore'
-  Subscriber: require '../src/subscriber'
   View: View
 
 # The following classes can't be used from a Task handler and should therefore

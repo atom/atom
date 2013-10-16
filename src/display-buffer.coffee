@@ -1,21 +1,20 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
+{Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 telepath = require 'telepath'
 {Point, Range} = telepath
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
-EventEmitter = require './event-emitter'
 Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
-Subscriber = require './subscriber'
 ConfigObserver = require './config-observer'
 
 # Private:
 module.exports =
 class DisplayBuffer
-  _.extend @prototype, EventEmitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
   _.extend @prototype, ConfigObserver
 
   @acceptsDocuments: true
@@ -46,7 +45,7 @@ class DisplayBuffer
     @foldsByMarkerId = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
+    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
     @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
@@ -54,7 +53,7 @@ class DisplayBuffer
     @subscribe @state, 'changed', ({key, newValue}) =>
       switch key
         when 'softWrap'
-          @trigger 'soft-wrap-changed', newValue
+          @emit 'soft-wrap-changed', newValue
           @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
@@ -78,11 +77,11 @@ class DisplayBuffer
     @rowMap = new RowMap
     @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
 
-  triggerChanged: (eventProperties, refreshMarkers=true) ->
+  emitChanged: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
       @pauseMarkerObservers()
       @refreshMarkerScreenPositions()
-    @trigger 'changed', eventProperties
+    @emit 'changed', eventProperties
     @resumeMarkerObservers()
 
   updateWrappedScreenLines: ->
@@ -91,7 +90,7 @@ class DisplayBuffer
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @triggerChanged({ start, end, screenDelta, bufferDelta })
+    @emitChanged({ start, end, screenDelta, bufferDelta })
 
   ### Public ###
 
@@ -565,7 +564,7 @@ class DisplayBuffer
 
   resumeMarkerObservers: ->
     marker.resumeEvents() for marker in @getMarkers()
-    @trigger 'markers-updated'
+    @emit 'markers-updated'
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
@@ -620,7 +619,7 @@ class DisplayBuffer
       @pauseMarkerObservers()
       @pendingChangeEvent = changeEvent
     else
-      @triggerChanged(changeEvent, options.refreshMarkers)
+      @emitChanged(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     newScreenLines = []
@@ -686,11 +685,11 @@ class DisplayBuffer
   handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent
       @pendingChangeEvent = null
-      @triggerChanged(event, false)
+      @emitChanged(event, false)
 
   handleBufferMarkerCreated: (marker) =>
     @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
-    @trigger 'marker-created', @getMarker(marker.id)
+    @emit 'marker-created', @getMarker(marker.id)
 
   createFoldForMarker: (marker) ->
     new Fold(this, marker)

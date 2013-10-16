@@ -5,7 +5,7 @@ dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 # Private:
 module.exports =

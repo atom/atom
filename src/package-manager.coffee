@@ -1,12 +1,12 @@
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
 
 module.exports =
 class PackageManager
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]
@@ -58,7 +58,7 @@ class PackageManager
     require '../exports/atom'
 
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @trigger 'loaded'
+    @emit 'loaded'
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)
