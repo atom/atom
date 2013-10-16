@@ -59,6 +59,7 @@ class TextBuffer
         text: @text
       @loadFromDisk = not initialText
 
+    @loaded = false
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
@@ -67,12 +68,12 @@ class TextBuffer
 
   loadSync: ->
     @updateCachedDiskContents()
-    @reload() if @loadFromDisk and @isModified()
+    @reload() if @loadFromDisk
     @text.clearUndoStack()
 
   load: ->
     @updateCachedDiskContentsAsync().then =>
-      @reload() if @loadFromDisk and @isModified()
+      @reload() if @loadFromDisk
       @text.clearUndoStack()
       this
 
@@ -150,11 +151,13 @@ class TextBuffer
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
+    @loaded = true
     @cachedDiskContents = @file?.read() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsAsync: ->
     Q(@file?.readAsync() ? "").then (contents) =>
+      @loaded = true
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
@@ -409,6 +412,7 @@ class TextBuffer
   #
   # Returns a {Boolean}.
   isModified: ->
+    return false unless @loaded
     if @file
       if @file.exists()
         @getText() != @cachedDiskContents
