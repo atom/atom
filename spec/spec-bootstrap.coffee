@@ -8,10 +8,7 @@ try
   document.title = "Spec Suite"
   runSpecSuite './spec-suite'
 catch error
-  unless atom.getLoadSettings().exitWhenDone
-    atom.getCurrentWindow().setSize(800, 600)
-    atom.getCurrentWindow().center()
-    atom.openDevTools()
-
-  console.error(error.stack ? error)
-  atom.exit(1) if atom.getLoadSettings().exitWhenDone
+  if atom?.getLoadSettings().exitWhenDone
+    atom.exit(1)
+  else
+    throw error

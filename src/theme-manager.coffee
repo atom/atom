@@ -4,7 +4,7 @@ Package = require './package'
 AtomPackage = require './atom-package'
 
 _ = require 'underscore-plus'
-$ = require './jquery-extensions'
+{$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
 
 # Private: Handles discovering and loading available themes.

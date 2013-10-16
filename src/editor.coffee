@@ -1,4 +1,4 @@
-{View, $$} = require './space-pen-extensions'
+{View, $, $$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
 Gutter = require './gutter'
 {Point, Range} = require 'telepath'
@@ -6,7 +6,6 @@ EditSession = require './edit-session'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
 fsUtils = require './fs-utils'
-$ = require './jquery-extensions'
 _ = require 'underscore-plus'
 
 MeasureRange = document.createRange()

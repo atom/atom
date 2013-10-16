@@ -92,6 +92,9 @@ describe "RootView", ->
         expect(rootView.getEditors().length).toBe 0
 
   describe "focus", ->
+    beforeEach ->
+      rootView.attachToDom()
+
     describe "when there is an active view", ->
       it "hands off focus to the active view", ->
         editor = rootView.getActiveView()

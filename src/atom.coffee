@@ -5,7 +5,7 @@ Emitter::trigger = (args...) -> @emit(args...)
 Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
 fsUtils = require './fs-utils'
-$ = require './jquery-extensions'
+{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 Package = require './package'
 ipc = require 'ipc'
