@@ -153,6 +153,7 @@ class RootView extends View
         focusableChild.focus()
         false
       else
+        $(document.body).focus()
         true
 
   # Private:
