@@ -4,9 +4,9 @@ request = require 'request'
 npmconf = require 'npmconf'
 semver = require 'semver'
 
+auth = require './auth'
 config = require './config'
 tree = require './tree'
-auth = require './auth'
 
 module.exports =
 class Fetcher
