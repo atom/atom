@@ -2,8 +2,7 @@ fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
-$ = require './jquery-extensions'
-{$$, View} = require './space-pen-extensions'
+{$, $$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
 telepath = require 'telepath'
@@ -56,7 +55,7 @@ class RootView extends View
 
   # Private:
   @content: (state) ->
-    @div id: 'root-view', =>
+    @div id: 'root-view', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div outlet: 'panes'
@@ -154,6 +153,7 @@ class RootView extends View
         focusableChild.focus()
         false
       else
+        $(document.body).focus()
         true
 
   # Private:

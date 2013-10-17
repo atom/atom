@@ -1,4 +1,3 @@
-{View, $$, $$$} = require '../src/space-pen-extensions'
 {Document, Point, Range, Site} = require 'telepath'
 _ = require 'underscore-plus'
 
@@ -7,9 +6,6 @@ _.nextTick = setImmediate
 
 module.exports =
   _: _
-  $: require '../src/jquery-extensions'
-  $$: $$
-  $$$: $$$
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
@@ -19,16 +15,20 @@ module.exports =
   Git: require '../src/git'
   Point: Point
   Range: Range
-  ScrollView: require '../src/scroll-view'
   Site: Site
-  stringscore: require '../vendor/stringscore'
-  View: View
 
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
+  {$, $$, $$$, View} = require '../src/space-pen-extensions'
+
+  module.exports.$ = $
+  module.exports.$$ = $$
+  module.exports.$$$ = $$$
   module.exports.Editor = require '../src/editor'
   module.exports.pathForRepositoryUrl = require('../src/project').pathForRepositoryUrl
   module.exports.RootView = require '../src/root-view'
   module.exports.SelectList = require '../src/select-list'
+  module.exports.ScrollView = require '../src/scroll-view'
   module.exports.Task = require '../src/task'
+  module.exports.View = View

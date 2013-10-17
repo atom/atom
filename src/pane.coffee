@@ -1,6 +1,5 @@
 {dirname} = require 'path'
-{View} = require './space-pen-extensions'
-$ = require './jquery-extensions'
+{$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 telepath = require 'telepath'
 PaneRow = require './pane-row'
@@ -18,7 +17,7 @@ class Pane extends View
   @acceptsDocuments: true
 
   @content: (wrappedView) ->
-    @div class: 'pane', =>
+    @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
 
   @deserialize: (state) ->
@@ -94,7 +93,6 @@ class Pane extends View
     @attached = true
     @trigger 'pane:attached', [this]
 
-
   # Public: Focus this pane.
   makeActive: ->
     wasActive = @isActive()
@@ -169,7 +167,7 @@ class Pane extends View
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show()
+    view.show() if @attached
     view.focus() if isFocused
     @activeItem = item
     @activeView = view
@@ -414,6 +412,7 @@ class Pane extends View
       when 'before' then parent.insertChildBefore(this, newPane)
       when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
+    newPane.makeActive()
     newPane.focus()
     newPane
 

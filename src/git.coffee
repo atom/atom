@@ -65,7 +65,7 @@ class Git
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
-      $ = require 'jquery'
+      {$} = require './space-pen-extensions'
       @subscribe $(window), 'focus', =>
         @refreshIndex()
         @refreshStatus()

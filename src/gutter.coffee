@@ -1,6 +1,5 @@
-{View, $$, $$$} = require './space-pen-extensions'
+{View, $, $$, $$$} = require './space-pen-extensions'
 {Range} = require 'telepath'
-$ = require './jquery-extensions'
 _ = require 'underscore-plus'
 
 # Private: Represents the portion of the {Editor} containing row numbers.

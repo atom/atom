@@ -24,7 +24,7 @@ describe "Window", ->
 
   describe "when the window is blurred", ->
     beforeEach ->
-      $(window).trigger 'blur'
+      $(window).triggerHandler 'blur'
 
     afterEach ->
       $('body').removeClass('is-blurred')
@@ -34,7 +34,7 @@ describe "Window", ->
 
     describe "when the window is focused again", ->
       it "removes the .is-blurred class from the body", ->
-        $(window).trigger 'focus'
+        $(window).triggerHandler 'focus'
         expect($("body")).not.toHaveClass("is-blurred")
 
   describe "window:close event", ->
@@ -52,13 +52,18 @@ describe "Window", ->
       expect(beforeunload).toHaveBeenCalled()
 
   describe "beforeunload event", ->
+    [beforeUnloadEvent] = []
+
+    beforeEach ->
+      beforeUnloadEvent = $.Event(new Event('beforeunload'))
+
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
         spyOn(rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
         editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        $(window).trigger 'beforeunload'
+        $(window).trigger(beforeUnloadEvent)
         expect(rootView.confirmClose).toHaveBeenCalled()
         expect(atom.confirmSync).toHaveBeenCalled()
 
@@ -66,14 +71,14 @@ describe "Window", ->
         spyOn(atom, "confirmSync").andReturn(2)
         editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        expect(window.onbeforeunload(new Event('beforeunload'))).toBeTruthy()
+        $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
         spyOn(atom, "confirmSync").andReturn(1)
         editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        expect(window.onbeforeunload(new Event('beforeunload'))).toBeFalsy()
+        $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
   describe ".unloadEditorWindow()", ->

@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
-jQuery = require './jquery-extensions'
 Specificity = require '../vendor/specificity'
-{$$} = require './space-pen-extensions'
+{$, $$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
 {Emitter} = require 'emissary'
 NullGrammar = require './null-grammar'
@@ -107,7 +106,7 @@ class Syntax
 
   matchingPropertiesForElement: (element, candidates) ->
     matchingScopedProperties = candidates.filter ({selector}) ->
-      jQuery.find.matchesSelector(element, selector)
+      $.find.matchesSelector(element, selector)
     matchingScopedProperties.sort (a, b) ->
       if a.specificity == b.specificity
         b.index - a.index

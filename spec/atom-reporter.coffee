@@ -1,5 +1,4 @@
-$ = require 'jquery'
-{View, $$} = require 'space-pen'
+{View, $, $$} = require '../src/space-pen-extensions'
 _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 

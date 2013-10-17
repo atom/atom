@@ -1,4 +1,4 @@
-$ = require 'jquery'
+{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 remote = require 'remote'
 
