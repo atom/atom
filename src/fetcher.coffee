@@ -40,7 +40,8 @@ class Fetcher
           if error?
             callback(error)
           else
-            packages = body.map (pack) ->
+            packages = body.filter (pack) -> pack['dist-tags']?.latest?
+            packages = packages.map (pack) ->
               _.extend(version: pack['dist-tags'].latest, pack)
             callback(null, packages)
 
