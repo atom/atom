@@ -121,8 +121,9 @@ your package is activated. Stylesheets can be written as CSS or [LESS] (but LESS
 is recommended).
 
 Ideally you will not need much in the way of styling. We've provided a standard
-set of components. You can view all components by using the command palette
-(`cmd-p`) and searching for "styleguide" or just `cmd+ctrl+G`.
+set of components. You can view all components by opening the styleguide: open
+the command palette (`cmd-p`) and search for _styleguide_ or just
+`cmd-ctrl-shift-G`.
 
 If you do need styling, we try to keep only structural styles in the package
 stylesheets. Colors and sizing should be taken from the active theme's
@@ -380,14 +381,14 @@ default `toggle`, our keybinding executes a new command called `magic`.
 _keymaps/changer.cson_ can easily become this:
 
 ```coffeescript
-'.tree-view-scroller':
+'.tree-view':
   'ctrl-V': 'changer:magic'
 ```
 
-Notice that the keybinding is called `ctrl-V`--that's actually `ctrl-shift-v`.
+Notice that the keybinding is called `ctrl-V` &mdash; that's actually `ctrl-shift-v`.
 You can use capital letters to denote using `shift` for your binding.
 
-`.tree-view-scroller` represents the parent container for the tree view.
+`.tree-view` represents the parent container for the tree view.
 Keybindings only work within the context of where they're entered. For example,
 hitting `ctrl-V` anywhere other than tree won't do anything. You can map to
 `body` if you want to scope to anywhere in Atom, or just `.editor` for the
@@ -473,9 +474,9 @@ magic: ->
         $(el).removeClass("hide-me")
 ```
 
-## Creating a New Pane
+## Creating a New Panel
 
-The next goal of this package is to append a pane to the Atom editor that lists
+The next goal of this package is to append a panel to the Atom editor that lists
 some information about the modified files.
 
 To do that, we're going to first create a new class method called `content`.
@@ -527,16 +528,7 @@ the view. You can then swap between `show()` and `hide()`, and instead of
 forcing Atom to add and remove the element as we're doing here, it'll just set a
 CSS property to control your package's visibility.
 
-You might have noticed that our two `li` elements aren't showing up. Let's set
-a color on them so that they pop. Open up `changer.css` and add this CSS:
-
-```css
-ul.modified-files-list {
-  color: white;
-}
-```
-
-Refresh Atom, hit the key combo, and see your brilliantly white test list.
+Refresh Atom, hit the key combo, and see your test list.
 
 ## Calling Node.js Code
 
