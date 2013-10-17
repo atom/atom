@@ -1,9 +1,9 @@
+path = require 'path'
+pathWatcher = require 'pathwatcher'
 Q = require 'q'
 {Emitter} = require 'emissary'
-path = require 'path'
-fsUtils = require './fs-utils'
-pathWatcher = require 'pathwatcher'
 _ = require 'underscore-plus'
+fsUtils = require './fs-utils'
 
 # Public: Represents an individual file in the editor.
 #
