@@ -52,7 +52,7 @@
     "autoflow": "0.4.0",
     "bookmarks": "0.7.0",
     "bracket-matcher": "0.7.0",
-    "collaboration": "0.24.0",
+    "collaboration": "0.26.0",
     "command-logger": "0.5.0",
     "command-palette": "0.5.0",
     "dev-live-reload": "0.7.0",
