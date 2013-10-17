@@ -95,7 +95,7 @@ class File
     else
       promise = Q(@cachedContents)
 
-    promise.then (contents) ->
+    promise.then (contents) =>
       @cachedContents = contents
 
   # Public: Returns whether a file exists.
