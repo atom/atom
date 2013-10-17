@@ -9,6 +9,7 @@ try
   runSpecSuite './spec-suite'
 catch error
   if atom?.getLoadSettings().exitWhenDone
+    console.error(error.stack ? error)
     atom.exit(1)
   else
     throw error
