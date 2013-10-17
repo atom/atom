@@ -45,9 +45,10 @@ a few things before starting:
      that have been already been defined.
   1. When you're ready update the `README.md` and include an example screenshot
      of your new theme in action.
-1. Open a terminal to your new theme directory
-  1. Run `apm link` to install it locally.
-  1. Reload Atom (`cmd-r`) and your theme should now be applied.
+1. Reload Atom (`cmd-r`) and your theme should now be applied.
+1. Look in the theme settings, your new theme should be show in the enabled themes section
+    ![themesettings-img]
+1. Open a terminal to your new theme directory; it should be in `~/.atom/packages/<my-name>`.  
   1. To publish, initialize a git repository, push to GitHub, and run
      `apm publish`.
 
@@ -80,7 +81,7 @@ If you'd like to reload all styles at any time, you can use the shortcut
 ### Developer Tools
 
 Atom is based on the Chrome browser, and supports Chrome's Developer Tools. You
-can open them by selecting the __View > Toggle Developer Tools__ or by using the
+can open them by selecting the __View > Toggle Developer Tools__ menu or by using the
 `cmd-option-i` shortcut.
 
 The dev tools allow you to inspect elements and take a look at their CSS
@@ -110,3 +111,4 @@ styleguide or use the shortcut `cmd-ctrl-shift-g`.
 [styleguide]: https://github.com/atom/styleguide
 [styleguide-img]: https://f.cloud.github.com/assets/69169/1347390/2d431d98-36af-11e3-8f8e-3f4ce1e67adb.png
 [devtools-img]: https://f.cloud.github.com/assets/69169/1347391/2d51f91c-36af-11e3-806f-f7b334af43e9.png
+[themesettings-img]: https://f.cloud.github.com/assets/69169/1347569/3150bd0c-36b2-11e3-9d69-423503acfe3f.png

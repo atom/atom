@@ -1,8 +1,8 @@
 # Authoring Packages
 
 Packages are at the core of Atom. Nearly everything outside of the main editor
-is handled by a package. That includes "core" pieces like the command panel,
-status bar, file tree, and more.
+is handled by a package. That includes "core" pieces like the file tree, status
+bar and more.
 
 A package can contain a variety of different resource types to change Atom's
 behavior. The basic package layout is as follows (though not every package will
@@ -618,7 +618,7 @@ popular libraries into their packages:
 * [jQuery] (as `require 'jquery'`)
 * [Underscore] (as `require 'underscore'`)
 
-Additional libraries can be found by browsing Atom's _node_modules_ folder.
+Additional libraries can be found by browsing Atom's *node_modules* folder.
 
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
 [npm-keys]: https://npmjs.org/doc/json.html
