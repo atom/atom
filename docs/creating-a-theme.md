@@ -61,9 +61,23 @@ contains all of the variables provided by the [core themes][ui-variables].
 Syntax themes don't need to provide any variables to other themes and only
 target elements within the editor.
 
+To create a UI theme, do the following:
+
+1. Fork one of the following repos
+  1. [atom-dark-ui]
+  1. [atom-light-ui]
+1. Open a terminal in the forked theme's directory
+1. Open your new theme in a Dev Mode Atom window (either run `atom -d .` in the terminal or use `cmd-shift-o` from atom)
+1. Change the name of the theme in the theme's `package.json` file
+1. Run `apm link` to tell Atom about your new theme
+1. Reload Atom (`cmd-r`)
+1. Enable the theme via the themes panel in settings
+1. Make changes! Since you opened the theme in a Dev Mode window, changes will
+   be instantly reflected in the editor without having to reload.
+
 ## Development workflow
 
-There are a few of tools to help make theme development much faster.
+There are a few of tools to help make theme development fast.
 
 ### Live Reload
 
@@ -96,7 +110,7 @@ changes affect all the components in the system. The [styleguide] is a page with
 every component Atom supports rendered.
 
 To open the styleguide, open the command palette (`cmd-p`) and search for
-styleguide or use the shortcut `cmd-ctrl-shift-g`.
+_styleguide_ or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]
 
@@ -109,6 +123,8 @@ styleguide or use the shortcut `cmd-ctrl-shift-g`.
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 [livereload]: https://github.com/atom/dev-live-reload
 [styleguide]: https://github.com/atom/styleguide
+[atom-dark-ui]: https://github.com/atom/atom-dark-ui
+[atom-light-ui]: https://github.com/atom/atom-light-ui
 [styleguide-img]: https://f.cloud.github.com/assets/69169/1347390/2d431d98-36af-11e3-8f8e-3f4ce1e67adb.png
 [devtools-img]: https://f.cloud.github.com/assets/69169/1347391/2d51f91c-36af-11e3-806f-f7b334af43e9.png
 [themesettings-img]: https://f.cloud.github.com/assets/69169/1347569/3150bd0c-36b2-11e3-9d69-423503acfe3f.png
