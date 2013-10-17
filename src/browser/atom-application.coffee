@@ -129,8 +129,7 @@ class AtomApplication
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
     @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
     @on 'application:unhide-all-applications', -> Menu.sendActionToFirstResponder('unhideAllApplications:')
-    @on 'application:new-window', ->
-      @openPath(initialSize: @getFocusedWindowSize())
+    @on 'application:new-window', -> @openPath(initialSize: @getFocusedWindowSize())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPath()
     @on 'application:open-dev', -> @promptForPath(devMode: true)
