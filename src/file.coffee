@@ -1,4 +1,3 @@
-fs = require 'fs'
 path = require 'path'
 pathWatcher = require 'pathwatcher'
 Q = require 'q'
@@ -77,7 +76,7 @@ class File
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache
-      if fs.statSync(@getPath()).size >= 1048576 # 1MB
+      if fsUtils.statSyncNoException(@getPath()).size >= 1048576 # 1MB
         throw new Error("Atom can only handle files < 1MB, for now.")
 
       deferred = Q.defer()
