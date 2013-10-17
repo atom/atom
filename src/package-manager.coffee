@@ -28,9 +28,12 @@ class PackageManager
 
   activatePackage: (name, options) ->
     if pack = @loadPackage(name, options)
-      @activePackages[pack.name] = pack
-      pack.activate(options)
-      pack
+      if pack.isTheme()
+        atom.themes.enableTheme(pack.name)
+      else
+        @activePackages[pack.name] = pack
+        pack.activate(options)
+        pack
 
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()

@@ -192,7 +192,6 @@ describe "the `atom` global", ->
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()
 
-
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
@@ -224,6 +223,14 @@ describe "the `atom` global", ->
               expect(atom.themes.stylesheetElementForId(two)).toExist()
               expect(atom.themes.stylesheetElementForId(three)).toExist()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
+
+        describe "theme loading", ->
+          it "properly sets the config.themes to activate the theme when a theme is activated", ->
+            themeName = "theme-with-package-file"
+            expect(config.get('core.themes')).not.toContain themeName
+            atom.activatePackage(themeName)
+            expect(config.get('core.themes')).toContain themeName
+            expect(atom.themes.getAvailableNames()).toContain themeName
 
         describe "grammar loading", ->
           it "loads the package's grammars", ->

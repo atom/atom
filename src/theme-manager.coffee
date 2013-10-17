@@ -172,6 +172,11 @@ class ThemeManager
       console.warn("Failed to load theme #{name}", error.stack ? error)
 
   # Public:
+  enableTheme: (name) ->
+    themes = config.get('core.themes')
+    config.set('core.themes', _.uniq(themes.concat([name])))
+
+  # Public:
   getUserStylesheetPath: ->
     stylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
     if fsUtils.isFileSync(stylesheetPath)
