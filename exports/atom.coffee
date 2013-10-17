@@ -16,7 +16,6 @@ module.exports =
   Point: Point
   Range: Range
   Site: Site
-  stringscore: require '../vendor/stringscore'
 
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process
