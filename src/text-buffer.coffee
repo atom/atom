@@ -117,11 +117,18 @@ class TextBuffer
   subscribeToFile: ->
     @file.on "contents-changed", =>
       @conflict = true if @isModified()
-      @updateCachedDiskContents().done =>
-        if @conflict
-          @emit "contents-conflicted"
-        else
-          @reload()
+      previousContents = @cachedDiskContents
+
+      # Synchrounously update the disk contents because the {File} has already cached them. If the
+      # contents updated asynchrounously multiple `conlict` events could trigger for the same disk
+      # contents.
+      @updateCachedDiskContentsSync()
+      return if previousContents == @cachedDiskContents
+
+      if @conflict
+        @emit "contents-conflicted"
+      else
+        @reload()
 
     @file.on "removed", =>
       @updateCachedDiskContents().done =>

@@ -78,7 +78,6 @@ class File
     else if not @cachedContents? or flushCache
       deferred = Q.defer()
       promise = deferred.promise
-
       content = []
       bytesRead = 0
       readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
@@ -112,9 +111,8 @@ class File
       @emit "moved"
     else if eventType is "change"
       oldContents = @cachedContents
-      newContents = @read(true)
-      return if oldContents == newContents
-      @emit 'contents-changed'
+      @read(true).done (newContents) =>
+        @emit 'contents-changed' unless oldContents == newContents
 
   # Private:
   detectResurrectionAfterDelay: ->
