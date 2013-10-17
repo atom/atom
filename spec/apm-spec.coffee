@@ -33,7 +33,7 @@ describe 'apm API', ->
           expect(available[1].name).toBe 'multi-version'
           expect(available[1].version).toBe '2.0.0'
 
-    describe 'when a version is specified', ->
+    xdescribe 'when a version is specified', ->
       it 'returns the packages that are applicable for that version', ->
         available = null
 

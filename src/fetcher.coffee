@@ -6,6 +6,7 @@ semver = require 'semver'
 
 config = require './config'
 tree = require './tree'
+auth = require './auth'
 
 module.exports =
 class Fetcher
@@ -26,34 +27,22 @@ class Fetcher
   getAvailablePackages: (atomVersion, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 
-    npmconf.load config.getUserConfigPath(), (error, userConfig) ->
+    auth.getToken (error, token) ->
       if error?
         callback(error)
       else
         requestSettings =
           url: config.getAtomPackagesUrl()
           json: true
-          auth:
-            username: userConfig.get('username', 'builtin')
-            password: userConfig.get('_password', 'builtin')
-            sendImmediately: true
+          headers:
+            authorization: token
         request.get requestSettings, (error, response, body={}) ->
           if error?
             callback(error)
           else
-            packages = body.rows ? []
-            packages = _.map packages, (pack) ->
-              bestMatch = null
-              for metadata in _.values(pack.value.releases)
-                if atomVersion?
-                  continue unless semver.satisfies(atomVersion, metadata.engines.atom)
-                if bestMatch?
-                  bestMatch = metadata if semver.gt(metadata.version, bestMatch.version)
-                else
-                  bestMatch = metadata
-              bestMatch
-
-            callback(null, _.compact(packages))
+            packages = body.map (pack) ->
+              _.extend(version: pack['dist-tags'].latest, pack)
+            callback(null, packages)
 
   run: (options) ->
     @getAvailablePackages options.argv.atomVersion, (error, packages) ->

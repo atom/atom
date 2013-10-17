@@ -1,41 +1,15 @@
-{
-  "total_rows": 1,
-  "offset": 0,
-  "rows": [
-    {
-      "id": "beverly-hills",
-      "value": {
-        "releases": {
-          "9.0.2.1.0": {
-            "name": "beverly-hills",
-            "version": "9.0.2.1.0",
-            "engines": {
-              "atom": "*"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "multi-version",
-      "value": {
-        "releases": {
-          "1.0.0": {
-            "name": "multi-version",
-            "version": "1.0.0",
-            "engines": {
-              "atom": "1.0.0"
-            }
-          },
-          "2.0.0": {
-            "name": "multi-version",
-            "version": "2.0.0",
-            "engines": {
-              "atom": "2.0.0"
-            }
-          }
-        }
-      }
+[
+  {
+    "name": "beverly-hills",
+    "dist-tags": {
+      "latest": "9.0.2.1.0"
     }
-  ]
-}
+  },
+  {
+    "name": "multi-version",
+    "dist-tags": {
+      "latest": "2.0.0",
+      "other": "1.0.0"
+    }
+  }
+]
