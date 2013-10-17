@@ -7,11 +7,10 @@
       { label: "Install update", command: 'application:install-update', visible: false }
       { type: 'separator' }
       { label: 'Preferences...', command: 'application:show-settings' }
+      { type: 'separator' }
       { label: 'Hide Atom', command: 'application:hide' }
       { label: 'Hide Others', command: 'application:hide-other-applications' }
       { label: 'Show All', command: 'application:unhide-all-applications' }
-      { type: 'separator' }
-      { label: 'Run Atom Specs', command: 'application:run-all-specs' }
       { type: 'separator' }
       { label: 'Quit', command: 'application:quit' }
     ]
@@ -21,10 +20,13 @@
     submenu: [
       { label: 'New Window', command: 'application:new-window' }
       { label: 'New File', command: 'application:new-file' }
-      { type: 'separator' }
       { label: 'Open...', command: 'application:open' }
-      { label: 'Open In Dev Mode...', command: 'application:open-dev' }
       { type: 'separator' }
+      { label: 'Save', command: 'core:save' }
+      { label: 'Save As...', command: 'core:save-as' }
+      { label: 'Save All', command: 'window:save-all' }
+      { type: 'separator' }
+      { label: 'Close File', command: 'pane:close' }
       { label: 'Close Window', command: 'window:close' }
     ]
   }
@@ -39,6 +41,7 @@
       { label: 'Copy', command: 'core:copy' }
       { label: 'Paste', command: 'core:paste' }
       { label: 'Select All', command: 'core:select-all' }
+      { type: 'separator' }
     ]
   }
 
@@ -47,7 +50,15 @@
     submenu: [
       { label: 'Reload', command: 'window:reload' }
       { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
-      { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
+      {
+        label: 'Developer'
+        submenu: [
+          { label: 'Open In Dev Mode...', command: 'application:open-dev' }
+          { label: 'Run Atom Specs', command: 'application:run-all-specs' }
+          { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
+        ]
+      }
+      { type: 'separator' }
     ]
   }
 
