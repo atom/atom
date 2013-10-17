@@ -2,6 +2,7 @@
 path = require 'path'
 temp = require 'temp'
 {Site} = require 'telepath'
+TextBuffer = require '../src/text-buffer'
 
 describe 'TextBuffer', ->
   [filePath, fileContents, buffer] = []
@@ -134,12 +135,12 @@ describe 'TextBuffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
       it "fires a single contents-conflicted event", ->
-        buffer.insert([0, 0], "a change")
+        buffer.setText("a change")
         buffer.save()
         buffer.insert([0, 0], "a second change")
 
         handler = jasmine.createSpy('fileChange')
-        fs.writeSync(filePath, "second")
+        fs.writeSync(filePath, "a disk change")
         buffer.on 'contents-conflicted', handler
 
         expect(handler.callCount).toBe 0
@@ -307,6 +308,19 @@ describe 'TextBuffer', ->
       expect(buffer.isModified()).toBeTruthy()
       buffer.setText('\n')
       expect(buffer.isModified()).toBeTruthy()
+
+    it "returns false until the buffer is fully loaded", ->
+      buffer.release()
+      filePath = temp.openSync('atom').path
+      buffer = new TextBuffer({project, filePath})
+
+      expect(buffer.isModified()).toBeFalsy()
+
+      waitsForPromise ->
+        buffer.load()
+
+      runs ->
+        expect(buffer.isModified()).toBeFalsy()
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->
