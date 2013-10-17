@@ -111,6 +111,7 @@ afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
   atom.deactivatePackages()
+  atom.menu.template = []
 
   window.rootView?.remove?()
   atom.rootView?.remove?() if atom.rootView isnt window.rootView
