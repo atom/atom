@@ -123,7 +123,7 @@ is recommended).
 Ideally you will not need much in the way of styling. We've provided a standard
 set of components. You can view all components by opening the styleguide: open
 the command palette (`cmd-p`) and search for _styleguide_ or just
-`cmd-ctrl-shift-G`.
+`cmd-ctrl-shift-g`.
 
 If you do need styling, we try to keep only structural styles in the package
 stylesheets. Colors and sizing should be taken from the active theme's

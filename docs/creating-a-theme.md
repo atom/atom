@@ -58,8 +58,6 @@ There are only two differences between interface and syntax themes - what
 they target and what they provide. Interface themes only target elements which
 are outside of the editor and **must** provide a `ui-variables.less` file which
 contains all of the variables provided by the [core themes][ui-variables].
-Syntax themes don't need to provide any variables to other themes and only
-target elements within the editor.
 
 To create a UI theme, do the following:
 
