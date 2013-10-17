@@ -79,7 +79,7 @@ There are a few of tools to help make theme development fast.
 
 ### Live Reload
 
-Reloading via `cmd-r` after you make changes to your theme is slow. Atom
+Reloading via `cmd-r` after you make changes to your theme less than ideal. Atom
 supports [live updating][livereload] of styles on Dev Mode Atom windows.
 
 1. Open your theme directory in a dev window by either using the
