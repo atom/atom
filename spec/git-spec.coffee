@@ -253,11 +253,16 @@ describe "Git", ->
       project.openSync('sample.js')
       project2 = deserialize(project.serialize())
       buffer = project2.getBuffers()[0]
-      originalContent = buffer.getText()
-      buffer.append('changes')
 
-      statusHandler = jasmine.createSpy('statusHandler')
-      project2.getRepo().on 'status-changed', statusHandler
-      buffer.save()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256
+      waitsFor ->
+        buffer.loaded
+
+      runs ->
+        originalContent = buffer.getText()
+        buffer.append('changes')
+
+        statusHandler = jasmine.createSpy('statusHandler')
+        project2.getRepo().on 'status-changed', statusHandler
+        buffer.save()
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256

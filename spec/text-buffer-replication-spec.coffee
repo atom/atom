@@ -11,6 +11,9 @@ describe "TextBuffer replication", ->
     doc1.connect(doc2)
     buffer2 = deserialize(doc2, {project})
 
+    waitsFor ->
+      buffer1.loaded and buffer2.loaded
+
   afterEach ->
     buffer1.destroy()
     buffer2.destroy()

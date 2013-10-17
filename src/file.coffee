@@ -1,9 +1,9 @@
+path = require 'path'
+pathWatcher = require 'pathwatcher'
 Q = require 'q'
 {Emitter} = require 'emissary'
-path = require 'path'
-fsUtils = require './fs-utils'
-pathWatcher = require 'pathwatcher'
 _ = require 'underscore-plus'
+fsUtils = require './fs-utils'
 
 # Public: Represents an individual file in the editor.
 #
@@ -57,7 +57,7 @@ class File
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Private: Deprecated
-  read: (flushCache) ->
+  readSync: (flushCache) ->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
@@ -72,13 +72,15 @@ class File
   #   copy is acceptable.
   #
   # Returns a promise that resovles to a String.
-  readAsync: (flushCache) ->
+  read: (flushCache) ->
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache
+      if fsUtils.statSyncNoException(@getPath()).size >= 1048576 # 1MB
+        throw new Error("Atom can only handle files < 1MB, for now.")
+
       deferred = Q.defer()
       promise = deferred.promise
-
       content = []
       bytesRead = 0
       readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
@@ -95,7 +97,7 @@ class File
     else
       promise = Q(@cachedContents)
 
-    promise.then (contents) ->
+    promise.then (contents) =>
       @cachedContents = contents
 
   # Public: Returns whether a file exists.
@@ -112,9 +114,8 @@ class File
       @emit "moved"
     else if eventType is "change"
       oldContents = @cachedContents
-      newContents = @read(true)
-      return if oldContents == newContents
-      @emit 'contents-changed'
+      @read(true).done (newContents) =>
+        @emit 'contents-changed' unless oldContents == newContents
 
   # Private:
   detectResurrectionAfterDelay: ->

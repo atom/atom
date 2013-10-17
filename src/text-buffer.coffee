@@ -59,6 +59,7 @@ class TextBuffer
         text: @text
       @loadFromDisk = not initialText
 
+    @loaded = false
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
@@ -66,13 +67,13 @@ class TextBuffer
     @setPath(@project.resolve(filePath)) if @project
 
   loadSync: ->
-    @updateCachedDiskContents()
-    @reload() if @loadFromDisk and @isModified()
+    @updateCachedDiskContentsSync()
+    @reload() if @loadFromDisk
     @text.clearUndoStack()
 
   load: ->
-    @updateCachedDiskContentsAsync().then =>
-      @reload() if @loadFromDisk and @isModified()
+    @updateCachedDiskContents().then =>
+      @reload() if @loadFromDisk
       @text.clearUndoStack()
       this
 
@@ -116,14 +117,21 @@ class TextBuffer
   subscribeToFile: ->
     @file.on "contents-changed", =>
       @conflict = true if @isModified()
-      @updateCachedDiskContentsAsync().done =>
-        if @conflict
-          @emit "contents-conflicted"
-        else
-          @reload()
+      previousContents = @cachedDiskContents
+
+      # Synchrounously update the disk contents because the {File} has already cached them. If the
+      # contents updated asynchrounously multiple `conlict` events could trigger for the same disk
+      # contents.
+      @updateCachedDiskContentsSync()
+      return if previousContents == @cachedDiskContents
+
+      if @conflict
+        @emit "contents-conflicted"
+      else
+        @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContentsAsync().done =>
+      @updateCachedDiskContents().done =>
         @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
@@ -149,12 +157,14 @@ class TextBuffer
     @emit 'reloaded'
 
   # Private: Rereads the contents of the file, and stores them in the cache.
-  updateCachedDiskContents: ->
-    @cachedDiskContents = @file?.read() ? ""
+  updateCachedDiskContentsSync: ->
+    @loaded = true
+    @cachedDiskContents = @file?.readSync() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
-  updateCachedDiskContentsAsync: ->
-    Q(@file?.readAsync() ? "").then (contents) =>
+  updateCachedDiskContents: ->
+    Q(@file?.read() ? "").then (contents) =>
+      @loaded = true
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
@@ -409,6 +419,7 @@ class TextBuffer
   #
   # Returns a {Boolean}.
   isModified: ->
+    return false unless @loaded
     if @file
       if @file.exists()
         @getText() != @cachedDiskContents
