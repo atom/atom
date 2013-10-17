@@ -57,7 +57,7 @@ class File
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Private: Deprecated
-  read: (flushCache) ->
+  readSync: (flushCache) ->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
@@ -72,7 +72,7 @@ class File
   #   copy is acceptable.
   #
   # Returns a promise that resovles to a String.
-  readAsync: (flushCache) ->
+  read: (flushCache) ->
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache

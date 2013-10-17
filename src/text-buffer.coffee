@@ -152,11 +152,11 @@ class TextBuffer
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsSync: ->
     @loaded = true
-    @cachedDiskContents = @file?.read() ? ""
+    @cachedDiskContents = @file?.readSync() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
-    Q(@file?.readAsync() ? "").then (contents) =>
+    Q(@file?.read() ? "").then (contents) =>
       @loaded = true
       @cachedDiskContents = contents
 
