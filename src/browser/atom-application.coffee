@@ -124,7 +124,6 @@ class AtomApplication
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
     @on 'application:run-benchmarks', -> @runBenchmarks()
-    @on 'application:show-settings', -> (@focusedWindow() ? this).openPath("atom://config")
     @on 'application:quit', -> app.quit()
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
     @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
@@ -137,6 +136,11 @@ class AtomApplication
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
+    @on 'application:show-settings', ->
+      if @focusedWindow()
+        @focusedWindow().openPath("atom://config")
+      else
+        @openPath(pathToOpen: "atom://config")
 
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
