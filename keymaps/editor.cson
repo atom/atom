@@ -1,5 +1,5 @@
 '.editor':
-  'meta-d': 'editor:delete-line'
+  'ctrl-K': 'editor:delete-line'
   'ctrl-W': 'editor:select-word'
   'meta-alt-p': 'editor:log-cursor-scope'
   'meta-u': 'editor:upper-case'
