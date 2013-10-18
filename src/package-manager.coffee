@@ -4,6 +4,21 @@ _ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
 
+###
+Packages have a lifecycle
+
+* The paths to all non-disabled packages and themes are found on disk (these are available packages)
+* Every package (except those in core.disabledPackages) is 'loaded', meaning
+  `Package` objects are created, and their metadata loaded. This includes themes,
+  as themes are packages
+* Each non-theme package is 'activated', meaning its resources are loaded into the
+* Packages and themes can be enabled and disabled, and
+
+TODO:
+* test that it doesnt activate all the theme packages
+* originally disabled packages can be enabled, and loaded without reloading
+* config.observe the core.disabledPackages
+###
 module.exports =
 class PackageManager
   Emitter.includeInto(this)
@@ -23,17 +38,25 @@ class PackageManager
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
+  enablePackage: (name) ->
+    pack = @loadPackage(name)
+    pack?.enable()
+
+  disablePackage: (name) ->
+    pack = @loadPackage(name)
+    pack?.disable()
+
   activatePackages: ->
-    @activatePackage(pack.name) for pack in @getLoadedPackages()
+    # ThemeManager handles themes. Only activate non theme packages
+    # This is the only part I dislike
+    @activatePackage(pack.name) for pack in @getLoadedPackages() when not pack.isTheme()
 
   activatePackage: (name, options) ->
+    return if @getActivePackage(name)
     if pack = @loadPackage(name, options)
-      if pack.isTheme()
-        atom.themes.enableTheme(pack.name)
-      else
-        @activePackages[pack.name] = pack
-        pack.activate(options)
-        pack
+      @activePackages[pack.name] = pack
+      pack.activate(options)
+      pack
 
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
@@ -46,14 +69,14 @@ class PackageManager
     else
       throw new Error("No active package for name '#{name}'")
 
+  getActivePackages: ->
+    _.values(@activePackages)
+
   getActivePackage: (name) ->
     @activePackages[name]
 
   isPackageActive: (name) ->
     @getActivePackage(name)?
-
-  getActivePackages: ->
-    _.values(@activePackages)
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
@@ -67,14 +90,14 @@ class PackageManager
     if @isPackageDisabled(name)
       return console.warn("Tried to load disabled package '#{name}'")
 
+    pack = @getLoadedPackage(name)
+    return pack if pack
+
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
 
       pack = Package.load(packagePath, options)
-      if pack.metadata?.theme
-        atom.themes.register(pack)
-      else
-        @loadedPackages[pack.name] = pack
+      @loadedPackages[pack.name] = pack
       pack
     else
       throw new Error("Could not resolve '#{name}' to a package path")
@@ -88,19 +111,6 @@ class PackageManager
     else
       throw new Error("No loaded package for name '#{name}'")
 
-  resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
-
-    packagePath = fsUtils.resolve(@packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
-
-    packagePath = path.join(@resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
-
-  isInternalPackage: (packagePath) ->
-    {engines} = Package.loadMetadata(packagePath, true)
-    engines?.atom?
-
   getLoadedPackage: (name) ->
     @loadedPackages[name]
 
@@ -110,8 +120,21 @@ class PackageManager
   getLoadedPackages: ->
     _.values(@loadedPackages)
 
+  resolvePackagePath: (name) ->
+    return name if fsUtils.isDirectorySync(name)
+
+    packagePath = fsUtils.resolve(@packageDirPaths..., name)
+    return packagePath if fsUtils.isDirectorySync(packagePath)
+
+    packagePath = path.join(@resourcePath, 'node_modules', name)
+    return packagePath if @isInternalPackage(packagePath)
+
   isPackageDisabled: (name) ->
     _.include(config.get('core.disabledPackages') ? [], name)
+
+  isInternalPackage: (packagePath) ->
+    {engines} = Package.loadMetadata(packagePath, true)
+    engines?.atom?
 
   getAvailablePackagePaths: ->
     packagePaths = []

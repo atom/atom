@@ -25,20 +25,18 @@ class AtomPackage extends Package
   resolvedMainModulePath: false
   mainModule: null
 
+  constructor: (path, {@metadata}) ->
+    super(path)
+    @reset()
+
   getType: -> 'atom'
 
-  load: ->
-    @metadata = {}
-    @stylesheets = []
-    @keymaps = []
-    @menus = []
-    @grammars = []
-    @scopedProperties = []
+  getStylesheetType: -> 'bundled'
 
+  load: ->
     @measure 'loadTime', =>
       try
-        @metadata = Package.loadMetadata(@path)
-        return if @isTheme()
+        @metadata = Package.loadMetadata(@path) unless @metadata
 
         @loadKeymaps()
         @loadMenus()
@@ -55,9 +53,22 @@ class AtomPackage extends Package
         console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
+  enable: ->
+    atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
+
+  disable: ->
+    atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
+
+  reset: ->
+    @stylesheets = []
+    @keymaps = []
+    @menus = []
+    @grammars = []
+    @scopedProperties = []
+
   activate: ({immediate}={}) ->
     @measure 'activateTime', =>
-      @loadStylesheets() if @isTheme()
+      @loadStylesheets()
       @activateResources()
       if @metadata.activationEvents? and not immediate
         @subscribeToActivationEvents()
@@ -69,7 +80,7 @@ class AtomPackage extends Package
       @activateConfig()
       @activateStylesheets()
       if @requireMainModule()
-        @mainModule.activate(atom.getPackageState(@name) ? {})
+        @mainModule.activate(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
@@ -86,7 +97,7 @@ class AtomPackage extends Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = if @metadata.theme then 'theme' else 'bundled'
+    type = @getStylesheetType()
     for [stylesheetPath, content] in @stylesheets
       atom.themes.applyStylesheet(stylesheetPath, content, type)
     @stylesheetsActivated = true
@@ -183,8 +194,7 @@ class AtomPackage extends Package
     @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
 
   reloadStylesheet: (stylesheetPath, content) ->
-    type = if @metadata.theme then 'theme' else 'bundled'
-    atom.themes.applyStylesheet(stylesheetPath, content, type)
+    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
 
   requireMainModule: ->
     return @mainModule if @mainModule?

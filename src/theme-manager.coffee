@@ -8,31 +8,93 @@ _ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 
 # Private: Handles discovering and loading available themes.
+###
+Themes are a subset of packages
+###
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)
 
-  constructor: ->
-    @loadedThemes = []
-    @activeThemes = []
+  constructor: (@packageManager) ->
     @lessCache = null
 
   # Internal-only:
-  register: (theme) ->
-    @loadedThemes.push(theme)
-    theme
+  getAvailableNames: ->
+    # TODO: Maybe should change to list all the available themes out there?
+    @getLoadedNames()
+
+  getLoadedNames: ->
+    name for theme.name in @getLoadedThemes()
 
   # Internal-only:
-  getAvailableNames: ->
-    _.map @loadedThemes, (theme) -> theme.metadata.name
+  getActiveNames: ->
+    name for theme.name in @getActiveThemes()
 
   # Internal-only:
   getActiveThemes: ->
-    _.clone(@activeThemes)
+    pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
   # Internal-only:
   getLoadedThemes: ->
-    _.clone(@loadedThemes)
+    pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
+
+  # Internal-only:
+  activateThemes: ->
+    # atom.config.observe runs the callback once, then on subsequent changes.
+    atom.config.observe 'core.themes', (themeNames) =>
+      @deactivateThemes()
+      themeNames = [themeNames] unless _.isArray(themeNames)
+
+      # Reverse so the first (top) theme is loaded after the others. We want
+      # the first/top theme to override later themes in the stack.
+      themeNames = _.clone(themeNames).reverse()
+
+      @activateTheme(themeName) for themeName in themeNames
+      @loadUserStylesheet()
+      @reloadBaseStylesheets()
+      @emit('reloaded')
+
+  # Internal-only:
+  activateTheme: (themeName) ->
+    @packageManager.activatePackage(themeName)
+
+  # Internal-only:
+  deactivateThemes: ->
+    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+    @deactivateTheme(pack.name) for pack in @getActiveThemes()
+    null
+
+  # Internal-only:
+  deactivateTheme: (themeName) ->
+    @packageManager.deactivatePackage(themeName)
+
+  # Public:
+  getImportPaths: ->
+    activeThemes = @getActiveThemes()
+    if activeThemes.length > 0
+      themePaths = (theme.getStylesheetsPath() for theme in activeThemes when theme)
+    else
+      themePaths = []
+      for themeName in atom.config.get('core.themes') ? []
+        if themePath = @packageManager.resolvePackagePath(themeName)
+          themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
+
+    themePath for themePath in themePaths when fsUtils.isDirectorySync(themePath)
+
+  # Public:
+  getUserStylesheetPath: ->
+    stylesheetPath = fsUtils.resolve(path.join(atom.config.configDirPath, 'user'), ['css', 'less'])
+    if fsUtils.isFileSync(stylesheetPath)
+      stylesheetPath
+    else
+      null
+
+  # Private:
+  loadUserStylesheet: ->
+    if userStylesheetPath = @getUserStylesheetPath()
+      @userStylesheetPath = userStylesheetPath
+      userStylesheetContents = @loadStylesheet(userStylesheetPath)
+      @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   # Internal-only:
   loadBaseStylesheets: ->
@@ -109,96 +171,3 @@ class ThemeManager
         $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
       else
         $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
-
-  # Internal-only:
-  unload: ->
-    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
-    theme.deactivate() while theme = @activeThemes.pop()
-
-  # Internal-only:
-  load: ->
-    config.observe 'core.themes', (themeNames) =>
-      @unload()
-      themeNames = [themeNames] unless _.isArray(themeNames)
-
-      # Reverse so the first (top) theme is loaded after the others. We want
-      # the first/top theme to override later themes in the stack.
-      themeNames = _.clone(themeNames).reverse()
-
-      @activateTheme(themeName) for themeName in themeNames
-      @loadUserStylesheet()
-      @reloadBaseStylesheets()
-      @emit('reloaded')
-
-  # Private:
-  loadTheme: (name, options) ->
-    if themePath = @resolveThemePath(name)
-      return theme if theme = @getLoadedTheme(name)
-      pack = Package.load(themePath, options)
-      if pack.isTheme()
-        @register(pack)
-      else
-        throw new Error("Attempted to load a non-theme package '#{name}' as a theme")
-    else
-      throw new Error("Could not resolve '#{name}' to a theme path")
-
-  # Private:
-  getLoadedTheme: (name) ->
-    _.find @loadedThemes, (theme) -> theme.metadata.name is name
-
-  # Private:
-  resolveThemePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
-
-    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
-
-    packagePath = path.join(window.resourcePath, 'node_modules', name)
-    return packagePath if @isThemePath(packagePath)
-
-  # Private:
-  isThemePath: (packagePath) ->
-    {engines, theme} = Package.loadMetadata(packagePath, true)
-    engines?.atom? and theme
-
-  # Private:
-  activateTheme: (name) ->
-    try
-      theme = @loadTheme(name)
-      theme.activate()
-      @activeThemes.push(theme)
-      @emit('theme-activated', theme)
-    catch error
-      console.warn("Failed to load theme #{name}", error.stack ? error)
-
-  # Public:
-  enableTheme: (name) ->
-    themes = config.get('core.themes')
-    config.set('core.themes', _.uniq(themes.concat([name])))
-
-  # Public:
-  getUserStylesheetPath: ->
-    stylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
-    if fsUtils.isFileSync(stylesheetPath)
-      stylesheetPath
-    else
-      null
-
-  # Public:
-  getImportPaths: ->
-    if @activeThemes.length > 0
-      themePaths = (theme.getStylesheetsPath() for theme in @activeThemes when theme)
-    else
-      themePaths = []
-      for themeName in config.get('core.themes') ? []
-        if themePath = @resolveThemePath(themeName)
-          themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
-
-    themePath for themePath in themePaths when fsUtils.isDirectorySync(themePath)
-
-  # Private:
-  loadUserStylesheet: ->
-    if userStylesheetPath = @getUserStylesheetPath()
-      @userStylesheetPath = userStylesheetPath
-      userStylesheetContents = @loadStylesheet(userStylesheetPath)
-      @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')

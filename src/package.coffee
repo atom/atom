@@ -7,11 +7,16 @@ class Package
   @build: (path) ->
     TextMatePackage = require './text-mate-package'
     AtomPackage = require './atom-package'
+    ThemePackage = require './theme-package'
 
     if TextMatePackage.testName(path)
       new TextMatePackage(path)
     else
-      new AtomPackage(path)
+      metadata = @loadMetadata(path)
+      if metadata.theme
+        new ThemePackage(path, {metadata})
+      else
+        new AtomPackage(path, {metadata})
 
   @load: (path, options) ->
     pack = @build(path)
