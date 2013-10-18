@@ -11,6 +11,7 @@ _ = require 'underscore-plus'
 MeasureRange = document.createRange()
 TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 NoScope = ['no-scope']
+LongLineLength = 1000
 
 # Private: Represents the entire visual pane in Atom.
 #
@@ -1589,13 +1590,11 @@ class Editor extends View
       content = textNode.textContent
 
       for char, i in content
+        # Don't continue caching long lines :racehorse:
+        break if index > LongLineLength and column < index
 
         # Dont return right away, finish caching the whole line
-        if index == column
-          returnLeft = left
-
-          # Don't cache lines longer than 100 chars
-          return returnLeft if lineElement.innerText.length > 160
+        returnLeft = left if index == column
         oldLeft = left
 
         scopes = @scopesForColumn(tokenizedLine, index)
@@ -1611,7 +1610,14 @@ class Editor extends View
           return 0 if rects.length == 0
           left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
-          @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
+          if scopes?
+            cachedVal = left - oldLeft
+            @setCharacterWidthCache(scopes, char, cachedVal)
+
+        # Assume all the charachters are the same width when dealing with long
+        # lines :racehorse:
+        return column * cachedVal if index > LongLineLength
+
 
         index++
 
