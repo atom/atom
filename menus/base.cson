@@ -41,6 +41,7 @@
       { type: 'separator' }
       { label: 'Cut', command: 'core:cut' }
       { label: 'Copy', command: 'core:copy' }
+      { label: 'Copy Path', command: 'editor:copy-path' }
       { label: 'Paste', command: 'core:paste' }
       { label: 'Select All', command: 'core:select-all' }
       { type: 'separator' }
