@@ -21,12 +21,14 @@
       { label: 'New Window', command: 'application:new-window' }
       { label: 'New File', command: 'application:new-file' }
       { label: 'Open...', command: 'application:open' }
+      { label: 'Reopen Last Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Save', command: 'core:save' }
       { label: 'Save As...', command: 'core:save-as' }
       { label: 'Save All', command: 'window:save-all' }
       { type: 'separator' }
-      { label: 'Close File', command: 'pane:close' }
+      { label: 'Close Buffer', command: 'core:close' }
+      { label: 'Close All Buffers', command: 'pane:close' }
       { label: 'Close Window', command: 'window:close' }
     ]
   }
