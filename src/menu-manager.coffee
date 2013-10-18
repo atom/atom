@@ -43,10 +43,11 @@ class MenuManager
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
     item = _.deepClone(item)
-    if item.submenu? and match = _.find(menu, (o) -> o.submenu? and o.label == item.label)
+
+    if item.submenu? and match = _.find(menu, (i) -> i.submenu? and i.label == item.label)
       @merge(match.submenu, i) for i in item.submenu
     else
-      menu.push(item)
+      menu.push(item) unless _.find(menu, (i) -> i.label == item.label)
 
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
