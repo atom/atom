@@ -48,4 +48,4 @@ class Rebuilder extends Command
             callback()
           else
             process.stdout.write '\u2717\n'.red
-            callback(stderr.red)
+            callback(stderr)

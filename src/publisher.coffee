@@ -52,7 +52,7 @@ class Publisher extends Command
         callback(null, stdout.trim())
       else
         process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}".red)
+        callback("#{stdout}\n#{stderr}")
 
   # Push a tag to the remote repository.
   #
@@ -68,7 +68,7 @@ class Publisher extends Command
         callback()
       else
         process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}".red)
+        callback("#{stdout}\n#{stderr}")
 
   # Does the given package already exist in the registry?
   #
@@ -125,7 +125,7 @@ class Publisher extends Command
           callback(error)
         else if response.statusCode isnt 200
           message = body.message ? body
-          callback("Registering package failed: #{message}".red)
+          callback("Registering package failed: #{message}")
         else
           callback()
 
@@ -154,7 +154,7 @@ class Publisher extends Command
           callback(error)
         else if response.statusCode isnt 200
           message = body.message ? body
-          callback("Creating new version failed: #{message}".red)
+          callback("Creating new version failed: #{message}")
         else
           callback()
 
@@ -168,7 +168,7 @@ class Publisher extends Command
       pack = CSON.readFileSync(CSON.resolve('package')) ? {}
 
     unless repository = @getRepository(pack)
-      callback('Unable to parse repository name/owner from package.json repository field'.red)
+      callback('Unable to parse repository name/owner from package.json repository field')
       return
 
     publishNewVersion = =>
@@ -217,4 +217,4 @@ class Publisher extends Command
       if tag = options.argv.tag
         @publishPackage(tag, callback)
       else
-        callback('Missing required tag to publish'.red)
+        callback('Missing required tag to publish')

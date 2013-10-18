@@ -59,7 +59,7 @@ class Installer extends Command
         callback()
       else
         process.stdout.write '\u2717\n'.red
-        callback(stdout.red + stderr.red)
+        callback("#{stdout}\n#{stderr}")
 
   installModule: (options, pack, modulePath, callback) ->
     label = "#{pack.name}@#{pack['dist-tags'].latest}"
@@ -95,7 +95,7 @@ class Installer extends Command
       else
         fs.rm(installDirectory)
         process.stdout.write '\u2717\n'.red
-        callback(stdout.red + stderr.red)
+        callback("#{stdout}\n#{stderr}")
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
@@ -106,7 +106,7 @@ class Installer extends Command
         callback()
       else
         process.stdout.write '\u2717\n'.red
-        callback(stdout.red + stderr.red)
+        callback("#{stdout}\n#{stderr}")
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
@@ -137,12 +137,12 @@ class Installer extends Command
       if error?
         callback(error)
       else if response.statusCode isnt 200
-        callback("Request for package information failed: #{body}".red)
+        callback("Request for package information failed: #{body}")
       else
         if latestVersion = body['dist-tags'].latest
           callback(null, body)
         else
-          callback("No releases available for #{packageName}".red)
+          callback("No releases available for #{packageName}")
 
   # Download a package tarball.
   #
@@ -223,7 +223,7 @@ class Installer extends Command
             if code is 0
               callback()
             else
-              callback(stdout.red + stderr.red)
+              callback("#{stdout}\n#{stderr}")
 
     async.waterfall commands, callback
 

@@ -1,5 +1,7 @@
 fs = require 'fs'
 
+_ = require 'underscore'
+require 'colors'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
@@ -53,7 +55,10 @@ module.exports =
       callbackCalled = true
       if error?
         callback?(error)
-        console.error(error)
+        if _.isString(error)
+          console.error(error.red)
+        else
+          console.error(error.stack ? error)
         process.exit(1)
       else
         callback?()

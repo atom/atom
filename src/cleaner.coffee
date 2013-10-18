@@ -75,6 +75,6 @@ class Cleaner extends Command
             callback()
           else
             process.stdout.write '\u2717\n'.red
-            callback("#{stdout}\n#{stderr}".red)
+            callback("#{stdout}\n#{stderr}")
 
     async.waterfall(uninstallCommands, options.callback)
