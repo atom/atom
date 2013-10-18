@@ -6,11 +6,13 @@ express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
+auth = require '../lib/auth'
 config = require '../lib/config'
 mkdir = require('mkdirp').sync
 
 describe 'apm command line interface', ->
   beforeEach ->
+    spyOn(auth, 'getToken').andCallFake (callback) -> callback(null, 'token')
     spyOn(console, 'log')
     spyOn(console, 'error')
     spyOn(process.stdout, 'write')

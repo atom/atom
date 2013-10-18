@@ -2,12 +2,14 @@ path = require 'path'
 http = require 'http'
 express = require 'express'
 apm = require '../lib/apm'
+auth = require '../lib/auth'
 
 describe 'apm API', ->
   describe '.getAvailablePackages(atomVersion, callback)', ->
     server = null
 
     beforeEach ->
+      spyOn(auth, 'getToken').andCallFake (callback) -> callback(null, 'token')
       app = express()
       app.get '/available', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'available.json')
