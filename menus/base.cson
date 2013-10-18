@@ -45,17 +45,50 @@
       { label: 'Paste', command: 'core:paste' }
       { label: 'Select All', command: 'core:select-all' }
       { type: 'separator' }
+      { label: 'Toggle Comments', command: 'editor:toggle-line-comments' }
       {
         label: 'Lines',
         submenu: [
           { label: 'Indent', command: 'editor:indent-selected-rows' }
           { label: 'Outdent', command: 'editor:outdent-selected-rows' }
           { label: 'Auto Indent', command: 'editor:auto-indent' }
+          { type: 'separator' }
           { label: 'Move Line Up', command: 'editor:move-line-up' }
           { label: 'Move Line Down', command: 'editor:move-line-down' }
           { label: 'Duplicate Line', command: 'editor:duplicate-line' }
           { label: 'Delete Line', command: 'editor:delete-line' }
           { label: 'Join Lines', command: 'editor:join-line' }
+        ]
+      }
+      {
+        label: 'Text',
+        submenu: [
+          { label: 'Upper Case', command: 'editor:upper-case' }
+          { label: 'Lower Case', command: 'editor:lower-case' }
+          { type: 'separator' }
+          { label: 'Delete to End of Word', command: 'editor:delete-to-end-of-word' }
+          { label: 'Delete Line', command: 'editor:delete-line' }
+          { type: 'separator' }
+          { label: 'Transpose', command: 'editor:transpose' }
+        ]
+      }
+      {
+        label: 'Folding',
+        submenu: [
+          { label: 'Fold', command: 'editor:fold-current-row' }
+          { label: 'Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Unfold All', command: 'editor:unfold-all' }
+          { type: 'separator' }
+          { label: 'Fold All', command: 'editor:fold-all' }
+          { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
+          { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
+          { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }
+          { label: 'Fold Level 4', command: 'editor:fold-at-indent-level-4' }
+          { label: 'Fold Level 5', command: 'editor:fold-at-indent-level-5' }
+          { label: 'Fold Level 6', command: 'editor:fold-at-indent-level-6' }
+          { label: 'Fold Level 7', command: 'editor:fold-at-indent-level-7' }
+          { label: 'Fold Level 8', command: 'editor:fold-at-indent-level-8' }
+          { label: 'Fold Level 9', command: 'editor:fold-at-indent-level-9' }
         ]
       }
     ]
