@@ -62,6 +62,7 @@
         ]
       }
       { type: 'separator' }
+      { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
     ]
   }
 
