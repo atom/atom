@@ -47,7 +47,7 @@ window.startEditorWindow = ->
     installApmCommand()
 
   windowEventHandler = new WindowEventHandler
-  restoreDimensions()
+  atom.restoreDimensions()
   atom.config.load()
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
@@ -93,12 +93,6 @@ window.deserializeEditorWindow = ->
   window.project = atom.project
   atom.deserializeRootView()
   window.rootView = atom.rootView
-
-window.getDimensions = -> atom.getDimensions()
-
-window.setDimensions = (args...) -> atom.setDimensions(args...)
-
-window.restoreDimensions = (args...) -> atom.restoreDimensions(args...)
 
 window.onerror = ->
   atom.openDevTools()

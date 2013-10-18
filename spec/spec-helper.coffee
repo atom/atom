@@ -1,6 +1,6 @@
 require '../src/window'
 window.setUpEnvironment('spec')
-window.restoreDimensions()
+atom.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
