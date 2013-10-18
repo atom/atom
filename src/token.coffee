@@ -131,23 +131,21 @@ class Token
 
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
     invisibles ?= {}
-    html = @value
-
     if @isHardTab
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if invisibles.tab
-      html = html.replace StartCharacterRegex, (match) =>
+      html = @value.replace StartCharacterRegex, (match) =>
         match = invisibles.tab ? match
         "<span class='#{classes}'>#{@escapeString(match)}</span>"
     else
       startIndex = 0
-      endIndex = html.length
+      endIndex = @value.length
 
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(html)
+      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -157,7 +155,7 @@ class Token
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(html)
+      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
@@ -171,14 +169,14 @@ class Token
 
       if @value.length > maxTokenLength
         while startIndex < endIndex
-          fragments.push "<span>" + @escapeString(html, startIndex, startIndex + maxTokenLength) + "</span>"
+          fragments.push "<span>" + @escapeString(@value, startIndex, startIndex + maxTokenLength) + "</span>"
           startIndex += maxTokenLength
       else
-        fragments.push @escapeString(html, startIndex, endIndex)
+        fragments.push @escapeString(@value, startIndex, endIndex)
 
       fragments.push trailingHtml
-
-    fragments.join('')
+      html = fragments.join('')
+    html
 
   escapeString: (str, startIndex, endIndex) ->
     strLength = str.length
