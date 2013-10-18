@@ -171,6 +171,7 @@ describe "the `atom` global", ->
 
               atom.activatePackage("package-with-menus")
 
+              expect(atom.menu.template.length).toBe 2
               expect(atom.menu.template[0].label).toBe "Second to Last"
               expect(atom.menu.template[1].label).toBe "Last"
               expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 1"

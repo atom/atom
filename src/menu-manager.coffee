@@ -42,10 +42,12 @@ class MenuManager
   # Private: Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
-    if item.submenu? and match = _.find(menu, (o) -> o.submenu? and o.label == item.label)
+    item = _.deepClone(item)
+
+    if item.submenu? and match = _.find(menu, (i) -> i.submenu? and i.label == item.label)
       @merge(match.submenu, i) for i in item.submenu
     else
-      menu.push(item)
+      menu.push(item) unless _.find(menu, (i) -> i.label == item.label)
 
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
