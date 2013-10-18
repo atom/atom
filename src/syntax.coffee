@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-Specificity = require '../vendor/specificity'
+{specificity} = require 'clear-cut'
 {$, $$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
 {Emitter} = require 'emissary'
@@ -76,7 +76,7 @@ class Syntax
       name: name
       selector: selector,
       properties: properties,
-      specificity: Specificity(selector),
+      specificity: specificity(selector),
       index: @scopedPropertiesIndex++
     )
 
