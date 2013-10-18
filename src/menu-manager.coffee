@@ -67,7 +67,6 @@ class MenuManager
         continue if binding.indexOf('-down') != -1
         continue if binding.indexOf('tab') != -1
 
-        console.log binding if binding.indexOf('alt-meta') !=-1
         filtered[key] ?= []
         filtered[key].push(binding)
     filtered
