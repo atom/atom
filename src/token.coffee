@@ -10,6 +10,8 @@ StartCharacterRegex = /^./
 StartDotRegex = /^\.?/
 WhitespaceRegex = /\S/
 
+maxTokenLength = 20000
+
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
 class Token
@@ -165,9 +167,18 @@ class Token
 
         endIndex = match.index
 
-      html = leadingHtml + @escapeString(html, startIndex, endIndex) + trailingHtml
+      fragments = [leadingHtml]
 
-    html
+      if @value.length > maxTokenLength
+        while startIndex < endIndex
+          fragments.push "<span>" + @escapeString(html, startIndex, startIndex + maxTokenLength) + "</span>"
+          startIndex += maxTokenLength
+      else
+        fragments.push @escapeString(html, startIndex, endIndex)
+
+      fragments.push trailingHtml
+
+    fragments.join('')
 
   escapeString: (str, startIndex, endIndex) ->
     strLength = str.length
