@@ -13,6 +13,7 @@
   "dependencies": {
     "async": "0.2.6",
     "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0",
+    "clear-cut": "0.1.0",
     "coffee-script": "1.6.2",
     "coffeestack": "0.6.0",
     "emissary": "0.6.0",
