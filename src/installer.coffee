@@ -3,9 +3,11 @@ path = require 'path'
 async = require 'async'
 _ = require 'underscore'
 optimist = require 'optimist'
+request = require 'request'
 temp = require 'temp'
 require 'colors'
 
+auth = require './auth'
 config = require './config'
 Command = require './command'
 fs = require './fs'
@@ -58,14 +60,16 @@ class Installer extends Command
       else
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
-  installModule: (options, modulePath, callback) ->
-    process.stdout.write "Installing #{modulePath} to #{@atomPackagesDirectory} "
+
+  installModule: (options, pack, modulePath, callback) ->
+    label = "#{pack.name}@#{pack['dist-tags'].latest}"
+    process.stdout.write "Installing #{label} to #{@atomPackagesDirectory} "
 
     vsArgs = null
     if config.isWin32()
       vsArgs = "--msvs_version=2010" if config.isVs2010Installed()
       vsArgs = "--msvs_version=2012" if config.isVs2012Installed()
-  
+
       throw new Error("You must have either VS2010 or VS2012 installed") unless vsArgs
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
@@ -117,12 +121,77 @@ class Installer extends Command
 
     @fork(@atomNpmPath, installArgs, installOptions, callback)
 
-  installPackage: (options, modulePath, callback) ->
-    commands = []
-    commands.push(@installNode)
-    commands.push (callback) => @installModule(options, modulePath, callback)
+  # Request package information from the atom.io API for a given package name.
+  #
+  #  * packageName: The string name of the package to request.
+  #  * token: The string authorization token.
+  #  * callback: The function to invoke when the request completes with an error
+  #    as the first argument and an object as the second.
+  requestPackage: (packageName, token, callback) ->
+    requestSettings =
+      url: "#{config.getAtomPackagesUrl()}/#{packageName}"
+      json: true
+      headers:
+        authorization: token
+    request.get requestSettings, (error, response, body={}) ->
+      if error?
+        callback(error)
+      else if response.statusCode isnt 200
+        callback("Request for package information failed: #{body}".red)
+      else
+        if latestVersion = body['dist-tags'].latest
+          callback(null, body)
+        else
+          callback("No releases available for #{packageName}".red)
 
-    async.waterfall(commands, callback)
+  # Download a package tarball.
+  #
+  #  * packageUrl: The string tarball URL to request
+  #  * token: The string authorization token.
+  #  * callback: The function to invoke when the request completes with an error
+  #    as the first argument and a string path to the downloaded file as the
+  #    second.
+  downloadPackage: (packageUrl, token, callback) ->
+    requestSettings =
+      url: packageUrl
+      headers:
+        authorization: token
+    readStream = request.get(requestSettings)
+    readStream.on 'response', (response) ->
+      if response.statusCode is 200
+        filePath = path.join(temp.mkdirSync(), 'package.tgz')
+        writeStream = fs.createWriteStream(filePath)
+        readStream.pipe(writeStream)
+        writeStream.on 'close', -> callback(null, filePath)
+      else
+        callback("Unabled to download package URL (#{response.statusCode}): #{packageUrl}")
+
+  # Install the package with the given name
+  #
+  #  * options: The installation options object
+  #  * packageName: The string name of the package to install
+  #  * callback: The function to invoke when installation completes with an
+  #    error as the first argument.
+  installPackage: (options, packageName, callback) ->
+    auth.getToken (error, token) =>
+      if error?
+        callback(error)
+      else
+        @requestPackage packageName, token, (error, pack) =>
+          if error?
+            callback(error)
+          else
+            commands = []
+            version = pack['dist-tags'].latest
+            {tarball} = pack.versions[version].dist
+            commands.push (callback) =>
+              @downloadPackage(tarball, token, callback)
+            commands.push (packagePath, callback) =>
+              @installNode (error) -> callback(error, packagePath)
+            commands.push (packagePath, callback) =>
+              @installModule(options, pack, packagePath, callback)
+
+            async.waterfall(commands, callback)
 
   installDependencies: (options, callback) ->
     commands = []
