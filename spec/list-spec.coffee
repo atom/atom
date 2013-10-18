@@ -63,11 +63,3 @@ describe 'apm list', ->
     apm.run(['list'])
     expect(console.log).toHaveBeenCalled()
     expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0 (disabled)'
-
-  it 'includes TextMate bundles', ->
-    packagesPath = path.join(atomHome, 'packages')
-    mkdir(path.join(packagesPath, 'make.tmbundle'))
-
-    apm.run(['list'])
-    expect(console.log).toHaveBeenCalled()
-    expect(console.log.argsForCall[1][0]).toContain 'make.tmbundle'

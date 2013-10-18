@@ -17,17 +17,6 @@ describe 'apm install', ->
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
 
-  describe "when installing a TextMate bundle", ->
-    it 'installs the bundle to the atom packages directory', ->
-      callback = jasmine.createSpy('callback')
-      apm.run(['install', "#{__dirname}/fixtures/make.tmbundle.git"], callback)
-
-      waitsFor 'waiting for install to complete', 600000, ->
-        callback.callCount > 0
-
-      runs ->
-        expect(fs.existsSync(path.join(atomHome, 'packages', 'make.tmbundle', 'Syntaxes', 'Makefile.plist'))).toBeTruthy()
-
   describe "when installing an atom package", ->
     server = null
 

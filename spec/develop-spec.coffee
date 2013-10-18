@@ -41,7 +41,7 @@ describe "apm develop", ->
     it "clones the repository to ATOM_REPOS_HOME and links it to ATOM_HOME/dev/packages", ->
       Developer = require '../lib/developer'
       spyOn(Developer.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
-        repoUrl = path.join(__dirname, 'fixtures', 'make.tmbundle.git')
+        repoUrl = path.join(__dirname, 'fixtures', 'repo.git')
         callback(null, repoUrl)
 
       callback = jasmine.createSpy('callback')

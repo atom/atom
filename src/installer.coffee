@@ -227,19 +227,6 @@ class Installer extends Command
 
     async.waterfall commands, callback
 
-  installTextMateBundle: (options, bundlePath, callback) ->
-    gitArguments = ['clone']
-    gitArguments.push(bundlePath)
-    gitArguments.push(path.join(@atomPackagesDirectory, path.basename(bundlePath, '.git')))
-    @spawn 'git', gitArguments, (code) ->
-      if code is 0
-        callback()
-      else
-        callback("Installing bundle failed with code: #{code}")
-
-  isTextMateBundlePath: (bundlePath) ->
-    path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'
-
   createAtomDirectories: ->
     fs.mkdir(@atomDirectory)
     fs.mkdir(@atomPackagesDirectory)
@@ -253,7 +240,5 @@ class Installer extends Command
     modulePath = options.argv._[0] ? '.'
     if modulePath is '.'
       @installDependencies(options, callback)
-    else if @isTextMateBundlePath(modulePath)
-      @installTextMateBundle(options, modulePath, callback)
     else
       @installPackage(options, modulePath, callback)
