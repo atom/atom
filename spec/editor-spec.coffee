@@ -1644,12 +1644,14 @@ describe "Editor", ->
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol} "
+          expect(editor.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
 
           editor.setCursorBufferPosition([9])
           editor.indent()
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
+          expect(editor.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->

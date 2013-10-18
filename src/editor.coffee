@@ -1771,8 +1771,8 @@ class Editor extends View
           indentLevelHtml += "</span>"
           indentGuideHtml += indentLevelHtml
 
-        for invisible in eolInvisibles
-          indentGuideHtml += "<span class='invisible-character'>#{invisible}</span>"
+        while indentCharIndex < eolInvisibles.length
+          indentGuideHtml += "<span class='invisible-character'>#{eolInvisibles[indentCharIndex++]}</span>"
 
         return indentGuideHtml
 
