@@ -1591,7 +1591,11 @@ class Editor extends View
       for char, i in content
 
         # Dont return right away, finish caching the whole line
-        returnLeft = left if index == column
+        if index == column
+          returnLeft = left
+
+          # Don't cache lines longer than 100 chars
+          return returnLeft if lineElement.innerText.length > 160
         oldLeft = left
 
         scopes = @scopesForColumn(tokenizedLine, index)
