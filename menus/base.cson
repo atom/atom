@@ -45,6 +45,19 @@
       { label: 'Paste', command: 'core:paste' }
       { label: 'Select All', command: 'core:select-all' }
       { type: 'separator' }
+      {
+        label: 'Lines',
+        submenu: [
+          { label: 'Indent', command: 'editor:indent-selected-rows' }
+          { label: 'Outdent', command: 'editor:outdent-selected-rows' }
+          { label: 'Auto Indent', command: 'editor:auto-indent' }
+          { label: 'Move Line Up', command: 'editor:move-line-up' }
+          { label: 'Move Line Down', command: 'editor:move-line-down' }
+          { label: 'Duplicate Line', command: 'editor:duplicate-line' }
+          { label: 'Delete Line', command: 'editor:delete-line' }
+          { label: 'Join Lines', command: 'editor:join-line' }
+        ]
+      }
     ]
   }
 

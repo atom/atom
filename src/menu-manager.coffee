@@ -30,7 +30,10 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    @sendToBrowserProcess(@template, atom.keymap.keystrokesByCommandForSelector('body'))
+    keystrokesByCommand = atom.keymap.keystrokesByCommandForSelector('body')
+    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor'))
+    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor:not(.mini)'))
+    @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
   loadCoreItems: ->
@@ -49,6 +52,27 @@ class MenuManager
     else
       menu.push(item) unless _.find(menu, (i) -> i.label == item.label)
 
+  # Private: OSX can't handle displaying accelerators for multiple keystrokes.
+  # If they are sent across, it will stop processing accelerators for the rest
+  # of the menu items.
+  filterMultipleKeystrokes: (keystrokesByCommand) ->
+    filtered = {}
+    for key, bindings of keystrokesByCommand
+      for binding in bindings
+        continue if binding.indexOf(' ') != -1
+
+        # Currently being implemented in atom-shell
+        continue if binding.indexOf('-=') != -1
+        continue if binding.indexOf('-up') != -1
+        continue if binding.indexOf('-down') != -1
+        continue if binding.indexOf('tab') != -1
+
+        console.log binding if binding.indexOf('alt-meta') !=-1
+        filtered[key] ?= []
+        filtered[key].push(binding)
+    filtered
+
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
+    keystrokesByCommand = @filterMultipleKeystrokes(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
