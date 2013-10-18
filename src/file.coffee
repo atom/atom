@@ -90,7 +90,7 @@ class File
         deferred.notify(bytesRead)
 
       readStream.on 'end', ->
-        deferred.resolve(content.join())
+        deferred.resolve(content.join(''))
 
       readStream.on 'error', (error) ->
         deferred.reject(error)
