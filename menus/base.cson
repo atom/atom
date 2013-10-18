@@ -76,4 +76,13 @@
       { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
     ]
   }
+
+  {
+    label: 'Help'
+    submenu: [
+      { label: 'Documentation', command: 'application:open-documentation' }
+      { label: 'Report an Issue', command: 'application:report-issue' }
+      { type: 'separator' }
+    ]
+  }
 ]

@@ -4,11 +4,12 @@ AtomProtocolHandler = require './atom-protocol-handler'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
-ipc = require 'ipc'
 dialog = require 'dialog'
 fs = require 'fs'
+ipc = require 'ipc'
 path = require 'path'
 net = require 'net'
+shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
@@ -136,6 +137,8 @@ class AtomApplication
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
+    @on 'application:open-documentation', -> shell.openExternal('https://github-atom-io.herokuapp.com/docs/latest/?app=true')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
     @on 'application:show-settings', ->
       if @focusedWindow()
         @focusedWindow().openPath("atom://config")
