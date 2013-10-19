@@ -4,7 +4,7 @@ path = require 'path'
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'
 
-fdescribe "ThemeManager", ->
+describe "ThemeManager", ->
   themeManager = null
 
   beforeEach ->
