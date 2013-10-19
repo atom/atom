@@ -20,6 +20,7 @@ describe "the `atom` global", ->
           expect(pack.activateStylesheets).toHaveBeenCalled()
 
         it "continues if the package has an invalid package.json", ->
+          spyOn(console, 'warn')
           config.set("core.disabledPackages", [])
           expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
 
@@ -224,14 +225,6 @@ describe "the `atom` global", ->
               expect(atom.themes.stylesheetElementForId(three)).toExist()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
-        describe "theme loading", ->
-          it "properly sets the config.themes to activate the theme when a theme is activated", ->
-            themeName = "theme-with-package-file"
-            expect(config.get('core.themes')).not.toContain themeName
-            atom.activatePackage(themeName)
-            expect(config.get('core.themes')).toContain themeName
-            expect(atom.themes.getAvailableNames()).toContain themeName
-
         describe "grammar loading", ->
           it "loads the package's grammars", ->
             atom.activatePackage('package-with-grammars')
@@ -256,14 +249,17 @@ describe "the `atom` global", ->
 
         describe "when the package has no grammars but does have preferences", ->
           it "loads the package's preferences as scoped properties", ->
-            jasmine.unspy(window, 'setTimeout')
-            spyOn(syntax, 'addProperties').andCallThrough()
+            runs ->
+              jasmine.unspy(window, 'setTimeout')
+              spyOn(syntax, 'addProperties').andCallThrough()
 
-            atom.activatePackage('package-with-preferences-tmbundle')
+              console.log atom.packages.loadedPackages
+              atom.activatePackage('package-with-preferences-tmbundle')
 
             waitsFor ->
               syntax.addProperties.callCount > 0
             runs ->
+              console.log atom.packages.loadedPackages
               expect(syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
     describe ".deactivatePackage(id)", ->
@@ -343,3 +339,31 @@ describe "the `atom` global", ->
           atom.activatePackage('language-ruby', sync: true)
           atom.deactivatePackage('language-ruby')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+
+    describe ".activatePackages()", ->
+      beforeEach ->
+        spyOn(console, 'warn')
+        atom.packages.loadPackages()
+
+      afterEach ->
+        atom.packages.deactivatePackages()
+        atom.packages.unloadPackages()
+
+        Syntax = require '../src/syntax'
+        atom.syntax = window.syntax = new Syntax()
+
+      it "activates all the packages, and none of the themes", ->
+        atom.packages.activatePackages()
+        loadedPackages = atom.packages.getLoadedPackages()
+        expect(loadedPackages.length).toBeGreaterThan 0
+        hasTheme = false
+        for pack in loadedPackages
+          if pack.isTheme()
+            hasTheme = true
+            break
+
+        expect(hasTheme).toBeTruthy()
+
+        activatedPackages = atom.packages.getActivePackages()
+        expect(activatedPackages.length).toBeGreaterThan 0
+        expect(pack.isTheme()).toBeFalsy() for pack in activatedPackages

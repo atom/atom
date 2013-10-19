@@ -10,17 +10,22 @@ class Package
     ThemePackage = require './theme-package'
 
     if TextMatePackage.testName(path)
-      new TextMatePackage(path)
+      pack = new TextMatePackage(path)
     else
-      metadata = @loadMetadata(path)
-      if metadata.theme
-        new ThemePackage(path, {metadata})
-      else
-        new AtomPackage(path, {metadata})
+      try
+        metadata = @loadMetadata(path)
+        if metadata.theme
+          pack = new ThemePackage(path, {metadata})
+        else
+          pack = new AtomPackage(path, {metadata})
+      catch e
+        console.warn "Failed to load package.json '#{basename(path)}'", e.stack ? e
+
+    pack
 
   @load: (path, options) ->
     pack = @build(path)
-    pack.load(options)
+    pack?.load(options)
     pack
 
   @loadMetadata: (path, ignoreErrors=false) ->

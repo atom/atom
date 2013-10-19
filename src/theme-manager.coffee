@@ -24,11 +24,11 @@ class ThemeManager
     @getLoadedNames()
 
   getLoadedNames: ->
-    name for theme.name in @getLoadedThemes()
+    theme.name for theme in @getLoadedThemes()
 
   # Internal-only:
   getActiveNames: ->
-    name for theme.name in @getActiveThemes()
+    theme.name for theme in @getActiveThemes()
 
   # Internal-only:
   getActiveThemes: ->
