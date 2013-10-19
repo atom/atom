@@ -4,7 +4,7 @@ path = require 'path'
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'
 
-describe "ThemeManager", ->
+fdescribe "ThemeManager", ->
   themeManager = null
 
   beforeEach ->
@@ -74,7 +74,7 @@ describe "ThemeManager", ->
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
-      expect(-> themeManager.activateTheme('a-theme-that-will-not-be-found')).toThrow()
+      expect(-> atom.packages.activatePackage('a-theme-that-will-not-be-found')).toThrow()
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->

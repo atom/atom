@@ -90,9 +90,6 @@ class PackageManager
     if @isPackageDisabled(name)
       return console.warn("Tried to load disabled package '#{name}'")
 
-    pack = @getLoadedPackage(name)
-    return pack if pack
-
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
 
