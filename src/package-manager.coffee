@@ -103,8 +103,8 @@ class PackageManager
       throw new Error("Could not resolve '#{name}' to a package path")
 
   unloadPackages: ->
-    for name in _.keys(@loadedPackages)
-      @unloadPackage(name)
+    @unloadPackage(name) for name in _.keys(@loadedPackages)
+    null
 
   unloadPackage: (name) ->
     if @isPackageActive(name)
