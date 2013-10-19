@@ -2,22 +2,30 @@
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
 
+// Executes an array of commands one by one.
+function executeCommands(commands, done, index) {
+  index = (index == undefined ? 0 : index);
+  if (index < commands.length)
+    safeExec(commands[index], executeCommands.bind(this, commands, done, index + 1));
+  else
+    done(null);
+}
+
+// Join multiple commands into one line.
+function joinCommands() {
+  var commandSeparator = process.platform == 'win32' ? '&' : ';';
+  return Array.prototype.slice.call(arguments, 0).join(commandSeparator);
+}
+
+var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  'cd vendor/apm; npm install --silent .',
+  joinCommands('cd vendor/apm', 'npm install --silent .'),
   'npm install --silent vendor/apm',
-  'echo',
-  'node node_modules/.bin/apm install --silent',
+  echoNewLine,
+  'node vendor/apm/bin/apm install --silent',
 ];
 
 process.chdir(path.dirname(__dirname));
-
-var i = 0;
-var startCommands = function() {
-  if (i < commands.length)
-    safeExec(commands[i++], startCommands);
-  else
-    process.exit(0);
-}
-startCommands();
+executeCommands(commands, process.exit);
