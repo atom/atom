@@ -17,7 +17,7 @@ class Directory
   # * path:
   #   A {String} representing the file directory
   # + symlink:
-  #   A {Boolean} indicating if the path is a symlink
+  #   A {Boolean} indicating if the path is a symlink (defaults to false).
   constructor: (@path, @symlink=false) ->
     @on 'first-contents-changed-subscription-will-be-added', =>
       @subscribeToNativeChangeEvents()
@@ -29,14 +29,16 @@ class Directory
   getBaseName: ->
     path.basename(@path)
 
-  # Public: Returns the directory's path.
+  # Public: Returns the directory's symbolic path.
   #
-  # FIXME what is the difference between real path and path?
+  # This may include unfollowed symlinks or relative directory entries. Or it
+  # may be fully resolved, it depends on what you give it.
   getPath: -> @path
 
-  # Public: Returns this directory's real path.
+  # Public: Returns this directory's completely resolved path.
   #
-  # FIXME what is the difference between real path and path?
+  # All relative directory entries are removed and symlinks are resolved to
+  # their final destination.
   getRealPath: ->
     unless @realPath?
       try
@@ -45,7 +47,8 @@ class Directory
         @realPath = @path
     @realPath
 
-  # Public: Returns whether the given path is inside this directory.
+  # Public: Returns whether the given path (real or symbolic) is inside this
+  # directory.
   contains: (pathToCheck) ->
     return false unless pathToCheck
 
