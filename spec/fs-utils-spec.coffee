@@ -134,6 +134,7 @@ describe "fs", ->
 
   describe ".absolute(relativePath)", ->
     it "converts a leading ~ segment to the HOME directory", ->
-      expect(fs.absolute('~')).toBe fs.realpathSync(process.env.HOME)
-      expect(fs.absolute(path.join('~', 'does', 'not', 'exist'))).toBe path.join(process.env.HOME, 'does', 'not', 'exist')
+      homeDir = atom.getHomeDirPath()
+      expect(fs.absolute('~')).toBe fs.realpathSync(homeDir)
+      expect(fs.absolute(path.join('~', 'does', 'not', 'exist'))).toBe path.join(homeDir, 'does', 'not', 'exist')
       expect(fs.absolute('~test')).toBe '~test'

@@ -14,6 +14,8 @@ module.exports = (grunt) ->
     rm 'atom-shell'
 
   grunt.registerTask 'clean', 'Delete all the build files', ->
+    homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
     rm 'node_modules'
-    rm path.join(process.env.HOME, '.atom', '.node-gyp')
+    rm path.join(homeDir, '.atom', '.node-gyp')
     grunt.task.run('partial-clean')
