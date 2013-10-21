@@ -207,8 +207,9 @@ class Config
     updateCallback = =>
       value = @get(keyPath)
       unless _.isEqual(value, previousValue)
+        previous = previousValue
         previousValue = _.clone(value)
-        callback(value)
+        callback(value, {previous})
 
     subscription = { cancel: => @off 'updated', updateCallback  }
     @on 'updated', updateCallback
