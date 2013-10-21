@@ -68,7 +68,6 @@ class AtomPackage extends Package
 
   activate: ({immediate}={}) ->
     @measure 'activateTime', =>
-      @loadStylesheets()
       @activateResources()
       if @metadata.activationEvents? and not immediate
         @subscribeToActivationEvents()

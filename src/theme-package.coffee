@@ -23,3 +23,8 @@ class ThemePackage extends AtomPackage
       catch e
         console.warn "Failed to load theme named '#{@name}'", e.stack ? e
     this
+
+  activate: ->
+    @measure 'activateTime', =>
+      @loadStylesheets()
+      @activateNow()
