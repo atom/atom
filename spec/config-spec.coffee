@@ -225,7 +225,7 @@ describe "Config", ->
     updatedHandler = null
 
     beforeEach ->
-      config.configDirPath = 'dotAtomPath'
+      config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fs.exists(config.configDirPath)).toBeFalsy()
       fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
