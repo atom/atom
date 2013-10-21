@@ -81,19 +81,29 @@ class Installer extends Command
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
+    installOptions = {env}
 
-    installDirectory = temp.mkdirSync('apm-install-dir-')
-    nodeModulesDirectory = path.join(installDirectory, 'node_modules')
-    fs.mkdir(nodeModulesDirectory)
-    @fork @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='', stdout='') =>
+    {installGlobally} = options ? true
+    if installGlobally
+      installDirectory = temp.mkdirSync('apm-install-dir-')
+      nodeModulesDirectory = path.join(installDirectory, 'node_modules')
+      fs.mkdir(nodeModulesDirectory)
+      installOptions.cwd = installDirectory
+
+    @fork @atomNpmPath, installArgs, installOptions, (code, stderr='', stdout='') =>
       if code is 0
-        for child in fs.readdirSync(nodeModulesDirectory)
-          fs.cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
-        fs.rm(installDirectory)
+        if installGlobally
+          for child in fs.readdirSync(nodeModulesDirectory)
+            source = path.join(nodeModulesDirectory, child)
+            destination = path.join(@atomPackagesDirectory, child)
+            fs.cp(source, destination, forceDelete: true)
+          fs.rm(installDirectory)
+
         process.stdout.write '\u2713\n'.green
         callback()
       else
-        fs.rm(installDirectory)
+        fs.rm(installDirectory) if installGlobally
+
         process.stdout.write '\u2717\n'.red
         callback("#{stdout}\n#{stderr}")
 
@@ -202,6 +212,7 @@ class Installer extends Command
             async.waterfall(commands, callback)
 
   installDependencies: (options, callback) ->
+    options.installGlobally = false
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
