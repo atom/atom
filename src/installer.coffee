@@ -63,7 +63,6 @@ class Installer extends Command
 
   installModule: (options, pack, modulePath, callback) ->
     label = "#{pack.name}@#{pack['dist-tags'].latest}"
-    process.stdout.write "Installing #{label} to #{@atomPackagesDirectory} "
 
     vsArgs = null
     if config.isWin32()
@@ -85,6 +84,7 @@ class Installer extends Command
 
     installGlobally = options.installGlobally ? true
     if installGlobally
+      process.stdout.write "Installing #{label} to #{@atomPackagesDirectory} "
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
       fs.mkdir(nodeModulesDirectory)
@@ -97,14 +97,14 @@ class Installer extends Command
             source = path.join(nodeModulesDirectory, child)
             destination = path.join(@atomPackagesDirectory, child)
             fs.cp(source, destination, forceDelete: true)
-          fs.rm(installDirectory)
+          process.stdout.write '\u2713\n'.green
 
-        process.stdout.write '\u2713\n'.green
         callback()
       else
-        fs.rm(installDirectory) if installGlobally
+        if installGlobally
+          fs.rm(installDirectory)
+          process.stdout.write '\u2717\n'.red
 
-        process.stdout.write '\u2717\n'.red
         callback("#{stdout}\n#{stderr}")
 
   installModules: (options, callback) =>
