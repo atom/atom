@@ -61,10 +61,8 @@ class MenuManager
       for binding in bindings
         continue if binding.indexOf(' ') != -1
 
-        # Currently being implemented in atom-shell
-        continue if binding.indexOf('-=') != -1
-        continue if binding.indexOf('-up') != -1
-        continue if binding.indexOf('-down') != -1
+        # To be fixed in atom-shell
+        continue if binding.indexOf('f2') != -1
         continue if binding.indexOf('tab') != -1
 
         filtered[key] ?= []
