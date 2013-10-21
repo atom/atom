@@ -173,12 +173,14 @@ class Installer extends Command
 
     readStream = request.get(requestSettings)
     readStream.on 'error', (error) ->
-      callback("Unabled to download package (#{error.message}): #{packageUrl}")
+      callback("Unable to download package (#{error.message}): #{packageUrl}")
     readStream.on 'response', (response) ->
       if response.statusCode is 200
         filePath = path.join(temp.mkdirSync(), 'package.tgz')
         writeStream = fs.createWriteStream(filePath)
         readStream.pipe(writeStream)
+        writeStream.on 'error', (errror) ->
+          callback("Unable to download package (#{error.message}): #{packageUrl}")
         writeStream.on 'close', -> callback(null, filePath)
       else
         callback("Unable to download package (#{response.statusCode}): #{packageUrl}")
