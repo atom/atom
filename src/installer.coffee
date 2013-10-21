@@ -211,8 +211,10 @@ class Installer extends Command
 
             commands.push (callback) =>
               @downloadPackage(tarball, token, callback)
-            commands.push (packagePath, callback) =>
-              @installNode (error) -> callback(error, packagePath)
+            installNode = options.installNode ? true
+            if installNode
+              commands.push (packagePath, callback) =>
+                @installNode (error) -> callback(error, packagePath)
             commands.push (packagePath, callback) =>
               @installModule(options, pack, packagePath, callback)
 
@@ -221,7 +223,7 @@ class Installer extends Command
   installPackageDependencies: (options, callback) ->
     process.stdout.write 'Installing packages '
 
-    options = _.extend({}, options, installGlobally: false)
+    options = _.extend({}, options, installGlobally: false, installNode: false)
     commands = []
     for name, version of @getPackageDependencies()
       commands.push (callback) =>
