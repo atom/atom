@@ -10,6 +10,8 @@ StartCharacterRegex = /^./
 StartDotRegex = /^\.?/
 WhitespaceRegex = /\S/
 
+MaxTokenLength = 20000
+
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
 class Token
@@ -129,23 +131,21 @@ class Token
 
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
     invisibles ?= {}
-    html = @value
-
     if @isHardTab
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if invisibles.tab
-      html = html.replace StartCharacterRegex, (match) =>
+      html = @value.replace StartCharacterRegex, (match) =>
         match = invisibles.tab ? match
         "<span class='#{classes}'>#{@escapeString(match)}</span>"
     else
       startIndex = 0
-      endIndex = html.length
+      endIndex = @value.length
 
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(html)
+      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -155,7 +155,7 @@ class Token
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(html)
+      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
@@ -165,8 +165,15 @@ class Token
 
         endIndex = match.index
 
-      html = leadingHtml + @escapeString(html, startIndex, endIndex) + trailingHtml
+      html = leadingHtml
+      if @value.length > MaxTokenLength
+        while startIndex < endIndex
+          html += "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
+          startIndex += MaxTokenLength
+      else
+        html += @escapeString(@value, startIndex, endIndex)
 
+      html += trailingHtml
     html
 
   escapeString: (str, startIndex, endIndex) ->
