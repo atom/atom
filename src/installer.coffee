@@ -166,13 +166,17 @@ class Installer extends Command
       else
         callback("Unabled to download package URL (#{response.statusCode}): #{packageUrl}")
 
-  # Install the package with the given name
+  # Install the package with the given name and optional version
   #
-  #  * options: The installation options object
-  #  * packageName: The string name of the package to install
+  #  * metadata: The package metadata object with at least a name key. A version
+  #    key is also supported. The version defaults to the latest if unspecified.
+  #  * options: The installation options object.
   #  * callback: The function to invoke when installation completes with an
   #    error as the first argument.
-  installPackage: (options, packageName, callback) ->
+  installPackage: (metadata, options, callback) ->
+    packageName = metadata.name
+    packageVersion = metadata.version
+
     auth.getToken (error, token) =>
       if error?
         callback(error)
@@ -182,8 +186,12 @@ class Installer extends Command
             callback(error)
           else
             commands = []
-            version = pack['dist-tags'].latest
-            {tarball} = pack.versions[version].dist
+            packageVersion ?= pack['dist-tags'].latest
+            {tarball} = pack.versions[packageVersion]?.dist ? {}
+            unless tarball
+              callback("Package version: #{packageVersion} not found")
+              return
+
             commands.push (callback) =>
               @downloadPackage(tarball, token, callback)
             commands.push (packagePath, callback) =>
@@ -197,10 +205,21 @@ class Installer extends Command
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
+    for name, version of @getPackageDependencies()
+      commands.push (callback) =>
+        @installPackage({name, version}, options, callback)
     if options.argv.dev
       commands.push (callback) => @installDevDependencies(options, callback)
 
     async.waterfall commands, callback
+
+  getPackageDependencies: ->
+    try
+      metadata = fs.readFileSync('package.json', 'utf8')
+      {packageDependencies} = JSON.parse(metadata) ? {}
+      packageDependencies ? {}
+    catch error
+      {}
 
   isAtomPackageWithDevDependencies: (packagePath) ->
     try
@@ -237,8 +256,8 @@ class Installer extends Command
     options = @parseOptions(options.commandArgs)
 
     @createAtomDirectories()
-    modulePath = options.argv._[0] ? '.'
-    if modulePath is '.'
+    packageName = options.argv._[0] ? '.'
+    if packageName is '.'
       @installDependencies(options, callback)
     else
-      @installPackage(options, modulePath, callback)
+      @installPackage({name: packageName}, options, callback)
