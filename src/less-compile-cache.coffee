@@ -6,7 +6,7 @@ module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)
 
-  @cacheDir: '/tmp/atom-compile-cache/less'
+  @cacheDir: path.join(atom.getTempDirPath(), 'atom-compile-cache', 'less')
 
   constructor: ->
     @cache = new LessCache

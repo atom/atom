@@ -13,6 +13,7 @@ remote = require 'remote'
 shell = require 'shell'
 crypto = require 'crypto'
 path = require 'path'
+os = require 'os'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
@@ -229,7 +230,10 @@ class Atom
     @getCurrentWindow().isFullScreen()
 
   getHomeDirPath: ->
-    app.getHomeDir()
+    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
+  getTempDirPath: ->
+    if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->

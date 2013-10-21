@@ -6,7 +6,7 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 mkdir = require('mkdirp').sync
 
-cacheDir = '/tmp/atom-compile-cache'
+cacheDir = path.join(atom.getTempDirPath(), 'atom-compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
