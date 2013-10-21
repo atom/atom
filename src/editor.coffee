@@ -1614,10 +1614,9 @@ class Editor extends View
             cachedVal = left - oldLeft
             @setCharacterWidthCache(scopes, char, cachedVal)
 
-        # Assume all the charachters are the same width when dealing with long
+        # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
         return column * cachedVal if index > LongLineLength
-
 
         index++
 
