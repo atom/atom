@@ -649,17 +649,28 @@ describe "TextMateGrammar", ->
         expect(tokens[4].value).toEqual '"'
         expect(tokens[4].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby", "punctuation.definition.string.end.ruby"]
 
-    describe "Surrogate pair characters", ->
-      beforeEach ->
-        grammar = syntax.selectGrammar('main.js')
-        lines = grammar.tokenizeLines "'\uD835\uDF97'"
+    describe "Unicode support", ->
+      describe "Surrogate pair characters", ->
+        beforeEach ->
+          grammar = syntax.selectGrammar('main.js')
+          lines = grammar.tokenizeLines "'\uD835\uDF97'"
 
-      it "correctly parses JavaScript strings containing surrogate pair characters", ->
-        tokens = lines[0]
-        expect(tokens.length).toBe 3
-        expect(tokens[0].value).toBe "'"
-        expect(tokens[1].value).toBe "\uD835\uDF97"
-        expect(tokens[2].value).toBe "'"
+        it "correctly parses JavaScript strings containing surrogate pair characters", ->
+          tokens = lines[0]
+          expect(tokens.length).toBe 3
+          expect(tokens[0].value).toBe "'"
+          expect(tokens[1].value).toBe "\uD835\uDF97"
+          expect(tokens[2].value).toBe "'"
+
+      describe "when the line contains unicode characters", ->
+        it "correctly parses tokens starting after them", ->
+          atom.activatePackage('json-tmbundle', sync: true)
+          grammar = syntax.selectGrammar('package.json')
+          {tokens} = grammar.tokenizeLine '{"\u2026": 1}'
+
+          expect(tokens.length).toBe 8
+          expect(tokens[6].value).toBe '1'
+          expect(tokens[6].scopes).toEqual ["source.json", "meta.structure.dictionary.json", "meta.structure.dictionary.value.json", "constant.numeric.json"]
 
     describe "python", ->
       it "parses import blocks correctly", ->
