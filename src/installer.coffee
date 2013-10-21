@@ -147,7 +147,8 @@ class Installer extends Command
       if error?
         callback(error)
       else if response.statusCode isnt 200
-        callback("Request for package information failed: #{body}")
+        message = body.message ? body
+        callback("Request for package information failed: #{message}")
       else
         if latestVersion = body['dist-tags'].latest
           callback(null, body)
