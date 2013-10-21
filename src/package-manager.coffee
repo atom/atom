@@ -11,13 +11,13 @@ Packages have a lifecycle
 * Every package (except those in core.disabledPackages) is 'loaded', meaning
   `Package` objects are created, and their metadata loaded. This includes themes,
   as themes are packages
-* Each non-theme package is 'activated', meaning its resources are loaded into the
-* Packages and themes can be enabled and disabled, and
-
-TODO:
-* test that it doesnt activate all the theme packages
-* originally disabled packages can be enabled, and loaded without reloading
-* config.observe the core.disabledPackages
+* The ThemeManager.activateThemes() is called 'activating' all the themes, meaning
+  their stylesheets are loaded into the window.
+* The PackageManager.activatePackages() function is called 'activating' non-theme
+  package, meaning its resources -- keymaps, classes, etc. -- are loaded, and
+  the package's activate() method is called.
+* Packages and themes can then be enabled and disabled via the public
+  .enablePackage(name) and .disablePackage(name) functions.
 ###
 module.exports =
 class PackageManager
@@ -39,11 +39,13 @@ class PackageManager
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
+  # Public:
   enablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.enable()
     pack
 
+  # Public:
   disablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.disable()
