@@ -1,7 +1,8 @@
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {$, View} = require 'atom'
-{dirname} = require 'path'
+path = require 'path'
+temp = require 'temp'
 
 describe "Pane", ->
   [container, view1, view2, editSession1, editSession2, pane] = []
@@ -372,7 +373,7 @@ describe "Pane", ->
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(dirname(editSession2.getPath()))
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editSession2.getPath()))
         expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
@@ -679,7 +680,7 @@ describe "Pane", ->
         expect(pane.saveItem).not.toHaveBeenCalled()
         expect(pane.activeItem.save).not.toHaveBeenCalled()
 
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.activeView.trigger 'focusout'
         expect(pane.activeItem.save).toHaveBeenCalled()
 
@@ -697,7 +698,7 @@ describe "Pane", ->
         expect(initialActiveItem.save).not.toHaveBeenCalled()
 
         pane.showItem(initialActiveItem)
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.showItem(view2)
         expect(initialActiveItem.save).toHaveBeenCalled()
 
@@ -716,7 +717,7 @@ describe "Pane", ->
         pane.destroyItem(view2)
         expect(pane.saveItem).not.toHaveBeenCalled()
 
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.destroyItem(initialActiveItem)
         expect(initialActiveItem.save).toHaveBeenCalled()
 

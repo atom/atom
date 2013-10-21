@@ -33,12 +33,15 @@ describe "fs", ->
       expect(fs.exists(null)).toBe false
 
   describe ".makeTree(path)", ->
+    aPath = path.join(temp.dir, 'a')
+
     beforeEach ->
-      fs.remove("/tmp/a") if fs.exists("/tmp/a")
+      fs.remove(aPath) if fs.exists(aPath)
 
     it "creates all directories in path including any missing parent directories", ->
-      fs.makeTree("/tmp/a/b/c")
-      expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
+      abcPath = path.join(aPath, 'b', 'c')
+      fs.makeTree(abcPath)
+      expect(fs.exists(abcPath)).toBeTruthy()
 
   describe ".traverseTreeSync(path, onFile, onDirectory)", ->
     it "calls fn for every path in the tree at the given path", ->

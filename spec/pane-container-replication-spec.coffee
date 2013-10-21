@@ -1,3 +1,5 @@
+path = require 'path'
+temp = require 'temp'
 {Site} = require 'telepath'
 {View} = require 'atom'
 PaneContainer = require '../src/pane-container'
@@ -13,7 +15,7 @@ describe "PaneContainer replication", ->
     initialize: (@name) -> @text(@name)
     serialize: -> { deserializer: 'TestView', @name }
     getState: -> @serialize()
-    getUri: -> "/tmp/#{@name}"
+    getUri: -> path.join(temp.dir, @name)
     isEqual: (other) -> @name is other.name
 
   beforeEach ->

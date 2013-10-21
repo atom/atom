@@ -1,4 +1,6 @@
 {fs} = require 'atom'
+path = require 'path'
+temp = require 'temp'
 TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->
@@ -22,7 +24,7 @@ describe "the `syntax` global", ->
       atom.activatePackage('git-tmbundle', sync: true)
 
       expect(syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
-      expect(syntax.selectGrammar("/tmp/.git/config").name).toBe "Git Config" # based on end of the path (.git/config)
+      expect(syntax.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
       expect(syntax.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
       expect(syntax.selectGrammar("curb").name).toBe "Null Grammar"
       expect(syntax.selectGrammar("/hu.git/config").name).toBe "Null Grammar"

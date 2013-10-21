@@ -154,7 +154,7 @@ describe 'TextBuffer', ->
     [filePath, bufferToDelete] = []
 
     beforeEach ->
-      filePath = "/tmp/atom-file-to-delete.txt"
+      filePath = path.join(temp.dir, 'atom-file-to-delete.txt')
       fs.writeSync(filePath, 'delete me')
       bufferToDelete = project.bufferForPathSync(filePath)
       filePath = bufferToDelete.getPath() # symlinks may have been converted
@@ -212,7 +212,7 @@ describe 'TextBuffer', ->
 
     it "reports the modified status changing to true after the underlying file is deleted", ->
       buffer.release()
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, 'delete me')
       buffer = project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
@@ -224,7 +224,7 @@ describe 'TextBuffer', ->
       runs -> expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is saved", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, '')
       buffer.release()
       buffer = project.bufferForPathSync(filePath)
@@ -248,7 +248,7 @@ describe 'TextBuffer', ->
       expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is reloaded", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, '')
       buffer.release()
       buffer = project.bufferForPathSync(filePath)
@@ -271,7 +271,7 @@ describe 'TextBuffer', ->
       expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a buffer to a non-existent file is saved", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.remove(filePath) if fs.exists(filePath)
       expect(fs.exists(filePath)).toBeFalsy()
       buffer.release()
@@ -464,7 +464,7 @@ describe 'TextBuffer', ->
       filePath = null
 
       beforeEach ->
-        filePath = '/tmp/temp.txt'
+        filePath = path.join(temp.dir, 'temp.txt')
         fs.writeSync(filePath, "")
         saveBuffer = project.bufferForPathSync(filePath)
         saveBuffer.setText("blah")
@@ -521,7 +521,7 @@ describe 'TextBuffer', ->
       saveAsBuffer.release()
 
     it "saves the contents of the buffer to the path", ->
-      filePath = '/tmp/temp.txt'
+      filePath = path.join(temp.dir, 'temp.txt')
       fs.remove filePath if fs.exists(filePath)
 
       saveAsBuffer = project.bufferForPathSync(null).retain()
@@ -535,8 +535,8 @@ describe 'TextBuffer', ->
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
-      originalPath = "/tmp/original.txt"
-      newPath = "/tmp/new.txt"
+      originalPath = path.join(temp.dir, 'original.txt')
+      newPath = path.join(temp.dir, 'new.txt')
       fs.writeSync(originalPath, "")
 
       saveAsBuffer = project.bufferForPathSync(originalPath).retain()
