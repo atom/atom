@@ -1598,10 +1598,10 @@ class Editor extends View
         oldLeft = left
 
         scopes = @scopesForColumn(tokenizedLine, index)
-        cachedVal = @getCharacterWidthCache(scopes, char)
+        cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
-        if cachedVal?
-          left = oldLeft + cachedVal
+        if cachedCharWidth?
+          left = oldLeft + cachedCharWidth
         else
           # i + 1 to measure to the end of the current character
           MeasureRange.setEnd(textNode, i + 1)
@@ -1611,12 +1611,12 @@ class Editor extends View
           left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
           if scopes?
-            cachedVal = left - oldLeft
-            @setCharacterWidthCache(scopes, char, cachedVal)
+            cachedCharWidth = left - oldLeft
+            @setCharacterWidthCache(scopes, char, cachedCharWidth)
 
         # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
-        return column * cachedVal if index > LongLineLength
+        return column * cachedCharWidth if index > LongLineLength
 
         index++
 
