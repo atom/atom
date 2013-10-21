@@ -220,6 +220,9 @@ class Atom
   inDevMode: ->
     @getLoadSettings().devMode
 
+  inSpecMode: ->
+    @getLoadSettings().isSpec
+
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
