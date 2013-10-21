@@ -31,6 +31,7 @@ class PackageManager
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
+    @observingDisabledPackages = false
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -41,15 +42,18 @@ class PackageManager
   enablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.enable()
+    pack
 
   disablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.disable()
+    pack
 
   activatePackages: ->
     # ThemeManager handles themes. Only activate non theme packages
     # This is the only part I dislike
     @activatePackage(pack.name) for pack in @getLoadedPackages() when not pack.isTheme()
+    @observeDisabledPackages()
 
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
@@ -60,6 +64,7 @@ class PackageManager
 
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
+    @unobserveDisabledPackages()
 
   deactivatePackage: (name) ->
     if pack = @getActivePackage(name)
@@ -78,6 +83,28 @@ class PackageManager
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
+  unobserveDisabledPackages: ->
+    return unless @observingDisabledPackages
+    config.unobserve('core.disabledPackages')
+    @observingDisabledPackages = false
+
+  observeDisabledPackages: ->
+    return if @observingDisabledPackages
+
+    config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+      packagesToEnable = _.difference(previous, disabledPackages)
+      packagesToDisable = _.difference(disabledPackages, previous)
+
+      console.log previous, disabledPackages
+      console.log packagesToDisable
+      console.log packagesToEnable
+
+      @deactivatePackage(packageName) for packageName in packagesToDisable when @getActivePackage(packageName)
+      @activatePackage(packageName) for packageName in packagesToEnable
+      null
+
+    @observingDisabledPackages = true
+
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
@@ -87,9 +114,6 @@ class PackageManager
     @emit 'loaded'
 
   loadPackage: (name, options) ->
-    if @isPackageDisabled(name)
-      return console.warn("Tried to load disabled package '#{name}'")
-
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
 

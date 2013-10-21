@@ -367,3 +367,34 @@ describe "the `atom` global", ->
         activatedPackages = atom.packages.getActivePackages()
         expect(activatedPackages.length).toBeGreaterThan 0
         expect(pack.isTheme()).toBeFalsy() for pack in activatedPackages
+
+    describe ".enablePackage()", ->
+      it "enables a disabled package", ->
+        packageName = 'package-with-main'
+        atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+
+        atom.packages.observeDisabledPackages()
+
+        expect(config.get('core.disabledPackages')).toContain packageName
+
+        pack = atom.packages.enablePackage(packageName)
+
+        loadedPackages = atom.packages.getLoadedPackages()
+        activatedPackages = atom.packages.getActivePackages()
+        expect(loadedPackages).toContain(pack)
+        expect(activatedPackages).toContain(pack)
+        expect(config.get('core.disabledPackages')).not.toContain packageName
+
+      it "enables a disabled theme", ->
+        packageName = 'theme-with-package-file'
+        expect(config.get('core.themes')).not.toContain packageName
+        expect(config.get('core.disabledPackages')).not.toContain packageName
+
+        pack = atom.packages.enablePackage(packageName)
+
+        loadedPackages = atom.packages.getLoadedPackages()
+        activatedPackages = atom.packages.getLoadedPackages()
+        expect(loadedPackages).toContain(pack)
+        expect(activatedPackages).toContain(pack)
+        expect(config.get('core.themes')).toContain packageName
+        expect(config.get('core.disabledPackages')).not.toContain packageName
