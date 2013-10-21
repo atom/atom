@@ -19,7 +19,7 @@ describe "ThemeManager", ->
 
     it 'getLoadedThemes get all the loaded themes', ->
       themes = themeManager.getLoadedThemes()
-      expect(themes).toHaveLength(13)
+      expect(themes.length).toBeGreaterThan(2)
 
     it 'getActiveThemes get all the active themes', ->
       themeManager.activateThemes()
