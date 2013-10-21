@@ -95,10 +95,6 @@ class PackageManager
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 
-      console.log previous, disabledPackages
-      console.log packagesToDisable
-      console.log packagesToEnable
-
       @deactivatePackage(packageName) for packageName in packagesToDisable when @getActivePackage(packageName)
       @activatePackage(packageName) for packageName in packagesToEnable
       null
