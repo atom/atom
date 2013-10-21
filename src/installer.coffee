@@ -220,6 +220,11 @@ class Installer extends Command
 
             async.waterfall(commands, callback)
 
+  # Install all the package dependencies found in the package.json file.
+  #
+  #  * options: The installation options
+  #  * callback: The callback function to invoke when done with an error as the
+  #    first argument.
   installPackageDependencies: (options, callback) ->
     process.stdout.write 'Installing packages '
 
@@ -248,6 +253,7 @@ class Installer extends Command
 
     async.waterfall commands, callback
 
+  # Get all package dependency name and versions.
   getPackageDependencies: ->
     try
       metadata = fs.readFileSync('package.json', 'utf8')
