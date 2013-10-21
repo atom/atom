@@ -29,6 +29,7 @@
   'shift-backspace': 'core:backspace'
   'delete': 'core:delete'
   'meta-z': 'core:undo'
+  'meta-Z': 'core:redo'
   'meta-y': 'core:redo'
   'meta-x': 'core:cut'
   'meta-c': 'core:copy'
