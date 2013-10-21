@@ -23,7 +23,7 @@
     "guid": "0.0.10",
     "jasmine-focused": "~0.15.0",
     "mkdirp": "0.3.5",
-    "less": "git://github.com/nathansobo/less.js.git",
+    "less": "1.5.0",
     "less-cache": "0.8.0",
     "nslog": "0.1.0",
     "oniguruma": "0.21.0",
