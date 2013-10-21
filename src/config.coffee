@@ -193,7 +193,7 @@ class Config
   # `callback` is fired whenever the value of the key is changed and will
   #  be fired immediately unless the `callNow` option is `false`.
   #
-  # keyPath - The {String} name of the key to watch
+  # keyPath - The {String} name of the key to observe
   # options - An optional {Object} containing the `callNow` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
@@ -212,9 +212,16 @@ class Config
         callback(value, {previous})
 
     subscription = { cancel: => @off 'updated', updateCallback  }
-    @on 'updated', updateCallback
+    @on "updated.#{keyPath.replace(/\./, '-')}", updateCallback
     callback(value) if options.callNow ? true
     subscription
+
+
+  # Public: Unobserve all callbacks on a given key
+  #
+  # keyPath - The {String} name of the key to unobserve
+  unobserve: (keyPath) ->
+    @off("updated.#{keyPath.replace(/\./, '-')}")
 
   # Private:
   update: ->
