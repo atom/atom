@@ -83,7 +83,7 @@ class Installer extends Command
     env.USERPROFILE = env.HOME if config.isWin32()
     installOptions = {env}
 
-    {installGlobally} = options ? true
+    installGlobally = options.installGlobally ? true
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')

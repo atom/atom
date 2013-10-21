@@ -52,8 +52,8 @@ describe 'apm install', ->
           expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
           expect(process.exit.mostRecentCall.args[0]).toBe 1
 
-    describe 'when a URL to a module is specified', ->
-      it 'installs the module at the path', ->
+    describe 'when a module name is specified', ->
+      it 'installs the module', ->
         testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
         mkdir(testModuleDirectory)
         existingTestModuleFile = path.join(testModuleDirectory, 'will-be-deleted.js')
