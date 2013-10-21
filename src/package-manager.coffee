@@ -52,7 +52,7 @@ class PackageManager
     @activatePackage(pack.name) for pack in @getLoadedPackages() when not pack.isTheme()
 
   activatePackage: (name, options) ->
-    return if @getActivePackage(name)
+    return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
       @activePackages[pack.name] = pack
       pack.activate(options)
