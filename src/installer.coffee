@@ -145,7 +145,7 @@ class Installer extends Command
         authorization: token
     request.get requestSettings, (error, response, body={}) ->
       if error?
-        callback(error)
+        callback("Request for package information failed: #{error.message}")
       else if response.statusCode isnt 200
         message = body.message ? body
         callback("Request for package information failed: #{message}")
