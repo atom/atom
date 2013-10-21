@@ -213,14 +213,29 @@ class Installer extends Command
 
             async.waterfall(commands, callback)
 
+  installPackageDependencies: (options, callback) ->
+    process.stdout.write 'Installing packages '
+
+    options = _.extend({}, options, installGlobally: false)
+    commands = []
+    for name, version of @getPackageDependencies()
+      commands.push (callback) =>
+        @installPackage({name, version}, options, callback)
+
+    async.waterfall commands, (error) ->
+      if error?
+        process.stdout.write '\u2717\n'.red
+      else
+        process.stdout.write '\u2713\n'.green
+
+      callback(error)
+
   installDependencies: (options, callback) ->
     options.installGlobally = false
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
-    for name, version of @getPackageDependencies()
-      commands.push (callback) =>
-        @installPackage({name, version}, options, callback)
+    commands.push (callback) => @installPackageDependencies(options, callback)
     if options.argv.dev
       commands.push (callback) => @installDevDependencies(options, callback)
 
