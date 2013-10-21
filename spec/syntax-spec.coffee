@@ -12,12 +12,12 @@ describe "the `syntax` global", ->
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->
-      path = '/foo/bar/file.js'
-      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
-      syntax.setGrammarOverrideForPath(path, 'source.ruby')
+      filePath = '/foo/bar/file.js'
+      expect(syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
+      syntax.setGrammarOverrideForPath(filePath, 'source.ruby')
       syntax2 = deserialize(syntax.serialize())
       syntax2.addGrammar(grammar) for grammar in syntax.grammars when grammar isnt syntax.nullGrammar
-      expect(syntax2.selectGrammar(path).name).toBe 'Ruby'
+      expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
@@ -53,12 +53,12 @@ describe "the `syntax` global", ->
       expect(fs.read).not.toHaveBeenCalled()
 
     it "allows the default grammar to be overridden for a path", ->
-      path = '/foo/bar/file.js'
-      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
-      syntax.setGrammarOverrideForPath(path, 'source.ruby')
-      expect(syntax.selectGrammar(path).name).toBe 'Ruby'
-      syntax.clearGrammarOverrideForPath(path)
-      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
+      filePath = '/foo/bar/file.js'
+      expect(syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
+      syntax.setGrammarOverrideForPath(filePath, 'source.ruby')
+      expect(syntax.selectGrammar(filePath).name).toBe 'Ruby'
+      syntax.clearGrammarOverrideForPath(filePath)
+      expect(syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
 
     describe "when multiple grammars have matching fileTypes", ->
       it "selects the grammar with the longest fileType match", ->
