@@ -111,6 +111,7 @@
     "wrap-guide": "0.4.0",
 
     "language-c": "1.0.0",
+    "language-clojure": "1.0.0",
     "language-coffee-script": "1.0.0",
     "language-css": "1.0.0",
     "language-git": "1.0.0",
@@ -137,7 +138,6 @@
     "language-source": "1.0.0",
     "language-sql": "1.0.0",
     "language-text": "1.0.0",
-    "language-clojure": "1.0.0",
     "language-todo": "1.0.0",
     "language-xml": "1.0.0",
     "language-yaml": "1.0.0"
