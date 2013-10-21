@@ -36,7 +36,7 @@ class AtomPackage extends Package
   load: ->
     @measure 'loadTime', =>
       try
-        @metadata = Package.loadMetadata(@path) unless @metadata
+        @metadata ?= Package.loadMetadata(@path)
 
         @loadKeymaps()
         @loadMenus()

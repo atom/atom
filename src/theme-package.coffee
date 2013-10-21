@@ -19,7 +19,7 @@ class ThemePackage extends AtomPackage
   load: ->
     @measure 'loadTime', =>
       try
-        @metadata = Package.loadMetadata(@path) unless @metadata
+        @metadata ?= Package.loadMetadata(@path)
       catch e
         console.warn "Failed to load theme named '#{@name}'", e.stack ? e
     this
