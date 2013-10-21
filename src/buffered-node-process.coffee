@@ -28,7 +28,7 @@ class BufferedNodeProcess extends BufferedProcess
   #      standard error of the script. The callback is called as data is
   #      received but it's buffered to ensure only complete lines are passed
   #      until the source stream closes. After the source stream has closed
-  #      all remaining data is sent in a final call.
+  #      all remaining data is sent in a final call (optional).
   #    + exit:
   #      The callback which receives a single argument containing the exit
   #      status (optional).
