@@ -6,7 +6,7 @@ module.exports =
   # * callback: A function to call with an error as the first argument and a
   #             string token as the second argument.
   getToken: (callback) ->
-    tokenName = 'GitHub API Toke2n'
+    tokenName = 'GitHub API Token'
     command = "security -q find-generic-password -ws '#{tokenName}'"
     child_process.exec command, (error, stdout='', stderr='') ->
       token = stdout.trim()
