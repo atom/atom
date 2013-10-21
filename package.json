@@ -78,7 +78,7 @@
     "collaboration": "0.28.0",
     "command-logger": "0.6.0",
     "command-palette": "0.5.0",
-    "dev-live-reload": "0.8.0",
+    "dev-live-reload": "0.9.0",
     "editor-stats": "0.5.0",
     "exception-reporting": "0.4.0",
     "find-and-replace": "0.29.0",
