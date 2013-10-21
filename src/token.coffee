@@ -165,17 +165,15 @@ class Token
 
         endIndex = match.index
 
-      fragments = [leadingHtml]
-
+      html = leadingHtml
       if @value.length > MaxTokenLength
         while startIndex < endIndex
-          fragments.push "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
+          html += "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
           startIndex += MaxTokenLength
       else
-        fragments.push @escapeString(@value, startIndex, endIndex)
+        html += @escapeString(@value, startIndex, endIndex)
 
-      fragments.push trailingHtml
-      html = fragments.join('')
+      html += trailingHtml
     html
 
   escapeString: (str, startIndex, endIndex) ->
