@@ -1,4 +1,3 @@
-fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
@@ -41,7 +40,7 @@ class Directory
   getRealPath: ->
     unless @realPath?
       try
-        @realPath = fs.realpathSync(@path)
+        @realPath = fsUtils.realpathSync(@path)
       catch e
         @realPath = @path
     @realPath
@@ -82,9 +81,9 @@ class Directory
     files = []
     for entryPath in fsUtils.listSync(@path)
       try
-        stat = fs.lstatSync(entryPath)
+        stat = fsUtils.lstatSync(entryPath)
         symlink = stat.isSymbolicLink()
-        stat = fs.statSync(entryPath) if symlink
+        stat = fsUtils.statSync(entryPath) if symlink
       catch e
         continue
       if stat.isDirectory()
