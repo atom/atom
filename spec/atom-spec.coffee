@@ -1,6 +1,7 @@
 {$, $$, fs, RootView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
+ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -368,33 +369,59 @@ describe "the `atom` global", ->
         expect(activatedPackages.length).toBeGreaterThan 0
         expect(pack.isTheme()).toBeFalsy() for pack in activatedPackages
 
-    describe ".enablePackage()", ->
-      it "enables a disabled package", ->
-        packageName = 'package-with-main'
-        atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+    describe ".en/disablePackage()", ->
+      describe "with packages", ->
+        it ".enablePackage() enables a disabled package", ->
+          packageName = 'package-with-main'
+          atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).toContain packageName
 
-        atom.packages.observeDisabledPackages()
+          pack = atom.packages.enablePackage(packageName)
 
-        expect(config.get('core.disabledPackages')).toContain packageName
+          loadedPackages = atom.packages.getLoadedPackages()
+          activatedPackages = atom.packages.getActivePackages()
+          expect(loadedPackages).toContain(pack)
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.disabledPackages')).not.toContain packageName
 
-        pack = atom.packages.enablePackage(packageName)
+        it ".disablePackage() disables an enabled package", ->
+          packageName = 'package-with-main'
+          atom.packages.activatePackage(packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).not.toContain packageName
 
-        loadedPackages = atom.packages.getLoadedPackages()
-        activatedPackages = atom.packages.getActivePackages()
-        expect(loadedPackages).toContain(pack)
-        expect(activatedPackages).toContain(pack)
-        expect(config.get('core.disabledPackages')).not.toContain packageName
+          pack = atom.packages.disablePackage(packageName)
 
-      it "enables a disabled theme", ->
-        packageName = 'theme-with-package-file'
-        expect(config.get('core.themes')).not.toContain packageName
-        expect(config.get('core.disabledPackages')).not.toContain packageName
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.disabledPackages')).toContain packageName
 
-        pack = atom.packages.enablePackage(packageName)
+      describe "with themes", ->
+        beforeEach ->
+          atom.themes.activateThemes()
 
-        loadedPackages = atom.packages.getLoadedPackages()
-        activatedPackages = atom.packages.getLoadedPackages()
-        expect(loadedPackages).toContain(pack)
-        expect(activatedPackages).toContain(pack)
-        expect(config.get('core.themes')).toContain packageName
-        expect(config.get('core.disabledPackages')).not.toContain packageName
+        afterEach ->
+          atom.themes.deactivateThemes()
+          atom.config.unobserve('core.themes')
+
+        it ".enablePackage() and .disablePackage() enables and disables a theme", ->
+          packageName = 'theme-with-package-file'
+
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # enabling of theme
+          pack = atom.packages.enablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.themes')).toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # disabling of theme
+          pack = atom.packages.disablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
