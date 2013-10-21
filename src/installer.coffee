@@ -167,6 +167,8 @@ class Installer extends Command
       headers:
         authorization: token
     readStream = request.get(requestSettings)
+    readStream.on 'error', (error) ->
+      callback("Unabled to download package (#{error.message}): #{packageUrl}")
     readStream.on 'response', (response) ->
       if response.statusCode is 200
         filePath = path.join(temp.mkdirSync(), 'package.tgz')
@@ -174,7 +176,7 @@ class Installer extends Command
         readStream.pipe(writeStream)
         writeStream.on 'close', -> callback(null, filePath)
       else
-        callback("Unabled to download package URL (#{response.statusCode}): #{packageUrl}")
+        callback("Unable to download package (#{response.statusCode}): #{packageUrl}")
 
   # Install the package with the given name and optional version
   #
