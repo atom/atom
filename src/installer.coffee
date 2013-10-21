@@ -166,6 +166,11 @@ class Installer extends Command
       url: packageUrl
       headers:
         authorization: token
+
+    # FIXME Prevents Hostname/IP doesn't match certificate's altnames occuring
+    # right now on atom.io https tarbar URLs. Remove once resolved.
+    requestSettings.strictSSL = false
+
     readStream = request.get(requestSettings)
     readStream.on 'error', (error) ->
       callback("Unabled to download package (#{error.message}): #{packageUrl}")
