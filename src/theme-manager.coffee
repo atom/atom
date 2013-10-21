@@ -42,7 +42,7 @@ class ThemeManager
   activateThemes: ->
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', (themeNames) =>
-      @packageManager.deactivatePackages()
+      @deactivateThemes()
       themeNames = [themeNames] unless _.isArray(themeNames)
 
       # Reverse so the first (top) theme is loaded after the others. We want
