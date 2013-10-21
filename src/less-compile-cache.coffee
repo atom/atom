@@ -1,12 +1,15 @@
 path = require 'path'
+os = require 'os'
 LessCache = require 'less-cache'
 {Subscriber} = require 'emissary'
+
+tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
 module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)
 
-  @cacheDir: path.join(atom.getTempDirPath(), 'atom-compile-cache', 'less')
+  @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
 
   constructor: ->
     @cache = new LessCache
