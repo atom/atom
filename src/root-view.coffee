@@ -50,6 +50,8 @@ class RootView extends View
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
+    audioBeep: true
+    visualBeep: false
 
   @acceptsDocuments: true
 
