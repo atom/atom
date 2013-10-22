@@ -454,7 +454,7 @@ describe "TextMateGrammar", ->
           expect(tokens[1].value).toBe " http://github.com"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-          atom.activatePackage('language-hyperlink-helper', sync: true)
+          atom.activatePackage('language-hyperlink', sync: true)
 
           {tokens} = editSession.lineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
