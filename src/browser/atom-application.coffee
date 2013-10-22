@@ -246,7 +246,7 @@ class AtomApplication
       [basename, initialLine] = path.basename(pathToOpen).split(':')
       if initialLine
         pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-        initialLine -= 1 if initialLine # Convert line numbers to a base of 0
+        initialLine -= 1 # Convert line numbers to a base of 0
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
