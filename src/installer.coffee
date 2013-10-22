@@ -60,7 +60,7 @@ class Installer extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push(vsArgs) if vsArgs != null
+    installArgs.push(vsArgs) if vsArgs?
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
