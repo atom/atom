@@ -44,10 +44,11 @@ module.exports = (grunt) ->
       url: "#{baseUrl}/#{packageName}/versions"
       json: true
       method: 'POST'
-      body:
-        tag: tag
       headers:
         authorization: token
+      body:
+        tag: tag
+
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
