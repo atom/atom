@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 
 module.exports =
   _: _
-  apm: require 'atom-package-manager'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'

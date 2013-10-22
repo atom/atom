@@ -36,6 +36,10 @@ class PackageManager
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
 
+  # Public: Get the path to the apm command
+  getApmPath: ->
+    @apmPath ?= require.resolve('atom-package-manager/bin/apm')
+
   getPackageState: (name) ->
     @packageStates[name]
 
