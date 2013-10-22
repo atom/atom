@@ -33,7 +33,7 @@ module.exports = (grunt) ->
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
-      else if response.statusCode isnt 200
+      else if response.statusCode isnt 201
         message = body.message ? body.error ? body
         callback(new Error("Creating package failed: #{message}"))
       else
@@ -52,7 +52,7 @@ module.exports = (grunt) ->
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
-      else if response.statusCode isnt 200
+      else if response.statusCode isnt 201
         message = body.message ? body.error ? body
         if message is 'Version exists'
           callback()
