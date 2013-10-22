@@ -193,6 +193,17 @@ class Install extends Command
     cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
     return cachePath if fs.isFile(cachePath)
 
+  # Is the package at the specified version already installed?
+  #
+  #  * packageName: The string name of the package.
+  #  * packageVersion: The string version of the package.
+  isPackageInstalled: (packageName, packageVersion) ->
+    try
+      {version} = CSON.readFileSync(CSON.resolve(path.join(packageName, 'package'))) ? {}
+      packageVersion is version
+    catch error
+      false
+
   # Install the package with the given name and optional version
   #
   #  * metadata: The package metadata object with at least a name key. A version
@@ -203,6 +214,10 @@ class Install extends Command
   installPackage: (metadata, options, callback) ->
     packageName = metadata.name
     packageVersion = metadata.version
+
+    if @isPackageInstalled(packageName, packageVersion)
+      callback()
+      return
 
     process.stdout.write "Installing #{packageName}@#{packageVersion} "
 
