@@ -124,7 +124,7 @@ class Publish extends Command
         if error?
           callback(error)
         else if response.statusCode isnt 201
-          message = body.message ? body
+          message = body.message ? body.error ? body
           callback("Registering package failed: #{message}")
         else
           callback()
@@ -153,7 +153,7 @@ class Publish extends Command
         if error?
           callback(error)
         else if response.statusCode isnt 201
-          message = body.message ? body
+          message = body.message ? body.error ? body
           callback("Creating new version failed: #{message}")
         else
           callback()
