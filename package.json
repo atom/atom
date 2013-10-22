@@ -2,6 +2,7 @@
   "name": "atom-package-manager",
   "description": "Atom package manager",
   "version": "0.7.0",
+  "private": true,
   "licenses": [
     {
       "type": "MIT",
@@ -48,8 +49,5 @@
     "grunt-shell": "~0.2.2",
     "express": "~3.2.3",
     "grunt-coffeelint": "0.0.6"
-  },
-  "publishConfig": {
-    "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
   }
 }
