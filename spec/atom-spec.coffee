@@ -341,33 +341,37 @@ describe "the `atom` global", ->
           atom.deactivatePackage('language-ruby')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
-    describe ".activatePackages()", ->
+    describe ".activate()", ->
+      packageActivator = null
+      themeActivator = null
+
       beforeEach ->
         spyOn(console, 'warn')
         atom.packages.loadPackages()
 
+        loadedPackages = atom.packages.getLoadedPackages()
+        expect(loadedPackages.length).toBeGreaterThan 0
+
+        packageActivator = spyOn(atom.packages, 'activatePackages')
+        themeActivator = spyOn(atom.themes, 'activatePackages')
+
       afterEach ->
-        atom.packages.deactivatePackages()
         atom.packages.unloadPackages()
 
         Syntax = require '../src/syntax'
         atom.syntax = window.syntax = new Syntax()
 
       it "activates all the packages, and none of the themes", ->
-        atom.packages.activatePackages()
-        loadedPackages = atom.packages.getLoadedPackages()
-        expect(loadedPackages.length).toBeGreaterThan 0
-        hasTheme = false
-        for pack in loadedPackages
-          if pack.isTheme()
-            hasTheme = true
-            break
+        atom.packages.activate()
 
-        expect(hasTheme).toBeTruthy()
+        expect(packageActivator).toHaveBeenCalled()
+        expect(themeActivator).toHaveBeenCalled()
 
-        activatedPackages = atom.packages.getActivePackages()
-        expect(activatedPackages.length).toBeGreaterThan 0
-        expect(pack.isTheme()).toBeFalsy() for pack in activatedPackages
+        packages = packageActivator.mostRecentCall.args[0]
+        expect(['atom', 'textmate']).toContain(pack.getType()) for pack in packages
+
+        themes = themeActivator.mostRecentCall.args[0]
+        expect(['theme']).toContain(theme.getType()) for theme in themes
 
     describe ".en/disablePackage()", ->
       describe "with packages", ->

@@ -33,6 +33,9 @@ class PackageManager
     @packageStates = {}
     @observingDisabledPackages = false
 
+    @packageActivators = []
+    @registerPackageActivator(this, ['atom', 'textmate'])
+
   getPackageState: (name) ->
     @packageStates[name]
 
@@ -51,12 +54,23 @@ class PackageManager
     pack?.disable()
     pack
 
-  activatePackages: ->
-    # ThemeManager handles themes. Only activate non theme packages
-    # This is the only part I dislike
-    @activatePackage(pack.name) for pack in @getLoadedPackages() when not pack.isTheme()
+  # Internal-only: Activate all the packages that should be activated.
+  activate: ->
+    for [activator, types] in @packageActivators
+      packages = @getLoadedPackagesForTypes(types)
+      activator.activatePackages(packages)
+
+  # Public: another type of package manager can handle other package types.
+  # See ThemeManager
+  registerPackageActivator: (activator, types) ->
+    @packageActivators.push([activator, types])
+
+  # Internal-only:
+  activatePackages: (packages) ->
+    @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
+  # Internal-only: Activate a single package by name
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
@@ -142,6 +156,12 @@ class PackageManager
 
   getLoadedPackages: ->
     _.values(@loadedPackages)
+
+  # Private: Get packages for a certain package type
+  #
+  # * types: an {Array} of {String}s like ['atom', 'textmate']
+  getLoadedPackagesForTypes: (types) ->
+    pack for pack in @getLoadedPackages() when pack.getType() in types
 
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectorySync(name)

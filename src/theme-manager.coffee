@@ -17,6 +17,7 @@ class ThemeManager
 
   constructor: (@packageManager) ->
     @lessCache = null
+    @packageManager.registerPackageActivator(this, ['theme'])
 
   # Internal-only:
   getAvailableNames: ->
@@ -37,6 +38,9 @@ class ThemeManager
   # Internal-only:
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
+
+  # Internal-only: adhere to the PackageActivator interface
+  activatePackages: (themePackages) -> @activateThemes()
 
   # Internal-only:
   activateThemes: ->
