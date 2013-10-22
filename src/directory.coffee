@@ -12,17 +12,19 @@ class Directory
   path: null
   realPath: null
 
-  # Public: Configures an new Directory instance, no files are accessed.
+  # Public: Configures a new Directory instance, no files are accessed.
   #
   # * path:
-  #   A {String} representing the file directory
+  #   A String containing the absolute path to the directory.
   # + symlink:
-  #   A {Boolean} indicating if the path is a symlink (defaults to false).
+  #   A Boolean indicating if the path is a symlink (defaults to false).
   constructor: (@path, @symlink=false) ->
     @on 'first-contents-changed-subscription-will-be-added', =>
+      # Triggered by emissary, when a new contents-changed listener attaches
       @subscribeToNativeChangeEvents()
 
     @on 'last-contents-changed-subscription-removed', =>
+      # Triggered by emissary, when the last contents-changed listener detaches
       @unsubscribeFromNativeChangeEvents()
 
   # Public: Returns the basename of the directory.
@@ -78,7 +80,7 @@ class Directory
   #
   # Note: It follows symlinks.
   #
-  # Returns an {Array} of {Files}.
+  # Returns an Array of {Files}.
   getEntries: ->
     directories = []
     files = []
