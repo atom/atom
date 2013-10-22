@@ -11,6 +11,7 @@ Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'
 shell = require 'shell'
+{$$} = require 'space-pen'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
@@ -303,6 +304,11 @@ class Atom
     try
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
+  visualBeep: ->
+    overlay = $$ -> @div class: 'visual-beep'
+    $('body').append overlay
+    setTimeout((-> overlay.remove()), 1000)
+
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   requireWithGlobals: (id, globals={}) ->

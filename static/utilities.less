@@ -61,6 +61,23 @@ div > .inline-block-tight:last-child {
   }
 }
 
+.visual-beep {
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  opacity: 0.0;
+  -webkit-animation: visual-beep-flash 0.2s ease-out;
+  background: @background-color-warning;
+}
+
+@-webkit-keyframes visual-beep-flash {
+  0% { opacity: 0.5 }
+  100% {opacity: 0.0 }
+}
+
 .error {
   -webkit-animation: flash-error 0.3s ease-in;
 }
