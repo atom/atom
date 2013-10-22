@@ -41,7 +41,7 @@
     "wordwrap": "0.0.2"
   },
   "devDependencies": {
-    "jasmine-focused": "~0.12.0",
+    "jasmine-focused": "~0.15.0",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
