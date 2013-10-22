@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env node
+var safeExec = require('./utils/child-process-wrapper.js').safeExec;
+var path = require('path');
 
-set -e
+process.chdir(path.dirname(__dirname));
 
-cd "$(dirname "$0")/.."
-
-./script/bootstrap
-./node_modules/.bin/grunt ci --stack --no-color
+safeExec('node script/bootstrap', function() {
+  safeExec('node node_modules/.bin/grunt ci --stack --no-color', process.exit);
+});
