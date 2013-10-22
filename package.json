@@ -138,7 +138,7 @@
     "language-source": "0.1.0",
     "language-sql": "0.1.0",
     "language-text": "0.1.0",
-    "language-todo": "0.1.0",
+    "language-todo": "0.2.0",
     "language-xml": "0.1.0",
     "language-yaml": "0.1.0"
   },
