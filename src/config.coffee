@@ -8,6 +8,9 @@ module.exports =
   getAtomDirectory: ->
     process.env.ATOM_HOME ? path.join(@getHomeDirectory(), '.atom')
 
+  getPackageCacheDirectory: ->
+    path.join(@getAtomDirectory(), '.node-gyp', '.atom', '.apm')
+
   getResourcePath: ->
     process.env.ATOM_RESOURCE_PATH ? '/Applications/Atom.app/Contents/Resources/app'
 

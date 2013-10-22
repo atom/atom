@@ -182,6 +182,17 @@ class Install extends Command
       else
         callback("Unable to download #{packageUrl}: #{response.statusCode}")
 
+  # Get the path to the package from the local cache.
+  #
+  #  * packageName: The string name of the package.
+  #  * packageVersion: The string version of the package.
+  #
+  # Returns a path to the cached tarball or undefined when not in the cache.
+  getPackageCachePath: (packageName, packageVersion) ->
+    cacheDir = config.getPackageCacheDirectory()
+    cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
+    return cachePath if fs.isFile(cachePath)
+
   # Install the package with the given name and optional version
   #
   #  * metadata: The package metadata object with at least a name key. A version
@@ -209,7 +220,10 @@ class Install extends Command
               return
 
             commands.push (callback) =>
-              @downloadPackage(tarball, token, callback)
+              if packagePath = @getPackageCachePath(packageName, packageVersion)
+                callback(null, packagePath)
+              else
+                @downloadPackage(tarball, token, callback)
             installNode = options.installNode ? true
             if installNode
               commands.push (packagePath, callback) =>
