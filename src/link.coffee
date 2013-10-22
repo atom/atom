@@ -46,5 +46,4 @@ class Link
       console.log "#{targetPath} -> #{linkPath}"
       callback()
     catch error
-      console.error("Linking #{targetPath} to #{linkPath} failed")
-      callback(error)
+      callback("Linking #{targetPath} to #{linkPath} failed: #{error.message}")
