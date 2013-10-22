@@ -10,7 +10,7 @@ async = require 'async'
 module.exports =
 class TextMatePackage extends Package
   @testName: (packageName) ->
-    /(\.|_|-)tmbundle$/.test(packageName)
+    /(^language-.*)|((\.|_|-)tmbundle$)/.test(packageName)
 
   @getLoadQueue: ->
     return @loadQueue if @loadQueue
