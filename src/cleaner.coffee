@@ -23,14 +23,14 @@ class Cleaner extends Command
     catch error
       return
 
-    _.extend(allDependencies, dependencies, packageDependencies)
+    _.extend(allDependencies, dependencies)
 
     modulesPath = path.join(modulePath, 'node_modules')
     for installedModule in fs.list(modulesPath) when installedModule isnt '.bin'
       @getDependencies(path.join(modulesPath, installedModule), allDependencies)
 
   getModulesToRemove: ->
-    {devDependencies, dependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
+    {devDependencies, dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
     devDependencies ?= {}
     dependencies ?= {}
 
@@ -47,6 +47,7 @@ class Cleaner extends Command
     for installedModule in installedModules
       continue if dependencies.hasOwnProperty(installedModule)
       continue if devDependencies.hasOwnProperty(installedModule)
+      continue if packageDependencies.hasOwnProperty(installedModule)
       modulesToRemove.push(installedModule)
 
     modulesToRemove
