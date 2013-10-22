@@ -6,7 +6,7 @@ request = require 'request'
 # This task should be run whenever you want to be sure that atom.io contains
 # all the packages and versions referenced in Atom's package.json file.
 module.exports = (grunt) ->
-  baseUrl = "https://github-atom-io.herokuapp.com/api/packages"
+  baseUrl = "https://www.atom.io/api/packages"
 
   packageExists = (packageName, token, callback) ->
     requestSettings =
