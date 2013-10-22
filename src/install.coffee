@@ -59,8 +59,6 @@ class Install extends Command
         callback("#{stdout}\n#{stderr}")
 
   installModule: (options, pack, modulePath, callback) ->
-    label = "#{pack.name}@#{pack['dist-tags'].latest}"
-
     vsArgs = null
     if config.isWin32()
       vsArgs = "--msvs_version=2010" if config.isVs2010Installed()
@@ -81,7 +79,6 @@ class Install extends Command
 
     installGlobally = options.installGlobally ? true
     if installGlobally
-      process.stdout.write "Installing #{label} to #{@atomPackagesDirectory} "
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
       fs.mkdir(nodeModulesDirectory)
@@ -218,9 +215,11 @@ class Install extends Command
         callback()
         return
 
-      label = packageName
-      label += "@#{packageVersion}" if packageVersion
-      process.stdout.write "Installing #{label} "
+    label = packageName
+    label += "@#{packageVersion}" if packageVersion
+    process.stdout.write "Installing #{label} "
+    if installGlobally
+      process.stdout.write "to #{@atomPackagesDirectory} "
 
     auth.getToken (error, token) =>
       if error?
@@ -329,8 +328,12 @@ class Install extends Command
     options = @parseOptions(options.commandArgs)
 
     @createAtomDirectories()
-    packageName = options.argv._[0] ? '.'
-    if packageName is '.'
+    name = options.argv._[0] ? '.'
+    if name is '.'
       @installDependencies(options, callback)
     else
-      @installPackage({name: packageName}, options, callback)
+      atIndex = name.indexOf('@')
+      if atIndex > 0
+        version = name.substring(atIndex + 1)
+        name = name.substring(0, atIndex)
+      @installPackage({name, version}, options, callback)
