@@ -39,11 +39,14 @@ class Available
         request.get requestSettings, (error, response, body={}) ->
           if error?
             callback(error)
-          else
+          else if response.statusCode is 200
             packages = body.filter (pack) -> pack['dist-tags']?.latest?
             packages = packages.map (pack) ->
               _.extend(version: pack['dist-tags'].latest, pack)
             callback(null, packages)
+          else
+            message = body.message ? body.error ? body
+            callback("Requesting packages failed: #{message}")
 
   run: (options) ->
     @getAvailablePackages options.argv.atomVersion, (error, packages) ->
