@@ -216,7 +216,8 @@ class Install extends Command
     packageName = metadata.name
     packageVersion = metadata.version
 
-    if @isPackageInstalled(packageName, packageVersion)
+    installGlobally = options.installGlobally ? true
+    if not installGlobally and @isPackageInstalled(packageName, packageVersion)
       callback()
       return
 
