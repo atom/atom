@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
 npmconf = require 'npmconf'

@@ -3,7 +3,7 @@ path = require 'path'
 async = require 'async'
 CSON = require 'season'
 optimist = require 'optimist'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 Command = require './command'
 config = require './config'

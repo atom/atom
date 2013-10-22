@@ -1,6 +1,6 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 CSON = require 'season'
 optimist = require 'optimist'
 

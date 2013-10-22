@@ -1,6 +1,6 @@
 fs = require 'fs'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 mkdirp = require 'mkdirp'
 rimraf = require 'rimraf'
 wrench = require 'wrench'

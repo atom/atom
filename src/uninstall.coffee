@@ -1,6 +1,6 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 config = require './config'
 optimist = require 'optimist'
 

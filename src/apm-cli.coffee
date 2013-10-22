@@ -1,6 +1,6 @@
 fs = require 'fs'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 require 'colors'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'

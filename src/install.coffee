@@ -1,7 +1,7 @@
 path = require 'path'
 
 async = require 'async'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
 temp = require 'temp'
