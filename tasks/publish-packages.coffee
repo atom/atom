@@ -6,6 +6,8 @@ request = require 'request'
 # This task should be run whenever you want to be sure that atom.io contains
 # all the packages and versions referenced in Atom's package.json file.
 module.exports = (grunt) ->
+  {spawn} = require('./task-helpers')(grunt)
+
   baseUrl = "https://www.atom.io/api/packages"
 
   packageExists = (packageName, token, callback) ->
@@ -61,38 +63,46 @@ module.exports = (grunt) ->
       else
         callback()
 
-  grunt.registerTask 'publish-packages', 'Publish all bundled packages', ->
-    token = process.env.ATOM_ACCESS_TOKEN
-    unless token
-      grunt.log.error('Must set ATOM_ACCESS_TOKEN environment variable')
-      return false
+  getToken = (callback) ->
+    if token = process.env.ATOM_ACCESS_TOKEN
+      callback(null, token)
+    else
+      spawn {cmd: 'security', args: ['-q', 'find-generic-password', '-ws', 'GitHub API Token']}, (error, result, code) ->
+        token = result.toString() unless error?
+        callback(error, token)
 
-    {packageDependencies} = grunt.file.readJSON('package.json') ? {}
+  grunt.registerTask 'publish-packages', 'Publish all bundled packages', ->
     done = @async()
 
-    tasks = []
-    for name, version of packageDependencies
-      do (name, version) ->
-        tasks.push (callback) ->
-          grunt.log.writeln("Publishing #{name}@#{version}")
-          tag = "v#{version}"
-          packageExists name, token, (error, exists) ->
-            if error?
-              callback(error)
-              return
-
-            if exists
-              createPackage name, token, (error) ->
-                if error?
-                  callback(error)
-                else
-                  createPackageVersion(name, tag, token, callback)
-            else
-              createPackageVersion(name, tag, token, callback)
-
-    async.waterfall tasks, (error) ->
-      if error?
-        grunt.log.error(error.message)
+    getToken (error, token) ->
+      unless token
+        grunt.log.error('Token not found in keychain or ATOM_ACCESS_TOKEN environment variable')
         done(false)
-      else
-        done()
+
+      {packageDependencies} = grunt.file.readJSON('package.json') ? {}
+      tasks = []
+      for name, version of packageDependencies
+        do (name, version) ->
+          tasks.push (callback) ->
+            grunt.log.writeln("Publishing #{name}@#{version}")
+            tag = "v#{version}"
+            packageExists name, token, (error, exists) ->
+              if error?
+                callback(error)
+                return
+
+              if exists
+                createPackage name, token, (error) ->
+                  if error?
+                    callback(error)
+                  else
+                    createPackageVersion(name, tag, token, callback)
+              else
+                createPackageVersion(name, tag, token, callback)
+
+      async.waterfall tasks, (error) ->
+        if error?
+          grunt.log.error(error.message)
+          done(false)
+        else
+          done()
