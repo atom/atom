@@ -96,7 +96,10 @@ class PackageManager
 
     #TODO Remove once all package specs have been updated
     if match = /(.+)-tmbundle$/.exec(name)
-      @resolvePackagePath("language-#{match[1]}")
+      if name is 'hyperlink-helper-tmbundle'
+        @resolvePackagePath('language-hyperlink')
+      else
+        @resolvePackagePath("language-#{match[1]}")
 
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)
