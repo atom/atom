@@ -4,6 +4,7 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
+CSON = require 'season'
 temp = require 'temp'
 require 'colors'
 
@@ -199,7 +200,7 @@ class Install extends Command
   #  * packageVersion: The string version of the package.
   isPackageInstalled: (packageName, packageVersion) ->
     try
-      {version} = CSON.readFileSync(CSON.resolve(path.join(packageName, 'package'))) ? {}
+      {version} = CSON.readFileSync(CSON.resolve(path.join('node_modules', packageName, 'package'))) ? {}
       packageVersion is version
     catch error
       false
