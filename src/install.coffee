@@ -204,18 +204,22 @@ class Install extends Command
     packageName = metadata.name
     packageVersion = metadata.version
 
+    process.stdout.write "Installing #{packageName}@#{packageVersion} "
+
     auth.getToken (error, token) =>
       if error?
         callback(error)
       else
         @requestPackage packageName, token, (error, pack) =>
           if error?
+            process.stdout.write '\u2717\n'.red
             callback(error)
           else
             commands = []
             packageVersion ?= pack['dist-tags'].latest
             {tarball} = pack.versions[packageVersion]?.dist ? {}
             unless tarball
+              process.stdout.write '\u2717\n'.red
               callback("Package version: #{packageVersion} not found")
               return
 
@@ -231,7 +235,11 @@ class Install extends Command
             commands.push (packagePath, callback) =>
               @installModule(options, pack, packagePath, callback)
 
-            async.waterfall(commands, callback)
+            async.waterfall commands, (error) ->
+              if error?
+                process.stdout.write '\u2717\n'.red
+              else
+                process.stdout.write '\u2713\n'.green
 
   # Install all the package dependencies found in the package.json file.
   #
@@ -239,8 +247,6 @@ class Install extends Command
   #  * callback: The callback function to invoke when done with an error as the
   #    first argument.
   installPackageDependencies: (options, callback) ->
-    process.stdout.write 'Installing packages '
-
     options = _.extend({}, options, installGlobally: false, installNode: false)
     commands = []
     for name, version of @getPackageDependencies()
@@ -248,13 +254,7 @@ class Install extends Command
         commands.push (callback) =>
           @installPackage({name, version}, options, callback)
 
-    async.waterfall commands, (error) ->
-      if error?
-        process.stdout.write '\u2717\n'.red
-      else
-        process.stdout.write '\u2713\n'.green
-
-      callback(error)
+    async.waterfall(commands, callback)
 
   installDependencies: (options, callback) ->
     options.installGlobally = false
