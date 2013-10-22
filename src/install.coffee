@@ -43,8 +43,6 @@ class Install extends Command
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   installNode: (callback) =>
-    process.stdout.write "Installing node@#{config.getNodeVersion()} "
-
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{config.getNodeVersion()}")
     installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
@@ -56,10 +54,8 @@ class Install extends Command
     fs.mkdir(@atomDirectory)
     @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
       if code is 0
-        process.stdout.write '\u2713\n'.green
         callback()
       else
-        process.stdout.write '\u2717\n'.red
         callback("#{stdout}\n#{stderr}")
 
   installModule: (options, pack, modulePath, callback) ->
