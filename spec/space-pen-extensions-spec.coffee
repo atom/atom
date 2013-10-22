@@ -25,7 +25,7 @@ describe "SpacePen extensions", ->
 
       config.set("foo.bar", "hello")
 
-      expect(observeHandler).toHaveBeenCalledWith("hello")
+      expect(observeHandler).toHaveBeenCalledWith("hello", previous: undefined)
       observeHandler.reset()
 
       view.unobserveConfig()

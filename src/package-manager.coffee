@@ -4,6 +4,21 @@ _ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
 
+###
+Packages have a lifecycle
+
+* The paths to all non-disabled packages and themes are found on disk (these are available packages)
+* Every package (except those in core.disabledPackages) is 'loaded', meaning
+  `Package` objects are created, and their metadata loaded. This includes themes,
+  as themes are packages
+* The ThemeManager.activateThemes() is called 'activating' all the themes, meaning
+  their stylesheets are loaded into the window.
+* The PackageManager.activatePackages() function is called 'activating' non-theme
+  package, meaning its resources -- keymaps, classes, etc. -- are loaded, and
+  the package's activate() method is called.
+* Packages and themes can then be enabled and disabled via the public
+  .enablePackage(name) and .disablePackage(name) functions.
+###
 module.exports =
 class PackageManager
   Emitter.includeInto(this)
@@ -16,6 +31,10 @@ class PackageManager
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
+    @observingDisabledPackages = false
+
+    @packageActivators = []
+    @registerPackageActivator(this, ['atom', 'textmate'])
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -23,10 +42,37 @@ class PackageManager
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
-  activatePackages: ->
-    @activatePackage(pack.name) for pack in @getLoadedPackages()
+  # Public:
+  enablePackage: (name) ->
+    pack = @loadPackage(name)
+    pack?.enable()
+    pack
 
+  # Public:
+  disablePackage: (name) ->
+    pack = @loadPackage(name)
+    pack?.disable()
+    pack
+
+  # Internal-only: Activate all the packages that should be activated.
+  activate: ->
+    for [activator, types] in @packageActivators
+      packages = @getLoadedPackagesForTypes(types)
+      activator.activatePackages(packages)
+
+  # Public: another type of package manager can handle other package types.
+  # See ThemeManager
+  registerPackageActivator: (activator, types) ->
+    @packageActivators.push([activator, types])
+
+  # Internal-only:
+  activatePackages: (packages) ->
+    @activatePackage(pack.name) for pack in packages
+    @observeDisabledPackages()
+
+  # Internal-only: Activate a single package by name
   activatePackage: (name, options) ->
+    return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
       @activePackages[pack.name] = pack
       pack.activate(options)
@@ -34,6 +80,7 @@ class PackageManager
 
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
+    @unobserveDisabledPackages()
 
   deactivatePackage: (name) ->
     if pack = @getActivePackage(name)
@@ -43,14 +90,32 @@ class PackageManager
     else
       throw new Error("No active package for name '#{name}'")
 
+  getActivePackages: ->
+    _.values(@activePackages)
+
   getActivePackage: (name) ->
     @activePackages[name]
 
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
-  getActivePackages: ->
-    _.values(@activePackages)
+  unobserveDisabledPackages: ->
+    return unless @observingDisabledPackages
+    config.unobserve('core.disabledPackages')
+    @observingDisabledPackages = false
+
+  observeDisabledPackages: ->
+    return if @observingDisabledPackages
+
+    config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+      packagesToEnable = _.difference(previous, disabledPackages)
+      packagesToDisable = _.difference(disabledPackages, previous)
+
+      @deactivatePackage(packageName) for packageName in packagesToDisable when @getActivePackage(packageName)
+      @activatePackage(packageName) for packageName in packagesToEnable
+      null
+
+    @observingDisabledPackages = true
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
@@ -61,20 +126,18 @@ class PackageManager
     @emit 'loaded'
 
   loadPackage: (name, options) ->
-    if @isPackageDisabled(name)
-      return console.warn("Tried to load disabled package '#{name}'")
-
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
 
       pack = Package.load(packagePath, options)
-      if pack.metadata?.theme
-        atom.themes.register(pack)
-      else
-        @loadedPackages[pack.name] = pack
+      @loadedPackages[pack.name] = pack if pack?
       pack
     else
       throw new Error("Could not resolve '#{name}' to a package path")
+
+  unloadPackages: ->
+    @unloadPackage(name) for name in _.keys(@loadedPackages)
+    null
 
   unloadPackage: (name) ->
     if @isPackageActive(name)
@@ -85,19 +148,6 @@ class PackageManager
     else
       throw new Error("No loaded package for name '#{name}'")
 
-  resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
-
-    packagePath = fsUtils.resolve(@packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
-
-    packagePath = path.join(@resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
-
-  isInternalPackage: (packagePath) ->
-    {engines} = Package.loadMetadata(packagePath, true)
-    engines?.atom?
-
   getLoadedPackage: (name) ->
     @loadedPackages[name]
 
@@ -107,8 +157,27 @@ class PackageManager
   getLoadedPackages: ->
     _.values(@loadedPackages)
 
+  # Private: Get packages for a certain package type
+  #
+  # * types: an {Array} of {String}s like ['atom', 'textmate']
+  getLoadedPackagesForTypes: (types) ->
+    pack for pack in @getLoadedPackages() when pack.getType() in types
+
+  resolvePackagePath: (name) ->
+    return name if fsUtils.isDirectorySync(name)
+
+    packagePath = fsUtils.resolve(@packageDirPaths..., name)
+    return packagePath if fsUtils.isDirectorySync(packagePath)
+
+    packagePath = path.join(@resourcePath, 'node_modules', name)
+    return packagePath if @isInternalPackage(packagePath)
+
   isPackageDisabled: (name) ->
     _.include(config.get('core.disabledPackages') ? [], name)
+
+  isInternalPackage: (packagePath) ->
+    {engines} = Package.loadMetadata(packagePath, true)
+    engines?.atom?
 
   getAvailablePackagePaths: ->
     packagePaths = []

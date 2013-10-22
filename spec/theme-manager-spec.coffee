@@ -8,10 +8,25 @@ describe "ThemeManager", ->
   themeManager = null
 
   beforeEach ->
-    themeManager = new ThemeManager()
+    themeManager = new ThemeManager(atom.packages)
 
   afterEach ->
-    themeManager.unload()
+    themeManager.deactivateThemes()
+
+  describe "theme getters and setters", ->
+    beforeEach ->
+      atom.packages.loadPackages()
+
+    it 'getLoadedThemes get all the loaded themes', ->
+      themes = themeManager.getLoadedThemes()
+      expect(themes.length).toBeGreaterThan(2)
+
+    it 'getActiveThemes get all the active themes', ->
+      themeManager.activateThemes()
+      names = atom.config.get('core.themes')
+      expect(names.length).toBeGreaterThan(0)
+      themes = themeManager.getActiveThemes()
+      expect(themes).toHaveLength(names.length)
 
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
@@ -32,7 +47,7 @@ describe "ThemeManager", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
-      themeManager.load()
+      themeManager.activateThemes()
 
       config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
@@ -59,21 +74,7 @@ describe "ThemeManager", ->
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
-      themeManager.activateTheme('a-theme-that-will-not-be-found')
-      expect(console.warn).toHaveBeenCalled()
-
-  describe "theme-loaded event", ->
-    beforeEach ->
-      spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
-      themeManager.load()
-
-    it "fires when a new theme has been added", ->
-      themeManager.on 'theme-activated', loadHandler = jasmine.createSpy()
-
-      config.set('core.themes', ['atom-dark-syntax'])
-
-      expect(loadHandler).toHaveBeenCalled()
-      expect(loadHandler.mostRecentCall.args[0]).toBeInstanceOf AtomPackage
+      expect(-> atom.packages.activatePackage('a-theme-that-will-not-be-found')).toThrow()
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
@@ -140,7 +141,7 @@ describe "ThemeManager", ->
       window.rootView = new RootView
       rootView.append $$ -> @div class: 'editor'
       rootView.attachToDom()
-      themeManager.load()
+      themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
       config.set('core.themes', ['theme-with-ui-variables'])
