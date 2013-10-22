@@ -19,11 +19,11 @@ class Cleaner extends Command
 
   getDependencies: (modulePath, allDependencies) ->
     try
-      {dependencies} = CSON.readFileSync(CSON.resolve(path.join(modulePath, 'package'))) ? {}
+      {dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve(path.join(modulePath, 'package'))) ? {}
     catch error
       return
 
-    _.extend(allDependencies, dependencies)
+    _.extend(allDependencies, dependencies, packageDependencies)
 
     modulesPath = path.join(modulePath, 'node_modules')
     for installedModule in fs.list(modulesPath) when installedModule isnt '.bin'
