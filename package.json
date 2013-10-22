@@ -47,8 +47,7 @@
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
     "express": "~3.2.3",
-    "grunt-coffeelint": "0.0.6",
-    "couchapp": "~0.9.1"
+    "grunt-coffeelint": "0.0.6"
   },
   "publishConfig": {
     "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
