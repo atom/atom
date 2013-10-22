@@ -221,7 +221,10 @@ class Install extends Command
       callback()
       return
 
-    process.stdout.write "Installing #{packageName}@#{packageVersion} "
+    unless installGlobally
+      label = packageName
+      label += "@#{packageVersion}" if packageVersion
+      process.stdout.write "Installing #{label} "
 
     auth.getToken (error, token) =>
       if error?
@@ -253,10 +256,11 @@ class Install extends Command
               @installModule(options, pack, packagePath, callback)
 
             async.waterfall commands, (error) ->
-              if error?
-                process.stdout.write '\u2717\n'.red
-              else
-                process.stdout.write '\u2713\n'.green
+              unless installGlobally
+                if error?
+                  process.stdout.write '\u2717\n'.red
+                else
+                  process.stdout.write '\u2713\n'.green
               callback(error)
 
   # Install all the package dependencies found in the package.json file.
