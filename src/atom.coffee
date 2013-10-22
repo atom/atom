@@ -297,18 +297,22 @@ class Atom
     process.crash()
 
   beep: ->
+    @audioBeep()
+    @visualBeep()
+
+  audioBeep: ->
     shell.beep()
+
+  visualBeep: ->
+    overlay = $$ -> @div class: 'visual-beep'
+    $('body').append overlay
+    setTimeout((-> overlay.remove()), 1000)
 
   requireUserInitScript: ->
     userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
     try
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
-  visualBeep: ->
-    overlay = $$ -> @div class: 'visual-beep'
-    $('body').append overlay
-    setTimeout((-> overlay.remove()), 1000)
-
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   requireWithGlobals: (id, globals={}) ->
