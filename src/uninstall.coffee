@@ -7,7 +7,7 @@ optimist = require 'optimist'
 fs = require './fs'
 
 module.exports =
-class Uninstaller
+class Uninstall
   @commandNames: ['uninstall']
 
   parseOptions: (argv) ->

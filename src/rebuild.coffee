@@ -6,10 +6,10 @@ optimist = require 'optimist'
 
 config = require './config'
 Command = require './command'
-Installer = require './installer'
+Install = require './install'
 
 module.exports =
-class Rebuilder extends Command
+class Rebuild extends Command
   @commandNames: ['rebuild']
 
   constructor: ->
@@ -30,7 +30,7 @@ class Rebuilder extends Command
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: ({callback}) ->
-    new Installer().installNode (error) =>
+    new Install().installNode (error) =>
       if error?
         callback(error)
       else

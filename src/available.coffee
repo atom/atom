@@ -9,7 +9,7 @@ config = require './config'
 tree = require './tree'
 
 module.exports =
-class Fetcher
+class Available
   @commandNames: ['available']
 
   parseOptions: (argv) ->

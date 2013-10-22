@@ -8,7 +8,7 @@ fs = require './fs'
 tree = require './tree'
 
 module.exports =
-class LinkLister
+class Links
   @commandNames: ['linked', 'links']
 
   constructor: ->

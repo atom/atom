@@ -8,7 +8,7 @@ fs = require './fs'
 config = require './config'
 
 module.exports =
-class Unlinker
+class Unlink
   @commandNames: ['unlink']
 
   constructor: ->

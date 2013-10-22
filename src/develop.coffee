@@ -9,10 +9,10 @@ require 'colors'
 
 config = require './config'
 Command = require './command'
-Linker = require './linker'
+Link = require './link'
 
 module.exports =
-class Developer extends Command
+class Develop extends Command
   @commandNames: ['dev', 'develop']
 
   atomDirectory: null
@@ -75,7 +75,7 @@ class Developer extends Command
   linkPackage: (packageDirectory, options) ->
     linkOptions = _.clone(options)
     linkOptions.commandArgs = [packageDirectory, '--dev']
-    new Linker().run(linkOptions)
+    new Link().run(linkOptions)
 
   run: (options) ->
     packageName = options.commandArgs.shift()

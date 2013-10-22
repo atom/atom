@@ -22,8 +22,8 @@ describe "apm develop", ->
 
   describe "when the package doesn't have a published repository url", ->
     it "logs an error", ->
-      Developer = require '../lib/developer'
-      spyOn(Developer.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
+      Develop = require '../lib/develop'
+      spyOn(Develop.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
         callback("Here is the error")
 
       callback = jasmine.createSpy('callback')
@@ -39,8 +39,8 @@ describe "apm develop", ->
 
   describe "when the repository hasn't been cloned", ->
     it "clones the repository to ATOM_REPOS_HOME and links it to ATOM_HOME/dev/packages", ->
-      Developer = require '../lib/developer'
-      spyOn(Developer.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
+      Develop = require '../lib/develop'
+      spyOn(Develop.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
         repoUrl = path.join(__dirname, 'fixtures', 'repo.git')
         callback(null, repoUrl)
 

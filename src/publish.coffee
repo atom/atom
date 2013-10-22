@@ -11,7 +11,7 @@ config = require './config'
 Command = require './command'
 
 module.exports =
-class Publisher extends Command
+class Publish extends Command
   @commandNames: ['publish']
 
   constructor: ->

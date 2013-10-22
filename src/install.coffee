@@ -13,7 +13,7 @@ Command = require './command'
 fs = require './fs'
 
 module.exports =
-class Installer extends Command
+class Install extends Command
   @commandNames: ['install']
 
   constructor: ->

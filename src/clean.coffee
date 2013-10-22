@@ -8,10 +8,9 @@ _ = require 'underscore'
 Command = require './command'
 config = require './config'
 fs = require './fs'
-Installer = require './installer'
 
 module.exports =
-class Cleaner extends Command
+class Clean extends Command
   @commandNames: ['clean']
 
   constructor: ->

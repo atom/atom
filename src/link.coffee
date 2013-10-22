@@ -6,7 +6,7 @@ config = require './config'
 optimist = require 'optimist'
 
 module.exports =
-class Linker
+class Link
   @commandNames: ['link', 'ln']
 
   parseOptions: (argv) ->
