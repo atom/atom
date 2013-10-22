@@ -123,7 +123,7 @@ class Publish extends Command
       request.get requestSettings, (error, response, body={}) ->
         if error?
           callback(error)
-        else if response.statusCode isnt 200
+        else if response.statusCode isnt 201
           message = body.message ? body
           callback("Registering package failed: #{message}")
         else
@@ -152,7 +152,7 @@ class Publish extends Command
       request.get requestSettings, (error, response, body={}) ->
         if error?
           callback(error)
-        else if response.statusCode isnt 200
+        else if response.statusCode isnt 201
           message = body.message ? body
           callback("Creating new version failed: #{message}")
         else
