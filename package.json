@@ -21,7 +21,7 @@
     "apm": "./bin/apm"
   },
   "scripts": {
-    "prepublish": "grunt clean coffee lint",
+    "prepublish": "grunt prepublish",
     "test": "grunt test"
   },
   "dependencies": {
