@@ -172,7 +172,7 @@ class Publish extends Command
       return
 
     publishNewVersion = =>
-      process.stdout.write "Publishing #{pack.name}@#{pack.version} "
+      process.stdout.write "Publishing #{pack.name}@#{tag} "
       @createPackageVersion pack.name, tag, (error) ->
         if error?
           process.stdout.write '\u2717\n'.red
