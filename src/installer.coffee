@@ -230,8 +230,9 @@ class Installer extends Command
     options = _.extend({}, options, installGlobally: false, installNode: false)
     commands = []
     for name, version of @getPackageDependencies()
-      commands.push (callback) =>
-        @installPackage({name, version}, options, callback)
+      do (name, version) =>
+        commands.push (callback) =>
+          @installPackage({name, version}, options, callback)
 
     async.waterfall commands, (error) ->
       if error?
