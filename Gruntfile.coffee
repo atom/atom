@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+os = require 'os'
 
 fm = require 'json-front-matter'
 _ = require 'underscore-plus'
@@ -9,7 +10,8 @@ packageJson = require './package.json'
 module.exports = (grunt) ->
   appName = 'Atom.app'
   [major, minor, patch] = packageJson.version.split('.')
-  buildDir = grunt.option('build-dir') ? '/tmp/atom-build'
+  tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
+  buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   shellAppDir = path.join(buildDir, appName)
   contentsDir = path.join(shellAppDir, 'Contents')
   appDir = path.join(contentsDir, 'Resources', 'app')

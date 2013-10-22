@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+os = require 'os'
 
 request = require 'request'
 formidable = require 'formidable'
@@ -70,7 +71,11 @@ module.exports = (grunt) ->
     else
       null
 
-  getCachePath = (version) -> "/tmp/atom-cached-atom-shells/#{version}"
+  getTempDir = ->
+    if process.platform is 'win32' then os.tmpdir() else '/tmp'
+
+  getCachePath = (version) ->
+    path.join(getTempDir(), 'atom-cached-atom-shells', version)
 
   isAtomShellVersionCached = (version) ->
     grunt.file.isFile(getCachePath(version), 'version')

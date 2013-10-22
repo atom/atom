@@ -8,13 +8,14 @@ dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
+os = require 'os'
 net = require 'net'
 shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath = '/tmp/atom.sock'
+socketPath = path.join(os.tmpdir(), 'atom.sock')
 
 # Private: The application's singleton class.
 #

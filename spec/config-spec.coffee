@@ -1,8 +1,11 @@
 {fs} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 CSON = require 'season'
 
 describe "Config", ->
+  dotAtomPath = path.join(temp.dir, 'dot-atom-dir')
+
   describe ".get(keyPath)", ->
     it "allows a key path's value to be read", ->
       expect(config.set("foo.bar.baz", 42)).toBe 42
@@ -162,11 +165,11 @@ describe "Config", ->
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configDirPath = dotAtomPath
       expect(fs.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
@@ -185,12 +188,12 @@ describe "Config", ->
 
   describe ".loadUserConfig()", ->
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fs.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
@@ -222,7 +225,7 @@ describe "Config", ->
     updatedHandler = null
 
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fs.exists(config.configDirPath)).toBeFalsy()
       fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
@@ -233,7 +236,7 @@ describe "Config", ->
 
     afterEach ->
       config.unobserveUserConfig()
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
 
     describe "when the config file changes to contain valid cson", ->
       it "updates the config data", ->
