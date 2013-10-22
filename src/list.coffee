@@ -1,6 +1,6 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 CSON = require 'season'
 optimist = require 'optimist'
 
@@ -9,7 +9,7 @@ config = require './config'
 tree = require './tree'
 
 module.exports =
-class Lister
+class List
   @commandNames: ['list', 'ls']
 
   constructor: ->

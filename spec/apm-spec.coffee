@@ -2,12 +2,14 @@ path = require 'path'
 http = require 'http'
 express = require 'express'
 apm = require '../lib/apm'
+auth = require '../lib/auth'
 
 describe 'apm API', ->
   describe '.getAvailablePackages(atomVersion, callback)', ->
     server = null
 
     beforeEach ->
+      spyOn(auth, 'getToken').andCallFake (callback) -> callback(null, 'token')
       app = express()
       app.get '/available', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'available.json')
@@ -33,7 +35,7 @@ describe 'apm API', ->
           expect(available[1].name).toBe 'multi-version'
           expect(available[1].version).toBe '2.0.0'
 
-    describe 'when a version is specified', ->
+    xdescribe 'when a version is specified', ->
       it 'returns the packages that are applicable for that version', ->
         available = null
 

@@ -1,15 +1,15 @@
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 require 'colors'
 optimist = require 'optimist'
 
 config = require './config'
 Command = require './command'
-Installer = require './installer'
+Install = require './install'
 
 module.exports =
-class Rebuilder extends Command
+class Rebuild extends Command
   @commandNames: ['rebuild']
 
   constructor: ->
@@ -30,7 +30,7 @@ class Rebuilder extends Command
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: ({callback}) ->
-    new Installer().installNode (error) =>
+    new Install().installNode (error) =>
       if error?
         callback(error)
       else
@@ -48,4 +48,4 @@ class Rebuilder extends Command
             callback()
           else
             process.stdout.write '\u2717\n'.red
-            callback(stderr.red)
+            callback(stderr)

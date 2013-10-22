@@ -8,6 +8,9 @@ module.exports =
   getAtomDirectory: ->
     process.env.ATOM_HOME ? path.join(@getHomeDirectory(), '.atom')
 
+  getPackageCacheDirectory: ->
+    path.join(@getAtomDirectory(), '.node-gyp', '.atom', '.apm')
+
   getResourcePath: ->
     process.env.ATOM_RESOURCE_PATH ? '/Applications/Atom.app/Contents/Resources/app'
 
@@ -18,7 +21,7 @@ module.exports =
     process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist'
 
   getAtomPackagesUrl: ->
-    process.env.ATOM_PACKAGES_URL ? 'https://atom.cloudant.com/registry/_design/apm/_view/atom_packages'
+    process.env.ATOM_PACKAGES_URL ? 'https://www.atom.io/api/packages'
 
   getNodeVersion: ->
     process.env.ATOM_NODE_VERSION ? '0.10.18'

@@ -1,23 +1,25 @@
 fs = require 'fs'
 
+_ = require 'underscore-plus'
+require 'colors'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
 commandClasses = [
-  require './cleaner'
-  require './developer'
-  require './fetcher'
+  require './available'
+  require './clean'
+  require './develop'
   require './init'
-  require './installer'
-  require './link-lister'
-  require './linker'
-  require './lister'
-  require './publisher'
-  require './rebuilder'
+  require './install'
+  require './links'
+  require './link'
+  require './list'
+  require './publish'
+  require './rebuild'
   require './test'
-  require './uninstaller'
-  require './unlinker'
-  require './updater'
+  require './uninstall'
+  require './unlink'
+  require './update'
 ]
 
 commands = {}
@@ -53,7 +55,10 @@ module.exports =
       callbackCalled = true
       if error?
         callback?(error)
-        console.error(error)
+        if _.isString(error)
+          console.error(error.red)
+        else
+          console.error(error.stack ? error)
         process.exit(1)
       else
         callback?()

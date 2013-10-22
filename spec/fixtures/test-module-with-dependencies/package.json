@@ -2,6 +2,6 @@
   "name": "test-module-with-dependencies",
   "version": "1.0.0",
   "dependencies": {
-    "test-module": "http://localhost:3000/test-module-1.0.0.tgz"
+    "test-module": "http://localhost:3000/tarball/test-module-1.0.0.tgz"
   }
 }

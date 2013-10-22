@@ -2,6 +2,7 @@
   "name": "atom-package-manager",
   "description": "Atom package manager",
   "version": "0.7.0",
+  "private": true,
   "licenses": [
     {
       "type": "MIT",
@@ -20,13 +21,13 @@
     "apm": "./bin/apm"
   },
   "scripts": {
-    "prepublish": "grunt clean coffee lint",
+    "prepublish": "grunt prepublish",
     "test": "grunt test"
   },
   "dependencies": {
     "optimist": "~0.4.0",
     "async": "~0.2.8",
-    "underscore": "~1.4.4",
+    "underscore-plus": "~0.2.0",
     "mkdirp": "~0.3.5",
     "temp": "~0.5.0",
     "wrench": "~1.5.1",
@@ -41,16 +42,12 @@
     "wordwrap": "0.0.2"
   },
   "devDependencies": {
-    "jasmine-focused": "~0.12.0",
+    "jasmine-focused": "~0.15.0",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
     "express": "~3.2.3",
-    "grunt-coffeelint": "0.0.6",
-    "couchapp": "~0.9.1"
-  },
-  "publishConfig": {
-    "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
+    "grunt-coffeelint": "0.0.6"
   }
 }

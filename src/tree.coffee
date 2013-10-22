@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 module.exports = (items, options={}, callback) ->
   if _.isFunction(options)

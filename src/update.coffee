@@ -1,10 +1,10 @@
 optimist = require 'optimist'
 
-Cleaner = require './cleaner'
-Installer = require './installer'
+Clean = require './clean'
+Install = require './install'
 
 module.exports =
-class Updater
+class Update
   @commandNames: ['update']
 
   parseOptions: (argv) ->
@@ -27,6 +27,6 @@ class Updater
       if error?
         finalCallback(error)
       else
-        new Installer().installDependencies(options, finalCallback)
+        new Install().installDependencies(options, finalCallback)
 
-    new Cleaner().run(options)
+    new Clean().run(options)

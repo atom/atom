@@ -1,7 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 npm = require 'npm'
 npmconf = require 'npmconf'
 optimist = require 'optimist'
@@ -9,10 +9,10 @@ require 'colors'
 
 config = require './config'
 Command = require './command'
-Linker = require './linker'
+Link = require './link'
 
 module.exports =
-class Developer extends Command
+class Develop extends Command
   @commandNames: ['dev', 'develop']
 
   atomDirectory: null
@@ -58,24 +58,24 @@ class Developer extends Command
           if repoUrl = _.values(data)[0]?.repository?.url
             callback(null, repoUrl)
           else
-            callback("#{packageName} has no repository url".red)
+            callback("#{packageName} has no repository url")
 
   cloneRepository: (repoUrl, packageDirectory, options) ->
     command = "git"
     args = ['clone', '--recursive', repoUrl, packageDirectory]
     process.stdout.write "Cloning #{repoUrl} "
-    @spawn command, args, (code, stderr, stdout) =>
+    @spawn command, args, (code, stderr='', stdout='') =>
       if code is 0
         process.stdout.write '\u2713\n'.green
         @linkPackage(packageDirectory, options)
       else
         process.stdout.write '\u2717\n'.red
-        options.callback("#{stdout}\n#{stderr}".red)
+        options.callback("#{stdout}\n#{stderr}")
 
   linkPackage: (packageDirectory, options) ->
     linkOptions = _.clone(options)
     linkOptions.commandArgs = [packageDirectory, '--dev']
-    new Linker().run(linkOptions)
+    new Link().run(linkOptions)
 
   run: (options) ->
     packageName = options.commandArgs.shift()

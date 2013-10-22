@@ -8,7 +8,7 @@ fs = require './fs'
 config = require './config'
 
 module.exports =
-class Unlinker
+class Unlink
   @commandNames: ['unlink']
 
   constructor: ->
@@ -43,7 +43,7 @@ class Unlinker
       fs.unlinkSync(pathToUnlink) if fs.isLink(pathToUnlink)
       process.stdout.write '\u2713\n'.green
     catch error
-      process.stdout.write '\u2713\n'.red
+      process.stdout.write '\u2717\n'.red
       throw error
 
   unlinkAll: (options, callback) ->

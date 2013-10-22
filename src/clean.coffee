@@ -3,15 +3,14 @@ path = require 'path'
 async = require 'async'
 CSON = require 'season'
 optimist = require 'optimist'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 Command = require './command'
 config = require './config'
 fs = require './fs'
-Installer = require './installer'
 
 module.exports =
-class Cleaner extends Command
+class Clean extends Command
   @commandNames: ['clean']
 
   constructor: ->
@@ -19,7 +18,7 @@ class Cleaner extends Command
 
   getDependencies: (modulePath, allDependencies) ->
     try
-      {dependencies} = CSON.readFileSync(CSON.resolve(path.join(modulePath, 'package'))) ? {}
+      {dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve(path.join(modulePath, 'package'))) ? {}
     catch error
       return
 
@@ -30,9 +29,10 @@ class Cleaner extends Command
       @getDependencies(path.join(modulesPath, installedModule), allDependencies)
 
   getModulesToRemove: ->
-    {devDependencies, dependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
+    {devDependencies, dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
     devDependencies ?= {}
     dependencies ?= {}
+    packageDependencies ?= {}
 
     modulesToRemove = []
     modulesPath = path.resolve('node_modules')
@@ -47,6 +47,7 @@ class Cleaner extends Command
     for installedModule in installedModules
       continue if dependencies.hasOwnProperty(installedModule)
       continue if devDependencies.hasOwnProperty(installedModule)
+      continue if packageDependencies.hasOwnProperty(installedModule)
       modulesToRemove.push(installedModule)
 
     modulesToRemove
@@ -75,6 +76,6 @@ class Cleaner extends Command
             callback()
           else
             process.stdout.write '\u2717\n'.red
-            callback("#{stdout}\n#{stderr}".red)
+            callback("#{stdout}\n#{stderr}")
 
     async.waterfall(uninstallCommands, options.callback)
