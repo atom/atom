@@ -58,16 +58,23 @@ class Installer extends Command
       else
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
-
   installModule: (options, modulePath, callback) ->
     process.stdout.write "Installing #{modulePath} to #{@atomPackagesDirectory} "
+
+    vsArgs = null
+    if config.isWin32()
+      vsArgs = "--msvs_version=2010" if config.isVs2010Installed()
+      vsArgs = "--msvs_version=2012" if config.isVs2012Installed()
+  
+      throw new Error("You must have either VS2010 or VS2012 installed") unless vsArgs
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push('--msvs_version=2012') if config.isWin32()
+    installArgs.push(vsArgs) if vsArgs?
+
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
 
