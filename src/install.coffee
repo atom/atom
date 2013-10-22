@@ -240,6 +240,7 @@ class Install extends Command
                 process.stdout.write '\u2717\n'.red
               else
                 process.stdout.write '\u2713\n'.green
+              callback()
 
   # Install all the package dependencies found in the package.json file.
   #
