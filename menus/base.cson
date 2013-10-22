@@ -49,6 +49,11 @@
   }
 
   {
+    label: 'Find'
+    submenu: []
+  }
+
+  {
     label: 'View'
     submenu: [
       { label: 'Reload', command: 'window:reload' }
@@ -65,6 +70,16 @@
       { type: 'separator' }
       { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
     ]
+  }
+
+  {
+    label: 'Collaboration'
+    submenu: []
+  }
+
+  {
+    label: 'Packages'
+    submenu: []
   }
 
   {
