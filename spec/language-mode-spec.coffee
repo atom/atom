@@ -6,7 +6,7 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
-      atom.activatePackage('javascript-tmbundle', sync: true)
+      atom.activatePackage('language-javascript', sync: true)
       editSession = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -97,7 +97,7 @@ describe "LanguageMode", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      atom.activatePackage('coffee-script-tmbundle', sync: true)
+      atom.activatePackage('language-coffee-script', sync: true)
       editSession = project.openSync('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -144,7 +144,7 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.activatePackage('css-tmbundle', sync: true)
+      atom.activatePackage('language-css', sync: true)
       editSession = project.openSync('css.css', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -185,8 +185,8 @@ describe "LanguageMode", ->
 
   describe "less", ->
     beforeEach ->
-      atom.activatePackage('less-tmbundle', sync: true)
-      atom.activatePackage('css-tmbundle', sync: true)
+      atom.activatePackage('language-less', sync: true)
+      atom.activatePackage('language-css', sync: true)
       editSession = project.openSync('sample.less', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -197,7 +197,7 @@ describe "LanguageMode", ->
 
   describe "folding", ->
     beforeEach ->
-      atom.activatePackage('javascript-tmbundle', sync: true)
+      atom.activatePackage('language-javascript', sync: true)
       editSession = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -287,7 +287,7 @@ describe "LanguageMode", ->
 
   describe "folding with comments", ->
     beforeEach ->
-      atom.activatePackage('javascript-tmbundle', sync: true)
+      atom.activatePackage('language-javascript', sync: true)
       editSession = project.openSync('sample-with-comments.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
@@ -340,8 +340,8 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.activatePackage('source-tmbundle', sync: true)
-      atom.activatePackage('css-tmbundle', sync: true)
+      atom.activatePackage('language-source', sync: true)
+      atom.activatePackage('language-css', sync: true)
       editSession = project.openSync('css.css', autoIndent: true)
 
     describe "suggestedIndentForBufferRow", ->

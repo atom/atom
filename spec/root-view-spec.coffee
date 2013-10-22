@@ -1,6 +1,7 @@
 {$, $$, fs, RootView, View} = require 'atom'
 Q = require 'q'
 path = require 'path'
+temp = require 'temp'
 Pane = require '../src/pane'
 
 describe "RootView", ->
@@ -162,7 +163,7 @@ describe "RootView", ->
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editSession = rootView.getActivePaneItem()
-          editSession.buffer.setPath('/tmp/hi')
+          editSession.buffer.setPath(path.join(temp.dir, 'hi'))
           expect(rootView.title).toBe "#{editSession.getTitle()} - #{project.getPath()}"
 
       describe "when the active pane's item changes", ->

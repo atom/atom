@@ -1,3 +1,5 @@
+path = require 'path'
+temp = require 'temp'
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {_, $, View, $$} = require 'atom'
@@ -12,7 +14,7 @@ describe "PaneContainer", ->
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
       serialize: -> { deserializer: 'TestView', @name }
-      getUri: -> "/tmp/#{@name}"
+      getUri: -> path.join(temp.dir, @name)
       save: -> @saved = true
       isEqual: (other) -> @name is other.name
 
