@@ -16,7 +16,7 @@ describe "EditSession", ->
 
   describe "with default options", ->
     beforeEach ->
-      atom.activatePackage('javascript-tmbundle', sync: true)
+      atom.activatePackage('language-javascript', sync: true)
       editSession = project.openSync('sample.js', autoIndent: false)
       buffer = editSession.buffer
       lineLengths = buffer.getLines().map (line) -> line.length

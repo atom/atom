@@ -94,6 +94,13 @@ class PackageManager
     packagePath = path.join(@resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
 
+    #TODO Remove once all package specs have been updated
+    if match = /(.+)-tmbundle$/.exec(name)
+      if name is 'hyperlink-helper-tmbundle'
+        @resolvePackagePath('language-hyperlink')
+      else
+        @resolvePackagePath("language-#{match[1]}")
+
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)
     engines?.atom?

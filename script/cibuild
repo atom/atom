@@ -27,15 +27,14 @@ function readEnvironmentVariables(callback) {
   });
 }
 
-cp.safeExec('node script/bootstrap', function() {
-  var async = require('async');
-  async.series([
-    readEnvironmentVariables,
-    require('rimraf').bind(global, path.join(homeDir, '.atom')),
-    cp.safeExec.bind(global, 'git clean -dff'),
-    cp.safeExec.bind(global, 'node node_modules/.bin/apm clean'),
-    cp.safeExec.bind(global, 'node node_modules/.bin/grunt ci --stack --no-color'),
-  ], function(error) {
-    process.exit(error ? 1 : 0);
-  });
+var async = require('async');
+async.series([
+  readEnvironmentVariables,
+  cp.safeExec.bind(global, 'node script/bootstrap'),
+  require('rimraf').bind(global, path.join(homeDir, '.atom')),
+  cp.safeExec.bind(global, 'git clean -dff'),
+  cp.safeExec.bind(global, 'node node_modules/.bin/apm clean'),
+  cp.safeExec.bind(global, 'node node_modules/.bin/grunt ci --stack --no-color'),
+], function(error) {
+  process.exit(error ? 1 : 0);
 });

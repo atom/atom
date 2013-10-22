@@ -5,10 +5,10 @@ TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->
   beforeEach ->
-    atom.activatePackage('text-tmbundle', sync: true)
-    atom.activatePackage('javascript-tmbundle', sync: true)
-    atom.activatePackage('coffee-script-tmbundle', sync: true)
-    atom.activatePackage('ruby-tmbundle', sync: true)
+    atom.activatePackage('language-text', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
+    atom.activatePackage('language-coffee-script', sync: true)
+    atom.activatePackage('language-ruby', sync: true)
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->
@@ -21,7 +21,7 @@ describe "the `syntax` global", ->
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
-      atom.activatePackage('git-tmbundle', sync: true)
+      atom.activatePackage('language-git', sync: true)
 
       expect(syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
       expect(syntax.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
@@ -34,7 +34,7 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(filePath).name).toBe "Ruby"
 
     it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
-      atom.activatePackage('property-list-tmbundle', sync: true)
+      atom.activatePackage('language-property-list', sync: true)
 
       fileContent = "first-line\n<html>"
       expect(syntax.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"
