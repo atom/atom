@@ -33,6 +33,7 @@ class Cleaner extends Command
     {devDependencies, dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
     devDependencies ?= {}
     dependencies ?= {}
+    packageDependencies ?= {}
 
     modulesToRemove = []
     modulesPath = path.resolve('node_modules')
