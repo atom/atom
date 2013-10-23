@@ -61,10 +61,6 @@ class Atom
     @keymap = new Keymap()
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
-    #TODO Remove once packages have been updated to not touch atom.packageStates directly
-    @__defineGetter__ 'packageStates', => @packages.packageStates
-    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
-
     @subscribe @packages, 'activated', => @watchThemes()
     @themes = new ThemeManager(@packages)
     @contextMenu = new ContextMenuManager(devMode)
