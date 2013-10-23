@@ -5,13 +5,12 @@ Emitter::trigger = (args...) -> @emit(args...)
 Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
 fsUtils = require './fs-utils'
-{$} = require './space-pen-extensions'
+{$, $$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 Package = require './package'
 ipc = require 'ipc'
 remote = require 'remote'
 shell = require 'shell'
-{$$} = require 'space-pen'
 crypto = require 'crypto'
 path = require 'path'
 os = require 'os'
