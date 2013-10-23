@@ -2,6 +2,7 @@
   "name": "__package-name__",
   "main": "./lib/__package-name__",
   "version": "0.0.0",
+  "private": true,
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
   "repository": {
@@ -15,8 +16,5 @@
     "atom": ">27.0"
   },
   "dependencies": {
-  },
-  "publishConfig": {
-    "registry": "https://atom.cloudant.com/registry/_design/app/_rewrite"
   }
 }
