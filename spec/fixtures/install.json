@@ -1,5 +1,5 @@
 {
-    "dist-tags": {
+    "releases": {
         "latest": "0.4.0"
     },
     "name": "test-module",

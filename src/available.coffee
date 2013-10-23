@@ -40,9 +40,9 @@ class Available
           if error?
             callback(error)
           else if response.statusCode is 200
-            packages = body.filter (pack) -> pack['dist-tags']?.latest?
+            packages = body.filter (pack) -> pack['releases']?.latest?
             packages = packages.map (pack) ->
-              _.extend(version: pack['dist-tags'].latest, pack)
+              _.extend(version: pack['releases'].latest, pack)
             callback(null, packages)
           else
             message = body.message ? body.error ? body

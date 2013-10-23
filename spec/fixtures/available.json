@@ -1,13 +1,13 @@
 [
   {
     "name": "beverly-hills",
-    "dist-tags": {
+    "releases": {
       "latest": "9.0.2.1.0"
     }
   },
   {
     "name": "multi-version",
-    "dist-tags": {
+    "releases": {
       "latest": "2.0.0",
       "other": "1.0.0"
     }

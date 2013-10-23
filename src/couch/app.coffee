@@ -8,7 +8,7 @@ module.exports =
         return if doc.deprecated
         return if doc._id.match(/^npm-test-.+$/) and
                   doc.maintainers?[0]?.name is 'isaacs'
-        return unless doc['dist-tags']?.latest?
+        return unless doc['releases']?.latest?
 
         releases = {}
         hasAtomRelease = false
