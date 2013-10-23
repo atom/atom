@@ -21,6 +21,7 @@ class Available
       List all the Atom packages that have been published to the apm registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.boolean('json').describe('json', 'Output available packages as JSON array')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
