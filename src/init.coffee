@@ -20,8 +20,8 @@ class Generator extends Command
       Generates code scaffolding for either a theme or package depending
       on option selected.
     """
-    options.alias('p', 'package').describe('package', 'Generates a basic package')
-    options.alias('t', 'theme').describe('theme', 'Generates a basic theme')
+    options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
+    options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
