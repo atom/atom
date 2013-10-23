@@ -2,6 +2,7 @@ fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
+shell = require 'shell'
 {$, $$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
@@ -51,7 +52,6 @@ class RootView extends View
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
     audioBeep: true
-    visualBeep: false
 
   @acceptsDocuments: true
 
@@ -223,6 +223,11 @@ class RootView extends View
         @setTitle(projectPath)
     else
       @setTitle('untitled')
+
+  # Public: Trigger alert sound and `beep` event
+  beep: ->
+    shell.beep() if config.get('core.audioBeep')
+    @trigger 'beep'
 
   # Public: Sets the application's title.
   setTitle: (title) ->

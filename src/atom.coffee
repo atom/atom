@@ -304,16 +304,7 @@ class Atom
     process.crash()
 
   beep: ->
-    @audioBeep() if @config.get('core.audioBeep')
-    @visualBeep() if @config.get('core.visualBeep')
-
-  audioBeep: ->
-    shell.beep()
-
-  visualBeep: ->
-    overlay = $$ -> @div class: 'visual-beep'
-    $('body').append overlay
-    setTimeout((-> overlay.remove()), 300)
+    @rootView.beep()
 
   requireUserInitScript: ->
     userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
