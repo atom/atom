@@ -144,7 +144,7 @@ class Install extends Command
         message = body.message ? body
         callback("Request for package information failed: #{message}")
       else
-        if latestVersion = body['releases'].latest
+        if latestVersion = body.releases.latest
           callback(null, body)
         else
           callback("No releases available for #{packageName}")
@@ -231,7 +231,7 @@ class Install extends Command
             callback(error)
           else
             commands = []
-            packageVersion ?= pack['releases'].latest
+            packageVersion ?= pack.releases.latest
             {tarball} = pack.versions[packageVersion]?.dist ? {}
             unless tarball
               process.stdout.write '\u2717\n'.red

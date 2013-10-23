@@ -41,7 +41,7 @@ class Available
           if error?
             callback(error)
           else if response.statusCode is 200
-            packages = body.filter (pack) -> pack['releases']?.latest?
+            packages = body.filter (pack) -> pack.releases?.latest?
             packages = packages.map ({readme, metadata}) -> _.extend({}, metadata, {readme})
             callback(null, packages)
           else
