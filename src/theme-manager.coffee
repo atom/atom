@@ -64,6 +64,12 @@ class ThemeManager
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
 
+  # Public: Set the list of enabled themes.
+  #
+  # * enabledThemeNames: An {Array} of {String} theme names.
+  setEnabledThemes: (enabledThemeNames) ->
+    atom.config.set('core.themes', enabledThemeNames)
+
   # Public:
   getImportPaths: ->
     activeThemes = @getActiveThemes()
