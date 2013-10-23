@@ -303,7 +303,7 @@ class Atom
     process.crash()
 
   beep: ->
-    shell.beep() if config.get('core.audioBeep')
+    shell.beep() if @config.get('core.audioBeep')
     @rootView.trigger 'beep'
 
   requireUserInitScript: ->
