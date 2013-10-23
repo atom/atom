@@ -1,12 +1,13 @@
 {_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('text-tmbundle', sync: true)
-    atom.activatePackage('javascript-tmbundle', sync: true)
+    atom.activatePackage('language-text', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
     editSession = project.openSync('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
@@ -86,7 +87,7 @@ describe "Editor", ->
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
-      filePath = "/tmp/atom-changed-file.txt"
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeSync(filePath, "")
       editSession = project.openSync(filePath)
       editor.edit(editSession)
@@ -151,7 +152,7 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
-      filePath = "/tmp/atom-changed-file.txt"
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeSync(filePath, "")
       tempEditSession = project.openSync(filePath)
       editor.edit(tempEditSession)
@@ -247,7 +248,7 @@ describe "Editor", ->
     filePath = null
 
     beforeEach ->
-      filePath = "/tmp/something.txt"
+      filePath = path.join(temp.dir, 'something.txt')
       fs.writeSync(filePath, filePath)
 
     afterEach ->
@@ -274,11 +275,11 @@ describe "Editor", ->
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
-      oldBuffer.saveAs("/tmp/atom-bad.txt")
+      oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
       expect(eventHandler).not.toHaveBeenCalled()
 
       eventHandler.reset()
-      editor.getBuffer().saveAs("/tmp/atom-new.txt")
+      editor.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
       expect(eventHandler).toHaveBeenCalled()
 
     it "loads the grammar for the new path", ->
@@ -2296,7 +2297,8 @@ describe "Editor", ->
     [filePath] = []
 
     beforeEach ->
-      filePath = path.join(fs.absolute("/tmp"), "grammar-change.txt")
+      tmpdir = fs.absolute(temp.dir)
+      filePath = path.join(tmpdir, "grammar-change.txt")
       fs.writeSync(filePath, "var i;")
 
     afterEach ->
@@ -2648,10 +2650,11 @@ describe "Editor", ->
 
       editor.trigger 'editor:save-debug-snapshot'
 
+      statePath = path.join(temp.dir, 'state')
       expect(atom.showSaveDialog).toHaveBeenCalled()
-      saveDialogCallback('/tmp/state')
+      saveDialogCallback(statePath)
       expect(fs.writeSync).toHaveBeenCalled()
-      expect(fs.writeSync.argsForCall[0][0]).toBe '/tmp/state'
+      expect(fs.writeSync.argsForCall[0][0]).toBe statePath
       expect(typeof fs.writeSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->

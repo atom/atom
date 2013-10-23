@@ -13,10 +13,12 @@ fsExtensions =
   absolute: (relativePath) ->
     return null unless relativePath?
 
+    homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
     if relativePath is '~'
-      relativePath = process.env.HOME
+      relativePath = homeDir
     else if relativePath.indexOf('~/') is 0
-      relativePath = "#{process.env.HOME}#{relativePath.substring(1)}"
+      relativePath = "#{homeDir}#{relativePath.substring(1)}"
 
     try
       fs.realpathSync(relativePath)

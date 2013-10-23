@@ -8,13 +8,14 @@ dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
+os = require 'os'
 net = require 'net'
 shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath = '/tmp/atom.sock'
+socketPath = path.join(os.tmpdir(), 'atom.sock')
 
 # Private: The application's singleton class.
 #
@@ -245,7 +246,7 @@ class AtomApplication
       [basename, initialLine] = path.basename(pathToOpen).split(':')
       if initialLine
         pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-        initialLine -= 1 if initialLine # Convert line numbers to a base of 0
+        initialLine -= 1 # Convert line numbers to a base of 0
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow

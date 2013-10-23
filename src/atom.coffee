@@ -14,6 +14,7 @@ shell = require 'shell'
 {$$} = require 'space-pen'
 crypto = require 'crypto'
 path = require 'path'
+os = require 'os'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
@@ -55,7 +56,7 @@ class Atom
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
     @subscribe @packages, 'loaded', => @watchThemes()
-    @themes = new ThemeManager()
+    @themes = new ThemeManager(@packages)
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
     @pasteboard = new Pasteboard()
@@ -220,6 +221,9 @@ class Atom
   inDevMode: ->
     @getLoadSettings().devMode
 
+  inSpecMode: ->
+    @getLoadSettings().isSpec
+
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
@@ -230,7 +234,10 @@ class Atom
     @getCurrentWindow().isFullScreen()
 
   getHomeDirPath: ->
-    app.getHomeDir()
+    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
+  getTempDirPath: ->
+    if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
