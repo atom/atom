@@ -23,6 +23,7 @@ class Publish extends Command
     options.usage """
 
       Usage: apm publish [<newversion> | major | minor | patch | build]
+             apm publish -t <tagname>
 
       Publish a new version of the package in the current working directory.
 
