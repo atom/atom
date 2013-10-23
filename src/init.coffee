@@ -40,7 +40,7 @@ class Generator extends Command
       @generateFromTemplate(themePath, templatePath)
       callback()
     else
-      callback('Error: You must specify either --package or --theme to `apm init`')
+      callback('You must specify either --package or --theme to `apm init`')
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
