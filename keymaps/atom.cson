@@ -44,7 +44,7 @@
   'ctrl-w w': 'window:focus-next-pane'
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
-  'meta-r': 'window:reload'
+  'ctrl-alt-meta-r': 'window:reload'
   'alt-meta-i': 'window:toggle-dev-tools'
   'meta-alt-ctrl-p': 'window:run-package-specs'
 
