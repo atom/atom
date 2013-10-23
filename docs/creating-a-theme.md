@@ -35,22 +35,29 @@ a few things before starting:
 ## Creating a Minimal Syntax Theme
 
 1. Open the Command Palette (`cmd-p`)
-1. Search for `Package Generator: Generate Theme` and select it.
-1. Choose a name for the folder which will contain your theme.
+1. Search for `Package Generator: Generate Syntax Theme` and select it.
+1. Choose a name for your theme. A folder will be created with this name.
+1. Press enter to create your theme. After creation, your theme will be
+   installed and enabled.
 1. An Atom window will open with your newly created theme.
   1. Open `package.json` and update the relevant parts.
   1. Open `stylesheets/colors.less` to change the various colors variables which
      have been already been defined.
   1. Open `stylesheets/base.less` and modify the various syntax CSS selectors
      that have been already been defined.
-  1. When you're ready update the `README.md` and include an example screenshot
+  1. When you're ready, update the `README.md` and include an example screenshot
      of your new theme in action.
-1. Reload Atom (`cmd-r`) and your theme should now be applied.
+1. Reload atom (`cmd-r`) to see changes you made reflected in your Atom window.
 1. Look in the theme settings, your new theme should be show in the enabled themes section
     ![themesettings-img]
 1. Open a terminal to your new theme directory; it should be in `~/.atom/packages/<my-name>`.  
   1. To publish, initialize a git repository, push to GitHub, and run
      `apm publish`.
+
+Want to make edits and have them immediately show up without reloading? Open a
+development window (__View > Developer > Open in Dev Mode__ menu) to the
+directory of your choice &mdash; even the new theme itself. Then just edit away!
+Changes will be instantly reflected in the editor without having to reload.
 
 ## Interface Themes
 
@@ -65,7 +72,7 @@ To create a UI theme, do the following:
   1. [atom-dark-ui]
   1. [atom-light-ui]
 1. Open a terminal in the forked theme's directory
-1. Open your new theme in a Dev Mode Atom window (either run `atom -d .` in the terminal or use `cmd-shift-o` from atom)
+1. Open your new theme in a Dev Mode Atom window (run `atom -d .` in the terminal or use the __View > Developer > Open in Dev Mode__ menu)
 1. Change the name of the theme in the theme's `package.json` file
 1. Run `apm link` to tell Atom about your new theme
 1. Reload Atom (`cmd-r`)
@@ -83,7 +90,7 @@ Reloading via `cmd-r` after you make changes to your theme less than ideal. Atom
 supports [live updating][livereload] of styles on Dev Mode Atom windows.
 
 1. Open your theme directory in a dev window by either using the
-__File > Open in Dev Mode__ menu or the `cmd-shift-o` shortcut
+__View > Developer > Open in Dev Mode__ menu or the `cmd-shift-o` shortcut
 1. Make a change to your theme file and save &mdash; your change should be
 immediately applied!
 
