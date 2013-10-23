@@ -300,7 +300,7 @@ class AtomApplication
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
-        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, initialSize: getFocusedWindowSize()})
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, initialSize: @getFocusedWindowSize()})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
