@@ -126,9 +126,9 @@ the command palette (`cmd-p`) and search for _styleguide_ or just
 `cmd-ctrl-shift-g`.
 
 If you do need styling, we try to keep only structural styles in the package
-stylesheets. Colors and sizing should be taken from the active theme's
-[ui-variables.less][ui-variables]. If you follow this guideline, your package
-will look good out of the box with any theme!
+stylesheets. If you must specify colors and sizing, these should be taken from
+the active theme's [ui-variables.less][ui-variables]. If you follow this
+guideline, your package will look good out of the box with any theme!
 
 An optional `stylesheets` array in your _package.json_ can list the stylesheets
 by name to specify a loading order; otherwise, stylesheets are loaded
