@@ -218,6 +218,11 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
+  isPathModified: (filePath) ->
+    absoluteFilePath = @resolve(filePath)
+    existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+    existingBuffer?.isModified()
+
   # Private: Only to be used in specs
   bufferForPathSync: (filePath, text) ->
     absoluteFilePath = @resolve(filePath)
@@ -315,11 +320,17 @@ class Project
       deferred.resolve()
 
     task.on 'scan:result-found', (result) =>
-      iterator(result)
+      iterator(result) unless @isPathModified(result.filePath)
 
     if _.isFunction(options.onPathsSearched)
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
+
+    for buffer in @buffers when buffer.isModified()
+      filePath = buffer.getPath()
+      matches = []
+      buffer.scan regex, (match) -> matches.push match
+      iterator {filePath, matches} if matches.length > 0
 
     deferred.promise
 
