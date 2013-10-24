@@ -1,28 +1,35 @@
 ChildProcess = require 'child_process'
-path = require 'path'
-_ = require 'underscore-plus'
 
-# Public: A wrapper which provides buffering for ChildProcess.
+# Public: A wrapper which provides line buffering for Node's ChildProcess.
 module.exports =
 class BufferedProcess
   process: null
   killed: false
 
-  # Executes the given command.
+  # Executes the given executable.
   #
   # * options
   #    + command:
-  #      The command to execute.
+  #      The path to the executable to execute.
   #    + args:
-  #      The arguments for the given command.
+  #      The array of arguments to pass to the script (optional).
   #    + options:
-  #      The options to pass to ChildProcess.
+  #      The options Object to pass to Node's `ChildProcess.spawn` (optional).
   #    + stdout:
-  #      The callback to receive stdout data.
+  #      The callback that receives a single argument which contains the
+  #      standard output of the script. The callback is called as data is
+  #      received but it's buffered to ensure only complete lines are passed
+  #      until the source stream closes. After the source stream has closed
+  #      all remaining data is sent in a final call (optional).
   #    + stderr:
-  #      The callback to receive stderr data.
+  #      The callback that receives a single argument which contains the
+  #      standard error of the script. The callback is called as data is
+  #      received but it's buffered to ensure only complete lines are passed
+  #      until the source stream closes. After the source stream has closed
+  #      all remaining data is sent in a final call (optional).
   #    + exit:
-  #      The callback to receive exit status.
+  #      The callback which receives a single argument containing the exit
+  #      status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     @process = ChildProcess.spawn(command, args, options)
