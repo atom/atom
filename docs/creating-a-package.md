@@ -127,7 +127,8 @@ the command palette (`cmd-p`) and search for _styleguide_ or just
 
 If you do need styling, we try to keep only structural styles in the package
 stylesheets. If you must specify colors and sizing, these should be taken from
-the active theme's [ui-variables.less][ui-variables]. If you follow this
+the active theme's [ui-variables.less][ui-variables]. See the
+[theme variables docs][theme-variables] for more information. If you follow this
 guideline, your package will look good out of the box with any theme!
 
 An optional `stylesheets` array in your _package.json_ can list the stylesheets
@@ -618,6 +619,7 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
 [keymaps]: internals/keymaps.md
+[theme-variables]: theme-variables.md
 [tm-tokens]: http://manual.macromates.com/en/language_grammars.html
 [spacepen]: https://github.com/nathansobo/space-pen
 [path]: http://nodejs.org/docs/latest/api/path.html
