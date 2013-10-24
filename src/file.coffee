@@ -5,10 +5,10 @@ Q = require 'q'
 _ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 
-# Public: Represents an individual file in the editor.
+# Public: Represents an individual file.
 #
-# This class shouldn't be created directly, instead you should create a
-# {Directory} and access the {File} objects that it creates.
+# You should probably create a {Directory} and access the {File} objects that
+# it creates, rather than instantiating the {File} class directly.
 module.exports =
 class File
   Emitter.includeInto(this)
@@ -16,10 +16,10 @@ class File
   path: null
   cachedContents: null
 
-  # Private: Creates a new file.
+  # Public: Creates a new file.
   #
   # * path:
-  #   A String representing the file path
+  #   A String containing the absolute path to the file
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
@@ -27,15 +27,18 @@ class File
 
     @handleEventSubscriptions()
 
+  # Private: Subscribes to file system notifications when necessary.
   handleEventSubscriptions: ->
     eventNames = ['contents-changed', 'moved', 'removed']
 
     subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
     @on subscriptionsAdded.join(' '), =>
+      # Only subscribe when a listener of eventName attaches (triggered by emissary)
       @subscribeToNativeChangeEvents() if @exists()
 
     subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
     @on subscriptionsRemoved.join(' '), =>
+      # Detach when the last listener of eventName detaches (triggered by emissary)
       subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
       @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
@@ -100,7 +103,7 @@ class File
     promise.then (contents) =>
       @cachedContents = contents
 
-  # Public: Returns whether a file exists.
+  # Public: Returns whether the file exists.
   exists: ->
     fsUtils.exists(@getPath())
 

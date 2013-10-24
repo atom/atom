@@ -14,7 +14,11 @@ class WindowEventHandler
     @reloadRequested = false
 
     @subscribe ipc, 'command', (command, args...) ->
-      $(document.activeElement).trigger(command, args...)
+      activeElement = document.activeElement
+      # Use root view if body has focus
+      if activeElement is document.body and atom.rootView?
+        activeElement = atom.rootView
+      $(activeElement).trigger(command, args...)
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
