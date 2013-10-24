@@ -425,7 +425,6 @@ describe "Project", ->
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
           project.scan /dollar/, (results) ->
-            console.log results
             resultHandler()
 
         runs ->
