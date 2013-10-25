@@ -39,8 +39,8 @@ class TextBuffer
 
   # Creates a new buffer.
   #
-  # path - A {String} representing the file path
-  # initialText - A {String} setting the starting text
+  # * optionsOrState - An {Object} or a telepath.Document
+  #   + filePath - A {String} representing the file path
   constructor: (optionsOrState={}, params={}) ->
     if optionsOrState instanceof telepath.Document
       {@project} = params
