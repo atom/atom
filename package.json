@@ -14,7 +14,7 @@
     "async": "0.2.6",
     "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0",
     "clear-cut": "0.1.0",
-    "coffee-script": "git://github.com/jashkenas/coffee-script.git#a3be1f6",
+    "coffee-script": "1.6.3",
     "coffeestack": "0.6.0",
     "emissary": "0.6.0",
     "first-mate": "0.4.0",
