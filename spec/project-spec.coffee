@@ -425,8 +425,20 @@ describe "Project", ->
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
           project.scan /dollar/, (results) ->
-            console.log results
             resultHandler()
 
         runs ->
           expect(resultHandler).not.toHaveBeenCalled()
+
+      it "scans buffer contents if the buffer is modified", ->
+        editSession = project.openSync("a")
+        editSession.setText("Elephant")
+        results = []
+        waitsForPromise ->
+          project.scan /a|Elephant/, (result) -> results.push result
+
+        runs ->
+          expect(results).toHaveLength 3
+          resultForA = _.find results, ({filePath}) -> path.basename(filePath) == 'a'
+          expect(resultForA.matches).toHaveLength 1
+          expect(resultForA.matches[0].matchText).toBe 'Elephant'
