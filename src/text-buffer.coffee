@@ -49,7 +49,7 @@ class TextBuffer
       @text = @state.get('text')
       @loadFromDisk = @state.get('isModified') == false
     else
-      {@project, filePath, initialText} = optionsOrState
+      {@project, filePath} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
       @id = guid.create().toString()
       @state = site.createDocument
@@ -57,7 +57,7 @@ class TextBuffer
         deserializer: @constructor.name
         version: @constructor.version
         text: @text
-      @loadFromDisk = not initialText
+      @loadFromDisk = true
 
     @loaded = false
     @subscribe @text, 'changed', @handleTextChange

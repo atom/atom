@@ -1,7 +1,7 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
 {_} = require 'atom'
 
-describe "TokenizedBuffer", ->
+fdescribe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
@@ -350,7 +350,8 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      buffer = project.buildBufferSync 'sample-with-pairs.js',  """
+      buffer = project.buildBufferSync 'sample-with-pairs.js'
+      buffer.setText """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
       """
@@ -389,7 +390,8 @@ describe "TokenizedBuffer", ->
       atom.activatePackage('language-ruby-on-rails', sync: true)
       atom.activatePackage('language-ruby', sync: true)
 
-      buffer = project.bufferForPathSync(null, "<div class='name'><%= User.find(2).full_name %></div>")
+      buffer = project.bufferForPathSync()
+      buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
       tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
       fullyTokenize(tokenizedBuffer)
