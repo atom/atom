@@ -1,5 +1,5 @@
-{Emitter, Subscriber} = require 'emissary'
 crypto = require 'crypto'
+{Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'

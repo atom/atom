@@ -112,7 +112,7 @@ class File
   exists: ->
     fsUtils.exists(@getPath())
 
-  setDigest: (contents)->
+  setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
 
   getDigest: ->

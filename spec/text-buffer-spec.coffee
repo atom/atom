@@ -955,7 +955,7 @@ describe 'TextBuffer', ->
 
           filePath = temp.openSync('atom').path
           fs.writeSync(filePath, "words")
-          buffer = project.openSync(filePath).buffer
+          {buffer} = project.openSync(filePath)
           buffer.setText("BUFFER CHANGE")
 
           state = buffer.serialize()
