@@ -1,4 +1,5 @@
 {Emitter, Subscriber} = require 'emissary'
+crypto = require 'crypto'
 guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
@@ -57,7 +58,6 @@ class TextBuffer
         deserializer: @constructor.name
         version: @constructor.version
         text: @text
-      @loadFromDisk = true
 
     @loaded = false
     @subscribe @text, 'changed', @handleTextChange
@@ -68,12 +68,12 @@ class TextBuffer
 
   loadSync: ->
     @updateCachedDiskContentsSync()
-    @reload() if @loadFromDisk
+    @reload() if @loadFromDisk or @state.get('diskContentsDigest') != @file?.getDigest()
     @text.clearUndoStack()
 
   load: ->
     @updateCachedDiskContents().then =>
-      @reload() if @loadFromDisk
+      @reload() if @loadFromDisk or @state.get('diskContentsDigest') != @file?.getDigest()
       @text.clearUndoStack()
       this
 
@@ -108,6 +108,7 @@ class TextBuffer
   serialize: ->
     state = @state.clone()
     state.set('isModified', @isModified())
+    state.set('diskContentsDigest', @file.getDigest()) if @file
     for marker in state.get('text').getMarkers() when marker.isRemote()
       marker.destroy()
     state

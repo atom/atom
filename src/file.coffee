@@ -1,3 +1,4 @@
+crypto = require 'crypto'
 path = require 'path'
 pathWatcher = require 'pathwatcher'
 Q = require 'q'
@@ -68,6 +69,9 @@ class File
     else
       @cachedContents
 
+    @setDigest(@cachedContents)
+    @cachedContents
+
   # Public: Reads the contents of the file.
   #
   # * flushCache:
@@ -101,11 +105,18 @@ class File
       promise = Q(@cachedContents)
 
     promise.then (contents) =>
+      @setDigest(contents)
       @cachedContents = contents
 
   # Public: Returns whether the file exists.
   exists: ->
     fsUtils.exists(@getPath())
+
+  setDigest: (contents)->
+    @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
+
+  getDigest: ->
+    @digest ? @setDigest(@readSync())
 
   # Private:
   handleNativeChangeEvent: (eventType, path) ->
