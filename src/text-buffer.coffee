@@ -48,7 +48,7 @@ class TextBuffer
       @id = @state.get('id')
       filePath = @state.get('relativePath')
       @text = @state.get('text')
-      @loadFromDisk = @state.get('isModified') == false
+      @useSerializedText = @state.get('isModified') != false
     else
       {@project, filePath} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
@@ -68,12 +68,12 @@ class TextBuffer
 
   loadSync: ->
     @updateCachedDiskContentsSync()
-    @reload() if @loadFromDisk or @state.get('diskContentsDigest') != @file?.getDigest()
+    @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
     @text.clearUndoStack()
 
   load: ->
     @updateCachedDiskContents().then =>
-      @reload() if @loadFromDisk or @state.get('diskContentsDigest') != @file?.getDigest()
+      @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
       @text.clearUndoStack()
       this
 
