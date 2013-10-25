@@ -68,15 +68,21 @@ class TextBuffer
 
   loadSync: ->
     @updateCachedDiskContentsSync()
-    @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
-    @text.clearUndoStack()
     @loaded = true
+    if @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
+      @emitModifiedStatusChanged(true)
+    else
+      @reload()
+    @text.clearUndoStack()
 
   load: ->
     @updateCachedDiskContents().then =>
-      @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
-      @text.clearUndoStack()
       @loaded = true
+      if @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
+        @emitModifiedStatusChanged(true)
+      else
+        @reload()
+      @text.clearUndoStack()
       this
 
   ### Internal ###
