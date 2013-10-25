@@ -13,6 +13,11 @@ module.exports = (grunt) ->
     mkdir path.dirname(buildDir)
     cp 'atom-shell/Atom.app', shellAppDir
 
+    if process.platform is 'darwin'
+      cp 'atom-shell/Atom.app', shellAppDir
+    else if process.platform is 'win32'
+      cp 'atom-shell/', shellAppDir
+
     mkdir appDir
 
     cp 'atom.sh', path.join(appDir, 'atom.sh')
