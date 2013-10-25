@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
-var exec = require('child_process').exec;
 var path = require('path');
 
 // Executes an array of commands one by one.
@@ -18,15 +17,6 @@ function joinCommands() {
   return Array.prototype.slice.call(arguments, 0).join(commandSeparator);
 }
 
-function checkDependencies() {
-  exec("cmake -h", function(error) {
-    if (error) {
-      console.error("Error: cmake is required to build Atom.")
-      process.exit(1);
-    }
-  });
-}
-
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
@@ -37,6 +27,5 @@ var commands = [
   'node vendor/apm/bin/apm install --silent',
 ];
 
-checkDependencies()
 process.chdir(path.dirname(__dirname));
 executeCommands(commands, process.exit);
