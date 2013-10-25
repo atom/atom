@@ -150,7 +150,7 @@ class Install extends Command
       if error?
         callback("Request for package information failed: #{error.message}")
       else if response.statusCode isnt 200
-        message = body.message ? body
+        message = body.message ? body.error ? body
         callback("Request for package information failed: #{message}")
       else
         if latestVersion = body.releases.latest
