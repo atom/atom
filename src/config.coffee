@@ -211,11 +211,11 @@ class Config
         previousValue = _.clone(value)
         callback(value, {previous})
 
-    subscription = { cancel: => @off 'updated', updateCallback  }
-    @on "updated.#{keyPath.replace(/\./, '-')}", updateCallback
+    eventName = "updated.#{keyPath.replace(/\./, '-')}"
+    subscription = { cancel: => @off eventName, updateCallback  }
+    @on eventName, updateCallback
     callback(value) if options.callNow ? true
     subscription
-
 
   # Public: Unobserve all callbacks on a given key
   #
