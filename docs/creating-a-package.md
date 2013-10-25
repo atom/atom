@@ -1,12 +1,11 @@
-# Authoring Packages
+# Creating Packages
 
 Packages are at the core of Atom. Nearly everything outside of the main editor
-is handled by a package. That includes "core" pieces like the file tree, status
-bar and more.
+is handled by a package. That includes "core" pieces like the [file tree][file-tree],
+[status bar][status-bar], [syntax highlighting][cs-syntax], and more.
 
 A package can contain a variety of different resource types to change Atom's
-behavior. The basic package layout is as follows (though not every package will
-have all of these directories):
+behavior. The basic package layout is as follows:
 
 ```text
 my-package/
@@ -21,9 +20,11 @@ my-package/
   package.json
 ```
 
+Not every package will have (or need) all of these directories.
+
 ## package.json
 
-Similar to [npm packages][npm], Atom packages can contain a _package.json_ file
+Similar to [npm packages][npm], Atom packages contain a _package.json_ file
 in their top-level directory. This file contains metadata about the package,
 such as the path to its "main" module, library dependencies, and manifests
 specifying the order in which its resources should be loaded.
@@ -83,20 +84,22 @@ you don't need to worry because that's getting torn down anyway.
 
 ### Simple Package Code
 
+Your directory would look like this:
+
 ```text
 my-package/
-  package.json # optional
+  package.json
   index.coffee
   lib/
     my-package.coffee
 ```
 
-`index.coffee`:
+`index.coffee` might be:
 ```coffeescript
 module.exports = require "./lib/my-package"
 ```
 
-`my-package/my-package.coffee`:
+`my-package/my-package.coffee` might start:
 ```coffeescript
 module.exports =
   activate: (rootView, state) -> # ...
@@ -111,8 +114,6 @@ Also, please collaborate with us if you need an API that doesn't exist. Our goal
 is to build out Atom's API organically based on the needs of package authors
 like you.
 
-Check out [wrap-guide] for a simple example of Atom's package API in action.
-
 ## Stylesheets
 
 Stylesheets for your package should be placed in the _stylesheets_ directory.
@@ -120,16 +121,17 @@ Any stylesheets in this directory will be loaded and attached to the DOM when
 your package is activated. Stylesheets can be written as CSS or [LESS] (but LESS
 is recommended).
 
-Ideally you will not need much in the way of styling. We've provided a standard
-set of components. You can view all components by opening the styleguide: open
-the command palette (`cmd-p`) and search for _styleguide_ or just
-`cmd-ctrl-shift-g`.
+Ideally, you won't need much in the way of styling. We've provided a standard
+set of components which define both the colors and UI elements for any package
+that fits into Atom seamlessly. You can view all of Atom's UI components by opening
+the styleguide: open the command palette (`cmd-p`) and search for _styleguide_,
+or just type `cmd-ctrl-G`.
 
-If you do need styling, we try to keep only structural styles in the package
-stylesheets. If you must specify colors and sizing, these should be taken from
-the active theme's [ui-variables.less][ui-variables]. See the
-[theme variables docs][theme-variables] for more information. If you follow this
-guideline, your package will look good out of the box with any theme!
+If you _do_ need special styling, try to keep only structural styles in the package
+stylesheets. If you _must_ specify colors and sizing, these should be taken from
+the active theme's [ui-variables.less][ui-variables]. For more information, see the
+[theme variables docs][theme-variables]. If you follow this guideline, your package
+will look good out of the box with any theme!
 
 An optional `stylesheets` array in your _package.json_ can list the stylesheets
 by name to specify a loading order; otherwise, stylesheets are loaded
@@ -137,17 +139,22 @@ alphabetically.
 
 ## Keymaps
 
+It's recommended that you provide key bindings for commonly used actions for
+your extension, especially if you're also adding a new command:
+
 ```coffeescript
 '.tree-view-scroller':
   'ctrl-V': 'changer:magic'
 ```
 
-It's recommended that you provide key bindings for commonly used actions for
-your extension, especially if you're also adding a new command.
-
 Keymaps are placed in the _keymaps_ subdirectory. By default, all keymaps are
 loaded in alphabetical order. An optional `keymaps` array in your _package.json_
 can specify which keymaps to load and in what order.
+
+
+Keybindings are executed by determining which element the keypress occured on. In
+the example above, `changer:magic` command is executed when pressing `ctrl-V` on
+the `.tree-view-scroller` element.
 
 See the [main keymaps documentation][keymaps] for more detailed information on
 how keymaps work.
@@ -159,6 +166,9 @@ in alphabetical order. An optional `menus` array in your _package.json_ can
 specify which menus to load and in what order.
 
 ### Application Menu
+
+It's recommended that you create an application menu item for common actions
+with your package that aren't tied to a specific element:
 
 ```coffee-script
 'menu': [
@@ -179,17 +189,16 @@ specify which menus to load and in what order.
 ]
 ```
 
-It's recommended that you create an application menu item for common actions
-with your package that aren't tied to a specific element.
-
-To add your own item to the application menu simply create a top level `menu`
-key in any menu configuration file in _menus_ (since the above is [CSON] it
-should end with `.cson`)
+To add your own item to the application menu, simply create a top level `menu`
+key in any menu configuration file in _menus_. This can be a JSON or [CSON] file.
 
 The menu templates you specify are merged with all other templates provided
 by other packages in the order which they were loaded.
 
 ### Context Menu
+
+It's recommended to specify a context menu item for commands that are linked to
+specific parts of the interface, like adding a file in the tree-view:
 
 ```coffee-script
 'context-menu':
@@ -199,12 +208,9 @@ by other packages in the order which they were loaded.
     'Inspect Element': 'core:inspect'
 ```
 
-It's recommended to specify a context menu item for commands that are linked to
-specific parts of the interface, like adding a file in the tree-view.
-
 To add your own item to the application menu simply create a top level
-`context-menu` key in any menu configuration file in _menus_ (since the above is
-[CSON] it should end with `.cson`)
+`context-menu` key in any menu configuration file in _menus_. This can be a
+JSON or [CSON] file.
 
 Context menus are created by determining which element was selected and
 then adding all of the menu items whose selectors match that element (in
@@ -217,7 +223,7 @@ or one of its parents has the `tree-view` class applied to it.
 ## Snippets
 
 An extension can supply language snippets in the _snippets_ directory which
-allows the user to enter repetitive text quickly.
+allows the user to enter repetitive text quickly:
 
 ```coffeescript
 ".source.coffee .specs":
@@ -313,8 +319,8 @@ You can also use the `atom` protocol URLs in themes.
 Your package **should** have tests, and if they're placed in the _spec_
 directory, they can be run by Atom.
 
-Under the hood, [Jasmine] is being used to execute the tests, so you can
-assume that any DSL available there is available to your package as well.
+Under the hood, [Jasmine] executes your tests, so you can assume that any DSL
+available there is available to your package as well.
 
 **FIXME: Explain the following**
 
@@ -324,7 +330,9 @@ assume that any DSL available there is available to your package as well.
 * setTimeout
 * whatever else is different in spec-helper
 
-## Running tests
+## Running Tests
+
+TODO: Probably use the menu option now.
 
 Once you've got your test suite written, the recommended way to run it is `apm
 test`. `apm test` prints its output to the console and returns the proper status
@@ -350,257 +358,7 @@ registry.
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
 
-
-# Full Example
-
-Let's take a look at creating our first package.
-
-To get started hit `cmd-p`, and start typing "Package Generator." to generate
-the package. Once you select the package generator command, it'll ask you for a
-name for your new package. Let's call ours _changer_.
-
-Now, _changer_ is going to have a default set of folders and files created for
-us. Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer."
-You'll see a new `Changer:Toggle` command which, if selected, pops up a new
-message. So far, so good!
-
-In order to demonstrate the capabilities of Atom and its API, our Changer plugin
-is going to do two things:
-
-1. It'll show only modified files in the file tree
-2. It'll append a new pane to the editor with some information about the modified
-files
-
-Let's get started!
-
-## Changing Keybindings and Commands
-
-Since Changer is primarily concerned with the file tree, let's write a
-key binding that works only when the tree is focused. Instead of using the
-default `toggle`, our keybinding executes a new command called `magic`.
-
-_keymaps/changer.cson_ can easily become this:
-
-```coffeescript
-'.tree-view':
-  'ctrl-V': 'changer:magic'
-```
-
-Notice that the keybinding is called `ctrl-V` &mdash; that's actually `ctrl-shift-v`.
-You can use capital letters to denote using `shift` for your binding.
-
-`.tree-view` represents the parent container for the tree view.
-Keybindings only work within the context of where they're entered. For example,
-hitting `ctrl-V` anywhere other than tree won't do anything. You can map to
-`body` if you want to scope to anywhere in Atom, or just `.editor` for the
-editor portion.
-
-To bind keybindings to a command, we'll use the `rootView.command` method. This
-takes a command name and executes a function in the code. For example:
-
-```coffeescript
-rootView.command "changer:magic", => @magic()
-```
-
-It's common practice to namespace your commands with your package name, and
-separate it with a colon (`:`). Rename the existing `toggle` method to `magic`
-to get the binding to work.
-
-Reload the editor, click on the tree, hit your keybinding, and...nothing
-happens! What the heck?!
-
-Open up the _package.json_ file, and notice the key that says
-`activationEvents`. Basically, this tells Atom to not load a package until it
-hears a certain event. Let's change the event to `changer:magic` and reload the
-editor.
-
-Hitting the key binding on the tree now works!
-
-## Working with Styles
-
-The next step is to hide elements in the tree that aren't modified. To do that,
-we'll first try and get a list of files that have not changed.
-
-All packages are able to use jQuery in their code. In fact, we have [a list of
-some of the bundled libraries Atom provides by default](#included-libraries).
-
-Let's bring in jQuery:
-
-```coffeescript
-{$} = require 'atom'
-```
-
-Now, we can query the tree to get us a list of every file that _wasn't_
-modified:
-
-```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
-      console.log el
-```
-
-You can access the dev console by hitting `alt-cmd-i`. When we execute the
-`changer:magic` command, the browser console lists the items that are not being
-modified. Let's add a class to each of these elements called `hide-me`:
-
-```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
-      $(el).addClass("hide-me")
-```
-
-With our newly added class, we can manipulate the visibility of the elements
-with a simple stylesheet. Open up _changer.css_ in the _stylesheets_ directory,
-and add a single entry:
-
-```css
-ol.entries .hide-me {
-  display: none;
-}
-```
-
-Refresh atom, and run the `changer` command. You'll see all the non-changed
-files disappear from the tree. There are a number of ways you can get the list
-back; let's just naively iterate over the same elements and remove the class:
-
-```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
-      if !$(el).hasClass("hide-me")
-        $(el).addClass("hide-me")
-      else
-        $(el).removeClass("hide-me")
-```
-
-## Creating a New Panel
-
-The next goal of this package is to append a panel to the Atom editor that lists
-some information about the modified files.
-
-To do that, we're going to first create a new class method called `content`.
-Every package that extends from the `View` class can provide an optional class
-method called `content`. The `content` method constructs the DOM that your
-package uses as its UI. The principals of `content` are built entirely on
-[SpacePen], which we'll touch upon only briefly here.
-
-Our display will simply be an unordered list of the file names, and their
-modified times. Let's start by carving out a `div` to hold the filenames:
-
-```coffeescript
-@content: ->
-  @div class: 'modified-files-container', =>
-    @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
-      @li 'Test'
-      @li 'Test2'
-```
-
-You can add any HTML5 attribute you like. `outlet` names the variable your
-package can uses to manipulate the element directly. The fat pipe (`=>`)
-indicates that the next set are nested children.
-
-We'll add one more line to `magic` to make this pane appear:
-
-```coffeescript
-rootView.vertical.append(this)
-```
-
-If you hit the key command, you'll see a box appear right underneath the editor.
-Success!
-
-Before we populate this, let's apply some logic to toggle the pane off and on,
-just like we did with the tree view:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  rootView.vertical.children().last().remove()
-else
-  rootView.vertical.append(this)
-```
-
-There are about a hundred different ways to toggle a pane on and off, and this
-might not be the most efficient one. If you know your package needs to be
-toggled on and off more freely, it might be better to draw the interface during the
-initialization, then immediately call `hide()` on the element to remove it from
-the view. You can then swap between `show()` and `hide()`, and instead of
-forcing Atom to add and remove the element as we're doing here, it'll just set a
-CSS property to control your package's visibility.
-
-Refresh Atom, hit the key combo, and see your test list.
-
-## Calling Node.js Code
-
-Since Atom is built on top of Node.js, you can call any of its libraries,
-including other modules that your package requires.
-
-We'll iterate through our resulting tree, and construct the path to our modified
-file based on its depth in the tree:
-
-```coffeescript
-path = require 'path'
-
-# ...
-
-modifiedFiles = []
-# for each single entry...
-$('ol.entries li.file.modified span.name').each (i, el) ->
-  filePath = []
-  # ...grab its name...
-  filePath.unshift($(el).text())
-
-  # ... then find its parent directories, and grab their names
-  parents = $(el).parents('.directory.modified')
-  parents.each (i, el) ->
-    filePath.unshift($(el).find('div.header span.name').eq(0).text())
-
-  modifiedFilePath = path.join(project.rootDirectory.path, filePath.join(path.sep))
-  modifiedFiles.push modifiedFilePath
-```
-
-`modifiedFiles` is an array containing a list of our modified files. We're also
-using the node.js [`path` library][path] to get the proper directory separator
-for our system.
-
-Let's remove the two `@li` elements we added in `@content`, so that we can
-populate our `modifiedFilesList` with real information. We'll do that by
-iterating over `modifiedFiles`, accessing a file's last modified time, and
-appending it to `modifiedFilesList`:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  rootView.vertical.children().last().remove()
-else
-  for file in modifiedFiles
-    stat = fs.lstatSync(file)
-    mtime = stat.mtime
-    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  rootView.vertical.append(this)
-```
-
-When you toggle the modified files list, your pane is now populated with the
-filenames and modified times of files in your project. You might notice that
-subsequent calls to this command reduplicate information. We could provide an
-elegant way of rechecking files already in the list, but for this demonstration,
-we'll just clear the `modifiedFilesList` each time it's closed:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  @modifiedFilesList.empty()
-  rootView.vertical.children().last().remove()
-else
-  for file in modifiedFiles
-    stat = fs.lstatSync(file)
-    mtime = stat.mtime
-    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  rootView.vertical.append(this)
-```
-
-# Included Libraries
+## Included Libraries
 
 FIXME: Describe `require 'atom'
 
@@ -613,6 +371,9 @@ popular libraries into their packages:
 
 Additional libraries can be found by browsing Atom's *node_modules* folder.
 
+[file-tree]: https://github.com/atom/tree-view
+[status-bar]: https://github.com/atom/status-bar
+[cs-syntax]: https://github.com/atom/language-coffee-script
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
 [npm-keys]: https://npmjs.org/doc/json.html
 [apm]: https://github.com/atom/apm
