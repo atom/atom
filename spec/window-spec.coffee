@@ -7,7 +7,8 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'hide')
-    atom.getLoadSettings().initialPath = project.getPath()
+    atom.getLoadSettings() # Causes atom.loadSettings to be initialized
+    atom.loadSettings.initialPath = project.getPath()
     project.destroy()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
@@ -23,7 +24,7 @@ describe "Window", ->
 
   describe "when the window is blurred", ->
     beforeEach ->
-      $(window).trigger 'blur'
+      $(window).triggerHandler 'blur'
 
     afterEach ->
       $('body').removeClass('is-blurred')
@@ -33,7 +34,7 @@ describe "Window", ->
 
     describe "when the window is focused again", ->
       it "removes the .is-blurred class from the body", ->
-        $(window).trigger 'focus'
+        $(window).triggerHandler 'focus'
         expect($("body")).not.toHaveClass("is-blurred")
 
   describe "window:close event", ->
@@ -51,89 +52,34 @@ describe "Window", ->
       expect(beforeunload).toHaveBeenCalled()
 
   describe "beforeunload event", ->
+    [beforeUnloadEvent] = []
+
+    beforeEach ->
+      beforeUnloadEvent = $.Event(new Event('beforeunload'))
+
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
         spyOn(rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        $(window).trigger 'beforeunload'
+        $(window).trigger(beforeUnloadEvent)
         expect(rootView.confirmClose).toHaveBeenCalled()
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        expect(window.onbeforeunload(new Event('beforeunload'))).toBeTruthy()
+        $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
         spyOn(atom, "confirmSync").andReturn(1)
-        editSession = rootView.open("sample.js")
+        editSession = rootView.openSync("sample.js")
         editSession.insertText("I look different, I feel different.")
-        expect(window.onbeforeunload(new Event('beforeunload'))).toBeFalsy()
+        $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
-
-  describe "requireStylesheet(path)", ->
-    it "synchronously loads css at the given path and installs a style tag for it in the head", ->
-      cssPath = project.resolve('css.css')
-      lengthBefore = $('head style').length
-
-      requireStylesheet(cssPath)
-      expect($('head style').length).toBe lengthBefore + 1
-
-      element = $('head style[id*="css.css"]')
-      expect(element.attr('id')).toBe cssPath
-      expect(element.text()).toBe fs.read(cssPath)
-
-      # doesn't append twice
-      requireStylesheet(cssPath)
-      expect($('head style').length).toBe lengthBefore + 1
-
-      $('head style[id*="css.css"]').remove()
-
-    it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
-      lessPath = project.resolve('sample.less')
-      lengthBefore = $('head style').length
-      requireStylesheet(lessPath)
-      expect($('head style').length).toBe lengthBefore + 1
-
-      element = $('head style[id*="sample.less"]')
-      expect(element.attr('id')).toBe lessPath
-      expect(element.text()).toBe """
-      #header {
-        color: #4d926f;
-      }
-      h2 {
-        color: #4d926f;
-      }
-
-      """
-
-      # doesn't append twice
-      requireStylesheet(lessPath)
-      expect($('head style').length).toBe lengthBefore + 1
-      $('head style[id*="sample.less"]').remove()
-
-    it "supports requiring css and less stylesheets without an explicit extension", ->
-      requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
-      requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
-
-      $('head style[id*="css.css"]').remove()
-      $('head style[id*="sample.less"]').remove()
-
-  describe ".removeStylesheet(path)", ->
-    it "removes styling applied by given stylesheet path", ->
-      cssPath = require.resolve('./fixtures/css.css')
-
-      expect($(document.body).css('font-weight')).not.toBe("bold")
-      requireStylesheet(cssPath)
-      expect($(document.body).css('font-weight')).toBe("bold")
-      removeStylesheet(cssPath)
-      expect($(document.body).css('font-weight')).not.toBe("bold")
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
@@ -147,7 +93,7 @@ describe "Window", ->
       expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
-      rootView.open('sample.js')
+      rootView.openSync('sample.js')
       buffer = rootView.getActivePaneItem().buffer
       rootView.getActivePane().splitRight()
       expect(window.rootView.find('.editor').length).toBe 2
@@ -155,38 +101,6 @@ describe "Window", ->
       window.unloadEditorWindow()
 
       expect(buffer.subscriptionCount()).toBe 0
-
-  describe ".deserialize(state)", ->
-    class Foo
-      @deserialize: ({name}) -> new Foo(name)
-      constructor: (@name) ->
-
-    beforeEach ->
-      registerDeserializer(Foo)
-
-    afterEach ->
-      unregisterDeserializer(Foo)
-
-    it "calls deserialize on the deserializer for the given state object, or returns undefined if one can't be found", ->
-      spyOn(console, 'warn')
-      object = deserialize({ deserializer: 'Foo', name: 'Bar' })
-      expect(object.name).toBe 'Bar'
-      expect(deserialize({ deserializer: 'Bogus' })).toBeUndefined()
-
-    describe "when the deserializer has a version", ->
-      beforeEach ->
-        Foo.version = 2
-
-      describe "when the deserialized state has a matching version", ->
-        it "attempts to deserialize the state", ->
-          object = deserialize({ deserializer: 'Foo', version: 2, name: 'Bar' })
-          expect(object.name).toBe 'Bar'
-
-      describe "when the deserialized state has a non-matching version", ->
-        it "returns undefined", ->
-          expect(deserialize({ deserializer: 'Foo', version: 3, name: 'Bar' })).toBeUndefined()
-          expect(deserialize({ deserializer: 'Foo', version: 1, name: 'Bar' })).toBeUndefined()
-          expect(deserialize({ deserializer: 'Foo', name: 'Bar' })).toBeUndefined()
 
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
@@ -206,7 +120,7 @@ describe "Window", ->
       it "opens it", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        window.onDrop(event)
+        $(document).trigger(event)
         expect(atom.open.callCount).toBe 1
         expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
@@ -214,7 +128,7 @@ describe "Window", ->
       it "does nothing", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [])
-        window.onDrop(event)
+        $(document).trigger(event)
         expect(atom.open).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->

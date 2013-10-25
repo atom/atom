@@ -1,44 +1,33 @@
 {$, $$, fs, RootView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
+ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
-
-  describe "base stylesheet loading", ->
-    beforeEach ->
-      rootView.append $$ -> @div class: 'editor'
-      rootView.attachToDom()
-      atom.themes.load()
-      atom.watchThemes()
-
-    afterEach ->
-      atom.themes.unload()
-      config.set('core.themes', [])
-      atom.reloadBaseStylesheets()
-
-    it "loads the correct values from the theme's ui-variables file", ->
-      config.set('core.themes', ['theme-with-ui-variables'])
-
-      # an override loaded in the base css
-      expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
-
-      # from within the theme itself
-      expect($(".editor").css("padding-top")).toBe "150px"
-      expect($(".editor").css("padding-right")).toBe "150px"
-      expect($(".editor").css("padding-bottom")).toBe "150px"
 
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->
         it "requires the package's main module if one of its deferred deserializers is referenced", ->
           pack = atom.loadPackage('package-with-activation-events')
+          spyOn(pack, 'activateStylesheets').andCallThrough()
           expect(pack.mainModule).toBeNull()
           object = deserialize({deserializer: 'Foo', data: 5})
           expect(pack.mainModule).toBeDefined()
           expect(object.constructor.name).toBe 'Foo'
           expect(object.data).toBe 5
+          expect(pack.activateStylesheets).toHaveBeenCalled()
+
+        it "continues if the package has an invalid package.json", ->
+          spyOn(console, 'warn')
+          config.set("core.disabledPackages", [])
+          expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
+
+        it "continues if the package has an invalid keymap", ->
+          config.set("core.disabledPackages", [])
+          expect(-> atom.loadPackage("package-with-broken-keymap")).not.toThrow()
 
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
@@ -105,7 +94,7 @@ describe "the `atom` global", ->
               expect(mainModule.activate).toHaveBeenCalled()
 
             it "triggers the activation event on all handlers registered during activation", ->
-              rootView.open()
+              rootView.openSync()
               editor = rootView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
               editor.command 'activation-event', eventHandler
@@ -172,7 +161,9 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
         describe "menu loading", ->
-          beforeEach -> atom.contextMenu.definitions = []
+          beforeEach ->
+            atom.contextMenu.definitions = []
+            atom.menu.template = []
 
           describe "when the metadata does not contain a 'menus' manifest", ->
             it "loads all the .cson/.json files in the menus directory", ->
@@ -182,6 +173,9 @@ describe "the `atom` global", ->
 
               atom.activatePackage("package-with-menus")
 
+              expect(atom.menu.template.length).toBe 2
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
               expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 2"
               expect(atom.contextMenu.definitionsForElement(element)[2].label).toBe "Menu item 3"
@@ -194,10 +188,11 @@ describe "the `atom` global", ->
 
               atom.activatePackage("package-with-menus-manifest")
 
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
               expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 2"
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()
-
 
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
@@ -205,15 +200,15 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-              expect(stylesheetElementForId(one)).not.toExist()
-              expect(stylesheetElementForId(two)).not.toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
               atom.activatePackage("package-with-stylesheets-manifest")
 
-              expect(stylesheetElementForId(one)).toExist()
-              expect(stylesheetElementForId(two)).toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toExist()
+              expect(atom.themes.stylesheetElementForId(two)).toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
               expect($('#jasmine-content').css('font-size')).toBe '1px'
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
@@ -221,14 +216,14 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.css")
-              expect(stylesheetElementForId(one)).not.toExist()
-              expect(stylesheetElementForId(two)).not.toExist()
-              expect(stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
               atom.activatePackage("package-with-stylesheets")
-              expect(stylesheetElementForId(one)).toExist()
-              expect(stylesheetElementForId(two)).toExist()
-              expect(stylesheetElementForId(three)).toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toExist()
+              expect(atom.themes.stylesheetElementForId(two)).toExist()
+              expect(atom.themes.stylesheetElementForId(three)).toExist()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
         describe "grammar loading", ->
@@ -245,12 +240,12 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
@@ -298,8 +293,8 @@ describe "the `atom` global", ->
           atom.activatePackage('package-with-serialize-error',  immediate: true)
           atom.activatePackage('package-with-serialization', immediate: true)
           atom.deactivatePackages()
-          expect(atom.packageStates['package-with-serialize-error']).toBeUndefined()
-          expect(atom.packageStates['package-with-serialization']).toEqual someNumber: 1
+          expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+          expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
@@ -320,9 +315,9 @@ describe "the `atom` global", ->
           one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
           two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
           three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-          expect(stylesheetElementForId(one)).not.toExist()
-          expect(stylesheetElementForId(two)).not.toExist()
-          expect(stylesheetElementForId(three)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+          expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
         it "removes the package's scoped-properties", ->
           atom.activatePackage("package-with-scoped-properties")
@@ -333,12 +328,101 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.deactivatePackage('ruby-tmbundle')
+          atom.deactivatePackage('language-ruby')
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
-          atom.activatePackage('ruby-tmbundle', sync: true)
-          atom.deactivatePackage('ruby-tmbundle')
+          atom.activatePackage('language-ruby', sync: true)
+          atom.deactivatePackage('language-ruby')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+
+    describe ".activate()", ->
+      packageActivator = null
+      themeActivator = null
+
+      beforeEach ->
+        spyOn(console, 'warn')
+        atom.packages.loadPackages()
+
+        loadedPackages = atom.packages.getLoadedPackages()
+        expect(loadedPackages.length).toBeGreaterThan 0
+
+        packageActivator = spyOn(atom.packages, 'activatePackages')
+        themeActivator = spyOn(atom.themes, 'activatePackages')
+
+      afterEach ->
+        atom.packages.unloadPackages()
+
+        Syntax = require '../src/syntax'
+        atom.syntax = window.syntax = new Syntax()
+
+      it "activates all the packages, and none of the themes", ->
+        atom.packages.activate()
+
+        expect(packageActivator).toHaveBeenCalled()
+        expect(themeActivator).toHaveBeenCalled()
+
+        packages = packageActivator.mostRecentCall.args[0]
+        expect(['atom', 'textmate']).toContain(pack.getType()) for pack in packages
+
+        themes = themeActivator.mostRecentCall.args[0]
+        expect(['theme']).toContain(theme.getType()) for theme in themes
+
+    describe ".en/disablePackage()", ->
+      describe "with packages", ->
+        it ".enablePackage() enables a disabled package", ->
+          packageName = 'package-with-main'
+          atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).toContain packageName
+
+          pack = atom.packages.enablePackage(packageName)
+
+          loadedPackages = atom.packages.getLoadedPackages()
+          activatedPackages = atom.packages.getActivePackages()
+          expect(loadedPackages).toContain(pack)
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+        it ".disablePackage() disables an enabled package", ->
+          packageName = 'package-with-main'
+          atom.packages.activatePackage(packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          pack = atom.packages.disablePackage(packageName)
+
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.disabledPackages')).toContain packageName
+
+      describe "with themes", ->
+        beforeEach ->
+          atom.themes.activateThemes()
+
+        afterEach ->
+          atom.themes.deactivateThemes()
+          atom.config.unobserve('core.themes')
+
+        it ".enablePackage() and .disablePackage() enables and disables a theme", ->
+          packageName = 'theme-with-package-file'
+
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # enabling of theme
+          pack = atom.packages.enablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.themes')).toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # disabling of theme
+          pack = atom.packages.disablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName

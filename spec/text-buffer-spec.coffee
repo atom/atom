@@ -1,6 +1,8 @@
 {_, fs} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 {Site} = require 'telepath'
+TextBuffer = require '../src/text-buffer'
 
 describe 'TextBuffer', ->
   [filePath, fileContents, buffer] = []
@@ -8,7 +10,7 @@ describe 'TextBuffer', ->
   beforeEach ->
     filePath = require.resolve('./fixtures/sample.js')
     fileContents = fs.read(filePath)
-    buffer = project.bufferForPath(filePath)
+    buffer = project.bufferForPathSync(filePath)
 
   afterEach ->
     buffer?.release()
@@ -22,12 +24,12 @@ describe 'TextBuffer', ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
           filePath = require.resolve './fixtures/sample.txt'
-          buffer = project.bufferForPath(filePath)
+          buffer = project.bufferForPathSync(filePath)
           expect(buffer.getText()).toBe fs.read(filePath)
 
         it "does not allow the initial state of the buffer to be undone", ->
           filePath = require.resolve './fixtures/sample.txt'
-          buffer = project.bufferForPath(filePath)
+          buffer = project.bufferForPathSync(filePath)
           buffer.undo()
           expect(buffer.getText()).toBe fs.read(filePath)
 
@@ -35,13 +37,13 @@ describe 'TextBuffer', ->
         it "is modified and is initially empty", ->
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
-          buffer = project.bufferForPath(filePath)
+          buffer = project.bufferForPathSync(filePath)
           expect(buffer.isModified()).toBeTruthy()
           expect(buffer.getText()).toBe ''
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
-        buffer = project.bufferForPath(null)
+        buffer = project.bufferForPathSync(null)
         expect(buffer .getText()).toBe ""
 
   describe "path-changed event", ->
@@ -51,7 +53,7 @@ describe 'TextBuffer', ->
       filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
       fs.writeSync(filePath, "")
-      bufferToChange = project.bufferForPath(filePath)
+      bufferToChange = project.bufferForPathSync(filePath)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
@@ -80,15 +82,14 @@ describe 'TextBuffer', ->
     filePath = null
 
     beforeEach ->
-      filePath = "/tmp/tmp.txt"
-      fs.writeSync(filePath, "first")
       buffer.release()
-      buffer = project.bufferForPath(filePath).retain()
+      filePath = temp.openSync('atom').path
+      fs.writeSync(filePath, "first")
+      buffer = project.bufferForPathSync(filePath).retain()
 
     afterEach ->
       buffer.release()
       buffer = null
-      fs.remove(filePath) if fs.exists(filePath)
 
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -134,12 +135,12 @@ describe 'TextBuffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
       it "fires a single contents-conflicted event", ->
-        buffer.insert([0, 0], "a change")
+        buffer.setText("a change")
         buffer.save()
         buffer.insert([0, 0], "a second change")
 
         handler = jasmine.createSpy('fileChange')
-        fs.writeSync(filePath, "second")
+        fs.writeSync(filePath, "a disk change")
         buffer.on 'contents-conflicted', handler
 
         expect(handler.callCount).toBe 0
@@ -153,9 +154,9 @@ describe 'TextBuffer', ->
     [filePath, bufferToDelete] = []
 
     beforeEach ->
-      filePath = "/tmp/atom-file-to-delete.txt"
+      filePath = path.join(temp.dir, 'atom-file-to-delete.txt')
       fs.writeSync(filePath, 'delete me')
-      bufferToDelete = project.bufferForPath(filePath)
+      bufferToDelete = project.bufferForPathSync(filePath)
       filePath = bufferToDelete.getPath() # symlinks may have been converted
 
       expect(bufferToDelete.getPath()).toBe filePath
@@ -176,7 +177,7 @@ describe 'TextBuffer', ->
 
     it "resumes watching of the file when it is re-saved", ->
       bufferToDelete.save()
-      expect(bufferToDelete.fileExists()).toBeTruthy()
+      expect(fs.exists(bufferToDelete.getPath())).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
       fs.writeSync(filePath, 'moo')
@@ -211,9 +212,9 @@ describe 'TextBuffer', ->
 
     it "reports the modified status changing to true after the underlying file is deleted", ->
       buffer.release()
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, 'delete me')
-      buffer = project.bufferForPath(filePath)
+      buffer = project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -223,10 +224,10 @@ describe 'TextBuffer', ->
       runs -> expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is saved", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, '')
       buffer.release()
-      buffer = project.bufferForPath(filePath)
+      buffer = project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -247,10 +248,10 @@ describe 'TextBuffer', ->
       expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is reloaded", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeSync(filePath, '')
       buffer.release()
-      buffer = project.bufferForPath(filePath)
+      buffer = project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -270,11 +271,11 @@ describe 'TextBuffer', ->
       expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a buffer to a non-existent file is saved", ->
-      filePath = "/tmp/atom-tmp-file"
+      filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.remove(filePath) if fs.exists(filePath)
       expect(fs.exists(filePath)).toBeFalsy()
       buffer.release()
-      buffer = project.bufferForPath(filePath)
+      buffer = project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -297,16 +298,29 @@ describe 'TextBuffer', ->
 
     it "returns false for an empty buffer with no path", ->
       buffer.release()
-      buffer = project.bufferForPath(null)
+      buffer = project.bufferForPathSync(null)
       expect(buffer.isModified()).toBeFalsy()
 
     it "returns true for a non-empty buffer with no path", ->
       buffer.release()
-      buffer = project.bufferForPath(null)
+      buffer = project.bufferForPathSync(null)
       buffer.setText('a')
       expect(buffer.isModified()).toBeTruthy()
       buffer.setText('\n')
       expect(buffer.isModified()).toBeTruthy()
+
+    it "returns false until the buffer is fully loaded", ->
+      buffer.release()
+      filePath = temp.openSync('atom').path
+      buffer = new TextBuffer({project, filePath})
+
+      expect(buffer.isModified()).toBeFalsy()
+
+      waitsForPromise ->
+        buffer.load()
+
+      runs ->
+        expect(buffer.isModified()).toBeFalsy()
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->
@@ -450,9 +464,9 @@ describe 'TextBuffer', ->
       filePath = null
 
       beforeEach ->
-        filePath = '/tmp/temp.txt'
+        filePath = path.join(temp.dir, 'temp.txt')
         fs.writeSync(filePath, "")
-        saveBuffer = project.bufferForPath(filePath)
+        saveBuffer = project.bufferForPathSync(filePath)
         saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
@@ -486,7 +500,7 @@ describe 'TextBuffer', ->
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
-        saveBuffer = project.bufferForPath(null)
+        saveBuffer = project.bufferForPathSync(null)
         saveBuffer.setText "hi"
         expect(-> saveBuffer.save()).toThrow()
 
@@ -507,10 +521,10 @@ describe 'TextBuffer', ->
       saveAsBuffer.release()
 
     it "saves the contents of the buffer to the path", ->
-      filePath = '/tmp/temp.txt'
+      filePath = path.join(temp.dir, 'temp.txt')
       fs.remove filePath if fs.exists(filePath)
 
-      saveAsBuffer = project.bufferForPath(null).retain()
+      saveAsBuffer = project.bufferForPathSync(null).retain()
       eventHandler = jasmine.createSpy('eventHandler')
       saveAsBuffer.on 'path-changed', eventHandler
 
@@ -521,11 +535,11 @@ describe 'TextBuffer', ->
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
-      originalPath = "/tmp/original.txt"
-      newPath = "/tmp/new.txt"
+      originalPath = path.join(temp.dir, 'original.txt')
+      newPath = path.join(temp.dir, 'new.txt')
       fs.writeSync(originalPath, "")
 
-      saveAsBuffer = project.bufferForPath(originalPath).retain()
+      saveAsBuffer = project.bufferForPathSync(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
       saveAsBuffer.on 'changed', changeHandler
       saveAsBuffer.saveAs(newPath)
@@ -547,7 +561,7 @@ describe 'TextBuffer', ->
       filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
       fs.writeSync(filePath, "")
-      bufferToChange = project.bufferForPath(filePath)
+      bufferToChange = project.bufferForPathSync(filePath)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
@@ -925,9 +939,14 @@ describe 'TextBuffer', ->
         state.get('text').insert([0, 0], 'simulate divergence of on-disk contents from serialized contents')
 
         buffer2 = deserialize(state, {project})
-        expect(buffer2.isModified()).toBeFalsy()
-        expect(buffer2.getPath()).toBe(buffer.getPath())
-        expect(buffer2.getText()).toBe(buffer.getText())
+
+        waitsFor ->
+          buffer2.cachedDiskContents
+
+        runs ->
+          expect(buffer2.isModified()).toBeFalsy()
+          expect(buffer2.getPath()).toBe(buffer.getPath())
+          expect(buffer2.getText()).toBe(buffer.getText())
 
     describe "when the serialized buffer had unsaved changes", ->
       it "restores the previous unsaved state of the buffer", ->
@@ -938,15 +957,22 @@ describe 'TextBuffer', ->
         expect(state.getObject('text')).toBe 'abc'
 
         buffer2 = deserialize(state, {project})
-        expect(buffer2.getPath()).toBe(buffer.getPath())
-        expect(buffer2.getText()).toBe(buffer.getText())
-        expect(buffer2.isModified()).toBeTruthy()
-        buffer2.setText(previousText)
-        expect(buffer2.isModified()).toBeFalsy()
+
+        waitsFor ->
+          buffer2.cachedDiskContents
+
+        runs ->
+          expect(buffer2.getPath()).toBe(buffer.getPath())
+          expect(buffer2.getText()).toBe(buffer.getText())
+          expect(buffer2.isModified()).toBeTruthy()
+          buffer2.setText(previousText)
+          expect(buffer2.isModified()).toBeFalsy()
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
-        buffer.setPath(undefined)
+        buffer.release()
+
+        buffer = project.bufferForPathSync()
         buffer.setText("abc")
 
         state = buffer.serialize()

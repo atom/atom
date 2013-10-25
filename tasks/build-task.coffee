@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 module.exports = (grunt) ->
-  {cp, mkdir, rm} = require('./task-helpers')(grunt)
+  {cp, isAtomPackage, mkdir, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'build', 'Build the application', ->
     shellAppDir = grunt.config.get('atom.shellAppDir')
@@ -28,13 +28,9 @@ module.exports = (grunt) ->
     {devDependencies} = grunt.file.readJSON('package.json')
     for child in fs.readdirSync('node_modules')
       directory = path.join('node_modules', child)
-      try
-        {name, engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
-        if engines?.atom?
-          packageDirectories.push(directory)
-        else
-          nonPackageDirectories.push(directory)
-      catch e
+      if isAtomPackage(directory)
+        packageDirectories.push(directory)
+      else
         nonPackageDirectories.push(directory)
 
     ignoredPaths = [

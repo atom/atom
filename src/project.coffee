@@ -1,14 +1,14 @@
 fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
+Q = require 'q'
 
-_ = require './underscore-extensions'
-$ = require './jquery-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 {Range} = telepath
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
 Git = require './git'
@@ -19,7 +19,7 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   @acceptsDocuments: true
   @version: 1
@@ -125,24 +125,11 @@ class Project
     if originUrl = @repo?.getOriginUrl()
       @state.set('repoUrl', originUrl)
 
-    @trigger "path-changed"
+    @emit "path-changed"
 
   # Public: Returns the name of the root directory.
   getRootDirectory: ->
     @rootDirectory
-
-  # Public: Fetches the name of every file (that's not `git ignore`d) in the
-  # project.
-  #
-  # Returns an {Array} of {String}s.
-  getFilePaths: ->
-    deferred = $.Deferred()
-    paths = []
-    onFile = (path) => paths.push(path) unless @isPathIgnored(path)
-    onDirectory = -> true
-    fsUtils.traverseTreeSync(@getPath(), onFile, onDirectory)
-    deferred.resolve(paths)
-    deferred.promise()
 
   # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
@@ -165,6 +152,8 @@ class Project
   #
   # Returns a String.
   resolve: (uri) ->
+    return unless uri
+
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
@@ -187,13 +176,25 @@ class Project
   # * editSessionOptions:
   #   Options that you can pass to the {EditSession} constructor
   #
-  # Returns an {EditSession}.
+  # Returns a promise that resolves to an {EditSession}.
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath) if filePath?
+    filePath = @resolve(filePath)
+    resource = null
+    _.find @openers, (opener) -> resource = opener(filePath, options)
+
+    if resource
+      Q(resource)
+    else
+      @bufferForPath(filePath).then (buffer) =>
+        @buildEditSessionForBuffer(buffer, options)
+
+  # Private: Only be used in specs
+  openSync: (filePath, options={}) ->
+    filePath = @resolve(filePath)
     for opener in @openers
       return resource if resource = opener(filePath, options)
 
-    @buildEditSessionForBuffer(@bufferForPath(filePath), options)
+    @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
 
   # Public: Retrieves all {EditSession}s for all open files.
   #
@@ -204,7 +205,7 @@ class Project
   # Public: Add the given {EditSession}.
   addEditSession: (editSession) ->
     @editSessions.push editSession
-    @trigger 'edit-session-created', editSession
+    @emit 'edit-session-created', editSession
 
   # Public: Return and removes the given {EditSession}.
   removeEditSession: (editSession) ->
@@ -217,6 +218,15 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
+  # Private: Only to be used in specs
+  bufferForPathSync: (filePath, text) ->
+    absoluteFilePath = @resolve(filePath)
+
+    if filePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+
+    existingBuffer ? @buildBufferSync(absoluteFilePath, text)
+
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
@@ -225,31 +235,36 @@ class Project
   # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
   # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
-  # Returns the {TextBuffer}.
+  # Returns a promise that resolves to the {TextBuffer}.
   bufferForPath: (filePath, text) ->
-    if filePath?
-      filePath = @resolve(filePath)
-      if filePath
-        buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-        buffer or @buildBuffer(filePath, text)
-    else
-      @buildBuffer(null, text)
+    absoluteFilePath = @resolve(filePath)
+    if absoluteFilePath
+      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+
+    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Private: Given a file path, this sets its {TextBuffer}.
-  #
-  # filePath - A {String} representing a path
-  # text - The {String} text to use as a buffer
-  #
-  # Returns the {TextBuffer}.
-  buildBuffer: (filePath, initialText) ->
-    filePath = @resolve(filePath) if filePath?
-    buffer = new TextBuffer({project: this, filePath, initialText})
+  # Private: DEPRECATED
+  buildBufferSync: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.loadSync()
     @addBuffer(buffer)
     buffer
+
+  # Private: Given a file path, this sets its {TextBuffer}.
+  #
+  # absoluteFilePath - A {String} representing a path
+  # text - The {String} text to use as a buffer
+  #
+  # Returns a promise that resolves to the {TextBuffer}.
+  buildBuffer: (absoluteFilePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+    buffer.load().then (buffer) =>
+      @addBuffer(buffer)
+      buffer
 
   # Private:
   addBuffer: (buffer, options={}) ->
@@ -259,7 +274,7 @@ class Project
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers[index] = buffer
     @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
-    @trigger 'buffer-created', buffer
+    @emit 'buffer-created', buffer
 
   # Private: Removes a {TextBuffer} association from the project.
   #
@@ -287,7 +302,7 @@ class Project
       iterator = options
       options = {}
 
-    deferred = $.Deferred()
+    deferred = Q.defer()
 
     searchOptions =
       ignoreCase: regex.ignoreCase
@@ -306,7 +321,7 @@ class Project
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
-    deferred
+    deferred.promise
 
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->

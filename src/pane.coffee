@@ -1,7 +1,6 @@
 {dirname} = require 'path'
-{View} = require './space-pen-extensions'
-$ = require './jquery-extensions'
-_ = require './underscore-extensions'
+{$, View} = require './space-pen-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 PaneRow = require './pane-row'
 PaneColumn = require './pane-column'
@@ -18,7 +17,7 @@ class Pane extends View
   @acceptsDocuments: true
 
   @content: (wrappedView) ->
-    @div class: 'pane', =>
+    @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
 
   @deserialize: (state) ->
@@ -28,7 +27,6 @@ class Pane extends View
 
   activeItem: null
   items: null
-  viewsByClassName: null # Views with a setModel() method are stored here
   viewsByItem: null      # Views without a setModel() method are stored here
 
   # Private:
@@ -53,7 +51,6 @@ class Pane extends View
       return if site is @state.site.id
       @showItemForUri(newValue) if key is 'activeItemUri'
 
-    @viewsByClassName = {}
     @viewsByItem = new WeakMap()
     activeItemUri = @state.get('activeItemUri')
     unless activeItemUri? and @showItemForUri(activeItemUri)
@@ -95,7 +92,6 @@ class Pane extends View
     return if @attached
     @attached = true
     @trigger 'pane:attached', [this]
-
 
   # Public: Focus this pane.
   makeActive: ->
@@ -171,7 +167,7 @@ class Pane extends View
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show()
+    view.show() if @attached
     view.focus() if isFocused
     @activeItem = item
     @activeView = view
@@ -224,12 +220,11 @@ class Pane extends View
   # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
     uri = item.getUri()
-    currentWindow = require('remote').getCurrentWindow()
     chosen = atom.confirmSync(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
       "Your changes will be lost if you close this item without saving."
       ["Save", "Cancel", "Don't Save"]
-      currentWindow
+      atom.getCurrentWindow()
     )
     switch chosen
       when 0 then @saveItem(item, -> true)
@@ -323,24 +318,23 @@ class Pane extends View
   cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
-    else
-      if viewToRemove = @viewsByItem.get(item)
-        @viewsByItem.delete(item)
-      else
-        viewClass = item.getViewClass()
-        otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
-        unless otherItemsForView.length
-          viewToRemove = @viewsByClassName[viewClass.name]
-          viewToRemove?.setModel(null)
-          delete @viewsByClassName[viewClass.name]
+    else if viewToRemove = @viewsByItem.get(item)
+      @viewsByItem.delete(item)
 
     if @items.length > 0
       if @isMovingItem and item is viewToRemove
         viewToRemove?.detach()
+      else if @isMovingItem and viewToRemove?.setModel
+        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
+        viewToRemove.remove()
       else
         viewToRemove?.remove()
     else
-      viewToRemove?.detach() if @isMovingItem and item is viewToRemove
+      if @isMovingItem and item is viewToRemove
+        viewToRemove?.detach()
+      else if @isMovingItem and viewToRemove?.setModel
+        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
+
       @parent().view().removeChild(this, updateState: false)
 
   # Private:
@@ -351,14 +345,8 @@ class Pane extends View
       view
     else
       viewClass = item.getViewClass()
-      if view = @viewsByClassName[viewClass.name]
-        view.setModel(item)
-      else
-        view = new viewClass(item)
-        if _.isFunction(view.setModel)
-          @viewsByClassName[viewClass.name] = view
-        else
-          @viewsByItem.set(item, view)
+      view = new viewClass(item)
+      @viewsByItem.set(item, view)
       view
 
   # Private:
@@ -424,6 +412,7 @@ class Pane extends View
       when 'before' then parent.insertChildBefore(this, newPane)
       when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
+    newPane.makeActive()
     newPane.focus()
     newPane
 

@@ -8,3 +8,4 @@ npm-debug.log
 /tags
 /atom-shell/
 docs/output
+spec/fixtures/evil-files/

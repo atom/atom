@@ -1,48 +1,56 @@
-_ = require './underscore-extensions'
-fs = require 'fs'
 path = require 'path'
 fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
 File = require './file'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =
 class Directory
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   path: null
   realPath: null
 
-  # Public: Configures an new Directory instance, no files are accessed.
+  # Public: Configures a new Directory instance, no files are accessed.
   #
   # * path:
-  #   A {String} representing the file directory
+  #   A String containing the absolute path to the directory.
   # + symlink:
-  #   A {Boolean} indicating if the path is a symlink
+  #   A Boolean indicating if the path is a symlink (defaults to false).
   constructor: (@path, @symlink=false) ->
+    @on 'first-contents-changed-subscription-will-be-added', =>
+      # Triggered by emissary, when a new contents-changed listener attaches
+      @subscribeToNativeChangeEvents()
+
+    @on 'last-contents-changed-subscription-removed', =>
+      # Triggered by emissary, when the last contents-changed listener detaches
+      @unsubscribeFromNativeChangeEvents()
 
   # Public: Returns the basename of the directory.
   getBaseName: ->
     path.basename(@path)
 
-  # Public: Returns the directory's path.
+  # Public: Returns the directory's symbolic path.
   #
-  # FIXME what is the difference between real path and path?
+  # This may include unfollowed symlinks or relative directory entries. Or it
+  # may be fully resolved, it depends on what you give it.
   getPath: -> @path
 
-  # Public: Returns this directory's real path.
+  # Public: Returns this directory's completely resolved path.
   #
-  # FIXME what is the difference between real path and path?
+  # All relative directory entries are removed and symlinks are resolved to
+  # their final destination.
   getRealPath: ->
     unless @realPath?
       try
-        @realPath = fs.realpathSync(@path)
+        @realPath = fsUtils.realpathSync(@path)
       catch e
         @realPath = @path
     @realPath
 
-  # Public: Returns whether the given path is inside this directory.
+  # Public: Returns whether the given path (real or symbolic) is inside this
+  # directory.
   contains: (pathToCheck) ->
     return false unless pathToCheck
 
@@ -72,15 +80,15 @@ class Directory
   #
   # Note: It follows symlinks.
   #
-  # Returns an {Array} of {Files}.
+  # Returns an Array of {Files}.
   getEntries: ->
     directories = []
     files = []
     for entryPath in fsUtils.listSync(@path)
       try
-        stat = fs.lstatSync(entryPath)
+        stat = fsUtils.lstatSync(entryPath)
         symlink = stat.isSymbolicLink()
-        stat = fs.statSync(entryPath) if symlink
+        stat = fsUtils.statSync(entryPath) if symlink
       catch e
         continue
       if stat.isDirectory()
@@ -91,17 +99,10 @@ class Directory
     directories.concat(files)
 
   # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
-
-  # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType) =>
-      @trigger "contents-changed" if eventType is "change"
+    unless @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType) =>
+        @emit "contents-changed" if eventType is "change"
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->

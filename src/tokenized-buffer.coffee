@@ -1,7 +1,6 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 TokenizedLine = require './tokenized-line'
-EventEmitter = require './event-emitter'
-Subscriber = require './subscriber'
+{Emitter, Subscriber} = require 'emissary'
 Token = require './token'
 telepath = require 'telepath'
 {Point, Range} = telepath
@@ -10,8 +9,8 @@ telepath = require 'telepath'
 
 module.exports =
 class TokenizedBuffer
-  _.extend @prototype, EventEmitter
-  _.extend @prototype, Subscriber
+  Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   grammar: null
   currentGrammarScore: null
@@ -30,7 +29,9 @@ class TokenizedBuffer
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
-      @buffer = project.bufferForPath(optionsOrState.get('bufferPath'))
+
+      # TODO: This needs to be made async, but should wait until the new Telepath changes land
+      @buffer = project.bufferForPathSync(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState
       @state = site.createDocument
@@ -60,7 +61,7 @@ class TokenizedBuffer
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar, 'grammar-updated', => @resetTokenizedLines()
-    @trigger 'grammar-changed', grammar
+    @emit 'grammar-changed', grammar
 
   reloadGrammar: ->
     if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
@@ -96,14 +97,14 @@ class TokenizedBuffer
     lastRow = @buffer.getLastRow()
     @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
     @invalidateRow(0)
-    @trigger "changed", { start: 0, end: lastRow, delta: 0 }
+    @emit "changed", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if not @visible or @pendingChunk
+    return if not @visible or @pendingChunk or @destroyed
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
-      @tokenizeNextChunk()
+      @tokenizeNextChunk() unless @destroyed
 
   tokenizeNextChunk: ->
     rowsRemaining = @chunkSize
@@ -127,7 +128,7 @@ class TokenizedBuffer
 
       @validateRow(row)
       @invalidateRow(row + 1) unless filledRegion
-      @trigger "changed", { start: invalidRow, end: row, delta: 0 }
+      @emit "changed", { start: invalidRow, end: row, delta: 0 }
 
     @tokenizeInBackground() if @firstInvalidRow()?
 
@@ -166,7 +167,7 @@ class TokenizedBuffer
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    @trigger "changed", { start, end, delta, bufferChange: e }
+    @emit "changed", { start, end, delta, bufferChange: e }
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
@@ -249,6 +250,7 @@ class TokenizedBuffer
 
   destroy: ->
     @unsubscribe()
+    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

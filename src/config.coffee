@@ -1,64 +1,59 @@
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
-EventEmitter = require './event-emitter'
+_ = require 'underscore-plus'
+{Emitter} = require 'emissary'
 CSON = require 'season'
 fs = require 'fs'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
 
-configDirPath = fsUtils.absolute("~/.atom")
-nodeModulesDirPath = path.join(resourcePath, "node_modules")
-bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
-userPackagesDirPath = path.join(configDirPath, "packages")
-userPackageDirPaths = [userPackagesDirPath]
-userPackageDirPaths.unshift(path.join(configDirPath, "dev", "packages")) if atom.getLoadSettings().devMode
-userStoragePath = path.join(configDirPath, "storage")
-
 # Public: Used to access all of Atom's configuration details.
 #
 # A global instance of this class is available to all plugins which can be
-# referenced using `global.config`
+# referenced using `atom.config`
 #
-# ### Best practices ###
+# ### Best practices
 #
 # * Create your own root keypath using your package's name.
 # * Don't depend on (or write to) configuration keys outside of your keypath.
 #
-# ### Example ###
+# ### Example
 #
 # ```coffeescript
-# global.config.set('myplugin.key', 'value')
-# global.observe 'myplugin.key', ->
-#   console.log 'My configuration changed:', global.config.get('myplugin.key')
+# atom.config.set('myplugin.key', 'value')
+# atom.config.observe 'myplugin.key', ->
+#   console.log 'My configuration changed:', atom.config.get('myplugin.key')
 # ```
 module.exports =
 class Config
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
-  configDirPath: configDirPath
-  bundledPackageDirPaths: [nodeModulesDirPath]
-  bundledKeymapsDirPath: bundledKeymapsDirPath
-  nodeModulesDirPath: nodeModulesDirPath
-  packageDirPaths: _.clone(userPackageDirPaths)
-  userPackageDirPaths: userPackageDirPaths
-  userStoragePath: userStoragePath
-  lessSearchPaths: [
-    path.join(resourcePath, 'static', 'variables')
-    path.join(resourcePath, 'static')
-  ]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
 
   # Private: Created during initialization, available as `global.config`
-  constructor: ->
+  constructor: ({@configDirPath, @resourcePath}={}) ->
+    @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
+    @bundledMenusDirPath = path.join(resourcePath, "menus")
+    @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
+    @bundledPackageDirPaths = [@nodeModulesDirPath]
+    @lessSearchPaths = [
+      path.join(@resourcePath, 'static', 'variables')
+      path.join(@resourcePath, 'static')
+    ]
+    @packageDirPaths = [path.join(@configDirPath, "packages")]
+    if atom.getLoadSettings().devMode
+      @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
+    @userPackageDirPaths = _.clone(@packageDirPaths)
+    @userStoragePath = path.join(@configDirPath, "storage")
+
     @defaultSettings =
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
     @settings = {}
-    @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(configDirPath, 'config.cson')
+    @configFilePath = fsUtils.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
   # Private:
   initializeConfigDirectory: (done) ->
@@ -70,7 +65,7 @@ class Config
       fsUtils.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 
-    templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
+    templateConfigDirPath = fsUtils.resolve(@resourcePath, 'dot-atom')
     onConfigDirFile = (sourcePath) =>
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)
@@ -93,7 +88,7 @@ class Config
       userConfig = CSON.readFileSync(@configFilePath)
       _.extend(@settings, userConfig)
       @configFileHasErrors = false
-      @trigger 'updated'
+      @emit 'updated'
     catch e
       @configFileHasErrors = true
       console.error "Failed to load user config '#{@configFilePath}'", e.message
@@ -198,7 +193,7 @@ class Config
   # `callback` is fired whenever the value of the key is changed and will
   #  be fired immediately unless the `callNow` option is `false`.
   #
-  # keyPath - The {String} name of the key to watch
+  # keyPath - The {String} name of the key to observe
   # options - An optional {Object} containing the `callNow` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
@@ -212,19 +207,27 @@ class Config
     updateCallback = =>
       value = @get(keyPath)
       unless _.isEqual(value, previousValue)
+        previous = previousValue
         previousValue = _.clone(value)
-        callback(value)
+        callback(value, {previous})
 
-    subscription = { cancel: => @off 'updated', updateCallback  }
-    @on 'updated', updateCallback
+    eventName = "updated.#{keyPath.replace(/\./, '-')}"
+    subscription = { cancel: => @off eventName, updateCallback  }
+    @on eventName, updateCallback
     callback(value) if options.callNow ? true
     subscription
+
+  # Public: Unobserve all callbacks on a given key
+  #
+  # keyPath - The {String} name of the key to unobserve
+  unobserve: (keyPath) ->
+    @off("updated.#{keyPath.replace(/\./, '-')}")
 
   # Private:
   update: ->
     return if @configFileHasErrors
     @save()
-    @trigger 'updated'
+    @emit 'updated'
 
   # Private:
   save: ->

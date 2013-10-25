@@ -1,11 +1,10 @@
 {Range} = require 'telepath'
-EventEmitter = require './event-emitter'
-_ = require './underscore-extensions'
+{Emitter} = require 'emissary'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =
 class Selection
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   cursor: null
   marker: null
@@ -22,7 +21,7 @@ class Selection
     @marker.on 'destroyed', =>
       @destroyed = true
       @editSession.removeSelection(this)
-      @trigger 'destroyed' unless @editSession.destroyed
+      @emit 'destroyed' unless @editSession.destroyed
 
   # Private:
   destroy: ->
@@ -115,6 +114,8 @@ class Selection
   selectWord: ->
     options = {}
     options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
+    if @cursor.isBetweenWordAndNonWord()
+      options.includeNonWordCharacters = false
 
     @setBufferRange(@cursor.getCurrentWordBufferRange(options))
     @wordwise = true
@@ -605,4 +606,4 @@ class Selection
   # Private:
   screenRangeChanged: ->
     screenRange = @getScreenRange()
-    @trigger 'screen-range-changed', screenRange
+    @emit 'screen-range-changed', screenRange

@@ -1,3 +1,5 @@
+path = require 'path'
+temp = require 'temp'
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {_, $, View, $$} = require 'atom'
@@ -12,7 +14,7 @@ describe "PaneContainer", ->
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
       serialize: -> { deserializer: 'TestView', @name }
-      getUri: -> "/tmp/#{@name}"
+      getUri: -> path.join(temp.dir, @name)
       save: -> @saved = true
       isEqual: (other) -> @name is other.name
 
@@ -109,7 +111,7 @@ describe "PaneContainer", ->
 
       describe "when the last-closed pane item is an edit session", ->
         it "reopens the edit session (regression)", ->
-          editSession = project.open('sample.js')
+          editSession = project.openSync('sample.js')
           pane3.showItem(editSession)
           pane3.destroyItem(editSession)
           expect(container.reopenItem()).toBeTruthy()

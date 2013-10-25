@@ -7,9 +7,21 @@ measure 'spec suite require time', ->
     for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
       require specFilePath
 
+      # Set spec directory on spec for setting up the project in spec-helper
+      setSpecDirectory(specDirectory)
+
+  setSpecField = (name, value) ->
+    specs = jasmine.getEnv().currentRunner().specs()
+    return if specs.length is 0
+    for index in [specs.length-1..0]
+      break if specs[index][name]?
+      specs[index][name] = value
+
   setSpecType = (specType) ->
-    for spec in jasmine.getEnv().currentRunner().specs() when not spec.specType?
-      spec.specType = specType
+    setSpecField('specType', specType)
+
+  setSpecDirectory = (specDirectory) ->
+    setSpecField('specDirectory', specDirectory)
 
   runAllSpecs = ->
     # Only run core specs when resource path is the Atom repository

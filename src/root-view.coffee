@@ -1,9 +1,10 @@
+fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
-$ = require './jquery-extensions'
-{$$, View} = require './space-pen-extensions'
+Q = require 'q'
+{$, $$, View} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 telepath = require 'telepath'
 Editor = require './editor'
 Pane = require './pane'
@@ -49,12 +50,13 @@ class RootView extends View
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
+    audioBeep: true
 
   @acceptsDocuments: true
 
   # Private:
   @content: (state) ->
-    @div id: 'root-view', =>
+    @div id: 'root-view', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div outlet: 'panes'
@@ -79,15 +81,14 @@ class RootView extends View
 
     @panes.replaceWith(panes)
     @panes = panes
+    @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
     project.on 'path-changed', => @updateTitle()
-    @on 'pane:became-active', => @updateTitle()
-    @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
-    @on 'pane:removed', => @updateTitle() unless @getActivePane()
+    @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
     @command 'application:about', -> ipc.sendChannel('command', 'application:about')
@@ -129,7 +130,7 @@ class RootView extends View
       @panes.reopenItem()
 
     if @state.get('fullScreen')
-      _.nextTick => atom.setFullScreen(true)
+      setImmediate => atom.setFullScreen(true)
 
   # Private:
   serialize: ->
@@ -153,6 +154,7 @@ class RootView extends View
         focusableChild.focus()
         false
       else
+        $(document.body).focus()
         true
 
   # Private:
@@ -163,26 +165,48 @@ class RootView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Public: Opens a given a filepath in Atom.
+  # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # * path: A file path
+  # * filePath: A file path
   # * options
-  #    + initialLine:
-  #      The buffer line number to open to.
+  #   + initialLine: The buffer line number to open to.
   #
-  # Returns the {EditSession} for the file URI.
-  open: (path, options = {}) ->
+  # Returns a promise that resolves to the {EditSession} for the file URI.
+  open: (filePath, options={}) ->
+    changeFocus = options.changeFocus ? true
+    filePath = project.resolve(filePath)
+    initialLine = options.initialLine
+    activePane = @getActivePane()
+
+    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
+    promise = project.open(filePath, {initialLine}) if not editSession
+
+    fileSize = 0
+    fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
+
+    Q(editSession ? promise).then (editSession) =>
+      if not activePane
+        activePane = new Pane(editSession)
+        @panes.setRoot(activePane)
+
+      activePane.showItem(editSession)
+      activePane.focus() if changeFocus
+      @trigger "uri-opened"
+      editSession
+
+  # Private: Only used in specs
+  openSync: (filePath, options = {}) ->
     changeFocus = options.changeFocus ? true
     initialLine = options.initialLine
-    path = project.relativize(path)
+    filePath = project.relativize(filePath)
     if activePane = @getActivePane()
-      if path
-        editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
+      if filePath
+        editSession = activePane.itemForUri(filePath) ? project.openSync(filePath, {initialLine})
       else
-        editSession = project.open()
+        editSession = project.openSync()
       activePane.showItem(editSession)
     else
-      editSession = project.open(path, {initialLine})
+      editSession = project.openSync(filePath, {initialLine})
       activePane = new Pane(editSession)
       @panes.setRoot(activePane)
 
@@ -195,7 +219,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle("atom - #{projectPath}")
+        @setTitle(projectPath)
     else
       @setTitle('untitled')
 
@@ -280,5 +304,5 @@ class RootView extends View
   # Private: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
-    project.destroy()
+    project?.destroy()
     super

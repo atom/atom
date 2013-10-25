@@ -1,18 +1,21 @@
 {_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('text-tmbundle', sync: true)
-    atom.activatePackage('javascript-tmbundle', sync: true)
-    editSession = project.open('sample.js')
+    atom.activatePackage('language-text', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
+    editSession = project.openSync('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
     editor.lineOverdraw = 2
     editor.isFocused = true
     editor.enableKeymap()
+    editor.calculateHeightInLines = ->
+      Math.ceil(@height() / @lineHeight)
     editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
       heightInLines ?= @getBuffer().getLineCount()
       @height(getLineHeight() * heightInLines)
@@ -30,7 +33,7 @@ describe "Editor", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new Editor(editSession: project.open('sample.js'))
+    editorForMeasurement = new Editor(editSession: project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -84,9 +87,9 @@ describe "Editor", ->
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
-      filePath = "/tmp/atom-changed-file.txt"
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeSync(filePath, "")
-      editSession = project.open(filePath)
+      editSession = project.openSync(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
 
@@ -112,26 +115,26 @@ describe "Editor", ->
     [newEditSession, newBuffer] = []
 
     beforeEach ->
-      newEditSession = project.open('two-hundred.txt')
+      newEditSession = project.openSync('two-hundred.txt')
       newBuffer = newEditSession.buffer
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
       editor.attachToDom(heightInLines: 5, widthInChars: 30)
-      editor.setCursorBufferPosition([3, 5])
+      editor.setCursorBufferPosition([6, 13])
       editor.scrollToBottom()
       editor.scrollLeft(150)
       previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
       previousScrollTop = editor.scrollTop()
       previousScrollLeft = editor.scrollLeft()
 
-      newEditSession.setScrollTop(120)
+      newEditSession.setScrollTop(900)
       newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
 
       editor.edit(newEditSession)
       { firstRenderedScreenRow, lastRenderedScreenRow } = editor
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editor.lastRenderedScreenRow)
-      expect(editor.scrollTop()).toBe 120
+      expect(editor.scrollTop()).toBe 900
       expect(editor.scrollLeft()).toBe 0
       expect(editor.getSelectionView().regions[0].position().top).toBe 40 * editor.lineHeight
       editor.insertText("hello")
@@ -144,14 +147,14 @@ describe "Editor", ->
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editor.scrollTop()).toBe previousScrollTop
       expect(editor.scrollLeft()).toBe previousScrollLeft
-      expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
+      expect(editor.getCursorView().position()).toEqual { top: 6 * editor.lineHeight, left: 13 * editor.charWidth }
       editor.insertText("goodbye")
-      expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
+      expect(editor.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
-      filePath = "/tmp/atom-changed-file.txt"
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeSync(filePath, "")
-      tempEditSession = project.open(filePath)
+      tempEditSession = project.openSync(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
 
@@ -245,7 +248,7 @@ describe "Editor", ->
     filePath = null
 
     beforeEach ->
-      filePath = "/tmp/something.txt"
+      filePath = path.join(temp.dir, 'something.txt')
       fs.writeSync(filePath, filePath)
 
     afterEach ->
@@ -260,7 +263,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -268,15 +271,15 @@ describe "Editor", ->
       oldBuffer = editor.getBuffer()
       editor.on 'editor:path-changed', eventHandler
 
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
-      oldBuffer.saveAs("/tmp/atom-bad.txt")
+      oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
       expect(eventHandler).not.toHaveBeenCalled()
 
       eventHandler.reset()
-      editor.getBuffer().saveAs("/tmp/atom-new.txt")
+      editor.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
       expect(eventHandler).toHaveBeenCalled()
 
     it "loads the grammar for the new path", ->
@@ -286,15 +289,13 @@ describe "Editor", ->
 
   describe "font family", ->
     beforeEach ->
-      expect(editor.css('font-family')).not.toBe 'Courier'
+      expect(editor.css('font-family')).toBe 'Courier'
 
     it "when there is no config in fontFamily don't set it", ->
-      expect($("head style.font-family")).not.toExist()
+      atom.config.set('editor.fontFamily', null)
+      expect(editor.css('font-family')).toBe ''
 
     describe "when the font family changes", ->
-      afterEach ->
-        editor.clearFontFamily()
-
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editor.attachToDom(12)
         lineHeightBefore = editor.lineHeight
@@ -303,7 +304,6 @@ describe "Editor", ->
 
         config.set("editor.fontFamily", "PCMyungjo")
         expect(editor.css('font-family')).toBe 'PCMyungjo'
-        expect($("head style.editor-font-family").text()).toMatch "{font-family: PCMyungjo}"
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
@@ -317,8 +317,7 @@ describe "Editor", ->
       expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
-      expect($("head style.font-size")).toExist()
-      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+      expect(editor.css('font-size')).toBe "#{config.get('editor.fontSize')}px"
 
     describe "when the font size changes", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
@@ -404,9 +403,6 @@ describe "Editor", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
 
-        afterEach ->
-          editor.clearFontFamily()
-
         it "positions the cursor to the clicked row and column", ->
           {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
@@ -439,6 +435,29 @@ describe "Editor", ->
 
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
+
+      describe "when clicking between a word and a non-word", ->
+        it "selects the word", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 21], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "function"
+
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 22], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "items"
+
+          editor.setCursorBufferPosition([0, 0])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 28], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "{"
 
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
@@ -892,9 +911,6 @@ describe "Editor", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
 
-        afterEach ->
-          editor.clearFontFamily()
-
         it "correctly positions the cursor", ->
           editor.setCursorBufferPosition([3, 30])
           expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
@@ -1092,8 +1108,8 @@ describe "Editor", ->
         expect(span0.children('span:eq(2)')).toMatchSelector '.meta.brace.curly.js'
         expect(span0.children('span:eq(2)').text()).toBe "{"
 
-        line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+        line12 = editor.renderedLines.find('.line:eq(11)').children('span:eq(0)')
+        expect(line12.children('span:eq(1)')).toMatchSelector '.keyword'
 
       it "wraps hard tabs in a span", ->
         editor.setText('\t<- hard tab')
@@ -1108,12 +1124,13 @@ describe "Editor", ->
         expect(span0_0).toMatchSelector '.leading-whitespace'
         expect(span0_0.text()).toBe '  '
 
-      it "wraps trailing whitespace in a span", ->
-        editor.setText('trailing whitespace ->   ')
-        line0 = editor.renderedLines.find('.line:first')
-        span0_last = line0.children('span:eq(0)').children('span:last')
-        expect(span0_last).toMatchSelector '.trailing-whitespace'
-        expect(span0_last.text()).toBe '   '
+      describe "when the line has trailing whitespace", ->
+        it "wraps trailing whitespace in a span", ->
+          editor.setText('trailing whitespace ->   ')
+          line0 = editor.renderedLines.find('.line:first')
+          span0_last = line0.children('span:eq(0)').children('span:last')
+          expect(span0_last).toMatchSelector '.trailing-whitespace'
+          expect(span0_last.text()).toBe '   '
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1422,7 +1439,7 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.edit(project.open('two-hundred.txt'))
+        editor.edit(project.openSync('two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
 
         expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1628,12 +1645,14 @@ describe "Editor", ->
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol} "
+          expect(editor.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
 
           editor.setCursorBufferPosition([9])
           editor.indent()
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
+          expect(editor.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
@@ -1674,7 +1693,7 @@ describe "Editor", ->
       expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
     it "does not wrap the lines of any newly assigned buffers", ->
-      otherEditSession = project.open()
+      otherEditSession = project.openSync()
       otherEditSession.buffer.setText([1..100].join(''))
       editor.edit(otherEditSession)
       expect(editor.renderedLines.find('.line').length).toBe(1)
@@ -1706,7 +1725,7 @@ describe "Editor", ->
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new Editor(editSession: project.open('sample.js'))
+      otherEditor = new Editor(editSession: project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
@@ -1811,7 +1830,7 @@ describe "Editor", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditSession = project.open(null)
+        emptyEditSession = project.openSync(null)
         editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
@@ -1863,12 +1882,54 @@ describe "Editor", ->
         # doesn't allow regular editors to set grammars
         expect(-> editor.setGrammar()).toThrow()
 
-
     describe "when config.editor.showLineNumbers is false", ->
       it "doesn't render any line numbers", ->
         expect(editor.gutter.lineNumbers).toBeVisible()
         config.set("editor.showLineNumbers", false)
         expect(editor.gutter.lineNumbers).not.toBeVisible()
+
+    describe "using gutter's api", ->
+      it "can get all the line number elements", ->
+        elements = editor.gutter.getLineNumberElements()
+        len = editor.gutter.lastScreenRow - editor.gutter.firstScreenRow + 1
+        expect(elements).toHaveLength(len)
+
+      it "can get a single line number element", ->
+        element = editor.gutter.getLineNumberElement(3)
+        expect(element).toBeTruthy()
+
+      it "returns falsy when there is no line element", ->
+        expect(editor.gutter.getLineNumberElement(42)).toHaveLength 0
+
+      it "can add and remove classes to all the line numbers", ->
+        wasAdded = editor.gutter.addClassToAllLines('heyok')
+        expect(wasAdded).toBe true
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
+        expect($(elements)).toHaveClass('heyok')
+
+        editor.gutter.removeClassFromAllLines('heyok')
+        expect($(editor.gutter.getLineNumberElements())).not.toHaveClass('heyok')
+
+      it "can add and remove classes from a single line number", ->
+        wasAdded = editor.gutter.addClassToLine(3, 'heyok')
+        expect(wasAdded).toBe true
+
+        element = editor.gutter.getLineNumberElement(2)
+        expect($(element)).not.toHaveClass('heyok')
+
+      it "can fetch line numbers by their class", ->
+        editor.gutter.addClassToLine(1, 'heyok')
+        editor.gutter.addClassToLine(3, 'heyok')
+
+        elements = editor.gutter.getLineNumberElementsForClass('heyok')
+        expect(elements.length).toBe 2
+
+        expect($(elements[0])).toHaveClass 'line-number-1'
+        expect($(elements[0])).toHaveClass 'heyok'
+
+        expect($(elements[1])).toHaveClass 'line-number-3'
+        expect($(elements[1])).toHaveClass 'heyok'
 
   describe "gutter line highlighting", ->
     beforeEach ->
@@ -1973,7 +2034,7 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = project.open('two-hundred.txt')
+      editSession = project.openSync('two-hundred.txt')
       buffer = editSession.buffer
       editor.edit(editSession)
       editor.attachToDom()
@@ -2111,7 +2172,7 @@ describe "Editor", ->
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
       originalPathText = fs.read(filePath)
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -2145,9 +2206,20 @@ describe "Editor", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
 
     describe "when the editor is attached and visible", ->
-      it "returns the top and left pixel positions", ->
+      beforeEach ->
         editor.attachToDom()
+
+      it "returns the top and left pixel positions", ->
         expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
+      it "caches the left position", ->
+        editor.renderedLines.css('font-size', '16px')
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+        # make characters smaller
+        editor.renderedLines.css('font-size', '15px')
+
+        expect(editor.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
 
   describe "when clicking in the gutter", ->
     beforeEach ->
@@ -2225,14 +2297,15 @@ describe "Editor", ->
     [filePath] = []
 
     beforeEach ->
-      filePath = path.join(fs.absolute("/tmp"), "grammar-change.txt")
+      tmpdir = fs.absolute(temp.dir)
+      filePath = path.join(tmpdir, "grammar-change.txt")
       fs.writeSync(filePath, "var i;")
 
     afterEach ->
       fs.remove(filePath) if fs.exists(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
       expect(editor.getGrammar().name).toBe 'Plain Text'
       syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
@@ -2252,7 +2325,7 @@ describe "Editor", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      editor.edit(project.open(filePath))
+      editor.edit(project.openSync(filePath))
 
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on('editor:grammar-changed', eventHandler)
@@ -2577,10 +2650,11 @@ describe "Editor", ->
 
       editor.trigger 'editor:save-debug-snapshot'
 
+      statePath = path.join(temp.dir, 'state')
       expect(atom.showSaveDialog).toHaveBeenCalled()
-      saveDialogCallback('/tmp/state')
+      saveDialogCallback(statePath)
       expect(fs.writeSync).toHaveBeenCalled()
-      expect(fs.writeSync.argsForCall[0][0]).toBe '/tmp/state'
+      expect(fs.writeSync.argsForCall[0][0]).toBe statePath
       expect(typeof fs.writeSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->
@@ -2603,7 +2677,7 @@ describe "Editor", ->
     describe "when the editor's text is changed", ->
       it "redraws the editor when it is next shown", ->
         window.rootView = new RootView
-        rootView.open('sample.js')
+        rootView.openSync('sample.js')
         rootView.attachToDom()
         editor = rootView.getActiveView()
 
@@ -2657,7 +2731,7 @@ describe "Editor", ->
   describe "when the editor is removed", ->
     it "fires a editor:will-be-removed event", ->
       window.rootView = new RootView
-      rootView.open('sample.js')
+      rootView.openSync('sample.js')
       rootView.attachToDom()
       editor = rootView.getActiveView()
 

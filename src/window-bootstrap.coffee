@@ -1,9 +1,10 @@
 # Like sands through the hourglass, so are the days of our lives.
-startTime = new Date().getTime()
+startTime = Date.now()
 
-require './atom'
 require './window'
 
+Atom = require './atom'
+window.atom = new Atom()
 window.setUpEnvironment('editor')
 window.startEditorWindow()
-console.log "Window load time: #{new Date().getTime() - startTime}ms"
+console.log "Window load time: #{Date.now() - startTime}ms"

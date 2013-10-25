@@ -1,13 +1,15 @@
 path = require 'path'
-
-_ = require './underscore-extensions'
+os = require 'os'
 LessCache = require 'less-cache'
+{Subscriber} = require 'emissary'
+
+tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
 module.exports =
 class LessCompileCache
-  _.extend @prototype, require('./subscriber')
+  Subscriber.includeInto(this)
 
-  @cacheDir: '/tmp/atom-compile-cache/less'
+  @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
 
   constructor: ->
     @cache = new LessCache

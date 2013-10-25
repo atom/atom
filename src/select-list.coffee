@@ -1,7 +1,6 @@
-$ = require './jquery-extensions'
-{ View } = require './space-pen-extensions'
+{$, View} = require './space-pen-extensions'
 Editor = require './editor'
-fuzzyFilter = require './fuzzy-filter'
+fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a widget for users to make a selection from a list of
 # choices.
@@ -29,7 +28,7 @@ class SelectList extends View
   # Public:
   initialize: ->
     @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
-    @miniEditor.on 'focusout', => @cancel() unless @cancelling
+    @miniEditor.hiddenInput.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
     @on 'core:move-to-top', =>

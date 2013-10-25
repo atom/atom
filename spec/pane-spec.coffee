@@ -1,7 +1,8 @@
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {$, View} = require 'atom'
-{dirname} = require 'path'
+path = require 'path'
+temp = require 'temp'
 
 describe "Pane", ->
   [container, view1, view2, editSession1, editSession2, pane] = []
@@ -19,8 +20,8 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editSession1 = project.open('sample.js')
-    editSession2 = project.open('sample.txt')
+    editSession1 = project.openSync('sample.js')
+    editSession2 = project.openSync('sample.txt')
     pane = new Pane(view1, editSession1, view2, editSession2)
     container.setRoot(pane)
 
@@ -36,7 +37,7 @@ describe "Pane", ->
       expect(pane.activeItem).toBe view1
       pane.showItem(view2)
       expect(view1.css('display')).toBe 'none'
-      expect(view2.css('display')).toBe ''
+      expect(view2.css('display')).not.toBe 'none'
       expect(pane.activeItem).toBe view2
 
     it "triggers 'pane:active-item-changed' if the item isn't already the activeItem", ->
@@ -90,47 +91,45 @@ describe "Pane", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
           pane.showItem(editSession1)
           editor = pane.activeView
-          expect(editor.css('display')).toBe ''
+          expect(editor.css('display')).not.toBe 'none'
           expect(editor.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
-        describe "when the view has a setModel method", ->
-          it "recycles the existing view by assigning the selected item to it", ->
-            pane.showItem(editSession1)
-            pane.showItem(editSession2)
-            expect(pane.itemViews.find('.editor').length).toBe 1
-            editor = pane.activeView
-            expect(editor.css('display')).toBe ''
-            expect(editor.activeEditSession).toBe editSession2
+        it "multiple views are created for multiple items", ->
+          pane.showItem(editSession1)
+          pane.showItem(editSession2)
+          expect(pane.itemViews.find('.editor').length).toBe 2
+          editor = pane.activeView
+          expect(editor.css('display')).not.toBe 'none'
+          expect(editor.activeEditSession).toBe editSession2
 
-        describe "when the view does not have a setModel method", ->
-          it "creates a new view with the item", ->
-            initialViewCount = pane.itemViews.find('.test-view').length
+        it "creates a new view with the item", ->
+          initialViewCount = pane.itemViews.find('.test-view').length
 
-            model1 =
-              id: 'test-model-1'
-              text: 'Test Model 1'
-              serialize: -> {@id, @text}
-              getViewClass: -> TestView
+          model1 =
+            id: 'test-model-1'
+            text: 'Test Model 1'
+            serialize: -> {@id, @text}
+            getViewClass: -> TestView
 
-            model2 =
-              id: 'test-model-2'
-              text: 'Test Model 2'
-              serialize: -> {@id, @text}
-              getViewClass: -> TestView
+          model2 =
+            id: 'test-model-2'
+            text: 'Test Model 2'
+            serialize: -> {@id, @text}
+            getViewClass: -> TestView
 
-            pane.showItem(model1)
-            pane.showItem(model2)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
+          pane.showItem(model1)
+          pane.showItem(model2)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-            pane.showPreviousItem()
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
+          pane.showPreviousItem()
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-            pane.removeItem(model2)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
+          pane.removeItem(model2)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
 
-            pane.removeItem(model1)
-            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
+          pane.removeItem(model1)
+          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
 
     describe "when showing a view item", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
@@ -237,6 +236,7 @@ describe "Pane", ->
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
+        pane.showItem(editSession1)
         pane.showItem(editSession2)
         pane.removeItem(editSession2)
         expect(pane.itemViews.find('.editor')).toExist()
@@ -373,7 +373,7 @@ describe "Pane", ->
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(dirname(editSession2.getPath()))
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editSession2.getPath()))
         expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
@@ -499,6 +499,9 @@ describe "Pane", ->
       expect(pane2.getNextPane()).toBe pane
 
   describe "when the pane is focused", ->
+    beforeEach ->
+      container.attachToDom()
+
     it "focuses the active item view", ->
       focusHandler = jasmine.createSpy("focusHandler")
       pane.activeItem.on 'focus', focusHandler
@@ -677,7 +680,7 @@ describe "Pane", ->
         expect(pane.saveItem).not.toHaveBeenCalled()
         expect(pane.activeItem.save).not.toHaveBeenCalled()
 
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.activeView.trigger 'focusout'
         expect(pane.activeItem.save).toHaveBeenCalled()
 
@@ -695,7 +698,7 @@ describe "Pane", ->
         expect(initialActiveItem.save).not.toHaveBeenCalled()
 
         pane.showItem(initialActiveItem)
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.showItem(view2)
         expect(initialActiveItem.save).toHaveBeenCalled()
 
@@ -714,7 +717,7 @@ describe "Pane", ->
         pane.destroyItem(view2)
         expect(pane.saveItem).not.toHaveBeenCalled()
 
-        initialActiveItemUri = '/tmp/hi'
+        initialActiveItemUri = path.join(temp.dir, 'hi')
         pane.destroyItem(initialActiveItem)
         expect(initialActiveItem.save).toHaveBeenCalled()
 

@@ -4,7 +4,7 @@ describe "Selection", ->
   [buffer, editSession, selection] = []
 
   beforeEach ->
-    buffer = project.buildBuffer('sample.js')
+    buffer = project.buildBufferSync('sample.js')
     editSession = new EditSession(buffer: buffer, tabLength: 2)
     selection = editSession.getSelection()
 

@@ -1,31 +1,46 @@
-EventEmitter = require './event-emitter'
-fs = require 'fs'
 path = require 'path'
-fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
-_ = require './underscore-extensions'
+Q = require 'q'
+{Emitter} = require 'emissary'
+_ = require 'underscore-plus'
+fsUtils = require './fs-utils'
 
-# Public: Represents an individual file in the editor.
+# Public: Represents an individual file.
 #
-# This class shouldn't be created directly, instead you should create a
-# {Directory} and access the {File} objects that it creates.
+# You should probably create a {Directory} and access the {File} objects that
+# it creates, rather than instantiating the {File} class directly.
 module.exports =
 class File
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   path: null
   cachedContents: null
 
-  # Private: Creates a new file.
+  # Public: Creates a new file.
   #
   # * path:
-  #   A String representing the file path
+  #   A String containing the absolute path to the file
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
-    try
-      if fs.statSync(@path).isDirectorySync()
-        throw new Error("#{@path} is a directory")
+    throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
+
+    @handleEventSubscriptions()
+
+  # Private: Subscribes to file system notifications when necessary.
+  handleEventSubscriptions: ->
+    eventNames = ['contents-changed', 'moved', 'removed']
+
+    subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
+    @on subscriptionsAdded.join(' '), =>
+      # Only subscribe when a listener of eventName attaches (triggered by emissary)
+      @subscribeToNativeChangeEvents() if @exists()
+
+    subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
+    @on subscriptionsRemoved.join(' '), =>
+      # Detach when the last listener of eventName detaches (triggered by emissary)
+      subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
+      @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
   # Private: Sets the path for the file.
   setPath: (@path) ->
@@ -44,14 +59,8 @@ class File
     fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
-  # Public: Reads the contents of the file.
-  #
-  # * flushCache:
-  #   A Boolean indicating whether to require a direct read or if a cached
-  #   copy is acceptable.
-  #
-  # Returns a String.
-  read: (flushCache)->
+  # Private: Deprecated
+  readSync: (flushCache) ->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
@@ -59,17 +68,44 @@ class File
     else
       @cachedContents
 
-  # Public: Returns whether a file exists.
+  # Public: Reads the contents of the file.
+  #
+  # * flushCache:
+  #   A Boolean indicating whether to require a direct read or if a cached
+  #   copy is acceptable.
+  #
+  # Returns a promise that resovles to a String.
+  read: (flushCache) ->
+    if not @exists()
+      promise = Q(null)
+    else if not @cachedContents? or flushCache
+      if fsUtils.statSyncNoException(@getPath()).size >= 1048576 # 1MB
+        throw new Error("Atom can only handle files < 1MB, for now.")
+
+      deferred = Q.defer()
+      promise = deferred.promise
+      content = []
+      bytesRead = 0
+      readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
+      readStream.on 'data', (chunk) ->
+        content.push(chunk)
+        bytesRead += chunk.length
+        deferred.notify(bytesRead)
+
+      readStream.on 'end', ->
+        deferred.resolve(content.join(''))
+
+      readStream.on 'error', (error) ->
+        deferred.reject(error)
+    else
+      promise = Q(@cachedContents)
+
+    promise.then (contents) =>
+      @cachedContents = contents
+
+  # Public: Returns whether the file exists.
   exists: ->
     fsUtils.exists(@getPath())
-
-  # Private:
-  afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
-
-  # Private:
-  afterUnsubscribe: ->
-    @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   # Private:
   handleNativeChangeEvent: (eventType, path) ->
@@ -78,12 +114,11 @@ class File
       @detectResurrectionAfterDelay()
     else if eventType is "rename"
       @setPath(path)
-      @trigger "moved"
+      @emit "moved"
     else if eventType is "change"
       oldContents = @cachedContents
-      newContents = @read(true)
-      return if oldContents == newContents
-      @trigger 'contents-changed'
+      @read(true).done (newContents) =>
+        @emit 'contents-changed' unless oldContents == newContents
 
   # Private:
   detectResurrectionAfterDelay: ->
@@ -96,15 +131,16 @@ class File
       @handleNativeChangeEvent("change", @getPath())
     else
       @cachedContents = null
-      @trigger "removed"
+      @emit "removed"
 
   # Private:
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
-      @handleNativeChangeEvent(eventType, path)
+    unless @watchSubscription?
+      @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
+        @handleNativeChangeEvent(eventType, path)
 
   # Private:
   unsubscribeFromNativeChangeEvents: ->
-    if @watchSubscription
+    if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null

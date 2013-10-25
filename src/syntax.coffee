@@ -1,9 +1,8 @@
-_ = require './underscore-extensions'
-jQuery = require './jquery-extensions'
-Specificity = require '../vendor/specificity'
-{$$} = require './space-pen-extensions'
+_ = require 'underscore-plus'
+{specificity} = require 'clear-cut'
+{$, $$} = require './space-pen-extensions'
 fsUtils = require './fs-utils'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 NullGrammar = require './null-grammar'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
@@ -11,7 +10,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 module.exports =
 class Syntax
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   registerDeserializer(this)
 
@@ -38,7 +37,7 @@ class Syntax
     @grammarsByScopeName[grammar.scopeName] = grammar
     @injectionGrammars.push(grammar) if grammar.injectionSelector?
     @grammarUpdated(grammar.scopeName)
-    @trigger 'grammar-added', grammar
+    @emit 'grammar-added', grammar
 
   removeGrammar: (grammar) ->
     _.remove(@grammars, grammar)
@@ -48,7 +47,7 @@ class Syntax
 
   grammarUpdated: (scopeName) ->
     for grammar in @grammars when grammar.scopeName isnt scopeName
-      @trigger 'grammar-updated', grammar if grammar.grammarUpdated(scopeName)
+      @emit 'grammar-updated', grammar if grammar.grammarUpdated(scopeName)
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName
@@ -77,7 +76,7 @@ class Syntax
       name: name
       selector: selector,
       properties: properties,
-      specificity: Specificity(selector),
+      specificity: specificity(selector),
       index: @scopedPropertiesIndex++
     )
 
@@ -107,7 +106,7 @@ class Syntax
 
   matchingPropertiesForElement: (element, candidates) ->
     matchingScopedProperties = candidates.filter ({selector}) ->
-      jQuery.find.matchesSelector(element, selector)
+      $.find.matchesSelector(element, selector)
     matchingScopedProperties.sort (a, b) ->
       if a.specificity == b.specificity
         b.index - a.index

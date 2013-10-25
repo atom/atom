@@ -1,15 +1,17 @@
 fs = require 'fs'
 path = require 'path'
+os = require 'os'
 
 fm = require 'json-front-matter'
-_ = require 'underscore'
+_ = require 'underscore-plus'
 
 packageJson = require './package.json'
 
 module.exports = (grunt) ->
   appName = 'Atom.app'
   [major, minor, patch] = packageJson.version.split('.')
-  buildDir = grunt.option('build-dir') ? '/tmp/atom-build'
+  tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
+  buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   shellAppDir = path.join(buildDir, appName)
   contentsDir = path.join(shellAppDir, 'Contents')
   appDir = path.join(contentsDir, 'Resources', 'app')
@@ -54,6 +56,7 @@ module.exports = (grunt) ->
     glob_to_multiple:
       expand: true
       src: [
+        'menus/*.cson'
         'keymaps/*.cson'
         'static/**/*.cson'
       ]
@@ -87,6 +90,8 @@ module.exports = (grunt) ->
         no_empty_param_list:
           level: 'error'
         max_line_length:
+          level: 'ignore'
+        indentation:
           level: 'ignore'
       src: [
         'dot-atom/**/*.coffee'
@@ -157,15 +162,6 @@ module.exports = (grunt) ->
           stderr: false
           failOnError: false
 
-      test:
-        command: "#{path.join(contentsDir, 'MacOS', 'Atom')} --test --resource-path=#{__dirname}"
-        options:
-          stdout: true
-          stderr: true
-          callback: (error, stdout, stderr, callback) ->
-            grunt.warn('Specs failed') if error?
-            callback()
-
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-cson')
@@ -178,8 +174,8 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('test', ['shell:kill-atom', 'shell:test'])
-  grunt.registerTask('ci', ['lint', 'update-atom-shell', 'build', 'set-development-version', 'test'])
+  grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
+  grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])

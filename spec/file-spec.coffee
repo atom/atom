@@ -25,7 +25,7 @@ describe 'File', ->
 
   describe "when the file has already been read", ->
     beforeEach ->
-      file.read()
+      file.readSync()
 
     describe "when the contents of the file change", ->
       it "triggers 'contents-changed' event handlers", ->

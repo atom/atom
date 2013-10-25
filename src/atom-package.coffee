@@ -2,16 +2,16 @@ TextMateGrammar = require './text-mate-grammar'
 Package = require './package'
 fsUtils = require './fs-utils'
 path = require 'path'
-_ = require './underscore-extensions'
-$ = require './jquery-extensions'
+_ = require 'underscore-plus'
+{$} = require './space-pen-extensions'
 CSON = require 'season'
-EventEmitter = require './event-emitter'
+{Emitter} = require 'emissary'
 
 ### Internal: Loads and resolves packages. ###
 
 module.exports =
 class AtomPackage extends Package
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   @stylesheetsDir: 'stylesheets'
 
@@ -25,37 +25,49 @@ class AtomPackage extends Package
   resolvedMainModulePath: false
   mainModule: null
 
+  constructor: (path, {@metadata}) ->
+    super(path)
+    @reset()
+
   getType: -> 'atom'
+
+  getStylesheetType: -> 'bundled'
 
   load: ->
     @measure 'loadTime', =>
       try
-        @metadata = Package.loadMetadata(@path)
-        if @isTheme()
-          @stylesheets = []
-          @keymaps = []
-          @menus = []
-          @grammars = []
-          @scopedProperties = []
-        else
-          @loadKeymaps()
-          @loadMenus()
-          @loadStylesheets()
-          @loadGrammars()
-          @loadScopedProperties()
+        @metadata ?= Package.loadMetadata(@path)
 
-          if @metadata.activationEvents?
-            @registerDeferredDeserializers()
-          else
-            @requireMainModule()
+        @loadKeymaps()
+        @loadMenus()
+        @loadStylesheets()
+        @loadGrammars()
+        @loadScopedProperties()
+
+        if @metadata.activationEvents?
+          @registerDeferredDeserializers()
+        else
+          @requireMainModule()
 
       catch e
         console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
+  enable: ->
+    atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
+
+  disable: ->
+    atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
+
+  reset: ->
+    @stylesheets = []
+    @keymaps = []
+    @menus = []
+    @grammars = []
+    @scopedProperties = []
+
   activate: ({immediate}={}) ->
     @measure 'activateTime', =>
-      @loadStylesheets() if @isTheme()
       @activateResources()
       if @metadata.activationEvents? and not immediate
         @subscribeToActivationEvents()
@@ -67,7 +79,7 @@ class AtomPackage extends Package
       @activateConfig()
       @activateStylesheets()
       if @requireMainModule()
-        @mainModule.activate(atom.getPackageState(@name) ? {})
+        @mainModule.activate(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
@@ -82,12 +94,17 @@ class AtomPackage extends Package
     @configActivated = true
 
   activateStylesheets: ->
-    type = if @metadata.theme then 'theme' else 'bundled'
-    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
+    return if @stylesheetsActivated
+
+    type = @getStylesheetType()
+    for [stylesheetPath, content] in @stylesheets
+      atom.themes.applyStylesheet(stylesheetPath, content, type)
+    @stylesheetsActivated = true
 
   activateResources: ->
-    keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
+    atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
+    atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)
@@ -113,7 +130,8 @@ class AtomPackage extends Package
       fsUtils.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
+      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath)]
 
   getStylesheetsPath: ->
     path.join(@path, @constructor.stylesheetsDir)
@@ -155,7 +173,7 @@ class AtomPackage extends Package
     @deactivateResources()
     @deactivateConfig()
     @mainModule?.deactivate?() if @mainActivated
-    @trigger('deactivated')
+    @emit('deactivated')
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()
@@ -164,18 +182,18 @@ class AtomPackage extends Package
   deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
-    keymap.remove(keymapPath) for [keymapPath] in @keymaps
-    removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
+    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @stylesheetsActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
+    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
     @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
 
   reloadStylesheet: (stylesheetPath, content) ->
-    type = if @metadata.theme then 'theme' else 'bundled'
-    window.applyStylesheet(stylesheetPath, content, type)
+    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
 
   requireMainModule: ->
     return @mainModule if @mainModule?
@@ -194,7 +212,9 @@ class AtomPackage extends Package
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
-      registerDeferredDeserializer deserializerName, => @requireMainModule()
+      registerDeferredDeserializer deserializerName, =>
+        @activateStylesheets()
+        @requireMainModule()
 
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
@@ -225,7 +245,7 @@ class AtomPackage extends Package
     disabledHandler = ->
     element = $(event.target)
     while element.length
-      if eventHandlers = element.data('events')?[event.type]
+      if eventHandlers = element.handlers()?[event.type]
         for eventHandler in eventHandlers
           eventHandler.disabledHandler = eventHandler.handler
           eventHandler.handler = disabledHandler

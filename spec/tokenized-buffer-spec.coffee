@@ -5,7 +5,7 @@ describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
-    atom.activatePackage('javascript-tmbundle', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
@@ -20,15 +20,27 @@ describe "TokenizedBuffer", ->
 
   describe "@deserialize(state)", ->
     it "constructs a tokenized buffer with the same buffer and tabLength setting", ->
-      buffer = project.bufferForPath('sample.js')
+      buffer = project.bufferForPathSync('sample.js')
       tokenizedBuffer1 = new TokenizedBuffer(buffer: buffer, tabLength: 4)
       tokenizedBuffer2 = deserialize(tokenizedBuffer1.serialize())
       expect(tokenizedBuffer2.buffer).toBe tokenizedBuffer1.buffer
       expect(tokenizedBuffer2.getTabLength()).toBe tokenizedBuffer1.getTabLength()
 
+  describe "when the buffer is destroyed", ->
+    beforeEach ->
+      buffer = project.bufferForPathSync('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      startTokenizing(tokenizedBuffer)
+
+    it "stops tokenization", ->
+      tokenizedBuffer.destroy()
+      spyOn(tokenizedBuffer, 'tokenizeNextChunk')
+      advanceClock()
+      expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
+
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
-      buffer = project.bufferForPath('sample.js')
+      buffer = project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
       tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
@@ -307,8 +319,8 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
-      atom.activatePackage('coffee-script-tmbundle', sync: true)
-      buffer = project.bufferForPath('sample-with-tabs.coffee')
+      atom.activatePackage('language-coffee-script', sync: true)
+      buffer = project.bufferForPathSync('sample-with-tabs.coffee')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
 
@@ -337,8 +349,8 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
-      atom.activatePackage('javascript-tmbundle', sync: true)
-      buffer = project.buildBuffer 'sample-with-pairs.js',  """
+      atom.activatePackage('language-javascript', sync: true)
+      buffer = project.buildBufferSync 'sample-with-pairs.js',  """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
       """
@@ -374,10 +386,10 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
-      atom.activatePackage('ruby-tmbundle', sync: true)
-      atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+      atom.activatePackage('language-ruby-on-rails', sync: true)
+      atom.activatePackage('language-ruby', sync: true)
 
-      buffer = project.bufferForPath(null, "<div class='name'><%= User.find(2).full_name %></div>")
+      buffer = project.bufferForPathSync(null, "<div class='name'><%= User.find(2).full_name %></div>")
       tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
       fullyTokenize(tokenizedBuffer)
@@ -385,7 +397,7 @@ describe "TokenizedBuffer", ->
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
 
-      atom.activatePackage('html-tmbundle', sync: true)
+      atom.activatePackage('language-html', sync: true)
       fullyTokenize(tokenizedBuffer)
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
@@ -396,7 +408,7 @@ describe "TokenizedBuffer", ->
       buffer.release()
 
     it "returns the correct token (regression)", ->
-      buffer = project.bufferForPath('sample.js')
+      buffer = project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
@@ -405,7 +417,7 @@ describe "TokenizedBuffer", ->
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
-      buffer = project.bufferForPath('sample.js')
+      buffer = project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 

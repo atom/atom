@@ -1,4 +1,5 @@
-{$} = require 'atom'
+path = require 'path'
+{$, $$, fs, RootView} = require 'atom'
 
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'
@@ -7,10 +8,25 @@ describe "ThemeManager", ->
   themeManager = null
 
   beforeEach ->
-    themeManager = new ThemeManager()
+    themeManager = new ThemeManager(atom.packages)
 
   afterEach ->
-    themeManager.unload()
+    themeManager.deactivateThemes()
+
+  describe "theme getters and setters", ->
+    beforeEach ->
+      atom.packages.loadPackages()
+
+    it 'getLoadedThemes get all the loaded themes', ->
+      themes = themeManager.getLoadedThemes()
+      expect(themes.length).toBeGreaterThan(2)
+
+    it 'getActiveThemes get all the active themes', ->
+      themeManager.activateThemes()
+      names = atom.config.get('core.themes')
+      expect(names.length).toBeGreaterThan(0)
+      themes = themeManager.getActiveThemes()
+      expect(themes).toHaveLength(names.length)
 
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
@@ -23,11 +39,15 @@ describe "ThemeManager", ->
       expect(paths[0]).toContain 'atom-dark-ui'
       expect(paths[1]).toContain 'atom-light-ui'
 
+    it "ignores themes that cannot be resolved to a directory", ->
+      config.set('core.themes', ['definitely-not-a-theme'])
+      expect(-> themeManager.getImportPaths()).not.toThrow()
+
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
-      themeManager.load()
+      themeManager.activateThemes()
 
       config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
@@ -54,18 +74,82 @@ describe "ThemeManager", ->
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
-      themeManager.activateTheme('a-theme-that-will-not-be-found')
-      expect(console.warn).toHaveBeenCalled()
+      expect(-> atom.packages.activatePackage('a-theme-that-will-not-be-found')).toThrow()
 
-  describe "theme-loaded event", ->
+  describe "requireStylesheet(path)", ->
+    it "synchronously loads css at the given path and installs a style tag for it in the head", ->
+      cssPath = project.resolve('css.css')
+      lengthBefore = $('head style').length
+
+      themeManager.requireStylesheet(cssPath)
+      expect($('head style').length).toBe lengthBefore + 1
+
+      element = $('head style[id*="css.css"]')
+      expect(element.attr('id')).toBe cssPath
+      expect(element.text()).toBe fs.read(cssPath)
+
+      # doesn't append twice
+      themeManager.requireStylesheet(cssPath)
+      expect($('head style').length).toBe lengthBefore + 1
+
+      $('head style[id*="css.css"]').remove()
+
+    it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
+      lessPath = project.resolve('sample.less')
+      lengthBefore = $('head style').length
+      themeManager.requireStylesheet(lessPath)
+      expect($('head style').length).toBe lengthBefore + 1
+
+      element = $('head style[id*="sample.less"]')
+      expect(element.attr('id')).toBe lessPath
+      expect(element.text()).toBe """
+      #header {
+        color: #4d926f;
+      }
+      h2 {
+        color: #4d926f;
+      }
+
+      """
+
+      # doesn't append twice
+      themeManager.requireStylesheet(lessPath)
+      expect($('head style').length).toBe lengthBefore + 1
+      $('head style[id*="sample.less"]').remove()
+
+    it "supports requiring css and less stylesheets without an explicit extension", ->
+      themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
+      expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
+      themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
+      expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
+
+      $('head style[id*="css.css"]').remove()
+      $('head style[id*="sample.less"]').remove()
+
+  describe ".removeStylesheet(path)", ->
+    it "removes styling applied by given stylesheet path", ->
+      cssPath = require.resolve('./fixtures/css.css')
+
+      expect($(document.body).css('font-weight')).not.toBe("bold")
+      themeManager.requireStylesheet(cssPath)
+      expect($(document.body).css('font-weight')).toBe("bold")
+      themeManager.removeStylesheet(cssPath)
+      expect($(document.body).css('font-weight')).not.toBe("bold")
+
+  describe "base stylesheet loading", ->
     beforeEach ->
-      spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
-      themeManager.load()
+      window.rootView = new RootView
+      rootView.append $$ -> @div class: 'editor'
+      rootView.attachToDom()
+      themeManager.activateThemes()
 
-    it "fires when a new theme has been added", ->
-      themeManager.on 'theme-activated', loadHandler = jasmine.createSpy()
+    it "loads the correct values from the theme's ui-variables file", ->
+      config.set('core.themes', ['theme-with-ui-variables'])
 
-      config.set('core.themes', ['atom-dark-syntax'])
+      # an override loaded in the base css
+      expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
 
-      expect(loadHandler).toHaveBeenCalled()
-      expect(loadHandler.mostRecentCall.args[0]).toBeInstanceOf AtomPackage
+      # from within the theme itself
+      expect($(".editor").css("padding-top")).toBe "150px"
+      expect($(".editor").css("padding-right")).toBe "150px"
+      expect($(".editor").css("padding-bottom")).toBe "150px"

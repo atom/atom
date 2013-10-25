@@ -1,9 +1,10 @@
-$ = require './jquery-extensions'
-_ = require './underscore-extensions'
+{$} = require './space-pen-extensions'
+_ = require 'underscore-plus'
 fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
+{Emitter} = require 'emissary'
 
 # Internal: Associates keymaps with actions.
 #
@@ -20,6 +21,8 @@ BindingSet = require './binding-set'
 # key, you define one or more key:value pairs, associating keystrokes with a command to execute.
 module.exports =
 class Keymap
+  Emitter.includeInto(this)
+
   bindingSets: null
   nextBindingSetIndex: 0
   bindingSetsByFirstKeystroke: null
@@ -31,6 +34,7 @@ class Keymap
 
   loadBundledKeymaps: ->
     @loadDirectory(config.bundledKeymapsDirPath)
+    @emit('bundled-keymaps-loaded')
 
   loadUserKeymaps: ->
     @loadDirectory(path.join(config.configDirPath, 'keymaps'))

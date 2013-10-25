@@ -16,8 +16,6 @@
     styleguides
   * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
     specs
-  * Style new elements in both the light and dark default themes when
-    appropriate
   * Add 3rd-party packages as a `package.json` dependency
   * Commit messages are in the present tense
   * Commit messages that improve the format of the code start with :lipstick:
@@ -30,6 +28,13 @@
     * Class methods (methods starting with a `@`)
     * Instance variables
     * Instance methods
+  * Be ware of platform differences
+    * The home directory is `process.env.USERPROFILE` on Windows, while on OS X
+      and Linux it's `process.env.HOME`
+    * Path separator is `\` on Windows, and is `/` on OS X and Linux, so use
+      `path.join` to concatenate filenames.
+    * Temporary directory is not `/tmp` on Windows, use `os.tmpdir()` when
+      possible
 
 ## Philosophy
 

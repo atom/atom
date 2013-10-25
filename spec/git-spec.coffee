@@ -8,18 +8,19 @@ describe "Git", ->
   repo = null
 
   beforeEach ->
-    fs.remove('/tmp/.git') if fs.isDirectorySync('/tmp/.git')
+    gitPath = path.join(temp.dir, '.git')
+    fs.remove(gitPath) if fs.isDirectorySync(gitPath)
 
   afterEach ->
     repo.destroy() if repo?.repo?
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
-      expect(Git.open('/tmp/nogit.txt')).toBeNull()
+      expect(Git.open(path.join(temp.dir, 'nogit.txt'))).toBeNull()
 
   describe "new Git(path)", ->
     it "throws an exception when no repository is found", ->
-      expect(-> new Git('/tmp/nogit.txt')).toThrow()
+      expect(-> new Git(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
     it "returns the repository path for a .git directory path", ->
@@ -213,7 +214,7 @@ describe "Git", ->
       fs.writeSync(editSession.getPath(), originalContent)
 
     it "emits a status-changed event", ->
-      editSession = project.open('sample.js')
+      editSession = project.openSync('sample.js')
       originalContent = editSession.getText()
       editSession.insertNewline()
 
@@ -230,7 +231,7 @@ describe "Git", ->
       fs.writeSync(editSession.getPath(), originalContent)
 
     it "emits a status-changed event", ->
-      editSession = project.open('sample.js')
+      editSession = project.openSync('sample.js')
       originalContent = editSession.getText()
       fs.writeSync(editSession.getPath(), 'changed')
 
@@ -250,14 +251,19 @@ describe "Git", ->
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
-      project.open('sample.js')
+      project.openSync('sample.js')
       project2 = deserialize(project.serialize())
       buffer = project2.getBuffers()[0]
-      originalContent = buffer.getText()
-      buffer.append('changes')
 
-      statusHandler = jasmine.createSpy('statusHandler')
-      project2.getRepo().on 'status-changed', statusHandler
-      buffer.save()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256
+      waitsFor ->
+        buffer.loaded
+
+      runs ->
+        originalContent = buffer.getText()
+        buffer.append('changes')
+
+        statusHandler = jasmine.createSpy('statusHandler')
+        project2.getRepo().on 'status-changed', statusHandler
+        buffer.save()
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256

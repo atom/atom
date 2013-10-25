@@ -1,6 +1,6 @@
 {Point, Range} = require 'telepath'
-EventEmitter = require './event-emitter'
-_ = require './underscore-extensions'
+{Emitter} = require 'emissary'
+_ = require 'underscore-plus'
 
 # Public: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
@@ -9,7 +9,7 @@ _ = require './underscore-extensions'
 # of a {StringMarker}.
 module.exports =
 class Cursor
-  _.extend @prototype, EventEmitter
+  Emitter.includeInto(this)
 
   screenPosition: null
   bufferPosition: null
@@ -36,12 +36,12 @@ class Cursor
         newScreenPosition: newHeadScreenPosition
         textChanged: textChanged
 
-      @trigger 'moved', movedEvent
-      @editSession.trigger 'cursor-moved', movedEvent
+      @emit 'moved', movedEvent
+      @editSession.emit 'cursor-moved', movedEvent
     @marker.on 'destroyed', =>
       @destroyed = true
       @editSession.removeCursor(this)
-      @trigger 'destroyed'
+      @emit 'destroyed'
     @needsAutoscroll = true
 
   # Private:
@@ -54,7 +54,7 @@ class Cursor
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
-      @trigger 'autoscrolled' if @needsAutoscroll
+      @emit 'autoscrolled' if @needsAutoscroll
 
   # Public: Moves a cursor to a given screen position.
   #
@@ -97,15 +97,26 @@ class Cursor
     if @visible != visible
       @visible = visible
       @needsAutoscroll ?= true if @visible and @isLastCursor()
-      @trigger 'visibility-changed', @visible
+      @emit 'visibility-changed', @visible
 
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible
 
-  # Public: Returns a RegExp of what the cursor considers a "word"
-  wordRegExp: ->
-    nonWordCharacters = config.get("editor.nonWordCharacters")
-    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "g")
+  # Public: Get the RegExp used by the cursor to determine what a "word" is.
+  #
+  # * options:
+  #    + includeNonWordCharacters:
+  #      A Boolean indicating whether to include non-word characters in the regex.
+  #
+  # Returns a RegExp.
+  wordRegExp: ({includeNonWordCharacters}={})->
+    includeNonWordCharacters ?= true
+    nonWordCharacters = config.get('editor.nonWordCharacters')
+    segments = ["^[\t ]*$"]
+    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
+    if includeNonWordCharacters
+      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
+    new RegExp(segments.join("|"), "g")
 
   # Public: Identifies if this cursor is the last in the {EditSession}.
   #
@@ -125,6 +136,25 @@ class Cursor
     {row, column} = @getBufferPosition()
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
     /^\s+$/.test @editSession.getTextInBufferRange(range)
+
+  # Public: Returns whether the cursor is currently between a word and non-word
+  # character. The non-word characters are defined by the
+  # `editor.nonWordCharacters` config value.
+  #
+  # This method returns false if the character before or after the cursor is
+  # whitespace.
+  #
+  # Returns a Boolean.
+  isBetweenWordAndNonWord: ->
+    return false if @isAtBeginningOfLine() or @isAtEndOfLine()
+
+    {row, column} = @getBufferPosition()
+    range = [[row, column - 1], [row, column + 1]]
+    [before, after] = @editSession.getTextInBufferRange(range)
+    return false if /\s/.test(before) or /\s/.test(after)
+
+    nonWordCharacters = config.get('editor.nonWordCharacters').split('')
+    _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
   isInsideWord: ->
@@ -280,6 +310,9 @@ class Cursor
   # * options:
   #    + wordRegex:
   #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
+  #    + includeNonWordCharacters:
+  #      A Boolean indicating whether to include non-word characters in the
+  #      default word regex. Has no effect if wordRegex is set.
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
@@ -289,7 +322,7 @@ class Cursor
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
       if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = range.start
       if not beginningOfWordPosition?.isEqual(currentBufferPosition)
@@ -297,7 +330,7 @@ class Cursor
 
     beginningOfWordPosition or currentBufferPosition
 
-  # Public: Retrieves buffer position of previous word boundry. It might be on
+  # Public: Retrieves buffer position of previous word boundary. It might be on
   # the current word, or the previous word.
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
@@ -319,7 +352,7 @@ class Cursor
 
     beginningOfWordPosition or currentBufferPosition
 
-  # Public: Retrieves buffer position of the next word boundry. It might be on
+  # Public: Retrieves buffer position of the next word boundary. It might be on
   # the current word, or the previous word.
   getMoveNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
@@ -345,6 +378,9 @@ class Cursor
   # * options:
   #    + wordRegex:
   #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
+  #    + includeNonWordCharacters:
+  #      A Boolean indicating whether to include non-word characters in the
+  #      default word regex. Has no effect if wordRegex is set.
   #
   # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
@@ -353,7 +389,7 @@ class Cursor
     scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
       if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
         endOfWordPosition = range.end
       if not endOfWordPosition?.isEqual(currentBufferPosition)

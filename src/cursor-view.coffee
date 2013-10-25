@@ -1,6 +1,6 @@
 {View} = require './space-pen-extensions'
 {Point, Range} = require 'telepath'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 
 ### Internal ###
 module.exports =
@@ -43,7 +43,7 @@ class CursorView extends View
     pixelPosition = @getPixelPosition()
 
     unless _.isEqual(@lastPixelPosition, pixelPosition)
-      changedPosition = true
+      @lastPixelPosition = pixelPosition
       @css(pixelPosition)
       @trigger 'cursor:moved'
 
@@ -53,6 +53,14 @@ class CursorView extends View
       @startBlinking()
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
+
+  # Override for speed. The base function checks the computedStyle
+  isHidden: ->
+    style = this[0].style
+    if style.display == 'none' or not @isOnDom()
+      true
+    else
+      false
 
   needsAutoscroll: ->
     @cursor.needsAutoscroll

@@ -3,6 +3,7 @@ fstream = require 'fstream'
 Project = require '../src/project'
 {_, fs} = require 'atom'
 path = require 'path'
+platform = require './spec-helper-platform'
 BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
@@ -16,7 +17,7 @@ describe "Project", ->
       deserializedProject?.destroy()
 
     it "destroys unretained buffers and does not include them in the serialized state", ->
-      project.bufferForPath('a')
+      project.bufferForPathSync('a')
       expect(project.getBuffers().length).toBe 1
       deserializedProject = deserialize(project.serialize())
       expect(deserializedProject.getBuffers().length).toBe 0
@@ -24,8 +25,8 @@ describe "Project", ->
 
   describe "when an edit session is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
-      editSession = project.open("a")
-      anotherEditSession = project.open("a")
+      editSession = project.openSync("a")
+      anotherEditSession = project.openSync("a")
 
       expect(project.editSessions.length).toBe 2
       expect(editSession.buffer).toBe anotherEditSession.buffer
@@ -38,19 +39,19 @@ describe "Project", ->
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
+      tempFile = temp.openSync().path
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
-      editSession = project.open()
-      editSession.saveAs('/tmp/atom-test-save-sets-project-path')
-      expect(project.getPath()).toBe '/tmp'
-      fs.remove('/tmp/atom-test-save-sets-project-path')
+      editSession = project.openSync()
+      editSession.saveAs(tempFile)
+      expect(project.getPath()).toBe path.dirname(tempFile)
 
   describe "when an edit session is deserialized", ->
     it "emits an 'edit-session-created' event and stores the edit session", ->
       handler = jasmine.createSpy('editSessionCreatedHandler')
       project.on 'edit-session-created', handler
 
-      editSession1 = project.open("a")
+      editSession1 = project.openSync("a")
       expect(handler.callCount).toBe 1
       expect(project.getEditSessions().length).toBe 1
       expect(project.getEditSessions()[0]).toBe editSession1
@@ -61,7 +62,7 @@ describe "Project", ->
       expect(project.getEditSessions()[0]).toBe editSession1
       expect(project.getEditSessions()[1]).toBe editSession2
 
-  describe ".open(path)", ->
+  describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
@@ -82,30 +83,30 @@ describe "Project", ->
     describe "when passed a path that doesn't match a custom opener", ->
       describe "when given an absolute path that hasn't been opened previously", ->
         it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.open(absolutePath)
+          editSession = project.openSync(absolutePath)
           expect(editSession.buffer.getPath()).toBe absolutePath
           expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
           expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
       describe "when given a relative path that hasn't been opened previously", ->
         it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.open('a')
+          editSession = project.openSync('a')
           expect(editSession.buffer.getPath()).toBe absolutePath
           expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
           expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
       describe "when passed the path to a buffer that has already been opened", ->
         it "returns a new edit session containing previously opened buffer and emits a 'edit-session-created' event", ->
-          editSession = project.open(absolutePath)
+          editSession = project.openSync(absolutePath)
           newBufferHandler.reset()
-          expect(project.open(absolutePath).buffer).toBe editSession.buffer
-          expect(project.open('a').buffer).toBe editSession.buffer
+          expect(project.openSync(absolutePath).buffer).toBe editSession.buffer
+          expect(project.openSync('a').buffer).toBe editSession.buffer
           expect(newBufferHandler).not.toHaveBeenCalled()
           expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
       describe "when not passed a path", ->
         it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.open()
+          editSession = project.openSync()
           expect(editSession.buffer.getPath()).toBeUndefined()
           expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
           expect(newEditSessionHandler).toHaveBeenCalledWith editSession
@@ -113,22 +114,139 @@ describe "Project", ->
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         pathToOpen = project.resolve('a.foo')
-        expect(project.open(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
-        expect(project.open("bar://baz")).toEqual { bar: "bar://baz" }
+        expect(project.openSync(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
+        expect(project.openSync("bar://baz")).toEqual { bar: "bar://baz" }
 
-  describe ".bufferForPath(path)", ->
+  describe ".open(path)", ->
+    [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
+
+    beforeEach ->
+      absolutePath = require.resolve('./fixtures/dir/a')
+      newBufferHandler = jasmine.createSpy('newBufferHandler')
+      project.on 'buffer-created', newBufferHandler
+      newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
+      project.on 'edit-session-created', newEditSessionHandler
+
+      fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
+      barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
+      project.registerOpener(fooOpener)
+      project.registerOpener(barOpener)
+
+    afterEach ->
+      project.unregisterOpener(fooOpener)
+      project.unregisterOpener(barOpener)
+
+    describe "when passed a path that doesn't match a custom opener", ->
+      describe "when given an absolute path that isn't currently open", ->
+        it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.open(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when given a relative path that isn't currently opened", ->
+        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.open(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when passed the path to a buffer that is currently opened", ->
+        it "returns a new edit session containing currently opened buffer and emits a 'edit-session-created' event", ->
+          editSession = null
+          waitsForPromise ->
+            project.open(absolutePath).then (o) -> editSession = o
+
+          runs ->
+            newBufferHandler.reset()
+            expect(project.openSync(absolutePath).buffer).toBe editSession.buffer
+            expect(project.openSync('a').buffer).toBe editSession.buffer
+            expect(newBufferHandler).not.toHaveBeenCalled()
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+      describe "when not passed a path", ->
+        it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
+          editSession = null
+          waitsForPromise ->
+            project.open().then (o) -> editSession = o
+
+          runs ->
+            expect(editSession.buffer.getPath()).toBeUndefined()
+            expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
+            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+    describe "when passed a path that matches a custom opener", ->
+      it "returns the resource returned by the custom opener", ->
+        waitsForPromise ->
+          pathToOpen = project.resolve('a.foo')
+          project.open(pathToOpen, hey: "there").then (item) ->
+            expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
+
+        waitsForPromise ->
+          project.open("bar://baz").then (item) ->
+            expect(item).toEqual { bar: "bar://baz" }
+
+    it "returns number of read bytes as progress indicator", ->
+      filePath = project.resolve 'a'
+      totalBytes = 0
+      promise = project.open(filePath)
+      promise.progress (bytesRead) -> totalBytes = bytesRead
+
+      waitsForPromise ->
+        promise
+
+      runs ->
+        expect(totalBytes).toBe fs.statSync(filePath).size
+
+  describe ".bufferForPathSync(path)", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
-        buffer = project.bufferForPath("a").retain()
-        expect(project.bufferForPath("a")).toBe buffer
+        buffer = project.bufferForPathSync("a").retain()
+        expect(project.bufferForPathSync("a")).toBe buffer
 
-        alternativeBuffer = project.bufferForPath("b").retain().release()
+        alternativeBuffer = project.bufferForPathSync("b").retain().release()
         expect(alternativeBuffer).not.toBe buffer
         buffer.release()
 
       it "creates a new buffer if the previous buffer was destroyed", ->
-        buffer = project.bufferForPath("a").retain().release()
-        expect(project.bufferForPath("a").retain().release()).not.toBe buffer
+        buffer = project.bufferForPathSync("a").retain().release()
+        expect(project.bufferForPathSync("a").retain().release()).not.toBe buffer
+
+  describe ".bufferForPath(path)", ->
+    [buffer] = []
+    beforeEach ->
+      waitsForPromise ->
+        project.bufferForPath("a").then (o) ->
+          buffer = o
+          buffer.retain()
+
+    afterEach ->
+      buffer.release()
+
+    describe "when opening a previously opened path", ->
+      it "does not create a new buffer", ->
+        waitsForPromise ->
+          project.bufferForPath("a").then (anotherBuffer) ->
+            expect(anotherBuffer).toBe buffer
+
+        waitsForPromise ->
+          project.bufferForPath("b").then (anotherBuffer) ->
+            expect(anotherBuffer).not.toBe buffer
+
+      it "creates a new buffer if the previous buffer was destroyed", ->
+        buffer.release()
+
+        waitsForPromise ->
+          project.bufferForPath("b").then (anotherBuffer) ->
+            expect(anotherBuffer).not.toBe buffer
 
   describe ".resolve(uri)", ->
     describe "when passed an absolute or relative path", ->
@@ -161,76 +279,6 @@ describe "Project", ->
         project.setPath(null)
         expect(project.getPath()?).toBeFalsy()
         expect(project.getRootDirectory()?).toBeFalsy()
-
-  describe ".getFilePaths()", ->
-    it "returns file paths using a promise", ->
-      paths = null
-      waitsForPromise ->
-        project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-      runs ->
-        expect(paths.length).toBeGreaterThan 0
-
-    it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'isPathIgnored').andCallFake (filePath) -> path.basename(filePath).match /a$/
-
-      paths = null
-      waitsForPromise ->
-        project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-      runs ->
-        expect(paths).not.toContain(project.resolve('a'))
-        expect(paths).toContain(project.resolve('b'))
-
-    describe "when config.core.hideGitIgnoredFiles is true", ->
-      it "ignores files that are present in .gitignore if the project is a git repo", ->
-        config.set "core.hideGitIgnoredFiles", true
-        project.setPath(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-        paths = null
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored.txt')
-
-    describe "ignored file name", ->
-      ignoredFile = null
-
-      beforeEach ->
-        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored.txt')
-        fs.writeSync(ignoredFile, "")
-
-      afterEach ->
-        fs.remove(ignoredFile)
-
-      it "ignores ignored.txt file", ->
-        paths = null
-        config.pushAtKeyPath("core.ignoredNames", "ignored.txt")
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored.txt')
-
-    describe "ignored folder name", ->
-      ignoredFile = null
-
-      beforeEach ->
-        ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored', 'ignored.txt')
-        fs.writeSync(ignoredFile, "")
-
-      afterEach ->
-        fs.remove(ignoredFile)
-
-      it "ignores ignored folder", ->
-        paths = null
-        config.get("core.ignoredNames").push("ignored.txt")
-        config.set("core.ignoredNames", config.get("core.ignoredNames"))
-        waitsForPromise ->
-          project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-        runs ->
-          expect(paths).not.toContain('ignored/ignored.txt')
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
@@ -277,13 +325,20 @@ describe "Project", ->
             matches = matches.concat(result.matches)
 
         runs ->
-          expect(paths.length).toBe 5
-          matches.forEach (match) -> expect(match.matchText).toEqual 'evil'
-          expect(paths[0]).toMatch /a_file_with_utf8.txt$/
-          expect(paths[1]).toMatch /file with spaces.txt$/
-          expect(paths[2]).toMatch /goddam\nnewlines$/m
-          expect(paths[3]).toMatch /quote".txt$/m
-          expect(path.basename(paths[4])).toBe "utfa\u0306.md"
+          _.each(matches, (m) -> expect(m.matchText).toEqual 'evil')
+
+          if platform.isWindows()
+            expect(paths.length).toBe 3
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(path.basename(paths[2])).toBe "utfa\u0306.md"
+          else
+            expect(paths.length).toBe 5
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(paths[2]).toMatch /goddam\nnewlines$/m
+            expect(paths[3]).toMatch /quote".txt$/m
+            expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "ignores case if the regex includes the `i` flag", ->
         results = []
@@ -345,7 +400,7 @@ describe "Project", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        projectPath = '/tmp/atom-tests/folder-with-dot-file'
+        projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
         fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)

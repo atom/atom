@@ -1,7 +1,16 @@
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 textUtils = require './text-utils'
 
-whitespaceRegexesByTabLength = {}
+WhitespaceRegexesByTabLength = {}
+LeadingWhitespaceRegex = /^[ ]+/
+TrailingWhitespaceRegex = /[ ]+$/
+EscapeRegex = /[&"'<>]/g
+CharacterRegex = /./g
+StartCharacterRegex = /^./
+StartDotRegex = /^\.?/
+WhitespaceRegex = /\S/
+
+MaxTokenLength = 20000
 
 # Private: Represents a single unit of text as selected by a grammar.
 module.exports =
@@ -33,7 +42,7 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   whitespaceRegexForTabLength: (tabLength) ->
-    whitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+    WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
     if @hasSurrogatePair
@@ -112,50 +121,75 @@ class Token
     )
 
   isOnlyWhitespace: ->
-    not /\S/.test(@value)
+    not WhitespaceRegex.test(@value)
 
   matchesScopeSelector: (selector) ->
-    targetClasses = selector.replace(/^\.?/, '').split('.')
+    targetClasses = selector.replace(StartDotRegex, '').split('.')
     _.any @scopes, (scope) ->
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
     invisibles ?= {}
-    html = @value
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-
     if @isHardTab
-      classes = []
-      classes.push('indent-guide') if hasIndentGuide
-      classes.push('invisible-character') if invisibles.tab
-      classes.push('hard-tab')
-      classes = classes.join(' ')
-      html = html.replace /^./, (match) ->
+      classes = 'hard-tab'
+      classes += ' indent-guide' if hasIndentGuide
+      classes += ' invisible-character' if invisibles.tab
+      html = @value.replace StartCharacterRegex, (match) =>
         match = invisibles.tab ? match
-        "<span class='#{classes}'>#{match}</span>"
+        "<span class='#{classes}'>#{@escapeString(match)}</span>"
     else
-      if hasLeadingWhitespace
-        classes = []
-        classes.push('indent-guide') if hasIndentGuide
-        classes.push('invisible-character') if invisibles.space
-        classes.push('leading-whitespace')
-        classes = classes.join(' ')
-        html = html.replace /^[ ]+/, (match) ->
-          match = match.replace(/./g, invisibles.space) if invisibles.space
-          "<span class='#{classes}'>#{match}</span>"
-      if hasTrailingWhitespace
-        classes = []
-        classes.push('indent-guide') if hasIndentGuide and not hasLeadingWhitespace
-        classes.push('invisible-character') if invisibles.space
-        classes.push('trailing-whitespace')
-        classes = classes.join(' ')
-        html = html.replace /[ ]+$/, (match) ->
-          match = match.replace(/./g, invisibles.space) if invisibles.space
-          "<span class='#{classes}'>#{match}</span>"
+      startIndex = 0
+      endIndex = @value.length
 
+      leadingHtml = ''
+      trailingHtml = ''
+
+      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
+        classes = 'leading-whitespace'
+        classes += ' indent-guide' if hasIndentGuide
+        classes += ' invisible-character' if invisibles.space
+
+        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
+        leadingHtml = "<span class='#{classes}'>#{match[0]}</span>"
+
+        startIndex = match[0].length
+
+      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+        classes = 'trailing-whitespace'
+        classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
+        classes += ' invisible-character' if invisibles.space
+
+        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
+        trailingHtml = "<span class='#{classes}'>#{match[0]}</span>"
+
+        endIndex = match.index
+
+      html = leadingHtml
+      if @value.length > MaxTokenLength
+        while startIndex < endIndex
+          html += "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
+          startIndex += MaxTokenLength
+      else
+        html += @escapeString(@value, startIndex, endIndex)
+
+      html += trailingHtml
     html
+
+  escapeString: (str, startIndex, endIndex) ->
+    strLength = str.length
+
+    startIndex ?= 0
+    endIndex ?= strLength
+
+    str = str.slice(startIndex, endIndex) if startIndex > 0 or endIndex < strLength
+    str.replace(EscapeRegex, @escapeStringReplace)
+
+  escapeStringReplace: (match) ->
+    switch match
+      when '&' then '&amp;'
+      when '"' then '&quot;'
+      when "'" then '&#39;'
+      when '<' then '&lt;'
+      when '>' then '&gt;'
+      else match

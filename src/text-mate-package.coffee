@@ -1,7 +1,7 @@
 Package = require './package'
 fsUtils = require './fs-utils'
 path = require 'path'
-_ = require './underscore-extensions'
+_ = require 'underscore-plus'
 TextMateGrammar = require './text-mate-grammar'
 async = require 'async'
 
@@ -10,7 +10,8 @@ async = require 'async'
 module.exports =
 class TextMatePackage extends Package
   @testName: (packageName) ->
-    /(\.|_|-)tmbundle$/.test(packageName)
+    packageName = path.basename(packageName)
+    /(^language-.+)|((\.|_|-)tmbundle$)/.test(packageName)
 
   @getLoadQueue: ->
     return @loadQueue if @loadQueue

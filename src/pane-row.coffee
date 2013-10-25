@@ -1,5 +1,5 @@
-$ = require './jquery-extensions'
-_ = require './underscore-extensions'
+{$} = require './space-pen-extensions'
+_ = require 'underscore-plus'
 PaneAxis = require './pane-axis'
 
 ### Internal ###
