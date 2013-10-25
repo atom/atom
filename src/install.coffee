@@ -59,19 +59,14 @@ class Install extends Command
         callback("#{stdout}\n#{stderr}")
 
   installModule: (options, pack, modulePath, callback) ->
-    vsArgs = null
-    if config.isWin32()
-      vsArgs = "--msvs_version=2010" if config.isVs2010Installed()
-      vsArgs = "--msvs_version=2012" if config.isVs2012Installed()
-
-      throw new Error("You must have either VS2010 or VS2012 installed") unless vsArgs
-
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push(vsArgs) if vsArgs?
+
+    if vsArgs = @getVisualStudioFlags()
+      installArgs.push(vsArgs)
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
@@ -101,6 +96,17 @@ class Install extends Command
 
         callback("#{stdout}\n#{stderr}")
 
+  # Private
+  getVisualStudioFlags: ->
+    return null unless config.isWin32()
+
+    if config.isVs2010Installed()
+      "--msvs_version=2010"
+    else if config.isVs2012Installed()
+      "--msvs_version=2012"
+    else
+      throw new Error("You must have either VS2010 or VS2012 installed")
+
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
 
@@ -117,7 +123,10 @@ class Install extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push('--msvs_version=2012') if config.isWin32()
+
+    if vsArgs = @getVisualStudioFlags()
+      installArgs.push(vsArgs)
+
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
     installOptions = {env}
