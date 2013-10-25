@@ -70,11 +70,13 @@ class TextBuffer
     @updateCachedDiskContentsSync()
     @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
     @text.clearUndoStack()
+    @loaded = true
 
   load: ->
     @updateCachedDiskContents().then =>
       @reload() unless @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
       @text.clearUndoStack()
+      @loaded = true
       this
 
   ### Internal ###
@@ -159,13 +161,11 @@ class TextBuffer
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsSync: ->
-    @loaded = true
     @cachedDiskContents = @file?.readSync() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
     Q(@file?.read() ? "").then (contents) =>
-      @loaded = true
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
