@@ -1,7 +1,7 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
 {_} = require 'atom'
 
-fdescribe "TokenizedBuffer", ->
+describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
