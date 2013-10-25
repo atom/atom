@@ -102,10 +102,11 @@ class Install extends Command
 
     if config.isVs2010Installed()
       "--msvs_version=2010"
-    else if config.isVs2012Installed()
-      "--msvs_version=2012"
+    #else if config.isVs2012Installed()
+      #"--msvs_version=2012"
     else
-      throw new Error("You must have either VS2010 or VS2012 installed")
+      throw new Error("You must have VS2010 installed")
+      #throw new Error("You must have either VS2010 or VS2012 installed")
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
