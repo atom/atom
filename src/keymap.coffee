@@ -37,7 +37,8 @@ class Keymap
     @emit('bundled-keymaps-loaded')
 
   loadUserKeymaps: ->
-    @loadDirectory(path.join(config.configDirPath, 'keymaps'))
+    userKeymapPath = path.join(config.configDirPath, 'keymap.cson')
+    @load(userKeymapPath) if fsUtils.exists(userKeymapPath)
 
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fsUtils.listSync(directoryPath, ['.cson', '.json'])
