@@ -14,7 +14,7 @@ function readEnvironmentVariables() {
   var credentialsPath = '/var/lib/jenkins/config/atomcredentials';
   try {
     var credentials = fs.readFileSync(credentialsPath, 'utf8');
-    var lines = crendentials.trim().split('\n');
+    var lines = credentials.trim().split('\n');
     for (i in lines) {
       var parts = lines[i].split('=');
       var key = parts[0].trim();
