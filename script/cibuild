@@ -10,31 +10,31 @@ if (process.platform != 'darwin')
 
 var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
-function readEnvironmentVariables(callback) {
-  var credenticalsPath = '/var/lib/jenkins/config/atomcredentials';
-  fs.readFile(credenticalsPath, function(error, data) {
-    if (!error) {
-      var lines = String(data).trim().split('\n');
-      for (i in lines) {
-        var parts = lines[i].split('=');
-        var key = parts[0].trim();
-        var value = parts[1].trim().substr(1, parts[1].length - 2);
-        process.env[key] = value;
-      }
+function readEnvironmentVariables() {
+  var credentialsPath = '/var/lib/jenkins/config/atomcredentials';
+  try {
+    var credentials = fs.readFileSync(credentialsPath, 'utf8');
+    var lines = crendentials.trim().split('\n');
+    for (i in lines) {
+      var parts = lines[i].split('=');
+      var key = parts[0].trim();
+      var value = parts[1].trim().substr(1, parts[1].length - 2);
+      process.env[key] = value;
     }
-    // Do not quit when got error.
-    callback(null);
-  });
+  } catch(error) { }
 }
 
-var async = require('async');
-async.series([
-  readEnvironmentVariables,
-  cp.safeExec.bind(global, 'node script/bootstrap'),
-  require('rimraf').bind(global, path.join(homeDir, '.atom')),
-  cp.safeExec.bind(global, 'git clean -dff'),
-  cp.safeExec.bind(global, 'node node_modules/.bin/apm clean'),
-  cp.safeExec.bind(global, 'node node_modules/.bin/grunt ci --stack --no-color'),
-], function(error) {
-  process.exit(error ? 1 : 0);
+readEnvironmentVariables()
+cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
+  if (error)
+    process.exit(1);
+  var async = require('async');
+  async.series([
+    require('rimraf').bind(global, path.join(homeDir, '.atom')),
+    cp.safeExec.bind(global, 'git clean -dff'),
+    cp.safeExec.bind(global, 'node node_modules/.bin/apm clean'),
+    cp.safeExec.bind(global, 'node node_modules/.bin/grunt ci --stack --no-color'),
+  ], function(error) {
+    process.exit(error ? 1 : 0);
+  });
 });
