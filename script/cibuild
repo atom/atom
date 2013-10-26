@@ -37,4 +37,4 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   ], function(error) {
     process.exit(error ? 1 : 0);
   });
-});
+})();
