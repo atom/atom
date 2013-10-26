@@ -24,7 +24,7 @@ function readEnvironmentVariables() {
   } catch(error) { }
 }
 
-readEnvironmentVariables()
+readEnvironmentVariables();
 cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   if (error)
     process.exit(1);
