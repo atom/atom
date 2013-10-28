@@ -290,7 +290,12 @@ fsExtensions =
     pathToResolve = args.pop()
     loadPaths = args
 
-    if pathToResolve[0] is '/'
+    if process.platform is 'win32'
+      isAbsolute = pathToResolve[1] is ':' # C:\ style
+    else
+      isAbsolute = pathToResolve[0] is '/' # /usr style
+
+    if isAbsolute
       if extensions and resolvedPath = @resolveExtension(pathToResolve, extensions)
         return resolvedPath
       else
