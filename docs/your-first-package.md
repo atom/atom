@@ -1,15 +1,15 @@
 # Creating Your First Package
 
-Let's take a look at creating our first package.
+Let's take a look at creating your first package.
 
-To get started hit `cmd-p`, and start typing "Package Generator." to generate
-the package. Once you select the package generator command, it'll ask you for a
+To get started, hit `cmd-p`, and start typing "Package Generator" to generate
+a package. Once you select the "Generate Package" command, it'll ask you for a
 name for your new package. Let's call ours _changer_.
 
-Now, _changer_ is going to have a default set of folders and files created for
-us. Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer."
-You'll see a new `Changer:Toggle` command which, if selected, pops up a new
-message. So far, so good!
+Atom will pop open a new window, showing the _changer_ with a default set of
+folders and files created for us. Hit `cmd-p` and start typing "Changer." You'll
+see a new `Changer:Toggle` command which, if selected, pops up a greeting. So far,
+so good!
 
 In order to demonstrate the capabilities of Atom and its API, our Changer plugin
 is going to do two things:
@@ -26,7 +26,7 @@ Since Changer is primarily concerned with the file tree, let's write a
 key binding that works only when the tree is focused. Instead of using the
 default `toggle`, our keybinding executes a new command called `magic`.
 
-_keymaps/changer.cson_ can easily become this:
+_keymaps/changer.cson_ should change to look like this:
 
 ```coffeescript
 '.tree-view':
@@ -37,29 +37,35 @@ Notice that the keybinding is called `ctrl-V` &mdash; that's actually `ctrl-shif
 You can use capital letters to denote using `shift` for your binding.
 
 `.tree-view` represents the parent container for the tree view.
-Keybindings only work within the context of where they're entered. For example,
-hitting `ctrl-V` anywhere other than tree won't do anything. You can map to
-`body` if you want to scope to anywhere in Atom, or just `.editor` for the
-editor portion.
+Keybindings only work within the context of where they're entered. In this case,
+hitting `ctrl-V` anywhere other than tree won't do anything. Obviously, you can
+bind to any part of the editor using element, id, or class names. For example,
+you can map to `body` if you want to scope to anywhere in Atom, or just `.editor`
+for the editor portion.
 
-To bind keybindings to a command, we'll use the `rootView.command` method. This
-takes a command name and executes a function in the code. For example:
+To bind keybindings to a command, we'll need to do a bit of association in our
+CoffeeScript code using the `rootView.command` method. This method takes a command
+name and executes a callback function. Open up _lib/changer-view.coffee_, and
+change `rootView.command "changer:toggle" to look like this:
 
 ```coffeescript
 rootView.command "changer:magic", => @magic()
 ```
 
-It's common practice to namespace your commands with your package name, and
-separate it with a colon (`:`). Rename the existing `toggle` method to `magic`
-to get the binding to work.
+It's common practice to namespace your commands with your package name, separated
+with a colon (`:`).
 
-Reload the editor, click on the tree, hit your keybinding, and...nothing
-happens! What the heck?!
+Every time you reload the Atom editor, changes to your package code will be reevaluated,
+just as if you were writing a script for the browser. Reload the editor, click on
+the tree, hit your keybinding, and...nothing happens! What the heck?!
 
-Open up the _package.json_ file, and notice the key that says
-`activationEvents`. Basically, this tells Atom to not load a package until it
-hears a certain event. Let's change the event to `changer:magic` and reload the
-editor.
+Open up the _package.json_ file, and find the property called `activationEvents`.
+Basically, this key tells Atom to not load a package until it hears a certain event.
+Change the event to `changer:magic` and reload the editor:
+
+```json
+"activationEvents": ["changer:toggle"]
+```
 
 Hitting the key binding on the tree now works!
 
@@ -68,33 +74,34 @@ Hitting the key binding on the tree now works!
 The next step is to hide elements in the tree that aren't modified. To do that,
 we'll first try and get a list of files that have not changed.
 
-All packages are able to use jQuery in their code. In fact, we have [a list of
-some of the bundled libraries Atom provides by default](#included-libraries).
+All packages are able to use jQuery in their code. In fact, there's [a list of
+the bundled libraries Atom provides by default][bundled-libs].
 
-Let's bring in jQuery:
+We bring in jQuery by requiring the `atom` package and binding it to the `$` variable:
 
 ```coffeescript
 {$} = require 'atom'
 ```
 
-Now, we can query the tree to get us a list of every file that _wasn't_
-modified:
+Now, we can define the `magic` method to query the tree to get us a list of every
+file that _wasn't_ modified:
 
 ```coffeescript
 magic: ->
   $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
+    if !$(el).hasClass("status-modified")
       console.log el
 ```
 
-You can access the dev console by hitting `alt-cmd-i`. When we execute the
-`changer:magic` command, the browser console lists the items that are not being
-modified. Let's add a class to each of these elements called `hide-me`:
+You can access the dev console by hitting `alt-cmd-i`. Here, you'll see all the
+statements from `console` calls. When we execute the `changer:magic` command, the
+browser console lists items that are not being modified (_i.e._, those without the
+`status-modified` class). Let's add a class to each of these elements called `hide-me`:
 
 ```coffeescript
 magic: ->
   $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
+    if !$(el).hasClass("status-modified")
       $(el).addClass("hide-me")
 ```
 
@@ -108,14 +115,14 @@ ol.entries .hide-me {
 }
 ```
 
-Refresh atom, and run the `changer` command. You'll see all the non-changed
+Refresh Atom, and run the `changer` command. You'll see all the non-changed
 files disappear from the tree. There are a number of ways you can get the list
 back; let's just naively iterate over the same elements and remove the class:
 
 ```coffeescript
 magic: ->
   $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("modified")
+    if !$(el).hasClass("status-modified")
       if !$(el).hasClass("hide-me")
         $(el).addClass("hide-me")
       else
@@ -127,38 +134,51 @@ magic: ->
 The next goal of this package is to append a panel to the Atom editor that lists
 some information about the modified files.
 
-To do that, we're going to first create a new class method called `content`.
+To do that, we're going to first open up [the style guide][style-guide]. The Style
+Guide lists every type of UI element that can be created by an Atom package. Aside
+from helping you avoid writing fresh code from scratch, it ensures that packages
+have the same look and feel no matter how they're built.
+
 Every package that extends from the `View` class can provide an optional class
 method called `content`. The `content` method constructs the DOM that your
 package uses as its UI. The principals of `content` are built entirely on
-[SpacePen], which we'll touch upon only briefly here.
+[SpacePen][space-pen], which we'll touch upon only briefly here.
 
 Our display will simply be an unordered list of the file names, and their
-modified times. Let's start by carving out a `div` to hold the filenames:
+modified times. A basic Panel element will work well for us. Let's start by
+carving out a `div` to hold the filenames:
 
 ```coffeescript
 @content: ->
-  @div class: 'modified-files-container', =>
-    @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
-      @li 'Test'
-      @li 'Test2'
+  @div class: "panel", =>
+    @div class: "panel-heading", "Modified Files"
+    @div class: "panel-body padded", outlet: 'modifiedFilesContainer', =>
+      @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
+        @li 'Modified File Test'
+        @li 'Modified File Test'
 ```
 
-You can add any HTML5 attribute you like. `outlet` names the variable your
-package can uses to manipulate the element directly. The fat pipe (`=>`)
-indicates that the next set are nested children.
+You can add any HTML attribute you like. `outlet` names the variable your
+package can use to manipulate the element directly. The fat pipe (`=>`)
+indicates that the next DOM set are nested children.
 
-We'll add one more line to `magic` to make this pane appear:
+We'll add one more line to the end of the `magic` method to make this pane appear:
 
 ```coffeescript
 rootView.vertical.append(this)
 ```
 
-If you hit the key command, you'll see a box appear right underneath the editor.
-Success!
+If you refresh Atom and hit the key command, you'll see a box appear right underneath
+the editor. Success!
 
-Before we populate this, let's apply some logic to toggle the pane off and on,
-just like we did with the tree view:
+As you might have guessed, `rootView.vertical.append` tells Atom to append `this`
+item (_i.e._, whatever is defined by`@content`) _vertically_ to the editor. If
+we had called `rootView.horizontal.append`, the pane would be attached to the
+right-hand side of the editor.
+
+Before we populate this panel for real, let's apply some logic to toggle the pane
+off and on, just like we did with the tree view. Replace the `rootView.vertical.append`
+call with this code:
 
 ```coffeescript
 # toggles the pane
@@ -176,30 +196,35 @@ the view. You can then swap between `show()` and `hide()`, and instead of
 forcing Atom to add and remove the element as we're doing here, it'll just set a
 CSS property to control your package's visibility.
 
-Refresh Atom, hit the key combo, and see your test list.
+Refresh Atom, hit the key combo, and watch your test list appear and disappear.
 
 ## Calling Node.js Code
 
-Since Atom is built on top of Node.js, you can call any of its libraries,
+Since Atom is built on top of [Node.js][node], you can call any of its libraries,
 including other modules that your package requires.
 
 We'll iterate through our resulting tree, and construct the path to our modified
-file based on its depth in the tree:
+file based on its depth in the tree. We'll use Node to handle path joining for
+directories.
+
+Add the following Node module to the top of your file:
 
 ```coffeescript
 path = require 'path'
+```
 
-# ...
+Then, add these lines to your `magic` method, _before_ your pane drawing code:
 
+```coffeescript
 modifiedFiles = []
 # for each single entry...
-$('ol.entries li.file.modified span.name').each (i, el) ->
+$('ol.entries li.file.status-modified span.name').each (i, el) ->
   filePath = []
   # ...grab its name...
   filePath.unshift($(el).text())
 
   # ... then find its parent directories, and grab their names
-  parents = $(el).parents('.directory.modified')
+  parents = $(el).parents('.directory.status-modified')
   parents.each (i, el) ->
     filePath.unshift($(el).find('div.header span.name').eq(0).text())
 
@@ -211,7 +236,7 @@ $('ol.entries li.file.modified span.name').each (i, el) ->
 using the node.js [`path` library][path] to get the proper directory separator
 for our system.
 
-Let's remove the two `@li` elements we added in `@content`, so that we can
+Remove the two `@li` elements we added in `@content`, so that we can
 populate our `modifiedFilesList` with real information. We'll do that by
 iterating over `modifiedFiles`, accessing a file's last modified time, and
 appending it to `modifiedFilesList`:
@@ -237,7 +262,7 @@ we'll just clear the `modifiedFilesList` each time it's closed:
 ```coffeescript
 # toggles the pane
 if @hasParent()
-  @modifiedFilesList.empty()
+  @modifiedFilesList.empty() # added this to clear the list on close
   rootView.vertical.children().last().remove()
 else
   for file in modifiedFiles
@@ -247,35 +272,8 @@ else
   rootView.vertical.append(this)
 ```
 
-# Included Libraries
-
-FIXME: Describe `require 'atom'
-
-In addition to core node.js modules, all packages can `require` the following
-popular libraries into their packages:
-
-* [SpacePen]  (as `require 'space-pen'`)
-* [jQuery]  (as `require 'jquery'`)
-* [Underscore]  (as `require 'underscore'`)
-
-Additional libraries can be found by browsing Atom's *node_modules* folder.
-
-[file-tree]: https://github.com/atom/tree-view
-[status-bar]: https://github.com/atom/status-bar
-[cs-syntax]: https://github.com/atom/language-coffee-script
-[npm]: http://en.wikipedia.org/wiki/Npm_(software)
-[npm-keys]: https://npmjs.org/doc/json.html
-[apm]: https://github.com/atom/apm
-[git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
-[wrap-guide]: https://github.com/atom/wrap-guide/
-[keymaps]: internals/keymaps.md
-[theme-variables]: theme-variables.md
-[tm-tokens]: http://manual.macromates.com/en/language_grammars.html
-[spacepen]: https://github.com/nathansobo/space-pen
+[bundled-libs]: ../creating-a-package.html#included-libraries
+[styleguide]: https://github.com/atom/styleguide
+[space-pen]: https://github.com/atom/space-pen
+[node]: http://nodejs.org/
 [path]: http://nodejs.org/docs/latest/api/path.html
-[jquery]: http://jquery.com/
-[underscore]: http://underscorejs.org/
-[jasmine]: https://github.com/pivotal/jasmine
-[cson]: https://github.com/atom/season
-[less]: http://lesscss.org
-[ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
