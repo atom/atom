@@ -4,7 +4,7 @@ walkdir = require 'walkdir'
 
 module.exports = (grunt) ->
   cp: (source, destination, {filter}={}) ->
-    walkdir.sync source, (sourcePath, stats) ->
+    walker = walkdir.sync source, (sourcePath, stats) ->
       return if filter?.test(sourcePath)
 
       destinationPath = path.join(destination, path.relative(source, sourcePath))
@@ -16,6 +16,7 @@ module.exports = (grunt) ->
 
       if grunt.file.exists(destinationPath)
         fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
+    walker.on 'error', (error) -> grunt.fatal(error)
 
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
