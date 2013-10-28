@@ -4,6 +4,9 @@ walkdir = require 'walkdir'
 
 module.exports = (grunt) ->
   cp: (source, destination, {filter}={}) ->
+    unless grunt.file.exists(source)
+      grunt.fatal("Cannot copy non-existent #{source.cyan} to #{destination.cyan}")
+
     try
       walkdir.sync source, (sourcePath, stats) ->
         return if filter?.test(sourcePath)
