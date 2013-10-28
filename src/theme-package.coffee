@@ -12,7 +12,7 @@ class ThemePackage extends AtomPackage
 
   enable: ->
     themes = atom.config.get('core.themes')
-    themes = [@metadata.name].concat(themes)
+    themes.unshift(@metadata.name)
     atom.config.set('core.themes', themes)
 
   disable: ->
