@@ -36,7 +36,7 @@ class Keymap
     @loadDirectory(config.bundledKeymapsDirPath)
     @emit('bundled-keymaps-loaded')
 
-  loadUserKeymaps: ->
+  loadUserKeymap: ->
     userKeymapPath = CSON.resolve(path.join(config.configDirPath, 'keymap'))
     @load(userKeymapPath) if userKeymapPath
 

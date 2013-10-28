@@ -53,7 +53,7 @@ window.startEditorWindow = ->
   atom.packages.loadPackages()
   deserializeEditorWindow()
   atom.packages.activate()
-  atom.keymap.loadUserKeymaps()
+  atom.keymap.loadUserKeymap()
   atom.requireUserInitScript()
   atom.menu.update()
   $(window).on 'unload', ->
