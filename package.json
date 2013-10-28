@@ -139,7 +139,7 @@
   },
   "private": true,
   "scripts": {
-    "preinstall": "true",
-    "test": "script/test"
+    "preinstall": "node -e 'process.exit(0)'",
+    "test": "node script/test"
   }
 }
