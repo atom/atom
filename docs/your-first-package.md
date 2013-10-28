@@ -162,6 +162,15 @@ You can add any HTML attribute you like. `outlet` names the variable your
 package can use to manipulate the element directly. The fat pipe (`=>`)
 indicates that the next DOM set are nested children.
 
+Once again, you can style `li` elements using your stylesheets. Let's test that
+out by adding these lines to the _changer.css_ file:
+
+```css
+ul.modified-files-list {
+  color: white;
+}
+```
+
 We'll add one more line to the end of the `magic` method to make this pane appear:
 
 ```coffeescript
