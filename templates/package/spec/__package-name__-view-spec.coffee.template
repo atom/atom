@@ -1,11 +1,7 @@
 __PackageName__View = require '../lib/__package-name__-view'
 {RootView} = require 'atom'
 
-# This spec is focused because it starts with an `f`. Remove the `f`
-# to unfocus the spec.
-#
-# Press meta-alt-ctrl-s to run the specs
-fdescribe "__PackageName__View", ->
+describe "__PackageName__View", ->
   __packageName__ = null
 
   beforeEach ->
