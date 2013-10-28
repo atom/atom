@@ -32,6 +32,7 @@
     "plist": "git://github.com/nathansobo/node-plist.git",
     "q": "0.9.7",
     "rimraf": "2.1.4",
+    "scandal": "0.6.0",
     "season": "0.13.0",
     "semver": "1.1.4",
     "space-pen": "2.0.0",
