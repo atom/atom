@@ -161,7 +161,9 @@ class Atom
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @packages.getActivePackages()
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
       null
 
   open: (options) ->
