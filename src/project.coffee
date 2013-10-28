@@ -157,7 +157,7 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = path.join(@getPath(), uri) unless uri[0] == '/'
+      uri = path.join(@getPath(), uri) unless fsUtils.isAbsolute(uri)
       fsUtils.absolute uri
 
   # Public: Make the given path relative to the project directory.
