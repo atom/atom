@@ -30,8 +30,9 @@ built-in keymaps:
 '.editor':
   'enter': 'editor:newline'
 
-".select-list .editor.mini":
-  'enter': 'core:confirm'
+'body':
+  'ctrl-P': 'core:move-up'
+  'ctrl-p': 'core:move-down'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a

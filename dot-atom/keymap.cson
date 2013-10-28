@@ -5,8 +5,9 @@
 # keystrokes with events in specific contexts. Here's a small example, excerpted
 # from Atom's built-in keymaps:
 #
-#'.editor':
-#  'enter': 'editor:newline'
+# '.editor':
+#   'enter': 'editor:newline'
 #
-#".select-list .editor.mini":
-#  'enter': 'core:confirm'
+# 'body':
+#   'ctrl-P': 'core:move-up'
+#   'ctrl-p': 'core:move-down'
