@@ -196,6 +196,7 @@ class Pane extends View
 
   # Public: Remove the specified item.
   destroyItem: (item) ->
+    @trigger 'pane:before-item-destroyed', [item]
     container = @getContainer()
     reallyDestroyItem = =>
       @removeItem(item)
