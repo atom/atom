@@ -58,4 +58,6 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'copy-info-plist')
+    dependencies = ['compile']
+    dependencies.push('copy-info-plist') if process.platform is 'darwin'
+    grunt.task.run(dependencies...)
