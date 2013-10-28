@@ -46,9 +46,9 @@ fsExtensions =
   # Returns true if the path is absolute, false otherwise.
   isAbsolute: (pathToCheck='') ->
     if process.platform is 'win32'
-      pathToResolve[1] is ':' # C:\ style
+      pathToCheck[1] is ':' # C:\ style
     else
-      pathToResolve[0] is '/' # /usr style
+      pathToCheck[0] is '/' # /usr style
 
   # Public: Returns true if a file or folder at the specified path exists.
   exists: (pathToCheck) ->
