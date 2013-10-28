@@ -63,6 +63,7 @@ class PackageManager
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
+    @emit 'activated'
 
   # Public: another type of package manager can handle other package types.
   # See ThemeManager

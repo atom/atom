@@ -54,7 +54,7 @@ class Atom
     @__defineGetter__ 'packageStates', => @packages.packageStates
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
-    @subscribe @packages, 'loaded', => @watchThemes()
+    @subscribe @packages, 'activated', => @watchThemes()
     @themes = new ThemeManager(@packages)
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
