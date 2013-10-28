@@ -1,4 +1,4 @@
-startTime = new Date().getTime()
+startTime = Date.now()
 
 autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
@@ -62,7 +62,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
-    console.log("App load time: #{new Date().getTime() - startTime}ms")
+    console.log("App load time: #{Date.now() - startTime}ms")
 
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 
