@@ -17,6 +17,10 @@ describe 'apm update', ->
     app = express()
     app.get '/node/v0.10.3/node-v0.10.3.tar.gz', (request, response) ->
       response.sendfile path.join(__dirname, 'fixtures', 'node-v0.10.3.tar.gz')
+    app.get '/node/v0.10.3/node.lib', (request, response) ->
+      response.sendfile path.join(__dirname, 'fixtures', 'node.lib')
+    app.get '/node/v0.10.3/x64/node.lib', (request, response) ->
+      response.sendfile path.join(__dirname, 'fixtures', 'node_x64.lib')
     app.get '/tarball/test-module-1.0.0.tgz', (request, response) ->
       response.sendfile path.join(__dirname, 'fixtures', 'test-module-1.0.0.tgz')
     server =  http.createServer(app)
