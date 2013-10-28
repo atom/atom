@@ -1,5 +1,3 @@
-* Improved: Store user keymaps in `~/.atom/keymap.cson`
-
 * Improved: Faster and better looking find and replace
 * Improved: Double-click selection behavior between word/non-word
 * Added: Solarized theme now bundled by default
