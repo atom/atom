@@ -8,14 +8,15 @@ _ = require 'underscore-plus'
 packageJson = require './package.json'
 
 module.exports = (grunt) ->
-  appName = 'Atom.app'
+  appName = if process.platform is 'win32' then 'Atom' else 'Atom.app'
   [major, minor, patch] = packageJson.version.split('.')
   tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   shellAppDir = path.join(buildDir, appName)
   contentsDir = path.join(shellAppDir, 'Contents')
   appDir = path.join(contentsDir, 'Resources', 'app')
-  installDir = path.join('/Applications', appName)
+  installRoot = if process.platform is 'win32' then process.env.ProgramFiles else '/Applications'
+  installDir = path.join(installRoot, appName)
 
   coffeeConfig =
     options:
