@@ -224,13 +224,13 @@ class Project
     existingBuffer?.isModified()
 
   # Private: Only to be used in specs
-  bufferForPathSync: (filePath, text) ->
+  bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
 
     if filePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    existingBuffer ? @buildBufferSync(absoluteFilePath, text)
+    existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -238,23 +238,22 @@ class Project
   # `text` is used as the contents of the new buffer.
   #
   # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
-  # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath, text) ->
+  bufferForPath: (filePath) ->
     absoluteFilePath = @resolve(filePath)
     if absoluteFilePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
+    Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
   # Private: DEPRECATED
-  buildBufferSync: (absoluteFilePath, initialText) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+  buildBufferSync: (absoluteFilePath) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     buffer.loadSync()
     @addBuffer(buffer)
     buffer
@@ -265,8 +264,8 @@ class Project
   # text - The {String} text to use as a buffer
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  buildBuffer: (absoluteFilePath, initialText) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+  buildBuffer: (absoluteFilePath) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     buffer.load().then (buffer) =>
       @addBuffer(buffer)
       buffer

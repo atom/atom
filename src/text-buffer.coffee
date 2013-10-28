@@ -1,3 +1,4 @@
+crypto = require 'crypto'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
@@ -38,8 +39,8 @@ class TextBuffer
 
   # Creates a new buffer.
   #
-  # path - A {String} representing the file path
-  # initialText - A {String} setting the starting text
+  # * optionsOrState - An {Object} or a telepath.Document
+  #   + filePath - A {String} representing the file path
   constructor: (optionsOrState={}, params={}) ->
     if optionsOrState instanceof telepath.Document
       {@project} = params
@@ -47,9 +48,9 @@ class TextBuffer
       @id = @state.get('id')
       filePath = @state.get('relativePath')
       @text = @state.get('text')
-      @loadFromDisk = @state.get('isModified') == false
+      @useSerializedText = @state.get('isModified') != false
     else
-      {@project, filePath, initialText} = optionsOrState
+      {@project, filePath} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
       @id = guid.create().toString()
       @state = site.createDocument
@@ -57,7 +58,6 @@ class TextBuffer
         deserializer: @constructor.name
         version: @constructor.version
         text: @text
-      @loadFromDisk = not initialText
 
     @loaded = false
     @subscribe @text, 'changed', @handleTextChange
@@ -68,14 +68,19 @@ class TextBuffer
 
   loadSync: ->
     @updateCachedDiskContentsSync()
-    @reload() if @loadFromDisk
-    @text.clearUndoStack()
+    @finishLoading()
 
   load: ->
-    @updateCachedDiskContents().then =>
-      @reload() if @loadFromDisk
-      @text.clearUndoStack()
-      this
+    @updateCachedDiskContents().then => @finishLoading()
+
+  finishLoading: ->
+    @loaded = true
+    if @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
+      @emitModifiedStatusChanged(true)
+    else
+      @reload()
+    @text.clearUndoStack()
+    this
 
   ### Internal ###
 
@@ -108,6 +113,7 @@ class TextBuffer
   serialize: ->
     state = @state.clone()
     state.set('isModified', @isModified())
+    state.set('diskContentsDigest', @file.getDigest()) if @file
     for marker in state.get('text').getMarkers() when marker.isRemote()
       marker.destroy()
     state
@@ -158,13 +164,11 @@ class TextBuffer
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsSync: ->
-    @loaded = true
     @cachedDiskContents = @file?.readSync() ? ""
 
   # Private: Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
     Q(@file?.read() ? "").then (contents) =>
-      @loaded = true
       @cachedDiskContents = contents
 
   # Gets the file's basename--that is, the file without any directory information.
