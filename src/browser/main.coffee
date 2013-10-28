@@ -8,7 +8,8 @@ fs = require 'fs'
 module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
-nslog = require 'nslog'
+# TODO: NSLog is missing .lib on windows
+#nslog = require 'nslog'
 dialog = require 'dialog'
 
 console.log = (args...) ->
