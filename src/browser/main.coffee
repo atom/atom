@@ -12,7 +12,12 @@ nslog = require 'nslog'
 dialog = require 'dialog'
 
 console.log = (args...) ->
-  nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
+  # TODO: Make NSLog work as expected
+  output = args.map((arg) -> JSON.stringify(arg)).join(" ")
+  if process.platform == 'darwin'
+    nslog(output)
+  else
+    fs.writeFileSync('debug.log', output, flag: 'a')
 
 process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?
