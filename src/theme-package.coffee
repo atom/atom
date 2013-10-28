@@ -11,7 +11,7 @@ class ThemePackage extends AtomPackage
   getStylesheetType: -> 'theme'
 
   enable: ->
-    themes = atom.config.get('core.themes')
+    themes = atom.config.get('core.themes') ? []
     themes.unshift(@metadata.name)
     atom.config.set('core.themes', themes)
 
