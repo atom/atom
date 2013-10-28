@@ -176,6 +176,18 @@ class Config
     @set(keyPath, arrayValue)
     result
 
+  # Public: Add the value to the beginning of the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to shift onto the array.
+  #
+  # Returns the new array length of the setting.
+  unshiftAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.unshift(value)
+    @set(keyPath, arrayValue)
+    result
+
   # Public: Remove the value from the array at the key path.
   #
   # keyPath - The {String} key path.

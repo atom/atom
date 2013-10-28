@@ -56,6 +56,17 @@ describe "Config", ->
       expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
       expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz"), {previous: ['a']}
 
+  describe ".unshiftAtKeyPath(keyPath, value)", ->
+    it "unshifts the given value to the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["b"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.unshiftAtKeyPath("foo.bar.baz", "a")).toBe 2
+      expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz"), {previous: ['b']}
+
   describe ".removeAtKeyPath(keyPath, value)", ->
     it "removes the given value from the array at the key path and updates observers", ->
       config.set("foo.bar.baz", ["a", "b", "c"])
