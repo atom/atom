@@ -32,6 +32,18 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "    // }"
 
+        buffer.setText('\tvar i;')
+        languageMode.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe "\t// var i;"
+
+        buffer.setText('var i;')
+        languageMode.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe "// var i;"
+
+        buffer.setText(' var i;')
+        languageMode.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe " // var i;"
+
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->
         it "returns true only when the buffer row starts a foldable region", ->
