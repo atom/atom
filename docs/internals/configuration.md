@@ -7,7 +7,7 @@ read config settings. You can read a value from `config` with `config.get`:
 
 ```coffeescript
 # read a value with `config.get`
-@autosave() if config.get "core.autosave"
+@showInvisibles() if config.get "edtior.showInvisibles"
 ```
 
 Or you can use `observeConfig` to track changes from a view object.
@@ -47,7 +47,7 @@ the following way:
 
 ```coffeescript
 # basic key update
-config.set("core.autosave", true)
+config.set("core.showInvisibles", true)
 
 config.pushAtKeyPath("core.disabledPackages", "wrap-guide")
 ```
