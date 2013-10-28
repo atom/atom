@@ -13,15 +13,18 @@ module.exports = (grunt) ->
     appName = 'Atom'
     tmpDir = os.tmpdir()
     installRoot = process.env.ProgramFiles
+    buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    shellAppDir = path.join(buildDir, appName)
+    appDir = path.join(shellAppDir, 'resources', 'app')
   else
     appName = 'Atom.app'
     tmpDir = '/tmp'
     installRoot = '/Applications'
+    buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    shellAppDir = path.join(buildDir, appName)
+    contentsDir = path.join(shellAppDir, 'Contents')
+    appDir = path.join(contentsDir, 'Resources', 'app')
 
-  buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
-  shellAppDir = path.join(buildDir, appName)
-  contentsDir = path.join(shellAppDir, 'Contents')
-  appDir = path.join(contentsDir, 'Resources', 'app')
   installDir = path.join(installRoot, appName)
 
   coffeeConfig =
