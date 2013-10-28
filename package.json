@@ -27,6 +27,7 @@
     "nslog": "0.1.0",
     "oniguruma": "0.22.0",
     "optimist": "0.4.0",
+    "pathwatcher": "0.8.0",
     "pegjs": "0.7.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "q": "0.9.7",
