@@ -47,7 +47,7 @@ fsAdditions =
 
   safeSymlinkSync: (source, target) ->
     if process.platform is 'win32'
-      throw new Error('safeSymLinkSync is not implemented')
+      require('runas')('cmd', ['/K', "mklink /d \"#{target}\" \"#{source}\" & exit"])
     else
       fs.symlinkSync(source, target)
 
