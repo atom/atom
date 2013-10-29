@@ -38,7 +38,7 @@ class Install extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('d', 'dev').describe('dev', 'Install dev dependencies of atom packages being installed')
-    options.boolean('silent').describe('silent', 'Minimize output')
+    options.alias('s', 'silent').boolean('silent').describe('silent', 'Minimize output')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
