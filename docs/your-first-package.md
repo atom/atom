@@ -281,8 +281,16 @@ else
   rootView.vertical.append(this)
 ```
 
+## Coloring UI Elements
+
+For packages that create new UI elements, adhering to the style guide is just one
+part to keeping visual consistency. Packages dealing with color, padding, margins,
+and other spatial cues should rely on [Theme Variables][theme-vars], instead of
+rolling their own CSS. Theme
+
 [bundled-libs]: ../creating-a-package.html#included-libraries
 [styleguide]: https://github.com/atom/styleguide
 [space-pen]: https://github.com/atom/space-pen
 [node]: http://nodejs.org/
 [path]: http://nodejs.org/docs/latest/api/path.html
+[theme-vars]: ../theme-variables.html
