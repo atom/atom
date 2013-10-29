@@ -45,4 +45,10 @@ fsAdditions =
   cp: (sourcePath, destinationPath, options) ->
     wrench.copyDirSyncRecursive(sourcePath, destinationPath, options)
 
+  safeSymlinkSync: (source, target) ->
+    if process.platform is 'win32'
+      throw new Error('safeSymLinkSync is not implemented')
+    else
+      fs.symlinkSync(source, target)
+
 module.exports = _.extend({}, fs, fsAdditions)
