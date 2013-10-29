@@ -9,7 +9,7 @@ module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
 # TODO: NSLog is missing .lib on windows
-#nslog = require 'nslog'
+nslog = require 'nslog' unless process.platform is 'win32'
 dialog = require 'dialog'
 
 console.log = (args...) ->
