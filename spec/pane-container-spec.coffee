@@ -167,8 +167,8 @@ describe "PaneContainer", ->
 
   describe ".confirmClose()", ->
     it "returns true after modified files are saved", ->
-      pane1.itemAtIndex(0).isModified = -> true
-      pane2.itemAtIndex(0).isModified = -> true
+      pane1.itemAtIndex(0).shouldPromptToSave = -> true
+      pane2.itemAtIndex(0).shouldPromptToSave = -> true
       spyOn(atom, "confirmSync").andReturn(0)
 
       saved = container.confirmClose()
@@ -178,8 +178,8 @@ describe "PaneContainer", ->
         expect(atom.confirmSync).toHaveBeenCalled()
 
     it "returns false if the user cancels saving", ->
-      pane1.itemAtIndex(0).isModified = -> true
-      pane2.itemAtIndex(0).isModified = -> true
+      pane1.itemAtIndex(0).shouldPromptToSave = -> true
+      pane2.itemAtIndex(0).shouldPromptToSave = -> true
       spyOn(atom, "confirmSync").andReturn(1)
 
       saved = container.confirmClose()

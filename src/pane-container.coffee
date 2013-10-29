@@ -128,8 +128,8 @@ class PaneContainer extends View
   confirmClose: ->
     saved = true
     for pane in @getPanes()
-      for item in pane.getItems() when item.isModified?()
-        if not @paneAtIndex(0).promptToSaveItem item
+      for item in pane.getItems()
+        if not pane.destroyItem(item)
           saved = false
           break
     saved

@@ -196,15 +196,14 @@ class Pane extends View
   destroyItem: (item) ->
     @trigger 'pane:before-item-destroyed', [item]
     container = @getContainer()
-    reallyDestroyItem = =>
+
+    if @promptToSaveItem(item)
       @removeItem(item)
       container.itemDestroyed(item)
       item.destroy?()
-
-    if item.shouldPromptToSave?()
-      reallyDestroyItem() if @promptToSaveItem(item)
+      true
     else
-      reallyDestroyItem()
+      false
 
   # Public: Remove and delete all items.
   destroyItems: ->
@@ -216,6 +215,8 @@ class Pane extends View
 
   # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
+    return true unless item.shouldPromptToSave?()
+
     uri = item.getUri()
     chosen = atom.confirmSync(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
