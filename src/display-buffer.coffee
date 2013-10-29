@@ -33,7 +33,7 @@ class DisplayBuffer
       {@buffer, softWrap, editorWidthInChars} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id

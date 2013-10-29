@@ -52,7 +52,7 @@ class TextBuffer
       {@project, filePath} = optionsOrState
       @text = new telepath.String(initialText ? '', replicated: false)
       @id = guid.create().toString()
-      @state = site.createDocument
+      @state = atom.site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version

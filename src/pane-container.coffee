@@ -25,7 +25,7 @@ class PaneContainer extends View
       @state = state
       @setRoot(deserialize(@state.get('root')))
     else
-      @state = site.createDocument(deserializer: 'PaneContainer')
+      @state = atom.site.createDocument(deserializer: 'PaneContainer')
 
     @subscribe @state, 'changed', ({newValues, siteId}) =>
       return if siteId is @state.siteId

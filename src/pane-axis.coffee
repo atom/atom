@@ -14,7 +14,7 @@ class PaneAxis extends View
       @state = args[0]
       @state.get('children').each (child, index) => @addChild(deserialize(child), index, updateState: false)
     else
-      @state = site.createDocument(deserializer: @className(), children: [])
+      @state = atom.site.createDocument(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
     @state.get('children').on 'changed', ({index, insertedValues, removedValues, siteId}) =>

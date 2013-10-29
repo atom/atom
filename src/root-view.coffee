@@ -72,7 +72,7 @@ class RootView extends View
       panes = deserialize(state.get('panes'))
     else
       panes = new PaneContainer
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         panes: panes.getState()

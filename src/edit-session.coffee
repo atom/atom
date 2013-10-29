@@ -80,7 +80,7 @@ class EditSession
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
       @id = guid.create().toString()
       displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id

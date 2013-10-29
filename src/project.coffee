@@ -78,7 +78,7 @@ class Project
         if buffer = deserialize(bufferState, project: this)
           @addBuffer(buffer, updateState: false)
     else
-      @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
+      @state = atom.site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
     @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>

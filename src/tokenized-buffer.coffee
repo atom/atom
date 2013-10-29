@@ -34,7 +34,7 @@ class TokenizedBuffer
       @buffer = project.bufferForPathSync(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         bufferPath: @buffer.getRelativePath()
         tabLength: tabLength ? config.get('editor.tabLength') ? 2
