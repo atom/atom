@@ -52,6 +52,6 @@ class Package
 
   # Private:
   measure: (key, fn) ->
-    startTime = new Date().getTime()
+    startTime = Date.now()
     fn()
-    @[key] = new Date().getTime() - startTime
+    @[key] = Date.now() - startTime
