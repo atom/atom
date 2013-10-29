@@ -15,7 +15,7 @@ describe "ThemeManager", ->
 
   describe "theme getters and setters", ->
     beforeEach ->
-      atom.packages.loadPackages()
+      atom.packages.loadPackages(sync: true)
 
     it 'getLoadedThemes get all the loaded themes', ->
       themes = themeManager.getLoadedThemes()
