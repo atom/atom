@@ -54,9 +54,10 @@ module.exports = (grunt) ->
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 
-    grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
-      unless /.+\.plist/.test(sourcePath)
-        grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
+    if process.platform is 'darwin'
+      grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
+        unless /.+\.plist/.test(sourcePath)
+          grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     dependencies = ['compile']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
