@@ -2442,7 +2442,7 @@ describe "Editor", ->
   describe "when editor:copy-path is triggered", ->
     it "copies the absolute path to the editor's file to the pasteboard", ->
       editor.trigger 'editor:copy-path'
-      expect(pasteboard.read()[0]).toBe editor.getPath()
+      expect(atom.pasteboard.read()[0]).toBe editor.getPath()
 
   describe "when editor:move-line-up is triggered", ->
     describe "when there is no selection", ->

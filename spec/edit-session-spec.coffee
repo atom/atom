@@ -1823,7 +1823,7 @@ describe "EditSession", ->
                 editSession.cutToEndOfLine()
                 expect(buffer.lineForRow(2)).toBe '    if (items.length'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+                expect(atom.pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
             describe "when text is selected", ->
               it "only cuts the selected text, not to the end of the line", ->
@@ -1833,7 +1833,7 @@ describe "EditSession", ->
 
                 expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+                expect(atom.pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
         describe ".copySelectedText()", ->
           it "copies selected text onto the clipboard", ->
@@ -1844,7 +1844,7 @@ describe "EditSession", ->
 
         describe ".pasteText()", ->
           it "pastes text into the buffer", ->
-            pasteboard.write('first')
+            atom.pasteboard.write('first')
             editSession.pasteText()
             expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
             expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"

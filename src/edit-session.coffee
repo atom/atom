@@ -565,7 +565,7 @@ class EditSession
   # * options:
   #    + A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    [text, metadata] = pasteboard.read()
+    [text, metadata] = atom.pasteboard.read()
 
     if config.get('editor.normalizeIndentOnPaste') and metadata
       options.indentBasis ?= metadata.indentBasis
