@@ -291,7 +291,7 @@ class Install extends Command
 
     async.waterfall commands, callback
 
-  # Get all package dependency name and versions.
+  # Get all package dependency names and versions from the package.json file.
   getPackageDependencies: ->
     try
       metadata = fs.readFileSync('package.json', 'utf8')
@@ -300,6 +300,7 @@ class Install extends Command
     catch error
       {}
 
+  # Is the given path an atom package with one or more dev dependencies?
   isAtomPackageWithDevDependencies: (packagePath) ->
     try
       metadata = fs.readFileSync(path.join(packagePath, 'package.json'), 'utf8')
