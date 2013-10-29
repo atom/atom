@@ -81,7 +81,6 @@ class Pane extends View
     @command 'pane:close-other-items', => @destroyInactiveItems()
     @on 'focus', => @activeView?.focus(); false
     @on 'focusin', => @makeActive()
-    @on 'focusout', => @autosaveActiveItem()
 
   # Private:
   afterAttach: (onDom) ->
@@ -159,7 +158,6 @@ class Pane extends View
 
     if @activeItem
       @activeItem.off? 'title-changed', @activeItemTitleChanged
-      @autosaveActiveItem()
 
     isFocused = @is(':has(:focus)')
     @addItem(item)
@@ -196,13 +194,12 @@ class Pane extends View
 
   # Public: Remove the specified item.
   destroyItem: (item) ->
+    @trigger 'pane:before-item-destroyed', [item]
     container = @getContainer()
     reallyDestroyItem = =>
       @removeItem(item)
       container.itemDestroyed(item)
       item.destroy?()
-
-    @autosaveItem(item)
 
     if item.shouldPromptToSave?()
       reallyDestroyItem() if @promptToSaveItem(item)
@@ -263,15 +260,7 @@ class Pane extends View
   saveItems: =>
     @saveItem(item) for item in @getItems()
 
-  # Public: Autosaves the currently focused item.
-  autosaveActiveItem: ->
-    @autosaveItem(@activeItem)
-
-  # Public: Autosaves the given focused item if configured to do so.
-  autosaveItem: (item) ->
-    @saveItem(item) if config.get('core.autosave') and item.getUri?()
-
-  # Public: Autosaves the given focused item if configured to do so.
+  # Public:
   removeItem: (item) ->
     index = @items.indexOf(item)
     @removeItemAtIndex(index) if index >= 0

@@ -63,7 +63,6 @@ namespaces: `core` and `editor`.
 ### Configuration Key Reference
 
 - `core`
-  - `autosave`: Save a buffer when its view loses focus
   - `disabledPackages`: An array of package names to disable
   - `excludeVcsIgnoredPaths`: Don't search within files specified by _.gitignore_
   - `hideGitIgnoredFiles`: Whether files in the _.gitignore_ should be hidden
