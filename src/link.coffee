@@ -42,7 +42,7 @@ class Link
     try
       fs.unlinkSync(targetPath) if fs.isLink(targetPath)
       fs.mkdir path.dirname(targetPath)
-      fs.symlinkSync(linkPath, targetPath)
+      fs.safeSymlinkSync(linkPath, targetPath)
       console.log "#{targetPath} -> #{linkPath}"
       callback()
     catch error

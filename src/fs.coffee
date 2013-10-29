@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 mkdirp = require 'mkdirp'
 rimraf = require 'rimraf'
 wrench = require 'wrench'
+runas = require 'runas'
 
 fsAdditions =
   isDirectory: (directoryPath) ->
@@ -44,5 +45,11 @@ fsAdditions =
 
   cp: (sourcePath, destinationPath, options) ->
     wrench.copyDirSyncRecursive(sourcePath, destinationPath, options)
+
+  safeSymlinkSync: (source, target) ->
+    if process.platform is 'win32'
+      runas('cmd', ['/K', "mklink /d \"#{target}\" \"#{source}\" & exit"], hide: true)
+    else
+      fs.symlinkSync(source, target)
 
 module.exports = _.extend({}, fs, fsAdditions)
