@@ -157,6 +157,7 @@ module.exports = (grunt) ->
     if newVersion and newVersion isnt previousVersion
       grunt.log.writeln("Rebuilding native modules for new atom-shell version #{newVersion.cyan}.")
       cmd = path.join('node_modules', '.bin', 'apm')
+      cmd += ".cmd" if process.platform is 'win32'
       spawn {cmd, args: ['rebuild']}, (error) -> callback(error)
     else
       callback()

@@ -11,7 +11,11 @@ module.exports = (grunt) ->
 
     rm shellAppDir
     mkdir path.dirname(buildDir)
-    cp 'atom-shell/Atom.app', shellAppDir
+
+    if process.platform is 'darwin'
+      cp 'atom-shell/Atom.app', shellAppDir
+    else if process.platform is 'win32'
+      cp 'atom-shell', shellAppDir
 
     mkdir appDir
 
@@ -37,7 +41,6 @@ module.exports = (grunt) ->
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
       path.join('vendor', 'apm')
-      path.join('vendor', 'bootstrap', 'docs')
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
@@ -50,8 +53,11 @@ module.exports = (grunt) ->
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 
-    grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
-      unless /.+\.plist/.test(sourcePath)
-        grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
+    if process.platform is 'darwin'
+      grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
+        unless /.+\.plist/.test(sourcePath)
+          grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'copy-info-plist')
+    dependencies = ['compile']
+    dependencies.push('copy-info-plist') if process.platform is 'darwin'
+    grunt.task.run(dependencies...)

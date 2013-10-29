@@ -8,14 +8,24 @@ _ = require 'underscore-plus'
 packageJson = require './package.json'
 
 module.exports = (grunt) ->
-  appName = 'Atom.app'
   [major, minor, patch] = packageJson.version.split('.')
-  tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
-  buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
-  shellAppDir = path.join(buildDir, appName)
-  contentsDir = path.join(shellAppDir, 'Contents')
-  appDir = path.join(contentsDir, 'Resources', 'app')
-  installDir = path.join('/Applications', appName)
+  if process.platform is 'win32'
+    appName = 'Atom'
+    tmpDir = os.tmpdir()
+    installRoot = process.env.ProgramFiles
+    buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    shellAppDir = path.join(buildDir, appName)
+    appDir = path.join(shellAppDir, 'resources', 'app')
+  else
+    appName = 'Atom.app'
+    tmpDir = '/tmp'
+    installRoot = '/Applications'
+    buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    shellAppDir = path.join(buildDir, appName)
+    contentsDir = path.join(shellAppDir, 'Contents')
+    appDir = path.join(contentsDir, 'Resources', 'app')
+
+  installDir = path.join(installRoot, appName)
 
   coffeeConfig =
     options:
@@ -178,4 +188,8 @@ module.exports = (grunt) ->
   grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
-  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
+
+  defaultTasks = ['update-atom-shell', 'build']
+  defaultTasks.push('set-development-version') if process.platform is 'darwin'
+  defaultTasks.push('install')
+  grunt.registerTask('default', defaultTasks)

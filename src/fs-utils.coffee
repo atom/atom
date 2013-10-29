@@ -38,6 +38,18 @@ fsExtensions =
     catch e
       relativePath
 
+  # Public: Is the given path absolute?
+  #
+  # * pathToCheck:
+  #   The relative or absolute path to check.
+  #
+  # Returns true if the path is absolute, false otherwise.
+  isAbsolute: (pathToCheck='') ->
+    if process.platform is 'win32'
+      pathToCheck[1] is ':' # C:\ style
+    else
+      pathToCheck[0] is '/' # /usr style
+
   # Public: Returns true if a file or folder at the specified path exists.
   exists: (pathToCheck) ->
     # TODO: rename to existsSync
@@ -290,7 +302,7 @@ fsExtensions =
     pathToResolve = args.pop()
     loadPaths = args
 
-    if pathToResolve[0] is '/'
+    if @isAbsolute(pathToResolve)
       if extensions and resolvedPath = @resolveExtension(pathToResolve, extensions)
         return resolvedPath
       else
