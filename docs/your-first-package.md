@@ -116,8 +116,12 @@ ol.entries .hide-me {
 ```
 
 Refresh Atom, and run the `changer` command. You'll see all the non-changed
-files disappear from the tree. There are a number of ways you can get the list
-back; let's just naively iterate over the same elements and remove the class:
+files disappear from the tree. Success!
+
+![Changer File View](images/changer_file_view.png)
+
+There are a number of ways you can get the list back; let's just naively iterate
+over the same elements and remove the class:
 
 ```coffeescript
 magic: ->
@@ -178,7 +182,9 @@ rootView.vertical.append(this)
 ```
 
 If you refresh Atom and hit the key command, you'll see a box appear right underneath
-the editor. Success!
+the editor:
+
+![Changer Panel](images/changer_panel_append.png)
 
 As you might have guessed, `rootView.vertical.append` tells Atom to append `this`
 item (_i.e._, whatever is defined by`@content`) _vertically_ to the editor. If
@@ -263,10 +269,13 @@ else
 ```
 
 When you toggle the modified files list, your pane is now populated with the
-filenames and modified times of files in your project. You might notice that
-subsequent calls to this command reduplicate information. We could provide an
-elegant way of rechecking files already in the list, but for this demonstration,
-we'll just clear the `modifiedFilesList` each time it's closed:
+filenames and modified times of files in your project:
+
+![Changer Panel](images/changer_panel_timestamps.png)
+
+You might notice that subsequent calls to this command reduplicate information.
+We could provide an elegant way of rechecking files already in the list, but for
+this demonstration, we'll just clear the `modifiedFilesList` each time it's closed:
 
 ```coffeescript
 # toggles the pane
@@ -284,9 +293,27 @@ else
 ## Coloring UI Elements
 
 For packages that create new UI elements, adhering to the style guide is just one
-part to keeping visual consistency. Packages dealing with color, padding, margins,
-and other spatial cues should rely on [Theme Variables][theme-vars], instead of
-rolling their own CSS. Theme
+part to keeping visual consistency. Packages dealing with color, fonts, padding,
+margins, and other visual cues should rely on [Theme Variables][theme-vars], instead
+of developing individual styles. Theme variables are variables defined by Atom
+for use in packages and themes. They're only available in [`LESS`](http://lesscss.org/)
+stylesheets.
+
+For our package, let's remove the style defined by `ul.modified-files-list` in
+_changer.css_. Create a new file under the _stylesheets_ directory called _text-colors.less_.
+Here, we'll import the _ui-variables.less_ file, and define some Atom-specific
+styles:
+
+```less
+@import "ui-variables";
+
+ul.modified-files-list {
+  color: @text-color;
+  background-color: @background-color-info;
+}
+```
+
+Using theme variables ensures that packages look great alongside any theme.
 
 [bundled-libs]: ../creating-a-package.html#included-libraries
 [styleguide]: https://github.com/atom/styleguide
