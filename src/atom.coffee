@@ -54,7 +54,7 @@ class Atom
     @__defineGetter__ 'packageStates', => @packages.packageStates
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
-    @subscribe @packages, 'loaded', => @watchThemes()
+    @subscribe @packages, 'activated', => @watchThemes()
     @themes = new ThemeManager(@packages)
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
@@ -161,7 +161,9 @@ class Atom
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @packages.getActivePackages()
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
       null
 
   open: (options) ->

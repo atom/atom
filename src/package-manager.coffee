@@ -63,6 +63,7 @@ class PackageManager
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
+    @emit 'activated'
 
   # Public: another type of package manager can handle other package types.
   # See ThemeManager
@@ -121,23 +122,27 @@ class PackageManager
 
     @observingDisabledPackages = true
 
-  loadPackages: ->
+  loadPackages: (options) ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
+    packagePaths = @getAvailablePackagePaths()
+    packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
+    packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
+    @loadPackage(packagePath, options) for packagePath in packagePaths
     @emit 'loaded'
 
-  loadPackage: (name, options) ->
-    if packagePath = @resolvePackagePath(name)
+  loadPackage: (nameOrPath, options) ->
+    if packagePath = @resolvePackagePath(nameOrPath)
+      name = path.basename(nameOrPath)
       return pack if pack = @getLoadedPackage(name)
 
       pack = Package.load(packagePath, options)
       @loadedPackages[pack.name] = pack if pack?
       pack
     else
-      throw new Error("Could not resolve '#{name}' to a package path")
+      throw new Error("Could not resolve '#{nameOrPath}' to a package path")
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
@@ -190,8 +195,13 @@ class PackageManager
       for packagePath in fsUtils.listSync(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
-    for packagePath in fsUtils.listSync(path.join(@resourcePath, 'node_modules'))
-      packagePaths.push(packagePath) if @isInternalPackage(packagePath)
+    try
+      metadataPath = path.join(@resourcePath, 'package.json')
+      {packageDependencies} = JSON.parse(fsUtils.read(metadataPath)) ? {}
+    packagesPath = path.join(@resourcePath, 'node_modules')
+    for packageName, packageVersion of packageDependencies ? {}
+      packagePath = path.join(packagesPath, packageName)
+      packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
     _.uniq(packagePaths)
 
