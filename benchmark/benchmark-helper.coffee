@@ -1,5 +1,6 @@
 require '../spec/spec-helper'
 
+path = require 'path'
 {$, _, Point, fs} = require 'atom'
 Project = require '../src/project'
 fsUtils = require '../src/fs-utils'
