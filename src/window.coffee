@@ -97,6 +97,7 @@ window.deserializeEditorWindow = ->
 window.onerror = ->
   atom.openDevTools()
 
+#TODO remove once all packages use the atom global
 window.registerDeserializers = (args...) ->
   atom.deserializers.add(args...)
 window.registerDeserializer = (args...) ->

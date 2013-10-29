@@ -1809,7 +1809,7 @@ class Editor extends View
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
     binding[key] = event
-    window.keymap.bindKeys '.editor', binding
+    atom.keymap.bindKeys '.editor', binding
     @on event, =>
       callback(this, event)
 
