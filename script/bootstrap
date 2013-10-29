@@ -24,7 +24,7 @@ var commands = [
   joinCommands('cd vendor/apm', 'npm install --silent .'),
   'npm install --silent vendor/apm',
   echoNewLine,
-  'node vendor/apm/bin/apm install --silent',
+  'node node_modules/.bin/apm install --silent'
 ];
 
 process.chdir(path.dirname(__dirname));

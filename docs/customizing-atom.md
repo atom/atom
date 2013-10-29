@@ -30,8 +30,9 @@ built-in keymaps:
 '.editor':
   'enter': 'editor:newline'
 
-".select-list .editor.mini":
-  'enter': 'core:confirm'
+'body':
+  'ctrl-P': 'core:move-up'
+  'ctrl-p': 'core:move-down'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
@@ -40,10 +41,9 @@ the editor to insert a newline. But if the same keystroke occurs inside of a
 select list's mini-editor, it instead emits the `core:confirm` event based on
 the binding in the more-specific selector.
 
-By default, any keymap files in your `~/.atom/keymaps` directory are loaded
-in alphabetical order when Atom is started. They will always be loaded last,
-giving you the chance to override bindings that are defined by Atom's core
-keymaps or third-party packages.
+By default, `~/.atom/keymap.cson` is loaded when Atom is started. It will always
+be loaded last, giving you the chance to override bindings that are defined by
+Atom's core keymaps or third-party packages.
 
 ## Advanced Configuration
 

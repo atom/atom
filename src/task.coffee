@@ -15,7 +15,6 @@ child_process = require 'child_process'
 module.exports =
 class Task
   Emitter.includeInto(this)
-  _.extend @prototype, Emitter
 
   # Public: A helper method to easily launch and run a task once.
   #

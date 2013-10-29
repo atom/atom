@@ -949,24 +949,48 @@ describe 'TextBuffer', ->
           expect(buffer2.getText()).toBe(buffer.getText())
 
     describe "when the serialized buffer had unsaved changes", ->
-      it "restores the previous unsaved state of the buffer", ->
-        previousText = buffer.getText()
-        buffer.setText("abc")
+      describe "when the disk contents were changed since serialization", ->
+        it "loads the disk contents instead of the previous unsaved state", ->
+          buffer.release()
 
-        state = buffer.serialize()
-        expect(state.getObject('text')).toBe 'abc'
+          filePath = temp.openSync('atom').path
+          fs.writeSync(filePath, "words")
+          {buffer} = project.openSync(filePath)
+          buffer.setText("BUFFER CHANGE")
 
-        buffer2 = deserialize(state, {project})
+          state = buffer.serialize()
+          expect(state.getObject('text')).toBe 'BUFFER CHANGE'
+          fs.writeSync(filePath, "DISK CHANGE")
 
-        waitsFor ->
-          buffer2.cachedDiskContents
+          buffer2 = deserialize(state, {project})
 
-        runs ->
-          expect(buffer2.getPath()).toBe(buffer.getPath())
-          expect(buffer2.getText()).toBe(buffer.getText())
-          expect(buffer2.isModified()).toBeTruthy()
-          buffer2.setText(previousText)
-          expect(buffer2.isModified()).toBeFalsy()
+          waitsFor ->
+            buffer2.cachedDiskContents
+
+          runs ->
+            expect(buffer2.getPath()).toBe(buffer.getPath())
+            expect(buffer2.getText()).toBe("DISK CHANGE")
+            expect(buffer2.isModified()).toBeFalsy()
+
+      describe "when the disk contents are the same since serialization", ->
+        it "restores the previous unsaved state of the buffer", ->
+          previousText = buffer.getText()
+          buffer.setText("abc")
+
+          state = buffer.serialize()
+          expect(state.getObject('text')).toBe 'abc'
+
+          buffer2 = deserialize(state, {project})
+
+          waitsFor ->
+            buffer2.cachedDiskContents
+
+          runs ->
+            expect(buffer2.getPath()).toBe(buffer.getPath())
+            expect(buffer2.getText()).toBe(buffer.getText())
+            expect(buffer2.isModified()).toBeTruthy()
+            buffer2.setText(previousText)
+            expect(buffer2.isModified()).toBeFalsy()
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
