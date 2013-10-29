@@ -136,7 +136,7 @@ describe "RootView", ->
       commandHandler = jasmine.createSpy('commandHandler')
       rootView.on('foo-command', commandHandler)
 
-      window.keymap.bindKeys('*', 'x': 'foo-command')
+      atom.keymap.bindKeys('*', 'x': 'foo-command')
 
     describe "when a keydown event is triggered in the RootView", ->
       it "triggers matching keybindings for that event", ->
