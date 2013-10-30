@@ -23,8 +23,11 @@ class Uninstall
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
-    if options.commandArgs.length is 0
-      options.callback("Must specify a package name to uninstall")
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
+    if options.argv._.length is 0
+      callback("Must specify a package name to uninstall")
       return
 
     packagesDirectory = path.join(config.getAtomDirectory(), 'packages')
@@ -33,7 +36,7 @@ class Uninstall
       process.stdout.write "Uninstalling #{packageName} "
       unless _.contains(packages, packageName)
         process.stdout.write '\u2717\n'.red
-        options.callback("#{packageName} does not exist in #{packagesDirectory}")
+        callback("#{packageName} does not exist in #{packagesDirectory}")
         return
 
       try
@@ -42,7 +45,7 @@ class Uninstall
         process.stdout.write '\u2713\n'.green
       catch error
         process.stdout.write '\u2717\n'.red
-        options.callback("Failed to delete #{packageName}: #{error.message}")
+        callback("Failed to delete #{packageName}: #{error.message}")
         return
 
-    options.callback()
+    callback()
