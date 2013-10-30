@@ -6,6 +6,15 @@
   'meta-m': 'application:minimize'
   'alt-meta-ctrl-m': 'application:zoom'
 
+  'ctrl-p': 'core:move-up'
+  'ctrl-n': 'core:move-down'
+  'ctrl-b': 'core:move-left'
+  'ctrl-f': 'core:move-right'
+  'ctrl-P': 'core:select-up'
+  'ctrl-N': 'core:select-down'
+  'ctrl-F': 'core:select-right'
+  'ctrl-B': 'core:select-left'
+
   # Atom Specific
   'meta-O': 'application:open-dev'
   'meta-alt-ctrl-s': 'application:run-all-specs'
@@ -74,6 +83,12 @@
   'shift-end': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:backspace-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
+
+  'ctrl-a': 'editor:move-to-first-character-of-line'
+  'ctrl-e': 'editor:move-to-end-of-line'
+  'ctrl-k': 'editor:cut-to-end-of-line'
+  'ctrl-h': 'core:backspace'
+  'ctrl-d': 'core:delete'
 
   # Atom Specific
   'alt-meta-z': 'editor:checkout-head-revision'
@@ -170,6 +185,12 @@
   'meta-x': 'native!'
   'meta-c': 'native!'
   'meta-v': 'native!'
+  'ctrl-b': 'native!'
+  'ctrl-f': 'native!'
+  'ctrl-F': 'native!'
+  'ctrl-B': 'native!'
+  'ctrl-h': 'native!'
+  'ctrl-d': 'native!'
 
 """
 # Not implemented
