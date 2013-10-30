@@ -104,7 +104,6 @@
     "terminal": "0.15.0",
     "timecop": "0.9.0",
     "to-the-hubs": "0.8.0",
-    "toml": "0.3.0",
     "tree-view": "0.22.0",
     "visual-bell": "0.3.0",
     "whitespace": "0.7.0",
@@ -140,6 +139,7 @@
     "language-sql": "0.2.0",
     "language-text": "0.2.0",
     "language-todo": "0.2.0",
+    "language-toml": "0.4.0",
     "language-xml": "0.2.0",
     "language-yaml": "0.1.0"
   },
