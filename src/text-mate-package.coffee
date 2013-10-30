@@ -51,7 +51,7 @@ class TextMatePackage extends Package
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(@path)
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json', 'cson']
 
   loadGrammars: (done) ->
     fsUtils.isDirectory @getSyntaxesPath(), (isDirectory) =>
