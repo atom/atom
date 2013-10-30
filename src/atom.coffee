@@ -19,6 +19,7 @@ app = remote.require 'app'
 {Document} = require 'telepath'
 DeserializerManager = require './deserializer-manager'
 {Subscriber} = require 'emissary'
+SiteShim = require './site-shim'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -281,7 +282,11 @@ class Atom
 
     doc = Document.deserialize(state: documentState) if documentState?
     doc ?= Document.create()
-    @site = doc.site # TODO: Remove this when everything is using telepath models
+    # TODO: Remove this when everything is using telepath models
+    if @site?
+      @site.setRootDocument(doc)
+    else
+      @site = new SiteShim(doc)
     doc
 
   saveWindowState: ->

@@ -17,16 +17,17 @@ class PaneAxis extends View
       @state = site.createDocument(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
-    @state.get('children').on 'changed', ({index, inserted, removed, site}) =>
-      return if site is @state.site.id
-      for childState in removed
+    @state.get('children').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
+      return if siteId is @state.siteId
+      for childState in removedValues
         @removeChild(@children(":eq(#{index})").view(), updateState: false)
-      for childState, i in inserted
+      for childState, i in insertedValues
         @addChild(deserialize(childState), index + i, updateState: false)
 
   addChild: (child, index=@children().length, options={}) ->
     @insertAt(index, child)
-    @state.get('children').insert(index, child.getState()) if options.updateState ? true
+    state = child.getState()
+    @state.get('children').insert(index, state) if options.updateState ? true
     @getContainer()?.adjustPaneDimensions()
 
   removeChild: (child, options={}) ->

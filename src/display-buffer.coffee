@@ -50,11 +50,10 @@ class DisplayBuffer
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @state, 'changed', ({key, newValue}) =>
-      switch key
-        when 'softWrap'
-          @emit 'soft-wrap-changed', newValue
-          @updateWrappedScreenLines()
+    @subscribe @state, 'changed', ({newValues}) =>
+      if newValues.softWrap?
+        @emit 'soft-wrap-changed', newValues.softWrap
+        @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @getSoftWrap() and config.get('editor.softWrapAtPreferredLineLength')
