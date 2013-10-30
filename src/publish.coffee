@@ -188,7 +188,7 @@ class Publish extends Command
         return
 
       if exists
-        process.stdout.write "Registering #{pack.name} (#{repository})"
+        process.stdout.write "Registering #{pack.name} (#{repository}) "
         @registerPackage repository, (error) =>
           if error?
             process.stdout.write '\u2717\n'.red
