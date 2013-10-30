@@ -11,6 +11,8 @@ describe "Project replication", ->
     spyOn(Git, 'open').andReturn
       getOriginUrl: -> 'git://server/project.git'
       destroy: ->
+      refreshIndex: ->
+      refreshStatus: ->
 
     projectHome1 = path.join(__dirname, 'fixtures', 'replication', 'home-1')
     projectHome2 = path.join(__dirname, 'fixtures', 'replication', 'home-2')
