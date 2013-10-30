@@ -32,8 +32,8 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   async.series([
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
-    cp.safeExec.bind(global, 'node node_modules/.bin/apm clean'),
-    cp.safeExec.bind(global, 'node node_modules/.bin/grunt ci --stack --no-color'),
+    cp.safeExec.bind(global, 'node vendor/apm/bin/apm clean'),
+    cp.safeExec.bind(global, 'node node_modules/grunt-cli/bin/grunt ci --stack --no-color'),
   ], function(error) {
     process.exit(error ? 1 : 0);
   });
