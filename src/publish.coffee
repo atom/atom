@@ -1,7 +1,6 @@
 path = require 'path'
 url = require 'url'
 
-require 'colors'
 CSON = require 'season'
 optimist = require 'optimist'
 request = require 'request'

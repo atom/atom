@@ -1,6 +1,5 @@
 path = require 'path'
 
-require 'colors'
 CSON = require 'season'
 optimist = require 'optimist'
 

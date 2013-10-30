@@ -1,7 +1,7 @@
 fs = require 'fs'
 
 _ = require 'underscore-plus'
-require 'colors'
+colors = require 'colors'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
@@ -40,6 +40,7 @@ parseOptions = (args=[]) ->
   options.usage(usage)
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
+  options.boolean('color').default('color', true).describe('color', 'Enable colored output')
   options.command = options.argv._[0]
   for arg, index in args when arg is options.command
     options.commandArgs = args[index+1..]
@@ -49,6 +50,14 @@ parseOptions = (args=[]) ->
 module.exports =
   run: (args, callback) ->
     options = parseOptions(args)
+
+    unless options.argv.color
+      colors.setTheme
+        cyan: 'stripColors'
+        green: 'stripColors'
+        red: 'stripColors'
+        yellow: 'stripColors'
+
     callbackCalled = false
     options.callback = (error) ->
       return if callbackCalled

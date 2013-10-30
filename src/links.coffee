@@ -1,6 +1,5 @@
 path = require 'path'
 
-require 'colors'
 optimist = require 'optimist'
 
 config = require './config'

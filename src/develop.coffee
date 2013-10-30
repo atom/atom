@@ -4,7 +4,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
-require 'colors'
 
 auth = require './auth'
 config = require './config'

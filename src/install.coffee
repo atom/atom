@@ -6,7 +6,6 @@ optimist = require 'optimist'
 request = require 'request'
 CSON = require 'season'
 temp = require 'temp'
-require 'colors'
 
 auth = require './auth'
 config = require './config'
