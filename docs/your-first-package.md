@@ -149,8 +149,9 @@ package uses as its UI. The principals of `content` are built entirely on
 [SpacePen][space-pen], which we'll touch upon only briefly here.
 
 Our display will simply be an unordered list of the file names, and their
-modified times. A basic Panel element will work well for us. Let's start by
-carving out a `div` to hold the filenames:
+modified times. We'll append this list to a panel on the bottom of the editor. A
+basic `panel` element inside a `tool-panel` will work well for us. Let's start by carving out a
+`div` to hold the filenames:
 
 ```coffeescript
 @content: ->
@@ -164,7 +165,7 @@ carving out a `div` to hold the filenames:
 ```
 
 You can add any HTML attribute you like. `outlet` names the variable your
-package can use to manipulate the element directly. The fat pipe (`=>`)
+package can use to manipulate the element directly. The fat arrow (`=>`)
 indicates that the next DOM set are nested children.
 
 Once again, you can style `li` elements using your stylesheets. Let's test that
