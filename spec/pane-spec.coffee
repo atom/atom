@@ -545,7 +545,7 @@ describe "Pane", ->
     describe "splitRight(items...)", ->
       it "builds a row if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane1.splitRight()
+        pane2 = pane1.splitRight(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -554,10 +554,22 @@ describe "Pane", ->
         expect(pane3.getItems()).toEqual [view3, view4]
         expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
 
-    describe "splitRight(items...)", ->
+      it "builds a row if needed, then appends a new pane after itself ", ->
+        # creates the new pane with a copy of the active item if none are given
+        pane2 = pane1.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(pane2.items).toEqual []
+        expect(pane2.activeItem).toBe null
+
+        pane3 = pane2.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
+        expect(pane3.items).toEqual []
+        expect(pane3.activeItem).toBe null
+
+    describe "splitLeft(items...)", ->
       it "builds a row if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitLeft()
+        pane2 = pane.splitLeft(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -569,7 +581,7 @@ describe "Pane", ->
     describe "splitDown(items...)", ->
       it "builds a column if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitDown()
+        pane2 = pane.splitDown(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -581,7 +593,7 @@ describe "Pane", ->
     describe "splitUp(items...)", ->
       it "builds a column if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitUp()
+        pane2 = pane.splitUp(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
