@@ -59,13 +59,12 @@ beforeEach ->
   atom.syntax.clearGrammarOverrides()
   atom.syntax.clearProperties()
 
-  if specPackageName
-    spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
-      if packageName is specPackageName
-        resolvePackagePath(specPackagePath)
-      else
-        resolvePackagePath(packageName)
-    resolvePackagePath = _.bind(spy.originalValue, atom.packages)
+  spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
+    if specPackageName and packageName is specPackageName
+      resolvePackagePath(specPackagePath)
+    else
+      resolvePackagePath(packageName)
+  resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
