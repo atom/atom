@@ -222,6 +222,7 @@ class RootView extends View
     paneItem
 
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
+    changeFocus ?= true
     uri = project.relativize(uri)
     pane = @panes.paneForUri(uri)
 
