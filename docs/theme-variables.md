@@ -1,22 +1,25 @@
 # Style variables
 
-Atom's UI themes provide a set of variables you can use in your own themes and packages.
+Atom's UI provides a set of variables you can use in your own themes and packages.
 
-## Use in UI Themes
+## Use in Themes
 
-The main UI theme must specify a `ui-variables.less` file with all of the
-following variables. The top-most theme specified in the theme settings will be
-loaded and available for import.
+Each custom theme must specify a `ui-variables.less` file with all of the
+following variables defined. The top-most theme specified in the theme settings
+will be loaded and available for import.
 
-## Use in packages
+## Use in Packages
 
-In any of your package's `.less` files, you can get access to the variables
+In any of your package's `.less` files, you can access the theme variables
 by importing the `ui-variables` file from Atom. The
 
-Your package should generally only specify structural styling. Your package
-should not specify colors or padding size in absolute pixels. You should instead
-use these variables. If you follow this guideline, your package will look good
-out of the box with any theme!
+Your package should generally only specify structural styling, and these should
+come from [the style guide][style-guide]. Your package shouldn't specify colors,
+padding sizes, or anything in absolute pixels. You should instead use the theme
+variables. If you follow this guideline, your package will look good out of the
+box with any theme!
+
+Here's an example `.less` file that a package can define using theme variables:
 
 ```css
 @import "ui-variables";
@@ -109,3 +112,5 @@ out of the box with any theme!
 
 * `@font-size` -
 * `@font-family` -
+
+[styleguide]: https://github.com/atom/styleguide

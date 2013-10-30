@@ -2,7 +2,7 @@
 
 Let's take a look at creating your first package.
 
-To get started, hit `cmd-p`, and start typing "Package Generator" to generate
+To get started, hit `cmd-p`, and start typing "Generate Package" to generate
 a package. Once you select the "Generate Package" command, it'll ask you for a
 name for your new package. Let's call ours _changer_.
 
