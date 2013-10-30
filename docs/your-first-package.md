@@ -118,7 +118,7 @@ ol.entries .hide-me {
 Refresh Atom, and run the `changer` command. You'll see all the non-changed
 files disappear from the tree. Success!
 
-![Changer File View](images/changer_file_view.png)
+![Changer File View][changer-file-view]
 
 There are a number of ways you can get the list back; let's just naively iterate
 over the same elements and remove the class:
@@ -184,7 +184,7 @@ rootView.vertical.append(this)
 If you refresh Atom and hit the key command, you'll see a box appear right underneath
 the editor:
 
-![Changer Panel](images/changer_panel_append.png)
+![Changer Panel][changer-panel-append]
 
 As you might have guessed, `rootView.vertical.append` tells Atom to append `this`
 item (_i.e._, whatever is defined by`@content`) _vertically_ to the editor. If
@@ -264,14 +264,14 @@ else
   for file in modifiedFiles
     stat = fs.lstatSync(file)
     mtime = stat.mtime
-    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
+    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
   rootView.vertical.append(this)
 ```
 
 When you toggle the modified files list, your pane is now populated with the
 filenames and modified times of files in your project:
 
-![Changer Panel](images/changer_panel_timestamps.png)
+![Changer Panel][changer-panel-timestamps]
 
 You might notice that subsequent calls to this command reduplicate information.
 We could provide an elegant way of rechecking files already in the list, but for
@@ -321,3 +321,6 @@ Using theme variables ensures that packages look great alongside any theme.
 [node]: http://nodejs.org/
 [path]: http://nodejs.org/docs/latest/api/path.html
 [theme-vars]: ../theme-variables.html
+[changer-file-view]: https://f.cloud.github.com/assets/69169/1441187/d7a7cb46-41a7-11e3-8128-d93f70a5d5c1.png
+[changer-panel-append]: https://f.cloud.github.com/assets/69169/1441189/db0c74da-41a7-11e3-8286-b82dd9190c34.png
+[changer-panel-timestamps]: https://f.cloud.github.com/assets/69169/1441190/dcc8eeb6-41a7-11e3-830f-1f1b33072fcd.png
