@@ -5,8 +5,8 @@ of CSS). Don't worry if you haven't heard of LESS before, it's just like CSS but
 with a few handy extensions.
 
 Since CSS is the basis of the theming system, we can load multiple themes within
-Atom and they behaves just as they would on a website. Themes loaded first are overridden by
-themes which are loaded later (the order is controlled from within the Settings
+Atom and they behave just as they would on a website. Themes loaded first are overridden by
+themes which are loaded later (the order is controlled from within the Settings/Themes
 pane).
 
 This flexibility is helpful for users which prefer a light interface with a dark
