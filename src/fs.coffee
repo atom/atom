@@ -3,8 +3,8 @@ fs = require 'fs'
 _ = require 'underscore-plus'
 mkdirp = require 'mkdirp'
 rimraf = require 'rimraf'
+runas = null
 wrench = require 'wrench'
-runas = require 'runas'
 
 fsAdditions =
   isDirectory: (directoryPath) ->
@@ -48,6 +48,7 @@ fsAdditions =
 
   safeSymlinkSync: (source, target) ->
     if process.platform is 'win32'
+      runas ?= require 'runas'
       runas('cmd', ['/K', "mklink /d \"#{target}\" \"#{source}\" & exit"], hide: true)
     else
       fs.symlinkSync(source, target)
