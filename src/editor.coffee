@@ -947,7 +947,7 @@ class Editor extends View
 
   # Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
-    @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
+    @activeEditSession.setSoftTabs(not @activeEditSession.getSoftTabs())
 
   # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
