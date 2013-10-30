@@ -76,11 +76,9 @@ class Git
 
   # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
-    bufferStatusHandler = =>
+    @subscribe buffer, 'saved reloaded path-changed', =>
       if path = buffer.getPath()
         @getPathStatus(path)
-    @subscribe buffer, 'saved', bufferStatusHandler
-    @subscribe buffer, 'reloaded', bufferStatusHandler
     @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
   # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
