@@ -138,7 +138,7 @@ magic: ->
 The next goal of this package is to append a panel to the Atom editor that lists
 some information about the modified files.
 
-To do that, we're going to first open up [the style guide][style-guide]. The Style
+To do that, we're going to first open up [the style guide][styleguide]. The Style
 Guide lists every type of UI element that can be created by an Atom package. Aside
 from helping you avoid writing fresh code from scratch, it ensures that packages
 have the same look and feel no matter how they're built.
@@ -154,12 +154,13 @@ carving out a `div` to hold the filenames:
 
 ```coffeescript
 @content: ->
-  @div class: "panel", =>
-    @div class: "panel-heading", "Modified Files"
-    @div class: "panel-body padded", outlet: 'modifiedFilesContainer', =>
-      @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
-        @li 'Modified File Test'
-        @li 'Modified File Test'
+  @div class: "changer tool-panel panel-bottom", =>
+    @div class: "panel", =>
+      @div class: "panel-heading", "Modified Files"
+      @div class: "panel-body padded", outlet: 'modifiedFilesContainer', =>
+        @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
+          @li 'Modified File Test'
+          @li 'Modified File Test'
 ```
 
 You can add any HTML attribute you like. `outlet` names the variable your
