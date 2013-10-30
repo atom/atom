@@ -2,11 +2,11 @@ fs = require 'fs'
 path = require 'path'
 
 _ = require 'underscore-plus'
-npm = require 'npm'
-npmconf = require 'npmconf'
 optimist = require 'optimist'
+request = require 'request'
 require 'colors'
 
+auth = require './auth'
 config = require './config'
 Command = require './command'
 Link = require './link'
@@ -50,15 +50,28 @@ class Develop extends Command
         callback(null, npm)
 
   getRepositoryUrl: (packageName, callback) ->
-    @loadNpm ->
-      npm.commands.view [packageName, 'repository'], true, (error, data={}) ->
+    auth.getToken (error, token) ->
+      if error?
+        callback(error)
+        return
+
+      requestSettings =
+        url: "#{config.getAtomPackagesUrl()}/#{packageName}"
+        json: true
+        headers:
+          authorization: token
+      request.get requestSettings, (error, response, body={}) ->
         if error?
-          callback(error)
-        else
-          if repoUrl = _.values(data)[0]?.repository?.url
-            callback(null, repoUrl)
+          callback("Request for package information failed: #{error.message}")
+        else if response.statusCode is 200
+          if repositoryUrl = body.repository.url
+            callback(null, repositoryUrl)
           else
-            callback("#{packageName} has no repository url")
+            callback("No repository URL found for package: #{packageName}")
+        else
+          message = body.message ? body.error ? body
+          callback("Request for package information failed: #{message}")
+
 
   cloneRepository: (repoUrl, packageDirectory, options) ->
     command = "git"
