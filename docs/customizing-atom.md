@@ -45,6 +45,10 @@ By default, `~/.atom/keymap.cson` is loaded when Atom is started. It will always
 be loaded last, giving you the chance to override bindings that are defined by
 Atom's core keymaps or third-party packages.
 
+You'll want to know all the commands available to you. Open the Settings panel
+(`cmd-,`) and select the _Keybindings_ tab. It will show you all the keybindings
+currently in use.
+
 ## Advanced Configuration
 
 Atom loads configuration settings from the `config.cson` file in your _~/.atom_
