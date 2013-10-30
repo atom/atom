@@ -280,7 +280,7 @@ class Atom
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    doc = Document.deserialize(state: documentState) if documentState?
+    doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
     # TODO: Remove this when everything is using telepath models
     if @site?
@@ -292,7 +292,7 @@ class Atom
   saveWindowState: ->
     windowState = @getWindowState()
     if windowStatePath = @getWindowStatePath()
-      windowState.saveSync(path: windowStatePath)
+      windowState.saveSync(windowStatePath)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serialize())
 
