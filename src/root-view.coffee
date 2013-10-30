@@ -221,17 +221,17 @@ class RootView extends View
     pane.focus() if changeFocus
     paneItem
 
-  openSingletonSync: (uri, {split}={}) ->
+  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
     uri = project.relativize(uri)
     pane = @panes.paneForUri(uri)
 
     if pane
       paneItem = pane.itemForUri(uri)
       pane.showItem(paneItem)
-      pane.focus()
+      pane.focus() if changeFocus
       paneItem
     else
-      @openSync(uri, {split})
+      @openSync(uri, {changeFocus, initialLine, split})
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
