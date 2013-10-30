@@ -129,7 +129,7 @@ class PaneContainer extends View
     saved = true
     for pane in @getPanes()
       for item in pane.getItems()
-        if not pane.destroyItem(item)
+        if not pane.promptToSaveItem(item)
           saved = false
           break
     saved
