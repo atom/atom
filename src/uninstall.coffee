@@ -32,7 +32,7 @@ class Uninstall
 
     packagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     packages = fs.list(packagesDirectory)
-    for packageName in options.commandArgs
+    for packageName in options.argv._
       process.stdout.write "Uninstalling #{packageName} "
       unless _.contains(packages, packageName)
         process.stdout.write '\u2717\n'.red
