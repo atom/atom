@@ -439,8 +439,8 @@ describe "Pane", ->
 
       beforeEach ->
         pane.showItem(editSession1)
-        paneToLeft = pane.splitLeft()
-        paneToRight = pane.splitRight()
+        paneToLeft = pane.splitLeft(pane.copyActiveItem())
+        paneToRight = pane.splitRight(pane.copyActiveItem())
         container.attachToDom()
 
       describe "when the removed pane is focused", ->
@@ -494,7 +494,7 @@ describe "Pane", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
       pane.showItem(editSession1)
       expect(pane.getNextPane()).toBeUndefined
-      pane2 = pane.splitRight()
+      pane2 = pane.splitRight(pane.copyActiveItem())
       expect(pane.getNextPane()).toBe pane2
       expect(pane2.getNextPane()).toBe pane
 
@@ -529,7 +529,7 @@ describe "Pane", ->
       expect(pane.isActive()).toBeFalsy()
       pane.focusin()
       expect(pane.isActive()).toBeTruthy()
-      pane.splitRight()
+      pane.splitRight(pane.copyActiveItem())
       expect(pane.isActive()).toBeFalsy()
 
       expect(becameInactiveHandler.callCount).toBe 1

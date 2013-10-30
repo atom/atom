@@ -1014,17 +1014,21 @@ class Editor extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
-  splitLeft: (items...) ->
-    @getPane()?.splitLeft(items...).activeView
+  splitLeft: ->
+    pane = @getPane()
+    pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  splitRight: (items...) ->
-    @getPane()?.splitRight(items...).activeView
+  splitRight: ->
+    pane = @getPane()
+    pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  splitUp: (items...) ->
-    @getPane()?.splitUp(items...).activeView
+  splitUp: ->
+    pane = @getPane()
+    pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  splitDown: (items...) ->
-    @getPane()?.splitDown(items...).activeView
+  splitDown: ->
+    pane = @getPane()
+    pane?.splitDown(pane?.copyActiveItem()).activeView
 
   # Retrieve's the `Editor`'s pane.
   #

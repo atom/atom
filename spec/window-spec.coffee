@@ -95,7 +95,8 @@ describe "Window", ->
     it "unsubscribes from all buffers", ->
       rootView.openSync('sample.js')
       buffer = rootView.getActivePaneItem().buffer
-      rootView.getActivePane().splitRight()
+      pane = rootView.getActivePane()
+      pane.splitRight(pane.copyActiveItem())
       expect(window.rootView.find('.editor').length).toBe 2
 
       window.unloadEditorWindow()
