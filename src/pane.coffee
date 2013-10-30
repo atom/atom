@@ -73,10 +73,10 @@ class Pane extends View
     @command 'pane:show-item-8', => @showItemAtIndex(7)
     @command 'pane:show-item-9', => @showItemAtIndex(8)
 
-    @command 'pane:split-left', => @splitLeft()
-    @command 'pane:split-right', => @splitRight()
-    @command 'pane:split-up', => @splitUp()
-    @command 'pane:split-down', => @splitDown()
+    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
+    @command 'pane:split-right', => @splitRight(@copyActiveItem())
+    @command 'pane:split-up', => @splitUp(@copyActiveItem())
+    @command 'pane:split-down', => @splitDown(@copyActiveItem())
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
     @on 'focus', => @activeView?.focus(); false
@@ -395,7 +395,6 @@ class Pane extends View
       axis.addChild(this)
       parent = axis
 
-    items = [@copyActiveItem()] unless items.length
     newPane = new Pane(items...)
 
     switch side

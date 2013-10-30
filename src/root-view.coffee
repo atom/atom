@@ -194,23 +194,45 @@ class RootView extends View
       editSession
 
   # Private: Only used in specs
-  openSync: (filePath, options = {}) ->
-    changeFocus = options.changeFocus ? true
-    initialLine = options.initialLine
-    filePath = project.relativize(filePath)
-    if activePane = @getActivePane()
-      if filePath
-        editSession = activePane.itemForUri(filePath) ? project.openSync(filePath, {initialLine})
-      else
-        editSession = project.openSync()
-      activePane.showItem(editSession)
-    else
-      editSession = project.openSync(filePath, {initialLine})
-      activePane = new Pane(editSession)
-      @panes.setRoot(activePane)
+  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
+    changeFocus ?= true
+    pane ?= @getActivePane()
+    uri = project.relativize(uri)
 
-    activePane.focus() if changeFocus
-    editSession
+    if pane
+      if uri
+        paneItem = pane.itemForUri(uri) ? project.openSync(uri, {initialLine})
+      else
+        paneItem = project.openSync()
+
+      if split
+        panes = @getPanes()
+        if panes.length == 1
+          pane = panes[0].splitRight()
+        else
+          pane = _.last(panes)
+
+      pane.showItem(paneItem)
+    else
+      paneItem = project.openSync(uri, {initialLine})
+      pane = new Pane(paneItem)
+      @panes.setRoot(pane)
+
+    pane.focus() if changeFocus
+    paneItem
+
+  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
+    changeFocus ?= true
+    uri = project.relativize(uri)
+    pane = @panes.paneForUri(uri)
+
+    if pane
+      paneItem = pane.itemForUri(uri)
+      pane.showItem(paneItem)
+      pane.focus() if changeFocus
+      paneItem
+    else
+      @openSync(uri, {changeFocus, initialLine, split})
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->

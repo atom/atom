@@ -161,6 +161,12 @@ class PaneContainer extends View
   getActiveView: ->
     @getActivePane()?.activeView
 
+  paneForUri: (uri) ->
+    for pane in @getPanes()
+      view = pane.itemForUri(uri)
+      return pane if view?
+    null
+
   adjustPaneDimensions: ->
     if root = @getRoot()
       root.css(width: '100%', height: '100%', top: 0, left: 0)

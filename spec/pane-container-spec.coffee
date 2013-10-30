@@ -80,7 +80,7 @@ describe "PaneContainer", ->
       expect(panes).toEqual [pane1, pane2, pane3]
 
       panes = []
-      pane4 = pane3.splitRight()
+      pane4 = pane3.splitRight(pane3.copyActiveItem())
       expect(panes).toEqual [pane4]
 
       panes = []
