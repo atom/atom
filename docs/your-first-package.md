@@ -6,7 +6,7 @@ To get started, hit `cmd-p`, and start typing "Generate Package" to generate
 a package. Once you select the "Generate Package" command, it'll ask you for a
 name for your new package. Let's call ours _changer_.
 
-Atom will pop open a new window, showing the _changer_ with a default set of
+Atom will pop open a new window, showing the _changer_ package with a default set of
 folders and files created for us. Hit `cmd-p` and start typing "Changer." You'll
 see a new `Changer:Toggle` command which, if selected, pops up a greeting. So far,
 so good!
@@ -46,14 +46,14 @@ for the editor portion.
 To bind keybindings to a command, we'll need to do a bit of association in our
 CoffeeScript code using the `rootView.command` method. This method takes a command
 name and executes a callback function. Open up _lib/changer-view.coffee_, and
-change `rootView.command "changer:toggle" to look like this:
+change `rootView.command "changer:toggle"` to look like this:
 
 ```coffeescript
 rootView.command "changer:magic", => @magic()
 ```
 
 It's common practice to namespace your commands with your package name, separated
-with a colon (`:`).
+with a colon (`:`). Make sure to rename your `toggle` method to `magic` as well.
 
 Every time you reload the Atom editor, changes to your package code will be reevaluated,
 just as if you were writing a script for the browser. Reload the editor, click on
@@ -64,7 +64,7 @@ Basically, this key tells Atom to not load a package until it hears a certain ev
 Change the event to `changer:magic` and reload the editor:
 
 ```json
-"activationEvents": ["changer:toggle"]
+"activationEvents": ["changer:magic"]
 ```
 
 Hitting the key binding on the tree now works!
@@ -80,7 +80,7 @@ the bundled libraries Atom provides by default][bundled-libs].
 We bring in jQuery by requiring the `atom` package and binding it to the `$` variable:
 
 ```coffeescript
-{$} = require 'atom'
+{$, View} = require 'atom'
 ```
 
 Now, we can define the `magic` method to query the tree to get us a list of every
@@ -119,7 +119,6 @@ Refresh Atom, and run the `changer` command. You'll see all the non-changed
 files disappear from the tree. Success!
 
 ![Changer_File_View]
-
 
 There are a number of ways you can get the list back; let's just naively iterate
 over the same elements and remove the class:
@@ -323,9 +322,13 @@ Using theme variables ensures that packages look great alongside any theme.
 For more information on the mechanics of packages, check out
 [Creating a Package][creating-a-package].
 
-[bundled-libs]: ../creating-a-package.html#included-libraries
+[bundled-libs]: creating-a-package.html#included-libraries
 [styleguide]: https://github.com/atom/styleguide
 [space-pen]: https://github.com/atom/space-pen
 [node]: http://nodejs.org/
 [path]: http://nodejs.org/docs/latest/api/path.html
-[theme-vars]: ../theme-variables.html
+[changer_file_view]: https://f.cloud.github.com/assets/69169/1441187/d7a7cb46-41a7-11e3-8128-d93f70a5d5c1.png
+[changer_panel_append]: https://f.cloud.github.com/assets/69169/1441189/db0c74da-41a7-11e3-8286-b82dd9190c34.png
+[changer_panel_timestamps]: https://f.cloud.github.com/assets/69169/1441190/dcc8eeb6-41a7-11e3-830f-1f1b33072fcd.png
+[theme-vars]: theme-variables.html
+[creating-a-package]: creating-a-package.html

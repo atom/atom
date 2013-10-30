@@ -22,8 +22,7 @@ my-package/
 
 Not every package will have (or need) all of these directories.
 
-[Your first package][first-package] contains a tutorial on creating a simple
-package.
+We have [a tutorial on creating your first package][first-package].
 
 ## package.json
 

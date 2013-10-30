@@ -11,10 +11,10 @@ will be loaded and available for import.
 ## Use in Packages
 
 In any of your package's `.less` files, you can access the theme variables
-by importing the `ui-variables` file from Atom. The
+by importing the `ui-variables` file from Atom.
 
 Your package should generally only specify structural styling, and these should
-come from [the style guide][style-guide]. Your package shouldn't specify colors,
+come from [the style guide][styleguide]. Your package shouldn't specify colors,
 padding sizes, or anything in absolute pixels. You should instead use the theme
 variables. If you follow this guideline, your package will look good out of the
 box with any theme!
