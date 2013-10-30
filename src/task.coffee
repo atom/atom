@@ -51,8 +51,10 @@ class Task
       #{coffeeCacheRequire}
       #{taskBootstrapRequire}
     """
+    bootstrap = bootstrap.replace(/\\/g, "\\\\") if process.platform == 'win32'
 
     taskPath = require.resolve(taskPath)
+    taskPath = taskPath.replace(/\\/g, "\\\\") if process.platform == 'win32'
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
     args = [bootstrap, '--harmony_collections']
