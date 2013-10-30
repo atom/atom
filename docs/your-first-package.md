@@ -317,12 +317,18 @@ ul.modified-files-list {
 
 Using theme variables ensures that packages look great alongside any theme.
 
+## Further reading
+
+For more information on the mechanics of packages, check out
+[Creating a Package][creating-a-package].
+
 [bundled-libs]: ../creating-a-package.html#included-libraries
 [styleguide]: https://github.com/atom/styleguide
 [space-pen]: https://github.com/atom/space-pen
 [node]: http://nodejs.org/
 [path]: http://nodejs.org/docs/latest/api/path.html
-[theme-vars]: ../theme-variables.html
+[theme-vars]: theme-variables.html
 [changer-file-view]: https://f.cloud.github.com/assets/69169/1441187/d7a7cb46-41a7-11e3-8128-d93f70a5d5c1.png
 [changer-panel-append]: https://f.cloud.github.com/assets/69169/1441189/db0c74da-41a7-11e3-8286-b82dd9190c34.png
 [changer-panel-timestamps]: https://f.cloud.github.com/assets/69169/1441190/dcc8eeb6-41a7-11e3-830f-1f1b33072fcd.png
+[creating-a-package]: creating-a-package.html

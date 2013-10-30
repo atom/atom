@@ -22,6 +22,9 @@ my-package/
 
 Not every package will have (or need) all of these directories.
 
+[Your first package][first-package] contains a tutorial on creating a simple
+package.
+
 ## package.json
 
 Similar to [npm packages][npm], Atom packages contain a _package.json_ file
@@ -390,3 +393,4 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [cson]: https://github.com/atom/season
 [less]: http://lesscss.org
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
+[first-package]: your-first-package.html
