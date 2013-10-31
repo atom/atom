@@ -4,6 +4,14 @@ Emitter::one = (args...) -> @once(args...)
 Emitter::trigger = (args...) -> @emit(args...)
 Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
+#TODO remove once all packages have been updated
+fs = require 'fs-plus'
+fs.exist = fs.existsSync
+fs.makeTree = fs.makeTreeSync
+fs.move = fs.moveSync
+fs.read = fs.readSync
+fs.remove = fs.removeSync
+
 fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
