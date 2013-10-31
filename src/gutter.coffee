@@ -142,22 +142,10 @@ class Gutter extends View
     updateAllLines |= endScreenRow <= @firstScreenRow or startScreenRow >= @lastScreenRow
 
     unless updateAllLines
-      minChangeStartScreenRow = null
       for change in changes
-        # When there is a change to the bufferRow -> screenRow map (i.e. a fold),
-        # then rerender everything.
-        if (change.screenDelta or change.bufferDelta) and change.screenDelta != change.bufferDelta
+        if change.screenDelta or change.bufferDelta
           updateAllLines = true
           break
-        else if change.screenDelta or change.bufferDelta
-          minChangeStartScreenRow = Math.min(change.start, minChangeStartScreenRow)
-
-      if minChangeStartScreenRow? and not updateAllLines
-        # Need to rerender when changes are before a fold
-        for screenRow in [minChangeStartScreenRow...endScreenRow]
-          if @getEditor().isFoldedAtScreenRow(screenRow)
-            updateAllLines = true
-            break
 
     if updateAllLines
       @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
