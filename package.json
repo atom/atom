@@ -31,7 +31,6 @@
     "pathwatcher": "0.9.0",
     "pegjs": "0.7.0",
     "q": "0.9.7",
-    "rimraf": "2.1.4",
     "scandal": "0.6.2",
     "season": "0.14.0",
     "semver": "1.1.4",
