@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-plist = require 'plist'
 Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
