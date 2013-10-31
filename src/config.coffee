@@ -1,8 +1,7 @@
-fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
 {Emitter} = require 'emissary'
 CSON = require 'season'
-fs = require 'fs'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
@@ -52,25 +51,25 @@ class Config
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
     @settings = {}
-    @configFilePath = fsUtils.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
   # Private:
   initializeConfigDirectory: (done) ->
-    return if fsUtils.exists(@configDirPath)
+    return if fs.exists(@configDirPath)
 
-    fsUtils.makeTree(@configDirPath)
+    fs.makeTree(@configDirPath)
 
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
-      fsUtils.copy(sourcePath, destinationPath, callback)
+      fs.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 
-    templateConfigDirPath = fsUtils.resolve(@resourcePath, 'dot-atom')
+    templateConfigDirPath = fs.resolve(@resourcePath, 'dot-atom')
     onConfigDirFile = (sourcePath) =>
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
-    fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
   # Private:
   load: ->
@@ -80,8 +79,8 @@ class Config
 
   # Private:
   loadUserConfig: ->
-    if !fsUtils.exists(@configFilePath)
-      fsUtils.makeTree(path.dirname(@configFilePath))
+    if !fs.exists(@configFilePath)
+      fs.makeTree(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {})
 
     try

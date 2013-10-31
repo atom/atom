@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'
 guid = require 'guid'

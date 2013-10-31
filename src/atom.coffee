@@ -4,7 +4,7 @@ Emitter::one = (args...) -> @once(args...)
 Emitter::trigger = (args...) -> @emit(args...)
 Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 Package = require './package'
@@ -243,7 +243,7 @@ class Atom
 
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
-    @configDirPath ?= fsUtils.absolute('~/.atom')
+    @configDirPath ?= fs.absolute('~/.atom')
 
   getWindowStatePath: ->
     switch @windowMode
@@ -267,9 +267,9 @@ class Atom
 
   loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
-      if fsUtils.exists(windowStatePath)
+      if fs.exists(windowStatePath)
         try
-          documentStateJson  = fsUtils.read(windowStatePath)
+          documentStateJson  = fs.read(windowStatePath)
         catch error
           console.warn "Error reading window state: #{windowStatePath}", error.stack, error
     else
@@ -316,7 +316,7 @@ class Atom
   requireUserInitScript: ->
     userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
+      require userInitScriptPath if fs.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

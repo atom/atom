@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 Task = require './task'
 {Emitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
@@ -106,7 +106,7 @@ class Git
 
   # Public: Returns the path of the repository.
   getPath: ->
-    @path ?= fsUtils.absolute(@getRepo().getPath())
+    @path ?= fs.absolute(@getRepo().getPath())
 
   # Public: Returns the working directory of the repository.
   getWorkingDirectory: -> @getRepo().getWorkingDirectory()

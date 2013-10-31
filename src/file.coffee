@@ -4,7 +4,7 @@ pathWatcher = require 'pathwatcher'
 Q = require 'q'
 {Emitter} = require 'emissary'
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 
 # Public: Represents an individual file.
 #
@@ -24,7 +24,7 @@ class File
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
-    throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
+    throw new Error("#{@path} is a directory") if fs.isDirectorySync(@path)
 
     @handleEventSubscriptions()
 
@@ -57,7 +57,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.writeSync(@getPath(), text)
+    fs.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Private: Deprecated
@@ -65,7 +65,7 @@ class File
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fsUtils.read(@getPath())
+      @cachedContents = fs.read(@getPath())
     else
       @cachedContents
 
@@ -83,7 +83,7 @@ class File
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache
-      if fsUtils.statSyncNoException(@getPath()).size >= 1048576 # 1MB
+      if fs.getSizeSync(@getPath()) >= 1048576 # 1MB
         throw new Error("Atom can only handle files < 1MB, for now.")
 
       deferred = Q.defer()
