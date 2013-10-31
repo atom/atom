@@ -146,6 +146,7 @@ class File
 
   # Private:
   subscribeToNativeChangeEvents: ->
+    return false
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
         @handleNativeChangeEvent(eventType, path)

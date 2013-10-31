@@ -96,6 +96,7 @@ class Config
 
   # Private:
   observeUserConfig: ->
+    return false
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
       @loadUserConfig() if eventType is 'change' and @watchSubscription?
 
