@@ -54,9 +54,9 @@
 
 // Handle indentation of the tree. Assume disclosure arrows.
 .list-tree {
-  .list-nested-item > .list-tree,
-  .list-nested-item > .list-group {
-    margin-left: @component-icon-size + @component-icon-padding;
+  .list-nested-item > .list-tree > li,
+  .list-nested-item > .list-group > li {
+    padding-left: @component-icon-size + @component-icon-padding;
   }
 
   &.has-collapsable-children {
@@ -86,9 +86,9 @@
       }
     }
 
-    .list-nested-item > .list-tree,
-    .list-nested-item > .list-group {
-      margin-left: @disclosure-arrow-padding;
+    .list-nested-item > .list-tree > li,
+    .list-nested-item > .list-group > li {
+      padding-left: @disclosure-arrow-padding;
     }
 
     // You want a subtree to be flat -- no collapsable children
