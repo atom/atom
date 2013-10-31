@@ -58,7 +58,7 @@ class Config
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)
 
-    fs.makeTree(@configDirPath)
+    fs.makeTreeSync(@configDirPath)
 
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
       fs.copy(sourcePath, destinationPath, callback)
@@ -80,7 +80,7 @@ class Config
   # Private:
   loadUserConfig: ->
     unless fs.existsSync(@configFilePath)
-      fs.makeTree(path.dirname(@configFilePath))
+      fs.makeTreeSync(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {})
 
     try

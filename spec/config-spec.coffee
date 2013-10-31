@@ -227,7 +227,7 @@ describe "Config", ->
 
     describe "when the config file does not exist", ->
       it "creates it with an empty object", ->
-        fs.makeTree(config.configDirPath)
+        fs.makeTreeSync(config.configDirPath)
         config.loadUserConfig()
         expect(fs.existsSync(config.configFilePath)).toBe true
         expect(CSON.readFileSync(config.configFilePath)).toEqual {}
