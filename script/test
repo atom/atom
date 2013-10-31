@@ -5,5 +5,5 @@ var path = require('path');
 process.chdir(path.dirname(__dirname));
 
 safeExec('node script/bootstrap', function() {
-  safeExec('node node_modules/.bin/grunt ci --stack --no-color', process.exit);
+  safeExec('node node_modules/grunt-cli/bin/grunt ci --stack --no-color', process.exit);
 });

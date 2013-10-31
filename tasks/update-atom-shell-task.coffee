@@ -4,6 +4,7 @@ os = require 'os'
 
 request = require 'request'
 formidable = require 'formidable'
+unzip = require 'unzip'
 
 module.exports = (grunt) ->
   {spawn, mkdir, rm, cp} = require('./task-helpers')(grunt)
@@ -148,9 +149,20 @@ module.exports = (grunt) ->
     grunt.log.writeln('Unzipping atom-shell')
     directoryPath = path.dirname(zipPath)
 
-    spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
-      rm(zipPath)
-      callback(error)
+    if process.platform is 'darwin'
+      # The zip archive of darwin build contains symbol links, only the "unzip"
+      # command can handle it correctly.
+      spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
+        rm(zipPath)
+        callback(error)
+    else
+      fileStream = fs.createReadStream(zipPath)
+      fileStream.on('error', callback)
+      zipStream = fileStream.pipe(unzip.Extract(path: directoryPath))
+      zipStream.on('error', callback)
+      zipStream.on 'close', ->
+        rm(zipPath)
+        callback(null)
 
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
