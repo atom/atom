@@ -252,7 +252,7 @@ describe "Editor", ->
       fs.writeSync(filePath, filePath)
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -2179,7 +2179,7 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readSync(filePath)
       editor.edit(project.openSync(filePath))
 
     afterEach ->
@@ -2310,7 +2310,7 @@ describe "Editor", ->
       fs.writeSync(filePath, "var i;")
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.openSync(filePath))

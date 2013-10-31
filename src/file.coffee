@@ -65,7 +65,7 @@ class File
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fs.read(@getPath())
+      @cachedContents = fs.readSync(@getPath())
     else
       @cachedContents
 
@@ -110,7 +110,7 @@ class File
 
   # Public: Returns whether the file exists.
   exists: ->
-    fs.exists(@getPath())
+    fs.existsSync(@getPath())
 
   setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')

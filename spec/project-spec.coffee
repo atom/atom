@@ -368,7 +368,7 @@ describe "Project", ->
             fs.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
-          fs.remove(projectPath) if fs.exists(projectPath)
+          fs.removeSync(projectPath) if fs.existsSync(projectPath)
 
         it "excludes ignored files", ->
           project.setPath(projectPath)

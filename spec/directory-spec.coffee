@@ -16,10 +16,10 @@ describe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(__dirname, 'fixtures', 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.removeSync(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.removeSync(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
@@ -33,7 +33,7 @@ describe "Directory", ->
 
       runs ->
         changeHandler.reset()
-        fs.remove(temporaryFilePath)
+        fs.removeSync(temporaryFilePath)
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
@@ -42,10 +42,10 @@ describe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(directory.path, 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.removeSync(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.removeSync(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null
@@ -62,7 +62,7 @@ describe "Directory", ->
         directory.off()
       waits 20
 
-      runs -> fs.remove(temporaryFilePath)
+      runs -> fs.removeSync(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 

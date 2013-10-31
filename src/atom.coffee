@@ -267,9 +267,9 @@ class Atom
 
   loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
-      if fs.exists(windowStatePath)
+      if fs.existsSync(windowStatePath)
         try
-          documentStateJson  = fs.read(windowStatePath)
+          documentStateJson  = fs.readSync(windowStatePath)
         catch error
           console.warn "Error reading window state: #{windowStatePath}", error.stack, error
     else

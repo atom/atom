@@ -142,7 +142,7 @@ class ThemeManager
     if path.extname(stylesheetPath) is '.less'
       @loadLessStylesheet(stylesheetPath)
     else
-      fs.read(stylesheetPath)
+      fs.readSync(stylesheetPath)
 
   # Internal-only:
   loadLessStylesheet: (lessStylesheetPath) ->

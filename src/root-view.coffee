@@ -179,9 +179,6 @@ class RootView extends View
     editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
     promise = project.open(filePath, {initialLine}) if not editSession
 
-    fileSize = 0
-    fileSize = fs.statSync(filePath).size if fs.exists(filePath)
-
     Q(editSession ? promise).then (editSession) =>
       if not activePane
         activePane = new Pane(editSession)

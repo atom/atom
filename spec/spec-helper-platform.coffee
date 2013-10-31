@@ -15,7 +15,7 @@ module.exports =
   # Returns nothing.
   generateEvilFiles: ->
     evilFilesPath = path.join(__dirname, 'fixtures', 'evil-files')
-    fs.remove(evilFilesPath) if fs.exists(evilFilesPath)
+    fs.removeSync(evilFilesPath) if fs.existsSync(evilFilesPath)
     fs.mkdirSync(evilFilesPath)
 
     if (@isWindows())

@@ -9,7 +9,7 @@ describe "Git", ->
 
   beforeEach ->
     gitPath = path.join(temp.dir, '.git')
-    fs.remove(gitPath) if fs.isDirectorySync(gitPath)
+    fs.removeSync(gitPath) if fs.isDirectorySync(gitPath)
 
   afterEach ->
     repo.destroy() if repo?.repo?
@@ -47,11 +47,11 @@ describe "Git", ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
       newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readSync(filePath)
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns false if the path has not been modified", ->
@@ -62,7 +62,7 @@ describe "Git", ->
         expect(repo.isPathModified(filePath)).toBeTruthy()
 
       it "returns true if the path is deleted", ->
-        fs.remove(filePath)
+        fs.removeSync(filePath)
         expect(repo.isPathModified(filePath)).toBeTruthy()
 
       it "returns false if the path is new", ->
@@ -78,7 +78,7 @@ describe "Git", ->
       fs.writeSync(newPath, "i'm new here")
 
     afterEach ->
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns true if the path is new", ->
@@ -93,9 +93,9 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       path1 = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPath1Text = fs.read(path1)
+      originalPath1Text = fs.readSync(path1)
       path2 = require.resolve('./fixtures/git/working-dir/other.txt')
-      originalPath2Text = fs.read(path2)
+      originalPath2Text = fs.readSync(path2)
 
     afterEach ->
       fs.writeSync(path1, originalPath1Text)
@@ -111,13 +111,13 @@ describe "Git", ->
     it "restores the contents of the path to the original text", ->
       fs.writeSync(path1, '')
       expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.read(path1)).toBe(originalPath1Text)
+      expect(fs.readSync(path1)).toBe(originalPath1Text)
 
     it "only restores the path specified", ->
       fs.writeSync(path2, 'path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
       expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.read(path2)).toBe('path 2 is edited')
+      expect(fs.readSync(path2)).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
 
     it "fires a status-changed event if the checkout completes successfully", ->
@@ -144,7 +144,7 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readSync(filePath)
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -160,7 +160,7 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readSync(filePath)
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -183,14 +183,14 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       modifiedPath = project.resolve('git/working-dir/file.txt')
-      originalModifiedPathText = fs.read(modifiedPath)
+      originalModifiedPathText = fs.readSync(modifiedPath)
       newPath = project.resolve('git/working-dir/untracked.txt')
       cleanPath = project.resolve('git/working-dir/other.txt')
       fs.writeSync(newPath, '')
 
     afterEach ->
       fs.writeSync(modifiedPath, originalModifiedPathText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     it "returns status information for all new and modified files", ->
       fs.writeSync(modifiedPath, 'making this path modified')

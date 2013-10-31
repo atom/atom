@@ -56,7 +56,7 @@ class Config
 
   # Private:
   initializeConfigDirectory: (done) ->
-    return if fs.exists(@configDirPath)
+    return if fs.existsSync(@configDirPath)
 
     fs.makeTree(@configDirPath)
 
@@ -79,7 +79,7 @@ class Config
 
   # Private:
   loadUserConfig: ->
-    if !fs.exists(@configFilePath)
+    unless fs.existsSync(@configFilePath)
       fs.makeTree(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {})
 

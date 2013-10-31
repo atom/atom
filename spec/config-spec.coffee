@@ -177,10 +177,10 @@ describe "Config", ->
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
       config.configDirPath = dotAtomPath
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
@@ -192,19 +192,19 @@ describe "Config", ->
         waitsFor -> initializationDone
 
         runs ->
-          expect(fs.exists(config.configDirPath)).toBeTruthy()
-          expect(fs.exists(path.join(config.configDirPath, 'packages'))).toBeTruthy()
-          expect(fs.exists(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
+          expect(fs.existsSync(config.configDirPath)).toBeTruthy()
+          expect(fs.existsSync(path.join(config.configDirPath, 'packages'))).toBeTruthy()
+          expect(fs.existsSync(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
           expect(fs.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->
       config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
@@ -229,7 +229,7 @@ describe "Config", ->
       it "creates it with an empty object", ->
         fs.makeTree(config.configDirPath)
         config.loadUserConfig()
-        expect(fs.exists(config.configFilePath)).toBe true
+        expect(fs.existsSync(config.configFilePath)).toBe true
         expect(CSON.readFileSync(config.configFilePath)).toEqual {}
 
   describe ".observeUserConfig()", ->
@@ -238,7 +238,7 @@ describe "Config", ->
     beforeEach ->
       config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
       fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
       config.loadUserConfig()
       config.observeUserConfig()
@@ -247,7 +247,7 @@ describe "Config", ->
 
     afterEach ->
       config.unobserveUserConfig()
-      fs.remove(dotAtomPath) if fs.exists(dotAtomPath)
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the config file changes to contain valid cson", ->
       it "updates the config data", ->
