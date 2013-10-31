@@ -146,6 +146,9 @@ class AtomApplication
       else
         @openPath(pathToOpen: "atom://config")
 
+    app.on 'window-all-closed', ->
+      app.quit() if process.platform is 'win32'
+
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
 
