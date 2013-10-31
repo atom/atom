@@ -19,6 +19,7 @@ app = remote.require 'app'
 {Document} = require 'telepath'
 DeserializerManager = require './deserializer-manager'
 {Subscriber} = require 'emissary'
+SiteShim = require './site-shim'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -279,15 +280,19 @@ class Atom
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    doc = Document.deserialize(state: documentState) if documentState?
+    doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
-    @site = doc.site # TODO: Remove this when everything is using telepath models
+    # TODO: Remove this when everything is using telepath models
+    if @site?
+      @site.setRootDocument(doc)
+    else
+      @site = new SiteShim(doc)
     doc
 
   saveWindowState: ->
     windowState = @getWindowState()
     if windowStatePath = @getWindowStatePath()
-      windowState.saveSync(path: windowStatePath)
+      windowState.saveSync(windowStatePath)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serialize())
 

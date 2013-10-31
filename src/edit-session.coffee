@@ -100,12 +100,13 @@ class EditSession
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @subscribe @state, 'changed', ({key, newValue}) =>
-      switch key
-        when 'scrollTop'
-          @emit 'scroll-top-changed', newValue
-        when 'scrollLeft'
-          @emit 'scroll-left-changed', newValue
+    @subscribe @state, 'changed', ({newValues}) =>
+      for key, newValue of newValues
+        switch key
+          when 'scrollTop'
+            @emit 'scroll-top-changed', newValue
+          when 'scrollLeft'
+            @emit 'scroll-left-changed', newValue
 
     project.addEditSession(this) if registerEditSession
 
@@ -138,8 +139,8 @@ class EditSession
     return if @destroyed
     @destroyed = true
     @unsubscribe()
-    @buffer.release()
     selection.destroy() for selection in @getSelections()
+    @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
     project?.removeEditSession(this)
@@ -1432,7 +1433,7 @@ class EditSession
 
   # Private:
   getSelectionMarkerAttributes: ->
-    type: 'selection', editSessionId: @id, invalidation: 'never'
+    type: 'selection', editSessionId: @id, invalidate: 'never'
 
   # Private:
   getDebugSnapshot: ->
