@@ -90,7 +90,7 @@ class File
       promise = deferred.promise
       content = []
       bytesRead = 0
-      readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
+      readStream = fs.createReadStream @getPath(), encoding: 'utf8'
       readStream.on 'data', (chunk) ->
         content.push(chunk)
         bytesRead += chunk.length
@@ -110,7 +110,7 @@ class File
 
   # Public: Returns whether the file exists.
   exists: ->
-    fsUtils.exists(@getPath())
+    fs.exists(@getPath())
 
   setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
