@@ -146,6 +146,7 @@ class File
 
   # Private:
   subscribeToNativeChangeEvents: ->
+    return if process.platform is 'win32'
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
         @handleNativeChangeEvent(eventType, path)
