@@ -1766,6 +1766,14 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
         expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
+      it "re-renders the correct line number range when there are folds", ->
+        editor.activeEditSession.foldBufferRow(1)
+        expect(editor.gutter.find('.line-number-1')).toHaveClass 'fold'
+
+        buffer.insert([0, 0], '\n')
+
+        expect(editor.gutter.find('.line-number-2')).toHaveClass 'fold'
+
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editSession.setSoftWrap(true)
