@@ -193,74 +193,22 @@
   'ctrl-h': 'native!'
   'ctrl-d': 'native!'
 
-# # Not implemented
+# Not implemented
 # 'body':
 #   # Core
 #   'meta-alt-up': 'switch_file', 'args': {'extensions': ['cpp', 'cxx', 'cc', 'c', 'hpp', 'hxx', 'h', 'ipp', 'inl', 'm', 'mm']}
-#   'meta-ctrl-shift-f': 'toggle_d  istraction_free'
-#   'meta-u': 'soft_undo' # Treats selections changes as an undo state
-#   'meta-shift-u': 'soft_redo' # Treats selections changes as an undo state
+#   'meta-ctrl-shift-f': 'toggle_distraction_free'
 #   'meta-shift-v': 'paste_and_indent'
-#   'meta-k meta-v': 'paste_from_history'
-#   'meta-option-v': 'paste_from_history'
 #   'meta-ctrl-p': 'prompt_select_workspace'
-#   'meta-k meta-shift-left': 'move_to_neighboring_group', 'args': {'forward': false}
-#   'meta-k meta-shift-right': 'move_to_neighboring_group'
-#   'ctrl-1': 'focus_group', 'args': { 'group': 0 }
-#   'ctrl-2': 'focus_group', 'args': { 'group': 1 }
-#   'ctrl-3': 'focus_group', 'args': { 'group': 2 }
-#   'ctrl-4': 'focus_group', 'args': { 'group': 3 }
-#   'ctrl-5': 'focus_group', 'args': { 'group': 4 }
-#   'ctrl-6': 'focus_group', 'args': { 'group': 5 }
-#   'ctrl-7': 'focus_group', 'args': { 'group': 6 }
-#   'ctrl-8': 'focus_group', 'args': { 'group': 7 }
-#   'ctrl-9': 'focus_group', 'args': { 'group': 8 }
-#   'ctrl-shift-1': 'move_to_group', 'args': { 'group': 0 }
-#   'ctrl-shift-2': 'move_to_group', 'args': { 'group': 1 }
-#   'ctrl-shift-3': 'move_to_group', 'args': { 'group': 2 }
-#   'ctrl-shift-4': 'move_to_group', 'args': { 'group': 3 }
-#   'ctrl-shift-5': 'move_to_group', 'args': { 'group': 4 }
-#   'ctrl-shift-6': 'move_to_group', 'args': { 'group': 5 }
-#   'ctrl-shift-7': 'move_to_group', 'args': { 'group': 6 }
-#   'ctrl-shift-8': 'move_to_group', 'args': { 'group': 7 }
-#   'ctrl-shift-9': 'move_to_group', 'args': { 'group': 8 }
-#   'ctrl-0': 'focus_side_bar'
+
 #   'alt-f2': 'context_menu'
 #   'meta-k meta-y': 'yank'
-#   'meta-k meta-k': 'run_macro_file', 'args': {'file': 'res://Packages/Default/Delete to Hard EOL.sublime-macro'}
-#   'meta-k meta-backspace': 'run_macro_file', 'args': {'file': 'res://Packages/Default/Delete to Hard BOL.sublime-macro'}
 #   'meta-k meta-c': 'show_at_center'
 #   'ctrl-shift-w': 'insert_snippet', 'args': { 'name': 'Packages/XML/long-tag.sublime-snippet' }
 #
-#   # Fuzzy Finder
-#   'meta-t': 'show_overlay', 'args': {'overlay': 'goto', 'show_files': true}
-#   'meta-p': 'show_overlay', 'args': {'overlay': 'goto', 'show_files': true}
-#
-#   # Command Palette
-#   'meta-shift-p': 'show_overlay', 'args': {'overlay': 'command_palette'}
-#
 #   # Symbol View
-#   'meta-r': 'show_overlay', 'args': {'overlay': 'goto', 'text': '@'}
-#   'f12': 'goto_definition'
-#   'meta-alt-down': 'goto_definition'
-#   'meta-shift-r': 'goto_symbol_in_project'
 #   'ctrl-minus': 'jump_back'
 #   'ctrl-shift-minus': 'jump_forward'
-#
-#   # Go to line
-#   'ctrl-g': 'show_overlay', 'args': {'overlay': 'goto', 'text': ':'}
-#
-#   # Bookmarks
-#   'f2': 'next_bookmark'
-#   'shift-f2': 'prev_bookmark'
-#   'meta-f2': 'toggle_bookmark'
-#   'meta-shift-f2': 'clear_bookmarks'
-#   'alt-f2': 'select_all_bookmarks'
-#   'meta-k meta-space': 'set_mark'
-#   'meta-k meta-a': 'select_to_mark'
-#   'meta-k meta-w': 'delete_to_mark'
-#   'meta-k meta-x': 'swap_with_mark'
-#   'meta-k meta-g': 'clear_bookmarks', 'args': {'name': 'mark'}
 #
 # '.editor':
 #   # Core
@@ -270,12 +218,10 @@
 #   'ctrl-shift-tab': 'prev_view_in_stack'
 #   'meta-shift-l': 'split_selection_into_lines'
 #   'shift-tab': 'insert', 'args': {'characters': '\t'}
-#   'meta-l': 'expand_selection', 'args': {'to': 'line'}
 #   'meta-alt-.': 'close_tag'
 #   '/': 'close_tag', 'args': { 'insert_slash': true 'context': [ { 'key': 'selector', 'operator': 'equal', 'operand': '(text.html, text.xml) - string - comment', 'match_all': true { 'key': 'preceding_text', 'operator': 'regex_match', 'operand': '.*<$', 'match_all': true { 'key': 'setting.auto_close_tags' } ] } ]
-#   'ctrl-q': 'toggle_record_macro'
-#   'ctrl-shift-q': 'run_macro'
 #   'meta-shift-space': 'expand_selection', 'args': {'to': 'scope'}
+#   'meta-l': 'expand_selection', 'args': {'to': 'line'}
 #   'ctrl-shift-m': 'expand_selection', 'args': {'to': 'brackets'}
 #   'meta-shift-j': 'expand_selection', 'args': {'to': 'indentation'}
 #   'meta-shift-a': 'expand_selection', 'args': {'to': 'tag'}
@@ -284,42 +230,3 @@
 #   'f5': 'sort_lines', 'args': {'case_sensitive': false}
 #   'ctrl-f5': 'sort_lines', 'args': {'case_sensitive': true}
 #   'meta-k meta-t': 'fold_tag_attributes'
-#
-#   # Find and replace
-#   'meta-d': 'find_under_word'
-#   'meta-k meta-d': 'find_under_expand_skip'
-#   'meta-i': 'show_panel', 'args': {'panel': 'incremental_find', 'reverse': false}
-#   'meta-shift-i': 'show_panel', 'args': {'panel': 'incremental_find', 'reverse': true}
-#   'meta-f': 'show_panel', 'args': {'panel': 'find', 'reverse': false}
-#   'meta-alt-f': 'show_panel', 'args': {'panel': 'replace', 'reverse': false}
-#   'meta-alt-e': 'replace_next'
-#   'meta-g': 'find_next'
-#   'meta-shift-g': 'find_prev'
-#   'meta-e': 'slurp_find_string'
-#   'meta-shift-e': 'slurp_replace_string'
-#   'alt-meta-g': 'find_under'
-#   'shift-alt-meta-g': 'find_under_prev'
-#   'ctrl-meta-g': 'find_all_under'
-#   'meta-shift-f': 'show_panel', 'args': {'panel': 'find_in_files'}
-#   'f4': 'next_result'
-#   'shift-f4': 'prev_result'
-#   'meta-alt-c': 'toggle_case_sensitive', 'context': [ { 'key': 'setting.is_widget', 'operator': 'equal', 'operand': true } ] },
-#   'meta-alt-r': 'toggle_regex', 'context': [ { 'key': 'setting.is_widget', 'operator': 'equal', 'operand': true } ] },
-#   'meta-alt-w': 'toggle_whole_word', 'context': [ { 'key': 'setting.is_widget', 'operator': 'equal', 'operand': true } ] },
-#   'meta-alt-a': 'toggle_preserve_case', 'context': [ { 'key': 'setting.is_widget', 'operator': 'equal', 'operand': true } ] },
-#   'enter': 'find_next', 'context': [{'key': 'panel', 'operand': 'find'}, {'key': 'panel_has_focus'}] },
-#   'shift-enter': 'find_prev', 'context': [{'key': 'panel', 'operand': 'find'}, {'key': 'panel_has_focus'}] },
-#   'alt-enter': 'find_all', 'args': {'close_panel': true}, 'context': [{'key': 'panel', 'operand': 'find'}, {'key': 'panel_has_focus'}] },
-#   'ctrl-alt-enter': 'replace_all', 'args': {'close_panel': true}, 'context': [{'key': 'panel', 'operand': 'replace'}, {'key': 'panel_has_focus'}] },
-#
-#   # Spell Check
-#   'f6': 'toggle_setting', 'args': {'setting': 'spell_check'}
-#   'ctrl-f6': 'next_misspelling'
-#   'ctrl-shift-f6': 'prev_misspelling'
-#
-#   # Bracket matcher
-#   'ctrl-m': 'move_to', 'args': {'to': 'brackets'}
-#
-#   # Reflow
-#   'meta-alt-q': 'wrap_lines'
-#
