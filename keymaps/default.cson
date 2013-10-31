@@ -164,6 +164,8 @@
 '.tool-panel':
   'escape': 'core:close'
 
+'.tool-panel.panel-left, .tool-panel.panel-right':
+  'escape': 'tool-panel:unfocus'
 
 '.editor !important, .editor.mini !important':
   'escape': 'editor:consolidate-selections'
