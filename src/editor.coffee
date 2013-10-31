@@ -1652,12 +1652,13 @@ class Editor extends View
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
+    offset = @scrollView.offset()
 
-    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    editorRelativeTop = pageY - offset.top + @scrollTop()
     row = Math.floor(editorRelativeTop / @lineHeight)
     column = 0
 
-    if lineElement = @lineElementForScreenRow(row)[0]
+    if pageX > offset.left and lineElement = @lineElementForScreenRow(row)[0]
       range = document.createRange()
       iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
       while node = iterator.nextNode()
