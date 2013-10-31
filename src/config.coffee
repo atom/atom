@@ -96,7 +96,7 @@ class Config
 
   # Private:
   observeUserConfig: ->
-    return false
+    return if process.platform is 'win32'
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
       @loadUserConfig() if eventType is 'change' and @watchSubscription?
 

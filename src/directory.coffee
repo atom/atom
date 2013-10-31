@@ -100,7 +100,7 @@ class Directory
 
   # Private:
   subscribeToNativeChangeEvents: ->
-    return false
+    return if process.platform is 'win32'
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType) =>
         @emit "contents-changed" if eventType is "change"
