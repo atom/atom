@@ -2179,7 +2179,7 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.readSync(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
       editor.edit(project.openSync(filePath))
 
     afterEach ->

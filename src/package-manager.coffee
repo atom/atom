@@ -197,7 +197,7 @@ class PackageManager
 
     try
       metadataPath = path.join(@resourcePath, 'package.json')
-      {packageDependencies} = JSON.parse(fs.readSync(metadataPath)) ? {}
+      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
     packagesPath = path.join(@resourcePath, 'node_modules')
     for packageName, packageVersion of packageDependencies ? {}
       packagePath = path.join(packagesPath, packageName)

@@ -17,7 +17,8 @@ class BindingSet
   name: null
 
   constructor: (selector, commandsByKeystrokes, @index, @name) ->
-    BindingSet.parser ?= PEG.buildParser(fs.readSync(require.resolve './keystroke-pattern.pegjs'))
+    keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
+    BindingSet.parser ?= PEG.buildParser(keystrokePattern)
     @specificity = specificity(selector)
     @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)

@@ -47,7 +47,7 @@ describe "Git", ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
       newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
-      originalPathText = fs.readSync(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -93,9 +93,9 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       path1 = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPath1Text = fs.readSync(path1)
+      originalPath1Text = fs.readFileSync(path1, 'utf8')
       path2 = require.resolve('./fixtures/git/working-dir/other.txt')
-      originalPath2Text = fs.readSync(path2)
+      originalPath2Text = fs.readFileSync(path2, 'utf8')
 
     afterEach ->
       fs.writeSync(path1, originalPath1Text)
@@ -111,13 +111,13 @@ describe "Git", ->
     it "restores the contents of the path to the original text", ->
       fs.writeSync(path1, '')
       expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readSync(path1)).toBe(originalPath1Text)
+      expect(fs.readFileSync(path1, 'utf8')).toBe(originalPath1Text)
 
     it "only restores the path specified", ->
       fs.writeSync(path2, 'path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
       expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readSync(path2)).toBe('path 2 is edited')
+      expect(fs.readFileSync(path2, 'utf8')).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
 
     it "fires a status-changed event if the checkout completes successfully", ->
@@ -144,7 +144,7 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readSync(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -160,7 +160,7 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readSync(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
 
     afterEach ->
       fs.writeSync(filePath, originalPathText)
@@ -183,7 +183,7 @@ describe "Git", ->
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
       modifiedPath = project.resolve('git/working-dir/file.txt')
-      originalModifiedPathText = fs.readSync(modifiedPath)
+      originalModifiedPathText = fs.readFileSync(modifiedPath, 'utf8')
       newPath = project.resolve('git/working-dir/untracked.txt')
       cleanPath = project.resolve('git/working-dir/other.txt')
       fs.writeSync(newPath, '')

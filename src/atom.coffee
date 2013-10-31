@@ -9,7 +9,7 @@ fs = require 'fs-plus'
 fs.exists = fs.existsSync
 fs.makeTree = fs.makeTreeSync
 fs.move = fs.moveSync
-fs.read = fs.readSync
+fs.read = (filePath) -> fs.readFileSync(filePath, 'utf8')
 fs.remove = fs.removeSync
 
 fs = require 'fs-plus'
@@ -277,7 +277,7 @@ class Atom
     if windowStatePath = @getWindowStatePath()
       if fs.existsSync(windowStatePath)
         try
-          documentStateJson  = fs.readSync(windowStatePath)
+          documentStateJson  = fs.readFileSync(windowStatePath, 'utf8')
         catch error
           console.warn "Error reading window state: #{windowStatePath}", error.stack, error
     else

@@ -73,7 +73,7 @@ class TextMateGrammar
     true
 
   getScore: (filePath, contents) ->
-    contents = fs.readSync(filePath) if not contents? and fs.isFileSync(filePath)
+    contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
     if syntax.grammarOverrideForPath(filePath) is @scopeName
       2 + (filePath?.length ? 0)

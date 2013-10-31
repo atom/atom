@@ -86,7 +86,7 @@ describe "ThemeManager", ->
 
       element = $('head style[id*="css.css"]')
       expect(element.attr('id')).toBe cssPath
-      expect(element.text()).toBe fs.readSync(cssPath)
+      expect(element.text()).toBe fs.readFileSync(cssPath, 'utf8')
 
       # doesn't append twice
       themeManager.requireStylesheet(cssPath)

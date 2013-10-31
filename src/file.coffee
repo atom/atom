@@ -65,7 +65,7 @@ class File
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fs.readSync(@getPath())
+      @cachedContents = fs.readFileSync(@getPath(), 'utf8')
     else
       @cachedContents
 

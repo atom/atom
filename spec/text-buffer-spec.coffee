@@ -9,7 +9,7 @@ describe 'TextBuffer', ->
 
   beforeEach ->
     filePath = require.resolve('./fixtures/sample.js')
-    fileContents = fs.readSync(filePath)
+    fileContents = fs.readFileSync(filePath, 'utf8')
     buffer = project.bufferForPathSync(filePath)
 
   afterEach ->
@@ -25,13 +25,13 @@ describe 'TextBuffer', ->
         it "loads the contents of that file", ->
           filePath = require.resolve './fixtures/sample.txt'
           buffer = project.bufferForPathSync(filePath)
-          expect(buffer.getText()).toBe fs.readSync(filePath)
+          expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
         it "does not allow the initial state of the buffer to be undone", ->
           filePath = require.resolve './fixtures/sample.txt'
           buffer = project.bufferForPathSync(filePath)
           buffer.undo()
-          expect(buffer.getText()).toBe fs.readSync(filePath)
+          expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
       describe "when no file exists for the path", ->
         it "is modified and is initially empty", ->
@@ -472,7 +472,7 @@ describe 'TextBuffer', ->
       it "saves the contents of the buffer to the path", ->
         saveBuffer.setText 'Buffer contents!'
         saveBuffer.save()
-        expect(fs.readSync(filePath)).toEqual 'Buffer contents!'
+        expect(fs.readFileSync(filePath, 'utf8')).toEqual 'Buffer contents!'
 
       it "fires will-be-saved and saved events around the call to fs.writeSync", ->
         events = []
@@ -530,7 +530,7 @@ describe 'TextBuffer', ->
 
       saveAsBuffer.setText 'Buffer contents!'
       saveAsBuffer.saveAs(filePath)
-      expect(fs.readSync(filePath)).toEqual 'Buffer contents!'
+      expect(fs.readFileSync(filePath, 'utf8')).toEqual 'Buffer contents!'
 
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
