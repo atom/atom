@@ -14,6 +14,8 @@
   'ctrl-N': 'core:select-down'
   'ctrl-F': 'core:select-right'
   'ctrl-B': 'core:select-left'
+  'ctrl-h': 'core:backspace'
+  'ctrl-d': 'core:delete'
 
   # Atom Specific
   'meta-O': 'application:open-dev'
@@ -29,6 +31,7 @@
   'meta-alt-ctrl-p': 'window:run-package-specs'
 
   # Sublime Parity
+  'meta-,': 'application:show-settings'
   'meta-N': 'application:new-window'
   'meta-W': 'window:close'
   'meta-o': 'application:open'
@@ -62,6 +65,27 @@
   'meta-}': 'pane:show-next-item'
   'meta-alt-left': 'pane:show-previous-item'
   'meta-alt-right': 'pane:show-next-item'
+  'meta-=': 'window:increase-font-size'
+  'meta-+': 'window:increase-font-size'
+  'meta--': 'window:decrease-font-size'
+
+  'meta-k up': 'pane:split-up' # Atom Specific
+  'meta-k down': 'pane:split-down' # Atom Specific
+  'meta-k left': 'pane:split-left' # Atom Specific
+  'meta-k right': 'pane:split-right' # Atom Specific
+  'meta-k meta-w': 'pane:close' # Atom Specific
+  'meta-k alt-meta-w': 'pane:close-other-items' # Atom Specific
+  'meta-k meta-left': 'window:focus-previous-pane'
+  'meta-k meta-right': 'window:focus-next-pane'
+  'meta-1': 'pane:show-item-1'
+  'meta-2': 'pane:show-item-2'
+  'meta-3': 'pane:show-item-3'
+  'meta-4': 'pane:show-item-4'
+  'meta-5': 'pane:show-item-5'
+  'meta-6': 'pane:show-item-6'
+  'meta-7': 'pane:show-item-7'
+  'meta-8': 'pane:show-item-8'
+  'meta-9': 'pane:show-item-9'
 
 '.editor':
   # Apple Specific
@@ -83,27 +107,33 @@
   'shift-end': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:backspace-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
-
   'ctrl-a': 'editor:move-to-first-character-of-line'
   'ctrl-e': 'editor:move-to-end-of-line'
   'ctrl-k': 'editor:cut-to-end-of-line'
-  'ctrl-h': 'core:backspace'
-  'ctrl-d': 'core:delete'
 
+  # Atom Specific
+  'ctrl-W': 'editor:select-word'
+
+  # Sublime Parity
+  'meta-a': 'core:select-all'
+  'meta-alt-p': 'editor:log-cursor-scope'
+  'ctrl-t': 'editor:transpose'
+  'meta-k meta-u': 'editor:upper-case'
+  'meta-k meta-l': 'editor:lower-case'
+
+'.editor:not(.mini)':
   # Atom Specific
   'alt-meta-z': 'editor:checkout-head-revision'
   'meta-<': 'editor:scroll-to-cursor'
   'ctrl-C': 'editor:copy-path'
   'alt-meta-ctrl-f': 'editor:fold-selection'
   'meta-=': 'editor:auto-indent'
-  'ctrl-W': 'editor:select-word'
 
   # Sublime Parity
   'tab': 'editor:indent'
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'
   'meta-shift-enter': 'editor:newline-above'
-  'meta-a': 'core:select-all'
   'meta-]': 'editor:indent-selected-rows'
   'meta-[': 'editor:outdent-selected-rows'
   'shift-tab': 'editor:outdent-selected-rows'
@@ -112,14 +142,6 @@
   'meta-/': 'editor:toggle-line-comments'
   'meta-j': 'editor:join-line'
   'meta-D': 'editor:duplicate-line'
-  'meta-alt-p': 'editor:log-cursor-scope'
-  'ctrl-t': 'editor:transpose'
-  'meta-,': 'application:show-settings'
-  'meta-k meta-u': 'editor:upper-case'
-  'meta-k meta-l': 'editor:lower-case'
-  'meta-=': 'window:increase-font-size'
-  'meta-+': 'window:increase-font-size'
-  'meta--': 'window:decrease-font-size'
   'ctrl-K': 'editor:delete-line'
   'ctrl-shift-up': 'editor:add-selection-above'
   'ctrl-shift-down': 'editor:add-selection-below'
@@ -139,32 +161,9 @@
   'meta-k meta-8': 'editor:fold-at-indent-level-8'
   'meta-k meta-9': 'editor:fold-at-indent-level-9'
 
-  'meta-k up': 'pane:split-up' # Atom Specific
-  'meta-k down': 'pane:split-down' # Atom Specific
-  'meta-k left': 'pane:split-left' # Atom Specific
-  'meta-k right': 'pane:split-right' # Atom Specific
-  'meta-k meta-w': 'pane:close' # Atom Specific
-  'meta-k alt-meta-w': 'pane:close-other-items' # Atom Specific
-  'meta-k meta-left': 'window:focus-previous-pane'
-  'meta-k meta-right': 'window:focus-next-pane'
-  'meta-1': 'pane:show-item-1'
-  'meta-2': 'pane:show-item-2'
-  'meta-3': 'pane:show-item-3'
-  'meta-4': 'pane:show-item-4'
-  'meta-5': 'pane:show-item-5'
-  'meta-6': 'pane:show-item-6'
-  'meta-7': 'pane:show-item-7'
-  'meta-8': 'pane:show-item-8'
-  'meta-9': 'pane:show-item-9'
-
 '.tool-panel':
-  'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'
 
-'.mini.editor':
-  'enter': 'core:confirm'
-  'escape': 'core:cancel'
-  'meta-w': 'core:cancel'
 
 '.editor !important, .editor.mini !important':
   'escape': 'editor:consolidate-selections'
@@ -230,9 +229,6 @@
 #   'meta-k meta-backspace': 'run_macro_file', 'args': {'file': 'res://Packages/Default/Delete to Hard BOL.sublime-macro'}
 #   'meta-k meta-c': 'show_at_center'
 #   'ctrl-shift-w': 'insert_snippet', 'args': { 'name': 'Packages/XML/long-tag.sublime-snippet' }
-#
-#   # Tree View
-#   'meta-k meta-b': 'toggle_side_bar'
 #
 #   # Fuzzy Finder
 #   'meta-t': 'show_overlay', 'args': {'overlay': 'goto', 'show_files': true}
