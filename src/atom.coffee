@@ -6,7 +6,7 @@ Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
 #TODO remove once all packages have been updated
 fs = require 'fs-plus'
-fs.exist = fs.existsSync
+fs.exists = fs.existsSync
 fs.makeTree = fs.makeTreeSync
 fs.move = fs.moveSync
 fs.read = fs.readSync
