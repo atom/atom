@@ -62,6 +62,22 @@ describe "Project", ->
       expect(project.getEditSessions()[0]).toBe editSession1
       expect(project.getEditSessions()[1]).toBe editSession2
 
+  describe "when an edit session is copied", ->
+    it "emits an 'edit-session-created' event and stores the edit session", ->
+      handler = jasmine.createSpy('editSessionCreatedHandler')
+      project.on 'edit-session-created', handler
+
+      editSession1 = project.openSync("a")
+      expect(handler.callCount).toBe 1
+      expect(project.getEditSessions().length).toBe 1
+      expect(project.getEditSessions()[0]).toBe editSession1
+
+      editSession2 = editSession1.copy()
+      expect(handler.callCount).toBe 2
+      expect(project.getEditSessions().length).toBe 2
+      expect(project.getEditSessions()[0]).toBe editSession1
+      expect(project.getEditSessions()[1]).toBe editSession2
+
   describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
