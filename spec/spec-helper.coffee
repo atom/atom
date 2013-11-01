@@ -165,7 +165,7 @@ addCustomMatchers = (spec) ->
     toExistOnDisk: (expected) ->
       notText = this.isNot and " not" or ""
       @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
-      fs.exists(@actual)
+      fs.existsSync(@actual)
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

@@ -1,5 +1,5 @@
 {Emitter} = require 'emissary'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 _ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
@@ -173,10 +173,10 @@ class PackageManager
     pack for pack in @getLoadedPackages() when pack.getType() in types
 
   resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectorySync(name)
+    return name if fs.isDirectorySync(name)
 
-    packagePath = fsUtils.resolve(@packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectorySync(packagePath)
+    packagePath = fs.resolve(@packageDirPaths..., name)
+    return packagePath if fs.isDirectorySync(packagePath)
 
     packagePath = path.join(@resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
@@ -192,16 +192,16 @@ class PackageManager
     packagePaths = []
 
     for packageDirPath in @packageDirPaths
-      for packagePath in fsUtils.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
+      for packagePath in fs.listSync(packageDirPath)
+        packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
     try
       metadataPath = path.join(@resourcePath, 'package.json')
-      {packageDependencies} = JSON.parse(fsUtils.read(metadataPath)) ? {}
+      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
     packagesPath = path.join(@resourcePath, 'node_modules')
     for packageName, packageVersion of packageDependencies ? {}
       packagePath = path.join(packagesPath, packageName)
-      packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
+      packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
     _.uniq(packagePaths)
 

@@ -6,7 +6,6 @@ Q = require 'q'
 telepath = require 'telepath'
 
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
 File = require './file'
 
 {Point, Range} = telepath

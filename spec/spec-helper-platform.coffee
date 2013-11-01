@@ -1,5 +1,5 @@
 path = require 'path'
-fsUtils = require '../src/fs-utils'
+fs = require 'fs-plus'
 
 {_} = require 'atom'
 
@@ -15,8 +15,8 @@ module.exports =
   # Returns nothing.
   generateEvilFiles: ->
     evilFilesPath = path.join(__dirname, 'fixtures', 'evil-files')
-    fsUtils.remove(evilFilesPath) if fsUtils.exists(evilFilesPath)
-    fsUtils.mkdirSync(evilFilesPath)
+    fs.removeSync(evilFilesPath) if fs.existsSync(evilFilesPath)
+    fs.mkdirSync(evilFilesPath)
 
     if (@isWindows())
       filenames = [
@@ -34,5 +34,4 @@ module.exports =
       ]
 
     for filename in filenames
-      fd = fsUtils.writeFileSync(path.join(evilFilesPath, filename), 'evil file!', flag: 'w')
-
+      fd = fs.writeFileSync(path.join(evilFilesPath, filename), 'evil file!', flag: 'w')

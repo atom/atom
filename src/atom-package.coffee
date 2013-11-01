@@ -1,6 +1,6 @@
 TextMateGrammar = require './text-mate-grammar'
 Package = require './package'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 path = require 'path'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
@@ -118,16 +118,16 @@ class AtomPackage extends Package
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
     if @metadata.keymaps
-      @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['json', 'cson', ''])
+      @metadata.keymaps.map (name) -> fs.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
-      fsUtils.listSync(keymapsDirPath, ['cson', 'json'])
+      fs.listSync(keymapsDirPath, ['cson', 'json'])
 
   getMenuPaths: ->
     menusDirPath = path.join(@path, 'menus')
     if @metadata.menus
-      @metadata.menus.map (name) -> fsUtils.resolve(menusDirPath, name, ['json', 'cson', ''])
+      @metadata.menus.map (name) -> fs.resolve(menusDirPath, name, ['json', 'cson', ''])
     else
-      fsUtils.listSync(menusDirPath, ['cson', 'json'])
+      fs.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
@@ -140,25 +140,25 @@ class AtomPackage extends Package
     stylesheetDirPath = @getStylesheetsPath()
 
     if @metadata.stylesheetMain
-      [fsUtils.resolve(@path, @metadata.stylesheetMain)]
+      [fs.resolve(@path, @metadata.stylesheetMain)]
     else if @metadata.stylesheets
-      @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
-    else if indexStylesheet = fsUtils.resolve(@path, 'index', ['css', 'less'])
+      @metadata.stylesheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
       [indexStylesheet]
     else
-      fsUtils.listSync(stylesheetDirPath, ['css', 'less'])
+      fs.listSync(stylesheetDirPath, ['css', 'less'])
 
   loadGrammars: ->
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
-    for grammarPath in fsUtils.listSync(grammarsDirPath, ['.json', '.cson'])
+    for grammarPath in fs.listSync(grammarsDirPath, ['.json', '.cson'])
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []
     scopedPropertiessDirPath = path.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fsUtils.listSync(scopedPropertiessDirPath, ['.json', '.cson'])
-      for selector, properties of fsUtils.readObjectSync(scopedPropertiesPath)
+    for scopedPropertiesPath in fs.listSync(scopedPropertiessDirPath, ['.json', '.cson'])
+      for selector, properties of fs.readObjectSync(scopedPropertiesPath)
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
   serialize: ->
@@ -198,7 +198,7 @@ class AtomPackage extends Package
   requireMainModule: ->
     return @mainModule if @mainModule?
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fsUtils.isFileSync(mainModulePath)
+    @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
@@ -208,7 +208,7 @@ class AtomPackage extends Package
         path.join(@path, @metadata.main)
       else
         path.join(@path, 'index')
-    @mainModulePath = fsUtils.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []

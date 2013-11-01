@@ -291,9 +291,9 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      fsUtils = require '../fs-utils'
+      fs = require 'fs-plus'
       @packages = new PackageManager
-        configDirPath: fsUtils.absolute('~/.atom')
+        configDirPath: fs.absolute('~/.atom')
         devMode: devMode
         resourcePath: @resourcePath
 

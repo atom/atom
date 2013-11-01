@@ -5,7 +5,7 @@ Gutter = require './gutter'
 EditSession = require './edit-session'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
 MeasureRange = document.createRange()
@@ -1824,7 +1824,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fsUtils.writeSync(path, @getDebugSnapshot()) if path
+      fs.writeFileSync(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

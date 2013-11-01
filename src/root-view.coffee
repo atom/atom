@@ -1,10 +1,9 @@
-fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
-fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
 telepath = require 'telepath'
 Editor = require './editor'
 Pane = require './pane'
@@ -179,9 +178,6 @@ class RootView extends View
 
     editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
     promise = project.open(filePath, {initialLine}) if not editSession
-
-    fileSize = 0
-    fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
 
     Q(editSession ? promise).then (editSession) =>
       if not activePane

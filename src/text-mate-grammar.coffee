@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
-plist = require 'plist'
+fs = require 'fs-plus'
 Token = require './token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
@@ -16,14 +15,14 @@ class TextMateGrammar
   Emitter.includeInto(this)
 
   @load: (grammarPath, done) ->
-    fsUtils.readObject grammarPath, (error, object) ->
+    fs.readObject grammarPath, (error, object) ->
       if error?
         done(error)
       else
         done(null, new TextMateGrammar(object))
 
   @loadSync: (grammarPath) ->
-    new TextMateGrammar(fsUtils.readObjectSync(grammarPath))
+    new TextMateGrammar(fs.readObjectSync(grammarPath))
 
   name: null
   rawPatterns: null
@@ -74,7 +73,7 @@ class TextMateGrammar
     true
 
   getScore: (filePath, contents) ->
-    contents = fsUtils.read(filePath) if not contents? and fsUtils.isFileSync(filePath)
+    contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
     if syntax.grammarOverrideForPath(filePath) is @scopeName
       2 + (filePath?.length ? 0)

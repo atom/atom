@@ -1,11 +1,12 @@
-fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
-Q = require 'q'
 
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
+Q = require 'q'
 telepath = require 'telepath'
 {Range} = telepath
+
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
 {Emitter} = require 'emissary'
@@ -116,7 +117,7 @@ class Project
 
     @destroyRepo()
     if projectPath?
-      directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
+      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
       if @repo = Git.open(projectPath, project: this)
         @repo.refreshIndex()
@@ -159,8 +160,8 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = path.join(@getPath(), uri) unless fsUtils.isAbsolute(uri)
-      fsUtils.absolute uri
+      uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
+      fs.absolute uri
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->

@@ -1,6 +1,6 @@
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
@@ -41,7 +41,7 @@ class Keymap
     @load(userKeymapPath) if userKeymapPath
 
   loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fsUtils.listSync(directoryPath, ['.cson', '.json'])
+    @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
     @add(path, CSON.readFileSync(path))

@@ -12,10 +12,10 @@ describe "install(commandPath, callback)", ->
     spyOn(installer, 'findInstallDirectory').andCallFake (callback) ->
       callback(directory)
 
-    fs.remove(directory) if fs.exists(directory)
+    fs.removeSync(directory) if fs.existsSync(directory)
 
   it "symlinks the command and makes it executable", ->
-    fs.writeSync(commandPath, 'test')
+    fs.writeFileSync(commandPath, 'test')
     expect(fs.isFileSync(commandPath)).toBeTruthy()
     expect(fs.isExecutableSync(commandPath)).toBeFalsy()
     expect(fs.isFileSync(destinationPath)).toBeFalsy()
