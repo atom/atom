@@ -1,6 +1,6 @@
 {Range} = require 'telepath'
 {Emitter} = require 'emissary'
-{pick} = require 'underscore'
+{pick} = require 'underscore-plus'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =
