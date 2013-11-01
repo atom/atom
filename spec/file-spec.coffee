@@ -7,7 +7,7 @@ describe 'File', ->
   beforeEach ->
     filePath = path.join(__dirname, 'fixtures', 'atom-file-test.txt') # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
     fs.removeSync(filePath) if fs.existsSync(filePath)
-    fs.writeSync(filePath, "this is old!")
+    fs.writeFileSync(filePath, "this is old!")
     file = new File(filePath)
 
   afterEach ->
@@ -18,7 +18,7 @@ describe 'File', ->
     describe "when the contents of the file change", ->
       it "triggers 'contents-changed' event handlers", ->
         file.on 'contents-changed', changeHandler = jasmine.createSpy('changeHandler')
-        fs.writeSync(file.getPath(), "this is new!")
+        fs.writeFileSync(file.getPath(), "this is new!")
 
         waitsFor "change event", ->
           changeHandler.callCount > 0
@@ -32,14 +32,14 @@ describe 'File', ->
         changeHandler = null
         changeHandler = jasmine.createSpy('changeHandler')
         file.on 'contents-changed', changeHandler
-        fs.writeSync(file.getPath(), "this is new!")
+        fs.writeFileSync(file.getPath(), "this is new!")
 
         waitsFor "change event", ->
           changeHandler.callCount > 0
 
         runs ->
           changeHandler.reset()
-          fs.writeSync(file.getPath(), "this is newer!")
+          fs.writeFileSync(file.getPath(), "this is newer!")
 
         waitsFor "second change event", ->
           changeHandler.callCount > 0
@@ -95,7 +95,7 @@ describe 'File', ->
 
         runs ->
           expect(changeHandler).not.toHaveBeenCalled()
-          fs.writeSync(file.getPath(), "this is new!")
+          fs.writeFileSync(file.getPath(), "this is new!")
 
         waitsFor "change event", ->
           changeHandler.callCount > 0
@@ -117,7 +117,7 @@ describe 'File', ->
         expect(changeHandler).not.toHaveBeenCalled()
         waits 20
         runs ->
-          fs.writeSync(filePath, "HE HAS RISEN!")
+          fs.writeFileSync(filePath, "HE HAS RISEN!")
           expect(changeHandler).not.toHaveBeenCalled()
 
         waitsFor "resurrection change event", ->
@@ -125,7 +125,7 @@ describe 'File', ->
 
         runs ->
           expect(removeHandler).not.toHaveBeenCalled()
-          fs.writeSync(filePath, "Hallelujah!")
+          fs.writeFileSync(filePath, "Hallelujah!")
           changeHandler.reset()
 
         waitsFor "post-resurrection change event", ->

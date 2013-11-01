@@ -11,6 +11,7 @@ fs.makeTree = fs.makeTreeSync
 fs.move = fs.moveSync
 fs.read = (filePath) -> fs.readFileSync(filePath, 'utf8')
 fs.remove = fs.removeSync
+fs.writeSync = fs.writeFileSync
 
 fs = require 'fs-plus'
 {$} = require './space-pen-extensions'

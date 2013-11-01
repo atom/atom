@@ -27,7 +27,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fs.writeSync(temporaryFilePath, '')
+        fs.writeFileSync(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
 
@@ -53,7 +53,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fs.writeSync(temporaryFilePath, '')
+        fs.writeFileSync(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0
 

@@ -57,7 +57,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fs.writeSync(@getPath(), text)
+    fs.writeFileSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Private: Deprecated

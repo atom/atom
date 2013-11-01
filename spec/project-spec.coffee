@@ -365,7 +365,7 @@ describe "Project", ->
           runs ->
             fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
             ignoredPath = path.join(projectPath, 'ignored.txt')
-            fs.writeSync(ignoredPath, 'this match should not be included')
+            fs.writeFileSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
           fs.removeSync(projectPath) if fs.existsSync(projectPath)
@@ -402,7 +402,7 @@ describe "Project", ->
       it "includes files and folders that begin with a '.'", ->
         projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
-        fs.writeSync(filePath, 'match this')
+        fs.writeFileSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []

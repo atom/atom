@@ -208,7 +208,7 @@ describe "Config", ->
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
-        fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+        fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
         config.loadUserConfig()
 
       it "updates the config data based on the file contents", ->
@@ -217,7 +217,7 @@ describe "Config", ->
     describe "when the config file contains invalid cson", ->
       beforeEach ->
         spyOn(console, 'error')
-        fs.writeSync(config.configFilePath, "{{{{{")
+        fs.writeFileSync(config.configFilePath, "{{{{{")
 
       it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
         config.loadUserConfig()
@@ -239,7 +239,7 @@ describe "Config", ->
       config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fs.existsSync(config.configDirPath)).toBeFalsy()
-      fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+      fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
       config.loadUserConfig()
       config.observeUserConfig()
       updatedHandler = jasmine.createSpy("updatedHandler")
@@ -251,7 +251,7 @@ describe "Config", ->
 
     describe "when the config file changes to contain valid cson", ->
       it "updates the config data", ->
-        fs.writeSync(config.configFilePath, "foo: { bar: 'quux', baz: 'bar'}")
+        fs.writeFileSync(config.configFilePath, "foo: { bar: 'quux', baz: 'bar'}")
         waitsFor 'update event', -> updatedHandler.callCount > 0
         runs ->
           expect(config.get('foo.bar')).toBe 'quux'
@@ -260,7 +260,7 @@ describe "Config", ->
     describe "when the config file changes to contain invalid cson", ->
       beforeEach ->
         spyOn(console, 'error')
-        fs.writeSync(config.configFilePath, "}}}")
+        fs.writeFileSync(config.configFilePath, "}}}")
         waitsFor "error to be logged", -> console.error.callCount > 0
 
       it "logs a warning and does not update config data", ->
@@ -271,7 +271,7 @@ describe "Config", ->
 
       describe "when the config file subsequently changes again to contain valid cson", ->
         beforeEach ->
-          fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+          fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
           waitsFor 'update event', -> updatedHandler.callCount > 0
 
         it "updates the config data and resumes saving", ->
