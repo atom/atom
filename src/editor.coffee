@@ -720,9 +720,9 @@ class Editor extends View
       selectedText = @getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
-      @insertText(e.originalEvent.data, {select: true, skipUndo: true})
+      @insertText(e.originalEvent.data, {select: true, undo: 'skip'})
     @hiddenInput.on 'compositionend', =>
-      @insertText(selectedText, {select: true, skipUndo: true})
+      @insertText(selectedText, {select: true, undo: 'skip'})
       @hiddenInput.css('width', '1px')
 
     lastInput = ''
