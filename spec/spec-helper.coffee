@@ -280,5 +280,10 @@ $.fn.textInput = (data) ->
     event = $.event.fix(event)
     $(this).trigger(event)
 
-unless fs.md5ForPath(require.resolve('./fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+if process.platform is 'win32'
+  unmodifiedHash = '15b13ffbc8d1c1ba5af845e5902ae67c'
+else
+  unmodifiedHash = "dd38087d0d7e3e4802a6d3f9b9745f2b"
+
+unless fs.md5ForPath(require.resolve('./fixtures/sample.js')) is unmodifiedHash
   throw new Error("Sample.js is modified")
