@@ -80,12 +80,12 @@ class Project
       @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
-    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
-      return if site is @state.site.id
+    @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
+      return if siteId is @state.siteId
 
-      for removedBuffer in removed
+      for removedBuffer in removedValues
         @removeBufferAtIndex(index, updateState: false)
-      for insertedBuffer, i in inserted
+      for insertedBuffer, i in insertedValues
         @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
 
   # Private:
@@ -292,7 +292,7 @@ class Project
   # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
-    @state.get('buffers').remove(index) if options.updateState ? true
+    @state.get('buffers')?.remove(index) if options.updateState ? true
     buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.
