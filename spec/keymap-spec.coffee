@@ -203,6 +203,7 @@ describe "Keymap", ->
         describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
           it "triggers the event associated with the matched multi-stroke binding", ->
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
+            expect(keymap.handleKeyEvent(keydownEvent('ctrl', target: fragment[0]))).toBeFalsy() # This simulates actual key event behavior
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0], ctrlKey: true))).toBeFalsy()
 
             expect(quitHandler).toHaveBeenCalled()

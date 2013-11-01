@@ -177,7 +177,10 @@ class Keymap
   multiKeystrokeStringForEvent: (event) ->
     currentKeystroke = @keystrokeStringForEvent(event)
     if @queuedKeystrokes
-      @queuedKeystrokes + ' ' + currentKeystroke
+      if currentKeystroke in Modifiers
+        @queuedKeystrokes
+      else
+        @queuedKeystrokes + ' ' + currentKeystroke
     else
       currentKeystroke
 
