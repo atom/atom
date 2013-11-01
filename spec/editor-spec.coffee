@@ -2654,7 +2654,7 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'writeSync')
+      spyOn(fs, 'writeFileSync')
 
       editor.trigger 'editor:save-debug-snapshot'
 

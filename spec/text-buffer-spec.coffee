@@ -483,7 +483,7 @@ describe 'TextBuffer', ->
 
         saveBuffer.on 'will-be-saved', beforeSave1
         saveBuffer.on 'will-be-saved', beforeSave2
-        spyOn(fs, 'writeSync').andCallFake -> events.push 'fs.writeFileSync'
+        spyOn(fs, 'writeFileSync').andCallFake -> events.push 'fs.writeFileSync'
         saveBuffer.on 'saved', afterSave1
         saveBuffer.on 'saved', afterSave2
 
