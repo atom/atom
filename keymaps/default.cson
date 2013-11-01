@@ -1,0 +1,194 @@
+'body':
+  # Apple specific
+  'meta-q': 'application:quit'
+  'meta-h': 'application:hide'
+  'meta-H': 'application:hide-other-applications'
+  'meta-m': 'application:minimize'
+  'alt-meta-ctrl-m': 'application:zoom'
+
+  'ctrl-p': 'core:move-up'
+  'ctrl-n': 'core:move-down'
+  'ctrl-b': 'core:move-left'
+  'ctrl-f': 'core:move-right'
+  'ctrl-P': 'core:select-up'
+  'ctrl-N': 'core:select-down'
+  'ctrl-F': 'core:select-right'
+  'ctrl-B': 'core:select-left'
+  'ctrl-h': 'core:backspace'
+  'ctrl-d': 'core:delete'
+
+  # Atom Specific
+  'meta-O': 'application:open-dev'
+  'meta-alt-ctrl-s': 'application:run-all-specs'
+  'enter': 'core:confirm'
+  'escape': 'core:cancel'
+  'up': 'core:move-up'
+  'down': 'core:move-down'
+  'left': 'core:move-left'
+  'right': 'core:move-right'
+  'ctrl-alt-meta-r': 'window:reload'
+  'alt-meta-i': 'window:toggle-dev-tools'
+  'meta-alt-ctrl-p': 'window:run-package-specs'
+
+  # Sublime Parity
+  'meta-,': 'application:show-settings'
+  'meta-N': 'application:new-window'
+  'meta-W': 'window:close'
+  'meta-o': 'application:open'
+  'meta-T': 'pane:reopen-closed-item'
+  'meta-n': 'application:new-file'
+  'meta-s': 'core:save'
+  'meta-S': 'core:save-as'
+  'meta-alt-s': 'window:save-all'
+  'meta-w': 'core:close'
+  'meta-ctrl-f': 'window:toggle-full-screen'
+  'meta-z': 'core:undo'
+  'meta-Z': 'corey:redo'
+  'meta-y': 'corey:redo'
+  'meta-x': 'core:cut'
+  'meta-c': 'core:copy'
+  'meta-v': 'core:paste'
+  'shift-up': 'core:select-up'
+  'shift-down': 'core:select-down'
+  'shift-left': 'core:select-left'
+  'shift-right': 'core:select-right'
+  'delete': 'core:delete'
+  'pageup': 'core:page-up'
+  'pagedown': 'core:page-down'
+  'backspace': 'core:backspace'
+  'shift-backspace': 'core:backspace'
+  'meta-up': 'core:move-to-top'
+  'meta-down': 'core:move-to-bottom'
+  'meta-shift-up': 'core:select-to-top'
+  'meta-shift-down': 'core:select-to-bottom'
+  'meta-{': 'pane:show-previous-item'
+  'meta-}': 'pane:show-next-item'
+  'meta-alt-left': 'pane:show-previous-item'
+  'meta-alt-right': 'pane:show-next-item'
+  'meta-=': 'window:increase-font-size'
+  'meta-+': 'window:increase-font-size'
+  'meta--': 'window:decrease-font-size'
+
+  'meta-k up': 'pane:split-up' # Atom Specific
+  'meta-k down': 'pane:split-down' # Atom Specific
+  'meta-k left': 'pane:split-left' # Atom Specific
+  'meta-k right': 'pane:split-right' # Atom Specific
+  'meta-k meta-w': 'pane:close' # Atom Specific
+  'meta-k alt-meta-w': 'pane:close-other-items' # Atom Specific
+  'meta-k meta-left': 'window:focus-previous-pane'
+  'meta-k meta-right': 'window:focus-next-pane'
+  'meta-1': 'pane:show-item-1'
+  'meta-2': 'pane:show-item-2'
+  'meta-3': 'pane:show-item-3'
+  'meta-4': 'pane:show-item-4'
+  'meta-5': 'pane:show-item-5'
+  'meta-6': 'pane:show-item-6'
+  'meta-7': 'pane:show-item-7'
+  'meta-8': 'pane:show-item-8'
+  'meta-9': 'pane:show-item-9'
+
+'.editor':
+  # Apple Specific
+  'alt-left': 'editor:move-to-previous-word-boundary'
+  'alt-right': 'editor:move-to-next-word-boundary'
+  'alt-shift-left': 'editor:select-to-previous-word-boundary'
+  'alt-shift-right': 'editor:select-to-next-word-boundary'
+  'meta-backspace': 'editor:backspace-to-beginning-of-line'
+  'meta-delete': 'editor:backspace-to-beginning-of-line'
+  'ctrl-A': 'editor:select-to-first-character-of-line'
+  'ctrl-E': 'editor:select-to-end-of-line'
+  'meta-left': 'editor:move-to-first-character-of-line'
+  'meta-right': 'editor:move-to-end-of-line'
+  'meta-shift-left': 'editor:select-to-first-character-of-line'
+  'meta-shift-right': 'editor:select-to-end-of-line'
+  'home': 'editor:move-to-first-character-of-line'
+  'end': 'editor:move-to-end-of-line'
+  'shift-home': 'editor:select-to-first-character-of-line'
+  'shift-end': 'editor:select-to-end-of-line'
+  'alt-backspace': 'editor:backspace-to-beginning-of-word'
+  'alt-delete': 'editor:delete-to-end-of-word'
+  'ctrl-a': 'editor:move-to-first-character-of-line'
+  'ctrl-e': 'editor:move-to-end-of-line'
+  'ctrl-k': 'editor:cut-to-end-of-line'
+
+  # Atom Specific
+  'ctrl-W': 'editor:select-word'
+
+  # Sublime Parity
+  'meta-a': 'core:select-all'
+  'meta-alt-p': 'editor:log-cursor-scope'
+  'ctrl-t': 'editor:transpose'
+  'meta-k meta-u': 'editor:upper-case'
+  'meta-k meta-l': 'editor:lower-case'
+
+'.editor:not(.mini)':
+  # Atom Specific
+  'alt-meta-z': 'editor:checkout-head-revision'
+  'meta-<': 'editor:scroll-to-cursor'
+  'ctrl-C': 'editor:copy-path'
+  'alt-meta-ctrl-f': 'editor:fold-selection'
+  'meta-=': 'editor:auto-indent'
+
+  # Sublime Parity
+  'tab': 'editor:indent'
+  'enter': 'editor:newline'
+  'meta-enter': 'editor:newline-below'
+  'meta-shift-enter': 'editor:newline-above'
+  'meta-]': 'editor:indent-selected-rows'
+  'meta-[': 'editor:outdent-selected-rows'
+  'shift-tab': 'editor:outdent-selected-rows'
+  'ctrl-meta-up': 'editor:move-line-up'
+  'ctrl-meta-down': 'editor:move-line-down'
+  'meta-/': 'editor:toggle-line-comments'
+  'meta-j': 'editor:join-line'
+  'meta-D': 'editor:duplicate-line'
+  'ctrl-K': 'editor:delete-line'
+  'ctrl-shift-up': 'editor:add-selection-above'
+  'ctrl-shift-down': 'editor:add-selection-below'
+
+  'meta-alt-[': 'editor:fold-current-row'
+  'meta-alt-]': 'editor:unfold-current-row'
+  'meta-alt-{': 'editor:fold-all' # Atom Specific
+  'meta-alt-}': 'editor:unfold-all' # Atom Specific
+  'meta-k meta-0': 'editor:unfold-all'
+  'meta-k meta-1': 'editor:fold-at-indent-level-1'
+  'meta-k meta-2': 'editor:fold-at-indent-level-2'
+  'meta-k meta-3': 'editor:fold-at-indent-level-3'
+  'meta-k meta-4': 'editor:fold-at-indent-level-4'
+  'meta-k meta-5': 'editor:fold-at-indent-level-5'
+  'meta-k meta-6': 'editor:fold-at-indent-level-6'
+  'meta-k meta-7': 'editor:fold-at-indent-level-7'
+  'meta-k meta-8': 'editor:fold-at-indent-level-8'
+  'meta-k meta-9': 'editor:fold-at-indent-level-9'
+
+'.tool-panel':
+  'escape': 'core:close'
+
+'.tool-panel.panel-left, .tool-panel.panel-right':
+  'escape': 'tool-panel:unfocus'
+
+'.editor !important, .editor.mini !important':
+  'escape': 'editor:consolidate-selections'
+
+# allow standard input fields to work correctly
+'input:not(.hidden-input), .native-key-bindings':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+  'left': 'native!'
+  'right': 'native!'
+  'shift-left': 'native!'
+  'shift-right': 'native!'
+  'backspace': 'native!'
+  'shift-backspace': 'native!'
+  'delete': 'native!'
+  'meta-z': 'native!'
+  'meta-Z': 'native!'
+  'meta-x': 'native!'
+  'meta-c': 'native!'
+  'meta-v': 'native!'
+  'ctrl-b': 'native!'
+  'ctrl-f': 'native!'
+  'ctrl-F': 'native!'
+  'ctrl-B': 'native!'
+  'ctrl-h': 'native!'
+  'ctrl-d': 'native!'

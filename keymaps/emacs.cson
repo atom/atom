@@ -1,33 +1,7 @@
-'body':
-  'ctrl-p': 'core:move-up'
-  'ctrl-n': 'core:move-down'
-  'ctrl-b': 'core:move-left'
-  'ctrl-f': 'core:move-right'
-  'ctrl-P': 'core:select-up'
-  'ctrl-N': 'core:select-down'
-  'ctrl-F': 'core:select-right'
-  'ctrl-B': 'core:select-left'
-  'alt-ctrl-n': 'editor:add-selection-below'
-  'alt-ctrl-p': 'editor:add-selection-above'
-  'ctrl-h': 'core:backspace'
-  'ctrl-d': 'core:delete'
-
 '.editor':
   'alt-f': 'editor:move-to-end-of-word'
   'alt-F': 'editor:select-to-end-of-word'
   'alt-b': 'editor:move-to-beginning-of-word'
   'alt-B': 'editor:select-to-beginning-of-word'
-  'ctrl-a': 'editor:move-to-first-character-of-line'
-  'ctrl-e': 'editor:move-to-end-of-line'
   'alt-h': 'editor:backspace-to-beginning-of-word'
   'alt-d': 'editor:delete-to-end-of-word'
-  'ctrl-k': 'editor:cut-to-end-of-line'
-
-# allow standard input fields to work correctly
-'input:not(.hidden-input)':
-  'ctrl-b': 'native!'
-  'ctrl-f': 'native!'
-  'ctrl-F': 'native!'
-  'ctrl-B': 'native!'
-  'ctrl-h': 'native!'
-  'ctrl-d': 'native!'
