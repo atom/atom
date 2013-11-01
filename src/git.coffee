@@ -235,7 +235,11 @@ class Git
   #
   # Returns an object with two keys, `ahead` and `behind`. These will always be
   # greater than zero.
-  getLineDiffs: (path, text) -> @getRepo().getLineDiffs(@relativize(path), text)
+  getLineDiffs: (path, text) ->
+    # Ignore eol of line differences on windows so that files checked in as
+    # LF don't report every line modified when the text contains CRLF endings.
+    options = ignoreEolWhitespace: process.platform is 'win32'
+    @getRepo().getLineDiffs(@relativize(path), text, options)
 
   # Public: Returns the git configuration value specified by the key.
   getConfigValue: (key) -> @getRepo().getConfigValue(key)
