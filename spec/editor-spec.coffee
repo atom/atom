@@ -88,7 +88,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
-      fs.writeSync(filePath, "")
+      fs.writeFileSync(filePath, "")
       editSession = project.openSync(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -98,7 +98,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.writeSync(filePath, "a file change")
+      fs.writeFileSync(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -153,7 +153,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
-      fs.writeSync(filePath, "")
+      fs.writeFileSync(filePath, "")
       tempEditSession = project.openSync(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -162,7 +162,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fs.writeSync(filePath, "a file change")
+      fs.writeFileSync(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -249,10 +249,10 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = path.join(temp.dir, 'something.txt')
-      fs.writeSync(filePath, filePath)
+      fs.writeFileSync(filePath, filePath)
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -1766,6 +1766,14 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
         expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
+      it "re-renders the correct line number range when there are folds", ->
+        editor.activeEditSession.foldBufferRow(1)
+        expect(editor.gutter.find('.line-number-1')).toHaveClass 'fold'
+
+        buffer.insert([0, 0], '\n')
+
+        expect(editor.gutter.find('.line-number-2')).toHaveClass 'fold'
+
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editSession.setSoftWrap(true)
@@ -2171,11 +2179,11 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
       editor.edit(project.openSync(filePath))
 
     afterEach ->
-      fs.writeSync(filePath, originalPathText)
+      fs.writeFileSync(filePath, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2299,10 +2307,10 @@ describe "Editor", ->
     beforeEach ->
       tmpdir = fs.absolute(temp.dir)
       filePath = path.join(tmpdir, "grammar-change.txt")
-      fs.writeSync(filePath, "var i;")
+      fs.writeFileSync(filePath, "var i;")
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.openSync(filePath))
@@ -2646,16 +2654,16 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'writeSync')
+      spyOn(fs, 'writeFileSync')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       statePath = path.join(temp.dir, 'state')
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback(statePath)
-      expect(fs.writeSync).toHaveBeenCalled()
-      expect(fs.writeSync.argsForCall[0][0]).toBe statePath
-      expect(typeof fs.writeSync.argsForCall[0][1]).toBe 'string'
+      expect(fs.writeFileSync).toHaveBeenCalled()
+      expect(fs.writeFileSync.argsForCall[0][0]).toBe statePath
+      expect(typeof fs.writeFileSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->

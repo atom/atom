@@ -1,11 +1,13 @@
 path = require 'path'
-{Emitter} = require 'emissary'
-Package = require './package'
-AtomPackage = require './atom-package'
 
 _ = require 'underscore-plus'
+{Emitter} = require 'emissary'
+fs = require 'fs-plus'
+
+Package = require './package'
+AtomPackage = require './atom-package'
 {$} = require './space-pen-extensions'
-fsUtils = require './fs-utils'
+
 
 # Private: Handles discovering and loading available themes.
 ###
@@ -81,12 +83,12 @@ class ThemeManager
         if themePath = @packageManager.resolvePackagePath(themeName)
           themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
-    themePath for themePath in themePaths when fsUtils.isDirectorySync(themePath)
+    themePath for themePath in themePaths when fs.isDirectorySync(themePath)
 
   # Public:
   getUserStylesheetPath: ->
-    stylesheetPath = fsUtils.resolve(path.join(atom.config.configDirPath, 'user'), ['css', 'less'])
-    if fsUtils.isFileSync(stylesheetPath)
+    stylesheetPath = fs.resolve(path.join(atom.config.configDirPath, 'user'), ['css', 'less'])
+    if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else
       null
@@ -106,7 +108,7 @@ class ThemeManager
   # Internal-only:
   reloadBaseStylesheets: ->
     @requireStylesheet('../static/atom')
-    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+    if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
   # Internal-only:
@@ -116,9 +118,9 @@ class ThemeManager
   # Internal-only:
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
-      fsUtils.resolveOnLoadPath(stylesheetPath)
+      fs.resolveOnLoadPath(stylesheetPath)
     else
-      fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
+      fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
   # Public: resolves and applies the stylesheet specified by the path.
   #
@@ -140,7 +142,7 @@ class ThemeManager
     if path.extname(stylesheetPath) is '.less'
       @loadLessStylesheet(stylesheetPath)
     else
-      fsUtils.read(stylesheetPath)
+      fs.readFileSync(stylesheetPath, 'utf8')
 
   # Internal-only:
   loadLessStylesheet: (lessStylesheetPath) ->

@@ -47,7 +47,7 @@ describe "the `syntax` global", ->
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("./fixtures/shebang")
-      filePathContents = fs.read(filePath)
+      filePathContents = fs.readFileSync(filePath, 'utf8')
       spyOn(fs, 'read').andCallThrough()
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
       expect(fs.read).not.toHaveBeenCalled()

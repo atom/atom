@@ -146,6 +146,9 @@ class AtomApplication
       else
         @openPath(pathToOpen: "atom://config")
 
+    app.on 'window-all-closed', ->
+      app.quit() if process.platform is 'win32'
+
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
 
@@ -288,9 +291,9 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      fsUtils = require '../fs-utils'
+      fs = require 'fs-plus'
       @packages = new PackageManager
-        configDirPath: fsUtils.absolute('~/.atom')
+        configDirPath: fs.absolute('~/.atom')
         devMode: devMode
         resourcePath: @resourcePath
 

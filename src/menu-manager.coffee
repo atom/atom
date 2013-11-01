@@ -3,8 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 ipc = require 'ipc'
 CSON = require 'season'
-
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 
 # Public: Provides a registry for menu items that you'd like to appear in the
 # application menu.
@@ -37,7 +36,7 @@ class MenuManager
 
   # Private
   loadCoreItems: ->
-    menuPaths = fsUtils.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
+    menuPaths = fs.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
     for menuPath in menuPaths
       data = CSON.readFileSync(menuPath)
       @add(data.menu)

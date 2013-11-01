@@ -5,7 +5,7 @@ Gutter = require './gutter'
 EditSession = require './edit-session'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
 MeasureRange = document.createRange()
@@ -1014,17 +1014,21 @@ class Editor extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
-  splitLeft: (items...) ->
-    @getPane()?.splitLeft(items...).activeView
+  splitLeft: ->
+    pane = @getPane()
+    pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  splitRight: (items...) ->
-    @getPane()?.splitRight(items...).activeView
+  splitRight: ->
+    pane = @getPane()
+    pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  splitUp: (items...) ->
-    @getPane()?.splitUp(items...).activeView
+  splitUp: ->
+    pane = @getPane()
+    pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  splitDown: (items...) ->
-    @getPane()?.splitDown(items...).activeView
+  splitDown: ->
+    pane = @getPane()
+    pane?.splitDown(pane?.copyActiveItem()).activeView
 
   # Retrieve's the `Editor`'s pane.
   #
@@ -1648,12 +1652,13 @@ class Editor extends View
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
+    offset = @scrollView.offset()
 
-    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    editorRelativeTop = pageY - offset.top + @scrollTop()
     row = Math.floor(editorRelativeTop / @lineHeight)
     column = 0
 
-    if lineElement = @lineElementForScreenRow(row)[0]
+    if pageX > offset.left and lineElement = @lineElementForScreenRow(row)[0]
       range = document.createRange()
       iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
       while node = iterator.nextNode()
@@ -1819,7 +1824,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fsUtils.writeSync(path, @getDebugSnapshot()) if path
+      fs.writeFileSync(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

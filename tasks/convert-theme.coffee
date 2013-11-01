@@ -1,7 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-plist = require 'plist'
+fs = require 'fs-plus'
 {ScopeSelector} = require 'first-mate'
 
 module.exports = (grunt) ->
@@ -27,7 +27,7 @@ class TextMateTheme
     @buildRulesets()
 
   buildRulesets: ->
-    {settings} = plist.parseFileSync(@path)
+    {settings} = fs.readPlistSync(@path)
     @buildGlobalSettingsRulesets(settings[0])
     @buildScopeSelectorRulesets(settings[1..])
 

@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 Task = require './task'
 {Emitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
@@ -76,11 +76,9 @@ class Git
 
   # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
-    bufferStatusHandler = =>
+    @subscribe buffer, 'saved reloaded path-changed', =>
       if path = buffer.getPath()
         @getPathStatus(path)
-    @subscribe buffer, 'saved', bufferStatusHandler
-    @subscribe buffer, 'reloaded', bufferStatusHandler
     @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
   # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
@@ -108,7 +106,7 @@ class Git
 
   # Public: Returns the path of the repository.
   getPath: ->
-    @path ?= fsUtils.absolute(@getRepo().getPath())
+    @path ?= fs.absolute(@getRepo().getPath())
 
   # Public: Returns the working directory of the repository.
   getWorkingDirectory: -> @getRepo().getWorkingDirectory()

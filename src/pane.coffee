@@ -40,16 +40,17 @@ class Pane extends View
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
-    @subscribe @state.get('items'), 'changed', ({index, removed, inserted, site}) =>
-      return if site is @state.site.id
-      for itemState in removed
+    @subscribe @state.get('items'), 'changed', ({index, removedValues, insertedValues, siteId}) =>
+      return if siteId is @state.siteId
+      for itemState in removedValues
         @removeItemAtIndex(index, updateState: false)
-      for itemState, i in inserted
+      for itemState, i in insertedValues
         @addItem(deserialize(itemState), index + i, updateState: false)
 
-    @subscribe @state, 'changed', ({key, newValue, site}) =>
-      return if site is @state.site.id
-      @showItemForUri(newValue) if key is 'activeItemUri'
+    @subscribe @state, 'changed', ({newValues, siteId}) =>
+      return if site is @state.siteId
+      if newValues.activeItemUri
+        @showItemForUri(newValues.activeItemUri)
 
     @viewsByItem = new WeakMap()
     activeItemUri = @state.get('activeItemUri')
@@ -73,10 +74,10 @@ class Pane extends View
     @command 'pane:show-item-8', => @showItemAtIndex(7)
     @command 'pane:show-item-9', => @showItemAtIndex(8)
 
-    @command 'pane:split-left', => @splitLeft()
-    @command 'pane:split-right', => @splitRight()
-    @command 'pane:split-up', => @splitUp()
-    @command 'pane:split-down', => @splitDown()
+    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
+    @command 'pane:split-right', => @splitRight(@copyActiveItem())
+    @command 'pane:split-up', => @splitUp(@copyActiveItem())
+    @command 'pane:split-down', => @splitDown(@copyActiveItem())
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
     @on 'focus', => @activeView?.focus(); false
@@ -198,8 +199,8 @@ class Pane extends View
     container = @getContainer()
 
     if @promptToSaveItem(item)
-      @removeItem(item)
       container.itemDestroyed(item)
+      @removeItem(item)
       item.destroy?()
       true
     else
@@ -262,9 +263,9 @@ class Pane extends View
     @saveItem(item) for item in @getItems()
 
   # Public:
-  removeItem: (item) ->
+  removeItem: (item, options) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index) if index >= 0
+    @removeItemAtIndex(index, options) if index >= 0
 
   # Public: Just remove the item at the given index.
   removeItemAtIndex: (index, options={}) ->
@@ -281,16 +282,15 @@ class Pane extends View
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
-    @state.get('items').splice(oldIndex, 1)
-    @state.get('items').splice(newIndex, 0, item.getState?() ? item.serialize())
+    @state.get('items').insert(newIndex, item.getState?() ? item.serialize())
     @trigger 'pane:item-moved', [item, newIndex]
 
   # Public: Moves the given item to another pane.
   moveItemToPane: (item, pane, index) ->
     @isMovingItem = true
-    @removeItem(item)
-    @isMovingItem = false
     pane.addItem(item, index)
+    @removeItem(item, updateState: false)
+    @isMovingItem = false
 
   # Public: Finds the first item that matches the given uri.
   itemForUri: (uri) ->
@@ -387,15 +387,13 @@ class Pane extends View
       axis = @buildPaneAxis(axis)
       if parent instanceof PaneContainer
         @detach()
+        axis.addChild(this)
         parent.setRoot(axis)
       else
         parent.insertChildBefore(this, axis)
-        parent.detachChild(this)
-
-      axis.addChild(this)
+        axis.addChild(this)
       parent = axis
 
-    items = [@copyActiveItem()] unless items.length
     newPane = new Pane(items...)
 
     switch side

@@ -1,11 +1,12 @@
-fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
-Q = require 'q'
 
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
+Q = require 'q'
 telepath = require 'telepath'
 {Range} = telepath
+
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
 {Emitter} = require 'emissary'
@@ -80,12 +81,12 @@ class Project
       @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
-    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
-      return if site is @state.site.id
+    @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
+      return if siteId is @state.siteId
 
-      for removedBuffer in removed
+      for removedBuffer in removedValues
         @removeBufferAtIndex(index, updateState: false)
-      for insertedBuffer, i in inserted
+      for insertedBuffer, i in insertedValues
         @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
 
   # Private:
@@ -116,9 +117,11 @@ class Project
 
     @destroyRepo()
     if projectPath?
-      directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
+      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      @repo = Git.open(projectPath, project: this)
+      if @repo = Git.open(projectPath, project: this)
+        @repo.refreshIndex()
+        @repo.refreshStatus()
     else
       @rootDirectory = null
 
@@ -157,8 +160,8 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = path.join(@getPath(), uri) unless fsUtils.isAbsolute(uri)
-      fsUtils.absolute uri
+      uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
+      fs.absolute uri
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
@@ -290,7 +293,7 @@ class Project
   # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
-    @state.get('buffers').remove(index) if options.updateState ? true
+    @state.get('buffers')?.remove(index) if options.updateState ? true
     buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.

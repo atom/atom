@@ -6,7 +6,6 @@ Q = require 'q'
 telepath = require 'telepath'
 
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
 File = require './file'
 
 {Point, Range} = telepath
@@ -51,7 +50,7 @@ class TextBuffer
       @useSerializedText = @state.get('isModified') != false
     else
       {@project, filePath} = optionsOrState
-      @text = site.createDocument(initialText ? '', shareStrings: true)
+      @text = new telepath.MutableString(initialText ? '')
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
@@ -654,7 +653,7 @@ class TextBuffer
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    @text.change(oldRange, newText, options)
+    @text.setTextInRange(oldRange, newText, options)
 
   normalizeLineEndings: (startRow, text) ->
     if lineEnding = @suggestedLineEndingForRow(startRow)

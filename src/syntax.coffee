@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
 {$, $$} = require './space-pen-extensions'
-fsUtils = require './fs-utils'
 {Emitter} = require 'emissary'
 NullGrammar = require './null-grammar'
 TextMateScopeSelector = require('first-mate').ScopeSelector
