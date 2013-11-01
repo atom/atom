@@ -76,7 +76,7 @@
     "bookmarks": "0.10.0",
     "bracket-matcher": "0.8.0",
     "command-logger": "0.6.0",
-    "command-palette": "0.6.0",
+    "command-palette": "0.7.0",
     "dev-live-reload": "0.13.0",
     "editor-stats": "0.5.0",
     "exception-reporting": "0.5.0",
