@@ -17,13 +17,13 @@ atom][download].
 * Install the [latest 32bit Node 0.10.x][win-node]
 * Install the [latest Python 2.7.x][win-python]
 * Install [Github for Windows][win-github]
-* Clone [atom/atom][atom-git] to `C:\Users\<user>\Documents\GitHub\atom\`
-* Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\Documents\GitHub\atom\node_modules\`
+* Clone [atom/atom][atom-git] to `C:\Users\<user>\github\atom\`
+* Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
   to your PATH
 * Set ATOM_ACCESS_TOKEN to your oauth2 credentials (run `security -q
   find-generic-password -ws 'GitHub API Token'` on OSX to get your
   credentials).
-* Use the Windows GitHub shell and cd into `C:\Users\<user>\Documents\GitHub\atom`
+* Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
 * Run `node script/bootstrap`
 
 [download]: http://www.atom.io
