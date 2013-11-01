@@ -6,6 +6,8 @@ CSON = require 'season'
 BindingSet = require './binding-set'
 {Emitter} = require 'emissary'
 
+Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
+
 # Internal: Associates keymaps with actions.
 #
 # Keymaps are defined in a CSON format. A typical keymap looks something like this:
@@ -189,14 +191,14 @@ class Keymap
       key = event.originalEvent.keyIdentifier.toLowerCase()
 
     modifiers = []
-    if event.altKey and key isnt 'alt'
+    if event.altKey and key not in Modifiers
       modifiers.push 'alt'
-    if event.ctrlKey and key isnt 'ctrl'
+    if event.ctrlKey and key not in Modifiers
       modifiers.push 'ctrl'
-    if event.metaKey and key isnt 'meta'
+    if event.metaKey and key not in Modifiers
       modifiers.push 'meta'
 
-    if event.shiftKey
+    if event.shiftKey and key not in Modifiers
       isNamedKey = key.length > 1
       modifiers.push 'shift' if isNamedKey
     else
