@@ -9,7 +9,7 @@ exports.safeExec = function(command, options, callback) {
   }
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
     if (error)
-      process.exit(error.code);
+      process.exit(error.code || 1);
     else
       callback(null);
   });
