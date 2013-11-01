@@ -1188,12 +1188,12 @@ class EditSession
     @expandSelectionsBackward (selection) => selection.selectLeft()
 
   # Public: Selects all the text one position above all local cursors.
-  selectUp: ->
-    @expandSelectionsBackward (selection) => selection.selectUp()
+  selectUp: (rowCount) ->
+    @expandSelectionsBackward (selection) => selection.selectUp(rowCount)
 
   # Public: Selects all the text one position below all local cursors.
-  selectDown: ->
-    @expandSelectionsForward (selection) => selection.selectDown()
+  selectDown: (rowCount) ->
+    @expandSelectionsForward (selection) => selection.selectDown(rowCount)
 
   # Public: Selects all the text from all local cursors to the top of the
   # buffer.

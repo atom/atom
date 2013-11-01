@@ -182,12 +182,12 @@ class Selection
     @modifySelection => @cursor.moveLeft()
 
   # Public: Selects all the text one position above the cursor.
-  selectUp: ->
-    @modifySelection => @cursor.moveUp()
+  selectUp: (rowCount) ->
+    @modifySelection => @cursor.moveUp(rowCount)
 
   # Public: Selects all the text one position below the cursor.
-  selectDown: ->
-    @modifySelection => @cursor.moveDown()
+  selectDown: (rowCount) ->
+    @modifySelection => @cursor.moveDown(rowCount)
 
   # Public: Selects all the text from the current cursor position to the top of
   # the buffer.
