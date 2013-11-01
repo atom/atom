@@ -66,7 +66,7 @@ class Directory
     return fullPath unless fullPath
 
     # Normalize forward slashes to back slashes on windows
-    fullPath = fullPath.replace(/\//g, '\\') if process.platform is 'windows'
+    fullPath = fullPath.replace(/\//g, '\\') if process.platform is 'win32'
 
     if fullPath is @getPath()
       ''
