@@ -7,6 +7,13 @@ exports.safeExec = function(command, options, callback) {
     callback = options;
     options = {};
   }
+  if (!options)
+    options = {};
+
+  // This needed to be increase for `apm test` runs that generate tons of failures
+  // The default is 200KB.
+  options.maxBuffer = 1024 * 1024;
+
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
     if (error)
       process.exit(error.code || 1);
