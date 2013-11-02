@@ -141,12 +141,11 @@ class Gutter extends View
     updateAllLines = not (startScreenRow? and endScreenRow?)
     updateAllLines |= endScreenRow <= @firstScreenRow or startScreenRow >= @lastScreenRow
 
-    for change in changes
-      # When there is a change to the bufferRow -> screenRow map (i.e. a fold),
-      # then rerender everything.
-      if (change.screenDelta or change.bufferDelta) and change.screenDelta != change.bufferDelta
-        updateAllLines = true
-        break
+    unless updateAllLines
+      for change in changes
+        if change.screenDelta or change.bufferDelta
+          updateAllLines = true
+          break
 
     if updateAllLines
       @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)

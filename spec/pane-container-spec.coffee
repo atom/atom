@@ -1,3 +1,5 @@
+path = require 'path'
+temp = require 'temp'
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {_, $, View, $$} = require 'atom'
@@ -12,7 +14,7 @@ describe "PaneContainer", ->
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
       serialize: -> { deserializer: 'TestView', @name }
-      getUri: -> "/tmp/#{@name}"
+      getUri: -> path.join(temp.dir, @name)
       save: -> @saved = true
       isEqual: (other) -> @name is other.name
 
@@ -78,7 +80,7 @@ describe "PaneContainer", ->
       expect(panes).toEqual [pane1, pane2, pane3]
 
       panes = []
-      pane4 = pane3.splitRight()
+      pane4 = pane3.splitRight(pane3.copyActiveItem())
       expect(panes).toEqual [pane4]
 
       panes = []
@@ -165,8 +167,8 @@ describe "PaneContainer", ->
 
   describe ".confirmClose()", ->
     it "returns true after modified files are saved", ->
-      pane1.itemAtIndex(0).isModified = -> true
-      pane2.itemAtIndex(0).isModified = -> true
+      pane1.itemAtIndex(0).shouldPromptToSave = -> true
+      pane2.itemAtIndex(0).shouldPromptToSave = -> true
       spyOn(atom, "confirmSync").andReturn(0)
 
       saved = container.confirmClose()
@@ -176,8 +178,8 @@ describe "PaneContainer", ->
         expect(atom.confirmSync).toHaveBeenCalled()
 
     it "returns false if the user cancels saving", ->
-      pane1.itemAtIndex(0).isModified = -> true
-      pane2.itemAtIndex(0).isModified = -> true
+      pane1.itemAtIndex(0).shouldPromptToSave = -> true
+      pane2.itemAtIndex(0).shouldPromptToSave = -> true
       spyOn(atom, "confirmSync").andReturn(1)
 
       saved = container.confirmClose()

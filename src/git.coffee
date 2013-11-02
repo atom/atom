@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 Task = require './task'
 {Emitter, Subscriber} = require 'emissary'
 GitUtils = require 'git-utils'
@@ -74,16 +74,15 @@ class Git
       @subscribeToBuffer(buffer) for buffer in project.getBuffers()
       @subscribe project, 'buffer-created', (buffer) => @subscribeToBuffer(buffer)
 
+  # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
-    bufferStatusHandler = =>
+    @subscribe buffer, 'saved reloaded path-changed', =>
       if path = buffer.getPath()
         @getPathStatus(path)
-    @subscribe buffer, 'saved', bufferStatusHandler
-    @subscribe buffer, 'reloaded', bufferStatusHandler
     @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
-  # Public:  Destroy this `Git` object. This destroys any tasks and
-  # subscriptions and releases the underlying libgit2 repository handle.
+  # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
+  # and releases the underlying libgit2 repository handle.
   destroy: ->
     if @statusTask?
       @statusTask.terminate()
@@ -107,14 +106,15 @@ class Git
 
   # Public: Returns the path of the repository.
   getPath: ->
-    @path ?= fsUtils.absolute(@getRepo().getPath())
+    @path ?= fs.absolute(@getRepo().getPath())
 
   # Public: Returns the working directory of the repository.
   getWorkingDirectory: -> @getRepo().getWorkingDirectory()
 
   # Public: Returns the status of a single path in the repository.
   #
-  # * path: A String defining a relative path
+  # * path:
+  #   A String defining a relative path
   #
   # Returns a {Number}, FIXME representing what?
   getPathStatus: (path) ->
@@ -128,24 +128,23 @@ class Git
       @emit 'status-changed', path, pathStatus
     pathStatus
 
-  # Public: Determines if the given path is ignored.
+  # Public: Returns true if the given path is ignored.
   isPathIgnored: (path) -> @getRepo().isIgnored(@relativize(path))
 
-  # Public: Determine if the given status indicates modification.
+  # Public: Returns true if the given status indicates modification.
   isStatusModified: (status) -> @getRepo().isStatusModified(status)
 
-  # Public: Determine if the given path is modified.
+  # Public: Returns true if the given path is modified.
   isPathModified: (path) -> @isStatusModified(@getPathStatus(path))
 
-  # Public: Determine if the given status indicates a new path.
+  # Public: Returns true if the given status indicates a new path.
   isStatusNew: (status) -> @getRepo().isStatusNew(status)
 
-  # Public: Determine if the given path is new.
+  # Public: Returns true if the given path is new.
   isPathNew: (path) -> @isStatusNew(@getPathStatus(path))
 
-  # Public: Is the project at the root of this repository?
-  #
-  # Returns true if at the root, false if in a subfolder of the repository.
+  # Public: Returns true if at the root, false if in a subfolder of the
+  # repository.
   isProjectAtRoot: ->
     @projectAtRoot ?= project.relativize(@getWorkingDirectory()) is ''
 
@@ -170,9 +169,10 @@ class Git
   # git checkout HEAD -- <path>
   # ```
   #
-  # path - The String path to checkout
+  # * path:
+  #   The String path to checkout
   #
-  # Returns a {Boolean} that's `true` if the method was successful.
+  # Returns a Boolean that's true if the method was successful.
   checkoutHead: (path) ->
     headCheckedOut = @getRepo().checkoutHead(@relativize(path))
     @getPathStatus(path) if headCheckedOut
@@ -180,10 +180,12 @@ class Git
 
   # Public: Checks out a branch in your repository.
   #
-  # reference - The {String} reference to checkout
-  # create - A {Boolean} value which, if `true` creates the new reference if it doesn't exist.
+  # * reference:
+  #   The String reference to checkout
+  # * create:
+  #   A Boolean value which, if true creates the new reference if it doesn't exist.
   #
-  # Returns a {Boolean} that's `true` if the method was successful.
+  # Returns a Boolean that's true if the method was successful.
   checkoutReference: (reference, create) ->
     @getRepo().checkoutReference(reference, create)
 
@@ -204,7 +206,7 @@ class Git
   # * path:
   #   The String path to check
   #
-  # Returns a {Boolean}.
+  # Returns a Boolean.
   isSubmodule: (path) -> @getRepo().isSubmodule(@relativize(path))
 
   # Public: Retrieves the status of a directory.
@@ -233,7 +235,11 @@ class Git
   #
   # Returns an object with two keys, `ahead` and `behind`. These will always be
   # greater than zero.
-  getLineDiffs: (path, text) -> @getRepo().getLineDiffs(@relativize(path), text)
+  getLineDiffs: (path, text) ->
+    # Ignore eol of line differences on windows so that files checked in as
+    # LF don't report every line modified when the text contains CRLF endings.
+    options = ignoreEolWhitespace: process.platform is 'win32'
+    @getRepo().getLineDiffs(@relativize(path), text, options)
 
   # Public: Returns the git configuration value specified by the key.
   getConfigValue: (key) -> @getRepo().getConfigValue(key)
@@ -252,7 +258,7 @@ class Git
   # Returns a String.
   getUpstreamBranch: -> @getRepo().getUpstreamBranch()
 
-  # Public: ?
+  # Public: Returns the current SHA for the given reference.
   getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
 
   # Public: Gets all the local and remote references.
@@ -261,13 +267,15 @@ class Git
   # can be an array of strings containing the reference names.
   getReferences: -> @getRepo().getReferences()
 
-  # Public: ?
+  # Public: Returns the number of commits behind the current branch is from the
+  # default remote branch.
   getAheadBehindCount: (reference) -> @getRepo().getAheadBehindCount(reference)
 
-  # Public: ?
+  # Public: Returns true if the given branch exists.
   hasBranch: (branch) -> @getReferenceTarget("refs/heads/#{branch}")?
 
-  # Private:
+  # Private: Refreshes the current git status in an outside process and
+  # asynchronously updates the relevant properties.
   refreshStatus: ->
     @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream, branch}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream) and _.isEqual(branch, @branch)

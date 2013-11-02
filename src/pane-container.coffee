@@ -27,11 +27,11 @@ class PaneContainer extends View
     else
       @state = site.createDocument(deserializer: 'PaneContainer')
 
-    @subscribe @state, 'changed', ({key, newValue, site}) =>
-      return if site is @state.site.id
-      if key is 'root'
-        if newValue?
-          @setRoot(deserialize(newValue))
+    @subscribe @state, 'changed', ({newValues, siteId}) =>
+      return if siteId is @state.siteId
+      if newValues.hasOwnProperty('root')
+        if rootState = newValues.root
+          @setRoot(deserialize(rootState))
         else
           @setRoot(null)
 
@@ -128,8 +128,8 @@ class PaneContainer extends View
   confirmClose: ->
     saved = true
     for pane in @getPanes()
-      for item in pane.getItems() when item.isModified?()
-        if not @paneAtIndex(0).promptToSaveItem item
+      for item in pane.getItems()
+        if not pane.promptToSaveItem(item)
           saved = false
           break
     saved
@@ -160,6 +160,12 @@ class PaneContainer extends View
 
   getActiveView: ->
     @getActivePane()?.activeView
+
+  paneForUri: (uri) ->
+    for pane in @getPanes()
+      view = pane.itemForUri(uri)
+      return pane if view?
+    null
 
   adjustPaneDimensions: ->
     if root = @getRoot()

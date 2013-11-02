@@ -1,7 +1,6 @@
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
-
+fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
 PEG = require 'pegjs'
 
@@ -18,7 +17,8 @@ class BindingSet
   name: null
 
   constructor: (selector, commandsByKeystrokes, @index, @name) ->
-    BindingSet.parser ?= PEG.buildParser(fsUtils.read(require.resolve './keystroke-pattern.pegjs'))
+    keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
+    BindingSet.parser ?= PEG.buildParser(keystrokePattern)
     @specificity = specificity(selector)
     @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)

@@ -1,6 +1,7 @@
 {$, $$, fs, RootView, View} = require 'atom'
 Q = require 'q'
 path = require 'path'
+temp = require 'temp'
 Pane = require '../src/pane'
 
 describe "RootView", ->
@@ -162,7 +163,7 @@ describe "RootView", ->
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editSession = rootView.getActivePaneItem()
-          editSession.buffer.setPath('/tmp/hi')
+          editSession.buffer.setPath(path.join(temp.dir, 'hi'))
           expect(rootView.title).toBe "#{editSession.getTitle()} - #{project.getPath()}"
 
       describe "when the active pane's item changes", ->
@@ -209,7 +210,7 @@ describe "RootView", ->
       rootView.trigger 'window:decrease-font-size'
       expect(config.get('editor.fontSize')).toBe 1
 
-  describe ".open(filePath, options)", ->
+  describe ".openSync(filePath, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
         spyOn(Pane.prototype, 'focus')
@@ -240,6 +241,12 @@ describe "RootView", ->
         it "does not focus the new pane", ->
           editSession = rootView.openSync('b', changeFocus: false)
           expect(rootView.getActivePane().focus).not.toHaveBeenCalled()
+
+      describe "when the split option is 'right'", ->
+        it "creates a new pane and opens the file in said pane", ->
+          editSession = rootView.openSync('b', split: 'right')
+          expect(rootView.getActivePane().activeItem).toBe editSession
+          expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/b')
 
     describe "when there is an active pane", ->
       [activePane, initialItemCount] = []
@@ -283,7 +290,55 @@ describe "RootView", ->
           editSession = rootView.openSync('b', changeFocus: false)
           expect(activePane.focus).not.toHaveBeenCalled()
 
-  describe ".openAsync(filePath)", ->
+      describe "when the split option is 'right'", ->
+        it "creates a new pane and opens the file in said pane", ->
+          pane1 = rootView.getActivePane()
+
+          editSession = rootView.openSync('b', split: 'right')
+          pane2 = rootView.getActivePane()
+          expect(pane2[0]).not.toBe pane1[0]
+          expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/b')
+
+          expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+          editSession = rootView.openSync('file1', split: 'right')
+          pane3 = rootView.getActivePane()
+          expect(pane3[0]).toBe pane2[0]
+          expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/file1')
+
+          expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+  describe ".openSingletonSync(filePath, options)", ->
+    describe "when there is an active pane", ->
+      [pane1] = []
+      beforeEach ->
+        spyOn(Pane.prototype, 'focus').andCallFake -> @makeActive()
+        pane1 = rootView.getActivePane()
+
+      it "creates a new pane and reuses the file when already open", ->
+        rootView.openSingletonSync('b', split: 'right')
+        pane2 = rootView.getActivePane()
+        expect(pane2[0]).not.toBe pane1[0]
+        expect(pane1.itemForUri('b')).toBeFalsy()
+        expect(pane2.itemForUri('b')).not.toBeFalsy()
+        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+        pane1.focus()
+        expect(rootView.getActivePane()[0]).toBe pane1[0]
+
+        rootView.openSingletonSync('b', split: 'right')
+        pane3 = rootView.getActivePane()
+        expect(pane3[0]).toBe pane2[0]
+        expect(pane1.itemForUri('b')).toBeFalsy()
+        expect(pane2.itemForUri('b')).not.toBeFalsy()
+        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+      it "reuses the file when already open", ->
+        rootView.openSync('b')
+        rootView.openSingletonSync('b', split: 'right')
+        expect(rootView.panes.find('.pane').toArray()).toEqual [pane1[0]]
+
+  describe ".open(filePath)", ->
     beforeEach ->
       spyOn(Pane.prototype, 'focus')
 

@@ -15,7 +15,6 @@ child_process = require 'child_process'
 module.exports =
 class Task
   Emitter.includeInto(this)
-  _.extend @prototype, Emitter
 
   # Public: A helper method to easily launch and run a task once.
   #
@@ -52,8 +51,10 @@ class Task
       #{coffeeCacheRequire}
       #{taskBootstrapRequire}
     """
+    bootstrap = bootstrap.replace(/\\/g, "\\\\")
 
     taskPath = require.resolve(taskPath)
+    taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
     args = [bootstrap, '--harmony_collections']

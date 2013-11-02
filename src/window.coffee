@@ -51,10 +51,9 @@ window.startEditorWindow = ->
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()
-  atom.themes.load()
   deserializeEditorWindow()
-  atom.packages.activatePackages()
-  atom.keymap.loadUserKeymaps()
+  atom.packages.activate()
+  atom.keymap.loadUserKeymap()
   atom.requireUserInitScript()
   atom.menu.update()
   $(window).on 'unload', ->

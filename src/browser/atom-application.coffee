@@ -8,13 +8,14 @@ dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
+os = require 'os'
 net = require 'net'
 shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath = '/tmp/atom.sock'
+socketPath = path.join(os.tmpdir(), 'atom.sock')
 
 # Private: The application's singleton class.
 #
@@ -145,6 +146,9 @@ class AtomApplication
       else
         @openPath(pathToOpen: "atom://config")
 
+    app.on 'window-all-closed', ->
+      app.quit() if process.platform is 'win32'
+
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
 
@@ -243,8 +247,9 @@ class AtomApplication
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, initialSize}={}) ->
     if pathToOpen
       [basename, initialLine] = path.basename(pathToOpen).split(':')
-      pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-      initialLine -= 1 if initialLine # Convert line numbers to a base of 0
+      if initialLine
+        pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
+        initialLine -= 1 # Convert line numbers to a base of 0
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -286,9 +291,9 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      fsUtils = require '../fs-utils'
+      fs = require 'fs-plus'
       @packages = new PackageManager
-        configDirPath: fsUtils.absolute('~/.atom')
+        configDirPath: fs.absolute('~/.atom')
         devMode: devMode
         resourcePath: @resourcePath
 
@@ -298,7 +303,7 @@ class AtomApplication
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
-        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, initialSize: getFocusedWindowSize()})
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, initialSize: @getFocusedWindowSize()})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else

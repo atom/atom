@@ -1,12 +1,13 @@
 {_, $, $$, fs, Editor, Range, RootView} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('text-tmbundle', sync: true)
-    atom.activatePackage('javascript-tmbundle', sync: true)
+    atom.activatePackage('language-text', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
     editSession = project.openSync('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
@@ -86,8 +87,8 @@ describe "Editor", ->
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
-      filePath = "/tmp/atom-changed-file.txt"
-      fs.writeSync(filePath, "")
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
+      fs.writeFileSync(filePath, "")
       editSession = project.openSync(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -97,7 +98,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.writeSync(filePath, "a file change")
+      fs.writeFileSync(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -151,8 +152,8 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
-      filePath = "/tmp/atom-changed-file.txt"
-      fs.writeSync(filePath, "")
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
+      fs.writeFileSync(filePath, "")
       tempEditSession = project.openSync(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -161,7 +162,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fs.writeSync(filePath, "a file change")
+      fs.writeFileSync(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -247,11 +248,11 @@ describe "Editor", ->
     filePath = null
 
     beforeEach ->
-      filePath = "/tmp/something.txt"
-      fs.writeSync(filePath, filePath)
+      filePath = path.join(temp.dir, 'something.txt')
+      fs.writeFileSync(filePath, filePath)
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -274,11 +275,11 @@ describe "Editor", ->
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
-      oldBuffer.saveAs("/tmp/atom-bad.txt")
+      oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
       expect(eventHandler).not.toHaveBeenCalled()
 
       eventHandler.reset()
-      editor.getBuffer().saveAs("/tmp/atom-new.txt")
+      editor.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
       expect(eventHandler).toHaveBeenCalled()
 
     it "loads the grammar for the new path", ->
@@ -1765,6 +1766,14 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
         expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
+      it "re-renders the correct line number range when there are folds", ->
+        editor.activeEditSession.foldBufferRow(1)
+        expect(editor.gutter.find('.line-number-1')).toHaveClass 'fold'
+
+        buffer.insert([0, 0], '\n')
+
+        expect(editor.gutter.find('.line-number-2')).toHaveClass 'fold'
+
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editSession.setSoftWrap(true)
@@ -2170,11 +2179,11 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(filePath)
+      originalPathText = fs.readFileSync(filePath, 'utf8')
       editor.edit(project.openSync(filePath))
 
     afterEach ->
-      fs.writeSync(filePath, originalPathText)
+      fs.writeFileSync(filePath, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2296,11 +2305,12 @@ describe "Editor", ->
     [filePath] = []
 
     beforeEach ->
-      filePath = path.join(fs.absolute("/tmp"), "grammar-change.txt")
-      fs.writeSync(filePath, "var i;")
+      tmpdir = fs.absolute(temp.dir)
+      filePath = path.join(tmpdir, "grammar-change.txt")
+      fs.writeFileSync(filePath, "var i;")
 
     afterEach ->
-      fs.remove(filePath) if fs.exists(filePath)
+      fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.openSync(filePath))
@@ -2644,15 +2654,16 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'writeSync')
+      spyOn(fs, 'writeFileSync')
 
       editor.trigger 'editor:save-debug-snapshot'
 
+      statePath = path.join(temp.dir, 'state')
       expect(atom.showSaveDialog).toHaveBeenCalled()
-      saveDialogCallback('/tmp/state')
-      expect(fs.writeSync).toHaveBeenCalled()
-      expect(fs.writeSync.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fs.writeSync.argsForCall[0][1]).toBe 'string'
+      saveDialogCallback(statePath)
+      expect(fs.writeFileSync).toHaveBeenCalled()
+      expect(fs.writeFileSync.argsForCall[0][0]).toBe statePath
+      expect(typeof fs.writeFileSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->

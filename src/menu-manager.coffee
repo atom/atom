@@ -3,8 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 ipc = require 'ipc'
 CSON = require 'season'
-
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 
 # Public: Provides a registry for menu items that you'd like to appear in the
 # application menu.
@@ -30,11 +29,14 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    @sendToBrowserProcess(@template, atom.keymap.keystrokesByCommandForSelector('body'))
+    keystrokesByCommand = atom.keymap.keystrokesByCommandForSelector('body')
+    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor'))
+    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor:not(.mini)'))
+    @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
   loadCoreItems: ->
-    menuPaths = fsUtils.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
+    menuPaths = fs.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
     for menuPath in menuPaths
       data = CSON.readFileSync(menuPath)
       @add(data.menu)
@@ -49,6 +51,20 @@ class MenuManager
     else
       menu.push(item) unless _.find(menu, (i) -> i.label == item.label)
 
+  # Private: OSX can't handle displaying accelerators for multiple keystrokes.
+  # If they are sent across, it will stop processing accelerators for the rest
+  # of the menu items.
+  filterMultipleKeystrokes: (keystrokesByCommand) ->
+    filtered = {}
+    for key, bindings of keystrokesByCommand
+      for binding in bindings
+        continue if binding.indexOf(' ') != -1
+
+        filtered[key] ?= []
+        filtered[key].push(binding)
+    filtered
+
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
+    keystrokesByCommand = @filterMultipleKeystrokes(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand

@@ -1,8 +1,10 @@
 fs = require 'fs'
 path = require 'path'
+os = require 'os'
 
 request = require 'request'
 formidable = require 'formidable'
+unzip = require 'unzip'
 
 module.exports = (grunt) ->
   {spawn, mkdir, rm, cp} = require('./task-helpers')(grunt)
@@ -70,7 +72,11 @@ module.exports = (grunt) ->
     else
       null
 
-  getCachePath = (version) -> "/tmp/atom-cached-atom-shells/#{version}"
+  getTempDir = ->
+    if process.platform is 'win32' then os.tmpdir() else '/tmp'
+
+  getCachePath = (version) ->
+    path.join(getTempDir(), 'atom-cached-atom-shells', version)
 
   isAtomShellVersionCached = (version) ->
     grunt.file.isFile(getCachePath(version), 'version')
@@ -143,15 +149,27 @@ module.exports = (grunt) ->
     grunt.log.writeln('Unzipping atom-shell')
     directoryPath = path.dirname(zipPath)
 
-    spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
-      rm(zipPath)
-      callback(error)
+    if process.platform is 'darwin'
+      # The zip archive of darwin build contains symbol links, only the "unzip"
+      # command can handle it correctly.
+      spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
+        rm(zipPath)
+        callback(error)
+    else
+      fileStream = fs.createReadStream(zipPath)
+      fileStream.on('error', callback)
+      zipStream = fileStream.pipe(unzip.Extract(path: directoryPath))
+      zipStream.on('error', callback)
+      zipStream.on 'close', ->
+        rm(zipPath)
+        callback(null)
 
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
     if newVersion and newVersion isnt previousVersion
       grunt.log.writeln("Rebuilding native modules for new atom-shell version #{newVersion.cyan}.")
       cmd = path.join('node_modules', '.bin', 'apm')
+      cmd += ".cmd" if process.platform is 'win32'
       spawn {cmd, args: ['rebuild']}, (error) -> callback(error)
     else
       callback()

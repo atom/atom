@@ -1,11 +1,12 @@
-fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
-Q = require 'q'
 
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
+Q = require 'q'
 telepath = require 'telepath'
 {Range} = telepath
+
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
 {Emitter} = require 'emissary'
@@ -80,12 +81,12 @@ class Project
       @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
-    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
-      return if site is @state.site.id
+    @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
+      return if siteId is @state.siteId
 
-      for removedBuffer in removed
+      for removedBuffer in removedValues
         @removeBufferAtIndex(index, updateState: false)
-      for insertedBuffer, i in inserted
+      for insertedBuffer, i in insertedValues
         @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
 
   # Private:
@@ -116,9 +117,11 @@ class Project
 
     @destroyRepo()
     if projectPath?
-      directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
+      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      @repo = Git.open(projectPath, project: this)
+      if @repo = Git.open(projectPath, project: this)
+        @repo.refreshIndex()
+        @repo.refreshStatus()
     else
       @rootDirectory = null
 
@@ -157,8 +160,8 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = path.join(@getPath(), uri) unless uri[0] == '/'
-      fsUtils.absolute uri
+      uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
+      fs.absolute uri
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
@@ -218,14 +221,19 @@ class Project
   getBuffers: ->
     new Array(@buffers...)
 
+  isPathModified: (filePath) ->
+    absoluteFilePath = @resolve(filePath)
+    existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
+    existingBuffer?.isModified()
+
   # Private: Only to be used in specs
-  bufferForPathSync: (filePath, text) ->
+  bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
 
     if filePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    existingBuffer ? @buildBufferSync(absoluteFilePath, text)
+    existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -233,23 +241,22 @@ class Project
   # `text` is used as the contents of the new buffer.
   #
   # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
-  # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath, text) ->
+  bufferForPath: (filePath) ->
     absoluteFilePath = @resolve(filePath)
     if absoluteFilePath
       existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
 
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath, text))
+    Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
   # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
   # Private: DEPRECATED
-  buildBufferSync: (absoluteFilePath, initialText) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+  buildBufferSync: (absoluteFilePath) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     buffer.loadSync()
     @addBuffer(buffer)
     buffer
@@ -260,8 +267,8 @@ class Project
   # text - The {String} text to use as a buffer
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  buildBuffer: (absoluteFilePath, initialText) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath, initialText})
+  buildBuffer: (absoluteFilePath) ->
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     buffer.load().then (buffer) =>
       @addBuffer(buffer)
       buffer
@@ -286,7 +293,7 @@ class Project
   # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
-    @state.get('buffers').remove(index) if options.updateState ? true
+    @state.get('buffers')?.remove(index) if options.updateState ? true
     buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.
@@ -315,11 +322,17 @@ class Project
       deferred.resolve()
 
     task.on 'scan:result-found', (result) =>
-      iterator(result)
+      iterator(result) unless @isPathModified(result.filePath)
 
     if _.isFunction(options.onPathsSearched)
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
+
+    for buffer in @buffers when buffer.isModified()
+      filePath = buffer.getPath()
+      matches = []
+      buffer.scan regex, (match) -> matches.push match
+      iterator {filePath, matches} if matches.length > 0
 
     deferred.promise
 

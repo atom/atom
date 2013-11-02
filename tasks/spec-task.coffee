@@ -26,7 +26,7 @@ module.exports = (grunt) ->
       grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
       spawn options, (error, results, code) ->
         grunt.log.writeln()
-        passed = passed and code is 0
+        passed = passed and not error and code is 0
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -51,7 +51,7 @@ module.exports = (grunt) ->
     spawn options, (error, results, code) ->
       grunt.log.writeln()
       packageSpecQueue.concurrency = 2
-      callback(null, code is 0)
+      callback(null, not error and code is 0)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()

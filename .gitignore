@@ -5,6 +5,7 @@
 .nvm-version
 node_modules
 npm-debug.log
+debug.log
 /tags
 /atom-shell/
 docs/output

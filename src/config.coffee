@@ -1,8 +1,7 @@
-fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
 {Emitter} = require 'emissary'
 CSON = require 'season'
-fs = require 'fs'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
@@ -52,25 +51,25 @@ class Config
       core: _.clone(require('./root-view').configDefaults)
       editor: _.clone(require('./editor').configDefaults)
     @settings = {}
-    @configFilePath = fsUtils.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
   # Private:
   initializeConfigDirectory: (done) ->
-    return if fsUtils.exists(@configDirPath)
+    return if fs.existsSync(@configDirPath)
 
-    fsUtils.makeTree(@configDirPath)
+    fs.makeTreeSync(@configDirPath)
 
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
-      fsUtils.copy(sourcePath, destinationPath, callback)
+      fs.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 
-    templateConfigDirPath = fsUtils.resolve(@resourcePath, 'dot-atom')
+    templateConfigDirPath = fs.resolve(@resourcePath, 'dot-atom')
     onConfigDirFile = (sourcePath) =>
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
-    fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
   # Private:
   load: ->
@@ -80,8 +79,8 @@ class Config
 
   # Private:
   loadUserConfig: ->
-    if !fsUtils.exists(@configFilePath)
-      fsUtils.makeTree(path.dirname(@configFilePath))
+    unless fs.existsSync(@configFilePath)
+      fs.makeTreeSync(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {})
 
     try
@@ -176,6 +175,18 @@ class Config
     @set(keyPath, arrayValue)
     result
 
+  # Public: Add the value to the beginning of the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to shift onto the array.
+  #
+  # Returns the new array length of the setting.
+  unshiftAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.unshift(value)
+    @set(keyPath, arrayValue)
+    result
+
   # Public: Remove the value from the array at the key path.
   #
   # keyPath - The {String} key path.
@@ -193,7 +204,7 @@ class Config
   # `callback` is fired whenever the value of the key is changed and will
   #  be fired immediately unless the `callNow` option is `false`.
   #
-  # keyPath - The {String} name of the key to watch
+  # keyPath - The {String} name of the key to observe
   # options - An optional {Object} containing the `callNow` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
@@ -207,13 +218,21 @@ class Config
     updateCallback = =>
       value = @get(keyPath)
       unless _.isEqual(value, previousValue)
+        previous = previousValue
         previousValue = _.clone(value)
-        callback(value)
+        callback(value, {previous})
 
-    subscription = { cancel: => @off 'updated', updateCallback  }
-    @on 'updated', updateCallback
+    eventName = "updated.#{keyPath.replace(/\./, '-')}"
+    subscription = { cancel: => @off eventName, updateCallback  }
+    @on eventName, updateCallback
     callback(value) if options.callNow ? true
     subscription
+
+  # Public: Unobserve all callbacks on a given key
+  #
+  # keyPath - The {String} name of the key to unobserve
+  unobserve: (keyPath) ->
+    @off("updated.#{keyPath.replace(/\./, '-')}")
 
   # Private:
   update: ->

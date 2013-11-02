@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'
 guid = require 'guid'
@@ -100,12 +99,13 @@ class EditSession
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @subscribe @state, 'changed', ({key, newValue}) =>
-      switch key
-        when 'scrollTop'
-          @emit 'scroll-top-changed', newValue
-        when 'scrollLeft'
-          @emit 'scroll-left-changed', newValue
+    @subscribe @state, 'changed', ({newValues}) =>
+      for key, newValue of newValues
+        switch key
+          when 'scrollTop'
+            @emit 'scroll-top-changed', newValue
+          when 'scrollLeft'
+            @emit 'scroll-left-changed', newValue
 
     project.addEditSession(this) if registerEditSession
 
@@ -138,8 +138,8 @@ class EditSession
     return if @destroyed
     @destroyed = true
     @unsubscribe()
-    @buffer.release()
     selection.destroy() for selection in @getSelections()
+    @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
     project?.removeEditSession(this)
@@ -162,6 +162,7 @@ class EditSession
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editSessionId: @id)
       marker.copy(editSessionId: newEditSession.id, preserveFolds: true)
+    project.addEditSession(newEditSession)
     newEditSession
 
   # Public: Retrieves the filename of the open file.
@@ -1187,12 +1188,12 @@ class EditSession
     @expandSelectionsBackward (selection) => selection.selectLeft()
 
   # Public: Selects all the text one position above all local cursors.
-  selectUp: ->
-    @expandSelectionsBackward (selection) => selection.selectUp()
+  selectUp: (rowCount) ->
+    @expandSelectionsBackward (selection) => selection.selectUp(rowCount)
 
   # Public: Selects all the text one position below all local cursors.
-  selectDown: ->
-    @expandSelectionsForward (selection) => selection.selectDown()
+  selectDown: (rowCount) ->
+    @expandSelectionsForward (selection) => selection.selectDown(rowCount)
 
   # Public: Selects all the text from all local cursors to the top of the
   # buffer.
@@ -1432,7 +1433,7 @@ class EditSession
 
   # Private:
   getSelectionMarkerAttributes: ->
-    type: 'selection', editSessionId: @id, invalidation: 'never'
+    type: 'selection', editSessionId: @id, invalidate: 'never'
 
   # Private:
   getDebugSnapshot: ->

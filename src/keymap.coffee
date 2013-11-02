@@ -1,10 +1,12 @@
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
 BindingSet = require './binding-set'
 {Emitter} = require 'emissary'
+
+Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
 
 # Internal: Associates keymaps with actions.
 #
@@ -36,11 +38,12 @@ class Keymap
     @loadDirectory(config.bundledKeymapsDirPath)
     @emit('bundled-keymaps-loaded')
 
-  loadUserKeymaps: ->
-    @loadDirectory(path.join(config.configDirPath, 'keymaps'))
+  loadUserKeymap: ->
+    userKeymapPath = CSON.resolve(path.join(config.configDirPath, 'keymap'))
+    @load(userKeymapPath) if userKeymapPath
 
   loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fsUtils.listSync(directoryPath, ['.cson', '.json'])
+    @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
     @add(path, CSON.readFileSync(path))
@@ -174,7 +177,10 @@ class Keymap
   multiKeystrokeStringForEvent: (event) ->
     currentKeystroke = @keystrokeStringForEvent(event)
     if @queuedKeystrokes
-      @queuedKeystrokes + ' ' + currentKeystroke
+      if currentKeystroke in Modifiers
+        @queuedKeystrokes
+      else
+        @queuedKeystrokes + ' ' + currentKeystroke
     else
       currentKeystroke
 
@@ -188,14 +194,14 @@ class Keymap
       key = event.originalEvent.keyIdentifier.toLowerCase()
 
     modifiers = []
-    if event.altKey and key isnt 'alt'
+    if event.altKey and key not in Modifiers
       modifiers.push 'alt'
-    if event.ctrlKey and key isnt 'ctrl'
+    if event.ctrlKey and key not in Modifiers
       modifiers.push 'ctrl'
-    if event.metaKey and key isnt 'meta'
+    if event.metaKey and key not in Modifiers
       modifiers.push 'meta'
 
-    if event.shiftKey
+    if event.shiftKey and key not in Modifiers
       isNamedKey = key.length > 1
       modifiers.push 'shift' if isNamedKey
     else

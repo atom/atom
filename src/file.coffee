@@ -1,14 +1,15 @@
+crypto = require 'crypto'
 path = require 'path'
 pathWatcher = require 'pathwatcher'
 Q = require 'q'
 {Emitter} = require 'emissary'
 _ = require 'underscore-plus'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 
-# Public: Represents an individual file in the editor.
+# Public: Represents an individual file.
 #
-# This class shouldn't be created directly, instead you should create a
-# {Directory} and access the {File} objects that it creates.
+# You should probably create a {Directory} and access the {File} objects that
+# it creates, rather than instantiating the {File} class directly.
 module.exports =
 class File
   Emitter.includeInto(this)
@@ -16,26 +17,29 @@ class File
   path: null
   cachedContents: null
 
-  # Private: Creates a new file.
+  # Public: Creates a new file.
   #
   # * path:
-  #   A String representing the file path
+  #   A String containing the absolute path to the file
   # * symlink:
   #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
-    throw new Error("#{@path} is a directory") if fsUtils.isDirectorySync(@path)
+    throw new Error("#{@path} is a directory") if fs.isDirectorySync(@path)
 
     @handleEventSubscriptions()
 
+  # Private: Subscribes to file system notifications when necessary.
   handleEventSubscriptions: ->
     eventNames = ['contents-changed', 'moved', 'removed']
 
     subscriptionsAdded = eventNames.map (eventName) -> "first-#{eventName}-subscription-will-be-added"
     @on subscriptionsAdded.join(' '), =>
+      # Only subscribe when a listener of eventName attaches (triggered by emissary)
       @subscribeToNativeChangeEvents() if @exists()
 
     subscriptionsRemoved = eventNames.map (eventName) -> "last-#{eventName}-subscription-removed"
     @on subscriptionsRemoved.join(' '), =>
+      # Detach when the last listener of eventName detaches (triggered by emissary)
       subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
       @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
@@ -53,7 +57,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.writeSync(@getPath(), text)
+    fs.writeFileSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Private: Deprecated
@@ -61,9 +65,12 @@ class File
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fsUtils.read(@getPath())
+      @cachedContents = fs.readFileSync(@getPath(), 'utf8')
     else
       @cachedContents
+
+    @setDigest(@cachedContents)
+    @cachedContents
 
   # Public: Reads the contents of the file.
   #
@@ -76,14 +83,14 @@ class File
     if not @exists()
       promise = Q(null)
     else if not @cachedContents? or flushCache
-      if fsUtils.statSyncNoException(@getPath()).size >= 1048576 # 1MB
+      if fs.getSizeSync(@getPath()) >= 1048576 # 1MB
         throw new Error("Atom can only handle files < 1MB, for now.")
 
       deferred = Q.defer()
       promise = deferred.promise
       content = []
       bytesRead = 0
-      readStream = fsUtils.createReadStream @getPath(), encoding: 'utf8'
+      readStream = fs.createReadStream @getPath(), encoding: 'utf8'
       readStream.on 'data', (chunk) ->
         content.push(chunk)
         bytesRead += chunk.length
@@ -98,11 +105,18 @@ class File
       promise = Q(@cachedContents)
 
     promise.then (contents) =>
+      @setDigest(contents)
       @cachedContents = contents
 
-  # Public: Returns whether a file exists.
+  # Public: Returns whether the file exists.
   exists: ->
-    fsUtils.exists(@getPath())
+    fs.existsSync(@getPath())
+
+  setDigest: (contents) ->
+    @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
+
+  getDigest: ->
+    @digest ? @setDigest(@readSync())
 
   # Private:
   handleNativeChangeEvent: (eventType, path) ->

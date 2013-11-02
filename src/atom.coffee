@@ -4,7 +4,17 @@ Emitter::one = (args...) -> @once(args...)
 Emitter::trigger = (args...) -> @emit(args...)
 Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
-fsUtils = require './fs-utils'
+#TODO remove once all packages have been updated
+fs = require 'fs-plus'
+fs.exists = fs.existsSync
+fs.makeTree = fs.makeTreeSync
+fs.move = fs.moveSync
+fs.read = (filePath) -> fs.readFileSync(filePath, 'utf8')
+fs.remove = fs.removeSync
+fs.write = fs.writeFile
+fs.writeSync = fs.writeFileSync
+
+fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 Package = require './package'
@@ -13,11 +23,13 @@ remote = require 'remote'
 shell = require 'shell'
 crypto = require 'crypto'
 path = require 'path'
+os = require 'os'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 {Document} = require 'telepath'
 DeserializerManager = require './deserializer-manager'
 {Subscriber} = require 'emissary'
+SiteShim = require './site-shim'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -53,8 +65,8 @@ class Atom
     @__defineGetter__ 'packageStates', => @packages.packageStates
     @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
 
-    @subscribe @packages, 'loaded', => @watchThemes()
-    @themes = new ThemeManager()
+    @subscribe @packages, 'activated', => @watchThemes()
+    @themes = new ThemeManager(@packages)
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
     @pasteboard = new Pasteboard()
@@ -160,7 +172,9 @@ class Atom
 
   watchThemes: ->
     @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @packages.getActivePackages()
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
       null
 
   open: (options) ->
@@ -219,6 +233,9 @@ class Atom
   inDevMode: ->
     @getLoadSettings().devMode
 
+  inSpecMode: ->
+    @getLoadSettings().isSpec
+
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
@@ -229,11 +246,14 @@ class Atom
     @getCurrentWindow().isFullScreen()
 
   getHomeDirPath: ->
-    app.getHomeDir()
+    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
+  getTempDirPath: ->
+    if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
-    @configDirPath ?= fsUtils.absolute('~/.atom')
+    @configDirPath ?= fs.absolute('~/.atom')
 
   getWindowStatePath: ->
     switch @windowMode
@@ -257,9 +277,9 @@ class Atom
 
   loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
-      if fsUtils.exists(windowStatePath)
+      if fs.existsSync(windowStatePath)
         try
-          documentStateJson  = fsUtils.read(windowStatePath)
+          documentStateJson  = fs.readFileSync(windowStatePath, 'utf8')
         catch error
           console.warn "Error reading window state: #{windowStatePath}", error.stack, error
     else
@@ -270,15 +290,19 @@ class Atom
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    doc = Document.deserialize(state: documentState) if documentState?
+    doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
-    @site = doc.site # TODO: Remove this when everything is using telepath models
+    # TODO: Remove this when everything is using telepath models
+    if @site?
+      @site.setRootDocument(doc)
+    else
+      @site = new SiteShim(doc)
     doc
 
   saveWindowState: ->
     windowState = @getWindowState()
     if windowStatePath = @getWindowStatePath()
-      windowState.saveSync(path: windowStatePath)
+      windowState.saveSync(windowStatePath)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serialize())
 
@@ -296,12 +320,13 @@ class Atom
     process.crash()
 
   beep: ->
-    shell.beep()
+    shell.beep() if @config.get('core.audioBeep')
+    @rootView.trigger 'beep'
 
   requireUserInitScript: ->
     userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
+      require userInitScriptPath if fs.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

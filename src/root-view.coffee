@@ -1,10 +1,9 @@
-fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
-fsUtils = require './fs-utils'
 _ = require 'underscore-plus'
+fs = require 'fs-plus'
 telepath = require 'telepath'
 Editor = require './editor'
 Pane = require './pane'
@@ -44,12 +43,12 @@ class RootView extends View
   @version: 1
 
   @configDefaults:
-    autosave: false
     ignoredNames: [".git", ".svn", ".DS_Store"]
     excludeVcsIgnoredPaths: true
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
+    audioBeep: true
 
   @acceptsDocuments: true
 
@@ -180,9 +179,6 @@ class RootView extends View
     editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
     promise = project.open(filePath, {initialLine}) if not editSession
 
-    fileSize = 0
-    fileSize = fs.statSync(filePath).size if fsUtils.exists(filePath)
-
     Q(editSession ? promise).then (editSession) =>
       if not activePane
         activePane = new Pane(editSession)
@@ -194,23 +190,45 @@ class RootView extends View
       editSession
 
   # Private: Only used in specs
-  openSync: (filePath, options = {}) ->
-    changeFocus = options.changeFocus ? true
-    initialLine = options.initialLine
-    filePath = project.relativize(filePath)
-    if activePane = @getActivePane()
-      if filePath
-        editSession = activePane.itemForUri(filePath) ? project.openSync(filePath, {initialLine})
-      else
-        editSession = project.openSync()
-      activePane.showItem(editSession)
-    else
-      editSession = project.openSync(filePath, {initialLine})
-      activePane = new Pane(editSession)
-      @panes.setRoot(activePane)
+  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
+    changeFocus ?= true
+    pane ?= @getActivePane()
+    uri = project.relativize(uri)
 
-    activePane.focus() if changeFocus
-    editSession
+    if pane
+      if uri
+        paneItem = pane.itemForUri(uri) ? project.openSync(uri, {initialLine})
+      else
+        paneItem = project.openSync()
+
+      if split
+        panes = @getPanes()
+        if panes.length == 1
+          pane = panes[0].splitRight()
+        else
+          pane = _.last(panes)
+
+      pane.showItem(paneItem)
+    else
+      paneItem = project.openSync(uri, {initialLine})
+      pane = new Pane(paneItem)
+      @panes.setRoot(pane)
+
+    pane.focus() if changeFocus
+    paneItem
+
+  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
+    changeFocus ?= true
+    uri = project.relativize(uri)
+    pane = @panes.paneForUri(uri)
+
+    if pane
+      paneItem = pane.itemForUri(uri)
+      pane.showItem(paneItem)
+      pane.focus() if changeFocus
+      paneItem
+    else
+      @openSync(uri, {changeFocus, initialLine, split})
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->

@@ -1,6 +1,7 @@
 {$, $$, fs, RootView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
+ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -20,6 +21,7 @@ describe "the `atom` global", ->
           expect(pack.activateStylesheets).toHaveBeenCalled()
 
         it "continues if the package has an invalid package.json", ->
+          spyOn(console, 'warn')
           config.set("core.disabledPackages", [])
           expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
 
@@ -192,7 +194,6 @@ describe "the `atom` global", ->
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
               expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()
 
-
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
@@ -239,12 +240,12 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
@@ -327,12 +328,101 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.activatePackage('language-ruby', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.deactivatePackage('ruby-tmbundle')
+          atom.deactivatePackage('language-ruby')
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
-          atom.activatePackage('ruby-tmbundle', sync: true)
-          atom.deactivatePackage('ruby-tmbundle')
+          atom.activatePackage('language-ruby', sync: true)
+          atom.deactivatePackage('language-ruby')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+
+    describe ".activate()", ->
+      packageActivator = null
+      themeActivator = null
+
+      beforeEach ->
+        spyOn(console, 'warn')
+        atom.packages.loadPackages()
+
+        loadedPackages = atom.packages.getLoadedPackages()
+        expect(loadedPackages.length).toBeGreaterThan 0
+
+        packageActivator = spyOn(atom.packages, 'activatePackages')
+        themeActivator = spyOn(atom.themes, 'activatePackages')
+
+      afterEach ->
+        atom.packages.unloadPackages()
+
+        Syntax = require '../src/syntax'
+        atom.syntax = window.syntax = new Syntax()
+
+      it "activates all the packages, and none of the themes", ->
+        atom.packages.activate()
+
+        expect(packageActivator).toHaveBeenCalled()
+        expect(themeActivator).toHaveBeenCalled()
+
+        packages = packageActivator.mostRecentCall.args[0]
+        expect(['atom', 'textmate']).toContain(pack.getType()) for pack in packages
+
+        themes = themeActivator.mostRecentCall.args[0]
+        expect(['theme']).toContain(theme.getType()) for theme in themes
+
+    describe ".en/disablePackage()", ->
+      describe "with packages", ->
+        it ".enablePackage() enables a disabled package", ->
+          packageName = 'package-with-main'
+          atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).toContain packageName
+
+          pack = atom.packages.enablePackage(packageName)
+
+          loadedPackages = atom.packages.getLoadedPackages()
+          activatedPackages = atom.packages.getActivePackages()
+          expect(loadedPackages).toContain(pack)
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+        it ".disablePackage() disables an enabled package", ->
+          packageName = 'package-with-main'
+          atom.packages.activatePackage(packageName)
+          atom.packages.observeDisabledPackages()
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          pack = atom.packages.disablePackage(packageName)
+
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.disabledPackages')).toContain packageName
+
+      describe "with themes", ->
+        beforeEach ->
+          atom.themes.activateThemes()
+
+        afterEach ->
+          atom.themes.deactivateThemes()
+          atom.config.unobserve('core.themes')
+
+        it ".enablePackage() and .disablePackage() enables and disables a theme", ->
+          packageName = 'theme-with-package-file'
+
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # enabling of theme
+          pack = atom.packages.enablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).toContain(pack)
+          expect(config.get('core.themes')).toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName
+
+          # disabling of theme
+          pack = atom.packages.disablePackage(packageName)
+          activatedPackages = atom.packages.getActivePackages()
+          expect(activatedPackages).not.toContain(pack)
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.themes')).not.toContain packageName
+          expect(config.get('core.disabledPackages')).not.toContain packageName

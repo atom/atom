@@ -5,12 +5,13 @@ Gutter = require './gutter'
 EditSession = require './edit-session'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
 MeasureRange = document.createRange()
 TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 NoScope = ['no-scope']
+LongLineLength = 1000
 
 # Private: Represents the entire visual pane in Atom.
 #
@@ -719,9 +720,9 @@ class Editor extends View
       selectedText = @getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
-      @insertText(e.originalEvent.data, {select: true, skipUndo: true})
+      @insertText(e.originalEvent.data, {select: true, undo: 'skip'})
     @hiddenInput.on 'compositionend', =>
-      @insertText(selectedText, {select: true, skipUndo: true})
+      @insertText(selectedText, {select: true, undo: 'skip'})
       @hiddenInput.css('width', '1px')
 
     lastInput = ''
@@ -946,7 +947,7 @@ class Editor extends View
 
   # Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
-    @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
+    @activeEditSession.setSoftTabs(not @activeEditSession.getSoftTabs())
 
   # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
@@ -1013,17 +1014,21 @@ class Editor extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
-  splitLeft: (items...) ->
-    @getPane()?.splitLeft(items...).activeView
+  splitLeft: ->
+    pane = @getPane()
+    pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  splitRight: (items...) ->
-    @getPane()?.splitRight(items...).activeView
+  splitRight: ->
+    pane = @getPane()
+    pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  splitUp: (items...) ->
-    @getPane()?.splitUp(items...).activeView
+  splitUp: ->
+    pane = @getPane()
+    pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  splitDown: (items...) ->
-    @getPane()?.splitDown(items...).activeView
+  splitDown: ->
+    pane = @getPane()
+    pane?.splitDown(pane?.copyActiveItem()).activeView
 
   # Retrieve's the `Editor`'s pane.
   #
@@ -1589,16 +1594,18 @@ class Editor extends View
       content = textNode.textContent
 
       for char, i in content
+        # Don't continue caching long lines :racehorse:
+        break if index > LongLineLength and column < index
 
         # Dont return right away, finish caching the whole line
         returnLeft = left if index == column
         oldLeft = left
 
         scopes = @scopesForColumn(tokenizedLine, index)
-        cachedVal = @getCharacterWidthCache(scopes, char)
+        cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
-        if cachedVal?
-          left = oldLeft + cachedVal
+        if cachedCharWidth?
+          left = oldLeft + cachedCharWidth
         else
           # i + 1 to measure to the end of the current character
           MeasureRange.setEnd(textNode, i + 1)
@@ -1607,7 +1614,13 @@ class Editor extends View
           return 0 if rects.length == 0
           left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
 
-          @setCharacterWidthCache(scopes, char, left - oldLeft) if scopes?
+          if scopes?
+            cachedCharWidth = left - oldLeft
+            @setCharacterWidthCache(scopes, char, cachedCharWidth)
+
+        # Assume all the characters are the same width when dealing with long
+        # lines :racehorse:
+        return column * cachedCharWidth if index > LongLineLength
 
         index++
 
@@ -1639,12 +1652,13 @@ class Editor extends View
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
+    offset = @scrollView.offset()
 
-    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    editorRelativeTop = pageY - offset.top + @scrollTop()
     row = Math.floor(editorRelativeTop / @lineHeight)
     column = 0
 
-    if lineElement = @lineElementForScreenRow(row)[0]
+    if pageX > offset.left and lineElement = @lineElementForScreenRow(row)[0]
       range = document.createRange()
       iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
       while node = iterator.nextNode()
@@ -1810,7 +1824,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fsUtils.writeSync(path, @getDebugSnapshot()) if path
+      fs.writeFileSync(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

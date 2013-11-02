@@ -1,19 +1,21 @@
 {fs} = require 'atom'
+path = require 'path'
+temp = require 'temp'
 installer = require '../src/command-installer'
 
 describe "install(commandPath, callback)", ->
-  directory = '/tmp/install-atom-command/atom'
-  commandPath = "#{directory}/source"
-  destinationPath = "#{directory}/bin/source"
+  directory = path.join(temp.dir, 'install-atom-command', 'atom')
+  commandPath = path.join(directory, 'source')
+  destinationPath = path.join(directory, 'bin', 'source')
 
   beforeEach ->
     spyOn(installer, 'findInstallDirectory').andCallFake (callback) ->
       callback(directory)
 
-    fs.remove(directory) if fs.exists(directory)
+    fs.removeSync(directory) if fs.existsSync(directory)
 
   it "symlinks the command and makes it executable", ->
-    fs.writeSync(commandPath, 'test')
+    fs.writeFileSync(commandPath, 'test')
     expect(fs.isFileSync(commandPath)).toBeTruthy()
     expect(fs.isExecutableSync(commandPath)).toBeFalsy()
     expect(fs.isFileSync(destinationPath)).toBeFalsy()

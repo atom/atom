@@ -1,9 +1,8 @@
 path = require 'path'
-fs = require 'fs'
 _ = require 'underscore-plus'
 async = require 'async'
+fs = require 'fs-plus'
 mkdirp = require 'mkdirp'
-fsUtils = require './fs-utils'
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   mkdirp path.dirname(destinationPath), (error) ->
@@ -26,7 +25,7 @@ unlinkCommand = (destinationPath, callback) ->
 module.exports =
   findInstallDirectory: (callback) ->
     directories = ['/opt/boxen', '/opt/github', '/usr/local']
-    async.detect(directories, fsUtils.isDirectory, callback)
+    async.detect(directories, fs.isDirectory, callback)
 
   install: (commandPath, commandName, callback) ->
     if not commandName? or _.isFunction(commandName)

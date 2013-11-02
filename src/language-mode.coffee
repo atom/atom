@@ -84,8 +84,14 @@ class LanguageMode
       else
         indent = @minIndentLevelForRowRange(start, end)
         indentString = @editSession.buildIndentString(indent)
+        tabLength = @editSession.getTabLength()
+        indentRegex = new RegExp("(\t|[ ]{#{tabLength}}){#{Math.floor(indent)}}")
         for row in [start..end]
-          buffer.change([[row, 0], [row, indentString.length]], indentString + commentStartString)
+          line = buffer.lineForRow(row)
+          if indentLength = line.match(indentRegex)?[0].length
+            buffer.insert([row, indentLength], commentStartString)
+          else
+            buffer.change([[row, 0], [row, indentString.length]], indentString + commentStartString)
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->

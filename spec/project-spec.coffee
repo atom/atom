@@ -62,6 +62,22 @@ describe "Project", ->
       expect(project.getEditSessions()[0]).toBe editSession1
       expect(project.getEditSessions()[1]).toBe editSession2
 
+  describe "when an edit session is copied", ->
+    it "emits an 'edit-session-created' event and stores the edit session", ->
+      handler = jasmine.createSpy('editSessionCreatedHandler')
+      project.on 'edit-session-created', handler
+
+      editSession1 = project.openSync("a")
+      expect(handler.callCount).toBe 1
+      expect(project.getEditSessions().length).toBe 1
+      expect(project.getEditSessions()[0]).toBe editSession1
+
+      editSession2 = editSession1.copy()
+      expect(handler.callCount).toBe 2
+      expect(project.getEditSessions().length).toBe 2
+      expect(project.getEditSessions()[0]).toBe editSession1
+      expect(project.getEditSessions()[1]).toBe editSession2
+
   describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
@@ -365,10 +381,10 @@ describe "Project", ->
           runs ->
             fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
             ignoredPath = path.join(projectPath, 'ignored.txt')
-            fs.writeSync(ignoredPath, 'this match should not be included')
+            fs.writeFileSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
-          fs.remove(projectPath) if fs.exists(projectPath)
+          fs.removeSync(projectPath) if fs.existsSync(projectPath)
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
@@ -402,7 +418,7 @@ describe "Project", ->
       it "includes files and folders that begin with a '.'", ->
         projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
-        fs.writeSync(filePath, 'match this')
+        fs.writeFileSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
@@ -425,8 +441,20 @@ describe "Project", ->
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
           project.scan /dollar/, (results) ->
-            console.log results
             resultHandler()
 
         runs ->
           expect(resultHandler).not.toHaveBeenCalled()
+
+      it "scans buffer contents if the buffer is modified", ->
+        editSession = project.openSync("a")
+        editSession.setText("Elephant")
+        results = []
+        waitsForPromise ->
+          project.scan /a|Elephant/, (result) -> results.push result
+
+        runs ->
+          expect(results).toHaveLength 3
+          resultForA = _.find results, ({filePath}) -> path.basename(filePath) == 'a'
+          expect(resultForA.matches).toHaveLength 1
+          expect(resultForA.matches[0].matchText).toBe 'Elephant'

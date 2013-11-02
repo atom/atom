@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
-fsUtils = require './fs-utils'
+fs = require 'fs-plus'
 
 # Private: Handles low-level events related to the window.
 module.exports =
@@ -14,7 +14,11 @@ class WindowEventHandler
     @reloadRequested = false
 
     @subscribe ipc, 'command', (command, args...) ->
-      $(document.activeElement).trigger(command, args...)
+      activeElement = document.activeElement
+      # Use root view if body has focus
+      if activeElement is document.body and atom.rootView?
+        activeElement = atom.rootView
+      $(activeElement).trigger(command, args...)
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
@@ -24,7 +28,7 @@ class WindowEventHandler
     @subscribe $(window), 'blur', -> $("body").addClass('is-blurred')
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
-      unless fsUtils.isDirectorySync(pathToOpen)
+      unless fs.isDirectorySync(pathToOpen)
         atom.rootView?.open(pathToOpen, {initialLine})
 
     @subscribe $(window), 'beforeunload', =>

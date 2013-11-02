@@ -1,4 +1,4 @@
-startTime = new Date().getTime()
+startTime = Date.now()
 
 autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
@@ -8,11 +8,17 @@ fs = require 'fs'
 module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
-nslog = require 'nslog'
+# TODO: NSLog is missing .lib on windows
+nslog = require 'nslog' unless process.platform is 'win32'
 dialog = require 'dialog'
 
 console.log = (args...) ->
-  nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
+  # TODO: Make NSLog work as expected
+  output = args.map((arg) -> JSON.stringify(arg)).join(" ")
+  if process.platform == 'darwin'
+    nslog(output)
+  else
+    fs.writeFileSync('debug.log', output, flag: 'a')
 
 process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?
@@ -56,7 +62,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
-    console.log("App load time: #{new Date().getTime() - startTime}ms")
+    console.log("App load time: #{Date.now() - startTime}ms")
 
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 

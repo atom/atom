@@ -1,8 +1,8 @@
 require '../spec/spec-helper'
 
+path = require 'path'
 {$, _, Point, fs} = require 'atom'
 Project = require '../src/project'
-fsUtils = require '../src/fs-utils'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 defaultCount = 100

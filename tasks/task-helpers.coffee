@@ -4,18 +4,24 @@ walkdir = require 'walkdir'
 
 module.exports = (grunt) ->
   cp: (source, destination, {filter}={}) ->
-    walkdir.sync source, (sourcePath, stats) ->
-      return if filter?.test(sourcePath)
+    unless grunt.file.exists(source)
+      grunt.fatal("Cannot copy non-existent #{source.cyan} to #{destination.cyan}")
 
-      destinationPath = path.join(destination, path.relative(source, sourcePath))
-      if stats.isSymbolicLink()
-        grunt.file.mkdir(path.dirname(destinationPath))
-        fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
-      else if stats.isFile()
-        grunt.file.copy(sourcePath, destinationPath)
+    try
+      walkdir.sync source, (sourcePath, stats) ->
+        return if filter?.test(sourcePath)
 
-      if grunt.file.exists(destinationPath)
-        fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
+        destinationPath = path.join(destination, path.relative(source, sourcePath))
+        if stats.isSymbolicLink()
+          grunt.file.mkdir(path.dirname(destinationPath))
+          fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
+        else if stats.isFile()
+          grunt.file.copy(sourcePath, destinationPath)
+
+        if grunt.file.exists(destinationPath)
+          fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
+    catch error
+      grunt.fatal(error)
 
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 

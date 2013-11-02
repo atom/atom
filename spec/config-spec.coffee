@@ -1,8 +1,11 @@
 {fs} = require 'atom'
 path = require 'path'
+temp = require 'temp'
 CSON = require 'season'
 
 describe "Config", ->
+  dotAtomPath = path.join(temp.dir, 'dot-atom-dir')
+
   describe ".get(keyPath)", ->
     it "allows a key path's value to be read", ->
       expect(config.set("foo.bar.baz", 42)).toBe 42
@@ -29,7 +32,7 @@ describe "Config", ->
       config.set("foo.bar.baz", 42)
 
       expect(config.save).toHaveBeenCalled()
-      expect(observeHandler).toHaveBeenCalledWith 42
+      expect(observeHandler).toHaveBeenCalledWith 42, {previous: undefined}
 
     describe "when the value equals the default value", ->
       it "does not store the value", ->
@@ -51,7 +54,18 @@ describe "Config", ->
 
       expect(config.pushAtKeyPath("foo.bar.baz", "b")).toBe 2
       expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
-      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz"), {previous: ['a']}
+
+  describe ".unshiftAtKeyPath(keyPath, value)", ->
+    it "unshifts the given value to the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["b"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.unshiftAtKeyPath("foo.bar.baz", "a")).toBe 2
+      expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz"), {previous: ['b']}
 
   describe ".removeAtKeyPath(keyPath, value)", ->
     it "removes the given value from the array at the key path and updates observers", ->
@@ -62,7 +76,7 @@ describe "Config", ->
 
       expect(config.removeAtKeyPath("foo.bar.baz", "b")).toEqual ["a", "c"]
       expect(config.get("foo.bar.baz")).toEqual ["a", "c"]
-      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz"), {previous: ['a', 'b', 'c']}
 
   describe ".getPositiveInt(keyPath, defaultValue)", ->
     it "returns the proper current or default value", ->
@@ -139,34 +153,34 @@ describe "Config", ->
     it "fires the callback every time the observed value changes", ->
       observeHandler.reset() # clear the initial call
       config.set('foo.bar.baz', "value 2")
-      expect(observeHandler).toHaveBeenCalledWith("value 2")
+      expect(observeHandler).toHaveBeenCalledWith("value 2", {previous: 'value 1'})
       observeHandler.reset()
 
       config.set('foo.bar.baz', "value 1")
-      expect(observeHandler).toHaveBeenCalledWith("value 1")
+      expect(observeHandler).toHaveBeenCalledWith("value 1", {previous: 'value 2'})
 
     it "fires the callback when the observed value is deleted", ->
       observeHandler.reset() # clear the initial call
       config.set('foo.bar.baz', undefined)
-      expect(observeHandler).toHaveBeenCalledWith(undefined)
+      expect(observeHandler).toHaveBeenCalledWith(undefined, {previous: 'value 1'})
 
     it "fires the callback when the full key path goes into and out of existence", ->
       observeHandler.reset() # clear the initial call
       config.set("foo.bar", undefined)
 
-      expect(observeHandler).toHaveBeenCalledWith(undefined)
+      expect(observeHandler).toHaveBeenCalledWith(undefined, {previous: 'value 1'})
       observeHandler.reset()
 
       config.set("foo.bar.baz", "i'm back")
-      expect(observeHandler).toHaveBeenCalledWith("i'm back")
+      expect(observeHandler).toHaveBeenCalledWith("i'm back", {previous: undefined})
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      config.configDirPath = dotAtomPath
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
@@ -178,23 +192,23 @@ describe "Config", ->
         waitsFor -> initializationDone
 
         runs ->
-          expect(fs.exists(config.configDirPath)).toBeTruthy()
-          expect(fs.exists(path.join(config.configDirPath, 'packages'))).toBeTruthy()
-          expect(fs.exists(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
+          expect(fs.existsSync(config.configDirPath)).toBeTruthy()
+          expect(fs.existsSync(path.join(config.configDirPath, 'packages'))).toBeTruthy()
+          expect(fs.existsSync(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
           expect(fs.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
-        fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+        fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
         config.loadUserConfig()
 
       it "updates the config data based on the file contents", ->
@@ -203,7 +217,7 @@ describe "Config", ->
     describe "when the config file contains invalid cson", ->
       beforeEach ->
         spyOn(console, 'error')
-        fs.writeSync(config.configFilePath, "{{{{{")
+        fs.writeFileSync(config.configFilePath, "{{{{{")
 
       it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
         config.loadUserConfig()
@@ -213,19 +227,19 @@ describe "Config", ->
 
     describe "when the config file does not exist", ->
       it "creates it with an empty object", ->
-        fs.makeTree(config.configDirPath)
+        fs.makeTreeSync(config.configDirPath)
         config.loadUserConfig()
-        expect(fs.exists(config.configFilePath)).toBe true
+        expect(fs.existsSync(config.configFilePath)).toBe true
         expect(CSON.readFileSync(config.configFilePath)).toEqual {}
 
   describe ".observeUserConfig()", ->
     updatedHandler = null
 
     beforeEach ->
-      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configDirPath = dotAtomPath
       config.configFilePath = path.join(config.configDirPath, "config.cson")
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
-      fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+      expect(fs.existsSync(config.configDirPath)).toBeFalsy()
+      fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
       config.loadUserConfig()
       config.observeUserConfig()
       updatedHandler = jasmine.createSpy("updatedHandler")
@@ -233,11 +247,11 @@ describe "Config", ->
 
     afterEach ->
       config.unobserveUserConfig()
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
 
     describe "when the config file changes to contain valid cson", ->
       it "updates the config data", ->
-        fs.writeSync(config.configFilePath, "foo: { bar: 'quux', baz: 'bar'}")
+        fs.writeFileSync(config.configFilePath, "foo: { bar: 'quux', baz: 'bar'}")
         waitsFor 'update event', -> updatedHandler.callCount > 0
         runs ->
           expect(config.get('foo.bar')).toBe 'quux'
@@ -246,7 +260,7 @@ describe "Config", ->
     describe "when the config file changes to contain invalid cson", ->
       beforeEach ->
         spyOn(console, 'error')
-        fs.writeSync(config.configFilePath, "}}}")
+        fs.writeFileSync(config.configFilePath, "}}}")
         waitsFor "error to be logged", -> console.error.callCount > 0
 
       it "logs a warning and does not update config data", ->
@@ -257,7 +271,7 @@ describe "Config", ->
 
       describe "when the config file subsequently changes again to contain valid cson", ->
         beforeEach ->
-          fs.writeSync(config.configFilePath, "foo: bar: 'baz'")
+          fs.writeFileSync(config.configFilePath, "foo: bar: 'baz'")
           waitsFor 'update event', -> updatedHandler.callCount > 0
 
         it "updates the config data and resumes saving", ->

@@ -1,7 +1,8 @@
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 {$, View} = require 'atom'
-{dirname} = require 'path'
+path = require 'path'
+temp = require 'temp'
 
 describe "Pane", ->
   [container, view1, view2, editSession1, editSession2, pane] = []
@@ -372,7 +373,7 @@ describe "Pane", ->
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(dirname(editSession2.getPath()))
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editSession2.getPath()))
         expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
@@ -438,8 +439,8 @@ describe "Pane", ->
 
       beforeEach ->
         pane.showItem(editSession1)
-        paneToLeft = pane.splitLeft()
-        paneToRight = pane.splitRight()
+        paneToLeft = pane.splitLeft(pane.copyActiveItem())
+        paneToRight = pane.splitRight(pane.copyActiveItem())
         container.attachToDom()
 
       describe "when the removed pane is focused", ->
@@ -493,7 +494,7 @@ describe "Pane", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
       pane.showItem(editSession1)
       expect(pane.getNextPane()).toBeUndefined
-      pane2 = pane.splitRight()
+      pane2 = pane.splitRight(pane.copyActiveItem())
       expect(pane.getNextPane()).toBe pane2
       expect(pane2.getNextPane()).toBe pane
 
@@ -528,7 +529,7 @@ describe "Pane", ->
       expect(pane.isActive()).toBeFalsy()
       pane.focusin()
       expect(pane.isActive()).toBeTruthy()
-      pane.splitRight()
+      pane.splitRight(pane.copyActiveItem())
       expect(pane.isActive()).toBeFalsy()
 
       expect(becameInactiveHandler.callCount).toBe 1
@@ -544,7 +545,7 @@ describe "Pane", ->
     describe "splitRight(items...)", ->
       it "builds a row if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane1.splitRight()
+        pane2 = pane1.splitRight(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -553,10 +554,22 @@ describe "Pane", ->
         expect(pane3.getItems()).toEqual [view3, view4]
         expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
 
-    describe "splitRight(items...)", ->
+      it "builds a row if needed, then appends a new pane after itself ", ->
+        # creates the new pane with a copy of the active item if none are given
+        pane2 = pane1.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(pane2.items).toEqual []
+        expect(pane2.activeItem).toBe null
+
+        pane3 = pane2.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
+        expect(pane3.items).toEqual []
+        expect(pane3.activeItem).toBe null
+
+    describe "splitLeft(items...)", ->
       it "builds a row if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitLeft()
+        pane2 = pane.splitLeft(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -568,7 +581,7 @@ describe "Pane", ->
     describe "splitDown(items...)", ->
       it "builds a column if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitDown()
+        pane2 = pane.splitDown(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -580,7 +593,7 @@ describe "Pane", ->
     describe "splitUp(items...)", ->
       it "builds a column if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitUp()
+        pane2 = pane.splitUp(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.activeItem).not.toBe editSession1 # it's a copy
@@ -657,68 +670,6 @@ describe "Pane", ->
       expect(container.children().length).toBe 1
       expect(container.children('.pane').length).toBe 1
       expect(pane1.outerWidth()).toBe container.width()
-
-  describe "autosave", ->
-    [initialActiveItem, initialActiveItemUri] = []
-
-    beforeEach ->
-      initialActiveItem = pane.activeItem
-      initialActiveItemUri = null
-      pane.activeItem.getUri = -> initialActiveItemUri
-      pane.activeItem.save = jasmine.createSpy("activeItem.save")
-      spyOn(pane, 'saveItem').andCallThrough()
-
-    describe "when the active view loses focus", ->
-      it "saves the item if core.autosave is true and the item has a uri", ->
-        pane.activeView.trigger 'focusout'
-        expect(pane.saveItem).not.toHaveBeenCalled()
-        expect(pane.activeItem.save).not.toHaveBeenCalled()
-
-        config.set('core.autosave', true)
-        pane.activeView.trigger 'focusout'
-        expect(pane.saveItem).not.toHaveBeenCalled()
-        expect(pane.activeItem.save).not.toHaveBeenCalled()
-
-        initialActiveItemUri = '/tmp/hi'
-        pane.activeView.trigger 'focusout'
-        expect(pane.activeItem.save).toHaveBeenCalled()
-
-    describe "when an item becomes inactive", ->
-      it "saves the item if core.autosave is true and the item has a uri", ->
-        expect(view2).not.toBe pane.activeItem
-        expect(pane.saveItem).not.toHaveBeenCalled()
-        expect(initialActiveItem.save).not.toHaveBeenCalled()
-        pane.showItem(view2)
-
-        pane.showItem(initialActiveItem)
-        config.set('core.autosave', true)
-        pane.showItem(view2)
-        expect(pane.saveItem).not.toHaveBeenCalled()
-        expect(initialActiveItem.save).not.toHaveBeenCalled()
-
-        pane.showItem(initialActiveItem)
-        initialActiveItemUri = '/tmp/hi'
-        pane.showItem(view2)
-        expect(initialActiveItem.save).toHaveBeenCalled()
-
-    describe "when an item is destroyed", ->
-      it "saves the item if core.autosave is true and the item has a uri", ->
-        # doesn't have to be the active item
-        expect(view2).not.toBe pane.activeItem
-        pane.showItem(view2)
-
-        pane.destroyItem(editSession1)
-        expect(pane.saveItem).not.toHaveBeenCalled()
-
-        config.set("core.autosave", true)
-        view2.getUri = -> undefined
-        view2.save = ->
-        pane.destroyItem(view2)
-        expect(pane.saveItem).not.toHaveBeenCalled()
-
-        initialActiveItemUri = '/tmp/hi'
-        pane.destroyItem(initialActiveItem)
-        expect(initialActiveItem.save).toHaveBeenCalled()
 
   describe ".itemForUri(uri)", ->
     it "returns the item for which a call to .getUri() returns the given uri", ->
