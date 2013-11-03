@@ -65,17 +65,27 @@ class Clean extends Command
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
+  removeModule: (module, callback) ->
+    process.stdout.write("Removing #{module} ")
+    @fork @atomNpmPath, ['uninstall', module], (code, stderr='', stdout='') =>
+      if code is 0
+        process.stdout.write '\u2713\n'.green
+        callback()
+      else
+        process.stdout.write '\u2717\n'.red
+        callback("#{stdout}\n#{stderr}".trim())
+
   run: (options) ->
     uninstallCommands = []
     @getModulesToRemove().forEach (module) =>
-      uninstallCommands.push (callback) =>
-        process.stdout.write("Removing #{module} ")
-        @fork @atomNpmPath, ['uninstall', module], (code, stderr='', stdout='') =>
-          if code is 0
-            process.stdout.write '\u2713\n'.green
-            callback()
-          else
-            process.stdout.write '\u2717\n'.red
-            callback("#{stdout}\n#{stderr}")
+      uninstallCommands.push (callback) => @removeModule(module, callback)
 
-    async.waterfall(uninstallCommands, options.callback)
+    if uninstallCommands.length > 0
+      doneCallback = (error) =>
+        if error?
+          options.callback(error)
+        else
+          @run(options)
+    else
+      doneCallback = options.callback
+    async.waterfall(uninstallCommands, doneCallback)
