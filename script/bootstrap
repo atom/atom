@@ -24,6 +24,7 @@ var commands = [
   joinCommands('cd vendor/apm', 'npm install --silent .'),
   'npm install --silent vendor/apm',
   echoNewLine,
+  'node node_modules/atom-package-manager/bin/apm clean',
   'node node_modules/atom-package-manager/bin/apm install --silent',
 ];
 
