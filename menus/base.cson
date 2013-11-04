@@ -155,11 +155,6 @@
   }
 
   {
-    label: 'Collaboration'
-    submenu: []
-  }
-
-  {
     label: 'Packages'
     submenu: []
   }
