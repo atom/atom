@@ -35,13 +35,13 @@ class BindingSet
   getCommandsByKeystrokes: ->
     @commandsByKeystrokes
 
-  commandForEvent: (event) ->
-    for keystrokes, command of @commandsByKeystrokes
-      return command if event.keystrokes == keystrokes
+  commandForKeystrokes: (keystrokes) ->
+    for commandKeystrokes, command of @commandsByKeystrokes
+      return command if commandKeystrokes == keystrokes
     null
 
-  matchesKeystrokePrefix: (event) ->
-    eventKeystrokes = event.keystrokes.split(' ')
+  matchesKeystrokePrefix: (keystrokes) ->
+    eventKeystrokes = keystrokes.split(' ')
     for keystrokes, command of @commandsByKeystrokes
       bindingKeystrokes = keystrokes.split(' ')
       continue unless eventKeystrokes.length < bindingKeystrokes.length

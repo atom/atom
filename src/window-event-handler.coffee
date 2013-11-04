@@ -54,7 +54,8 @@ class WindowEventHandler
 
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
-    @subscribe $(document), 'keydown', atom.keymap.handleKeyEvent
+    @subscribe $(document), 'keydown', (event) =>
+      atom.keymap.handleKeyEvent(event)
 
     @subscribe $(document), 'drop', (e) ->
       e.preventDefault()

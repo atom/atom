@@ -115,65 +115,50 @@ class Keymap
     if bindingSet
       _.remove(@bindingSets, bindingSet)
 
-  bindingsForElement: (element) ->
-    keystrokeMap = {}
-    currentNode = $(element)
-
-    while currentNode.length
-      bindingSets = @bindingSetsForNode(currentNode)
-      _.defaults(keystrokeMap, set.commandsByKeystrokes) for set in bindingSets
-      currentNode = currentNode.parent()
-
-    keystrokeMap
-
-  handleKeyEvent: (event) =>
-    event.keystrokes = @multiKeystrokeStringForEvent(event)
-    isMultiKeystroke = @queuedKeystrokes?
+  handleKeyEvent: (event) ->
+    target = event.target
+    target = rootView[0] if target == document.body
+    keystrokes = @multiKeystrokeStringForEvent(event)
+    shouldBubble = undefined
     @queuedKeystrokes = null
 
-    firstKeystroke = event.keystrokes.split(' ')[0]
-    bindingSetsForFirstKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke]
-    if bindingSetsForFirstKeystroke?
-      currentNode = $(event.target)
-      currentNode = rootView if currentNode is $('body')[0]
-      while currentNode.length
-        candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
-        for bindingSet in candidateBindingSets
-          command = bindingSet.commandForEvent(event)
-          if command is 'native!'
-            return true
-          else if command
-            continue if @triggerCommandEvent(event, command)
-            return false
-          else if command == false
-            return false
+    for bindingSet in @sortedBindingSets(target, keystrokes)
+      if isMultiKeystroke = bindingSet.matchesKeystrokePrefix(keystrokes)
+        @queuedKeystrokes = keystrokes
+        shouldBubble = false
+      else
+        command = bindingSet.commandForKeystrokes(keystrokes)
+        console.log bindingSet
+        if command is 'native!' then shouldBubble = true
+        else if @triggerCommandEvent(target, command) then shouldBubble = false
 
-          if bindingSet.matchesKeystrokePrefix(event)
-            @queuedKeystrokes = event.keystrokes
-            return false
-        currentNode = currentNode.parent()
+      break if shouldBubble?
 
-    return false if isMultiKeystroke
-    return false if firstKeystroke is 'tab'
+    shouldBubble
 
-  bindingSetsForNode: (node, candidateBindingSets = @bindingSets) ->
-    bindingSets = candidateBindingSets.filter (set) -> node.is(set.selector)
+  sortedBindingSets: (target, keystrokes) ->
+    firstKeystroke = keystrokes.split(' ')[0]
+
+    bindingSets = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
+    bindingSets = bindingSets.filter (bindingSet) ->
+      element = $(bindingSet.selector)
+      element.is(target) or element.has(target).length > 0
+
+    return [] unless bindingSets.length > 0
+    for binding in bindingSets
+      console.log binding.selector, binding.specificity
+
     bindingSets.sort (a, b) ->
       if b.specificity == a.specificity
         b.index - a.index
       else
         b.specificity - a.specificity
 
-  triggerCommandEvent: (keyEvent, commandName) ->
-    keyEvent.target = rootView[0] if keyEvent.target == document.body and window.rootView
+  triggerCommandEvent: (target, commandName) ->
     commandEvent = $.Event(commandName)
-    commandEvent.keyEvent = keyEvent
-    aborted = false
-    commandEvent.abortKeyBinding = ->
-      @stopImmediatePropagation()
-      aborted = true
-    $(keyEvent.target).trigger(commandEvent)
-    aborted
+    commandEvent.abortKeyBinding = -> commandEvent.stopImmediatePropagation()
+    $(target).trigger(commandEvent)
+    not commandEvent.isImmediatePropagationStopped()
 
   multiKeystrokeStringForEvent: (event) ->
     currentKeystroke = @keystrokeStringForEvent(event)
