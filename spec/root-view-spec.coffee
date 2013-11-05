@@ -333,6 +333,28 @@ describe "RootView", ->
         expect(pane2.itemForUri('b')).not.toBeFalsy()
         expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
+      it "handles split: left by opening to the left pane when necessary", ->
+        rootView.openSingletonSync('b', split: 'right')
+        pane2 = rootView.getActivePane()
+        expect(pane2[0]).not.toBe pane1[0]
+
+        rootView.openSingletonSync('file1', split: 'left')
+
+        activePane = rootView.getActivePane()
+        expect(activePane[0]).toBe pane1[0]
+
+        expect(pane1.itemForUri('file1')).toBeTruthy()
+        expect(pane2.itemForUri('file1')).toBeFalsy()
+        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+        pane2.focus()
+        expect(rootView.getActivePane()[0]).toBe pane2[0]
+
+        rootView.openSingletonSync('file1', split: 'left')
+        activePane = rootView.getActivePane()
+        expect(activePane[0]).toBe pane1[0]
+        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
       it "reuses the file when already open", ->
         rootView.openSync('b')
         rootView.openSingletonSync('b', split: 'right')
