@@ -704,7 +704,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-
     # Listen for overflow events to detect when the editor's width changes
     # to update the soft wrap column.
     updateWidthInChars = _.debounce((=> @setWidthInChars()), 100)
