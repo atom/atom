@@ -162,6 +162,7 @@ class EditSession
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editSessionId: @id)
       marker.copy(editSessionId: newEditSession.id, preserveFolds: true)
+    project.addEditSession(newEditSession)
     newEditSession
 
   # Public: Retrieves the filename of the open file.

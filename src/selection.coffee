@@ -1,5 +1,6 @@
 {Range} = require 'telepath'
 {Emitter} = require 'emissary'
+{pick} = require 'underscore-plus'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =
@@ -297,8 +298,8 @@ class Selection
   #    + autoDecreaseIndent:
   #      if `true`, decreases indent level appropriately (for example, when a
   #      closing bracket is inserted)
-  #    + skipUndo:
-  #      if `true`, skips the undo stack for this operation.
+  #    + undo:
+  #      if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -309,7 +310,7 @@ class Selection
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editSession.buffer.change(oldBufferRange, text, skipUndo: options.skipUndo)
+    newBufferRange = @editSession.buffer.change(oldBufferRange, text, pick(options, 'undo'))
     if options.select
       @setBufferRange(newBufferRange, isReversed: wasReversed)
     else
