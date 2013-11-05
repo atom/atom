@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs'
 
 module.exports = (grunt) ->
   cmd = path.join('node_modules', '.bin', 'coffee')
@@ -37,11 +38,16 @@ module.exports = (grunt) ->
       cmd = 'cp'
       args = ['-r', 'docs/output/', "../atom.io/public/docs/api/#{tag}/"]
 
-      grunt.util.spawn {cmd, args}, (error, result) ->
-        if error?
-          callback(error)
+      fs.exists "../atom.io/public/docs/api/", (exists) ->
+        if exists
+          grunt.util.spawn {cmd, args}, (error, result) ->
+            if error?
+              callback(error)
+            else
+              callback(null, tag)
         else
-          callback(null, tag)
+          grunt.log.error "../atom.io/public/docs/api/ doesn't exist"
+          return false
 
     grunt.util.async.waterfall [fetchTag, copyDocs], done
 
