@@ -160,18 +160,22 @@ class ThemeManager
       """
 
   # Internal-only:
+  stringToId: (string) ->
+    string.replace(/\\/g, '')
+
+  # Internal-only:
   removeStylesheet: (stylesheetPath) ->
     unless fullPath = @resolveStylesheet(stylesheetPath)
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
-    @stylesheetElementForId(fullPath).remove()
+    @stylesheetElementForId(@stringToId(fullPath)).remove()
 
   # Internal-only:
-  applyStylesheet: (id, text, ttype = 'bundled') ->
-    styleElement = @stylesheetElementForId(id)
+  applyStylesheet: (path, text, ttype = 'bundled') ->
+    styleElement = @stylesheetElementForId(@stringToId(path))
     if styleElement.length
       styleElement.text(text)
     else
       if $("head style.#{ttype}").length
-        $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+        $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
       else
-        $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+        $("head").append "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
