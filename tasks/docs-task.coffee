@@ -7,8 +7,6 @@ module.exports = (grunt) ->
     stdio: 'inherit'
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
-    grunt.task.run('markdown:guides')
-
     done = @async()
     args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', 'vendor/telepath/lib/range.coffee', 'vendor/telepath/lib/point.coffee']
     grunt.util.spawn({cmd, args, opts}, done)
@@ -33,11 +31,11 @@ module.exports = (grunt) ->
         if error?
           callback(error)
         else
-          callback(null, String(result).trim().split('.')[0..1].join('.'))
+          callback(null, String(result).trim())
 
     copyDocs = (tag, callback) ->
       cmd = 'cp'
-      args = ['-r', 'docs/output/', "../atom-docs/public/#{tag}/"]
+      args = ['-r', 'docs/output/', "../atom.io/public/docs/api/#{tag}/"]
 
       grunt.util.spawn {cmd, args}, (error, result) ->
         if error?
