@@ -35,18 +35,13 @@ class BindingSet
   getCommandsByKeystrokes: ->
     @commandsByKeystrokes
 
-  commandForKeystrokes: (keystrokes) ->
-    for commandKeystrokes, command of @commandsByKeystrokes
-      return command if commandKeystrokes == keystrokes
-    null
-
-  matchesKeystrokePrefix: (keystrokes) ->
-    eventKeystrokes = keystrokes.split(' ')
+  commandForKeystrokes: (keystrokesToMatch) ->
+    keyStrokesRegex = new RegExp("^" + _.escapeRegExp(keystrokesToMatch))
     for keystrokes, command of @commandsByKeystrokes
-      bindingKeystrokes = keystrokes.split(' ')
-      continue unless eventKeystrokes.length < bindingKeystrokes.length
-      return true if _.isEqual(eventKeystrokes, bindingKeystrokes[0...eventKeystrokes.length])
-    false
+      if keyStrokesRegex.test(keystrokes)
+        multiKeystrokes = keystrokesToMatch isnt keystrokes
+        return {command, multiKeystrokes}
+    null
 
   normalizeCommandsByKeystrokes: (commandsByKeystrokes) ->
     normalizedCommandsByKeystrokes = {}

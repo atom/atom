@@ -116,37 +116,42 @@ class Keymap
       _.remove(@bindingSets, bindingSet)
 
   handleKeyEvent: (event) ->
-    target = event.target
-    target = rootView[0] if target == document.body
-    keystrokes = @multiKeystrokeStringForEvent(event)
-    shouldBubble = undefined
+    element = event.target
+    element = rootView[0] if element == document.body
+    keystrokes = @keystrokeStringForEvent(event, @queuedKeystrokes)
     @queuedKeystrokes = null
+    shouldBubble = undefined
 
-    for bindingSet in @sortedBindingSets(target, keystrokes)
-      if isMultiKeystroke = bindingSet.matchesKeystrokePrefix(keystrokes)
+    for {command, multiKeystrokes} in @commandsForKeystrokes(keystrokes, element)
+      if multiKeystrokes
         @queuedKeystrokes = keystrokes
         shouldBubble = false
       else
-        command = bindingSet.commandForKeystrokes(keystrokes)
-        console.log bindingSet
         if command is 'native!' then shouldBubble = true
-        else if @triggerCommandEvent(target, command) then shouldBubble = false
+        else if @triggerCommandEvent(element, command) then shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble
 
-  sortedBindingSets: (target, keystrokes) ->
-    firstKeystroke = keystrokes.split(' ')[0]
+  bindingsForElement: (element) ->
+    keystrokesMap = {}
+    for bindingSet in @bindingSetsForElement(element)
+      _.defaults(keystrokesMap, bindingSet.commandsByKeystrokes)
 
-    bindingSets = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
+    keystrokesMap
+
+  commandsForKeystrokes: (keystrokes, element) ->
+    firstKeystroke = keystrokes.split(' ')[0]
+    bindingSetsForKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
+    @bindingSetsForElement(element, bindingSetsForKeystroke).map (bindingSet) ->
+      bindingSet.commandForKeystrokes(keystrokes)
+
+  bindingSetsForElement: (element, bindingSets=@bindingSets) ->
     bindingSets = bindingSets.filter (bindingSet) ->
-      element = $(bindingSet.selector)
-      element.is(target) or element.has(target).length > 0
+      $(element).closest(bindingSet.selector).length > 0
 
     return [] unless bindingSets.length > 0
-    for binding in bindingSets
-      console.log binding.selector, binding.specificity
 
     bindingSets.sort (a, b) ->
       if b.specificity == a.specificity
@@ -154,23 +159,13 @@ class Keymap
       else
         b.specificity - a.specificity
 
-  triggerCommandEvent: (target, commandName) ->
+  triggerCommandEvent: (element, commandName) ->
     commandEvent = $.Event(commandName)
     commandEvent.abortKeyBinding = -> commandEvent.stopImmediatePropagation()
-    $(target).trigger(commandEvent)
+    $(element).trigger(commandEvent)
     not commandEvent.isImmediatePropagationStopped()
 
-  multiKeystrokeStringForEvent: (event) ->
-    currentKeystroke = @keystrokeStringForEvent(event)
-    if @queuedKeystrokes
-      if currentKeystroke in Modifiers
-        @queuedKeystrokes
-      else
-        @queuedKeystrokes + ' ' + currentKeystroke
-    else
-      currentKeystroke
-
-  keystrokeStringForEvent: (event) ->
+  keystrokeStringForEvent: (event, prefix) ->
     if event.originalEvent.keyIdentifier.indexOf('U+') == 0
       hexCharCode = event.originalEvent.keyIdentifier[2..]
       charCode = parseInt(hexCharCode, 16)
@@ -193,7 +188,13 @@ class Keymap
     else
       key = key.toLowerCase()
 
-    [modifiers..., key].join('-')
+    keystrokes = [modifiers..., key].join('-')
+
+    if prefix
+      if keystrokes in Modifiers then prefix
+      else "#{prefix} #{keystroke}"
+    else
+      keystrokes
 
   keystrokesByCommandForSelector: (selector)->
     keystrokesByCommand = {}
