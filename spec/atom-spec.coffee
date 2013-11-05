@@ -3,7 +3,7 @@ Exec = require('child_process').exec
 path = require 'path'
 ThemeManager = require '../src/theme-manager'
 
-describe "the `atom` global", ->
+fdescribe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
 
@@ -200,6 +200,11 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+
+              one = atom.themes.stringToId(one)
+              two = atom.themes.stringToId(two)
+              three = atom.themes.stringToId(three)
+
               expect(atom.themes.stylesheetElementForId(one)).not.toExist()
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
@@ -216,6 +221,12 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.css")
+
+
+              one = atom.themes.stringToId(one)
+              two = atom.themes.stringToId(two)
+              three = atom.themes.stringToId(three)
+
               expect(atom.themes.stylesheetElementForId(one)).not.toExist()
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
