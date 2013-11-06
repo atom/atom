@@ -1353,12 +1353,15 @@ describe "EditSession", ->
 
         describe "when the cursor is not on the first line", ->
           it "inserts a newline above the current line and moves the cursor to the inserted line", ->
-            editSession.setCursorBufferPosition([3])
+            editSession.setCursorBufferPosition([3,4])
             editSession.insertNewlineAbove()
             expect(editSession.getCursorBufferPosition()).toEqual [3,0]
             expect(editSession.lineForBufferRow(3)).toBe ''
             expect(editSession.lineForBufferRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
             expect(editSession.buffer.getLineCount()).toBe 14
+
+            editSession.undo()
+            expect(editSession.getCursorBufferPosition()).toEqual [3,4]
 
       describe ".backspace()", ->
         describe "when there is a single cursor", ->
