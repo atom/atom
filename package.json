@@ -59,7 +59,8 @@
     "grunt-shell": "~0.3.1",
     "jasmine-node": "git://github.com/kevinsawicki/jasmine-node.git#short-stacks",
     "request": "~2.27.0",
-    "unzip": "~0.1.9"
+    "unzip": "~0.1.9",
+    "rcedit": "~0.1.1"
   },
   "packageDependencies" : {
     "atom-light-ui": "0.6.0",
