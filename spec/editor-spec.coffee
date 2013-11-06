@@ -1656,6 +1656,7 @@ describe "Editor", ->
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
+      jasmine.unspy(window, 'setTimeout')
       editSession.setSoftWrap(true)
       editor.attachToDom()
       setEditorHeightInLines(editor, 20)
@@ -1734,6 +1735,19 @@ describe "Editor", ->
       otherEditor.simulateDomAttachment()
       expect(otherEditor.setWidthInChars).toHaveBeenCalled()
       otherEditor.remove()
+
+    describe "when the editor's width changes", ->
+      it "updates the width in characters on the edit session", ->
+        previousSoftWrapColumn = editSession.getSoftWrapColumn()
+
+        spyOn(editor, 'setWidthInChars').andCallThrough()
+        editor.width(editor.width() / 2)
+
+        waitsFor ->
+          editor.setWidthInChars.callCount > 0
+
+        runs ->
+          expect(editSession.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
 
   describe "gutter rendering", ->
     beforeEach ->
@@ -2096,42 +2110,42 @@ describe "Editor", ->
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
     describe "when a selection starts/stops intersecting a fold", ->
-      it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
+      it "adds/removes the 'fold-selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
         editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, isReversed: true)
-        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
 
         editor.setSelectedBufferRange([[1, 0], [1, 1]], preserveFolds: true)
-        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.fold-selected')
 
         editor.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)
-        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
 
         editor.setCursorScreenPosition([3,0])
-        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.fold-selected')
 
         editor.setCursorScreenPosition([2,0])
-        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
         expect(editor.find('.cursor')).toBeHidden()
 
         editor.setCursorScreenPosition([3,0])
         expect(editor.find('.cursor')).toBeVisible()
 
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
-      it "renders the fold's line element with the 'selected' class", ->
+      it "renders the fold's line element with the 'fold-selected' class", ->
         setEditorHeightInLines(editor, 5)
         editor.resetDisplay()
 
         editor.createFold(2, 4)
         editor.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)
-        expect(editor.renderedLines.find('.fold.selected')).toExist()
+        expect(editor.renderedLines.find('.fold.fold-selected')).toExist()
 
         editor.scrollToBottom()
-        expect(editor.renderedLines.find('.fold.selected')).not.toExist()
+        expect(editor.renderedLines.find('.fold.fold-selected')).not.toExist()
 
         editor.scrollTop(0)
-        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
 
   describe "paging up and down", ->
     beforeEach ->

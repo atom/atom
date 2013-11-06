@@ -1326,7 +1326,7 @@ describe "EditSession", ->
               expect(cursor2.getBufferPosition()).toEqual [8,0]
 
       describe ".insertNewlineBelow()", ->
-        xdescribe "when the operation is undone", ->
+        describe "when the operation is undone", ->
           it "places the cursor back at the previous location", ->
             editSession.setCursorBufferPosition([0,2])
             editSession.insertNewlineBelow()
@@ -1334,8 +1334,8 @@ describe "EditSession", ->
             editSession.undo()
             expect(editSession.getCursorBufferPosition()).toEqual [0,2]
 
-        xit "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
-          editSession.setAutoIndent(true)
+        it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
+          config.set("editor.autoIndent", true)
           editSession.insertNewlineBelow()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  "
@@ -1353,12 +1353,15 @@ describe "EditSession", ->
 
         describe "when the cursor is not on the first line", ->
           it "inserts a newline above the current line and moves the cursor to the inserted line", ->
-            editSession.setCursorBufferPosition([3])
+            editSession.setCursorBufferPosition([3,4])
             editSession.insertNewlineAbove()
             expect(editSession.getCursorBufferPosition()).toEqual [3,0]
             expect(editSession.lineForBufferRow(3)).toBe ''
             expect(editSession.lineForBufferRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
             expect(editSession.buffer.getLineCount()).toBe 14
+
+            editSession.undo()
+            expect(editSession.getCursorBufferPosition()).toEqual [3,4]
 
       describe ".backspace()", ->
         describe "when there is a single cursor", ->
@@ -2062,7 +2065,7 @@ describe "EditSession", ->
           editSession.toggleLineCommentsInSelection()
           expect(buffer.lineForRow(10)).toBe "  "
 
-      xdescribe ".undo() and .redo()", ->
+      describe ".undo() and .redo()", ->
         it "undoes/redoes the last change", ->
           editSession.insertText("foo")
           editSession.undo()
@@ -2110,7 +2113,7 @@ describe "EditSession", ->
           editSession.redo()
           expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
-        it "restores folds after undo and redo", ->
+        xit "restores folds after undo and redo", ->
           editSession.foldBufferRow(1)
           editSession.setSelectedBufferRange([[1, 0], [10, Infinity]], preserveFolds: true)
           expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
@@ -2133,27 +2136,26 @@ describe "EditSession", ->
           expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
           expect(editSession.isFoldedAtBufferRow(2)).toBeTruthy()
 
-      xdescribe ".transact([fn])", ->
-        describe "when called without a function", ->
-          it "restores the selection when the transaction is undone/redone", ->
-            buffer.setText('1234')
-            editSession.setSelectedBufferRange([[0, 1], [0, 3]])
-            editSession.transact()
+      describe "begin/commitTransaction()", ->
+        it "restores the selection when the transaction is undone/redone", ->
+          buffer.setText('1234')
+          editSession.setSelectedBufferRange([[0, 1], [0, 3]])
+          editSession.beginTransaction()
 
-            editSession.delete()
-            editSession.moveCursorToEndOfLine()
-            editSession.insertText('5')
-            expect(buffer.getText()).toBe '145'
+          editSession.delete()
+          editSession.moveCursorToEndOfLine()
+          editSession.insertText('5')
+          expect(buffer.getText()).toBe '145'
 
-            editSession.commit()
+          editSession.commitTransaction()
 
-            editSession.undo()
-            expect(buffer.getText()).toBe '1234'
-            expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 3]]
+          editSession.undo()
+          expect(buffer.getText()).toBe '1234'
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 3]]
 
-            editSession.redo()
-            expect(buffer.getText()).toBe '145'
-            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3], [0, 3]]
+          editSession.redo()
+          expect(buffer.getText()).toBe '145'
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3], [0, 3]]
 
       describe "when the buffer is changed (via its direct api, rather than via than edit session)", ->
         it "moves the cursor so it is in the same relative position of the buffer", ->
@@ -2274,7 +2276,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(6)).toBe(line7)
           expect(buffer.getLineCount()).toBe(count - 1)
 
-      xdescribe "when the line being deleted preceeds a fold, and the command is undone", ->
+      describe "when the line being deleted preceeds a fold, and the command is undone", ->
         it "restores the line and preserves the fold", ->
           editSession.setCursorBufferPosition([4])
           editSession.foldCurrentRow()
