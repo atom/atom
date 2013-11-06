@@ -27,7 +27,7 @@ class Cursor
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      @needsAutoscroll ?= @isLastCursor()
+      @needsAutoscroll ?= @isLastCursor() and !textChanged
 
       movedEvent =
         oldBufferPosition: oldHeadBufferPosition
