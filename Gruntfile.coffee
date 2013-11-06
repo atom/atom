@@ -188,8 +188,4 @@ module.exports = (grunt) ->
   grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
-
-  defaultTasks = ['update-atom-shell', 'build']
-  defaultTasks.push('set-development-version') if process.platform is 'darwin'
-  defaultTasks.push('install')
-  grunt.registerTask('default', defaultTasks)
+  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
