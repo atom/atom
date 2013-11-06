@@ -2145,7 +2145,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.fold.fold-selected')).not.toExist()
 
         editor.scrollTop(0)
-        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
 
   describe "paging up and down", ->
     beforeEach ->
