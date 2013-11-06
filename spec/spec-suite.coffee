@@ -40,12 +40,12 @@ measure 'spec suite require time', ->
         'user'
 
     # Run bundled package specs
-    requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.bundled ? []
-    setSpecType('bundled')
+    #requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.bundled ? []
+    #setSpecType('bundled')
 
     # Run user package specs
-    requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.user ? []
-    setSpecType('user')
+    #requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.user ? []
+    #setSpecType('user')
 
   if specDirectory = atom.getLoadSettings().specDirectory
     requireSpecs(specDirectory)

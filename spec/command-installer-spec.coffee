@@ -14,22 +14,23 @@ describe "install(commandPath, callback)", ->
 
     fs.removeSync(directory) if fs.existsSync(directory)
 
-  it "symlinks the command and makes it executable", ->
-    fs.writeFileSync(commandPath, 'test')
-    expect(fs.isFileSync(commandPath)).toBeTruthy()
-    expect(fs.isExecutableSync(commandPath)).toBeFalsy()
-    expect(fs.isFileSync(destinationPath)).toBeFalsy()
+  describe "on #darwin", ->
+    it "symlinks the command and makes it executable", ->
+      fs.writeFileSync(commandPath, 'test')
+      expect(fs.isFileSync(commandPath)).toBeTruthy()
+      expect(fs.isExecutableSync(commandPath)).toBeFalsy()
+      expect(fs.isFileSync(destinationPath)).toBeFalsy()
 
-    installDone = false
-    installError = null
-    installer.install commandPath, (error) ->
-      installDone = true
-      installError = error
+      installDone = false
+      installError = null
+      installer.install commandPath, (error) ->
+        installDone = true
+        installError = error
 
-    waitsFor -> installDone
+      waitsFor -> installDone
 
-    runs ->
-      expect(installError).toBeNull()
-      expect(fs.isFileSync(destinationPath)).toBeTruthy()
-      expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
-      expect(fs.isExecutableSync(destinationPath)).toBeTruthy()
+      runs ->
+        expect(installError).toBeNull()
+        expect(fs.isFileSync(destinationPath)).toBeTruthy()
+        expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
+        expect(fs.isExecutableSync(destinationPath)).toBeTruthy()
