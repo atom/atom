@@ -1330,7 +1330,7 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
-      ffit "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
+      it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
         maxLineLength = editor.getMaxScreenLineLength()
         setEditorWidthInChars(editor, maxLineLength)
         widthBefore = editor.renderedLines.width()
