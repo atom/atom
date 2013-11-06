@@ -3,7 +3,7 @@ Exec = require('child_process').exec
 path = require 'path'
 ThemeManager = require '../src/theme-manager'
 
-fdescribe "the `atom` global", ->
+describe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
 
