@@ -777,6 +777,9 @@ describe "Editor", ->
           # resizes with the editor
           expect(editor.width()).toBeLessThan(800)
           editor.width(800)
+          editor.resize() # call to trigger the resize event.
+
+          region2 = selectionView.regions[1]
           expect(region2.width()).toBe(editor.renderedLines.outerWidth())
 
           region3 = selectionView.regions[2]
