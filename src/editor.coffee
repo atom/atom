@@ -1596,6 +1596,9 @@ class Editor extends View
 
     returnLeft = null
 
+    offsetLeft = @scrollView.offset().left
+    paddingLeft = parseInt(@scrollView.css('padding-left'))
+
     while textNode = iterator.nextNode()
       content = textNode.textContent
 
@@ -1618,7 +1621,7 @@ class Editor extends View
           MeasureRange.collapse()
           rects = MeasureRange.getClientRects()
           return 0 if rects.length == 0
-          left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+          left = rects[0].left - Math.floor(offsetLeft) + Math.floor(@scrollLeft()) - paddingLeft
 
           if scopes?
             cachedCharWidth = left - oldLeft
