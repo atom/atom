@@ -296,20 +296,28 @@ describe "Editor", ->
       expect(editor.css('font-family')).toBe ''
 
     describe "when the font family changes", ->
+      [fontFamily] = []
+
+      beforeEach ->
+        if process.platform is 'darwin'
+          fontFamily = "PCMyungjo"
+        else
+          fontFamily = "Consolas"
+
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editor.attachToDom(12)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
 
-        config.set("editor.fontFamily", "PCMyungjo")
-        expect(editor.css('font-family')).toBe 'PCMyungjo'
+        config.set("editor.fontFamily", fontFamily)
+        expect(editor.css('font-family')).toBe fontFamily
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
         newEditor = new Editor(editor.activeEditSession.copy())
         newEditor.attachToDom()
-        expect(newEditor.css('font-family')).toBe 'PCMyungjo'
+        expect(newEditor.css('font-family')).toBe fontFamily
 
   describe "font size", ->
     beforeEach ->
@@ -911,11 +919,19 @@ describe "Editor", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')
 
-        it "correctly positions the cursor", ->
-          editor.setCursorBufferPosition([3, 30])
-          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
-          editor.setCursorBufferPosition([3, Infinity])
-          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+        describe "on #darwin or #linux", ->
+          it "correctly positions the cursor", ->
+            editor.setCursorBufferPosition([3, 30])
+            expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
+            editor.setCursorBufferPosition([3, Infinity])
+            expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+
+        describe "on #win32", ->
+          it "correctly positions the cursor", ->
+            editor.setCursorBufferPosition([3, 30])
+            expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 175}
+            editor.setCursorBufferPosition([3, Infinity])
+            expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 346}
 
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
