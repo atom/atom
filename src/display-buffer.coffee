@@ -106,8 +106,10 @@ class DisplayBuffer
   #
   # editorWidthInChars - A {Number} of characters.
   setEditorWidthInChars: (editorWidthInChars) ->
+    previousWidthInChars = @state.get('editorWidthInChars')
     @state.set('editorWidthInChars', editorWidthInChars)
-    @updateWrappedScreenLines() if @getSoftWrap()
+    if editorWidthInChars isnt previousWidthInChars and @getSoftWrap()
+      @updateWrappedScreenLines()
 
   getSoftWrapColumn: ->
     editorWidthInChars = @state.get('editorWidthInChars')

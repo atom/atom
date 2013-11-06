@@ -1656,6 +1656,7 @@ describe "Editor", ->
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
+      jasmine.unspy(window, 'setTimeout')
       editSession.setSoftWrap(true)
       editor.attachToDom()
       setEditorHeightInLines(editor, 20)
@@ -1734,6 +1735,19 @@ describe "Editor", ->
       otherEditor.simulateDomAttachment()
       expect(otherEditor.setWidthInChars).toHaveBeenCalled()
       otherEditor.remove()
+
+    describe "when the editor's width changes", ->
+      it "updates the width in characters on the edit session", ->
+        previousSoftWrapColumn = editSession.getSoftWrapColumn()
+
+        spyOn(editor, 'setWidthInChars').andCallThrough()
+        editor.width(editor.width() / 2)
+
+        waitsFor ->
+          editor.setWidthInChars.callCount > 0
+
+        runs ->
+          expect(editSession.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
 
   describe "gutter rendering", ->
     beforeEach ->

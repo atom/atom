@@ -201,12 +201,14 @@ class RootView extends View
       else
         paneItem = project.openSync()
 
-      if split
+      if split == 'right'
         panes = @getPanes()
         if panes.length == 1
           pane = panes[0].splitRight()
         else
           pane = _.last(panes)
+      else if split == 'left'
+        pane = @getPanes()[0]
 
       pane.showItem(paneItem)
     else
