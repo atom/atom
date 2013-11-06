@@ -2133,16 +2133,16 @@ describe "Editor", ->
         expect(editor.find('.cursor')).toBeVisible()
 
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
-      it "renders the fold's line element with the 'selected' class", ->
+      it "renders the fold's line element with the 'fold-selected' class", ->
         setEditorHeightInLines(editor, 5)
         editor.resetDisplay()
 
         editor.createFold(2, 4)
         editor.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)
-        expect(editor.renderedLines.find('.fold.selected')).toExist()
+        expect(editor.renderedLines.find('.fold.fold-selected')).toExist()
 
         editor.scrollToBottom()
-        expect(editor.renderedLines.find('.fold.selected')).not.toExist()
+        expect(editor.renderedLines.find('.fold.fold-selected')).not.toExist()
 
         editor.scrollTop(0)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')

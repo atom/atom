@@ -929,11 +929,12 @@ class Editor extends View
     @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
 
-  # Given a buffer range, this highlights all the folds within that range
+  # Highlight all the folds within the given buffer range.
   #
-  # "Highlighting" essentially just adds the `selected` class to the line
+  # "Highlighting" essentially just adds the `fold-selected` class to the line's
+  # DOM element.
   #
-  # bufferRange - The {Range} to check
+  # bufferRange - The {Range} to check.
   highlightFoldsContainingBufferRange: (bufferRange) ->
     screenLines = @linesForScreenRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
     for screenLine, i in screenLines
@@ -942,9 +943,9 @@ class Editor extends View
         element = @lineElementForScreenRow(screenRow)
 
         if bufferRange.intersectsWith(fold.getBufferRange())
-          element.addClass('selected')
+          element.addClass('fold-selected')
         else
-          element.removeClass('selected')
+          element.removeClass('fold-selected')
 
   saveScrollPositionForActiveEditSession: ->
     if @attached
