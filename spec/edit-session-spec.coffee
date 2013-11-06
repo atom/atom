@@ -1326,7 +1326,7 @@ describe "EditSession", ->
               expect(cursor2.getBufferPosition()).toEqual [8,0]
 
       describe ".insertNewlineBelow()", ->
-        xdescribe "when the operation is undone", ->
+        describe "when the operation is undone", ->
           it "places the cursor back at the previous location", ->
             editSession.setCursorBufferPosition([0,2])
             editSession.insertNewlineBelow()
@@ -1334,7 +1334,7 @@ describe "EditSession", ->
             editSession.undo()
             expect(editSession.getCursorBufferPosition()).toEqual [0,2]
 
-        xit "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
+        it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
           editSession.setAutoIndent(true)
           editSession.insertNewlineBelow()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
