@@ -959,8 +959,7 @@ describe "Editor", ->
           expect(editor.scrollToPixelPosition.callCount).toBe 1
 
         it "autoscrolls on undo/redo", ->
-          editor.getCursor().clearAutoscroll()
-          spyOn(editor, 'scrollToPixelPosition').andCallThrough()
+          spyOn(editor, 'scrollToPixelPosition')
           editor.insertText('\n\n')
           expect(editor.scrollToPixelPosition.callCount).toBe 1
           editor.undo()
