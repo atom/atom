@@ -574,14 +574,12 @@ class EditSession
 
   # Public: Undoes the last change.
   undo: ->
-    cursor = @getCursor()
-    cursor.needsAutoscroll = cursor.isLastCursor()
+    @getCursor().needsAutoscroll = true
     @buffer.undo(this)
 
   # Pulic: Redoes the last change.
   redo: ->
-    cursor = @getCursor()
-    cursor.needsAutoscroll = cursor.isLastCursor()
+    @getCursor().needsAutoscroll = true
     @buffer.redo(this)
 
   # Public: Folds all the rows.
