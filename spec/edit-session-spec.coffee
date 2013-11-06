@@ -1335,7 +1335,7 @@ describe "EditSession", ->
             expect(editSession.getCursorBufferPosition()).toEqual [0,2]
 
         it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
-          editSession.setAutoIndent(true)
+          config.set("editor.autoIndent", true)
           editSession.insertNewlineBelow()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  "
