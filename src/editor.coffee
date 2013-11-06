@@ -773,8 +773,8 @@ class Editor extends View
     @subscribe $(window), "resize.editor-#{@id}", =>
       @setHeightInLines()
       @setWidthInChars()
-      @requestDisplayUpdate()
       @updateLayerDimensions()
+      @requestDisplayUpdate()
     @focus() if @isFocused
 
     if pane = @getPane()
@@ -1156,7 +1156,7 @@ class Editor extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = @scrollView.width()
+    minWidth = Math.max(@charWidth * @getMaxScreenLineLength() + 20, @scrollView.width())
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
