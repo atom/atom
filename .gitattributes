@@ -5,3 +5,4 @@ spec/fixtures/**/*.coffee text eol=lf
 spec/fixtures/**/*.less text eol=lf
 spec/fixtures/**/*.css text eol=lf
 spec/fixtures/**/*.txt text eol=lf
+spec/fixtures/dir/**/* text eol=lf
