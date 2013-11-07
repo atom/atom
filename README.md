@@ -2,7 +2,7 @@
 
 ![atom](https://s3.amazonaws.com/speakeasy/apps/icons/27/medium/7db16e44-ba57-11e2-8c6f-981faf658e00.png)
 
-Check out our [guides](https://atom-docs.githubapp.com/v26.0/index.html) and [API documentation](https://atom-docs.githubapp.com/v26.0/api/index.html).
+Check out our [guides](https://www.atom.io/docs/latest/) and [API documentation](https://www.atom.io/docs/api/v34.0.0/api/)
 
 ## Installing
 

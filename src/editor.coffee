@@ -773,6 +773,7 @@ class Editor extends View
     @subscribe $(window), "resize.editor-#{@id}", =>
       @setHeightInLines()
       @setWidthInChars()
+      @updateLayerDimensions()
       @requestDisplayUpdate()
     @focus() if @isFocused
 
@@ -1156,7 +1157,7 @@ class Editor extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = @charWidth * @getMaxScreenLineLength() + 20
+    minWidth = Math.max(@charWidth * @getMaxScreenLineLength() + 20, @scrollView.width())
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -1597,6 +1598,9 @@ class Editor extends View
 
     returnLeft = null
 
+    offsetLeft = @scrollView.offset().left
+    paddingLeft = parseInt(@scrollView.css('padding-left'))
+
     while textNode = iterator.nextNode()
       content = textNode.textContent
 
@@ -1619,7 +1623,7 @@ class Editor extends View
           MeasureRange.collapse()
           rects = MeasureRange.getClientRects()
           return 0 if rects.length == 0
-          left = rects[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
+          left = rects[0].left - Math.floor(offsetLeft) + Math.floor(@scrollLeft()) - paddingLeft
 
           if scopes?
             cachedCharWidth = left - oldLeft
@@ -1701,12 +1705,12 @@ class Editor extends View
   getGrammar: ->
     @activeEditSession.getGrammar()
 
-   # {Delegates to: EditSession.setGrammar}
+  # {Delegates to: EditSession.setGrammar}
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
 
-   # {Delegates to: EditSession.reloadGrammar}
+  # {Delegates to: EditSession.reloadGrammar}
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
 

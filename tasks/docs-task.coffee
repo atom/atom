@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs'
 
 module.exports = (grunt) ->
   cmd = path.join('node_modules', '.bin', 'coffee')
@@ -7,10 +8,8 @@ module.exports = (grunt) ->
     stdio: 'inherit'
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
-    grunt.task.run('markdown:guides')
-
     done = @async()
-    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', 'vendor/telepath/lib/range.coffee', 'vendor/telepath/lib/point.coffee']
+    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', '../telepath/src/range.coffee', '../telepath/src/point.coffee', '../telepath/src/string-marker.coffee']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
@@ -33,17 +32,22 @@ module.exports = (grunt) ->
         if error?
           callback(error)
         else
-          callback(null, String(result).trim().split('.')[0..1].join('.'))
+          callback(null, String(result).trim())
 
     copyDocs = (tag, callback) ->
       cmd = 'cp'
-      args = ['-r', 'docs/output/', "../atom-docs/public/#{tag}/"]
+      args = ['-r', 'docs/output/', "../atom.io/public/docs/api/#{tag}/"]
 
-      grunt.util.spawn {cmd, args}, (error, result) ->
-        if error?
-          callback(error)
+      fs.exists "../atom.io/public/docs/api/", (exists) ->
+        if exists
+          grunt.util.spawn {cmd, args}, (error, result) ->
+            if error?
+              callback(error)
+            else
+              callback(null, tag)
         else
-          callback(null, tag)
+          grunt.log.error "../atom.io/public/docs/api/ doesn't exist"
+          return false
 
     grunt.util.async.waterfall [fetchTag, copyDocs], done
 
