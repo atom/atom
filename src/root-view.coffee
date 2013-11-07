@@ -179,15 +179,18 @@ class RootView extends View
     editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
     promise = project.open(filePath, {initialLine}) if not editSession
 
-    Q(editSession ? promise).then (editSession) =>
-      if not activePane
-        activePane = new Pane(editSession)
-        @panes.setRoot(activePane)
+    Q(editSession ? promise)
+      .then (editSession) =>
+        if not activePane
+          activePane = new Pane(editSession)
+          @panes.setRoot(activePane)
 
-      activePane.showItem(editSession)
-      activePane.focus() if changeFocus
-      @trigger "uri-opened"
-      editSession
+        activePane.showItem(editSession)
+        activePane.focus() if changeFocus
+        @trigger "uri-opened"
+        editSession
+      .catch (error) ->
+        console.error(error.stack ? error)
 
   # Private: Only used in specs
   openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
