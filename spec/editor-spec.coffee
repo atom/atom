@@ -958,6 +958,15 @@ describe "Editor", ->
           editor.insertText('\n\n')
           expect(editor.scrollToPixelPosition.callCount).toBe 1
 
+        it "autoscrolls on undo/redo", ->
+          spyOn(editor, 'scrollToPixelPosition')
+          editor.insertText('\n\n')
+          expect(editor.scrollToPixelPosition.callCount).toBe 1
+          editor.undo()
+          expect(editor.scrollToPixelPosition.callCount).toBe 2
+          editor.redo()
+          expect(editor.scrollToPixelPosition.callCount).toBe 3
+
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
           describe "when the editor is taller than twice the vertical scroll margin", ->
             it "sets the scrollTop so the cursor remains within the scroll margin", ->
