@@ -1705,12 +1705,12 @@ class Editor extends View
   getGrammar: ->
     @activeEditSession.getGrammar()
 
-   # {Delegates to: EditSession.setGrammar}
+  # {Delegates to: EditSession.setGrammar}
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
 
-   # {Delegates to: EditSession.reloadGrammar}
+  # {Delegates to: EditSession.reloadGrammar}
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
 
