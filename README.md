@@ -15,6 +15,7 @@ It will automatically update when a new release is available.
 ### Requirements
 
   * Mountain Lion
+    * Looking for Windows support? Read [here](https://github.com/atom/atom/blob/master/docs/building-atom.md).
   * Boxen (Obviously Atom won't release with this requirement)
 
 ### Installation
@@ -24,3 +25,6 @@ It will automatically update when a new release is available.
   2. `cd ~/github/atom`
 
   3. `script/build`
+
+
+[building]
