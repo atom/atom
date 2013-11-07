@@ -1,7 +1,7 @@
 ## Building Atom
 
 These guide is meant only for users who wish to help develop atom core,
-if you're just intersted in using atom you should just [download
+if you're just interested in using atom you should just [download
 atom][download].
 
 ## OSX
