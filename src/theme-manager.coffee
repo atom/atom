@@ -161,7 +161,7 @@ class ThemeManager
 
   # Internal-only:
   stringToId: (string) ->
-    string.replace(/\\/g, '')
+    string.replace(/\\/g, '/')
 
   # Internal-only:
   removeStylesheet: (stylesheetPath) ->
