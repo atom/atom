@@ -50,7 +50,7 @@ class TextBuffer
       @useSerializedText = @state.get('isModified') != false
     else
       {@project, filePath} = optionsOrState
-      @text = new telepath.MutableString(initialText ? '')
+      @text = new telepath.String(initialText ? '', replicated: false)
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
