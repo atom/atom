@@ -1,3 +1,5 @@
+path = require 'path'
+
 Keymap = require '../src/keymap'
 {$, $$, RootView} = require 'atom'
 
@@ -351,7 +353,7 @@ describe "Keymap", ->
 
   describe ".getAllKeyMappings", ->
     it "returns the all bindings", ->
-      keymap.bindKeys '~/.atom/packages/dummy/keymaps/a.cson', '.command-mode', 'k': 'c'
+      keymap.bindKeys path.join('~', '.atom', 'packages', 'dummy', 'keymaps', 'a.cson'), '.command-mode', 'k': 'c'
 
       mappings = keymap.getAllKeyMappings()
       expect(mappings.length).toBe 1
@@ -363,20 +365,20 @@ describe "Keymap", ->
   describe ".determineSource", ->
     describe "for a package", ->
       it "returns '<package-name>'", ->
-        expect(keymap.determineSource('~/.atom/packages/dummy/keymaps/a.cson')).toEqual 'dummy'
+        expect(keymap.determineSource(path.join('~', '.atom', 'packages', 'dummy', 'keymaps', 'a.cson'))).toEqual 'dummy'
 
     describe "for a linked package", ->
       it "returns '<package-name>'", ->
-        expect(keymap.determineSource('/Users/john/github/dummy/keymaps/a.cson')).toEqual 'dummy'
+        expect(keymap.determineSource(path.join('Users', 'john', 'github', 'dummy', 'keymaps', 'a.cson'))).toEqual 'dummy'
 
     describe "for a user defined keymap", ->
       it "returns 'User'", ->
-        expect(keymap.determineSource('~/.atom/keymaps/a.cson')).toEqual 'User'
+        expect(keymap.determineSource(path.join('~', '.atom', 'keymaps', 'a.cson'))).toEqual 'User'
 
     describe "for a core keymap", ->
       it "returns 'Core'", ->
-        expect(keymap.determineSource('/Applications/Atom.app/.../node_modules/dummy/keymaps/a.cson')).toEqual 'Core'
+        expect(keymap.determineSource(path.join('Applications', 'Atom.app', '..', 'node_modules', 'dummy', 'keymaps', 'a.cson'))).toEqual 'Core'
 
     describe "for a linked core keymap", ->
       it "returns 'Core'", ->
-        expect(keymap.determineSource('/Users/john/github/atom/keymaps/a.cson')).toEqual 'Core'
+        expect(keymap.determineSource(path.join('Users', 'john', 'github', 'atom', 'keymaps', 'a.cson'))).toEqual 'Core'

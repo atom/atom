@@ -85,7 +85,7 @@ describe "ThemeManager", ->
       expect($('head style').length).toBe lengthBefore + 1
 
       element = $('head style[id*="css.css"]')
-      expect(element.attr('id')).toBe cssPath
+      expect(element.attr('id')).toBe themeManager.stringToId(cssPath)
       expect(element.text()).toBe fs.readFileSync(cssPath, 'utf8')
 
       # doesn't append twice
@@ -101,7 +101,7 @@ describe "ThemeManager", ->
       expect($('head style').length).toBe lengthBefore + 1
 
       element = $('head style[id*="sample.less"]')
-      expect(element.attr('id')).toBe lessPath
+      expect(element.attr('id')).toBe themeManager.stringToId(lessPath)
       expect(element.text()).toBe """
       #header {
         color: #4d926f;
@@ -119,9 +119,9 @@ describe "ThemeManager", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
+      expect($('head style[id*="css.css"]').attr('id')).toBe themeManager.stringToId(project.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
+      expect($('head style[id*="sample.less"]').attr('id')).toBe themeManager.stringToId(project.resolve('sample.less'))
 
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()

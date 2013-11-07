@@ -42,8 +42,9 @@ window.setUpDefaultEvents = ->
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
-  installAtomCommand()
-  installApmCommand()
+  if process.platform is 'darwin'
+    installAtomCommand()
+    installApmCommand()
 
   windowEventHandler = new WindowEventHandler
   restoreDimensions()

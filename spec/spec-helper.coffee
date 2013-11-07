@@ -279,6 +279,3 @@ $.fn.textInput = (data) ->
     event.initTextEvent('textInput', true, true, window, data)
     event = $.event.fix(event)
     $(this).trigger(event)
-
-unless fs.md5ForPath(require.resolve('./fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
-  throw new Error("Sample.js is modified")

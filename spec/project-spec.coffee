@@ -406,7 +406,7 @@ describe "Project", ->
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /aaa/, paths: ['a-dir/'], (result) ->
+          project.scan /aaa/, paths: ["a-dir#{path.sep}"], (result) ->
             paths.push(result.filePath)
             matches = matches.concat(result.matches)
 
