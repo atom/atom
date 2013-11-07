@@ -76,6 +76,7 @@
     "autosave": "0.6.0",
     "bookmarks": "0.10.0",
     "bracket-matcher": "0.9.0",
+    "branch-selector": "0.2.21",
     "command-logger": "0.6.0",
     "command-palette": "0.7.0",
     "dev-live-reload": "0.14.0",
