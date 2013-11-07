@@ -36,7 +36,6 @@
     "node-gyp": "~0.10.2",
     "season": "~0.9.0",
     "request": "~2.21.0",
-    "npmconf": "0.0.24",
     "semver": "~1.1.4",
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",

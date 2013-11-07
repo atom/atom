@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
-npmconf = require 'npmconf'
 semver = require 'semver'
 
 auth = require './auth'
