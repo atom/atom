@@ -10,10 +10,8 @@
   * Check the Dev tools (`alt-cmd-i`) for errors and stack traces to include
 
 ## Code
-  * Follow the [JavaScript](https://github.com/styleguide/javascript),
-    [CSS](https://github.com/styleguide/css),
-    and [Objective-C](https://github.com/github/objective-c-conventions)
-    styleguides
+  * Follow the [JavaScript](https://github.com/styleguide/javascript) and
+    [CSS](https://github.com/styleguide/css) styleguides
   * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
     specs
   * Add 3rd-party packages as a `package.json` dependency
@@ -32,7 +30,7 @@
     * The home directory is `process.env.USERPROFILE` on Windows, while on OS X
       and Linux it's `process.env.HOME`
     * Path separator is `\` on Windows, and is `/` on OS X and Linux, so use
-      `path.join` to concatenate filenames.
+      `path.join` to concatenate filenames
     * Temporary directory is not `/tmp` on Windows, use `os.tmpdir()` when
       possible
 
