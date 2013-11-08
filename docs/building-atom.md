@@ -30,4 +30,5 @@ atom][download].
 [win-node]: http://nodejs.org/download/
 [win-python]: http://www.python.org/download/
 [win-github]: http://windows.github.com/
+[win-vs2010]: http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express
 [atom-git]: https://github.com/atom/atom/
