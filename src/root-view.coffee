@@ -7,9 +7,6 @@ fs = require 'fs-plus'
 telepath = require 'telepath'
 Editor = require './editor'
 Pane = require './pane'
-PaneColumn = require './pane-column'
-PaneRow = require './pane-row'
-PaneContainer = require './pane-container'
 EditSession = require './edit-session'
 
 # Public: The container for the entire Atom application.
@@ -38,7 +35,7 @@ EditSession = require './edit-session'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
+  registerDeserializers(this, Editor)
 
   @version: 1
 
