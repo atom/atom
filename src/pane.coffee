@@ -24,6 +24,9 @@ class Pane extends Model
     @setActiveItem(item) if @items.length is 1
     item
 
+  moveItem: (item, index) ->
+    @items.insert(index, item)
+
   removeItem: (item) ->
     index = @items.indexOf(item)
     unless index is -1

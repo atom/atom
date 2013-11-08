@@ -73,3 +73,10 @@ describe "Pane", ->
           pane.removeItem(item2)
           pane.removeItem(item3)
           expect(pane.activeItem).toBeUndefined()
+
+  describe "::moveItem(item, index)", ->
+    it "moves the item to the given index", ->
+      pane.moveItem(item1, 3)
+      expect(pane.items).toEqual [item2, item3, item1]
+      pane.moveItem(item2, 2)
+      expect(pane.items).toEqual [item3, item2, item1]
