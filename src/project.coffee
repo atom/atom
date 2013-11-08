@@ -336,6 +336,35 @@ class Project
 
     deferred.promise
 
+  replace: (regex, replacementText, filePaths, iterator) ->
+    deferred = Q.defer()
+
+    openPaths = (buffer.getPath() for buffer in @buffers)
+    outOfProcessPaths = _.difference(filePaths, openPaths)
+
+    inProcessFinished = !openPaths.length
+    outOfProcessFinished = !outOfProcessPaths.length
+    checkFinished = ->
+      deferred.resolve() if outOfProcessFinished and inProcessFinished
+
+    unless outOfProcessFinished.length
+      flags = 'g'
+      flags += 'i' if regex.ignoreCase
+
+      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
+        outOfProcessFinished = true
+        checkFinished()
+
+      task.on 'replace:path-replaced', iterator
+
+    for buffer in @buffers
+      buffer.replace(regex, replacementText, iterator)
+
+    inProcessFinished = true
+    checkFinished()
+
+    deferred.promise
+
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     editSession = new EditSession(_.extend({buffer}, editSessionOptions))

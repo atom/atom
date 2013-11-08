@@ -538,6 +538,19 @@ class TextBuffer
       result.lineTextOffset = 0
       iterator(result)
 
+  replace: (regex, replacementText, iterator) ->
+    doSave = !@isModified()
+    replacements = 0
+
+    @transact =>
+      @scan regex, ({matchText, replace}) ->
+        replace(matchText.replace(regex, replacementText))
+        replacements++
+
+    @save() if doSave
+
+    iterator({filePath: @getPath(), replacements})
+
   # Scans for text in a given range, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
