@@ -30,6 +30,9 @@ class Pane extends Model
           @setActiveItem(@getNextItem(item))
       @items.splice(index, 1)
 
+  removeItems: ->
+    @items.splice(0, @items.length)
+
   getNextItem: (item) ->
     return unless @items.length > 1
 
