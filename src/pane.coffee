@@ -13,4 +13,4 @@ class Pane extends Model
     @setActiveItem(@items.getFirst()) unless @activeItem?
 
   setActiveItem: (item) ->
-    @activeItemId = item.id
+    @activeItemId = item?.id

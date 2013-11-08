@@ -11,3 +11,8 @@ describe "Pane", ->
     it "assigns the given items and sets the first item as the active item", ->
       expect(pane.items.map('title')).toEqual ["Item 1", "Item 2"]
       expect(pane.activeItem).toBe pane.items.getFirst()
+
+    it "does not assign an active item if no items are provided", ->
+      pane = container.createPane()
+      expect(pane.items).toEqual []
+      expect(pane.activeItem).toBeUndefined()
