@@ -336,6 +336,12 @@ class Project
 
     deferred.promise
 
+  # Public: Performs a replace across all the specified files in the project.
+  #
+  # * regex: A RegExp to search with
+  # * replacementText: Text to replace all matches of regex with
+  # * filePaths: List of file path strings to run the replace on.
+  # * iterator: A Function callback on each file with replacements. ({filePath, replacements}) ->
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 
@@ -358,7 +364,8 @@ class Project
       task.on 'replace:path-replaced', iterator
 
     for buffer in @buffers
-      buffer.replace(regex, replacementText, iterator)
+      replacements = buffer.replace(regex, replacementText, iterator)
+      iterator({filePath: buffer.getPath(), replacements}) if replacements
 
     inProcessFinished = true
     checkFinished()
