@@ -6,7 +6,7 @@ path = require 'path'
 {Emitter} = require 'emissary'
 {ScopeSelector} = require 'first-mate'
 
-pathSplitRegex = new RegExp("[#{path.sep}.]")
+pathSplitRegex = new RegExp("[#{_.escapeRegExp(path.sep)}.]")
 
 ### Internal ###
 

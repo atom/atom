@@ -3,6 +3,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   window[key] = value for key, value of require '../vendor/jasmine'
 
   require 'jasmine-focused'
+  require 'jasmine-tagged'
 
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
@@ -27,6 +28,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
   jasmineEnv.addReporter(timeReporter)
+  jasmineEnv.setIncludedTags([process.platform])
 
   $('body').append $$ -> @div id: 'jasmine-content'
 
