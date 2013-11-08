@@ -31,6 +31,22 @@ describe "Pane", ->
         expect(pane.activeItem).toEqual {title: "Item 4"}
         expect(pane.items).toEqual [item1, item2, {title: "Item 4"}, item3]
 
+  describe "::addItem(item)", ->
+    describe "when the pane has no items", ->
+      it "adds the item and makes it the active item", ->
+        pane.removeItems()
+        item4 = pane.addItem({title: "Item 4"})
+        expect(item4.toObject()).toEqual {title: "Item 4"}
+        expect(pane.items).toEqual [item4]
+        expect(pane.activeItem).toBe pane.items.get(0)
+
+    describe "when the pane has items", ->
+      it "adds the item after the active item", ->
+        item4 = pane.addItem({title: "Item 4"})
+        expect(item4.toObject()).toEqual {title: "Item 4"}
+        expect(pane.activeItem).toBe pane.items.getFirst()
+        expect(pane.items).toEqual [item1, item4, item2, item3]
+
   describe "::removeItem(item)", ->
     it "removes the specified item", ->
       expect(pane.activeItem).toBe item1
