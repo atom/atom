@@ -30,3 +30,30 @@ describe "Pane", ->
         pane.setActiveItem({title: "Item 4"})
         expect(pane.activeItem).toEqual {title: "Item 4"}
         expect(pane.items).toEqual [item1, item2, {title: "Item 4"}, item3]
+
+  describe "::removeItem(item)", ->
+    it "removes the specified item", ->
+      expect(pane.activeItem).toBe item1
+      pane.removeItem(item2)
+      expect(pane.items).toEqual [item1, item3]
+      expect(pane.activeItem).toBe item1
+
+    describe "when the removed item is active", ->
+      describe "when the removed item is the last item", ->
+        it "sets the previous item as the new active item", ->
+          pane.setActiveItem(item3)
+          pane.removeItem(item3)
+          expect(pane.activeItem).toBe item2
+
+      describe "when the removed item is not the last item", ->
+        it "sets the next item as the new active item", ->
+          pane.setActiveItem(item2)
+          pane.removeItem(item2)
+          expect(pane.activeItem).toBe item3
+
+      describe "when the removed item is the only item", ->
+        it "sets the active item to undefined", ->
+          pane.removeItem(item1)
+          pane.removeItem(item2)
+          pane.removeItem(item3)
+          expect(pane.activeItem).toBeUndefined()
