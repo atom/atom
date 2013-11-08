@@ -20,9 +20,16 @@ class Pane extends Model
     @items.indexOf(@activeItem)
 
   addItem: (item) ->
+    wasEmpty = @items.isEmpty()
     item = @items.insert(@getActiveItemIndex() + 1, item)
-    @setActiveItem(item) if @items.length is 1
+    @setActiveItem(item) if wasEmpty
     item
+
+  addItems: (items) ->
+    wasEmpty = @items.isEmpty()
+    items = @items.insertArray(@getActiveItemIndex() + 1, items)
+    @setActiveItem(@items.getFirst()) if wasEmpty
+    items
 
   moveItem: (item, index) ->
     @items.insert(index, item)
