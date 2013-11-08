@@ -1,6 +1,6 @@
 {
   "name": "atom",
-  "version": "34.0.0",
+  "version": "35.0.0",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
