@@ -13,4 +13,9 @@ class Pane extends Model
     @setActiveItem(@items.getFirst()) unless @activeItem?
 
   setActiveItem: (item) ->
+    unless @items.contains(item)
+      item = @items.insert(@getActiveItemIndex() + 1, item)
     @activeItemId = item?.id
+
+  getActiveItemIndex: ->
+    @items.indexOf(@activeItem)
