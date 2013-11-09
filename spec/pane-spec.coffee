@@ -82,3 +82,57 @@ describe "Pane", ->
       expect(pane.items).toEqual [item2, item3, item1]
       pane.moveItem(item2, 2)
       expect(pane.items).toEqual [item3, item2, item1]
+
+  describe "split methods", ->
+    pane1 = null
+
+    beforeEach ->
+      pane1 = pane
+
+    describe "::splitLeft(items...)", ->
+      it "inserts a new pane to the left, introducing a horizontal pane axis as a shared parent if needed", ->
+        pane2 = pane1.splitLeft()
+        expect(container.root.orientation).toBe 'horizontal'
+        expect(container.root.children).toEqual [pane2, pane1]
+        pane3 = pane1.splitLeft()
+        expect(container.root.children).toEqual [pane2, pane3, pane1]
+
+      it "creates the new pane with items if they are provided", ->
+        pane2 = pane1.splitLeft({title: "Item 4"}, {title: "Item 5"})
+        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
+
+    describe "::splitRight(items...)", ->
+      it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
+        pane2 = pane1.splitRight()
+        expect(container.root.orientation).toBe 'horizontal'
+        expect(container.root.children).toEqual [pane1, pane2]
+        pane3 = pane1.splitRight()
+        expect(container.root.children).toEqual [pane1, pane3, pane2]
+
+      it "creates the new pane with items if they are provided", ->
+        pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
+        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
+
+    describe "::splitUp(items...)", ->
+      it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
+        pane2 = pane1.splitUp()
+        expect(container.root.orientation).toBe 'vertical'
+        expect(container.root.children).toEqual [pane2 ,pane1]
+        pane3 = pane1.splitUp()
+        expect(container.root.children).toEqual [pane2, pane3, pane1]
+
+      it "creates the new pane with items if they are provided", ->
+        pane2 = pane1.splitUp({title: "Item 4"}, {title: "Item 5"})
+        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
+
+    describe "::splitDown(items...)", ->
+      it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
+        pane2 = pane1.splitDown()
+        expect(container.root.orientation).toBe 'vertical'
+        expect(container.root.children).toEqual [pane1, pane2]
+        pane3 = pane1.splitDown()
+        expect(container.root.children).toEqual [pane1, pane3, pane2]
+
+      it "creates the new pane with items if they are provided", ->
+        pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
+        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]

@@ -3,4 +3,5 @@ Pane = require './pane'
 
 module.exports =
 class PaneContainer extends Model
-  @property 'root', -> new Pane
+  @property 'children', -> [new Pane]
+  @relatesToOne 'root', -> @children

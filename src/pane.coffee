@@ -1,4 +1,5 @@
 {Model} = require 'telepath'
+PaneAxis = require './pane-axis'
 
 module.exports =
 class Pane extends Model
@@ -61,3 +62,24 @@ class Pane extends Model
     unless index is -1
       index = @items.length if index is 0
       @items.get(index - 1)
+
+  splitLeft: (items...) ->
+    @split('horizontal', 'before', items)
+
+  splitRight: (items...) ->
+    @split('horizontal', 'after', items)
+
+  splitUp: (items...) ->
+    @split('vertical', 'before', items)
+
+  splitDown: (items...) ->
+    @split('vertical', 'after', items)
+
+  split: (orientation, side, items) ->
+    unless @grandparent.orientation is orientation
+      @parent.insertBefore(this, new PaneAxis({orientation, children: [this]}))
+
+    pane = new Pane({items})
+    switch side
+      when 'before' then @parent.insertBefore(this, pane)
+      when 'after' then @parent.insertAfter(this, pane)
