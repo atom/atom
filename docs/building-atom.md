@@ -24,7 +24,7 @@ atom][download].
   find-generic-password -ws 'GitHub API Token'` on OSX to get your
   credentials).
 * Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
-* Run `node script/bootstrap`
+* Run `script\bootstrap`
 
 [download]: http://www.atom.io
 [win-node]: http://nodejs.org/download/
