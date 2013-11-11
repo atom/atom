@@ -163,6 +163,15 @@ class Config
       @update()
     value
 
+  # Public: Toggle the value at the key path.
+  #
+  # The new value will be `true` if the value is currently falsy and will be
+  # `false` if the value is currently truthy.
+  #
+  # Returns the new value.
+  toggle: (keyPath) ->
+    @set(keyPath, !@get(keyPath))
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.

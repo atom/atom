@@ -45,6 +45,24 @@ describe "Config", ->
         config.set('foo.changes', 1)
         expect(config.settings.foo).toEqual {}
 
+  describe ".toggle(keyPath)", ->
+    it "negates the boolean value of the current key path value", ->
+      config.set('foo.a', 1)
+      config.toggle('foo.a')
+      expect(config.get('foo.a')).toBe false
+
+      config.set('foo.a', '')
+      config.toggle('foo.a')
+      expect(config.get('foo.a')).toBe true
+
+      config.set('foo.a', null)
+      config.toggle('foo.a')
+      expect(config.get('foo.a')).toBe true
+
+      config.set('foo.a', true)
+      config.toggle('foo.a')
+      expect(config.get('foo.a')).toBe false
+
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->
       config.set("foo.bar.baz", ["a"])
