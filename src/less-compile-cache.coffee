@@ -20,7 +20,7 @@ class LessCompileCache
     @cache = new LessCache
       cacheDir: @constructor.cacheDir
       importPaths: @getImportPaths()
-      resourcePath: window.resourcePath
+      resourcePath: resourcePath
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
 
     @subscribe atom.themes, 'reloaded', => @cache.setImportPaths(@getImportPaths())
