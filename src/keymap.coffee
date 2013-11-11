@@ -30,7 +30,7 @@ class Keymap
   bindingSetsByFirstKeystroke: null
   queuedKeystrokes: null
 
-  constructor: ({resourcePath, @configDirPath})->
+  constructor: ({@resourcePath, @configDirPath})->
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
