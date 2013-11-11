@@ -213,7 +213,7 @@ describe "Config", ->
           expect(fs.existsSync(atom.config.configDirPath)).toBeTruthy()
           expect(fs.existsSync(path.join(atom.config.configDirPath, 'packages'))).toBeTruthy()
           expect(fs.existsSync(path.join(atom.config.configDirPath, 'snippets'))).toBeTruthy()
-          expect(fs.isFileSync(path.join(atom.config.configDirPath, 'atom.config.cson'))).toBeTruthy()
+          expect(fs.isFileSync(path.join(atom.config.configDirPath, 'config.cson'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->
