@@ -29,8 +29,13 @@ module.exports = (grunt) ->
       'vendor'
     ]
 
-    {devDependencies} = grunt.file.readJSON('package.json')
-    for child in fs.readdirSync('node_modules')
+    directories = fs.readdirSync('node_modules')
+    if process.platform is 'win32'
+      {devDependencies} = grunt.file.readJSON('package.json')
+      devDependencies = Object.keys(devDependencies)
+      directories = directories.filter((d) -> devDependencies.indexOf(d) == -1)
+
+    for child in directories
       directory = path.join('node_modules', child)
       if isAtomPackage(directory)
         packageDirectories.push(directory)
