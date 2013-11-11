@@ -202,7 +202,7 @@ class PackageManager
       try
         metadataPath = path.join(@resourcePath, 'package.json')
         {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
-        @packageDependencies ?= {}
+      @packageDependencies ?= {}
 
     @packageDependencies
 
