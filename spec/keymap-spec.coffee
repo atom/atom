@@ -9,6 +9,8 @@ describe "Keymap", ->
 
   beforeEach ->
     keymap = new Keymap
+      resourcePath: window.resourcePath
+      configDirPath: atom.getConfigDirPath()
     fragment = $ """
       <div class="command-mode">
         <div class="child-node">
