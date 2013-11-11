@@ -77,6 +77,8 @@ beforeEach ->
   config = new Config
     resourcePath: window.resourcePath
     configDirPath: atom.getConfigDirPath()
+  config.setDefaults('core', RootView.configDefaults)
+  config.setDefaults('editor', Editor.configDefaults)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontFamily", "Courier"
