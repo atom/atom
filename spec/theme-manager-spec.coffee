@@ -30,7 +30,7 @@ describe "ThemeManager", ->
 
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
-      config.set('core.themes', ['atom-dark-syntax', 'atom-dark-ui', 'atom-light-ui'])
+      atom.config.set('core.themes', ['atom-dark-syntax', 'atom-dark-ui', 'atom-light-ui'])
 
       paths = themeManager.getImportPaths()
 
@@ -40,7 +40,7 @@ describe "ThemeManager", ->
       expect(paths[1]).toContain 'atom-light-ui'
 
     it "ignores themes that cannot be resolved to a directory", ->
-      config.set('core.themes', ['definitely-not-a-theme'])
+      atom.config.set('core.themes', ['definitely-not-a-theme'])
       expect(-> themeManager.getImportPaths()).not.toThrow()
 
   describe "when the core.themes config value changes", ->
@@ -49,24 +49,24 @@ describe "ThemeManager", ->
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
       themeManager.activateThemes()
 
-      config.set('core.themes', [])
+      atom.config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
       expect(reloadHandler).toHaveBeenCalled()
 
-      config.set('core.themes', ['atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-dark-syntax'])
       expect($('style.theme').length).toBe 1
       expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
 
-      config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
       expect($('style.theme').length).toBe 2
       expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
       expect($('style.theme:eq(1)').attr('id')).toMatch /atom-light-syntax/
 
-      config.set('core.themes', [])
+      atom.config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
 
       # atom-dark-ui has an directory path, the syntax ones dont.
-      config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
       importPaths = themeManager.getImportPaths()
       expect(importPaths.length).toBe 1
       expect(importPaths[0]).toContain 'atom-dark-ui'
@@ -144,7 +144,7 @@ describe "ThemeManager", ->
       themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
-      config.set('core.themes', ['theme-with-ui-variables'])
+      atom.config.set('core.themes', ['theme-with-ui-variables'])
 
       # an override loaded in the base css
       expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"

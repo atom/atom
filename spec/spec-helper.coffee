@@ -77,15 +77,15 @@ beforeEach ->
   config = new Config
     resourcePath: window.resourcePath
     configDirPath: atom.getConfigDirPath()
-  config.packageDirPaths.unshift(fixturePackagesPath)
+  atom.config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
-  config.set "editor.fontFamily", "Courier"
-  config.set "editor.fontSize", 16
-  config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+  atom.config.set "editor.fontFamily", "Courier"
+  atom.config.set "editor.fontSize", 16
+  atom.config.set "editor.autoIndent", false
+  atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  config.save.reset()
+  atom.config.save.reset()
   atom.config = config
   window.config = config
 

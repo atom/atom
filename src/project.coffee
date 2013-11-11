@@ -34,7 +34,7 @@ class Project
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
-    path.join(config.get('core.projectHome'), repoName)
+    path.join(atom.config.get('core.projectHome'), repoName)
 
   rootDirectory: null
   editSessions: null
@@ -137,14 +137,14 @@ class Project
   # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
     for segment in path.split("/")
-      ignoredNames = config.get("core.ignoredNames") or []
+      ignoredNames = atom.config.get("core.ignoredNames") or []
       return true if _.contains(ignoredNames, segment)
 
     @ignoreRepositoryPath(path)
 
   # Public: Determines if a given path is ignored via repository configuration.
   ignoreRepositoryPath: (repositoryPath) ->
-    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
+    atom.config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Public: Given a uri, this resolves it relative to the project directory. If
   # the path is already absolute or if it is prefixed with a scheme, it is
@@ -315,8 +315,8 @@ class Project
       ignoreCase: regex.ignoreCase
       inclusions: options.paths
       includeHidden: true
-      excludeVcsIgnores: config.get('core.excludeVcsIgnoredPaths')
-      exclusions: config.get('core.ignoredNames')
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
 
     task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
       deferred.resolve()

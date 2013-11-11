@@ -20,7 +20,7 @@ class LessCompileCache
 
     @subscribe atom.themes, 'reloaded', => @cache.setImportPaths(@getImportPaths())
 
-  getImportPaths: -> atom.themes.getImportPaths().concat(config.lessSearchPaths)
+  getImportPaths: -> atom.themes.getImportPaths().concat(atom.config.lessSearchPaths)
 
   read: (stylesheetPath) -> @cache.readFileSync(stylesheetPath)
 

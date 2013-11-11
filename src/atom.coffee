@@ -58,7 +58,7 @@ class Atom
     MenuManager = require './menu-manager'
 
     @config = new Config({configDirPath, resourcePath})
-    @keymap = new Keymap()
+    @keymap = new Keymap({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     @subscribe @packages, 'activated', => @watchThemes()

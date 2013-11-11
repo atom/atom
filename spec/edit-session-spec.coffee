@@ -57,17 +57,17 @@ describe "EditSession", ->
 
     describe "config defaults", ->
       it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
-        config.set('editor.tabLength', 4)
-        config.set('editor.softWrap', true)
-        config.set('editor.softTabs', false)
+        atom.config.set('editor.tabLength', 4)
+        atom.config.set('editor.softWrap', true)
+        atom.config.set('editor.softTabs', false)
         editSession1 = project.openSync('a')
         expect(editSession1.getTabLength()).toBe 4
         expect(editSession1.getSoftWrap()).toBe true
         expect(editSession1.getSoftTabs()).toBe false
 
-        config.set('editor.tabLength', 100)
-        config.set('editor.softWrap', false)
-        config.set('editor.softTabs', true)
+        atom.config.set('editor.tabLength', 100)
+        atom.config.set('editor.softWrap', false)
+        atom.config.set('editor.softTabs', true)
         editSession2 = project.openSync('b')
         expect(editSession2.getTabLength()).toBe 100
         expect(editSession2.getSoftWrap()).toBe false
@@ -1335,7 +1335,7 @@ describe "EditSession", ->
             expect(editSession.getCursorBufferPosition()).toEqual [0,2]
 
         it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
-          config.set("editor.autoIndent", true)
+          atom.config.set("editor.autoIndent", true)
           editSession.insertNewlineBelow()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  "
@@ -2419,13 +2419,13 @@ describe "EditSession", ->
               editSession.insertText("\n ")
               expect(editSession.lineForBufferRow(2)).toBe " "
 
-              config.set("editor.autoIndent", false)
+              atom.config.set("editor.autoIndent", false)
               editSession.indent()
               expect(editSession.lineForBufferRow(2)).toBe "   "
 
         describe "when editor.autoIndent is true", ->
           beforeEach ->
-            config.set("editor.autoIndent", true)
+            atom.config.set("editor.autoIndent", true)
 
           describe "when `indent` is triggered", ->
             it "auto-indents the line", ->
@@ -2433,7 +2433,7 @@ describe "EditSession", ->
               editSession.insertText("\n ")
               expect(editSession.lineForBufferRow(2)).toBe " "
 
-              config.set("editor.autoIndent", true)
+              atom.config.set("editor.autoIndent", true)
               editSession.indent()
               expect(editSession.lineForBufferRow(2)).toBe "    "
 
@@ -2463,7 +2463,7 @@ describe "EditSession", ->
               editSession.insertText('  var this-line-should-be-indented-more\n')
               expect(editSession.indentationForBufferRow(1)).toBe 1
 
-              config.set("editor.autoIndent", true)
+              atom.config.set("editor.autoIndent", true)
               editSession.setCursorBufferPosition([2, Infinity])
               editSession.insertText('\n')
               expect(editSession.indentationForBufferRow(1)).toBe 1
@@ -2508,11 +2508,11 @@ describe "EditSession", ->
 
       describe "editor.normalizeIndentOnPaste", ->
         beforeEach ->
-          config.set('editor.normalizeIndentOnPaste', true)
+          atom.config.set('editor.normalizeIndentOnPaste', true)
 
         it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
           copyText("   function() {\nvar cool = 1;\n  }\n")
-          config.set('editor.normalizeIndentOnPaste', false)
+          atom.config.set('editor.normalizeIndentOnPaste', false)
           editSession.setCursorBufferPosition([5, 2])
           editSession.pasteText()
           expect(editSession.lineForBufferRow(5)).toBe "     function() {"

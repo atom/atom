@@ -107,22 +107,22 @@ class RootView extends View
 
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
-      config.set("editor.fontSize", config.get("editor.fontSize") + 1)
+      atom.config.set("editor.fontSize", config.get("editor.fontSize") + 1)
 
     @command 'window:decrease-font-size', =>
       fontSize = config.get "editor.fontSize"
-      config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+      atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:focus-previous-pane', => @focusPreviousPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
-      config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
+      atom.config.toggle("editor.showInvisibles")
     @command 'window:toggle-ignored-files', =>
-      config.set("core.hideGitIgnoredFiles", not config.core.hideGitIgnoredFiles)
+      atom.config.toggle("core.hideGitIgnoredFiles")
 
     @command 'window:toggle-auto-indent', =>
-      config.set("editor.autoIndent", !config.get("editor.autoIndent"))
+      atom.config.toggle("editor.autoIndent")
 
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()

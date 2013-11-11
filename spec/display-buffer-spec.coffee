@@ -66,14 +66,14 @@ describe "DisplayBuffer", ->
     describe "rendering of soft-wrapped lines", ->
       describe "when editor.softWrapAtPreferredLineLength is set", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
-          config.set('editor.preferredLineLength', 100)
-          config.set('editor.softWrapAtPreferredLineLength', true)
+          atom.config.set('editor.preferredLineLength', 100)
+          atom.config.set('editor.softWrapAtPreferredLineLength', true)
           expect(displayBuffer.lineForRow(10).text).toBe '    return '
 
-          config.set('editor.preferredLineLength', 5)
+          atom.config.set('editor.preferredLineLength', 5)
           expect(displayBuffer.lineForRow(10).text).toBe 'funct'
 
-          config.set('editor.softWrapAtPreferredLineLength', false)
+          atom.config.set('editor.softWrapAtPreferredLineLength', false)
           expect(displayBuffer.lineForRow(10).text).toBe '    return '
 
       describe "when the line is shorter than the max line length", ->

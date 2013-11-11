@@ -203,9 +203,9 @@ class Editor extends View
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
         'editor:join-line': @joinLine
-        'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
+        'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:save-debug-snapshot': @saveDebugSnapshot
-        'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
+        'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': @scrollToCursorPosition
 
     documentation = {}

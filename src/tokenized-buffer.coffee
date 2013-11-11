@@ -37,7 +37,7 @@ class TokenizedBuffer
       @state = atom.site.createDocument
         deserializer: @constructor.name
         bufferPath: @buffer.getRelativePath()
-        tabLength: tabLength ? config.get('editor.tabLength') ? 2
+        tabLength: tabLength ? atom.config.get('editor.tabLength') ? 2
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?

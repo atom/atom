@@ -449,7 +449,7 @@ describe "Project", ->
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
-          config.set('core.excludeVcsIgnoredPaths', true)
+          atom.config.set('core.excludeVcsIgnoredPaths', true)
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
             project.scan /match/, (results) ->
@@ -495,9 +495,9 @@ describe "Project", ->
 
       it "excludes values in core.ignoredNames", ->
         projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-        ignoredNames = config.get("core.ignoredNames")
+        ignoredNames = atom.config.get("core.ignoredNames")
         ignoredNames.push("a")
-        config.set("core.ignoredNames", ignoredNames)
+        atom.config.set("core.ignoredNames", ignoredNames)
 
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->

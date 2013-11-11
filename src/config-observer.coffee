@@ -1,7 +1,7 @@
 module.exports =
   observeConfig: (keyPath, args...) ->
     @configSubscriptions ?= {}
-    @configSubscriptions[keyPath] = config.observe(keyPath, args...)
+    @configSubscriptions[keyPath] = atom.config.observe(keyPath, args...)
 
   unobserveConfig: ->
     if @configSubscriptions?

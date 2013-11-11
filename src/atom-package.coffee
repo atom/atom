@@ -89,7 +89,7 @@ class AtomPackage extends Package
 
     @requireMainModule()
     if @mainModule?
-      config.setDefaults(@name, @mainModule.configDefaults)
+      atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
