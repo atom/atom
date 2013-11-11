@@ -7,9 +7,10 @@ AtomPackage = require '../src/atom-package'
 describe "ThemeManager", ->
   themeManager = null
   resourcePath = atom.getLoadSettings().resourcePath
+  configDirPath = atom.getConfigDirPath()
 
   beforeEach ->
-    themeManager = new ThemeManager({packageManager: atom.packages, resourcePath})
+    themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath})
 
   afterEach ->
     themeManager.deactivateThemes()
