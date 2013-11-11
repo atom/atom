@@ -194,6 +194,18 @@ class PackageManager
     {engines} = Package.loadMetadata(packagePath, true)
     engines?.atom?
 
+  isBundledPackage: (packageName) ->
+    @getPackageDependencies().hasOwnProperty(packageName)
+
+  getPackageDependencies: ->
+    unless @packageDependencies?
+      try
+        metadataPath = path.join(@resourcePath, 'package.json')
+        {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+        @packageDependencies ?= {}
+
+    @packageDependencies
+
   getAvailablePackagePaths: ->
     packagePaths = []
 
@@ -201,9 +213,6 @@ class PackageManager
       for packagePath in fs.listSync(packageDirPath)
         packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
-    try
-      metadataPath = path.join(@resourcePath, 'package.json')
-      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
     packagesPath = path.join(@resourcePath, 'node_modules')
     for packageName, packageVersion of packageDependencies ? {}
       packagePath = path.join(packagesPath, packageName)
