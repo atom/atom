@@ -30,13 +30,12 @@ class Keymap
   bindingSetsByFirstKeystroke: null
   queuedKeystrokes: null
 
-  constructor: ({resourcePath, @configDirPath})->
-    @bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
+  constructor: ({@resourcePath, @configDirPath})->
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
   loadBundledKeymaps: ->
-    @loadDirectory(@bundledKeymapsDirPath)
+    @loadDirectory(path.join(@resourcePath, 'keymaps'))
     @emit('bundled-keymaps-loaded')
 
   loadUserKeymap: ->

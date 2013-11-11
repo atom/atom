@@ -6,11 +6,10 @@ Keymap = require '../src/keymap'
 describe "Keymap", ->
   fragment = null
   keymap = null
+  resourcePath = atom.getLoadSettings().resourcePath
 
   beforeEach ->
-    keymap = new Keymap
-      resourcePath: window.resourcePath
-      configDirPath: atom.getConfigDirPath()
+    keymap = new Keymap({configDirPath: atom.getConfigDirPath(), resourcePath})
     fragment = $ """
       <div class="command-mode">
         <div class="child-node">
