@@ -32,15 +32,15 @@ describe "Keymap", ->
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
 
-    it "adds a 'keystrokes' string to the event object", ->
+    it "adds a 'keystroke' string to the event object", ->
       event = keydownEvent('x', altKey: true, metaKey: true)
       keymap.handleKeyEvent(event)
-      expect(event.keystrokes).toBe 'alt-meta-x'
+      expect(event.keystroke).toBe 'alt-meta-x'
 
       event = keydownEvent(',', metaKey: true)
       event.which = 188
       keymap.handleKeyEvent(event)
-      expect(event.keystrokes).toBe 'meta-,'
+      expect(event.keystroke).toBe 'meta-,'
 
     describe "when no binding matches the event's keystroke", ->
       it "does not return false so the event continues to propagate", ->
@@ -51,7 +51,7 @@ describe "Keymap", ->
         event = keydownEvent('U+03B6', metaKey: true) # This is the 'z' key using the Greek keyboard layout
         event.which = 122
         keymap.handleKeyEvent(event)
-        expect(event.keystrokes).toBe 'meta-z'
+        expect(event.keystroke).toBe 'meta-z'
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
@@ -70,7 +70,7 @@ describe "Keymap", ->
           expect(insertCharHandler).toHaveBeenCalled()
           commandEvent = insertCharHandler.argsForCall[0][0]
           expect(commandEvent.keyEvent).toBe event
-          expect(event.keystrokes).toBe 'x'
+          expect(event.keystroke).toBe 'x'
 
       describe "when the event's target node *descends* from a selector with a matching binding", ->
         it "triggers the command event associated with that binding on the target node and returns false", ->
@@ -221,7 +221,7 @@ describe "Keymap", ->
             expect(closeOtherWindowsHandler).toHaveBeenCalled()
 
         describe "when a second keystroke added to the first doesn't match any bindings", ->
-          it "clears the queued keystrokes without triggering any events", ->
+          it "clears the queued keystroke without triggering any events", ->
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBe false
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBe false
             expect(quitHandler).not.toHaveBeenCalled()
@@ -259,19 +259,19 @@ describe "Keymap", ->
       it "returns false to prevent the browser from transferring focus", ->
         expect(keymap.handleKeyEvent(keydownEvent('U+0009', target: fragment[0]))).toBe false
 
-  describe ".keystrokesByCommandForSelector(selector)", ->
+  describe ".keystrokeByCommandForSelector(selector)", ->
     it "returns a hash of all commands and their keybindings", ->
       keymap.bindKeys 'body', 'a': 'letter'
       keymap.bindKeys '.editor', 'b': 'letter'
       keymap.bindKeys '.editor', '1': 'number'
       keymap.bindKeys '.editor', 'meta-alt-1': 'number-with-modifiers'
 
-      expect(keymap.keystrokesByCommandForSelector()).toEqual
+      expect(keymap.keystrokeByCommandForSelector()).toEqual
         'letter': ['b', 'a']
         'number': ['1']
         'number-with-modifiers': ['alt-meta-1']
 
-      expect(keymap.keystrokesByCommandForSelector('.editor')).toEqual
+      expect(keymap.keystrokeByCommandForSelector('.editor')).toEqual
         'letter': ['b']
         'number': ['1']
         'number-with-modifiers': ['alt-meta-1']
@@ -360,7 +360,7 @@ describe "Keymap", ->
       mappings = keymap.getAllKeyMappings()
       expect(mappings.length).toBe 1
       expect(mappings[0].source).toEqual 'dummy'
-      expect(mappings[0].keystrokes).toEqual 'k'
+      expect(mappings[0].keystroke).toEqual 'k'
       expect(mappings[0].command).toEqual 'c'
       expect(mappings[0].selector).toEqual '.command-mode'
 

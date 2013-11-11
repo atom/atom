@@ -20,11 +20,11 @@ class ApplicationMenu
   #
   # * template:
   #   The Object which describes the menu to display.
-  # * keystrokesByCommand:
+  # * keystrokeByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
-  update: (template, keystrokesByCommand) ->
-    @translateTemplate(template, keystrokesByCommand)
+  #   the keystroke.
+  update: (template, keystrokeByCommand) ->
+    @translateTemplate(template, keystrokeByCommand)
     @substituteVersion(template)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
@@ -97,41 +97,41 @@ class ApplicationMenu
       ]
     ]
 
-  # Private: Combines a menu template with the appropriate keystrokes.
+  # Private: Combines a menu template with the appropriate keystroke.
   #
   # * template:
   #   An Object conforming to atom-shell's menu api but lacking accelerator and
   #   click properties.
-  # * keystrokesByCommand:
+  # * keystrokeByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
+  #   the keystroke.
   #
   # Returns a complete menu configuration object for atom-shell's menu API.
-  translateTemplate: (template, keystrokesByCommand) ->
+  translateTemplate: (template, keystrokeByCommand) ->
     template.forEach (item) =>
       item.metadata = {}
       if item.command
-        item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
+        item.accelerator = @acceleratorForCommand(item.command, keystrokeByCommand)
         item.click = => global.atomApplication.sendCommand(item.command)
         item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
-      @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
+      @translateTemplate(item.submenu, keystrokeByCommand) if item.submenu
     template
 
   # Private: Determine the accelerator for a given command.
   #
   # * command:
   #   The name of the command.
-  # * keystrokesByCommand:
+  # * keystrokeByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
+  #   the keystroke.
   #
   # Returns a String containing the keystroke in a format that can be interpreted
   #   by atom shell to provide nice icons where available.
-  acceleratorForCommand: (command, keystrokesByCommand) ->
-    keystroke = keystrokesByCommand[command]?[0]
-    return null unless keystroke
+  acceleratorForCommand: (command, keystrokeByCommand) ->
+    firstKeystroke = keystrokeByCommand[command]?[0]
+    return null unless firstKeystroke
 
-    modifiers = keystroke.split('-')
+    modifiers = firstKeystroke.split('-')
     key = modifiers.pop()
 
     modifiers.push("Shift") if key != key.toLowerCase()

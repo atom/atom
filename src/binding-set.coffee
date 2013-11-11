@@ -12,16 +12,16 @@ class BindingSet
   @parser: null
 
   selector: null
-  commandsByKeystrokes: null
+  commandsByKeystroke: null
   parser: null
   name: null
 
-  constructor: (selector, commandsByKeystrokes, @index, @name) ->
+  constructor: (selector, commandsByKeystroke, @index, @name) ->
     keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
     BindingSet.parser ?= PEG.buildParser(keystrokePattern)
     @specificity = specificity(selector)
     @selector = selector.replace(/!important/g, '')
-    @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
+    @commandsByKeystroke = @normalizeCommandsByKeystroke(commandsByKeystroke)
 
   # Private:
   getName: ->
@@ -32,30 +32,27 @@ class BindingSet
     @selector
 
   # Private:
-  getCommandsByKeystrokes: ->
-    @commandsByKeystrokes
+  getCommandsByKeystroke: ->
+    @commandsByKeystroke
 
-  commandForKeystrokes: (keystrokesToMatch) ->
-    keyStrokesRegex = new RegExp("^" + _.escapeRegExp(keystrokesToMatch))
-    for keystrokes, command of @commandsByKeystrokes
-      if keyStrokesRegex.test(keystrokes)
-        multiKeystrokes = keystrokesToMatch isnt keystrokes
-        return {command, multiKeystrokes}
+  commandForKeystroke: (keystrokeToMatch) ->
+    keyStrokeRegex = new RegExp("^" + _.escapeRegExp(keystrokeToMatch))
+    for keystroke, command of @commandsByKeystroke
+      if keyStrokeRegex.test(keystroke)
+        isMultiKeystroke = keystrokeToMatch isnt keystroke
+        return {command, isMultiKeystroke}
     null
 
-  normalizeCommandsByKeystrokes: (commandsByKeystrokes) ->
-    normalizedCommandsByKeystrokes = {}
-    for keystrokes, command of commandsByKeystrokes
-      normalizedCommandsByKeystrokes[@normalizeKeystrokes(keystrokes)] = command
-    normalizedCommandsByKeystrokes
-
-  normalizeKeystrokes: (keystrokes) ->
-    normalizedKeystrokes = keystrokes.split(/\s+/).map (keystroke) =>
-      @normalizeKeystroke(keystroke)
-    normalizedKeystrokes.join(' ')
+  normalizeCommandsByKeystroke: (commandsByKeystroke) ->
+    normalizedCommandsByKeystroke = {}
+    for keystroke, command of commandsByKeystroke
+      normalizedCommandsByKeystroke[@normalizeKeystroke(keystroke)] = command
+    normalizedCommandsByKeystroke
 
   normalizeKeystroke: (keystroke) ->
-    keys = BindingSet.parser.parse(keystroke)
-    modifiers = keys[0...-1]
-    modifiers.sort()
-    [modifiers..., _.last(keys)].join('-')
+    normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
+      keys = BindingSet.parser.parse(keystroke)
+      modifiers = keys[0...-1]
+      modifiers.sort()
+      [modifiers..., _.last(keys)].join('-')
+    normalizedKeystroke.join(' ')

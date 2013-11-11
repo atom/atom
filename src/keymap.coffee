@@ -28,7 +28,7 @@ class Keymap
   bindingSets: null
   nextBindingSetIndex: 0
   bindingSetsByFirstKeystroke: null
-  queuedKeystrokes: null
+  queuedKeystroke: null
 
   constructor: ({resourcePath, @configDirPath})->
     @bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
@@ -58,22 +58,9 @@ class Keymap
   remove: (name) ->
     for bindingSet in @bindingSets.filter((bindingSet) -> bindingSet.name is name)
       _.remove(@bindingSets, bindingSet)
-      for keystrokes of bindingSet.commandsByKeystrokes
-        keystroke = keystrokes.split(' ')[0]
-        _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
-
-  # Public: Returns an array of objects that represent every keystroke to
-  # command mapping. Each object contains the following keys `source`,
-  # `selector`, `command`, `keystrokes`.
-  getAllKeyMappings: ->
-    mappings = []
-    for bindingSet in @bindingSets
-      selector = bindingSet.getSelector()
-      source = @determineSource(bindingSet.getName())
-      for keystrokes, command of bindingSet.getCommandsByKeystrokes()
-        mappings.push {keystrokes, command, selector, source}
-
-    mappings
+      for keystroke of bindingSet.commandsByKeystroke
+        firstKeystroke = keystroke.split(' ')[0]
+        _.remove(@bindingSetsByFirstKeystroke[firstKeystroke], bindingSet)
 
   # Private: Returns a user friendly description of where a keybinding was
   # loaded from.
@@ -103,8 +90,8 @@ class Keymap
     [selector, bindings] = args
     bindingSet = new BindingSet(selector, bindings, @nextBindingSetIndex++, name)
     @bindingSets.unshift(bindingSet)
-    for keystrokes of bindingSet.commandsByKeystrokes
-      keystroke = keystrokes.split(' ')[0] # only index by first keystroke
+    for keystroke of bindingSet.commandsByKeystroke
+      keystroke = keystroke.split(' ')[0] # only index by first keystroke
       @bindingSetsByFirstKeystroke[keystroke] ?= []
       @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
 
@@ -118,13 +105,13 @@ class Keymap
   handleKeyEvent: (event) ->
     element = event.target
     element = rootView[0] if element == document.body
-    keystrokes = @keystrokeStringForEvent(event, @queuedKeystrokes)
-    @queuedKeystrokes = null
+    keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
+    @queuedKeystroke = null
     shouldBubble = undefined
 
-    for {command, multiKeystrokes} in @commandsForKeystrokes(keystrokes, element)
-      if multiKeystrokes
-        @queuedKeystrokes = keystrokes
+    for {command, isMultiKeystroke} in @commandsForKeystroke(keystroke, element)
+      if isMultiKeystroke
+        @queuedKeystroke = keystroke
         shouldBubble = false
       else
         if command is 'native!' then shouldBubble = true
@@ -134,18 +121,31 @@ class Keymap
 
     shouldBubble
 
+  # Public: Returns an array of objects that represent every keystroke to
+  # command mapping. Each object contains the following keys `source`,
+  # `selector`, `command`, `keystroke`.
+  getAllKeyMappings: ->
+    mappings = []
+    for bindingSet in @bindingSets
+      selector = bindingSet.getSelector()
+      source = @determineSource(bindingSet.getName())
+      for keystroke, command of bindingSet.getCommandsByKeystroke()
+        mappings.push {keystroke, command, selector, source}
+
+    mappings
+
   bindingsForElement: (element) ->
-    keystrokesMap = {}
+    keystrokeMap = {}
     for bindingSet in @bindingSetsForElement(element)
-      _.defaults(keystrokesMap, bindingSet.commandsByKeystrokes)
+      _.defaults(keystrokeMap, bindingSet.commandsByKeystroke)
 
-    keystrokesMap
+    keystrokeMap
 
-  commandsForKeystrokes: (keystrokes, element) ->
-    firstKeystroke = keystrokes.split(' ')[0]
+  commandsForKeystroke: (keystroke, element) ->
+    firstKeystroke = keystroke.split(' ')[0]
     bindingSetsForKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
     @bindingSetsForElement(element, bindingSetsForKeystroke).map (bindingSet) ->
-      bindingSet.commandForKeystrokes(keystrokes)
+      bindingSet.commandForKeystroke(keystroke)
 
   bindingSetsForElement: (element, bindingSets=@bindingSets) ->
     bindingSets = bindingSets.filter (bindingSet) ->
@@ -165,7 +165,7 @@ class Keymap
     $(element).trigger(commandEvent)
     not commandEvent.isImmediatePropagationStopped()
 
-  keystrokeStringForEvent: (event, prefix) ->
+  keystrokeStringForEvent: (event, previousKeystroke) ->
     if event.originalEvent.keyIdentifier.indexOf('U+') == 0
       hexCharCode = event.originalEvent.keyIdentifier[2..]
       charCode = parseInt(hexCharCode, 16)
@@ -188,22 +188,22 @@ class Keymap
     else
       key = key.toLowerCase()
 
-    keystrokes = [modifiers..., key].join('-')
+    keystroke = [modifiers..., key].join('-')
 
-    if prefix
-      if keystrokes in Modifiers then prefix
-      else "#{prefix} #{keystroke}"
+    if previousKeystroke
+      if keystroke in Modifiers then previousKeystroke
+      else "#{previousKeystroke} #{keystroke}"
     else
-      keystrokes
+      keystroke
 
-  keystrokesByCommandForSelector: (selector)->
-    keystrokesByCommand = {}
+  keystrokeByCommandForSelector: (selector)->
+    keystrokeByCommand = {}
     for bindingSet in @bindingSets
-      for keystroke, command of bindingSet.commandsByKeystrokes
+      for keystroke, command of bindingSet.commandsByKeystroke
         continue if selector? and selector != bindingSet.selector
-        keystrokesByCommand[command] ?= []
-        keystrokesByCommand[command].push keystroke
-    keystrokesByCommand
+        keystrokeByCommand[command] ?= []
+        keystrokeByCommand[command].push keystroke
+    keystrokeByCommand
 
   isAscii: (charCode) ->
     0 <= charCode <= 127
