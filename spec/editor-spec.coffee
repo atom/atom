@@ -310,7 +310,7 @@ describe "Editor", ->
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
 
-        config.set("editor.fontFamily", fontFamily)
+        atom.config.set("editor.fontFamily", fontFamily)
         expect(editor.css('font-family')).toBe fontFamily
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -325,17 +325,17 @@ describe "Editor", ->
       expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
-      expect(editor.css('font-size')).toBe "#{config.get('editor.fontSize')}px"
+      expect(editor.css('font-size')).toBe "#{atom.config.get('editor.fontSize')}px"
 
     describe "when the font size changes", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
-        config.set("editor.fontSize", 10)
+        atom.config.set("editor.fontSize", 10)
         editor.attachToDom()
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
 
-        config.set("editor.fontSize", 30)
+        atom.config.set("editor.fontSize", 30)
         expect(editor.css('font-size')).toBe '30px'
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
@@ -349,11 +349,11 @@ describe "Editor", ->
         expect(newEditor.css('font-size')).toBe '30px'
 
       it "updates the position and size of selection regions", ->
-        config.set("editor.fontSize", 10)
+        atom.config.set("editor.fontSize", 10)
         editor.setSelectedBufferRange([[5, 2], [5, 7]])
         editor.attachToDom()
 
-        config.set("editor.fontSize", 30)
+        atom.config.set("editor.fontSize", 30)
         selectionRegion = editor.find('.region')
         expect(selectionRegion.position().top).toBe 5 * editor.lineHeight
         expect(selectionRegion.position().left).toBe 2 * editor.charWidth
@@ -365,7 +365,7 @@ describe "Editor", ->
         originalLineCount = editor.renderedLines.find(".line").length
         expect(originalLineCount).toBeGreaterThan 0
 
-        config.set("editor.fontSize", 10)
+        atom.config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
       describe "when the font size changes while editor is detached", ->
@@ -378,7 +378,7 @@ describe "Editor", ->
           initialScrollbarHeight = editor.verticalScrollbarContent.height()
           editor.detach()
 
-          config.set("editor.fontSize", 10)
+          atom.config.set("editor.fontSize", 10)
           expect(editor.lineHeight).toBe initialLineHeight
           expect(editor.charWidth).toBe initialCharWidth
 
@@ -1482,15 +1482,15 @@ describe "Editor", ->
         buffer.insert([0, 0], "–")
         expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
 
-    describe "when config.editor.showInvisibles is set to true", ->
+    describe "when editor.showInvisibles config is set to true", ->
       it "displays spaces, tabs, and newlines using visible non-empty values", ->
         editor.setText " a line with tabs\tand spaces "
         editor.attachToDom()
 
-        expect(config.get("editor.showInvisibles")).toBeFalsy()
+        expect(atom.config.get("editor.showInvisibles")).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
-        config.set("editor.showInvisibles", true)
+        atom.config.set("editor.showInvisibles", true)
         space = editor.invisibles?.space
         expect(space).toBeTruthy()
         tab = editor.invisibles?.tab
@@ -1499,7 +1499,7 @@ describe "Editor", ->
         expect(eol).toBeTruthy()
         expect(editor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}#{eol}"
 
-        config.set("editor.showInvisibles", false)
+        atom.config.set("editor.showInvisibles", false)
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
       it "displays newlines as their own token outside of the other tokens scope", ->
@@ -1508,21 +1508,21 @@ describe "Editor", ->
         editor.setText "var"
         expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible-character">¬</span>'
 
-      it "allows invisible glyphs to be customized via config.editor.invisibles", ->
+      it "allows invisible glyphs to be customized via the editor.invisibles config", ->
         editor.setText(" \t ")
         editor.attachToDom()
-        config.set("editor.showInvisibles", true)
-        config.set("editor.invisibles", eol: ";", space: "_", tab: "tab")
+        atom.config.set("editor.showInvisibles", true)
+        atom.config.set("editor.invisibles", eol: ";", space: "_", tab: "tab")
         expect(editor.find(".line:first").text()).toBe "_tab _;"
 
       it "displays trailing carriage return using a visible non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
         editor.attachToDom()
 
-        expect(config.get("editor.showInvisibles")).toBeFalsy()
+        expect(atom.config.get("editor.showInvisibles")).toBeFalsy()
         expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
 
-        config.set("editor.showInvisibles", true)
+        atom.config.set("editor.showInvisibles", true)
         cr = editor.invisibles?.cr
         expect(cr).toBeTruthy()
         eol = editor.invisibles?.eol
@@ -1537,7 +1537,7 @@ describe "Editor", ->
           editor.setText "a line that wraps"
           editor.attachToDom()
           editor.setWidthInChars(6)
-          config.set "editor.showInvisibles", true
+          atom.config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
           eol = editor.invisibles?.eol
@@ -1549,7 +1549,7 @@ describe "Editor", ->
           editor.setText "a line that\r\n"
           editor.attachToDom()
           editor.setWidthInChars(6)
-          config.set "editor.showInvisibles", true
+          atom.config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
           cr = editor.invisibles?.cr
@@ -1560,12 +1560,12 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
           expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
-    describe "when config.editor.showIndentGuide is set to true", ->
+    describe "when editor.showIndentGuide is set to true", ->
       it "adds an indent-guide class to each leading whitespace span", ->
         editor.attachToDom()
 
-        expect(config.get("editor.showIndentGuide")).toBeFalsy()
-        config.set("editor.showIndentGuide", true)
+        expect(atom.config.get("editor.showIndentGuide")).toBeFalsy()
+        atom.config.set("editor.showIndentGuide", true)
         expect(editor.showIndentGuide).toBeTruthy()
 
         expect(editor.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
@@ -1608,7 +1608,7 @@ describe "Editor", ->
       describe "when the indentation level on a line before an empty line is changed", ->
         it "updates the indent guide on the empty line", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showIndentGuide", true)
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
@@ -1622,7 +1622,7 @@ describe "Editor", ->
       describe "when the indentation level on a line after an empty line is changed", ->
         it "updates the indent guide on the empty line", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showIndentGuide", true)
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
@@ -1636,7 +1636,7 @@ describe "Editor", ->
       describe "when a line contains only whitespace", ->
         it "displays an indent guide on the line", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showIndentGuide", true)
 
           editor.setCursorBufferPosition([10])
           editor.indent()
@@ -1647,7 +1647,7 @@ describe "Editor", ->
 
         it "uses the highest indent guide level from the next or previous non-empty line", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showIndentGuide", true)
 
           editor.setCursorBufferPosition([1, Infinity])
           editor.insertNewline()
@@ -1658,7 +1658,7 @@ describe "Editor", ->
       describe "when the line has leading and trailing whitespace", ->
         it "does not display the indent guide in the trailing whitespace", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showIndentGuide", true)
 
           editor.insertText("/*\n * \n*/")
           expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
@@ -1667,8 +1667,8 @@ describe "Editor", ->
       describe "when the line is empty and end of show invisibles are enabled", ->
         it "renders the indent guides interleaved with the end of line invisibles", ->
           editor.attachToDom()
-          config.set("editor.showIndentGuide", true)
-          config.set("editor.showInvisibles", true)
+          atom.config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showInvisibles", true)
           eol = editor.invisibles?.eol
 
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
@@ -1903,7 +1903,7 @@ describe "Editor", ->
         expect(miniEditor.find('.line.cursor-line').length).toBe 0
 
       it "doesn't show the end of line invisible", ->
-        config.set "editor.showInvisibles", true
+        atom.config.set "editor.showInvisibles", true
         miniEditor = new Editor(mini: true)
         miniEditor.attachToDom()
         space = miniEditor.invisibles?.space
@@ -1914,7 +1914,7 @@ describe "Editor", ->
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
 
       it "doesn't show the indent guide", ->
-        config.set "editor.showIndentGuide", true
+        atom.config.set "editor.showIndentGuide", true
         miniEditor = new Editor(mini: true)
         miniEditor.attachToDom()
         miniEditor.setText("      and indented line")
@@ -1925,17 +1925,17 @@ describe "Editor", ->
         miniEditor = new Editor(mini: true)
         miniEditor.setText("var something")
         previousTokens = miniEditor.lineForScreenRow(0).tokens
-        miniEditor.setGrammar(syntax.selectGrammar('something.js'))
+        miniEditor.setGrammar(atom.syntax.selectGrammar('something.js'))
         expect(miniEditor.getGrammar().name).toBe "JavaScript"
         expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
 
         # doesn't allow regular editors to set grammars
         expect(-> editor.setGrammar()).toThrow()
 
-    describe "when config.editor.showLineNumbers is false", ->
+    describe "when the editor.showLineNumbers config is false", ->
       it "doesn't render any line numbers", ->
         expect(editor.gutter.lineNumbers).toBeVisible()
-        config.set("editor.showLineNumbers", false)
+        atom.config.set("editor.showLineNumbers", false)
         expect(editor.gutter.lineNumbers).not.toBeVisible()
 
     describe "using gutter's api", ->
@@ -2357,7 +2357,7 @@ describe "Editor", ->
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.openSync(filePath))
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
@@ -2383,7 +2383,7 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(eventHandler).toHaveBeenCalled()
 
@@ -2442,7 +2442,7 @@ describe "Editor", ->
   describe "when editor:copy-path is triggered", ->
     it "copies the absolute path to the editor's file to the pasteboard", ->
       editor.trigger 'editor:copy-path'
-      expect(pasteboard.read()[0]).toBe editor.getPath()
+      expect(atom.pasteboard.read()[0]).toBe editor.getPath()
 
   describe "when editor:move-line-up is triggered", ->
     describe "when there is no selection", ->

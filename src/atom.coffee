@@ -58,15 +58,11 @@ class Atom
     MenuManager = require './menu-manager'
 
     @config = new Config({configDirPath, resourcePath})
-    @keymap = new Keymap()
+    @keymap = new Keymap({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
-    #TODO Remove once packages have been updated to not touch atom.packageStates directly
-    @__defineGetter__ 'packageStates', => @packages.packageStates
-    @__defineSetter__ 'packageStates', (packageStates) => @packages.packageStates = packageStates
-
     @subscribe @packages, 'activated', => @watchThemes()
-    @themes = new ThemeManager(@packages)
+    @themes = new ThemeManager({packageManager: @packages, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager()
     @pasteboard = new Pasteboard()

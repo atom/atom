@@ -37,10 +37,6 @@ class Config
     @bundledMenusDirPath = path.join(resourcePath, "menus")
     @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
     @bundledPackageDirPaths = [@nodeModulesDirPath]
-    @lessSearchPaths = [
-      path.join(@resourcePath, 'static', 'variables')
-      path.join(@resourcePath, 'static')
-    ]
     @packageDirPaths = [path.join(@configDirPath, "packages")]
     if atom.getLoadSettings().devMode
       @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
@@ -162,6 +158,15 @@ class Config
       _.setValueForKeyPath(@settings, keyPath, value)
       @update()
     value
+
+  # Public: Toggle the value at the key path.
+  #
+  # The new value will be `true` if the value is currently falsy and will be
+  # `false` if the value is currently truthy.
+  #
+  # Returns the new value.
+  toggle: (keyPath) ->
+    @set(keyPath, !@get(keyPath))
 
   # Public: Push the value to the array at the key path.
   #

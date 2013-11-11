@@ -89,7 +89,7 @@ class AtomPackage extends Package
 
     @requireMainModule()
     if @mainModule?
-      config.setDefaults(@name, @mainModule.configDefaults)
+      atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
@@ -105,9 +105,9 @@ class AtomPackage extends Package
     atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
-    syntax.addGrammar(grammar) for grammar in @grammars
+    atom.syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
-      syntax.addProperties(scopedPropertiesPath, selector, properties)
+      atom.syntax.addProperties(scopedPropertiesPath, selector, properties)
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
@@ -180,8 +180,8 @@ class AtomPackage extends Package
     @configActivated = false
 
   deactivateResources: ->
-    syntax.removeGrammar(grammar) for grammar in @grammars
-    syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
+    atom.syntax.removeGrammar(grammar) for grammar in @grammars
+    atom.syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false

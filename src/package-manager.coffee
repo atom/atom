@@ -106,13 +106,13 @@ class PackageManager
 
   unobserveDisabledPackages: ->
     return unless @observingDisabledPackages
-    config.unobserve('core.disabledPackages')
+    atom.config.unobserve('core.disabledPackages')
     @observingDisabledPackages = false
 
   observeDisabledPackages: ->
     return if @observingDisabledPackages
 
-    config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+    atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 
@@ -182,7 +182,7 @@ class PackageManager
     return packagePath if @isInternalPackage(packagePath)
 
   isPackageDisabled: (name) ->
-    _.include(config.get('core.disabledPackages') ? [], name)
+    _.include(atom.config.get('core.disabledPackages') ? [], name)
 
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)

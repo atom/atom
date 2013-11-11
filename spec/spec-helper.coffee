@@ -1,6 +1,6 @@
 require '../src/window'
 window.setUpEnvironment('spec')
-window.restoreDimensions()
+atom.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
@@ -67,8 +67,8 @@ beforeEach ->
   resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # used to reset keymap after each spec
-  bindingSetsToRestore = _.clone(keymap.bindingSets)
-  bindingSetsByFirstKeystrokeToRestore = _.clone(keymap.bindingSetsByFirstKeystroke)
+  bindingSetsToRestore = _.clone(atom.keymap.bindingSets)
+  bindingSetsByFirstKeystrokeToRestore = _.clone(atom.keymap.bindingSetsByFirstKeystroke)
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
@@ -107,8 +107,8 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  keymap.bindingSets = bindingSetsToRestore
-  keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
+  atom.keymap.bindingSets = bindingSetsToRestore
+  atom.keymap.bindingSetsByFirstKeystroke = bindingSetsByFirstKeystrokeToRestore
   atom.deactivatePackages()
   atom.menu.template = []
 
@@ -126,7 +126,7 @@ afterEach ->
   delete atom.windowState
   jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
-  syntax.off()
+  atom.syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
@@ -265,7 +265,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) => atom.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   @appendTo($('#jasmine-content'))

@@ -393,7 +393,7 @@ describe "TokenizedBuffer", ->
       buffer = project.bufferForPathSync()
       buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
+      tokenizedBuffer.setGrammar(atom.syntax.selectGrammar('test.erb'))
       fullyTokenize(tokenizedBuffer)
 
       {tokens} = tokenizedBuffer.lineForScreenRow(0)

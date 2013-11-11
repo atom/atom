@@ -136,7 +136,7 @@ describe "RootView", ->
       commandHandler = jasmine.createSpy('commandHandler')
       rootView.on('foo-command', commandHandler)
 
-      window.keymap.bindKeys('*', 'x': 'foo-command')
+      atom.keymap.bindKeys('*', 'x': 'foo-command')
 
     describe "when a keydown event is triggered in the RootView", ->
       it "triggers matching keybindings for that event", ->
@@ -195,20 +195,20 @@ describe "RootView", ->
 
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      fontSizeBefore = config.get('editor.fontSize')
+      fontSizeBefore = atom.config.get('editor.fontSize')
       rootView.trigger 'window:increase-font-size'
-      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 1
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
       rootView.trigger 'window:increase-font-size'
-      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 2
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 2
       rootView.trigger 'window:decrease-font-size'
-      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 1
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
       rootView.trigger 'window:decrease-font-size'
-      expect(config.get('editor.fontSize')).toBe fontSizeBefore
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
-      config.set("editor.fontSize", 1)
+      atom.config.set("editor.fontSize", 1)
       rootView.trigger 'window:decrease-font-size'
-      expect(config.get('editor.fontSize')).toBe 1
+      expect(atom.config.get('editor.fontSize')).toBe 1
 
   describe ".openSync(filePath, options)", ->
     describe "when there is no active pane", ->
