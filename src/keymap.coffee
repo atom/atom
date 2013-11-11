@@ -106,11 +106,16 @@ class Keymap
     element = event.target
     element = rootView[0] if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    @queuedKeystroke = null
-    shouldBubble = undefined
+    commands = @commandsForKeystroke(keystroke, element)
 
-    for {command, isMultiKeystroke} in @commandsForKeystroke(keystroke, element)
-      if isMultiKeystroke
+    if commands.length == 0 and @queuedKeystroke
+      @queuedKeystroke = null
+      return false
+    else
+      @queuedKeystroke = null
+
+    for {command, partialMatch} in commands
+      if partialMatch
         @queuedKeystroke = keystroke
         shouldBubble = false
       else
@@ -119,7 +124,7 @@ class Keymap
 
       break if shouldBubble?
 
-    shouldBubble
+    shouldBubble ? true
 
   # Public: Returns an array of objects that represent every keystroke to
   # command mapping. Each object contains the following keys `source`,
@@ -144,8 +149,10 @@ class Keymap
   commandsForKeystroke: (keystroke, element) ->
     firstKeystroke = keystroke.split(' ')[0]
     bindingSetsForKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
-    @bindingSetsForElement(element, bindingSetsForKeystroke).map (bindingSet) ->
+    commands = @bindingSetsForElement(element, bindingSetsForKeystroke).map (bindingSet) ->
       bindingSet.commandForKeystroke(keystroke)
+
+    _.compact(commands)
 
   bindingSetsForElement: (element, bindingSets=@bindingSets) ->
     bindingSets = bindingSets.filter (bindingSet) ->

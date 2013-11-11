@@ -22,25 +22,19 @@ describe "Keymap", ->
   describe ".handleKeyEvent(event)", ->
     deleteCharHandler = null
     insertCharHandler = null
+    metaZHandler = null
 
     beforeEach ->
       keymap.bindKeys '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys '.insert-mode', 'x': 'insertChar'
+      keymap.bindKeys '.command-mode', 'meta-z': 'metaZPressed'
 
       deleteCharHandler = jasmine.createSpy('deleteCharHandler')
       insertCharHandler = jasmine.createSpy('insertCharHandler')
+      metaZHandler = jasmine.createSpy('metaZHandler')
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
-
-    it "adds a 'keystroke' string to the event object", ->
-      event = keydownEvent('x', altKey: true, metaKey: true)
-      keymap.handleKeyEvent(event)
-      expect(event.keystroke).toBe 'alt-meta-x'
-
-      event = keydownEvent(',', metaKey: true)
-      event.which = 188
-      keymap.handleKeyEvent(event)
-      expect(event.keystroke).toBe 'meta-,'
+      fragment.on 'metaZPressed', metaZHandler
 
     describe "when no binding matches the event's keystroke", ->
       it "does not return false so the event continues to propagate", ->
@@ -48,10 +42,11 @@ describe "Keymap", ->
 
     describe "when a non-English keyboard language is used", ->
       it "uses the physical character pressed instead of the character it maps to in the current language", ->
-        event = keydownEvent('U+03B6', metaKey: true) # This is the 'z' key using the Greek keyboard layout
-        event.which = 122
-        keymap.handleKeyEvent(event)
-        expect(event.keystroke).toBe 'meta-z'
+        event = keydownEvent('U+03B6', metaKey: true, which: 122, target: fragment[0]) # This is the 'z' key using the Greek keyboard layout
+        result = keymap.handleKeyEvent(event)
+
+        expect(result).toBe(false)
+        expect(metaZHandler).toHaveBeenCalled()
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
@@ -68,9 +63,6 @@ describe "Keymap", ->
           keymap.handleKeyEvent(event)
           expect(deleteCharHandler).not.toHaveBeenCalled()
           expect(insertCharHandler).toHaveBeenCalled()
-          commandEvent = insertCharHandler.argsForCall[0][0]
-          expect(commandEvent.keyEvent).toBe event
-          expect(event.keystroke).toBe 'x'
 
       describe "when the event's target node *descends* from a selector with a matching binding", ->
         it "triggers the command event associated with that binding on the target node and returns false", ->
@@ -169,6 +161,7 @@ describe "Keymap", ->
       describe "when the event's target is the document body", ->
         it "triggers the mapped event on the rootView", ->
           window.rootView = new RootView
+          rootView.attachToDom()
           keymap.bindKeys 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
           rootView.on 'foo', fooHandler
@@ -254,10 +247,6 @@ describe "Keymap", ->
 
       describe "when there is a complete binding with a more specific selector", ->
         it "favors the more specific complete match", ->
-
-    describe "when a tab keystroke does not match any bindings", ->
-      it "returns false to prevent the browser from transferring focus", ->
-        expect(keymap.handleKeyEvent(keydownEvent('U+0009', target: fragment[0]))).toBe false
 
   describe ".keystrokeByCommandForSelector(selector)", ->
     it "returns a hash of all commands and their keybindings", ->
