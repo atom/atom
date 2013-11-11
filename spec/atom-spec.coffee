@@ -240,24 +240,24 @@ describe "the `atom` global", ->
         describe "grammar loading", ->
           it "loads the package's grammars", ->
             atom.activatePackage('package-with-grammars')
-            expect(syntax.selectGrammar('a.alot').name).toBe 'Alot'
-            expect(syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
+            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
             atom.activatePackage("package-with-scoped-properties")
-            expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
       describe "textmate packages", ->
         it "loads the package's grammars", ->
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
           it "loads the package's preferences as scoped properties", ->
@@ -267,9 +267,9 @@ describe "the `atom` global", ->
             atom.activatePackage('package-with-preferences-tmbundle')
 
             waitsFor ->
-              syntax.addProperties.callCount > 0
+              atom.syntax.addProperties.callCount > 0
             runs ->
-              expect(syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
+              expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
@@ -311,8 +311,8 @@ describe "the `atom` global", ->
         it "removes the package's grammars", ->
           atom.activatePackage('package-with-grammars')
           atom.deactivatePackage('package-with-grammars')
-          expect(syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
-          expect(syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+          expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
+          expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
         it "removes the package's keymaps", ->
           atom.activatePackage('package-with-keymaps')
@@ -332,22 +332,22 @@ describe "the `atom` global", ->
 
         it "removes the package's scoped-properties", ->
           atom.activatePackage("package-with-scoped-properties")
-          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
           atom.deactivatePackage("package-with-scoped-properties")
-          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
       describe "textmate packages", ->
         it "removes the package's grammars", ->
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
           atom.deactivatePackage('language-ruby')
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
           atom.activatePackage('language-ruby', sync: true)
           atom.deactivatePackage('language-ruby')
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
     describe ".activate()", ->
       packageActivator = null

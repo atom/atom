@@ -126,7 +126,7 @@ afterEach ->
   delete atom.windowState
   jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
-  syntax.off()
+  atom.syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->

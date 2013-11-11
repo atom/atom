@@ -64,7 +64,7 @@ class TokenizedBuffer
     @emit 'grammar-changed', grammar
 
   reloadGrammar: ->
-    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")

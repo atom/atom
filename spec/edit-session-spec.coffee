@@ -2390,14 +2390,14 @@ describe "EditSession", ->
     describe "when a better-matched grammar is added to syntax", ->
       it "switches to the better-matched grammar and re-tokenizes the buffer", ->
         editSession.destroy()
-        jsGrammar = syntax.selectGrammar('a.js')
-        syntax.removeGrammar(jsGrammar)
+        jsGrammar = atom.syntax.selectGrammar('a.js')
+        atom.syntax.removeGrammar(jsGrammar)
 
         editSession = project.openSync('sample.js', autoIndent: false)
-        expect(editSession.getGrammar()).toBe syntax.nullGrammar
+        expect(editSession.getGrammar()).toBe atom.syntax.nullGrammar
         expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
-        syntax.addGrammar(jsGrammar)
+        atom.syntax.addGrammar(jsGrammar)
         expect(editSession.getGrammar()).toBe jsGrammar
         expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 

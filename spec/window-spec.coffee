@@ -84,7 +84,7 @@ describe "Window", ->
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       rootViewState = rootView.serialize()
-      syntaxState = syntax.serialize()
+      syntaxState = atom.syntax.serialize()
 
       window.unloadEditorWindow()
 

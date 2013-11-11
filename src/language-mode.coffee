@@ -38,7 +38,7 @@ class LanguageMode
   # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
-    properties = syntax.propertiesForScope(scopes, "editor.commentStart")[0]
+    properties = atom.syntax.propertiesForScope(scopes, "editor.commentStart")[0]
     return unless properties
 
     commentStartString = _.valueForKeyPath(properties, "editor.commentStart")
@@ -292,14 +292,15 @@ class LanguageMode
   tokenizeLine: (line, stack, firstLine) ->
     {tokens, stack} = @grammar.tokenizeLine(line, stack, firstLine)
 
+  getRegexForProperty: (scopes, property) ->
+    if pattern = atom.syntax.getProperty(scopes, property)
+      new OnigRegExp(pattern)
+
   increaseIndentRegexForScopes: (scopes) ->
-    if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')
-      new OnigRegExp(increaseIndentPattern)
+    @getRegexForProperty(scopes, 'editor.increaseIndentPattern')
 
   decreaseIndentRegexForScopes: (scopes) ->
-    if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
-      new OnigRegExp(decreaseIndentPattern)
+    @getRegexForProperty(scopes, 'editor.decreaseIndentPattern')
 
   foldEndRegexForScopes: (scopes) ->
-    if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
-      new OnigRegExp(foldEndPattern)
+    @getRegexForProperty(scopes, 'editor.foldEndPattern')

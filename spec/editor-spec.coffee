@@ -1925,7 +1925,7 @@ describe "Editor", ->
         miniEditor = new Editor(mini: true)
         miniEditor.setText("var something")
         previousTokens = miniEditor.lineForScreenRow(0).tokens
-        miniEditor.setGrammar(syntax.selectGrammar('something.js'))
+        miniEditor.setGrammar(atom.syntax.selectGrammar('something.js'))
         expect(miniEditor.getGrammar().name).toBe "JavaScript"
         expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
 
@@ -2357,7 +2357,7 @@ describe "Editor", ->
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.openSync(filePath))
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
@@ -2383,7 +2383,7 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(eventHandler).toHaveBeenCalled()
 

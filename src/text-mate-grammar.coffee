@@ -68,14 +68,14 @@ class TextMateGrammar
   grammarUpdated: (scopeName) ->
     return false unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
-    syntax.grammarUpdated(@scopeName)
+    atom.syntax.grammarUpdated(@scopeName)
     @emit 'grammar-updated'
     true
 
   getScore: (filePath, contents) ->
     contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
-    if syntax.grammarOverrideForPath(filePath) is @scopeName
+    if atom.syntax.grammarOverrideForPath(filePath) is @scopeName
       2 + (filePath?.length ? 0)
     else if @matchesContents(contents)
       1 + (filePath?.length ? 0)
@@ -288,7 +288,7 @@ class Rule
       results.push(result)
 
     scopes = scopesFromStack(ruleStack)
-    for injectionGrammar in _.without(syntax.injectionGrammars, @grammar, baseGrammar)
+    for injectionGrammar in _.without(atom.syntax.injectionGrammars, @grammar, baseGrammar)
       if injectionGrammar.injectionSelector.matches(scopes)
         scanner = injectionGrammar.getInitialRule().getScanner(injectionGrammar, position, firstLine)
         if result = scanner.findNextMatch(lineWithNewline, position)
@@ -409,7 +409,7 @@ class Pattern
       baseGrammar.getInitialRule()
     else
       @grammar.addIncludedGrammarScope(name)
-      syntax.grammarForScopeName(name)?.getInitialRule()
+      atom.syntax.grammarForScopeName(name)?.getInitialRule()
 
   getIncludedPatterns: (baseGrammar, included) ->
     if @include
