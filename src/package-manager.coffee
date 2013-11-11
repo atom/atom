@@ -40,6 +40,12 @@ class PackageManager
   getApmPath: ->
     @apmPath ?= require.resolve('atom-package-manager/bin/apm')
 
+  # Public: Get the paths being used to look for packages.
+  #
+  # Returns an Array of String directory paths.
+  getPackageDirPaths: ->
+    _.clone(@packageDirPaths)
+
   getPackageState: (name) ->
     @packageStates[name]
 
