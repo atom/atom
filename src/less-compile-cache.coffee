@@ -11,17 +11,17 @@ class LessCompileCache
 
   @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
 
-  constructor: ({resourcePath})->
+  constructor: ({resourcePath}) ->
+    @lessSearchPaths = [
+      path.join(resourcePath, 'static', 'variables')
+      path.join(resourcePath, 'static')
+    ]
+
     @cache = new LessCache
       cacheDir: @constructor.cacheDir
       importPaths: @getImportPaths()
       resourcePath: window.resourcePath
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
-
-    @lessSearchPaths = [
-      path.join(resourcePath, 'static', 'variables')
-      path.join(resourcePath, 'static')
-    ]
 
     @subscribe atom.themes, 'reloaded', => @cache.setImportPaths(@getImportPaths())
 
