@@ -8,7 +8,9 @@ describe "ThemeManager", ->
   themeManager = null
 
   beforeEach ->
-    themeManager = new ThemeManager(atom.packages)
+    themeManager = new ThemeManager
+      packageManager: atom.packages
+      resourcePath: window.resourcePath
 
   afterEach ->
     themeManager.deactivateThemes()

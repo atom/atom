@@ -37,10 +37,6 @@ class Config
     @bundledMenusDirPath = path.join(resourcePath, "menus")
     @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
     @bundledPackageDirPaths = [@nodeModulesDirPath]
-    @lessSearchPaths = [
-      path.join(@resourcePath, 'static', 'variables')
-      path.join(@resourcePath, 'static')
-    ]
     @packageDirPaths = [path.join(@configDirPath, "packages")]
     if atom.getLoadSettings().devMode
       @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))

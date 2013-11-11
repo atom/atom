@@ -17,7 +17,7 @@ module.exports =
 class ThemeManager
   Emitter.includeInto(this)
 
-  constructor: (@packageManager) ->
+  constructor: ({@packageManager, @resourcePath}) ->
     @lessCache = null
     @packageManager.registerPackageActivator(this, ['theme'])
 
@@ -148,7 +148,7 @@ class ThemeManager
   loadLessStylesheet: (lessStylesheetPath) ->
     unless lessCache?
       LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache()
+      @lessCache = new LessCompileCache({@resourcePath})
 
     try
       @lessCache.read(lessStylesheetPath)
