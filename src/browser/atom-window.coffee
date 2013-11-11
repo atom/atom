@@ -21,7 +21,7 @@ class AtomWindow
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
-    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: AtomWindow.iconPath
+    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
     @browserWindow.restart = _.wrap _.bind(@browserWindow.restart, @browserWindow), (restart) =>
       @setupNodePath(@resourcePath)
       restart()
