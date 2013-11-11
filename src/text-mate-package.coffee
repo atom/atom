@@ -41,15 +41,15 @@ class TextMatePackage extends Package
 
   activate: ->
     @measure 'activateTime', =>
-      syntax.addGrammar(grammar) for grammar in @grammars
+      atom.syntax.addGrammar(grammar) for grammar in @grammars
       for { selector, properties } in @scopedProperties
-        syntax.addProperties(@path, selector, properties)
+        atom.syntax.addProperties(@path, selector, properties)
 
   activateConfig: -> # noop
 
   deactivate: ->
-    syntax.removeGrammar(grammar) for grammar in @grammars
-    syntax.removeProperties(@path)
+    atom.syntax.removeGrammar(grammar) for grammar in @grammars
+    atom.syntax.removeProperties(@path)
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json', 'cson']
 
@@ -77,7 +77,7 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    syntax.addGrammar(grammar) if @isActive()
+    atom.syntax.addGrammar(grammar) if @isActive()
 
   getGrammars: -> @grammars
 
@@ -98,38 +98,38 @@ class TextMatePackage extends Package
   loadScopedPropertiesSync: ->
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
-        selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
+        selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         @scopedProperties.push({selector, properties})
 
     for preferencePath in fs.listSync(@getPreferencesPath())
       {scope, settings} = fs.readObjectSync(preferencePath)
       if properties = @propertiesFromTextMateSettings(settings)
-        selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
+        selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
 
     if @isActive()
       for {selector, properties} in @scopedProperties
-        syntax.addProperties(@path, selector, properties)
+        atom.syntax.addProperties(@path, selector, properties)
 
   loadScopedProperties: (callback) ->
     scopedProperties = []
 
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
-        selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
+        selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         scopedProperties.push({selector, properties})
 
     preferenceObjects = []
     done = =>
       for {scope, settings} in preferenceObjects
         if properties = @propertiesFromTextMateSettings(settings)
-          selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
+          selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
           scopedProperties.push({selector, properties})
 
       @scopedProperties = scopedProperties
       if @isActive()
         for {selector, properties} in @scopedProperties
-          syntax.addProperties(@path, selector, properties)
+          atom.syntax.addProperties(@path, selector, properties)
       callback?()
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 

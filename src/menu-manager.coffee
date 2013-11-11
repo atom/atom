@@ -12,7 +12,7 @@ fs = require 'fs-plus'
 module.exports =
 class MenuManager
   # Private:
-  constructor: ->
+  constructor: ({@resourcePath}) ->
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadCoreItems()
 
@@ -36,7 +36,8 @@ class MenuManager
 
   # Private
   loadCoreItems: ->
-    menuPaths = fs.listSync(atom.config.bundledMenusDirPath, ['cson', 'json'])
+    menusDirPath = path.join(@resourcePath, 'menus')
+    menuPaths = fs.listSync(menusDirPath, ['cson', 'json'])
     for menuPath in menuPaths
       data = CSON.readFileSync(menuPath)
       @add(data.menu)

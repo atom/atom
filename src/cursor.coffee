@@ -111,7 +111,7 @@ class Cursor
   # Returns a RegExp.
   wordRegExp: ({includeNonWordCharacters}={})->
     includeNonWordCharacters ?= true
-    nonWordCharacters = config.get('editor.nonWordCharacters')
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters')
     segments = ["^[\t ]*$"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
@@ -153,7 +153,7 @@ class Cursor
     [before, after] = @editSession.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = config.get('editor.nonWordCharacters').split('')
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters').split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.

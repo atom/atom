@@ -80,12 +80,12 @@ class EditSession
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
       @id = guid.create().toString()
       displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
         displayBuffer: displayBuffer.getState()
-        softTabs: buffer.usesSoftTabs() ? softTabs ? config.get('editor.softTabs') ? true
+        softTabs: buffer.usesSoftTabs() ? softTabs ? atom.config.get('editor.softTabs') ? true
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)
@@ -565,9 +565,9 @@ class EditSession
   # * options:
   #    + A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    [text, metadata] = pasteboard.read()
+    [text, metadata] = atom.pasteboard.read()
 
-    if config.get('editor.normalizeIndentOnPaste') and metadata
+    if atom.config.get('editor.normalizeIndentOnPaste') and metadata
       options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
@@ -1398,7 +1398,7 @@ class EditSession
 
   # Private:
   shouldAutoIndent: ->
-    config.get("editor.autoIndent")
+    atom.config.get("editor.autoIndent")
 
   # Public: Performs all editor actions from the given function within a single
   # undo step.

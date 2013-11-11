@@ -1,7 +1,7 @@
 ## Building Atom
 
 These guide is meant only for users who wish to help develop atom core,
-if you're just intersted in using atom you should just [download
+if you're just interested in using atom you should just [download
 atom][download].
 
 ## OSX
@@ -16,7 +16,7 @@ atom][download].
 * Install [Visual C++ 2010 Express][win-vs2010]
 * Install the [latest 32bit Node 0.10.x][win-node]
 * Install the [latest Python 2.7.x][win-python]
-* Install [Github for Windows][win-github]
+* Install [GitHub for Windows][win-github]
 * Clone [atom/atom][atom-git] to `C:\Users\<user>\github\atom\`
 * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
   to your PATH
@@ -24,10 +24,11 @@ atom][download].
   find-generic-password -ws 'GitHub API Token'` on OSX to get your
   credentials).
 * Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
-* Run `node script/bootstrap`
+* Run `script\bootstrap`
 
 [download]: http://www.atom.io
 [win-node]: http://nodejs.org/download/
 [win-python]: http://www.python.org/download/
 [win-github]: http://windows.github.com/
+[win-vs2010]: http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express
 [atom-git]: https://github.com/atom/atom/

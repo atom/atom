@@ -296,6 +296,67 @@ describe "Project", ->
         expect(project.getPath()?).toBeFalsy()
         expect(project.getRootDirectory()?).toBeFalsy()
 
+  describe ".replace()", ->
+    [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
+
+    beforeEach ->
+      project.setPath(project.resolve('../'))
+
+      filePath = project.resolve('sample.js')
+      commentFilePath = project.resolve('sample-with-comments.js')
+      sampleContent = fs.readFileSync(filePath).toString()
+      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
+
+    afterEach ->
+      fs.writeFileSync(filePath, sampleContent)
+      fs.writeFileSync(commentFilePath, sampleCommentContent)
+
+    describe "when called with unopened files", ->
+      it "replaces properly", ->
+        results = []
+        waitsForPromise ->
+          project.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+    describe "when a buffer is already open", ->
+      it "replaces properly and saves when not modified", ->
+        editSession = project.openSync('sample.js')
+        expect(editSession.isModified()).toBeFalsy()
+
+        results = []
+        waitsForPromise ->
+          project.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editSession.isModified()).toBeFalsy()
+
+      it "does NOT save when modified", ->
+        editSession = project.openSync('sample.js')
+        editSession.buffer.change([[0,0],[0,0]], 'omg')
+        expect(editSession.isModified()).toBeTruthy()
+
+        results = []
+        waitsForPromise ->
+          project.replace /items/gi, 'okthen', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editSession.isModified()).toBeTruthy()
+
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex results in all files in the project", ->
@@ -388,7 +449,7 @@ describe "Project", ->
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
-          config.set('core.excludeVcsIgnoredPaths', true)
+          atom.config.set('core.excludeVcsIgnoredPaths', true)
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
             project.scan /match/, (results) ->
@@ -434,9 +495,9 @@ describe "Project", ->
 
       it "excludes values in core.ignoredNames", ->
         projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-        ignoredNames = config.get("core.ignoredNames")
+        ignoredNames = atom.config.get("core.ignoredNames")
         ignoredNames.push("a")
-        config.set("core.ignoredNames", ignoredNames)
+        atom.config.set("core.ignoredNames", ignoredNames)
 
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->

@@ -34,7 +34,7 @@ class Project
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
-    path.join(config.get('core.projectHome'), repoName)
+    path.join(atom.config.get('core.projectHome'), repoName)
 
   rootDirectory: null
   editSessions: null
@@ -78,7 +78,7 @@ class Project
         if buffer = deserialize(bufferState, project: this)
           @addBuffer(buffer, updateState: false)
     else
-      @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
+      @state = atom.site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
     @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
@@ -137,14 +137,14 @@ class Project
   # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
     for segment in path.split("/")
-      ignoredNames = config.get("core.ignoredNames") or []
+      ignoredNames = atom.config.get("core.ignoredNames") or []
       return true if _.contains(ignoredNames, segment)
 
     @ignoreRepositoryPath(path)
 
   # Public: Determines if a given path is ignored via repository configuration.
   ignoreRepositoryPath: (repositoryPath) ->
-    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
+    atom.config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Public: Given a uri, this resolves it relative to the project directory. If
   # the path is already absolute or if it is prefixed with a scheme, it is
@@ -316,8 +316,8 @@ class Project
       ignoreCase: regex.ignoreCase
       inclusions: options.paths
       includeHidden: true
-      excludeVcsIgnores: config.get('core.excludeVcsIgnoredPaths')
-      exclusions: config.get('core.ignoredNames')
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
 
     task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
       deferred.resolve()
@@ -334,6 +334,42 @@ class Project
       matches = []
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
+
+    deferred.promise
+
+  # Public: Performs a replace across all the specified files in the project.
+  #
+  # * regex: A RegExp to search with
+  # * replacementText: Text to replace all matches of regex with
+  # * filePaths: List of file path strings to run the replace on.
+  # * iterator: A Function callback on each file with replacements. ({filePath, replacements}) ->
+  replace: (regex, replacementText, filePaths, iterator) ->
+    deferred = Q.defer()
+
+    openPaths = (buffer.getPath() for buffer in @buffers)
+    outOfProcessPaths = _.difference(filePaths, openPaths)
+
+    inProcessFinished = !openPaths.length
+    outOfProcessFinished = !outOfProcessPaths.length
+    checkFinished = ->
+      deferred.resolve() if outOfProcessFinished and inProcessFinished
+
+    unless outOfProcessFinished.length
+      flags = 'g'
+      flags += 'i' if regex.ignoreCase
+
+      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
+        outOfProcessFinished = true
+        checkFinished()
+
+      task.on 'replace:path-replaced', iterator
+
+    for buffer in @buffers
+      replacements = buffer.replace(regex, replacementText, iterator)
+      iterator({filePath: buffer.getPath(), replacements}) if replacements
+
+    inProcessFinished = true
+    checkFinished()
 
     deferred.promise
 

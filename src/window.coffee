@@ -47,8 +47,10 @@ window.startEditorWindow = ->
     installApmCommand()
 
   windowEventHandler = new WindowEventHandler
-  restoreDimensions()
+  atom.restoreDimensions()
   atom.config.load()
+  atom.config.setDefaults('core', require('./root-view').configDefaults)
+  atom.config.setDefaults('editor', require('./editor').configDefaults)
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()
@@ -94,15 +96,10 @@ window.deserializeEditorWindow = ->
   atom.deserializeRootView()
   window.rootView = atom.rootView
 
-window.getDimensions = -> atom.getDimensions()
-
-window.setDimensions = (args...) -> atom.setDimensions(args...)
-
-window.restoreDimensions = (args...) -> atom.restoreDimensions(args...)
-
 window.onerror = ->
   atom.openDevTools()
 
+#TODO remove once all packages use the atom global
 window.registerDeserializers = (args...) ->
   atom.deserializers.add(args...)
 window.registerDeserializer = (args...) ->
