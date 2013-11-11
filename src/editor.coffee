@@ -644,6 +644,7 @@ class Editor extends View
       false
 
     @hiddenInput.on 'focus', =>
+      @bringHiddenInputIntoView()
       @isFocused = true
       @addClass 'is-focused'
 
