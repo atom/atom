@@ -10,6 +10,8 @@ _ = require 'underscore-plus'
 # Private:
 module.exports =
 class AtomWindow
+  @iconPath: path.resolve(__dirname, '..', '..', 'atom.png')
+
   browserWindow: null
   loaded: null
   isSpec: null
@@ -19,7 +21,7 @@ class AtomWindow
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
-    @browserWindow = new BrowserWindow show: false, title: 'Atom'
+    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
     @browserWindow.restart = _.wrap _.bind(@browserWindow.restart, @browserWindow), (restart) =>
       @setupNodePath(@resourcePath)
       restart()
