@@ -245,8 +245,6 @@ class Project extends Model
 
   # Private:
   removeBufferAtIndex: (index, options={}) ->
-    console.log 'removing buffer', index
-    console.trace()
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
 
