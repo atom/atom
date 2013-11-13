@@ -81,7 +81,7 @@
     "command-palette": "0.7.0",
     "dev-live-reload": "0.15.0",
     "editor-stats": "0.5.0",
-    "exception-reporting": "0.5.0",
+    "exception-reporting": "0.6.0",
     "find-and-replace": "0.40.0",
     "fuzzy-finder": "0.20.0",
     "gists": "0.6.0",
