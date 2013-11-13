@@ -37,17 +37,6 @@ class Develop extends Command
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
-  loadNpm: (callback) ->
-    npmOptions =
-      loglevel: 'silent'
-      userconfig: config.getUserConfigPath()
-
-    npm.load npmOptions, (error) ->
-      if error?
-        callback(error)
-      else
-        callback(null, npm)
-
   getRepositoryUrl: (packageName, callback) ->
     auth.getToken (error, token) ->
       if error?
