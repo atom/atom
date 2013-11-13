@@ -241,6 +241,9 @@ class Atom
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
+  getVersion: ->
+    app.getVersion()
+
   getHomeDirPath: ->
     process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
