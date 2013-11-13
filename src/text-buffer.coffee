@@ -69,6 +69,7 @@ class TextBuffer extends Model
 
   destroy: ->
     unless @destroyed
+      @cancelStoppedChangingTimeout()
       @file?.off()
       @unsubscribe()
       @destroyed = true
@@ -647,8 +648,11 @@ class TextBuffer extends Model
     else
       text
 
-  scheduleModifiedEvents: ->
+  cancelStoppedChangingTimeout: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
+
+  scheduleModifiedEvents: ->
+    @cancelStoppedChangingTimeout()
     stoppedChangingCallback = =>
       @stoppedChangingTimeout = null
       modifiedStatus = @isModified()
