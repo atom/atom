@@ -216,7 +216,8 @@ class Git
   #
   # Returns a Number representing the status.
   getDirectoryStatus: (directoryPath)  ->
-    directoryPath = "#{directoryPath}/"
+    {sep} = require 'path'
+    directoryPath = "#{directoryPath}#{sep}"
     directoryStatus = 0
     for path, status of @statuses
       directoryStatus |= status if path.indexOf(directoryPath) is 0

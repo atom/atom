@@ -165,6 +165,7 @@ class Project
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
+    return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     @rootDirectory?.relativize(fullPath) ? fullPath
 
   # Public: Returns whether the given path is inside this project.
