@@ -1,4 +1,3 @@
-crypto = require 'crypto'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
 Q = require 'q'
@@ -8,25 +7,23 @@ telepath = require 'telepath'
 _ = require 'underscore-plus'
 File = require './file'
 
-{Point, Range} = telepath
+{Point, Range, Model} = telepath
 
 # Private: Represents the contents of a file.
 #
 # The `Buffer` is often associated with a {File}. However, this is not always
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer
+class TextBuffer extends Model
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
-  @acceptsDocuments: true
-  @version: 2
-  registerDeserializer(this)
+  @properties
+    text: -> new telepath.String('', replicated: false)
+    id: -> guid.create().toString()
+    filePath: null
 
-  @deserialize: (state, params) ->
-    buffer = new this(state, params)
-    buffer.load()
-    buffer
+  @::lazyGetter 'project', -> @grandparent
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -36,34 +33,14 @@ class TextBuffer
   file: null
   refcount: 0
 
-  # Creates a new buffer.
-  #
-  # * optionsOrState - An {Object} or a telepath.Document
-  #   + filePath - A {String} representing the file path
-  constructor: (optionsOrState={}, params={}) ->
-    if optionsOrState instanceof telepath.Document
-      {@project} = params
-      @state = optionsOrState
-      @id = @state.get('id')
-      filePath = @state.get('relativePath')
-      @text = @state.get('text')
-      @useSerializedText = @state.get('isModified') != false
-    else
-      {@project, filePath} = optionsOrState
-      @text = new telepath.String(initialText ? '', replicated: false)
-      @id = guid.create().toString()
-      @state = atom.site.createDocument
-        id: @id
-        deserializer: @constructor.name
-        version: @constructor.version
-        text: @text
-
+  attached: ->
     @loaded = false
+
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
-    @setPath(@project.resolve(filePath)) if @project
+    @setPath(@project.resolve(@filePath)) if @project
 
   loadSync: ->
     @updateCachedDiskContentsSync()
@@ -108,16 +85,6 @@ class TextBuffer
     @refcount--
     @destroy() unless @isRetained()
     this
-
-  serialize: ->
-    state = @state.clone()
-    state.set('isModified', @isModified())
-    state.set('diskContentsDigest', @file.getDigest()) if @file
-    for marker in state.get('text').getMarkers() when marker.isRemote()
-      marker.destroy()
-    state
-
-  getState: -> @state
 
   subscribeToFile: ->
     @file.on "contents-changed", =>

@@ -121,10 +121,10 @@ class Atom
   deserializeProject: ->
     Project = require './project'
     state = @getWindowState()
-    @project = deserialize(state.get('project'))
+    @project = state.get('project')
     unless @project?
-      @project = new Project(@getLoadSettings().initialPath)
-      state.set('project', @project.getState())
+      @project = new Project(path: @getLoadSettings().initialPath)
+      state.set('project', @project)
 
   deserializeRootView: ->
     RootView = require './root-view'
@@ -295,6 +295,8 @@ class Atom
 
     doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
+    doc.registerModelClass(require('./project'))
+    doc.registerModelClass(require('./text-buffer'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)

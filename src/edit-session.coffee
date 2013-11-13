@@ -139,10 +139,10 @@ class EditSession
     @destroyed = true
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
-    @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
     project?.removeEditSession(this)
+    @buffer.release()
     @emit 'destroyed'
     @off()
 

@@ -5,7 +5,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 telepath = require 'telepath'
-{Range} = telepath
+{Model, Range} = telepath
 
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
@@ -19,16 +19,12 @@ Git = require './git'
 # Ultimately, a project is a git directory that's been opened. It's a collection
 # of directories and files that you can operate on.
 module.exports =
-class Project
+class Project extends Model
   Emitter.includeInto(this)
 
-  @acceptsDocuments: true
-  @version: 1
-
-  registerDeserializer(this)
-
-  # Private:
-  @deserialize: (state) -> new Project(state)
+  @properties
+    buffers: []
+    path: null
 
   # Public: Find the local path for the given repository URL.
   @pathForRepositoryUrl: (repoUrl) ->
@@ -36,10 +32,11 @@ class Project
     repoName = repoName.replace(/\.git$/, '')
     path.join(atom.config.get('core.projectHome'), repoName)
 
-  rootDirectory: null
-  editSessions: null
-  ignoredPathRegexes: null
-  openers: null
+  # Private:
+  attached: ->
+    @openers = []
+    @editSessions = []
+    @setPath(@path)
 
   # Public:
   registerOpener: (opener) -> @openers.push(opener)
@@ -59,50 +56,9 @@ class Project
       @repo.destroy()
       @repo = null
 
-  # Public: Establishes a new project at a given path.
-  #
-  # path - The {String} name of the path
-  constructor: (pathOrState) ->
-    @openers = []
-    @editSessions = []
-    @buffers = []
-
-    if pathOrState instanceof telepath.Document
-      @state = pathOrState
-      if projectPath = @state.remove('path')
-        @setPath(projectPath)
-      else
-        @setPath(@constructor.pathForRepositoryUrl(@state.get('repoUrl')))
-
-      @state.get('buffers').each (bufferState) =>
-        if buffer = deserialize(bufferState, project: this)
-          @addBuffer(buffer, updateState: false)
-    else
-      @state = atom.site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
-      @setPath(pathOrState)
-
-    @state.get('buffers').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
-      return if siteId is @state.siteId
-
-      for removedBuffer in removedValues
-        @removeBufferAtIndex(index, updateState: false)
-      for insertedBuffer, i in insertedValues
-        @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
-
-  # Private:
-  serialize: ->
-    state = @state.clone()
-    state.set('path', @getPath())
-    @destroyUnretainedBuffers()
-    state.set('buffers', buffer.serialize() for buffer in @getBuffers())
-    state
-
   # Private:
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
-
-  # Public: ?
-  getState: -> @state
 
   # Public: Returns the {Git} repository if available.
   getRepo: -> @repo
@@ -223,17 +179,15 @@ class Project
     new Array(@buffers...)
 
   isPathModified: (filePath) ->
-    absoluteFilePath = @resolve(filePath)
-    existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
-    existingBuffer?.isModified()
+    @findBufferForPath(@resolve(filePath))?.isModified()
+
+  findBufferForPath: (filePath) ->
+    _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
 
   # Private: Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
-
-    if filePath
-      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
-
+    existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
@@ -246,9 +200,7 @@ class Project
   # Returns a promise that resolves to the {TextBuffer}.
   bufferForPath: (filePath) ->
     absoluteFilePath = @resolve(filePath)
-    if absoluteFilePath
-      existingBuffer = _.find @buffers, (buffer) -> buffer.getPath() == absoluteFilePath
-
+    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
   # Private:
@@ -269,10 +221,11 @@ class Project
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
-    buffer.load().then (buffer) =>
-      @addBuffer(buffer)
-      buffer
+    buffer = new TextBuffer({filePath: absoluteFilePath})
+    @addBuffer(buffer)
+    buffer.load()
+      .then((buffer) -> buffer)
+      .catch(=> @removeBuffer(buffer))
 
   # Private:
   addBuffer: (buffer, options={}) ->
@@ -280,8 +233,7 @@ class Project
 
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
-    @buffers[index] = buffer
-    @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
+    @buffers.insert(index, buffer)
     @emit 'buffer-created', buffer
 
   # Private: Removes a {TextBuffer} association from the project.
@@ -293,8 +245,9 @@ class Project
 
   # Private:
   removeBufferAtIndex: (index, options={}) ->
+    console.log 'removing buffer', index
+    console.trace()
     [buffer] = @buffers.splice(index, 1)
-    @state.get('buffers')?.remove(index) if options.updateState ? true
     buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.
