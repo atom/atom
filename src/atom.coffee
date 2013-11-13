@@ -295,8 +295,7 @@ class Atom
 
     doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
-    doc.registerModelClass(require('./project'))
-    doc.registerModelClass(require('./text-buffer'))
+    doc.registerModelClasses(require('./project'), require('./text-buffer'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)
