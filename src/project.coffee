@@ -233,8 +233,9 @@ class Project extends Model
 
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
-    @buffers.insert(index, buffer)
+    buffer = @buffers.insert(index, buffer)
     @emit 'buffer-created', buffer
+    buffer
 
   # Private: Removes a {TextBuffer} association from the project.
   #
