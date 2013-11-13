@@ -977,13 +977,13 @@ describe 'TextBuffer', ->
           previousText = buffer.getText()
           buffer.setText("abc")
 
-          state = buffer.serialize()
+          state = buffer.getState().clone()
           expect(state.getObject('text')).toBe 'abc'
 
-          buffer2 = deserialize(state, {project})
+          buffer2 = project.addBuffer(new TextBuffer(state))
 
-          waitsFor ->
-            buffer2.cachedDiskContents
+          waitsForPromise ->
+            buffer2.load()
 
           runs ->
             expect(buffer2.getPath()).toBe(buffer.getPath())
@@ -999,10 +999,10 @@ describe 'TextBuffer', ->
         buffer = project.bufferForPathSync()
         buffer.setText("abc")
 
-        state = buffer.serialize()
+        state = buffer.getState().clone()
         expect(state.get('path')).toBeUndefined()
         expect(state.getObject('text')).toBe 'abc'
 
-        buffer2 = deserialize(state)
+        buffer2 = project.addBuffer(new TextBuffer(state))
         expect(buffer2.getPath()).toBeUndefined()
         expect(buffer2.getText()).toBe("abc")
