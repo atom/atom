@@ -209,9 +209,9 @@ class Project extends Model
 
   # Private: DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
-    buffer.loadSync()
+    buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
+    buffer.loadSync()
     buffer
 
   # Private: Given a file path, this sets its {TextBuffer}.
