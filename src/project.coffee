@@ -176,7 +176,7 @@ class Project extends Model
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
-    new Array(@buffers...)
+    new Array(@buffers.getValues()...)
 
   isPathModified: (filePath) ->
     @findBufferForPath(@resolve(filePath))?.isModified()
