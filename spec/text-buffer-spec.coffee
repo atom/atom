@@ -311,8 +311,8 @@ describe 'TextBuffer', ->
 
     it "returns false until the buffer is fully loaded", ->
       buffer.release()
-      filePath = temp.openSync('atom').path
-      buffer = new TextBuffer({project, filePath})
+      buffer = new TextBuffer({filePath: temp.openSync('atom').path})
+      project.addBuffer(buffer)
 
       expect(buffer.isModified()).toBeFalsy()
 
