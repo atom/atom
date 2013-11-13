@@ -955,14 +955,14 @@ describe 'TextBuffer', ->
 
           filePath = temp.openSync('atom').path
           fs.writeFileSync(filePath, "words")
-          {buffer} = project.openSync(filePath)
+          buffer = project.addBuffer(new TextBuffer({filePath}))
           buffer.setText("BUFFER CHANGE")
 
-          state = buffer.serialize()
+          state = buffer.getState().clone()
           expect(state.getObject('text')).toBe 'BUFFER CHANGE'
           fs.writeFileSync(filePath, "DISK CHANGE")
 
-          buffer2 = deserialize(state, {project})
+          buffer2 = project.addBuffer(new TextBuffer(state))
 
           waitsFor ->
             buffer2.cachedDiskContents
