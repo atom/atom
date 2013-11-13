@@ -1,6 +1,1 @@
-_auth = bWVkc3RyYWxzb2luZXdpdGVkc3RlZGlyOndFZXNoMHY0UW5wQ0lsM0N4QlliWUJBVg==
-email = hubot@github.com
-strict-ssl = false
-always-auth = true
-registry = https://atom.cloudant.com/registry/_design/app/_rewrite
 cache = ~/.atom/.apm
