@@ -22,6 +22,7 @@ class TextBuffer extends Model
     text: -> new telepath.String('', replicated: false)
     id: -> guid.create().toString()
     filePath: null
+    relativePath: null
 
   @::lazyGetter 'project', -> @grandparent
 
@@ -108,7 +109,7 @@ class TextBuffer extends Model
         @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
-      @state.set('relativePath', @project.relativize(@getPath()))
+      @relativePath = @project.relativize(@getPath())
       @emit "path-changed", this
 
   ### Public ###
@@ -154,7 +155,7 @@ class TextBuffer extends Model
     @getRelativePath()
 
   getRelativePath: ->
-    @state.get('relativePath')
+    @relativePath
 
   # Sets the path for the file.
   #
@@ -170,7 +171,7 @@ class TextBuffer extends Model
     else
       @file = null
 
-    @state.set('relativePath', @project.relativize(path))
+    @relativePath = @project.relativize(path)
     @emit "path-changed", this
 
   # Retrieves the current buffer's file extension.
