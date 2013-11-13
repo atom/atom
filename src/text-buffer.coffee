@@ -23,6 +23,7 @@ class TextBuffer extends Model
     id: -> guid.create().toString()
     filePath: null
     relativePath: null
+    diskContentsDigest: null
 
   @::lazyGetter 'project', -> @grandparent
 
@@ -52,7 +53,7 @@ class TextBuffer extends Model
 
   finishLoading: ->
     @loaded = true
-    if @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
+    if @useSerializedText and @diskContentsDigest is @file?.getDigest()
       @emitModifiedStatusChanged(true)
     else
       @reload()
