@@ -935,13 +935,13 @@ describe 'TextBuffer', ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
 
-        state = buffer.serialize()
+        state = buffer.getState().clone()
         state.get('text').insertTextAtPoint([0, 0], 'simulate divergence of on-disk contents from serialized contents')
 
-        buffer2 = deserialize(state, {project})
+        buffer2 = project.addBuffer(new TextBuffer(state))
 
-        waitsFor ->
-          buffer2.cachedDiskContents
+        waitsForPromise ->
+          buffer2.load()
 
         runs ->
           expect(buffer2.isModified()).toBeFalsy()
