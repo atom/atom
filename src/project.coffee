@@ -282,7 +282,7 @@ class Project extends Model
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
-    for buffer in @buffers when buffer.isModified()
+    for buffer in @buffers.getValues() when buffer.isModified()
       filePath = buffer.getPath()
       matches = []
       buffer.scan regex, (match) -> matches.push match
