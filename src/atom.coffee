@@ -319,7 +319,7 @@ class Atom
 
   # Private: Returns a replicated copy of the current state.
   replicate: ->
-    @windowState.replicate()
+    @getWindowState().replicate()
 
   crashMainProcess: ->
     remote.process.crash()
