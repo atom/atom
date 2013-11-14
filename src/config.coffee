@@ -33,19 +33,7 @@ class Config
 
   # Private: Created during initialization, available as `global.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
-    @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
-    @bundledMenusDirPath = path.join(resourcePath, "menus")
-    @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
-    @bundledPackageDirPaths = [@nodeModulesDirPath]
-    @packageDirPaths = [path.join(@configDirPath, "packages")]
-    if atom.getLoadSettings().devMode
-      @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
-    @userPackageDirPaths = _.clone(@packageDirPaths)
-    @userStoragePath = path.join(@configDirPath, "storage")
-
-    @defaultSettings =
-      core: _.clone(require('./root-view').configDefaults)
-      editor: _.clone(require('./editor').configDefaults)
+    @defaultSettings = {}
     @settings = {}
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')

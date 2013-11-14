@@ -74,6 +74,16 @@ describe "Editor", ->
 
       expect(editor.hiddenInput).toMatchSelector ':focus'
       expect($(editor[0]).scrollTop()).toBe 0
+      expect($(editor.scrollView[0]).scrollTop()).toBe 0
+
+      editor.moveCursorToBottom()
+      editor.hiddenInput.blur()
+      editor.scrollTop(0)
+      editor.focus()
+
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+      expect($(editor[0]).scrollTop()).toBe 0
+      expect($(editor.scrollView[0]).scrollTop()).toBe 0
 
   describe "when the hidden input is focused / unfocused", ->
     it "assigns the isFocused flag on the editor and also adds/removes the .focused css class", ->

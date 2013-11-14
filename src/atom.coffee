@@ -62,9 +62,9 @@ class Atom
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
 
     @subscribe @packages, 'activated', => @watchThemes()
-    @themes = new ThemeManager({packageManager: @packages, resourcePath})
+    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
-    @menu = new MenuManager()
+    @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
 
@@ -241,6 +241,9 @@ class Atom
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
+  getVersion: ->
+    app.getVersion()
+
   getHomeDirPath: ->
     process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
@@ -250,6 +253,10 @@ class Atom
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
+
+  # Public: Get the directory path to Atom's storage area.
+  getStorageDirPath: ->
+    @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
 
   getWindowStatePath: ->
     switch @windowMode
@@ -262,7 +269,7 @@ class Atom
           filename = "editor-#{sha1}"
 
     if filename
-      path.join(@config.userStoragePath, filename)
+      path.join(@getStorageDirPath(), filename)
     else
       null
 
@@ -320,7 +327,7 @@ class Atom
     @rootView.trigger 'beep'
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(@getConfigDirPath(), "user.coffee")
     try
       require userInitScriptPath if fs.isFileSync(userInitScriptPath)
     catch error

@@ -77,9 +77,10 @@ beforeEach ->
   config = new Config
     resourcePath: window.resourcePath
     configDirPath: atom.getConfigDirPath()
-  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
+  config.setDefaults('core', RootView.configDefaults)
+  config.setDefaults('editor', Editor.configDefaults)
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false

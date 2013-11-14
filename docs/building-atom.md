@@ -16,7 +16,7 @@ atom][download].
 * Install [Visual C++ 2010 Express][win-vs2010]
 * Install the [latest 32bit Node 0.10.x][win-node]
 * Install the [latest Python 2.7.x][win-python]
-* Install [Github for Windows][win-github]
+* Install [GitHub for Windows][win-github]
 * Clone [atom/atom][atom-git] to `C:\Users\<user>\github\atom\`
 * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
   to your PATH
