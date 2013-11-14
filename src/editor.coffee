@@ -104,7 +104,7 @@ class Editor extends View
       @edit(editSession)
     else if @mini
       @edit(new EditSession
-        buffer: new TextBuffer
+        buffer: TextBuffer.createAsRoot()
         softWrap: false
         tabLength: 2
         softTabs: true
