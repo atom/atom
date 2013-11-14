@@ -23,10 +23,11 @@ module.exports = (grunt) ->
         opts:
           cwd: packagePath
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
-      grunt.verbose.writeln("Launching #{path.basename(packagePath)} specs.")
+      grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        grunt.verbose.writeln()
-        passed = passed and not error and code is 0
+        if error
+          passed = false 
+          grunt.log.error "#{path.basename(packagePath)} specs failed"
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -49,13 +50,13 @@ module.exports = (grunt) ->
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     spawn options, (error, results, code) ->
-      grunt.verbose.writeln()
       packageSpecQueue.concurrency = 2
-      callback(null, not error and code is 0)
+      callback(null, not error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
     startTime = Date.now()
+
     async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecPassed, packageSpecsPassed] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
