@@ -8,6 +8,9 @@ _ = require 'underscore-plus'
 packageJson = require './package.json'
 
 module.exports = (grunt) ->
+  if not grunt.option('verbose')
+    grunt.log.writeln = (args...) -> grunt.log
+
   [major, minor, patch] = packageJson.version.split('.')
   if process.platform is 'win32'
     appName = 'Atom'
