@@ -38,6 +38,10 @@ class Project extends Model
     @editSessions = []
     @setPath(@path)
 
+  # Private:
+  beforePersistence: ->
+    @destroyUnretainedBuffers()
+
   # Public:
   registerOpener: (opener) -> @openers.push(opener)
 
