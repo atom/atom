@@ -600,9 +600,6 @@ class Editor extends View
   # {Delegates to: EditSession.getPath}
   getPath: -> @activeEditSession?.getPath()
 
-  # {Delegates to: EditSession.getRelativePath}
-  getRelativePath: -> @activeEditSession?.getRelativePath()
-
   #  {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 

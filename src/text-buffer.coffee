@@ -27,8 +27,6 @@ class TextBuffer extends Model
     modifiedWhenLastPersisted: false
     digestWhenLastPersisted: null
 
-  @::lazyGetter 'project', -> @grandparent
-
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   cachedDiskContents: null
@@ -46,7 +44,7 @@ class TextBuffer extends Model
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
-    @setPath(@project.resolve(@filePath)) if @project
+    @setPath(@filePath)
 
   # Private: Called by telepath
   beforePersistence: ->
@@ -118,7 +116,6 @@ class TextBuffer extends Model
         @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
-      @relativePath = @project.relativize(@getPath())
       @emit "path-changed", this
 
   ### Public ###
@@ -161,10 +158,7 @@ class TextBuffer extends Model
     @file?.getPath()
 
   getUri: ->
-    @getRelativePath()
-
-  getRelativePath: ->
-    @relativePath
+    @getPath()
 
   # Sets the path for the file.
   #
@@ -180,7 +174,6 @@ class TextBuffer extends Model
     else
       @file = null
 
-    @relativePath = @project.relativize(path)
     @emit "path-changed", this
 
   # Retrieves the current buffer's file extension.
