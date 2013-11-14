@@ -323,17 +323,6 @@ describe "Keymap", ->
         expect(Object.keys(bindings).length).toBe 1
         expect(bindings['g']).toEqual "command-and-grandchild-node"
 
-  describe ".getAllKeyMappings", ->
-    it "returns the all bindings", ->
-      keymap.bindKeys path.join('~', '.atom', 'packages', 'dummy', 'keymaps', 'a.cson'), '.command-mode', 'k': 'c'
-
-      mappings = keymap.getAllKeyMappings()
-      expect(mappings.length).toBe 1
-      expect(mappings[0].source).toEqual 'dummy'
-      expect(mappings[0].keystroke).toEqual 'k'
-      expect(mappings[0].command).toEqual 'c'
-      expect(mappings[0].selector).toEqual '.command-mode'
-
   describe ".determineSource", ->
     describe "for a package", ->
       it "returns '<package-name>'", ->
