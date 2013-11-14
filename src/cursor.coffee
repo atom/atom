@@ -468,7 +468,7 @@ class Cursor
     @editSession.scopesForBufferPosition(@getBufferPosition())
 
   # Public: Returns true if this cursor has no non-whitespace characters before
-  # it's current position.
+  # its current position.
   hasNoPrecedingCharacters: ->
     bufferPosition = @getBufferPosition()
     line = @editSession.lineForBufferRow(bufferPosition.row)
