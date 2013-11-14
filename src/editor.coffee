@@ -586,8 +586,10 @@ class Editor extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
-  # {Delegates to: TextBuffer.checkoutHead}
-  checkoutHead: -> @getBuffer().checkoutHead()
+  # Checkout the HEAD revision of this editor's file.
+  checkoutHead: ->
+    if path = @getPath()
+      @project.getRepo()?.checkoutHead(path)
 
   # {Delegates to: EditSession.setText}
   setText: (text) -> @activeEditSession.setText(text)

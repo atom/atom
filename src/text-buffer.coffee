@@ -632,12 +632,6 @@ class TextBuffer extends Model
         return match[0][0] != '\t'
     undefined
 
-  # Checks out the current `HEAD` revision of the file.
-  checkoutHead: ->
-    path = @getPath()
-    return unless path
-    @project.getRepo()?.checkoutHead(path)
-
   ### Internal ###
 
   transact: (fn) -> @text.transact fn
