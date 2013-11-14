@@ -19,7 +19,7 @@ describe "Project", ->
     it "destroys unretained buffers and does not include them in the serialized state", ->
       project.bufferForPathSync('a')
       expect(project.getBuffers().length).toBe 1
-      atom.getWindowState().serializeForPersistence()
+      project.getState().serializeForPersistence()
       deserializedProject = atom.replicate().get('project')
       expect(deserializedProject.getBuffers().length).toBe 0
       expect(project.getBuffers().length).toBe 0
