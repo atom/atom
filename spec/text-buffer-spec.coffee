@@ -935,6 +935,7 @@ describe 'TextBuffer', ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
 
+        buffer.getState().serializeForPersistence()
         state = buffer.getState().clone()
         state.get('text').insertTextAtPoint([0, 0], 'simulate divergence of on-disk contents from serialized contents')
 
@@ -958,6 +959,7 @@ describe 'TextBuffer', ->
           buffer = project.addBuffer(new TextBuffer({filePath}))
           buffer.setText("BUFFER CHANGE")
 
+          buffer.getState().serializeForPersistence()
           state = buffer.getState().clone()
           expect(state.getObject('text')).toBe 'BUFFER CHANGE'
           fs.writeFileSync(filePath, "DISK CHANGE")
@@ -977,6 +979,7 @@ describe 'TextBuffer', ->
           previousText = buffer.getText()
           buffer.setText("abc")
 
+          buffer.getState().serializeForPersistence()
           state = buffer.getState().clone()
           expect(state.getObject('text')).toBe 'abc'
 

@@ -24,6 +24,8 @@ class TextBuffer extends Model
     filePath: null
     relativePath: null
     diskContentsDigest: null
+    modifiedWhenLastPersisted: false
+    digestWhenLastPersisted: null
 
   @::lazyGetter 'project', -> @grandparent
 
@@ -35,14 +37,21 @@ class TextBuffer extends Model
   file: null
   refcount: 0
 
+  # Private: Called by telepath
   attached: ->
     @loaded = false
+    @useSerializedText = @modifiedWhenLastPersisted != false
 
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
     @setPath(@project.resolve(@filePath)) if @project
+
+  # Private: Called by telepath
+  beforePersistence: ->
+    @modifiedWhenLastPersisted = @isModified()
+    @digestWhenLastPersisted = @file?.getDigest()
 
   loadSync: ->
     @updateCachedDiskContentsSync()
@@ -53,7 +62,7 @@ class TextBuffer extends Model
 
   finishLoading: ->
     @loaded = true
-    if @useSerializedText and @diskContentsDigest is @file?.getDigest()
+    if @useSerializedText and @digestWhenLastPersisted is @file?.getDigest()
       @emitModifiedStatusChanged(true)
     else
       @reload()
