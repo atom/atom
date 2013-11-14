@@ -61,16 +61,16 @@
     "jasmine-tagged": "0.2.0",
     "request": "~2.27.0",
     "unzip": "~0.1.9",
-    "rcedit": "~0.1.1"
+    "rcedit": "~0.1.1",
+    "rimraf": "~2.2.2"
   },
-  "packageDependencies" : {
+  "packageDependencies": {
     "atom-light-ui": "0.6.0",
     "atom-light-syntax": "0.6.0",
     "atom-dark-ui": "0.6.0",
     "atom-dark-syntax": "0.6.0",
     "base16-tomorrow-dark-theme": "0.6.0",
     "solarized-dark-syntax": "0.4.0",
-
     "archive-view": "0.11.0",
     "autocomplete": "0.12.0",
     "autoflow": "0.5.0",
@@ -109,7 +109,6 @@
     "visual-bell": "0.3.0",
     "whitespace": "0.8.0",
     "wrap-guide": "0.5.0",
-
     "language-c": "0.2.0",
     "language-clojure": "0.1.0",
     "language-coffee-script": "0.3.0",
