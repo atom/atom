@@ -84,7 +84,6 @@ class TextBuffer extends Model
       @file?.off()
       @unsubscribe()
       @destroyed = true
-      @project?.removeBuffer(this)
       @emit 'destroyed'
 
   isRetained: -> @refcount > 0

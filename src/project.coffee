@@ -234,6 +234,7 @@ class Project extends Model
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     buffer = @buffers.insert(index, buffer)
+    buffer.once 'destroyed', => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 
