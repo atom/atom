@@ -317,6 +317,10 @@ class Atom
     else
       @windowState
 
+  # Private: Returns a replicated copy of the current state.
+  replicate: ->
+    @windowState.replicate()
+
   crashMainProcess: ->
     remote.process.crash()
 

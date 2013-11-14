@@ -34,6 +34,11 @@ class TextBuffer extends Model
   file: null
   refcount: 0
 
+  constructor: ->
+    super
+
+    @loadWhenAttached = @getState()?
+
   # Private: Called by telepath
   attached: ->
     @loaded = false
@@ -44,6 +49,8 @@ class TextBuffer extends Model
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
     @setPath(@filePath)
+
+    @load() if @loadWhenAttached
 
   # Private: Called by telepath
   beforePersistence: ->
