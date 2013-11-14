@@ -81,9 +81,6 @@ class Project extends Model
     else
       @rootDirectory = null
 
-    if originUrl = @repo?.getOriginUrl()
-      @state.set('repoUrl', originUrl)
-
     @emit "path-changed"
 
   # Public: Returns the name of the root directory.
