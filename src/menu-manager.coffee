@@ -34,7 +34,7 @@ class MenuManager
     for mapping in atom.keymap.allMappings() when mapping.selector in selectors
       keystrokesByCommand[mapping.command] ?= []
       keystrokesByCommand[mapping.command].push mapping.keystroke
-    @sendToBrowserProcess(@template, keystrokeByCommand)
+    @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
   loadCoreItems: ->
@@ -56,9 +56,9 @@ class MenuManager
   # Private: OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
-  filterMultipleKeystroke: (keystrokeByCommand) ->
+  filterMultipleKeystroke: (keystrokesByCommand) ->
     filtered = {}
-    for key, bindings of keystrokeByCommand
+    for key, bindings of keystrokesByCommand
       for binding in bindings
         continue if binding.indexOf(' ') != -1
 
@@ -67,6 +67,6 @@ class MenuManager
     filtered
 
   # Private
-  sendToBrowserProcess: (template, keystrokeByCommand) ->
-    keystrokeByCommand = @filterMultipleKeystroke(keystrokeByCommand)
-    ipc.sendChannel 'update-application-menu', template, keystrokeByCommand
+  sendToBrowserProcess: (template, keystrokesByCommand) ->
+    keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
+    ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
