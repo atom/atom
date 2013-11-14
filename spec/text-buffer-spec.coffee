@@ -554,35 +554,6 @@ describe 'TextBuffer', ->
       waitsFor ->
         changeHandler.callCount > 0
 
-  describe ".getRelativePath()", ->
-    [filePath, newPath, bufferToChange, eventHandler] = []
-
-    beforeEach ->
-      filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
-      newPath = "#{filePath}-i-moved"
-      fs.writeFileSync(filePath, "")
-      bufferToChange = project.bufferForPathSync(filePath)
-      eventHandler = jasmine.createSpy('eventHandler')
-      bufferToChange.on 'path-changed', eventHandler
-
-    afterEach ->
-      bufferToChange.destroy()
-      fs.removeSync(filePath) if fs.existsSync(filePath)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
-
-    it "updates when the text buffer's file is moved", ->
-      expect(bufferToChange.getRelativePath()).toBe('atom-manipulate-me')
-
-      jasmine.unspy(window, "setTimeout")
-      eventHandler.reset()
-      fs.moveSync(filePath, newPath)
-
-      waitsFor "buffer path change", ->
-        eventHandler.callCount > 0
-
-      runs ->
-        expect(bufferToChange.getRelativePath()).toBe('atom-manipulate-me-i-moved')
-
   describe ".getTextInRange(range)", ->
     describe "when range is empty", ->
       it "returns an empty string", ->
