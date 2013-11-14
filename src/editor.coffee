@@ -589,7 +589,7 @@ class Editor extends View
   # Checkout the HEAD revision of this editor's file.
   checkoutHead: ->
     if path = @getPath()
-      @project.getRepo()?.checkoutHead(path)
+      atom.project.getRepo()?.checkoutHead(path)
 
   # {Delegates to: EditSession.setText}
   setText: (text) -> @activeEditSession.setText(text)
