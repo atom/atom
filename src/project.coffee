@@ -300,7 +300,7 @@ class Project extends Model
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 
-    openPaths = (buffer.getPath() for buffer in @buffers)
+    openPaths = (buffer.getPath() for buffer in @buffers.getValues())
     outOfProcessPaths = _.difference(filePaths, openPaths)
 
     inProcessFinished = !openPaths.length
@@ -318,7 +318,7 @@ class Project extends Model
 
       task.on 'replace:path-replaced', iterator
 
-    for buffer in @buffers
+    for buffer in @buffers.getValues()
       replacements = buffer.replace(regex, replacementText, iterator)
       iterator({filePath: buffer.getPath(), replacements}) if replacements
 
