@@ -23,7 +23,6 @@ class TextBuffer extends Model
     id: -> guid.create().toString()
     filePath: null
     relativePath: null
-    diskContentsDigest: null
     modifiedWhenLastPersisted: false
     digestWhenLastPersisted: null
 
