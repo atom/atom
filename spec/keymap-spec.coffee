@@ -248,24 +248,6 @@ describe "Keymap", ->
       describe "when there is a complete binding with a more specific selector", ->
         it "favors the more specific complete match", ->
 
-  describe ".keystrokeByCommandForSelector(selector)", ->
-    it "returns a hash of all commands and their keybindings", ->
-      keymap.bindKeys 'body', 'a': 'letter'
-      keymap.bindKeys '.editor', 'b': 'letter'
-      keymap.bindKeys '.editor', '1': 'number'
-      keymap.bindKeys '.editor', 'meta-alt-1': 'number-with-modifiers'
-
-      expect(keymap.keystrokeByCommandForSelector()).toEqual
-        'letter': ['b', 'a']
-        'number': ['1']
-        'number-with-modifiers': ['alt-meta-1']
-
-      expect(keymap.keystrokeByCommandForSelector('.editor')).toEqual
-        'letter': ['b']
-        'number': ['1']
-        'number-with-modifiers': ['alt-meta-1']
-
-
   describe ".bindKeys(selector, bindings)", ->
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
       fooHandler = jasmine.createSpy('fooHandler')

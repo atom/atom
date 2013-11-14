@@ -29,9 +29,11 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    keystrokeByCommand = atom.keymap.keystrokeByCommandForSelector('body')
-    _.extend(keystrokeByCommand, atom.keymap.keystrokeByCommandForSelector('.editor'))
-    _.extend(keystrokeByCommand, atom.keymap.keystrokeByCommandForSelector('.editor:not(.mini)'))
+    keystrokesByCommand = {}
+    selectors = ['body', '.editor', '.editor:not(.mini)']
+    for mapping in atom.keymap.allMappings() when mapping.selector in selectors
+      keystrokesByCommand[mapping.command] ?= []
+      keystrokesByCommand[mapping.command].push mapping.keystroke
     @sendToBrowserProcess(@template, keystrokeByCommand)
 
   # Private

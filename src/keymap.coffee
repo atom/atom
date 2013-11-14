@@ -121,8 +121,10 @@ class Keymap
         @queuedKeystroke = keystroke
         shouldBubble = false
       else
-        if mapping.command is 'native!' then shouldBubble = true
-        else if @triggerCommandEvent(element, mapping.command) then shouldBubble = false
+        if mapping.command is 'native!'
+          shouldBubble = true
+        else if @triggerCommandEvent(element, mapping.command)
+          shouldBubble = false
 
       break if shouldBubble?
 
@@ -130,6 +132,7 @@ class Keymap
 
   allMappings: ->
     mappings = []
+
     for bindingSet in @bindingSets
       for keystroke, command of bindingSet.getCommandsByKeystroke()
         mappings.push @buildMapping(bindingSet, command, keystroke)
@@ -191,8 +194,10 @@ class Keymap
     keystroke = [modifiers..., key].join('-')
 
     if previousKeystroke
-      if keystroke in Modifiers then previousKeystroke
-      else "#{previousKeystroke} #{keystroke}"
+      if keystroke in Modifiers
+        previousKeystroke
+      else
+        "#{previousKeystroke} #{keystroke}"
     else
       keystroke
 
@@ -226,11 +231,3 @@ class Keymap
     mappings = @mappingsMatchingElement(@allMappings(), element)
     keystrokeMap[keystroke] ?= command for {command, keystroke} in mappings
     keystrokeMap
-
-  keystrokeByCommandForSelector: (selector)->
-    keystrokeByCommand = {}
-    for mapping in @allMappings()
-      continue if selector? and selector != mapping.selector
-      keystrokeByCommand[mapping.command] ?= []
-      keystrokeByCommand[mapping.command].push mapping.keystroke
-    keystrokeByCommand
