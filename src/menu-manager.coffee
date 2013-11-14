@@ -46,10 +46,10 @@ class MenuManager
   merge: (menu, item) ->
     item = _.deepClone(item)
 
-    if item.submenu? and match = _.find(menu, (i) -> i.submenu? and i.label == item.label)
+    if item.submenu? and match = _.find(menu, (i) -> i.submenu? and @normalizeLabel(i.label) == @normalizeLabel(item.label))
       @merge(match.submenu, i) for i in item.submenu
     else
-      menu.push(item) unless _.find(menu, (i) -> i.label == item.label)
+      menu.push(item) unless _.find(menu, (i) -> @normalizeLabel(i.label) == @normalizeLabel(item.label))
 
   # Private: OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
@@ -68,3 +68,10 @@ class MenuManager
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystrokes(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
+
+  # Private
+  normalizeLabel: (label) ->
+    if process.platform is 'win32'
+      label.replace(/\&/g, '')
+    else
+      label
