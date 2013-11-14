@@ -73,6 +73,7 @@ class Project extends Model
 
   # Public: Sets the project's fullpath.
   setPath: (projectPath) ->
+    @path = projectPath
     @rootDirectory?.off()
 
     @destroyRepo()
