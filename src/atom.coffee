@@ -327,7 +327,7 @@ class Atom
     @rootView.trigger 'beep'
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(@getConfigDirPath(), "user.coffee")
     try
       require userInitScriptPath if fs.isFileSync(userInitScriptPath)
     catch error
