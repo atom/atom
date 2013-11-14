@@ -10,6 +10,7 @@ packageJson = require './package.json'
 module.exports = (grunt) ->
   if not grunt.option('verbose')
     grunt.log.writeln = (args...) -> grunt.log
+    grunt.log.write = (args...) -> grunt.log
 
   [major, minor, patch] = packageJson.version.split('.')
   if process.platform is 'win32'
