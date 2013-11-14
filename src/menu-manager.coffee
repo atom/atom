@@ -14,7 +14,7 @@ class MenuManager
   # Private:
   constructor: ({@resourcePath}) ->
     @template = []
-    atom.keymap.on 'bundled-keymaps-loaded', => @loadCoreItems()
+    atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
   # Public: Adds the given item definition to the existing template.
   #
@@ -35,12 +35,11 @@ class MenuManager
     @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
-  loadCoreItems: ->
+  loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
-    menuPaths = fs.listSync(menusDirPath, ['cson', 'json'])
-    for menuPath in menuPaths
-      data = CSON.readFileSync(menuPath)
-      @add(data.menu)
+    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+    data = CSON.readFileSync(platformMenuPath)
+    @add(data.menu)
 
   # Private: Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
