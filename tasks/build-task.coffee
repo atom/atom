@@ -64,4 +64,5 @@ module.exports = (grunt) ->
     dependencies = ['compile']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
+    dependencies.push('flatten-node-modules') if process.platform is 'win32'
     grunt.task.run(dependencies...)
