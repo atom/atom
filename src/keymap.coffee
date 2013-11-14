@@ -106,65 +106,58 @@ class Keymap
     element = event.target
     element = rootView[0] if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    commands = @commandsForKeystroke(keystroke, element)
+    mappings = @mappingsForKeystroke(keystroke)
+    mappings = @mappingsMatchingElement(mappings, element)
 
-    if commands.length == 0 and @queuedKeystroke
+    if mappings.length == 0 and @queuedKeystroke
       @queuedKeystroke = null
       return false
     else
       @queuedKeystroke = null
 
-    for {command, partialMatch} in commands
+    for mapping in mappings
+      partialMatch = mapping.keystroke isnt keystroke
       if partialMatch
         @queuedKeystroke = keystroke
         shouldBubble = false
       else
-        if command is 'native!' then shouldBubble = true
-        else if @triggerCommandEvent(element, command) then shouldBubble = false
+        if mapping.command is 'native!' then shouldBubble = true
+        else if @triggerCommandEvent(element, mapping.command) then shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble ? true
 
-  # Public: Returns an array of objects that represent every keystroke to
-  # command mapping. Each object contains the following keys `source`,
-  # `selector`, `command`, `keystroke`.
-  getAllKeyMappings: ->
+  allMappings: ->
     mappings = []
     for bindingSet in @bindingSets
-      selector = bindingSet.getSelector()
-      source = @determineSource(bindingSet.getName())
       for keystroke, command of bindingSet.getCommandsByKeystroke()
-        mappings.push {keystroke, command, selector, source}
+        mappings.push @buildMapping(bindingSet, command, keystroke)
 
     mappings
 
-  bindingsForElement: (element) ->
-    keystrokeMap = {}
-    for bindingSet in @bindingSetsForElement(element)
-      _.defaults(keystrokeMap, bindingSet.commandsByKeystroke)
+  mappingsForKeystroke: (keystroke) ->
+    mappings = @allMappings().filter (mapping) ->
+      multiKeystroke = /\s/.test keystroke
+      if multiKeystroke
+        keystroke == mapping.keystroke
+      else
+        keystroke.split(' ')[0] == mapping.keystroke.split(' ')[0]
 
-    keystrokeMap
-
-  commandsForKeystroke: (keystroke, element) ->
-    firstKeystroke = keystroke.split(' ')[0]
-    bindingSetsForKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke] ? []
-    commands = @bindingSetsForElement(element, bindingSetsForKeystroke).map (bindingSet) ->
-      bindingSet.commandForKeystroke(keystroke)
-
-    _.compact(commands)
-
-  bindingSetsForElement: (element, bindingSets=@bindingSets) ->
-    bindingSets = bindingSets.filter (bindingSet) ->
-      $(element).closest(bindingSet.selector).length > 0
-
-    return [] unless bindingSets.length > 0
-
-    bindingSets.sort (a, b) ->
+  mappingsMatchingElement: (mappings, element) ->
+    mappings = mappings.filter ({selector}) -> $(element).closest(selector).length > 0
+    mappings.sort (a, b) ->
       if b.specificity == a.specificity
         b.index - a.index
       else
         b.specificity - a.specificity
+
+  buildMapping: (bindingSet, command, keystroke) ->
+    selector = bindingSet.selector
+    specificity = bindingSet.specificity
+    index = bindingSet.index
+    source = bindingSet.name
+    {command, keystroke, selector, specificity, source}
 
   triggerCommandEvent: (element, commandName) ->
     commandEvent = $.Event(commandName)
@@ -203,15 +196,6 @@ class Keymap
     else
       keystroke
 
-  keystrokeByCommandForSelector: (selector)->
-    keystrokeByCommand = {}
-    for bindingSet in @bindingSets
-      for keystroke, command of bindingSet.commandsByKeystroke
-        continue if selector? and selector != bindingSet.selector
-        keystrokeByCommand[command] ?= []
-        keystrokeByCommand[command].push keystroke
-    keystrokeByCommand
-
   isAscii: (charCode) ->
     0 <= charCode <= 127
 
@@ -224,3 +208,29 @@ class Keymap
       when 32 then 'space'
       when 127 then 'delete'
       else String.fromCharCode(charCode)
+
+  #
+  # Deprecated
+  #
+
+  # Public: Returns an array of objects that represent every keystroke to
+  # command mapping. Each object contains the following keys `source`,
+  # `selector`, `command`, `keystroke`.
+  getAllKeyMappings: ->
+    @allMappings().map (mapping) =>
+      mapping.source = @determineSource(mapping.source)
+      mapping
+
+  bindingsForElement: (element) ->
+    keystrokeMap = {}
+    mappings = @mappingsMatchingElement(@allMappings(), element)
+    keystrokeMap[keystroke] ?= command for {command, keystroke} in mappings
+    keystrokeMap
+
+  keystrokeByCommandForSelector: (selector)->
+    keystrokeByCommand = {}
+    for mapping in @allMappings()
+      continue if selector? and selector != mapping.selector
+      keystrokeByCommand[mapping.command] ?= []
+      keystrokeByCommand[mapping.command].push mapping.keystroke
+    keystrokeByCommand

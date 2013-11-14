@@ -35,14 +35,6 @@ class BindingSet
   getCommandsByKeystroke: ->
     @commandsByKeystroke
 
-  commandForKeystroke: (keystrokeToMatch) ->
-    keyStrokeRegex = new RegExp("^" + _.escapeRegExp(keystrokeToMatch) + "( |$)")
-    for keystroke, command of @commandsByKeystroke
-      if keyStrokeRegex.test(keystroke)
-        partialMatch = keystrokeToMatch isnt keystroke
-        return {command, partialMatch}
-    null
-
   normalizeCommandsByKeystroke: (commandsByKeystroke) ->
     normalizedCommandsByKeystroke = {}
     for keystroke, command of commandsByKeystroke
