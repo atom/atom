@@ -23,7 +23,7 @@ module.exports = (grunt) ->
     catch error
       grunt.fatal(error)
 
-    grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
+    grunt.verbose.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
   mkdir: (args...) ->
     grunt.file.mkdir(args...)
