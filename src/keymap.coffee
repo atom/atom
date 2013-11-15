@@ -42,12 +42,12 @@ class Keymap
   load: (path) ->
     @add(path, CSON.readFileSync(path))
 
-  add: (name, keyMappingsBySelector) ->
+  add: (source, keyMappingsBySelector) ->
     for selector, keyMappings of keyMappingsBySelector
-      @bindKeys(name, selector, keyMappings)
+      @bindKeys(source, selector, keyMappings)
 
-  remove: (name) ->
-    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.name is name
+  remove: (source) ->
+    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.source is source
 
   bindKeys: (source, selector, keyMappings) ->
     for keystroke, command of keyMappings
@@ -94,8 +94,7 @@ class Keymap
     keystroke = KeyBinding.normalizeKeystroke(keystroke)
     keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
 
-
-  keyBindingsMatchingElement: (element, keyBindings=@getKeyBindings()) ->
+  keyBindingsMatchingElement: (element, keyBindings=@keyBindings) ->
     keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
     keyBindings.sort (a, b) -> a.compare(b)
 
