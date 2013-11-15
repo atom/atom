@@ -92,21 +92,12 @@ class Keymap
 
   keyBindingsForKeystroke: (keystroke) ->
     keystroke = KeyBinding.normalizeKeystroke(keystroke)
+    keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
 
-    keyBindings = @getKeyBindings().filter (keyBinding) ->
-      multiKeystroke = /\s/.test keystroke
-      if multiKeystroke
-        keystroke == keyBinding.keystroke
-      else
-        keystroke.split(' ')[0] == keyBinding.keystroke.split(' ')[0]
 
   keyBindingsMatchingElement: (element, keyBindings=@getKeyBindings()) ->
     keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
-    keyBindings.sort (a, b) ->
-      if b.specificity == a.specificity
-        b.index - a.index
-      else
-        b.specificity - a.specificity
+    keyBindings.sort (a, b) -> a.compare(b)
 
   triggerCommandEvent: (element, commandName) ->
     commandEvent = $.Event(commandName)

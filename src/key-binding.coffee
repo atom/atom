@@ -33,3 +33,16 @@ class KeyBinding
     @selector = selector.replace(/!important/g, '')
     @specificity = specificity(selector)
     @index = KeyBinding.currentIndex++
+
+  matches: (keystroke) ->
+    multiKeystroke = /\s/.test keystroke
+    if multiKeystroke
+      keystroke == @keystroke
+    else
+      keystroke.split(' ')[0] == @keystroke.split(' ')[0]
+
+  compare: (keyBinding) ->
+    if keyBinding.specificity == @specificity
+      keyBinding.index - @index
+    else
+      keyBinding.specificity - @specificity
