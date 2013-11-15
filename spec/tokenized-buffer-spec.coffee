@@ -350,7 +350,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      buffer = project.buildBufferSync 'sample-with-pairs.js'
+      buffer = project.bufferForPathSync 'sample-with-pairs.js'
       buffer.setText """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
