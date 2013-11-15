@@ -120,11 +120,10 @@ class Atom
 
   deserializeProject: ->
     Project = require './project'
-    state = @getWindowState()
-    @project = state.get('project')
-    unless @project?
+    @project = @getWindowState('project')
+    unless @project instanceof Project
       @project = new Project(path: @getLoadSettings().initialPath)
-      state.set('project', @project)
+      @setWindowState('project', @project)
 
   deserializeRootView: ->
     RootView = require './root-view'
