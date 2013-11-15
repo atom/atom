@@ -29,9 +29,11 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    keystrokesByCommand = atom.keymap.keystrokesByCommandForSelector('body')
-    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor'))
-    _.extend(keystrokesByCommand, atom.keymap.keystrokesByCommandForSelector('.editor:not(.mini)'))
+    keystrokesByCommand = {}
+    selectors = ['body', '.editor', '.editor:not(.mini)']
+    for binding in atom.keymap.getKeyBindings() when binding.selector in selectors
+      keystrokesByCommand[binding.command] ?= []
+      keystrokesByCommand[binding.command].push binding.keystroke
     @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
@@ -55,7 +57,7 @@ class MenuManager
   # Private: OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
-  filterMultipleKeystrokes: (keystrokesByCommand) ->
+  filterMultipleKeystroke: (keystrokesByCommand) ->
     filtered = {}
     for key, bindings of keystrokesByCommand
       for binding in bindings
@@ -67,5 +69,5 @@ class MenuManager
 
   # Private
   sendToBrowserProcess: (template, keystrokesByCommand) ->
-    keystrokesByCommand = @filterMultipleKeystrokes(keystrokesByCommand)
+    keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand

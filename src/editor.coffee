@@ -1806,13 +1806,6 @@ class Editor extends View
     else
       '&nbsp;'
 
-  bindToKeyedEvent: (key, event, callback) ->
-    binding = {}
-    binding[key] = event
-    atom.keymap.bindKeys '.editor', binding
-    @on event, =>
-      callback(this, event)
-
   replaceSelectedText: (replaceFn) ->
     selection = @getSelection()
     return false if selection.isEmpty()
