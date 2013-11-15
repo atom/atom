@@ -1,19 +1,19 @@
+_ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
 
-_ = require 'underscore-plus'
 File = require './file'
 
-{Point, Range, Model} = telepath
+{Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
 # The `Buffer` is often associated with a {File}. However, this is not always
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer extends Model
+class TextBuffer extends telepath.Model
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
