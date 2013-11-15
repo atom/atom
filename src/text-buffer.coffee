@@ -37,7 +37,7 @@ class TextBuffer extends telepath.Model
 
     @loadWhenAttached = @getState()?
 
-  # Private: Called by telepath
+  # Private: Called by telepath.
   attached: ->
     @loaded = false
     @useSerializedText = @modifiedWhenLastPersisted != false
@@ -50,7 +50,7 @@ class TextBuffer extends telepath.Model
 
     @load() if @loadWhenAttached
 
-  # Private: Called by telepath
+  # Private: Called by telepath.
   beforePersistence: ->
     @modifiedWhenLastPersisted = @isModified()
     @digestWhenLastPersisted = @file?.getDigest()
