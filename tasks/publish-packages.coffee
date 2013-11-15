@@ -84,7 +84,7 @@ module.exports = (grunt) ->
       for name, version of packageDependencies
         do (name, version) ->
           tasks.push (callback) ->
-            grunt.log.writeln("Publishing #{name}@#{version}")
+            grunt.verbose.writeln("Publishing #{name}@#{version}")
             tag = "v#{version}"
             packageExists name, token, (error, exists) ->
               if error?

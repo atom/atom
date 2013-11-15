@@ -23,7 +23,7 @@ module.exports = (grunt) ->
     catch error
       grunt.fatal(error)
 
-    grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
+    grunt.verbose.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
   mkdir: (args...) ->
     grunt.file.mkdir(args...)
@@ -32,9 +32,18 @@ module.exports = (grunt) ->
     grunt.file.delete(args..., force: true) if grunt.file.exists(args...)
 
   spawn: (options, callback) ->
-    grunt.util.spawn options, (error, results, code) ->
-      grunt.log.errorlns results.stderr if results.stderr
-      callback(error, results, code)
+    childProcess = require 'child_process'
+    stdout = []
+    stderr = []
+    error = null
+    proc = childProcess.spawn(options.cmd, options.args, options.opts)
+    proc.stdout.on 'data', (data) -> stdout.push(data.toString())
+    proc.stderr.on 'data', (data) -> stderr.push(data.toString())
+    proc.on 'exit', (exitCode, signal) ->
+      error = new Error(signal) if exitCode != 0
+      results = {stderr: stderr.join(''), stdout: stdout.join(''), code: exitCode}
+      grunt.log.error results.stderr if exitCode != 0
+      callback(error, results, exitCode)
 
   isAtomPackage: (packagePath) ->
     try

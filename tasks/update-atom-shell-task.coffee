@@ -112,7 +112,7 @@ module.exports = (grunt) ->
           # Manually handle redirection so headers would not be sent for S3.
           downloadAtomShell(version, response.headers.location, callback)
         else if response.statusCode is 200
-          grunt.log.writeln("Downloading atom-shell version #{version.cyan}")
+          grunt.verbose.writeln("Downloading atom-shell version #{version.cyan}")
           cacheDirectory = getCachePath(version)
           rm(cacheDirectory)
           mkdir(cacheDirectory)
@@ -146,7 +146,7 @@ module.exports = (grunt) ->
             downloadAtomShell version, url, callback
 
   unzipAtomShell = (zipPath, callback) ->
-    grunt.log.writeln('Unzipping atom-shell')
+    grunt.verbose.writeln('Unzipping atom-shell')
     directoryPath = path.dirname(zipPath)
 
     if process.platform is 'darwin'
@@ -167,7 +167,7 @@ module.exports = (grunt) ->
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
     if newVersion and newVersion isnt previousVersion
-      grunt.log.writeln("Rebuilding native modules for new atom-shell version #{newVersion.cyan}.")
+      grunt.verbose.writeln("Rebuilding native modules for new atom-shell version #{newVersion.cyan}.")
       cmd = path.join('node_modules', '.bin', 'apm')
       cmd += ".cmd" if process.platform is 'win32'
       spawn {cmd, args: ['rebuild']}, (error) -> callback(error)
@@ -186,7 +186,7 @@ module.exports = (grunt) ->
       currentAtomShellVersion = getAtomShellVersion()
       if atomShellVersion isnt currentAtomShellVersion
         if isAtomShellVersionCached(atomShellVersion)
-          grunt.log.writeln("Installing cached atom-shell #{atomShellVersion.cyan}")
+          grunt.verbose.writeln("Installing cached atom-shell #{atomShellVersion.cyan}")
           installAtomShell(atomShellVersion)
           rebuildNativeModules(currentAtomShellVersion, done)
         else
@@ -198,7 +198,7 @@ module.exports = (grunt) ->
                 if error?
                   done(error)
                 else
-                  grunt.log.writeln("Installing atom-shell #{atomShellVersion.cyan}")
+                  grunt.verbose.writeln("Installing atom-shell #{atomShellVersion.cyan}")
                   installAtomShell(atomShellVersion)
                   rebuildNativeModules(currentAtomShellVersion, done)
             else
