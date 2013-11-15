@@ -126,7 +126,7 @@ class Keymap
       else
         keystroke.split(' ')[0] == mapping.keystroke.split(' ')[0]
 
-  mappingsMatchingElement: (mappings, element) ->
+  mappingsMatchingElement: (element, mappings=@allMappings()) ->
     mappings = mappings.filter ({selector}) -> $(element).closest(selector).length > 0
     mappings.sort (a, b) ->
       if b.specificity == a.specificity
