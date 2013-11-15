@@ -47,10 +47,8 @@ if specDirectory = atom.getLoadSettings().specDirectory
 
 beforeEach ->
   $.fx.off = true
-  if specProjectPath
-    atom.project = new Project(specProjectPath)
-  else
-    atom.project = new Project(path.join(@specDirectory, 'fixtures'))
+  projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
+  atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
   window.project = atom.project
 
   window.resetTimeouts()
