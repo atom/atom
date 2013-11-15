@@ -52,7 +52,6 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.8.0",
     "walkdir": "0.0.7",
-    "ws": "0.4.27",
     "js-yaml": "~2.1.0",
     "grunt-markdown": "~0.4.0",
     "json-front-matter": "~0.1.3",
