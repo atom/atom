@@ -49,6 +49,22 @@ class Keymap
   remove: (source) ->
     @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.source is source
 
+  # Public: Returns an array of all {KeyBinding}s
+  getKeyBindings: ->
+    _.clone(@keyBindings)
+
+  keyBindingsForKeystrokeMatchingElement: (keystroke, element) ->
+    keyBindings = @keyBindingsForKeystroke(keystroke)
+    @keyBindingsMatchingElement(element, keyBindings)
+
+  keyBindingsForKeystroke: (keystroke) ->
+    keystroke = KeyBinding.normalizeKeystroke(keystroke)
+    keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
+
+  keyBindingsMatchingElement: (element, keyBindings=@keyBindings) ->
+    keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
+    keyBindings.sort (a, b) -> a.compare(b)
+
   bindKeys: (source, selector, keyMappings) ->
     for keystroke, command of keyMappings
       @keyBindings.push new KeyBinding(source, command, keystroke, selector)
@@ -79,24 +95,6 @@ class Keymap
       break if shouldBubble?
 
     shouldBubble ? true
-
-  # Public: Returns an array of objects that represent every keyBinding. Each
-  # object contains the following keys `source`, `selector`, `command`,
-  # `keystroke`, `index`, `specificity`.
-  getKeyBindings: ->
-    _.clone(@keyBindings)
-
-  keyBindingsForKeystrokeMatchingElement: (keystroke, element) ->
-    keyBindings = @keyBindingsForKeystroke(keystroke)
-    @keyBindingsMatchingElement(element, keyBindings)
-
-  keyBindingsForKeystroke: (keystroke) ->
-    keystroke = KeyBinding.normalizeKeystroke(keystroke)
-    keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
-
-  keyBindingsMatchingElement: (element, keyBindings=@keyBindings) ->
-    keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
-    keyBindings.sort (a, b) -> a.compare(b)
 
   triggerCommandEvent: (element, commandName) ->
     commandEvent = $.Event(commandName)
