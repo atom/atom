@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
-BindingSet = require './binding-set'
+KeyBinding = require './key-binding'
 {Emitter} = require 'emissary'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
@@ -49,18 +49,9 @@ class Keymap
   remove: (name) ->
     @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.name is name
 
-  bindKeys: (name, selector, keyMappings) ->
-    bindingSet = new BindingSet(selector, keyMappings, name)
+  bindKeys: (source, selector, keyMappings) ->
     for keystroke, command of keyMappings
-      @keyBindings.push @buildBinding(bindingSet, command, keystroke)
-
-  buildBinding: (bindingSet, command, keystroke) ->
-    keystroke = @normalizeKeystroke(keystroke)
-    selector = bindingSet.selector
-    specificity = bindingSet.specificity
-    index = bindingSet.index
-    source = bindingSet.name
-    {command, keystroke, selector, specificity, source, index}
+      @keyBindings.push new KeyBinding(source, command, keystroke, selector)
 
   handleKeyEvent: (event) ->
     element = event.target
@@ -100,7 +91,7 @@ class Keymap
     @bindingsMatchingElement(element, keyBindings)
 
   bindingsForKeystroke: (keystroke) ->
-    keystroke = @normalizeKeystroke(keystroke)
+    keystroke = KeyBinding.normalizeKeystroke(keystroke)
 
     keyBindings = @allBindings().filter (keyBinding) ->
       multiKeystroke = /\s/.test keystroke
@@ -168,11 +159,3 @@ class Keymap
       when 32 then 'space'
       when 127 then 'delete'
       else String.fromCharCode(charCode)
-
-  normalizeKeystroke: (keystroke) ->
-    normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
-      keys = BindingSet.parser.parse(keystroke)
-      modifiers = keys[0...-1]
-      modifiers.sort()
-      [modifiers..., _.last(keys)].join('-')
-    normalizedKeystroke.join(' ')
