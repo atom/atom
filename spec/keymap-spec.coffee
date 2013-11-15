@@ -270,13 +270,13 @@ describe "Keymap", ->
         '.brown':
           'ctrl-h': 'harvest'
 
-      expect(keymap.mappingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
-      expect(keymap.mappingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
+      expect(keymap.bindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
+      expect(keymap.bindingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
 
       keymap.remove('nature')
 
-      expect(keymap.mappingsMatchingElement($$ -> @div class: 'green')).toEqual []
-      expect(keymap.mappingsMatchingElement($$ -> @div class: 'brown')).toEqual []
+      expect(keymap.bindingsMatchingElement($$ -> @div class: 'green')).toEqual []
+      expect(keymap.bindingsMatchingElement($$ -> @div class: 'brown')).toEqual []
       expect(keymap.bindingSetsByFirstKeystroke['ctrl-c']).toEqual []
       expect(keymap.bindingSetsByFirstKeystroke['ctrl-h']).toEqual []
 
@@ -303,15 +303,15 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'
 
-  describe ".mappingsMatchingElement(element)", ->
+  describe ".bindingsMatchingElement(element)", ->
     it "returns the matching bindings for the element", ->
       keymap.bindKeys '.command-mode', 'c': 'c'
       keymap.bindKeys '.grandchild-node', 'g': 'g'
 
-      mappings = keymap.mappingsMatchingElement(fragment.find('.grandchild-node'))
-      expect(mappings).toHaveLength 2
-      expect(mappings[0].command).toEqual "g"
-      expect(mappings[1].command).toEqual "c"
+      bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
+      expect(bindings).toHaveLength 2
+      expect(bindings[0].command).toEqual "g"
+      expect(bindings[1].command).toEqual "c"
 
     describe "when multiple bindings match a keystroke", ->
       it "only returns bindings that match the most specific selector", ->
@@ -319,6 +319,6 @@ describe "Keymap", ->
         keymap.bindKeys '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
         keymap.bindKeys '.grandchild-node', 'g': 'grandchild-node'
 
-        mappings = keymap.mappingsMatchingElement(fragment.find('.grandchild-node'))
-        expect(mappings).toHaveLength 3
-        expect(mappings[0].command).toEqual "command-and-grandchild-node"
+        bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
+        expect(bindings).toHaveLength 3
+        expect(bindings[0].command).toEqual "command-and-grandchild-node"

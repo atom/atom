@@ -82,62 +82,62 @@ class Keymap
     element = event.target
     element = rootView[0] if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    mappings = @mappingsForKeystrokeMatchingElement(keystroke, element)
+    bindings = @bindingsForKeystrokeMatchingElement(keystroke, element)
 
-    if mappings.length == 0 and @queuedKeystroke
+    if bindings.length == 0 and @queuedKeystroke
       @queuedKeystroke = null
       return false
     else
       @queuedKeystroke = null
 
-    for mapping in mappings
-      partialMatch = mapping.keystroke isnt keystroke
+    for binding in bindings
+      partialMatch = binding.keystroke isnt keystroke
       if partialMatch
         @queuedKeystroke = keystroke
         shouldBubble = false
       else
-        if mapping.command is 'native!'
+        if binding.command is 'native!'
           shouldBubble = true
-        else if @triggerCommandEvent(element, mapping.command)
+        else if @triggerCommandEvent(element, binding.command)
           shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble ? true
 
-  # Public: Returns an array of objects that represent every keystroke to
-  # command mapping. Each object contains the following keys `source`,
-  # `selector`, `command`, `keystroke`, `index`, `specificity`.
-  allMappings: ->
-    mappings = []
+  # Public: Returns an array of objects that represent every keybinding. Each
+  # object contains the following keys `source`, `selector`, `command`,
+  # `keystroke`, `index`, `specificity`.
+  allBindings: ->
+    bindings = []
 
     for bindingSet in @bindingSets
       for keystroke, command of bindingSet.getCommandsByKeystroke()
-        mappings.push @buildMapping(bindingSet, command, keystroke)
+        bindings.push @buildBinding(bindingSet, command, keystroke)
 
-    mappings
+    bindings
 
-  mappingsForKeystrokeMatchingElement: (keystroke, element) ->
-    mappings = @mappingsForKeystroke(keystroke)
-    @mappingsMatchingElement(element, mappings)
+  bindingsForKeystrokeMatchingElement: (keystroke, element) ->
+    bindings = @bindingsForKeystroke(keystroke)
+    @bindingsMatchingElement(element, bindings)
 
-  mappingsForKeystroke: (keystroke) ->
-    mappings = @allMappings().filter (mapping) ->
+  bindingsForKeystroke: (keystroke) ->
+    bindings = @allBindings().filter (binding) ->
       multiKeystroke = /\s/.test keystroke
       if multiKeystroke
-        keystroke == mapping.keystroke
+        keystroke == binding.keystroke
       else
-        keystroke.split(' ')[0] == mapping.keystroke.split(' ')[0]
+        keystroke.split(' ')[0] == binding.keystroke.split(' ')[0]
 
-  mappingsMatchingElement: (element, mappings=@allMappings()) ->
-    mappings = mappings.filter ({selector}) -> $(element).closest(selector).length > 0
-    mappings.sort (a, b) ->
+  bindingsMatchingElement: (element, bindings=@allBindings()) ->
+    bindings = bindings.filter ({selector}) -> $(element).closest(selector).length > 0
+    bindings.sort (a, b) ->
       if b.specificity == a.specificity
         b.index - a.index
       else
         b.specificity - a.specificity
 
-  buildMapping: (bindingSet, command, keystroke) ->
+  buildBinding: (bindingSet, command, keystroke) ->
     selector = bindingSet.selector
     specificity = bindingSet.specificity
     index = bindingSet.index

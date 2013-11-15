@@ -31,9 +31,9 @@ class MenuManager
   update: ->
     keystrokesByCommand = {}
     selectors = ['body', '.editor', '.editor:not(.mini)']
-    for mapping in atom.keymap.allMappings() when mapping.selector in selectors
-      keystrokesByCommand[mapping.command] ?= []
-      keystrokesByCommand[mapping.command].push mapping.keystroke
+    for binding in atom.keymap.allBindings() when binding.selector in selectors
+      keystrokesByCommand[binding.command] ?= []
+      keystrokesByCommand[binding.command].push binding.keystroke
     @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private
