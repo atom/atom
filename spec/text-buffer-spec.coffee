@@ -13,11 +13,11 @@ describe 'TextBuffer', ->
     buffer = project.bufferForPathSync(filePath)
 
   afterEach ->
-    buffer?.release()
+    buffer?.destroy()
 
   describe 'constructor', ->
     beforeEach ->
-      buffer.release()
+      buffer.destroy()
       buffer = null
 
     describe "when given a path", ->
@@ -897,20 +897,25 @@ describe 'TextBuffer', ->
             expect(buffer.getText()).toBe "\ninitialtexthello\n1\n2\n"
 
   describe "serialization", ->
-    buffer2 = null
+    [buffer2, project2] = []
+
+    beforeEach ->
+      buffer.destroy()
+
+      filePath = temp.openSync('atom').path
+      fs.writeFileSync(filePath, "words")
+      buffer = project.bufferForPathSync(filePath)
 
     afterEach ->
       buffer2?.release()
+      project2?.destroy()
 
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
 
-        buffer.getState().serializeForPersistence()
-        state = buffer.getState().clone()
-        state.get('text').insertTextAtPoint([0, 0], 'simulate divergence of on-disk contents from serialized contents')
-
-        buffer2 = project.addBuffer(new TextBuffer(state))
+        project2 = atom.replicate().get('project')
+        buffer2 = project2.getBuffers()[0]
 
         waitsForPromise ->
           buffer2.load()
@@ -923,19 +928,11 @@ describe 'TextBuffer', ->
     describe "when the serialized buffer had unsaved changes", ->
       describe "when the disk contents were changed since serialization", ->
         it "loads the disk contents instead of the previous unsaved state", ->
-          buffer.release()
-
-          filePath = temp.openSync('atom').path
-          fs.writeFileSync(filePath, "words")
-          buffer = project.addBuffer(new TextBuffer({filePath}))
           buffer.setText("BUFFER CHANGE")
-
-          buffer.getState().serializeForPersistence()
-          state = buffer.getState().clone()
-          expect(state.getObject('text')).toBe 'BUFFER CHANGE'
           fs.writeFileSync(filePath, "DISK CHANGE")
 
-          buffer2 = project.addBuffer(new TextBuffer(state))
+          project2 = atom.replicate().get('project')
+          buffer2 = project2.getBuffers()[0]
 
           waitsFor ->
             buffer2.cachedDiskContents
@@ -949,12 +946,11 @@ describe 'TextBuffer', ->
         it "restores the previous unsaved state of the buffer", ->
           previousText = buffer.getText()
           buffer.setText("abc")
+          buffer.retain()
 
           buffer.getState().serializeForPersistence()
-          state = buffer.getState().clone()
-          expect(state.getObject('text')).toBe 'abc'
-
-          buffer2 = project.addBuffer(new TextBuffer(state))
+          project2 = atom.replicate().get('project')
+          buffer2 = project2.getBuffers()[0]
 
           waitsForPromise ->
             buffer2.load()
