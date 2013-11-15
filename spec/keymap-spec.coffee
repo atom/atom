@@ -270,13 +270,13 @@ describe "Keymap", ->
         '.brown':
           'ctrl-h': 'harvest'
 
-      expect(keymap.bindingsForElement($$ -> @div class: 'green')).toEqual { 'ctrl-c': 'cultivate' }
-      expect(keymap.bindingsForElement($$ -> @div class: 'brown')).toEqual { 'ctrl-h': 'harvest' }
+      expect(keymap.mappingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
+      expect(keymap.mappingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
 
       keymap.remove('nature')
 
-      expect(keymap.bindingsForElement($$ -> @div class: 'green')).toEqual {}
-      expect(keymap.bindingsForElement($$ -> @div class: 'brown')).toEqual {}
+      expect(keymap.mappingsMatchingElement($$ -> @div class: 'green')).toEqual []
+      expect(keymap.mappingsMatchingElement($$ -> @div class: 'brown')).toEqual []
       expect(keymap.bindingSetsByFirstKeystroke['ctrl-c']).toEqual []
       expect(keymap.bindingSetsByFirstKeystroke['ctrl-h']).toEqual []
 
@@ -303,15 +303,15 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'
 
-  describe ".bindingsForElement(element)", ->
+  describe ".mappingsMatchingElement(element)", ->
     it "returns the matching bindings for the element", ->
       keymap.bindKeys '.command-mode', 'c': 'c'
       keymap.bindKeys '.grandchild-node', 'g': 'g'
 
-      bindings = keymap.bindingsForElement(fragment.find('.grandchild-node'))
-      expect(Object.keys(bindings).length).toBe 2
-      expect(bindings['c']).toEqual "c"
-      expect(bindings['g']).toEqual "g"
+      mappings = keymap.mappingsMatchingElement(fragment.find('.grandchild-node'))
+      expect(mappings).toHaveLength 2
+      expect(mappings[0].command).toEqual "g"
+      expect(mappings[1].command).toEqual "c"
 
     describe "when multiple bindings match a keystroke", ->
       it "only returns bindings that match the most specific selector", ->
@@ -319,27 +319,6 @@ describe "Keymap", ->
         keymap.bindKeys '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
         keymap.bindKeys '.grandchild-node', 'g': 'grandchild-node'
 
-        bindings = keymap.bindingsForElement(fragment.find('.grandchild-node'))
-        expect(Object.keys(bindings).length).toBe 1
-        expect(bindings['g']).toEqual "command-and-grandchild-node"
-
-  describe ".determineSource", ->
-    describe "for a package", ->
-      it "returns '<package-name>'", ->
-        expect(keymap.determineSource(path.join('~', '.atom', 'packages', 'dummy', 'keymaps', 'a.cson'))).toEqual 'dummy'
-
-    describe "for a linked package", ->
-      it "returns '<package-name>'", ->
-        expect(keymap.determineSource(path.join('Users', 'john', 'github', 'dummy', 'keymaps', 'a.cson'))).toEqual 'dummy'
-
-    describe "for a user defined keymap", ->
-      it "returns 'User'", ->
-        expect(keymap.determineSource(path.join('~', '.atom', 'keymaps', 'a.cson'))).toEqual 'User'
-
-    describe "for a core keymap", ->
-      it "returns 'Core'", ->
-        expect(keymap.determineSource(path.join('Applications', 'Atom.app', '..', 'node_modules', 'dummy', 'keymaps', 'a.cson'))).toEqual 'Core'
-
-    describe "for a linked core keymap", ->
-      it "returns 'Core'", ->
-        expect(keymap.determineSource(path.join('Users', 'john', 'github', 'atom', 'keymaps', 'a.cson'))).toEqual 'Core'
+        mappings = keymap.mappingsMatchingElement(fragment.find('.grandchild-node'))
+        expect(mappings).toHaveLength 3
+        expect(mappings[0].command).toEqual "command-and-grandchild-node"
