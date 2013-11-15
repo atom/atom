@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 telepath = require 'telepath'
-{Model, Range} = telepath
 
 TextBuffer = require './text-buffer'
 EditSession = require './edit-session'
@@ -19,7 +18,7 @@ Git = require './git'
 # Ultimately, a project is a git directory that's been opened. It's a collection
 # of directories and files that you can operate on.
 module.exports =
-class Project extends Model
+class Project extends telepath.Model
   Emitter.includeInto(this)
 
   @properties
