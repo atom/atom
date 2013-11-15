@@ -1,5 +1,4 @@
 path = require 'path'
-fs = require 'fs'
 wrench = require 'wrench'
 
 module.exports = (grunt) ->
