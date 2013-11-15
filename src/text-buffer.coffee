@@ -10,8 +10,8 @@ File = require './file'
 
 # Private: Represents the contents of a file.
 #
-# The `Buffer` is often associated with a {File}. However, this is not always
-# the case, as a `Buffer` could be an unsaved chunk of text.
+# The `TextBuffer` is often associated with a {File}. However, this is not always
+# the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer extends telepath.Model
   Emitter.includeInto(this)
@@ -672,7 +672,7 @@ class TextBuffer extends telepath.Model
       console.log row, line, line.length
 
   getDebugSnapshot: ->
-    lines = ['Buffer:']
+    lines = ['TextBuffer:']
     for row in [0..@getLastRow()]
       lines.push "#{row}: #{@lineForRow(row)}"
     lines.join('\n')
