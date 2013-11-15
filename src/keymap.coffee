@@ -47,7 +47,7 @@ class Keymap
       @bindKeys(source, selector, keyMappings)
 
   remove: (source) ->
-    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.source is source
+    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.source isnt source
 
   # Public: Returns an array of all {KeyBinding}s
   getKeyBindings: ->

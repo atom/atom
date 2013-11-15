@@ -270,12 +270,16 @@ describe "Keymap", ->
         '.brown':
           'ctrl-h': 'harvest'
 
-      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
+      keymap.add 'medical',
+        '.green':
+          'ctrl-v': 'vomit'
+
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 2
       expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
 
       keymap.remove('nature')
 
-      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toEqual []
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
       expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'brown')).toEqual []
 
   describe ".keystrokeStringForEvent(event)", ->
