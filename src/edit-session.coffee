@@ -570,7 +570,7 @@ class EditSession
     containsNewlines = text.indexOf('\n') isnt -1
 
     if atom.config.get('editor.normalizeIndentOnPaste') and metadata
-      if @getCursor().hasNoPrecedingCharacters() or containsNewlines
+      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)

@@ -469,8 +469,12 @@ class Cursor
 
   # Public: Returns true if this cursor has no non-whitespace characters before
   # its current position.
-  hasNoPrecedingCharacters: ->
+  hasPrecedingCharactersOnLine: ->
     bufferPosition = @getBufferPosition()
     line = @editSession.lineForBufferRow(bufferPosition.row)
     firstCharacterColumn = line.search(/\S/)
-    noPrecedingCharacters = bufferPosition.column < firstCharacterColumn or firstCharacterColumn is -1
+
+    if firstCharacterColumn is -1
+      false
+    else
+      bufferPosition.column > firstCharacterColumn
