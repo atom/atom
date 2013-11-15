@@ -1,5 +1,4 @@
 {Emitter, Subscriber} = require 'emissary'
-guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
@@ -20,7 +19,6 @@ class TextBuffer extends Model
 
   @properties
     text: -> new telepath.String('', replicated: false)
-    id: -> guid.create().toString()
     filePath: null
     relativePath: null
     modifiedWhenLastPersisted: false
