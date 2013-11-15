@@ -195,13 +195,3 @@ class Keymap
       when 32 then 'space'
       when 127 then 'delete'
       else String.fromCharCode(charCode)
-
-  #
-  # Deprecated
-  #
-
-  bindingsForElement: (element) ->
-    keystrokeMap = {}
-    mappings = @mappingsMatchingElement(@allMappings(), element)
-    keystrokeMap[keystroke] ?= command for {command, keystroke} in mappings
-    keystrokeMap
