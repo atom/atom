@@ -52,7 +52,7 @@ beforeEach ->
   else
     atom.project = new Project(path.join(@specDirectory, 'fixtures'))
   window.project = atom.project
-  atom.keymap.keyBindings = keyBindingsToRestore
+  atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
