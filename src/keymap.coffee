@@ -93,7 +93,7 @@ class Keymap
   # object contains the following keys `source`, `selector`, `command`,
   # `keystroke`, `index`, `specificity`.
   allBindings: ->
-    @keyBindings
+    _.clone(@keyBindings)
 
   bindingsForKeystrokeMatchingElement: (keystroke, element) ->
     keyBindings = @bindingsForKeystroke(keystroke)
