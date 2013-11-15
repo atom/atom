@@ -23,7 +23,7 @@ atom.themes.requireStylesheet '../static/jasmine'
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymap.loadBundledKeymaps()
-keyBindingsToRestore = atom.keymap.allBindings()
+keyBindingsToRestore = atom.keymap.getKeyBindings()
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->

@@ -57,7 +57,7 @@ class Keymap
     element = event.target
     element = rootView if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    keyBindings = @bindingsForKeystrokeMatchingElement(keystroke, element)
+    keyBindings = @keyBindingsForKeystrokeMatchingElement(keystroke, element)
 
     if keyBindings.length == 0 and @queuedKeystroke
       @queuedKeystroke = null
@@ -83,24 +83,24 @@ class Keymap
   # Public: Returns an array of objects that represent every keyBinding. Each
   # object contains the following keys `source`, `selector`, `command`,
   # `keystroke`, `index`, `specificity`.
-  allBindings: ->
+  getKeyBindings: ->
     _.clone(@keyBindings)
 
-  bindingsForKeystrokeMatchingElement: (keystroke, element) ->
-    keyBindings = @bindingsForKeystroke(keystroke)
-    @bindingsMatchingElement(element, keyBindings)
+  keyBindingsForKeystrokeMatchingElement: (keystroke, element) ->
+    keyBindings = @keyBindingsForKeystroke(keystroke)
+    @keyBindingsMatchingElement(element, keyBindings)
 
-  bindingsForKeystroke: (keystroke) ->
+  keyBindingsForKeystroke: (keystroke) ->
     keystroke = KeyBinding.normalizeKeystroke(keystroke)
 
-    keyBindings = @allBindings().filter (keyBinding) ->
+    keyBindings = @getKeyBindings().filter (keyBinding) ->
       multiKeystroke = /\s/.test keystroke
       if multiKeystroke
         keystroke == keyBinding.keystroke
       else
         keystroke.split(' ')[0] == keyBinding.keystroke.split(' ')[0]
 
-  bindingsMatchingElement: (element, keyBindings=@allBindings()) ->
+  keyBindingsMatchingElement: (element, keyBindings=@getKeyBindings()) ->
     keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
     keyBindings.sort (a, b) ->
       if b.specificity == a.specificity

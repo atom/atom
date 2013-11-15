@@ -270,13 +270,13 @@ describe "Keymap", ->
         '.brown':
           'ctrl-h': 'harvest'
 
-      expect(keymap.bindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
-      expect(keymap.bindingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toHaveLength 1
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'brown')).toHaveLength 1
 
       keymap.remove('nature')
 
-      expect(keymap.bindingsMatchingElement($$ -> @div class: 'green')).toEqual []
-      expect(keymap.bindingsMatchingElement($$ -> @div class: 'brown')).toEqual []
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'green')).toEqual []
+      expect(keymap.keyBindingsMatchingElement($$ -> @div class: 'brown')).toEqual []
 
   describe ".keystrokeStringForEvent(event)", ->
     describe "when no modifiers are pressed", ->
@@ -301,12 +301,12 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'
 
-  describe ".bindingsMatchingElement(element)", ->
+  describe ".keyBindingsMatchingElement(element)", ->
     it "returns the matching bindings for the element", ->
       keymap.bindKeys 'name', '.command-mode', 'c': 'c'
       keymap.bindKeys 'name', '.grandchild-node', 'g': 'g'
 
-      bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
+      bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
       expect(bindings).toHaveLength 2
       expect(bindings[0].command).toEqual "g"
       expect(bindings[1].command).toEqual "c"
@@ -317,6 +317,6 @@ describe "Keymap", ->
         keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
         keymap.bindKeys 'name', '.grandchild-node', 'g': 'grandchild-node'
 
-        bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
+        bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
         expect(bindings[0].command).toEqual "command-and-grandchild-node"
