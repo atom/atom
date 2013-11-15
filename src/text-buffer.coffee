@@ -164,7 +164,7 @@ class TextBuffer extends Model
     @file?.getPath()
 
   getUri: ->
-    @getPath()
+    atom.project.relativize(@getPath())
 
   # Sets the path for the file.
   #
