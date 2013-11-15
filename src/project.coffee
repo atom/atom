@@ -31,13 +31,13 @@ class Project extends telepath.Model
     repoName = repoName.replace(/\.git$/, '')
     path.join(atom.config.get('core.projectHome'), repoName)
 
-  # Private:
+  # Private: Called by telepath.
   attached: ->
     @openers = []
     @editSessions = []
     @setPath(@path)
 
-  # Private:
+  # Private: Called by telepath.
   beforePersistence: ->
     @destroyUnretainedBuffers()
 
