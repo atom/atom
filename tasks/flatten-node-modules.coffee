@@ -1,5 +1,5 @@
 path = require 'path'
-wrench = require 'wrench'
+{cp, rm} = require './task-helpers'
 
 module.exports = (grunt) ->
   grunt.registerTask 'flatten-node-modules', 'Flattens the node_modules to limit paths to 260 characters', ->
@@ -10,8 +10,8 @@ module.exports = (grunt) ->
       'grunt-coffeelint', 'node_modules', 'coffeelint', 'node_modules', 'browserify')
     toplevelBrowserifyDir = path.join(shellAppDir, 'resources', 'app', 'node_modules',
       'browserify')
-    wrench.copyDirSyncRecursive(browserifyDir, toplevelBrowserifyDir)
-    wrench.rmdirSyncRecursive(browserifyDir)
+    cp(browserifyDir, toplevelBrowserifyDir)
+    rm(browserifyDir)
 
     options =
       cmd: 'npm'
