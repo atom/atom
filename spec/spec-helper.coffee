@@ -23,7 +23,7 @@ atom.themes.requireStylesheet '../static/jasmine'
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymap.loadBundledKeymaps()
-keyBindingsToRestore = null
+keyBindingsToRestore = _.clone(atom.keymap.allBindings())
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->
@@ -52,6 +52,7 @@ beforeEach ->
   else
     atom.project = new Project(path.join(@specDirectory, 'fixtures'))
   window.project = atom.project
+  atom.keymap.keyBindings = keyBindingsToRestore
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
@@ -65,9 +66,6 @@ beforeEach ->
     else
       resolvePackagePath(packageName)
   resolvePackagePath = _.bind(spy.originalValue, atom.packages)
-
-  # used to reset keymap after each spec
-  keyBindingsToRestore = _.clone(atom.keymap.allBindings())
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
@@ -107,7 +105,6 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.keymap.keyBindings = keyBindingsToRestore
   atom.deactivatePackages()
   atom.menu.template = []
 
