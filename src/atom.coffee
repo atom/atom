@@ -120,11 +120,10 @@ class Atom
 
   deserializeProject: ->
     Project = require './project'
-    state = @getWindowState()
-    @project = deserialize(state.get('project'))
-    unless @project?
-      @project = new Project(@getLoadSettings().initialPath)
-      state.set('project', @project.getState())
+    @project = @getWindowState('project')
+    unless @project instanceof Project
+      @project = new Project(path: @getLoadSettings().initialPath)
+      @setWindowState('project', @project)
 
   deserializeRootView: ->
     RootView = require './root-view'
@@ -295,6 +294,7 @@ class Atom
 
     doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
+    doc.registerModelClasses(require('./text-buffer'), require('./project'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)
@@ -315,6 +315,10 @@ class Atom
       @windowState.get(keyPath)
     else
       @windowState
+
+  # Private: Returns a replicated copy of the current state.
+  replicate: ->
+    @getWindowState().replicate()
 
   crashMainProcess: ->
     remote.process.crash()

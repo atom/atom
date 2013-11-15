@@ -1,32 +1,28 @@
-crypto = require 'crypto'
+_ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
-guid = require 'guid'
 Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
 
-_ = require 'underscore-plus'
 File = require './file'
 
 {Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
-# The `Buffer` is often associated with a {File}. However, this is not always
-# the case, as a `Buffer` could be an unsaved chunk of text.
+# The `TextBuffer` is often associated with a {File}. However, this is not always
+# the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer
+class TextBuffer extends telepath.Model
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
-  @acceptsDocuments: true
-  @version: 2
-  registerDeserializer(this)
-
-  @deserialize: (state, params) ->
-    buffer = new this(state, params)
-    buffer.load()
-    buffer
+  @properties
+    text: -> new telepath.String('', replicated: false)
+    filePath: null
+    relativePath: null
+    modifiedWhenLastPersisted: false
+    digestWhenLastPersisted: null
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -36,34 +32,28 @@ class TextBuffer
   file: null
   refcount: 0
 
-  # Creates a new buffer.
-  #
-  # * optionsOrState - An {Object} or a telepath.Document
-  #   + filePath - A {String} representing the file path
-  constructor: (optionsOrState={}, params={}) ->
-    if optionsOrState instanceof telepath.Document
-      {@project} = params
-      @state = optionsOrState
-      @id = @state.get('id')
-      filePath = @state.get('relativePath')
-      @text = @state.get('text')
-      @useSerializedText = @state.get('isModified') != false
-    else
-      {@project, filePath} = optionsOrState
-      @text = new telepath.String(initialText ? '', replicated: false)
-      @id = guid.create().toString()
-      @state = atom.site.createDocument
-        id: @id
-        deserializer: @constructor.name
-        version: @constructor.version
-        text: @text
+  constructor: ->
+    super
 
+    @loadWhenAttached = @getState()?
+
+  # Private: Called by telepath.
+  attached: ->
     @loaded = false
+    @useSerializedText = @modifiedWhenLastPersisted != false
+
     @subscribe @text, 'changed', @handleTextChange
     @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
     @subscribe @text, 'markers-updated', => @emit 'markers-updated'
 
-    @setPath(@project.resolve(filePath)) if @project
+    @setPath(@filePath)
+
+    @load() if @loadWhenAttached
+
+  # Private: Called by telepath.
+  beforePersistence: ->
+    @modifiedWhenLastPersisted = @isModified()
+    @digestWhenLastPersisted = @file?.getDigest()
 
   loadSync: ->
     @updateCachedDiskContentsSync()
@@ -74,7 +64,7 @@ class TextBuffer
 
   finishLoading: ->
     @loaded = true
-    if @useSerializedText and @state.get('diskContentsDigest') == @file?.getDigest()
+    if @useSerializedText and @digestWhenLastPersisted is @file?.getDigest()
       @emitModifiedStatusChanged(true)
     else
       @reload()
@@ -92,10 +82,10 @@ class TextBuffer
 
   destroy: ->
     unless @destroyed
+      @cancelStoppedChangingTimeout()
       @file?.off()
       @unsubscribe()
       @destroyed = true
-      @project?.removeBuffer(this)
       @emit 'destroyed'
 
   isRetained: -> @refcount > 0
@@ -108,16 +98,6 @@ class TextBuffer
     @refcount--
     @destroy() unless @isRetained()
     this
-
-  serialize: ->
-    state = @state.clone()
-    state.set('isModified', @isModified())
-    state.set('diskContentsDigest', @file.getDigest()) if @file
-    for marker in state.get('text').getMarkers() when marker.isRemote()
-      marker.destroy()
-    state
-
-  getState: -> @state
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -140,7 +120,6 @@ class TextBuffer
         @emitModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
-      @state.set('relativePath', @project.relativize(@getPath()))
       @emit "path-changed", this
 
   ### Public ###
@@ -183,10 +162,7 @@ class TextBuffer
     @file?.getPath()
 
   getUri: ->
-    @getRelativePath()
-
-  getRelativePath: ->
-    @state.get('relativePath')
+    atom.project.relativize(@getPath())
 
   # Sets the path for the file.
   #
@@ -202,7 +178,6 @@ class TextBuffer
     else
       @file = null
 
-    @state.set('relativePath', @project.relativize(path))
     @emit "path-changed", this
 
   # Retrieves the current buffer's file extension.
@@ -653,12 +628,6 @@ class TextBuffer
         return match[0][0] != '\t'
     undefined
 
-  # Checks out the current `HEAD` revision of the file.
-  checkoutHead: ->
-    path = @getPath()
-    return unless path
-    @project.getRepo()?.checkoutHead(path)
-
   ### Internal ###
 
   transact: (fn) -> @text.transact fn
@@ -680,8 +649,11 @@ class TextBuffer
     else
       text
 
-  scheduleModifiedEvents: ->
+  cancelStoppedChangingTimeout: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
+
+  scheduleModifiedEvents: ->
+    @cancelStoppedChangingTimeout()
     stoppedChangingCallback = =>
       @stoppedChangingTimeout = null
       modifiedStatus = @isModified()
@@ -700,7 +672,7 @@ class TextBuffer
       console.log row, line, line.length
 
   getDebugSnapshot: ->
-    lines = ['Buffer:']
+    lines = ['TextBuffer:']
     for row in [0..@getLastRow()]
       lines.push "#{row}: #{@lineForRow(row)}"
     lines.join('\n')

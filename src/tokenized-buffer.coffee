@@ -36,7 +36,7 @@ class TokenizedBuffer
       { @buffer, tabLength } = optionsOrState
       @state = atom.site.createDocument
         deserializer: @constructor.name
-        bufferPath: @buffer.getRelativePath()
+        bufferPath: @buffer.getPath()
         tabLength: tabLength ? atom.config.get('editor.tabLength') ? 2
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
@@ -48,7 +48,7 @@ class TokenizedBuffer
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getRelativePath())
+    @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getPath())
 
     @reloadGrammar()
 
