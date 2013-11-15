@@ -82,8 +82,7 @@ class Keymap
     element = event.target
     element = rootView[0] if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    mappings = @mappingsForKeystroke(keystroke)
-    mappings = @mappingsMatchingElement(mappings, element)
+    mappings = @mappingsForKeystrokeMatchingElement(keystroke, element)
 
     if mappings.length == 0 and @queuedKeystroke
       @queuedKeystroke = null
@@ -117,6 +116,10 @@ class Keymap
         mappings.push @buildMapping(bindingSet, command, keystroke)
 
     mappings
+
+  mappingsForKeystrokeMatchingElement: (keystroke, element) ->
+    mappings = @mappingsForKeystroke(keystroke)
+    @mappingsMatchingElement(element, mappings)
 
   mappingsForKeystroke: (keystroke) ->
     mappings = @allMappings().filter (mapping) ->
