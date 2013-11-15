@@ -20,6 +20,7 @@ class Available
       List all the Atom packages that have been published to the apm registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('t', 'themes').describe('themes', 'Only list themes')
     options.boolean('json').describe('json', 'Output available packages as JSON array')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
@@ -48,14 +49,23 @@ class Available
             callback("Requesting packages failed: #{message}")
 
   run: (options) ->
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
     @getAvailablePackages options.argv.atomVersion, (error, packages) ->
       if error?
-        options.callback(error)
+        callback(error)
+        return
+
+      if options.argv.json
+        console.log(JSON.stringify(packages))
       else
-        if options.argv.json
-          console.log(JSON.stringify(packages))
+        if options.argv.themes
+          packages = packages.filter ({theme}) -> theme
+          console.log "#{'Available Atom themes'.cyan} (#{packages.length})"
         else
           console.log "#{'Available Atom packages'.cyan} (#{packages.length})"
-          tree packages, ({name, version}) ->
-            "#{name}@#{version}"
-        options.callback()
+
+        tree packages, ({name, version}) -> "#{name}@#{version}"
+
+      callback()

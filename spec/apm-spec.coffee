@@ -30,10 +30,11 @@ describe 'apm API', ->
         waitsFor -> available?
 
         runs ->
-          expect(available.length).toBe 2
+          expect(available.length).toBe 3
           expect(available[0].name).toBe 'beverly-hills'
           expect(available[1].name).toBe 'multi-version'
           expect(available[1].version).toBe '2.0.0'
+          expect(available[2].name).toBe 'blossom'
 
     xdescribe 'when a version is specified', ->
       it 'returns the packages that are applicable for that version', ->
