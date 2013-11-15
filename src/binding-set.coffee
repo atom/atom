@@ -4,11 +4,12 @@ fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
 PEG = require 'pegjs'
 
+nextBindingSetIndex = 0
+
 ### Internal ###
 
 module.exports =
 class BindingSet
-
   @parser: null
 
   selector: null
@@ -16,7 +17,8 @@ class BindingSet
   parser: null
   name: null
 
-  constructor: (selector, commandsByKeystroke, @index, @name) ->
+  constructor: (selector, commandsByKeystroke, @name) ->
+    @index = nextBindingSetIndex++
     keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
     BindingSet.parser ?= PEG.buildParser(keystrokePattern)
     @specificity = specificity(selector)

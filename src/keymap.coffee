@@ -25,14 +25,8 @@ module.exports =
 class Keymap
   Emitter.includeInto(this)
 
-  bindingSets: null
-  nextBindingSetIndex: 0
-  bindingSetsByFirstKeystroke: null
-  queuedKeystroke: null
-
   constructor: ({@resourcePath, @configDirPath})->
-    @bindingSets = []
-    @bindingSetsByFirstKeystroke = {}
+    @keyBindings = []
 
   loadBundledKeymaps: ->
     @loadDirectory(path.join(@resourcePath, 'keymaps'))
@@ -48,101 +42,80 @@ class Keymap
   load: (path) ->
     @add(path, CSON.readFileSync(path))
 
-  add: (args...) ->
-    name = args.shift() if args.length > 1
-    keymap = args.shift()
-    for selector, bindings of keymap
-      @bindKeys(name, selector, bindings)
+  add: (name, keyMappingsBySelector) ->
+    for selector, keyMappings of keyMappingsBySelector
+      @bindKeys(name, selector, keyMappings)
 
   remove: (name) ->
-    for bindingSet in @bindingSets.filter((bindingSet) -> bindingSet.name is name)
-      _.remove(@bindingSets, bindingSet)
-      for keystroke of bindingSet.commandsByKeystroke
-        firstKeystroke = keystroke.split(' ')[0]
-        _.remove(@bindingSetsByFirstKeystroke[firstKeystroke], bindingSet)
+    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.name is name
 
-  bindKeys: (args...) ->
-    name = args.shift() if args.length > 2
-    [selector, bindings] = args
-    bindingSet = new BindingSet(selector, bindings, @nextBindingSetIndex++, name)
-    @bindingSets.unshift(bindingSet)
-    for keystroke of bindingSet.commandsByKeystroke
-      keystroke = keystroke.split(' ')[0] # only index by first keystroke
-      @bindingSetsByFirstKeystroke[keystroke] ?= []
-      @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
+  bindKeys: (name, selector, keyMappings) ->
+    bindingSet = new BindingSet(selector, keyMappings, name)
+    for keystroke, command of keyMappings
+      @keyBindings.push @buildBinding(bindingSet, command, keystroke)
 
-  unbindKeys: (selector, bindings) ->
-    bindingSet = _.detect @bindingSets, (bindingSet) ->
-      bindingSet.selector is selector and bindingSet.bindings is bindings
-
-    if bindingSet
-      _.remove(@bindingSets, bindingSet)
+  buildBinding: (bindingSet, command, keystroke) ->
+    keystroke = @normalizeKeystroke(keystroke)
+    selector = bindingSet.selector
+    specificity = bindingSet.specificity
+    index = bindingSet.index
+    source = bindingSet.name
+    {command, keystroke, selector, specificity, source, index}
 
   handleKeyEvent: (event) ->
     element = event.target
     element = rootView[0] if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
-    bindings = @bindingsForKeystrokeMatchingElement(keystroke, element)
+    keyBindings = @bindingsForKeystrokeMatchingElement(keystroke, element)
 
-    if bindings.length == 0 and @queuedKeystroke
+    if keyBindings.length == 0 and @queuedKeystroke
       @queuedKeystroke = null
       return false
     else
       @queuedKeystroke = null
 
-    for binding in bindings
-      partialMatch = binding.keystroke isnt keystroke
+    for keyBinding in keyBindings
+      partialMatch = keyBinding.keystroke isnt keystroke
       if partialMatch
         @queuedKeystroke = keystroke
         shouldBubble = false
       else
-        if binding.command is 'native!'
+        if keyBinding.command is 'native!'
           shouldBubble = true
-        else if @triggerCommandEvent(element, binding.command)
+        else if @triggerCommandEvent(element, keyBinding.command)
           shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble ? true
 
-  # Public: Returns an array of objects that represent every keybinding. Each
+  # Public: Returns an array of objects that represent every keyBinding. Each
   # object contains the following keys `source`, `selector`, `command`,
   # `keystroke`, `index`, `specificity`.
   allBindings: ->
-    bindings = []
-
-    for bindingSet in @bindingSets
-      for keystroke, command of bindingSet.getCommandsByKeystroke()
-        bindings.push @buildBinding(bindingSet, command, keystroke)
-
-    bindings
+    @keyBindings
 
   bindingsForKeystrokeMatchingElement: (keystroke, element) ->
-    bindings = @bindingsForKeystroke(keystroke)
-    @bindingsMatchingElement(element, bindings)
+    keyBindings = @bindingsForKeystroke(keystroke)
+    @bindingsMatchingElement(element, keyBindings)
 
   bindingsForKeystroke: (keystroke) ->
-    bindings = @allBindings().filter (binding) ->
+    keystroke = @normalizeKeystroke(keystroke)
+
+    keyBindings = @allBindings().filter (keyBinding) ->
       multiKeystroke = /\s/.test keystroke
       if multiKeystroke
-        keystroke == binding.keystroke
+        keystroke == keyBinding.keystroke
       else
-        keystroke.split(' ')[0] == binding.keystroke.split(' ')[0]
+        keystroke.split(' ')[0] == keyBinding.keystroke.split(' ')[0]
 
-  bindingsMatchingElement: (element, bindings=@allBindings()) ->
-    bindings = bindings.filter ({selector}) -> $(element).closest(selector).length > 0
-    bindings.sort (a, b) ->
+  bindingsMatchingElement: (element, keyBindings=@allBindings()) ->
+    keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
+    keyBindings.sort (a, b) ->
       if b.specificity == a.specificity
         b.index - a.index
       else
         b.specificity - a.specificity
-
-  buildBinding: (bindingSet, command, keystroke) ->
-    selector = bindingSet.selector
-    specificity = bindingSet.specificity
-    index = bindingSet.index
-    source = bindingSet.name
-    {command, keystroke, selector, specificity, source}
 
   triggerCommandEvent: (element, commandName) ->
     commandEvent = $.Event(commandName)
@@ -195,3 +168,11 @@ class Keymap
       when 32 then 'space'
       when 127 then 'delete'
       else String.fromCharCode(charCode)
+
+  normalizeKeystroke: (keystroke) ->
+    normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
+      keys = BindingSet.parser.parse(keystroke)
+      modifiers = keys[0...-1]
+      modifiers.sort()
+      [modifiers..., _.last(keys)].join('-')
+    normalizedKeystroke.join(' ')

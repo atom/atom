@@ -24,9 +24,9 @@ describe "Keymap", ->
     metaZHandler = null
 
     beforeEach ->
-      keymap.bindKeys '.command-mode', 'x': 'deleteChar'
-      keymap.bindKeys '.insert-mode', 'x': 'insertChar'
-      keymap.bindKeys '.command-mode', 'meta-z': 'metaZPressed'
+      keymap.bindKeys 'name', '.command-mode', 'x': 'deleteChar'
+      keymap.bindKeys 'name', '.insert-mode', 'x': 'insertChar'
+      keymap.bindKeys 'name', '.command-mode', 'meta-z': 'metaZPressed'
 
       deleteCharHandler = jasmine.createSpy('deleteCharHandler')
       insertCharHandler = jasmine.createSpy('insertCharHandler')
@@ -80,7 +80,7 @@ describe "Keymap", ->
 
       describe "when the event's target node descends from multiple nodes that match selectors with a binding", ->
         beforeEach ->
-          keymap.bindKeys '.child-node', 'x': 'foo'
+          keymap.bindKeys 'name', '.child-node', 'x': 'foo'
 
         it "only triggers bindings on selectors associated with the closest ancestor node", ->
           fooHandler = jasmine.createSpy 'fooHandler'
@@ -117,10 +117,10 @@ describe "Keymap", ->
       describe "when the event bubbles to a node that matches multiple selectors", ->
         describe "when the matching selectors differ in specificity", ->
           it "triggers the binding for the most specific selector", ->
-            keymap.bindKeys 'div .child-node', 'x': 'foo'
-            keymap.bindKeys '.command-mode .child-node !important', 'x': 'baz'
-            keymap.bindKeys '.command-mode .child-node', 'x': 'quux'
-            keymap.bindKeys '.child-node', 'x': 'bar'
+            keymap.bindKeys 'name', 'div .child-node', 'x': 'foo'
+            keymap.bindKeys 'name', '.command-mode .child-node !important', 'x': 'baz'
+            keymap.bindKeys 'name', '.command-mode .child-node', 'x': 'quux'
+            keymap.bindKeys 'name', '.child-node', 'x': 'bar'
 
             fooHandler = jasmine.createSpy 'fooHandler'
             barHandler = jasmine.createSpy 'barHandler'
@@ -138,8 +138,8 @@ describe "Keymap", ->
 
         describe "when the matching selectors have the same specificity", ->
           it "triggers the bindings for the most recently declared selector", ->
-            keymap.bindKeys '.child-node', 'x': 'foo', 'y': 'baz'
-            keymap.bindKeys '.child-node', 'x': 'bar'
+            keymap.bindKeys 'name', '.child-node', 'x': 'foo', 'y': 'baz'
+            keymap.bindKeys 'name', '.child-node', 'x': 'bar'
 
             fooHandler = jasmine.createSpy 'fooHandler'
             barHandler = jasmine.createSpy 'barHandler'
@@ -161,7 +161,7 @@ describe "Keymap", ->
         it "triggers the mapped event on the rootView", ->
           window.rootView = new RootView
           rootView.attachToDom()
-          keymap.bindKeys 'body', 'x': 'foo'
+          keymap.bindKeys 'name', 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
           rootView.on 'foo', fooHandler
 
@@ -173,7 +173,7 @@ describe "Keymap", ->
 
       describe "when the event matches a 'native!' binding", ->
         it "returns true, allowing the browser's native key handling to process the event", ->
-          keymap.bindKeys '.grandchild-node', 'x': 'native!'
+          keymap.bindKeys 'name', '.grandchild-node', 'x': 'native!'
           nativeHandler = jasmine.createSpy("nativeHandler")
           fragment.on 'native!', nativeHandler
           expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment.find('.grandchild-node')[0]))).toBe true
@@ -183,7 +183,7 @@ describe "Keymap", ->
       [quitHandler, closeOtherWindowsHandler] = []
 
       beforeEach ->
-        keymap.bindKeys "*",
+        keymap.bindKeys 'name', "*",
           'ctrl-x ctrl-c': 'quit'
           'ctrl-x 1': 'close-other-windows'
 
@@ -223,7 +223,7 @@ describe "Keymap", ->
 
       describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
         it "allows any of the bindings to be triggered upon a second keystroke, favoring the most specific selector", ->
-          keymap.bindKeys ".grandchild-node", 'ctrl-x ctrl-c': 'more-specific-quit'
+          keymap.bindKeys 'name', ".grandchild-node", 'ctrl-x ctrl-c': 'more-specific-quit'
           grandchildNode = fragment.find('.grandchild-node')[0]
           moreSpecificQuitHandler = jasmine.createSpy('moreSpecificQuitHandler')
           fragment.on 'more-specific-quit', moreSpecificQuitHandler
@@ -247,17 +247,17 @@ describe "Keymap", ->
       describe "when there is a complete binding with a more specific selector", ->
         it "favors the more specific complete match", ->
 
-  describe ".bindKeys(selector, bindings)", ->
+  describe ".bindKeys(name, selector, bindings)", ->
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
       fooHandler = jasmine.createSpy('fooHandler')
       fragment.on 'foo', fooHandler
-      keymap.bindKeys '*', 'ctrl-alt-delete': 'foo'
+      keymap.bindKeys 'name', '*', 'ctrl-alt-delete': 'foo'
       result = keymap.handleKeyEvent(keydownEvent('delete', ctrlKey: true, altKey: true, target: fragment[0]))
       expect(result).toBe(false)
       expect(fooHandler).toHaveBeenCalled()
 
       fooHandler.reset()
-      keymap.bindKeys '*', 'ctrl-alt--': 'foo'
+      keymap.bindKeys 'name', '*', 'ctrl-alt--': 'foo'
       result = keymap.handleKeyEvent(keydownEvent('-', ctrlKey: true, altKey: true, target: fragment[0]))
       expect(result).toBe(false)
       expect(fooHandler).toHaveBeenCalled()
@@ -277,8 +277,6 @@ describe "Keymap", ->
 
       expect(keymap.bindingsMatchingElement($$ -> @div class: 'green')).toEqual []
       expect(keymap.bindingsMatchingElement($$ -> @div class: 'brown')).toEqual []
-      expect(keymap.bindingSetsByFirstKeystroke['ctrl-c']).toEqual []
-      expect(keymap.bindingSetsByFirstKeystroke['ctrl-h']).toEqual []
 
   describe ".keystrokeStringForEvent(event)", ->
     describe "when no modifiers are pressed", ->
@@ -305,8 +303,8 @@ describe "Keymap", ->
 
   describe ".bindingsMatchingElement(element)", ->
     it "returns the matching bindings for the element", ->
-      keymap.bindKeys '.command-mode', 'c': 'c'
-      keymap.bindKeys '.grandchild-node', 'g': 'g'
+      keymap.bindKeys 'name', '.command-mode', 'c': 'c'
+      keymap.bindKeys 'name', '.grandchild-node', 'g': 'g'
 
       bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
       expect(bindings).toHaveLength 2
@@ -315,9 +313,9 @@ describe "Keymap", ->
 
     describe "when multiple bindings match a keystroke", ->
       it "only returns bindings that match the most specific selector", ->
-        keymap.bindKeys '.command-mode', 'g': 'command-mode'
-        keymap.bindKeys '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
-        keymap.bindKeys '.grandchild-node', 'g': 'grandchild-node'
+        keymap.bindKeys 'name', '.command-mode', 'g': 'command-mode'
+        keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
+        keymap.bindKeys 'name', '.grandchild-node', 'g': 'grandchild-node'
 
         bindings = keymap.bindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
