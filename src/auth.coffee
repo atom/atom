@@ -1,4 +1,5 @@
 child_process = require 'child_process'
+keytar = require 'keytar'
 
 module.exports =
   # Get the GitHub API token from the keychain
@@ -11,10 +12,9 @@ module.exports =
       return
 
     tokenName = 'GitHub API Token'
-    command = "security -q find-generic-password -ws '#{tokenName}'"
-    child_process.exec command, (error, stdout='', stderr='') ->
-      token = stdout.trim()
-      if error? or not token
-        callback('No GitHub API token in keychain')
-      else
-        callback(null, token)
+    token = keytar.findPassword(tokenName)
+
+    if error? or not token
+      callback('No "GitHub API Token" in keychain')
+    else
+      callback(null, token)
