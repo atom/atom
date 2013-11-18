@@ -79,7 +79,7 @@ class AtomPackage extends Package
       @activateConfig()
       @activateStylesheets()
       if @requireMainModule()
-        @mainModule.activate(atom.packages.getPackageState(@name) ? {}, atom)
+        @mainModule.activate(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
