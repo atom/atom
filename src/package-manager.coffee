@@ -85,6 +85,7 @@ class PackageManager
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
+      console.log options
       @activePackages[pack.name] = pack
       pack.activate(options)
       pack

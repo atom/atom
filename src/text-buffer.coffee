@@ -386,12 +386,12 @@ class TextBuffer extends telepath.Model
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
-    @emit 'will-be-saved'
+    @emit 'will-be-saved', this
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
     @emitModifiedStatusChanged(false)
-    @emit 'saved'
+    @emit 'saved', this
 
   # Identifies if the buffer was modified.
   #
