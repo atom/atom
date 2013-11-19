@@ -2,7 +2,7 @@
 TextBuffer = require './text-buffer'
 Gutter = require './gutter'
 {Point, Range} = require 'telepath'
-EditSession = require './edit-session'
+TextEditor = require './text-editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
 fs = require 'fs-plus'
@@ -15,7 +15,7 @@ LongLineLength = 1000
 
 # Private: Represents the entire visual pane in Atom.
 #
-# The TextEditorView manages the {EditSession}, which manages the file buffers.
+# The TextEditorView manages the {TextEditor}, which manages the file buffers.
 module.exports =
 class TextEditorView extends View
   @characterWidthCache: {}
@@ -77,13 +77,13 @@ class TextEditorView extends View
 
   # The constructor for setting up an `TextEditorView` instance.
   #
-  # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.
-  #                        If `mini` is `true`, a "miniature" `EditSession` is constructed.
+  # editSessionOrOptions - Either an {TextEditor}, or an object with one property, `mini`.
+  #                        If `mini` is `true`, a "miniature" `TextEditor` is constructed.
   #                        Typically, this is ideal for scenarios where you need an Atom editor,
   #                        but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   initialize: (editSessionOrOptions) ->
-    if editSessionOrOptions instanceof EditSession
+    if editSessionOrOptions instanceof TextEditor
       editSession = editSessionOrOptions
     else
       {editSession, @mini} = editSessionOrOptions ? {}
@@ -103,14 +103,14 @@ class TextEditorView extends View
     if editSession?
       @edit(editSession)
     else if @mini
-      @edit(new EditSession
+      @edit(new TextEditor
         buffer: TextBuffer.createAsRoot()
         softWrap: false
         tabLength: 2
         softTabs: true
       )
     else
-      throw new Error("Must supply an EditSession or mini: true")
+      throw new Error("Must supply an TextEditor or mini: true")
 
   # Internal: Sets up the core Atom commands.
   #
@@ -213,294 +213,294 @@ class TextEditorView extends View
       do (name, method) =>
         @command name, (e) => method.call(this, e); false
 
-  # {Delegates to: EditSession.getCursor}
+  # {Delegates to: TextEditor.getCursor}
   getCursor: -> @activeEditSession.getCursor()
 
-  # {Delegates to: EditSession.getCursors}
+  # {Delegates to: TextEditor.getCursors}
   getCursors: -> @activeEditSession.getCursors()
 
-  # {Delegates to: EditSession.addCursorAtScreenPosition}
+  # {Delegates to: TextEditor.addCursorAtScreenPosition}
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
 
-  # {Delegates to: EditSession.addCursorAtBufferPosition}
+  # {Delegates to: TextEditor.addCursorAtBufferPosition}
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
-  # {Delegates to: EditSession.moveCursorUp}
+  # {Delegates to: TextEditor.moveCursorUp}
   moveCursorUp: -> @activeEditSession.moveCursorUp()
 
-  # {Delegates to: EditSession.moveCursorDown}
+  # {Delegates to: TextEditor.moveCursorDown}
   moveCursorDown: -> @activeEditSession.moveCursorDown()
 
-  # {Delegates to: EditSession.moveCursorLeft}
+  # {Delegates to: TextEditor.moveCursorLeft}
   moveCursorLeft: -> @activeEditSession.moveCursorLeft()
 
-  # {Delegates to: EditSession.moveCursorRight}
+  # {Delegates to: TextEditor.moveCursorRight}
   moveCursorRight: -> @activeEditSession.moveCursorRight()
 
-  # {Delegates to: EditSession.moveCursorToBeginningOfWord}
+  # {Delegates to: TextEditor.moveCursorToBeginningOfWord}
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
 
-  # {Delegates to: EditSession.moveCursorToEndOfWord}
+  # {Delegates to: TextEditor.moveCursorToEndOfWord}
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
 
-  # {Delegates to: EditSession.moveCursorToBeginningOfNextWord}
+  # {Delegates to: TextEditor.moveCursorToBeginningOfNextWord}
   moveCursorToBeginningOfNextWord: -> @activeEditSession.moveCursorToBeginningOfNextWord()
 
-  # {Delegates to: EditSession.moveCursorToTop}
+  # {Delegates to: TextEditor.moveCursorToTop}
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()
 
-  # {Delegates to: EditSession.moveCursorToBottom}
+  # {Delegates to: TextEditor.moveCursorToBottom}
   moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
 
-  # {Delegates to: EditSession.moveCursorToBeginningOfLine}
+  # {Delegates to: TextEditor.moveCursorToBeginningOfLine}
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
 
-  # {Delegates to: EditSession.moveCursorToFirstCharacterOfLine}
+  # {Delegates to: TextEditor.moveCursorToFirstCharacterOfLine}
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
 
-  # {Delegates to: EditSession.moveCursorToPreviousWordBoundary}
+  # {Delegates to: TextEditor.moveCursorToPreviousWordBoundary}
   moveCursorToPreviousWordBoundary: -> @activeEditSession.moveCursorToPreviousWordBoundary()
 
-  # {Delegates to: EditSession.moveCursorToNextWordBoundary}
+  # {Delegates to: TextEditor.moveCursorToNextWordBoundary}
   moveCursorToNextWordBoundary: -> @activeEditSession.moveCursorToNextWordBoundary()
 
-  # {Delegates to: EditSession.moveCursorToEndOfLine}
+  # {Delegates to: TextEditor.moveCursorToEndOfLine}
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
 
-  # {Delegates to: EditSession.moveLineUp}
+  # {Delegates to: TextEditor.moveLineUp}
   moveLineUp: -> @activeEditSession.moveLineUp()
 
-  # {Delegates to: EditSession.moveLineDown}
+  # {Delegates to: TextEditor.moveLineDown}
   moveLineDown: -> @activeEditSession.moveLineDown()
 
-  # {Delegates to: EditSession.setCursorScreenPosition}
+  # {Delegates to: TextEditor.setCursorScreenPosition}
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
 
-  # {Delegates to: EditSession.duplicateLine}
+  # {Delegates to: TextEditor.duplicateLine}
   duplicateLine: -> @activeEditSession.duplicateLine()
 
-  # {Delegates to: EditSession.joinLine}
+  # {Delegates to: TextEditor.joinLine}
   joinLine: -> @activeEditSession.joinLine()
 
-  # {Delegates to: EditSession.getCursorScreenPosition}
+  # {Delegates to: TextEditor.getCursorScreenPosition}
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
 
-  # {Delegates to: EditSession.getCursorScreenRow}
+  # {Delegates to: TextEditor.getCursorScreenRow}
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
 
-  # {Delegates to: EditSession.setCursorBufferPosition}
+  # {Delegates to: TextEditor.setCursorBufferPosition}
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
 
-  # {Delegates to: EditSession.getCursorBufferPosition}
+  # {Delegates to: TextEditor.getCursorBufferPosition}
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
-  # {Delegates to: EditSession.getCurrentParagraphBufferRange}
+  # {Delegates to: TextEditor.getCurrentParagraphBufferRange}
   getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
 
-  # {Delegates to: EditSession.getWordUnderCursor}
+  # {Delegates to: TextEditor.getWordUnderCursor}
   getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
 
-  # {Delegates to: EditSession.getSelection}
+  # {Delegates to: TextEditor.getSelection}
   getSelection: (index) -> @activeEditSession.getSelection(index)
 
-  # {Delegates to: EditSession.getSelections}
+  # {Delegates to: TextEditor.getSelections}
   getSelections: -> @activeEditSession.getSelections()
 
-  # {Delegates to: EditSession.getSelectionsOrderedByBufferPosition}
+  # {Delegates to: TextEditor.getSelectionsOrderedByBufferPosition}
   getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
 
-  # {Delegates to: EditSession.getLastSelectionInBuffer}
+  # {Delegates to: TextEditor.getLastSelectionInBuffer}
   getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
 
-  # {Delegates to: EditSession.getSelectedText}
+  # {Delegates to: TextEditor.getSelectedText}
   getSelectedText: -> @activeEditSession.getSelectedText()
 
-  # {Delegates to: EditSession.getSelectedBufferRanges}
+  # {Delegates to: TextEditor.getSelectedBufferRanges}
   getSelectedBufferRanges: -> @activeEditSession.getSelectedBufferRanges()
 
-  # {Delegates to: EditSession.getSelectedBufferRange}
+  # {Delegates to: TextEditor.getSelectedBufferRange}
   getSelectedBufferRange: -> @activeEditSession.getSelectedBufferRange()
 
-  # {Delegates to: EditSession.setSelectedBufferRange}
+  # {Delegates to: TextEditor.setSelectedBufferRange}
   setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
 
-  # {Delegates to: EditSession.setSelectedBufferRanges}
+  # {Delegates to: TextEditor.setSelectedBufferRanges}
   setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
 
-  # {Delegates to: EditSession.addSelectionForBufferRange}
+  # {Delegates to: TextEditor.addSelectionForBufferRange}
   addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
 
-  # {Delegates to: EditSession.selectRight}
+  # {Delegates to: TextEditor.selectRight}
   selectRight: -> @activeEditSession.selectRight()
 
-  # {Delegates to: EditSession.selectLeft}
+  # {Delegates to: TextEditor.selectLeft}
   selectLeft: -> @activeEditSession.selectLeft()
 
-  # {Delegates to: EditSession.selectUp}
+  # {Delegates to: TextEditor.selectUp}
   selectUp: -> @activeEditSession.selectUp()
 
-  # {Delegates to: EditSession.selectDown}
+  # {Delegates to: TextEditor.selectDown}
   selectDown: -> @activeEditSession.selectDown()
 
-  # {Delegates to: EditSession.selectToTop}
+  # {Delegates to: TextEditor.selectToTop}
   selectToTop: -> @activeEditSession.selectToTop()
 
-  # {Delegates to: EditSession.selectToBottom}
+  # {Delegates to: TextEditor.selectToBottom}
   selectToBottom: -> @activeEditSession.selectToBottom()
 
-  # {Delegates to: EditSession.selectAll}
+  # {Delegates to: TextEditor.selectAll}
   selectAll: -> @activeEditSession.selectAll()
 
-  # {Delegates to: EditSession.selectToBeginningOfLine}
+  # {Delegates to: TextEditor.selectToBeginningOfLine}
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
 
-  # {Delegates to: EditSession.selectToFirstCharacterOfLine}
+  # {Delegates to: TextEditor.selectToFirstCharacterOfLine}
   selectToFirstCharacterOfLine: -> @activeEditSession.selectToFirstCharacterOfLine()
 
-  # {Delegates to: EditSession.selectToEndOfLine}
+  # {Delegates to: TextEditor.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
 
-  # {Delegates to: EditSession.selectToPreviousWordBoundary}
+  # {Delegates to: TextEditor.selectToPreviousWordBoundary}
   selectToPreviousWordBoundary: -> @activeEditSession.selectToPreviousWordBoundary()
 
-  # {Delegates to: EditSession.selectToNextWordBoundary}
+  # {Delegates to: TextEditor.selectToNextWordBoundary}
   selectToNextWordBoundary: -> @activeEditSession.selectToNextWordBoundary()
 
-  # {Delegates to: EditSession.addSelectionBelow}
+  # {Delegates to: TextEditor.addSelectionBelow}
   addSelectionBelow: -> @activeEditSession.addSelectionBelow()
 
-  # {Delegates to: EditSession.addSelectionAbove}
+  # {Delegates to: TextEditor.addSelectionAbove}
   addSelectionAbove: -> @activeEditSession.addSelectionAbove()
 
-  # {Delegates to: EditSession.selectToBeginningOfWord}
+  # {Delegates to: TextEditor.selectToBeginningOfWord}
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
 
-  # {Delegates to: EditSession.selectToEndOfWord}
+  # {Delegates to: TextEditor.selectToEndOfWord}
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
 
-  # {Delegates to: EditSession.selectToBeginningOfNextWord}
+  # {Delegates to: TextEditor.selectToBeginningOfNextWord}
   selectToBeginningOfNextWord: -> @activeEditSession.selectToBeginningOfNextWord()
 
-  # {Delegates to: EditSession.selectWord}
+  # {Delegates to: TextEditor.selectWord}
   selectWord: -> @activeEditSession.selectWord()
 
-  # {Delegates to: EditSession.selectLine}
+  # {Delegates to: TextEditor.selectLine}
   selectLine: -> @activeEditSession.selectLine()
 
-  # {Delegates to: EditSession.selectToScreenPosition}
+  # {Delegates to: TextEditor.selectToScreenPosition}
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
 
-  # {Delegates to: EditSession.transpose}
+  # {Delegates to: TextEditor.transpose}
   transpose: -> @activeEditSession.transpose()
 
-  # {Delegates to: EditSession.upperCase}
+  # {Delegates to: TextEditor.upperCase}
   upperCase: -> @activeEditSession.upperCase()
 
-  # {Delegates to: EditSession.lowerCase}
+  # {Delegates to: TextEditor.lowerCase}
   lowerCase: -> @activeEditSession.lowerCase()
 
-  # {Delegates to: EditSession.clearSelections}
+  # {Delegates to: TextEditor.clearSelections}
   clearSelections: -> @activeEditSession.clearSelections()
 
-  # {Delegates to: EditSession.backspace}
+  # {Delegates to: TextEditor.backspace}
   backspace: -> @activeEditSession.backspace()
 
-  # {Delegates to: EditSession.backspaceToBeginningOfWord}
+  # {Delegates to: TextEditor.backspaceToBeginningOfWord}
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
 
-  # {Delegates to: EditSession.backspaceToBeginningOfLine}
+  # {Delegates to: TextEditor.backspaceToBeginningOfLine}
   backspaceToBeginningOfLine: -> @activeEditSession.backspaceToBeginningOfLine()
 
-  # {Delegates to: EditSession.delete}
+  # {Delegates to: TextEditor.delete}
   delete: -> @activeEditSession.delete()
 
-  # {Delegates to: EditSession.deleteToEndOfWord}
+  # {Delegates to: TextEditor.deleteToEndOfWord}
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
 
-  # {Delegates to: EditSession.deleteLine}
+  # {Delegates to: TextEditor.deleteLine}
   deleteLine: -> @activeEditSession.deleteLine()
 
-  # {Delegates to: EditSession.cutToEndOfLine}
+  # {Delegates to: TextEditor.cutToEndOfLine}
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
 
-  # {Delegates to: EditSession.insertText}
+  # {Delegates to: TextEditor.insertText}
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
 
-  # {Delegates to: EditSession.insertNewline}
+  # {Delegates to: TextEditor.insertNewline}
   insertNewline: -> @activeEditSession.insertNewline()
 
-  # {Delegates to: EditSession.insertNewlineBelow}
+  # {Delegates to: TextEditor.insertNewlineBelow}
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
 
-  # {Delegates to: EditSession.insertNewlineAbove}
+  # {Delegates to: TextEditor.insertNewlineAbove}
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
 
-  # {Delegates to: EditSession.indent}
+  # {Delegates to: TextEditor.indent}
   indent: (options) -> @activeEditSession.indent(options)
 
-  # {Delegates to: EditSession.autoIndentSelectedRows}
+  # {Delegates to: TextEditor.autoIndentSelectedRows}
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows()
 
-  # {Delegates to: EditSession.indentSelectedRows}
+  # {Delegates to: TextEditor.indentSelectedRows}
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
 
-  # {Delegates to: EditSession.outdentSelectedRows}
+  # {Delegates to: TextEditor.outdentSelectedRows}
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
-  # {Delegates to: EditSession.cutSelectedText}
+  # {Delegates to: TextEditor.cutSelectedText}
   cutSelection: -> @activeEditSession.cutSelectedText()
 
-  # {Delegates to: EditSession.copySelectedText}
+  # {Delegates to: TextEditor.copySelectedText}
   copySelection: -> @activeEditSession.copySelectedText()
 
-  # {Delegates to: EditSession.pasteText}
+  # {Delegates to: TextEditor.pasteText}
   paste: (options) -> @activeEditSession.pasteText(options)
 
-  # {Delegates to: EditSession.undo}
+  # {Delegates to: TextEditor.undo}
   undo: -> @activeEditSession.undo()
 
-  # {Delegates to: EditSession.redo}
+  # {Delegates to: TextEditor.redo}
   redo: -> @activeEditSession.redo()
 
-  # {Delegates to: EditSession.createFold}
+  # {Delegates to: TextEditor.createFold}
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
 
-  # {Delegates to: EditSession.foldCurrentRow}
+  # {Delegates to: TextEditor.foldCurrentRow}
   foldCurrentRow: -> @activeEditSession.foldCurrentRow()
 
-  # {Delegates to: EditSession.unfoldCurrentRow}
+  # {Delegates to: TextEditor.unfoldCurrentRow}
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
-  # {Delegates to: EditSession.foldAll}
+  # {Delegates to: TextEditor.foldAll}
   foldAll: -> @activeEditSession.foldAll()
 
-  # {Delegates to: EditSession.unfoldAll}
+  # {Delegates to: TextEditor.unfoldAll}
   unfoldAll: -> @activeEditSession.unfoldAll()
 
-  # {Delegates to: EditSession.foldSelection}
+  # {Delegates to: TextEditor.foldSelection}
   foldSelection: -> @activeEditSession.foldSelection()
 
-  # {Delegates to: EditSession.destroyFoldsContainingBufferRow}
+  # {Delegates to: TextEditor.destroyFoldsContainingBufferRow}
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
 
-  # {Delegates to: EditSession.isFoldedAtScreenRow}
+  # {Delegates to: TextEditor.isFoldedAtScreenRow}
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
 
-  # {Delegates to: EditSession.isFoldedAtBufferRow}
+  # {Delegates to: TextEditor.isFoldedAtBufferRow}
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
 
-  # {Delegates to: EditSession.isFoldedAtCursorRow}
+  # {Delegates to: TextEditor.isFoldedAtCursorRow}
   isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
 
   foldAllAtIndentLevel: (indentLevel) -> @activeEditSession.foldAllAtIndentLevel(indentLevel)
 
-  # {Delegates to: EditSession.lineForScreenRow}
+  # {Delegates to: TextEditor.lineForScreenRow}
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
 
-  # {Delegates to: EditSession.linesForScreenRows}
+  # {Delegates to: TextEditor.linesForScreenRows}
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
 
-  # {Delegates to: EditSession.getScreenLineCount}
+  # {Delegates to: TextEditor.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
   # Private:
@@ -508,33 +508,33 @@ class TextEditorView extends View
     heightInLines ?= @calculateHeightInLines()
     @heightInLines = heightInLines if heightInLines
 
-  # {Delegates to: EditSession.setEditorWidthInChars}
+  # {Delegates to: TextEditor.setEditorWidthInChars}
   setWidthInChars: (widthInChars) ->
     widthInChars ?= @calculateWidthInChars()
     @activeEditSession.setEditorWidthInChars(widthInChars) if widthInChars
 
-  # {Delegates to: EditSession.getMaxScreenLineLength}
+  # {Delegates to: TextEditor.getMaxScreenLineLength}
   getMaxScreenLineLength: -> @activeEditSession.getMaxScreenLineLength()
 
-  # {Delegates to: EditSession.getLastScreenRow}
+  # {Delegates to: TextEditor.getLastScreenRow}
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
-  # {Delegates to: EditSession.clipScreenPosition}
+  # {Delegates to: TextEditor.clipScreenPosition}
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
 
-  # {Delegates to: EditSession.screenPositionForBufferPosition}
+  # {Delegates to: TextEditor.screenPositionForBufferPosition}
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
 
-  # {Delegates to: EditSession.bufferPositionForScreenPosition}
+  # {Delegates to: TextEditor.bufferPositionForScreenPosition}
   bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
 
-  # {Delegates to: EditSession.screenRangeForBufferRange}
+  # {Delegates to: TextEditor.screenRangeForBufferRange}
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
 
-  # {Delegates to: EditSession.bufferRangeForScreenRange}
+  # {Delegates to: TextEditor.bufferRangeForScreenRange}
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
 
-  # {Delegates to: EditSession.bufferRowsForScreenRows}
+  # {Delegates to: TextEditor.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
 
   # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
@@ -591,13 +591,13 @@ class TextEditorView extends View
     if path = @getPath()
       atom.project.getRepo()?.checkoutHead(path)
 
-  # {Delegates to: EditSession.setText}
+  # {Delegates to: TextEditor.setText}
   setText: (text) -> @activeEditSession.setText(text)
 
-  # {Delegates to: EditSession.getText}
+  # {Delegates to: TextEditor.getText}
   getText: -> @activeEditSession.getText()
 
-  # {Delegates to: EditSession.getPath}
+  # {Delegates to: TextEditor.getPath}
   getPath: -> @activeEditSession?.getPath()
 
   #  {Delegates to: TextBuffer.getLineCount}
@@ -888,7 +888,7 @@ class TextEditorView extends View
 
   ### Public ###
 
-  # Retrieves the {EditSession}'s buffer.
+  # Retrieves the {TextEditor}'s buffer.
   #
   # Returns the current {TextBuffer}.
   getBuffer: -> @activeEditSession.buffer
@@ -1701,20 +1701,20 @@ class TextEditorView extends View
     else
       @highlightedLine = null
 
-  # {Delegates to: EditSession.getGrammar}
+  # {Delegates to: TextEditor.getGrammar}
   getGrammar: ->
     @activeEditSession.getGrammar()
 
-  # {Delegates to: EditSession.setGrammar}
+  # {Delegates to: TextEditor.setGrammar}
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
 
-  # {Delegates to: EditSession.reloadGrammar}
+  # {Delegates to: TextEditor.reloadGrammar}
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
 
-  # {Delegates to: EditSession.scopesForBufferPosition}
+  # {Delegates to: TextEditor.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) ->
     @activeEditSession.scopesForBufferPosition(bufferPosition)
 

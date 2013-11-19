@@ -10,7 +10,7 @@ Pane = require './pane'
 PaneColumn = require './pane-column'
 PaneRow = require './pane-row'
 PaneContainer = require './pane-container'
-EditSession = require './edit-session'
+TextEditor = require './text-editor'
 
 # Public: The container for the entire Atom application.
 #
@@ -169,7 +169,7 @@ class RootView extends View
   # * options
   #   + initialLine: The buffer line number to open to.
   #
-  # Returns a promise that resolves to the {EditSession} for the file URI.
+  # Returns a promise that resolves to the {TextEditor} for the file URI.
   open: (filePath, options={}) ->
     changeFocus = options.changeFocus ? true
     filePath = project.resolve(filePath)
@@ -259,7 +259,7 @@ class RootView extends View
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
-      for item in pane.getItems() when item instanceof EditSession
+      for item in pane.getItems() when item instanceof TextEditor
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
@@ -315,7 +315,7 @@ class RootView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {EditSession}.
+  # Public: Fires a callback on each open {TextEditor}.
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 

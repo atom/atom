@@ -7,7 +7,7 @@ Q = require 'q'
 telepath = require 'telepath'
 
 TextBuffer = require './text-buffer'
-EditSession = require './edit-session'
+TextEditor = require './text-editor'
 {Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
@@ -133,14 +133,14 @@ class Project extends telepath.Model
     @rootDirectory?.contains(pathToCheck) ? false
 
   # Public: Given a path to a file, this constructs and associates a new
-  # {EditSession}, showing the file.
+  # {TextEditor}, showing the file.
   #
   # * filePath:
   #   The {String} path of the file to associate with
   # * editSessionOptions:
-  #   Options that you can pass to the {EditSession} constructor
+  #   Options that you can pass to the {TextEditor} constructor
   #
-  # Returns a promise that resolves to an {EditSession}.
+  # Returns a promise that resolves to an {TextEditor}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     resource = null
@@ -160,18 +160,18 @@ class Project extends telepath.Model
 
     @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {EditSession}s for all open files.
+  # Public: Retrieves all {TextEditor}s for all open files.
   #
-  # Returns an {Array} of {EditSession}s.
+  # Returns an {Array} of {TextEditor}s.
   getEditSessions: ->
     new Array(@editSessions...)
 
-  # Public: Add the given {EditSession}.
+  # Public: Add the given {TextEditor}.
   addEditSession: (editSession) ->
     @editSessions.push editSession
     @emit 'edit-session-created', editSession
 
-  # Public: Return and removes the given {EditSession}.
+  # Public: Return and removes the given {TextEditor}.
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
@@ -332,7 +332,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    editSession = new EditSession(_.extend({buffer}, editSessionOptions))
+    editSession = new TextEditor(_.extend({buffer}, editSessionOptions))
     @addEditSession(editSession)
     editSession
 

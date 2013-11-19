@@ -131,7 +131,7 @@ class TextBuffer extends telepath.Model
   # Returns a {Boolean}.
   hasMultipleEditors: -> @refcount > 1
 
-  # Reloads a file in the {EditSession}.
+  # Reloads a file in the {TextEditor}.
   #
   # Sets the buffer's content to the cached disk contents
   reload: ->

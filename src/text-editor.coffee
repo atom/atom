@@ -12,18 +12,18 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.
 #
-# An {EditSession} represents a unique view of each document, with it's own
+# An {TextEditor} represents a unique view of each document, with it's own
 # {Cursor}s and scroll position.
 #
-# For instance if a user creates a split, Atom creates a second {EditSession}
-# but both {EditSession}s interact with the same buffer underlying buffer. So
+# For instance if a user creates a split, Atom creates a second {TextEditor}
+# but both {TextEditor}s interact with the same buffer underlying buffer. So
 # if you type in either buffer it immediately appears in both but if you scroll
 # in one it doesn't scroll the other.
 #
 # Almost all extension will interact primiarily with this class as it provides
 # access to objects you'll most commonly interact with. To access it you'll
 # want to register a callback on {RootView} which will be fired once for every
-# existing {EditSession} as well as any future {EditSession}s.
+# existing {TextEditor} as well as any future {TextEditor}s.
 #
 # ## Example
 # ```coffeescript
@@ -36,7 +36,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # FIXME: Describe how there are both local and remote cursors and selections and
 # why that is.
 module.exports =
-class EditSession
+class TextEditor
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
@@ -47,7 +47,7 @@ class EditSession
   @version: 5
 
   @deserialize: (state) ->
-    new EditSession(state)
+    new TextEditor(state)
 
   id: null
   languageMode: null
@@ -152,12 +152,12 @@ class EditSession
   # Private:
   getState: -> @state
 
-  # Private: Creates an {EditSession} with the same initial state
+  # Private: Creates an {TextEditor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
+    newEditSession = new TextEditor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
     newEditSession.setScrollTop(@getScrollTop())
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editSessionId: @id)
@@ -190,7 +190,7 @@ class EditSession
     else
       'untitled'
 
-  # Public: Compares two `EditSession`s to determine equality.
+  # Public: Compares two `TextEditor`s to determine equality.
   #
   # Equality is based on the condition that:
   #
@@ -200,7 +200,7 @@ class EditSession
   #
   # Returns a {Boolean}.
   isEqual: (other) ->
-    return false unless other instanceof EditSession
+    return false unless other instanceof TextEditor
     @buffer == other.buffer and
       @getScrollTop() == other.getScrollTop() and
       @getScrollLeft() == other.getScrollLeft() and
@@ -876,7 +876,7 @@ class EditSession
     @emit 'cursor-added', cursor
     cursor
 
-  # Public: Removes and returns a cursor from the `EditSession`.
+  # Public: Removes and returns a cursor from the `TextEditor`.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 

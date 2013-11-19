@@ -2,7 +2,7 @@
 {Emitter} = require 'emissary'
 {pick} = require 'underscore-plus'
 
-# Public: Represents a selection in the {EditSession}.
+# Public: Represents a selection in the {TextEditor}.
 module.exports =
 class Selection
   Emitter.includeInto(this)
@@ -79,7 +79,7 @@ class Selection
   #    + preserveFolds:
   #      if `true`, the fold settings are preserved after the selection moves
   #    + autoscroll:
-  #      if `true`, the {EditSession} scrolls to the new selection
+  #      if `true`, the {TextEditor} scrolls to the new selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -361,7 +361,7 @@ class Selection
   # * options - A hash with one key,
   #    + autoIndent:
   #      If `true`, the indentation is performed appropriately. Otherwise,
-  #      {EditSession.getTabText} is used
+  #      {TextEditor.getTabText} is used
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
