@@ -9,7 +9,7 @@ Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'telepath'
 Project = require '../src/project'
-Editor = require '../src/editor'
+TextEditorView = require '../src/text-editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
 platform = require './spec-helper-platform'
@@ -75,7 +75,7 @@ beforeEach ->
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', RootView.configDefaults)
-  config.setDefaults('editor', Editor.configDefaults)
+  config.setDefaults('editor', TextEditorView.configDefaults)
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
@@ -86,7 +86,7 @@ beforeEach ->
   window.config = config
 
   # make editor display updates synchronous
-  spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout

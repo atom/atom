@@ -49,7 +49,7 @@ window.startEditorWindow = ->
   atom.restoreDimensions()
   atom.config.load()
   atom.config.setDefaults('core', require('./root-view').configDefaults)
-  atom.config.setDefaults('editor', require('./editor').configDefaults)
+  atom.config.setDefaults('editor', require('./text-editor-view').configDefaults)
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()

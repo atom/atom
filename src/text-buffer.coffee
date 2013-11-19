@@ -126,7 +126,7 @@ class TextBuffer extends telepath.Model
 
   # Identifies if the buffer belongs to multiple editors.
   #
-  # For example, if the {Editor} was split.
+  # For example, if the {TextEditorView} was split.
   #
   # Returns a {Boolean}.
   hasMultipleEditors: -> @refcount > 1

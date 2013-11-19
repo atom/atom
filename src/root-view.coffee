@@ -5,7 +5,7 @@ Q = require 'q'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 telepath = require 'telepath'
-Editor = require './editor'
+TextEditorView = require './text-editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
 PaneRow = require './pane-row'
@@ -38,7 +38,7 @@ EditSession = require './edit-session'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
+  registerDeserializers(this, Pane, PaneRow, PaneColumn, TextEditorView)
 
   @version: 1
 
@@ -249,7 +249,7 @@ class RootView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {Editor}s.
+  # Private: Returns an Array of  all of the application's {TextEditorView}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -308,7 +308,7 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {Editor}.
+  # Private: Fires a callback on each open {TextEditorView}.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)

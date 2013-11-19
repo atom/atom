@@ -15,9 +15,9 @@ LongLineLength = 1000
 
 # Private: Represents the entire visual pane in Atom.
 #
-# The Editor manages the {EditSession}, which manages the file buffers.
+# The TextEditorView manages the {EditSession}, which manages the file buffers.
 module.exports =
-class Editor extends View
+class TextEditorView extends View
   @characterWidthCache: {}
   @configDefaults:
     fontSize: 20
@@ -75,7 +75,7 @@ class Editor extends View
 
   ### Public ###
 
-  # The constructor for setting up an `Editor` instance.
+  # The constructor for setting up an `TextEditorView` instance.
   #
   # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.
   #                        If `mini` is `true`, a "miniature" `EditSession` is constructed.
@@ -88,7 +88,7 @@ class Editor extends View
     else
       {editSession, @mini} = editSessionOrOptions ? {}
 
-    @id = Editor.nextEditorId++
+    @id = TextEditorView.nextEditorId++
     @lineCache = []
     @configure()
     @bindKeys()
@@ -1038,7 +1038,7 @@ class Editor extends View
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Retrieve's the `Editor`'s pane.
+  # Retrieve's the `TextEditorView`'s pane.
   #
   # Returns a {Pane}.
   getPane: ->
@@ -1480,9 +1480,9 @@ class Editor extends View
     eolInvisibles = @getEndOfLineInvisibles(screenLine)
     htmlEolInvisibles = @buildHtmlEndOfLineInvisibles(screenLine)
 
-    indentation = Editor.buildIndentation(screenRow, @activeEditSession)
+    indentation = TextEditorView.buildIndentation(screenRow, @activeEditSession)
 
-    Editor.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, @showIndentGuide, indentation, @activeEditSession, @mini})
+    TextEditorView.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, @showIndentGuide, indentation, @activeEditSession, @mini})
 
   @buildIndentation: (screenRow, activeEditSession) ->
     bufferRow = activeEditSession.bufferPositionForScreenPosition([screenRow]).row
@@ -1639,7 +1639,7 @@ class Editor extends View
 
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
-    obj = Editor.characterWidthCache
+    obj = TextEditorView.characterWidthCache
     for scope in scopes
       obj = obj[scope]
       return null unless obj?
@@ -1647,14 +1647,14 @@ class Editor extends View
 
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
-    obj = Editor.characterWidthCache
+    obj = TextEditorView.characterWidthCache
     for scope in scopes
       obj[scope] ?= {}
       obj = obj[scope]
     obj[char] = val
 
   clearCharacterWidthCache: ->
-    Editor.characterWidthCache = {}
+    TextEditorView.characterWidthCache = {}
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
@@ -1734,7 +1734,7 @@ class Editor extends View
     line.push("<div #{attributePairs}>")
 
     if text == ''
-      html = Editor.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini)
+      html = TextEditorView.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)

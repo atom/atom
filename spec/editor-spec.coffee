@@ -1,8 +1,8 @@
-{_, $, $$, fs, Editor, Range, RootView} = require 'atom'
+{_, $, $$, fs, TextEditorView, Range, RootView} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 
-describe "Editor", ->
+describe "TextEditorView", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
@@ -10,7 +10,7 @@ describe "Editor", ->
     atom.activatePackage('language-javascript', sync: true)
     editSession = project.openSync('sample.js')
     buffer = editSession.buffer
-    editor = new Editor(editSession)
+    editor = new TextEditorView(editSession)
     editor.lineOverdraw = 2
     editor.isFocused = true
     editor.enableKeymap()
@@ -33,7 +33,7 @@ describe "Editor", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new Editor(editSession: project.openSync('sample.js'))
+    editorForMeasurement = new TextEditorView(editSession: project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -41,7 +41,7 @@ describe "Editor", ->
 
   describe "construction", ->
     it "throws an error if no edit session is given", ->
-      expect(-> new Editor).toThrow()
+      expect(-> new TextEditorView).toThrow()
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
@@ -325,7 +325,7 @@ describe "Editor", ->
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
-        newEditor = new Editor(editor.activeEditSession.copy())
+        newEditor = new TextEditorView(editor.activeEditSession.copy())
         newEditor.attachToDom()
         expect(newEditor.css('font-family')).toBe fontFamily
 
@@ -353,7 +353,7 @@ describe "Editor", ->
         expect(editor.renderedLines.outerHeight()).toBe buffer.getLineCount() * editor.lineHeight
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
-        newEditor = new Editor(editor.activeEditSession.copy())
+        newEditor = new TextEditorView(editor.activeEditSession.copy())
         editor.remove()
         newEditor.attachToDom()
         expect(newEditor.css('font-size')).toBe '30px'
@@ -1764,7 +1764,7 @@ describe "Editor", ->
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new Editor(editSession: project.openSync('sample.js'))
+      otherEditor = new TextEditorView(editSession: project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
@@ -1902,19 +1902,19 @@ describe "Editor", ->
 
     describe "when the editor is mini", ->
       it "hides the gutter", ->
-        miniEditor = new Editor(mini: true)
+        miniEditor = new TextEditorView(mini: true)
         miniEditor.attachToDom()
         expect(miniEditor.gutter).toBeHidden()
 
       it "doesn't highlight the only line", ->
-        miniEditor = new Editor(mini: true)
+        miniEditor = new TextEditorView(mini: true)
         miniEditor.attachToDom()
         expect(miniEditor.getCursorBufferPosition().row).toBe 0
         expect(miniEditor.find('.line.cursor-line').length).toBe 0
 
       it "doesn't show the end of line invisible", ->
         atom.config.set "editor.showInvisibles", true
-        miniEditor = new Editor(mini: true)
+        miniEditor = new TextEditorView(mini: true)
         miniEditor.attachToDom()
         space = miniEditor.invisibles?.space
         expect(space).toBeTruthy()
@@ -1925,14 +1925,14 @@ describe "Editor", ->
 
       it "doesn't show the indent guide", ->
         atom.config.set "editor.showIndentGuide", true
-        miniEditor = new Editor(mini: true)
+        miniEditor = new TextEditorView(mini: true)
         miniEditor.attachToDom()
         miniEditor.setText("      and indented line")
         expect(miniEditor.renderedLines.find('.indent-guide').length).toBe 0
 
 
       it "lets you set the grammar", ->
-        miniEditor = new Editor(mini: true)
+        miniEditor = new TextEditorView(mini: true)
         miniEditor.setText("var something")
         previousTokens = miniEditor.lineForScreenRow(0).tokens
         miniEditor.setGrammar(atom.syntax.selectGrammar('something.js'))

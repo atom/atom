@@ -20,7 +20,8 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$ = $
   module.exports.$$ = $$
   module.exports.$$$ = $$$
-  module.exports.Editor = require '../src/editor'
+  module.exports.Editor = require '../src/text-editor-view'
+  module.exports.pathForRepositoryUrl = require('../src/project').pathForRepositoryUrl
   module.exports.RootView = require '../src/root-view'
   module.exports.SelectList = require '../src/select-list'
   module.exports.ScrollView = require '../src/scroll-view'
