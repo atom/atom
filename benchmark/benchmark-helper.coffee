@@ -73,8 +73,8 @@ window.clickEvent = (properties={}) ->
 
 window.mouseEvent = (type, properties) ->
   if properties.point
-    {point, editor} = properties
-    {top, left} = @pagePixelPositionForPoint(editor, point)
+    {point, editorView} = properties
+    {top, left} = @pagePixelPositionForPoint(editorView, point)
     properties.pageX = left + 1
     properties.pageY = top + 1
   properties.originalEvent ?= {detail: 1}
@@ -86,14 +86,14 @@ window.mousedownEvent = (properties={}) ->
 window.mousemoveEvent = (properties={}) ->
   window.mouseEvent('mousemove', properties)
 
-window.pagePixelPositionForPoint = (editor, point) ->
+window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
-  top = editor.lines.offset().top + point.row * editor.lineHeight
-  left = editor.lines.offset().left + point.column * editor.charWidth - editor.lines.scrollLeft()
+  top = editorView.lines.offset().top + point.row * editorView.lineHeight
+  left = editorView.lines.offset().left + point.column * editorView.charWidth - editorView.lines.scrollLeft()
   { top, left }
 
-window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
-  editor.width(charWidth * widthInChars + editor.lines.position().left)
+window.seteditorViewWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
+  editorView.width(charWidth * widthInChars + editorView.lines.position().left)
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
