@@ -21,19 +21,19 @@ describe "Keymap", ->
   describe ".handleKeyEvent(event)", ->
     deleteCharHandler = null
     insertCharHandler = null
-    metaZHandler = null
+    commandZHandler = null
 
     beforeEach ->
       keymap.bindKeys 'name', '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys 'name', '.insert-mode', 'x': 'insertChar'
-      keymap.bindKeys 'name', '.command-mode', 'meta-z': 'metaZPressed'
+      keymap.bindKeys 'name', '.command-mode', 'command-z': 'commandZPressed'
 
       deleteCharHandler = jasmine.createSpy('deleteCharHandler')
       insertCharHandler = jasmine.createSpy('insertCharHandler')
-      metaZHandler = jasmine.createSpy('metaZHandler')
+      commandZHandler = jasmine.createSpy('commandZHandler')
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
-      fragment.on 'metaZPressed', metaZHandler
+      fragment.on 'commandZPressed', commandZHandler
 
     describe "when no binding matches the event's keystroke", ->
       it "does not return false so the event continues to propagate", ->
@@ -45,7 +45,7 @@ describe "Keymap", ->
         result = keymap.handleKeyEvent(event)
 
         expect(result).toBe(false)
-        expect(metaZHandler).toHaveBeenCalled()
+        expect(commandZHandler).toHaveBeenCalled()
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
@@ -291,12 +291,12 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('left'))).toBe 'left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('\b'))).toBe 'backspace'
 
-    describe "when ctrl, alt or meta is pressed with a non-modifier key", ->
+    describe "when ctrl, alt or command is pressed with a non-modifier key", ->
       it "returns a string that identifies the key pressed", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'meta-['
+        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'command-['
         expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-meta-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-command-left'
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
