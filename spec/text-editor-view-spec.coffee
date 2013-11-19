@@ -748,7 +748,7 @@ describe "TextEditorView", ->
     describe "when a selection changes", ->
       describe "when the selection is within a single line", ->
         it "covers the selection's range with a single region", ->
-          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 2, column: 25}))
+          selection.setBufferRange([[2, 7], [2, 25]])
 
           expect(selectionView.regions.length).toBe 1
           region = selectionView.regions[0]
@@ -759,7 +759,7 @@ describe "TextEditorView", ->
 
       describe "when the selection spans 2 lines", ->
         it "covers the selection's range with 2 regions", ->
-          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 3, column: 25}))
+          selection.setBufferRange([[2,7],[3,25]])
 
           expect(selectionView.regions.length).toBe 2
 
@@ -777,7 +777,7 @@ describe "TextEditorView", ->
 
       describe "when the selection spans more than 2 lines", ->
         it "covers the selection's range with 3 regions", ->
-          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
+          selection.setBufferRange([[2,7],[6,25]])
 
           expect(selectionView.regions.length).toBe 3
 
@@ -808,7 +808,7 @@ describe "TextEditorView", ->
           expect(region3.width()).toBeCloseTo(25 * charWidth)
 
       it "clears previously drawn regions before creating new ones", ->
-        selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
+        selection.setBufferRange([[2,7],[4,25]])
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.region').length).toBe 3
 
@@ -1713,7 +1713,7 @@ describe "TextEditorView", ->
       editor.setCursorBufferPosition([4, 0])
       expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
 
-      editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
+      editor.getSelection().setBufferRange([[6, 30], [6, 55]])
       [region1, region2] = editor.getSelectionView().regions
       expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
       expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
@@ -2030,17 +2030,17 @@ describe "TextEditorView", ->
         editor.attachToDom(30)
 
       it "highlights the foreground of the gutter", ->
-        editor.getSelection().setBufferRange(new Range([0,0],[2,2]))
+        editor.getSelection().setBufferRange([[0,0],[2,2]])
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line').length).toBe 3
 
       it "doesn't highlight the background of the gutter", ->
-        editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
+        editor.getSelection().setBufferRange([[0,0],[2,0]])
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 0
 
       it "doesn't highlight the last line if it ends at the beginning of a line", ->
-        editor.getSelection().setBufferRange(new Range([0,0],[1,0]))
+        editor.getSelection().setBufferRange([[0,0],[1,0]])
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line').length).toBe 1
         expect(editor.find('.line-number.cursor-line').intValue()).toBe 1
@@ -2102,7 +2102,7 @@ describe "TextEditorView", ->
 
     describe "when a fold-selection event is triggered", ->
       it "folds the lines covered by the selection into a single line with a fold class and marker", ->
-        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+        editor.getSelection().setBufferRange([[4,29],[7,4]])
         editor.trigger 'editor:fold-selection'
 
         expect(editor.renderedLines.find('.line:eq(4)')).toHaveClass('fold')
@@ -2113,7 +2113,7 @@ describe "TextEditorView", ->
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
       it "keeps the gutter line and the editor line the same heights (regression)", ->
-        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+        editor.getSelection().setBufferRange([[4,29],[7,4]])
         editor.trigger 'editor:fold-selection'
 
         expect(editor.gutter.find('.line-number:eq(4)').height()).toBe editor.renderedLines.find('.line:eq(4)').height()
