@@ -45,10 +45,10 @@
   'ctrl-k down': 'pane:split-down' # Atom Specific
   'ctrl-k left': 'pane:split-left' # Atom Specific
   'ctrl-k right': 'pane:split-right' # Atom Specific
-  'ctrl-k command-w': 'pane:close' # Atom Specific
-  'ctrl-k alt-command-w': 'pane:close-other-items' # Atom Specific
-  'ctrl-k command-left': 'window:focus-previous-pane'
-  'ctrl-k command-right': 'window:focus-next-pane'
+  'ctrl-k cmd-w': 'pane:close' # Atom Specific
+  'ctrl-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k cmd-left': 'window:focus-previous-pane'
+  'ctrl-k cmd-right': 'window:focus-next-pane'
 
 'body.platform-win32 .editor':
   # Windows specific

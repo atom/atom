@@ -26,7 +26,7 @@ describe "Keymap", ->
     beforeEach ->
       keymap.bindKeys 'name', '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys 'name', '.insert-mode', 'x': 'insertChar'
-      keymap.bindKeys 'name', '.command-mode', 'command-z': 'commandZPressed'
+      keymap.bindKeys 'name', '.command-mode', 'cmd-z': 'commandZPressed'
 
       deleteCharHandler = jasmine.createSpy('deleteCharHandler')
       insertCharHandler = jasmine.createSpy('insertCharHandler')
@@ -294,9 +294,9 @@ describe "Keymap", ->
     describe "when ctrl, alt or command is pressed with a non-modifier key", ->
       it "returns a string that identifies the key pressed", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'command-['
+        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'cmd-['
         expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-command-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-cmd-left'
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
@@ -317,10 +317,10 @@ describe "Keymap", ->
 
     describe "when multiple bindings match a keystroke", ->
       it "only returns bindings that match the most specific selector", ->
-        keymap.bindKeys 'name', '.command-mode', 'g': 'command-mode'
-        keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
+        keymap.bindKeys 'name', '.command-mode', 'g': 'cmd-mode'
+        keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'cmd-and-grandchild-node'
         keymap.bindKeys 'name', '.grandchild-node', 'g': 'grandchild-node'
 
         bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
-        expect(bindings[0].command).toEqual "command-and-grandchild-node"
+        expect(bindings[0].command).toEqual "cmd-and-grandchild-node"
