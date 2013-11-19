@@ -6,17 +6,17 @@ module.exports = (grunt) ->
     shellAppDir = grunt.config.get('atom.shellAppDir')
     done = @async()
 
-    browserifyDir = path.join(shellAppDir, 'resources', 'app', 'node_modules',
-      'grunt-coffeelint', 'node_modules', 'coffeelint', 'node_modules', 'browserify')
-    toplevelBrowserifyDir = path.join(shellAppDir, 'resources', 'app', 'node_modules',
-      'browserify')
-    cp(browserifyDir, toplevelBrowserifyDir)
+    toplevelNodeModulesDir = path.join(shellAppDir, 'resources', 'app', 'node_modules')
+    browserifyDir = path.join(toplevelNodeModulesDir,'grunt-coffeelint', 'node_modules',
+     'coffeelint', 'node_modules', 'browserify')
+
+    cp(browserifyDir, path.join(toplevelNodeModulesDir, 'browserify'))
     rm(browserifyDir)
 
     options =
       cmd: 'npm'
       opts:
-        cwd: shellAppDir
+        cwd: path.join(toplevelNodeModulesDir, '..')
         stdio: 'inherit'
       args: ['dedupe']
     grunt.util.spawn(options, done)
