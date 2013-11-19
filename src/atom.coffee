@@ -2,7 +2,6 @@
 {Emitter} = require 'emissary'
 Emitter::one = (args...) -> @once(args...)
 Emitter::trigger = (args...) -> @emit(args...)
-Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
 
 #TODO remove once all packages have been updated
 fs = require 'fs-plus'

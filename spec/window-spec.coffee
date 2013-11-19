@@ -101,7 +101,7 @@ describe "Window", ->
 
       window.unloadEditorWindow()
 
-      expect(buffer.subscriptionCount()).toBe 0
+      expect(buffer.getSubscriptionCount()).toBe 0
 
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
