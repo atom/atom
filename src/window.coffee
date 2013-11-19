@@ -25,7 +25,6 @@ window.setUpEnvironment = (windowMode) ->
   #TODO remove once all packages use the atom global
   window.config = atom.config
   window.syntax = atom.syntax
-  window.keymap = atom.keymap
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
