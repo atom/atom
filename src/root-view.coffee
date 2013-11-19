@@ -267,7 +267,7 @@ class RootView extends View
   #
   # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
+    _.uniq(_.flatten(@getEditors().map (editorView) -> editorView.getOpenBufferPaths()))
 
   # Public: Returns the currently focused {Pane}.
   getActivePane: ->
@@ -325,6 +325,6 @@ class RootView extends View
 
   # Private: Destroys everything.
   remove: ->
-    editor.remove() for editor in @getEditors()
+    editorView.remove() for editorView in @getEditors()
     project?.destroy()
     super

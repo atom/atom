@@ -90,18 +90,18 @@ describe "Pane", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
           pane.showItem(editSession1)
-          editor = pane.activeView
-          expect(editor.css('display')).not.toBe 'none'
-          expect(editor.activeEditSession).toBe editSession1
+          editorView = pane.activeView
+          expect(editorView.css('display')).not.toBe 'none'
+          expect(editorView.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
         it "multiple views are created for multiple items", ->
           pane.showItem(editSession1)
           pane.showItem(editSession2)
           expect(pane.itemViews.find('.editor').length).toBe 2
-          editor = pane.activeView
-          expect(editor.css('display')).not.toBe 'none'
-          expect(editor.activeEditSession).toBe editSession2
+          editorView = pane.activeView
+          expect(editorView.css('display')).not.toBe 'none'
+          expect(editorView.activeEditSession).toBe editSession2
 
         it "creates a new view with the item", ->
           initialViewCount = pane.itemViews.find('.test-view').length

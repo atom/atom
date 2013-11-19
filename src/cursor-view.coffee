@@ -9,14 +9,14 @@ class CursorView extends View
     @div class: 'cursor idle', => @raw '&nbsp;'
 
   blinkPeriod: 800
-  editor: null
+  editorView: null
   visible: true
 
   needsUpdate: true
   needsRemoval: false
   shouldPauseBlinking: false
 
-  initialize: (@cursor, @editor) ->
+  initialize: (@cursor, @editorView) ->
     @cursor.on 'moved.cursor-view', =>
       @needsUpdate = true
       @shouldPauseBlinking = true
@@ -25,7 +25,7 @@ class CursorView extends View
       @needsUpdate = true
 
     @cursor.on 'autoscrolled.cursor-view', =>
-      @editor.requestDisplayUpdate()
+      @editorView.requestDisplayUpdate()
 
     @cursor.on 'destroyed.cursor-view', =>
       @needsRemoval = true
@@ -34,7 +34,7 @@ class CursorView extends View
       @addClass("site-#{@cursor.marker.getOriginSiteId()}")
 
   beforeRemove: ->
-    @editor.removeCursorView(this)
+    @editorView.removeCursorView(this)
     @cursor.off('.cursor-view')
     @stopBlinking()
 
@@ -52,7 +52,7 @@ class CursorView extends View
     else if !@startBlinkingTimeout
       @startBlinking()
 
-    @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
+    @setVisible(@cursor.isVisible() and not @editorView.isFoldedAtScreenRow(screenPosition.row))
 
   # Override for speed. The base function checks the computedStyle
   isHidden: ->
@@ -69,7 +69,7 @@ class CursorView extends View
     @cursor.clearAutoscroll()
 
   getPixelPosition: ->
-    @editor.pixelPositionForScreenPosition(@getScreenPosition())
+    @editorView.pixelPositionForScreenPosition(@getScreenPosition())
 
   setVisible: (visible) ->
     unless @visible == visible

@@ -100,9 +100,9 @@ describe "RootView", ->
     describe "when there is an active view", ->
       it "hands off focus to the active view", ->
         editor = rootView.getActiveView()
-        editor.isFocused = false
+        editorView.isFocused = false
         rootView.focus()
-        expect(editor.isFocused).toBeTruthy()
+        expect(editorView.isFocused).toBeTruthy()
 
     describe "when there is no active view", ->
       beforeEach ->
