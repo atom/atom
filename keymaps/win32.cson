@@ -1,0 +1,55 @@
+'body.platform-win32':
+  # Atom Specific
+  'enter': 'core:confirm'
+  'escape': 'core:cancel'
+  'up': 'core:move-up'
+  'down': 'core:move-down'
+  'left': 'core:move-left'
+  'right': 'core:move-right'
+  'ctrl-alt-r': 'window:reload'
+  'ctrl-alt-i': 'window:toggle-dev-tools'
+  'ctrl-alt-p': 'window:run-package-specs'
+  'ctrl-alt-s': 'application:run-all-specs'
+
+  # Sublime Parity
+  'ctrl-N': 'application:new-window'
+  'ctrl-W': 'window:close'
+  'ctrl-o': 'application:open'
+  'ctrl-T': 'pane:reopen-closed-item'
+  'ctrl-n': 'application:new-file'
+  'ctrl-s': 'core:save'
+  'ctrl-S': 'core:save-as'
+  'ctrl-w': 'core:close'
+  'ctrl-z': 'core:undo'
+  'ctrl-y': 'core:redo'
+  'ctrl-x': 'core:cut'
+  'ctrl-c': 'core:copy'
+  'ctrl-v': 'core:paste'
+  'shift-up': 'core:select-up'
+  'shift-down': 'core:select-down'
+  'shift-left': 'core:select-left'
+  'shift-right': 'core:select-right'
+  'delete': 'core:delete'
+  'pageup': 'core:page-up'
+  'pagedown': 'core:page-down'
+  'backspace': 'core:backspace'
+  'ctrl-tab': 'pane:show-next-item'
+  'ctrl-shift-tab': 'pane:show-previous-item'
+  'ctrl-shift-up': 'core:move-up'
+  'ctrl-shift-down': 'core:move-down'
+  'ctrl-=': 'window:increase-font-size'
+  'ctrl-+': 'window:increase-font-size'
+  'ctrl--': 'window:decrease-font-size'
+
+  'ctrl-k up': 'pane:split-up' # Atom Specific
+  'ctrl-k down': 'pane:split-down' # Atom Specific
+  'ctrl-k left': 'pane:split-left' # Atom Specific
+  'ctrl-k right': 'pane:split-right' # Atom Specific
+  'ctrl-k meta-w': 'pane:close' # Atom Specific
+  'ctrl-k alt-meta-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k meta-left': 'window:focus-previous-pane'
+  'ctrl-k meta-right': 'window:focus-next-pane'
+
+'body.platform-win32 .editor':
+  # Windows specific
+  'ctrl-delete': 'editor:backspace-to-beginning-of-word'

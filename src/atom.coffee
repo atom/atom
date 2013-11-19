@@ -38,6 +38,7 @@ class Atom
 
   initialize: ->
     @unsubscribe()
+    @setBodyPlatformClass()
 
     {devMode, resourcePath} = atom.getLoadSettings()
     configDirPath = @getConfigDirPath()
@@ -61,6 +62,10 @@ class Atom
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+
+  # Private:
+  setBodyPlatformClass: ->
+    document.body.classList.add("platform-#{process.platform}")
 
   getCurrentWindow: ->
     remote.getCurrentWindow()

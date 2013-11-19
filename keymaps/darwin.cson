@@ -1,4 +1,4 @@
-'body':
+'body.platform-darwin':
   # Apple specific
   'meta-q': 'application:quit'
   'meta-h': 'application:hide'
@@ -87,12 +87,8 @@
   'meta-8': 'pane:show-item-8'
   'meta-9': 'pane:show-item-9'
 
-'.editor':
+'body.platform-darwin .editor':
   # Apple Specific
-  'alt-left': 'editor:move-to-previous-word-boundary'
-  'alt-right': 'editor:move-to-next-word-boundary'
-  'alt-shift-left': 'editor:select-to-previous-word-boundary'
-  'alt-shift-right': 'editor:select-to-next-word-boundary'
   'meta-backspace': 'editor:backspace-to-beginning-of-line'
   'meta-delete': 'editor:backspace-to-beginning-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-line'
@@ -101,10 +97,6 @@
   'meta-right': 'editor:move-to-end-of-line'
   'meta-shift-left': 'editor:select-to-first-character-of-line'
   'meta-shift-right': 'editor:select-to-end-of-line'
-  'home': 'editor:move-to-first-character-of-line'
-  'end': 'editor:move-to-end-of-line'
-  'shift-home': 'editor:select-to-first-character-of-line'
-  'shift-end': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:backspace-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
   'ctrl-a': 'editor:move-to-first-character-of-line'
@@ -113,82 +105,3 @@
 
   # Atom Specific
   'ctrl-W': 'editor:select-word'
-
-  # Sublime Parity
-  'meta-a': 'core:select-all'
-  'meta-alt-p': 'editor:log-cursor-scope'
-  'ctrl-t': 'editor:transpose'
-  'meta-k meta-u': 'editor:upper-case'
-  'meta-k meta-l': 'editor:lower-case'
-
-'.editor:not(.mini)':
-  # Atom Specific
-  'alt-meta-z': 'editor:checkout-head-revision'
-  'meta-<': 'editor:scroll-to-cursor'
-  'ctrl-C': 'editor:copy-path'
-  'alt-meta-ctrl-f': 'editor:fold-selection'
-  'meta-=': 'editor:auto-indent'
-
-  # Sublime Parity
-  'tab': 'editor:indent'
-  'enter': 'editor:newline'
-  'meta-enter': 'editor:newline-below'
-  'meta-shift-enter': 'editor:newline-above'
-  'meta-]': 'editor:indent-selected-rows'
-  'meta-[': 'editor:outdent-selected-rows'
-  'shift-tab': 'editor:outdent-selected-rows'
-  'ctrl-meta-up': 'editor:move-line-up'
-  'ctrl-meta-down': 'editor:move-line-down'
-  'meta-/': 'editor:toggle-line-comments'
-  'meta-j': 'editor:join-line'
-  'meta-D': 'editor:duplicate-line'
-  'ctrl-K': 'editor:delete-line'
-  'ctrl-shift-up': 'editor:add-selection-above'
-  'ctrl-shift-down': 'editor:add-selection-below'
-
-  'meta-alt-[': 'editor:fold-current-row'
-  'meta-alt-]': 'editor:unfold-current-row'
-  'meta-alt-{': 'editor:fold-all' # Atom Specific
-  'meta-alt-}': 'editor:unfold-all' # Atom Specific
-  'meta-k meta-0': 'editor:unfold-all'
-  'meta-k meta-1': 'editor:fold-at-indent-level-1'
-  'meta-k meta-2': 'editor:fold-at-indent-level-2'
-  'meta-k meta-3': 'editor:fold-at-indent-level-3'
-  'meta-k meta-4': 'editor:fold-at-indent-level-4'
-  'meta-k meta-5': 'editor:fold-at-indent-level-5'
-  'meta-k meta-6': 'editor:fold-at-indent-level-6'
-  'meta-k meta-7': 'editor:fold-at-indent-level-7'
-  'meta-k meta-8': 'editor:fold-at-indent-level-8'
-  'meta-k meta-9': 'editor:fold-at-indent-level-9'
-
-'.tool-panel':
-  'escape': 'core:close'
-
-'.tool-panel.panel-left, .tool-panel.panel-right':
-  'escape': 'tool-panel:unfocus'
-
-'.editor !important, .editor.mini !important':
-  'escape': 'editor:consolidate-selections'
-
-# allow standard input fields to work correctly
-'input:not(.hidden-input), .native-key-bindings':
-  'tab': 'core:focus-next'
-  'shift-tab': 'core:focus-previous'
-  'left': 'native!'
-  'right': 'native!'
-  'shift-left': 'native!'
-  'shift-right': 'native!'
-  'backspace': 'native!'
-  'shift-backspace': 'native!'
-  'delete': 'native!'
-  'meta-z': 'native!'
-  'meta-Z': 'native!'
-  'meta-x': 'native!'
-  'meta-c': 'native!'
-  'meta-v': 'native!'
-  'ctrl-b': 'native!'
-  'ctrl-f': 'native!'
-  'ctrl-F': 'native!'
-  'ctrl-B': 'native!'
-  'ctrl-h': 'native!'
-  'ctrl-d': 'native!'
