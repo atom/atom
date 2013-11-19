@@ -17,7 +17,7 @@ module.exports = (grunt) ->
       return
 
     spawn {cmd: 'security', args: ['-q', 'find-generic-password', '-ws', 'GitHub API Token']}, (error, result, code) ->
-      accessToken = result unless error?
+      accessToken = result.stdout unless error?
       callback(error, accessToken)
 
   callAtomShellReposApi = (path, callback) ->
