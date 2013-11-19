@@ -10,51 +10,19 @@
   'shift-end': 'editor:select-to-end-of-line'
 
   # Sublime Parity
-  'cmd-a': 'core:select-all'
-  'cmd-alt-p': 'editor:log-cursor-scope'
   'ctrl-t': 'editor:transpose'
-  'cmd-k cmd-u': 'editor:upper-case'
-  'cmd-k cmd-l': 'editor:lower-case'
 
 '.editor:not(.mini)':
   # Atom Specific
-  'alt-cmd-z': 'editor:checkout-head-revision'
-  'cmd-<': 'editor:scroll-to-cursor'
   'ctrl-C': 'editor:copy-path'
-  'alt-cmd-ctrl-f': 'editor:fold-selection'
-  'cmd-=': 'editor:auto-indent'
 
   # Sublime Parity
   'tab': 'editor:indent'
   'enter': 'editor:newline'
-  'cmd-enter': 'editor:newline-below'
-  'cmd-shift-enter': 'editor:newline-above'
-  'cmd-]': 'editor:indent-selected-rows'
-  'cmd-[': 'editor:outdent-selected-rows'
   'shift-tab': 'editor:outdent-selected-rows'
-  'ctrl-cmd-up': 'editor:move-line-up'
-  'ctrl-cmd-down': 'editor:move-line-down'
-  'cmd-/': 'editor:toggle-line-comments'
-  'cmd-j': 'editor:join-line'
-  'cmd-D': 'editor:duplicate-line'
   'ctrl-K': 'editor:delete-line'
   'ctrl-shift-up': 'editor:add-selection-above'
   'ctrl-shift-down': 'editor:add-selection-below'
-
-  'cmd-alt-[': 'editor:fold-current-row'
-  'cmd-alt-]': 'editor:unfold-current-row'
-  'cmd-alt-{': 'editor:fold-all' # Atom Specific
-  'cmd-alt-}': 'editor:unfold-all' # Atom Specific
-  'cmd-k cmd-0': 'editor:unfold-all'
-  'cmd-k cmd-1': 'editor:fold-at-indent-level-1'
-  'cmd-k cmd-2': 'editor:fold-at-indent-level-2'
-  'cmd-k cmd-3': 'editor:fold-at-indent-level-3'
-  'cmd-k cmd-4': 'editor:fold-at-indent-level-4'
-  'cmd-k cmd-5': 'editor:fold-at-indent-level-5'
-  'cmd-k cmd-6': 'editor:fold-at-indent-level-6'
-  'cmd-k cmd-7': 'editor:fold-at-indent-level-7'
-  'cmd-k cmd-8': 'editor:fold-at-indent-level-8'
-  'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
 
 '.tool-panel':
   'escape': 'core:close'
@@ -76,11 +44,6 @@
   'backspace': 'native!'
   'shift-backspace': 'native!'
   'delete': 'native!'
-  'cmd-z': 'native!'
-  'cmd-Z': 'native!'
-  'cmd-x': 'native!'
-  'cmd-c': 'native!'
-  'cmd-v': 'native!'
   'ctrl-b': 'native!'
   'ctrl-f': 'native!'
   'ctrl-F': 'native!'

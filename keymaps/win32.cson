@@ -53,3 +53,50 @@
 'body.platform-win32 .editor':
   # Windows specific
   'ctrl-delete': 'editor:backspace-to-beginning-of-word'
+
+  # Sublime Parity
+  'ctrl-a': 'core:select-all'
+  'ctrl-alt-p': 'editor:log-cursor-scope'
+  'ctrl-k ctrl-u': 'editor:upper-case'
+  'ctrl-k ctrl-l': 'editor:lower-case'
+
+'body.platform-win32 .editor:not(.mini)':
+  # Atom specific
+  'alt-ctrl-z': 'editor:checkout-head-revision'
+  'ctrl-<': 'editor:scroll-to-cursor'
+  'alt-ctrl-f': 'editor:fold-selection'
+  'ctrl-=': 'editor:auto-indent'
+
+  # Sublime Parity
+  'ctrl-enter': 'editor:newline-below'
+  'ctrl-shift-enter': 'editor:newline-above'
+  'ctrl-]': 'editor:indent-selected-rows'
+  'ctrl-[': 'editor:outdent-selected-rows'
+  'ctrl-up': 'editor:move-line-up'
+  'ctrl-down': 'editor:move-line-down'
+  'ctrl-/': 'editor:toggle-line-comments'
+  'ctrl-j': 'editor:join-line'
+  'ctrl-D': 'editor:duplicate-line'
+
+  'ctrl-alt-[': 'editor:fold-current-row'
+  'ctrl-alt-]': 'editor:unfold-current-row'
+  'ctrl-alt-{': 'editor:fold-all' # Atom Specific
+  'ctrl-alt-}': 'editor:unfold-all' # Atom Specific
+  'ctrl-k ctrl-0': 'editor:unfold-all'
+  'ctrl-k ctrl-1': 'editor:fold-at-indent-level-1'
+  'ctrl-k ctrl-2': 'editor:fold-at-indent-level-2'
+  'ctrl-k ctrl-3': 'editor:fold-at-indent-level-3'
+  'ctrl-k ctrl-4': 'editor:fold-at-indent-level-4'
+  'ctrl-k ctrl-5': 'editor:fold-at-indent-level-5'
+  'ctrl-k ctrl-6': 'editor:fold-at-indent-level-6'
+  'ctrl-k ctrl-7': 'editor:fold-at-indent-level-7'
+  'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
+  'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
+
+# allow standard input fields to work correctly
+'body.platform-win32 input:not(.hidden-input), body.platform-win32 .native-key-bindings':
+  'ctrl-z': 'native!'
+  'ctrl-Z': 'native!'
+  'ctrl-x': 'native!'
+  'ctrl-c': 'native!'
+  'ctrl-v': 'native!'
