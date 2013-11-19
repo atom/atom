@@ -33,6 +33,9 @@ class Project extends telepath.Model
 
   # Private: Called by telepath.
   attached: ->
+    for buffer in @buffers.getValues()
+      buffer.once 'destroyed', => @removeBuffer(buffer)
+
     @openers = []
     @editSessions = []
     @setPath(@path)
