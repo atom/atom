@@ -12,7 +12,7 @@ GitUtils = require 'git-utils'
 # ## Example
 #
 # ```coffeescript
-# git = global.project.getRepo()
+# git = atom.project.getRepo()
 # console.log git.getOriginUrl()
 # ```
 module.exports =
