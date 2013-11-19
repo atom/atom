@@ -1,5 +1,8 @@
-{_, $, $$, fs, Range, RootView} = require 'atom'
+RootView = require '../src/root-view'
 TextEditorView = require '../src/text-editor-view'
+{$, $$} = require '../src/space-pen-extensions'
+_ = require 'underscore'
+fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
 
