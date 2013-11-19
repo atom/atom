@@ -25,7 +25,6 @@ window.setUpEnvironment = (windowMode) ->
   #TODO remove once all packages use the atom global
   window.config = atom.config
   window.syntax = atom.syntax
-  window.pasteboard = atom.pasteboard
   window.keymap = atom.keymap
   window.site = atom.site
 

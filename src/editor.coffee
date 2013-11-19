@@ -1721,7 +1721,7 @@ class Editor extends View
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->
     path = @getPath()
-    pasteboard.write(path) if path?
+    atom.pasteboard.write(path) if path?
 
   ### Internal ###
 
