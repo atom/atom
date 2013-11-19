@@ -1,0 +1,2825 @@
+RootView = require '../src/root-view'
+EditorView = require '../src/editor-view'
+{$, $$} = require '../src/space-pen-extensions'
+_ = require 'underscore-plus'
+fs = require 'fs-plus'
+path = require 'path'
+temp = require 'temp'
+
+describe "EditorView", ->
+  [buffer, editorView, editSession, cachedLineHeight, cachedCharWidth] = []
+
+  beforeEach ->
+    atom.activatePackage('language-text', sync: true)
+    atom.activatePackage('language-javascript', sync: true)
+    editSession = project.openSync('sample.js')
+    buffer = editSession.buffer
+    editorView = new EditorView(editSession)
+    editorView.lineOverdraw = 2
+    editorView.isFocused = true
+    editorView.enableKeymap()
+    editorView.calculateHeightInLines = ->
+      Math.ceil(@height() / @lineHeight)
+    editorView.attachToDom = ({ heightInLines, widthInChars } = {}) ->
+      heightInLines ?= @getBuffer().getLineCount()
+      @height(getLineHeight() * heightInLines)
+      @width(getCharWidth() * widthInChars) if widthInChars
+      $('#jasmine-content').append(this)
+
+  getLineHeight = ->
+    return cachedLineHeight if cachedLineHeight?
+    calcDimensions()
+    cachedLineHeight
+
+  getCharWidth = ->
+    return cachedCharWidth if cachedCharWidth?
+    calcDimensions()
+    cachedCharWidth
+
+  calcDimensions = ->
+    editorForMeasurement = new EditorView(editSession: project.openSync('sample.js'))
+    editorForMeasurement.attachToDom()
+    cachedLineHeight = editorForMeasurement.lineHeight
+    cachedCharWidth = editorForMeasurement.charWidth
+    editorForMeasurement.remove()
+
+  describe "construction", ->
+    it "throws an error if no edit session is given", ->
+      expect(-> new EditorView).toThrow()
+
+  describe "when the editor view view is attached to the dom", ->
+    it "calculates line height and char width and updates the pixel position of the cursor", ->
+      expect(editorView.lineHeight).toBeNull()
+      expect(editorView.charWidth).toBeNull()
+      editorView.setCursorScreenPosition(row: 2, column: 2)
+
+      editorView.attachToDom()
+
+      expect(editorView.lineHeight).not.toBeNull()
+      expect(editorView.charWidth).not.toBeNull()
+      expect(editorView.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editorView, [2, 2])
+
+    it "is focused", ->
+      editorView.attachToDom()
+      expect(editorView).toMatchSelector ":has(:focus)"
+
+  describe "when the editor view view receives focus", ->
+    it "focuses the hidden input", ->
+      editorView.attachToDom()
+      editorView.focus()
+      expect(editorView).not.toMatchSelector ':focus'
+      expect(editorView.hiddenInput).toMatchSelector ':focus'
+
+    it "does not scroll the editor view (regression)", ->
+      editorView.attachToDom(heightInLines: 2)
+      editorView.selectAll()
+      editorView.hiddenInput.blur()
+      editorView.focus()
+
+      expect(editorView.hiddenInput).toMatchSelector ':focus'
+      expect($(editorView[0]).scrollTop()).toBe 0
+      expect($(editorView.scrollView[0]).scrollTop()).toBe 0
+
+      editorView.moveCursorToBottom()
+      editorView.hiddenInput.blur()
+      editorView.scrollTop(0)
+      editorView.focus()
+
+      expect(editorView.hiddenInput).toMatchSelector ':focus'
+      expect($(editorView[0]).scrollTop()).toBe 0
+      expect($(editorView.scrollView[0]).scrollTop()).toBe 0
+
+  describe "when the hidden input is focused / unfocused", ->
+    it "assigns the isFocused flag on the editor view view and also adds/removes the .focused css class", ->
+      editorView.attachToDom()
+      editorView.isFocused = false
+      editorView.hiddenInput.focus()
+      expect(editorView.isFocused).toBeTruthy()
+
+      editorView.hiddenInput.focusout()
+      expect(editorView.isFocused).toBeFalsy()
+
+  describe "when the activeEditSession's file is modified on disk", ->
+    it "triggers an alert", ->
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
+      fs.writeFileSync(filePath, "")
+      editSession = project.openSync(filePath)
+      editorView.edit(editSession)
+      editorView.insertText("now the buffer is modified")
+
+      fileChangeHandler = jasmine.createSpy('fileChange')
+      editSession.buffer.file.on 'contents-changed', fileChangeHandler
+
+      spyOn(atom, "confirm")
+
+      fs.writeFileSync(filePath, "a file change")
+
+      waitsFor "file to trigger contents-changed event", ->
+        fileChangeHandler.callCount > 0
+
+      runs ->
+        expect(atom.confirm).toHaveBeenCalled()
+
+  describe ".remove()", ->
+    it "destroys the edit session", ->
+      editorView.remove()
+      expect(editorView.activeEditSession.destroyed).toBeTruthy()
+
+  describe ".edit(editSession)", ->
+    [newEditSession, newBuffer] = []
+
+    beforeEach ->
+      newEditSession = project.openSync('two-hundred.txt')
+      newBuffer = newEditSession.buffer
+
+    it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
+      editorView.attachToDom(heightInLines: 5, widthInChars: 30)
+      editorView.setCursorBufferPosition([6, 13])
+      editorView.scrollToBottom()
+      editorView.scrollLeft(150)
+      previousScrollHeight = editorView.verticalScrollbar.prop('scrollHeight')
+      previousScrollTop = editorView.scrollTop()
+      previousScrollLeft = editorView.scrollLeft()
+
+      newEditSession.setScrollTop(900)
+      newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
+
+      editorView.edit(newEditSession)
+      { firstRenderedScreenRow, lastRenderedScreenRow } = editorView
+      expect(editorView.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
+      expect(editorView.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editorView.lastRenderedScreenRow)
+      expect(editorView.scrollTop()).toBe 900
+      expect(editorView.scrollLeft()).toBe 0
+      expect(editorView.getSelectionView().regions[0].position().top).toBe 40 * editorView.lineHeight
+      editorView.insertText("hello")
+      expect(editorView.lineElementForScreenRow(40).text()).toBe "hello3"
+
+      editorView.edit(editSession)
+      { firstRenderedScreenRow, lastRenderedScreenRow } = editorView
+      expect(editorView.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe buffer.lineForRow(firstRenderedScreenRow)
+      expect(editorView.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editorView.lastRenderedScreenRow)
+      expect(editorView.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
+      expect(editorView.scrollTop()).toBe previousScrollTop
+      expect(editorView.scrollLeft()).toBe previousScrollLeft
+      expect(editorView.getCursorView().position()).toEqual { top: 6 * editorView.lineHeight, left: 13 * editorView.charWidth }
+      editorView.insertText("goodbye")
+      expect(editorView.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
+
+    it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
+      filePath = path.join(temp.dir, 'atom-changed-file.txt')
+      fs.writeFileSync(filePath, "")
+      tempEditSession = project.openSync(filePath)
+      editorView.edit(tempEditSession)
+      tempEditSession.insertText("a buffer change")
+
+      spyOn(atom, "confirm")
+
+      contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
+      tempEditSession.on 'contents-conflicted', contentsConflictedHandler
+      fs.writeFileSync(filePath, "a file change")
+      waitsFor ->
+        contentsConflictedHandler.callCount > 0
+
+      runs ->
+        expect(atom.confirm).toHaveBeenCalled()
+
+  describe ".scrollTop(n)", ->
+    beforeEach ->
+      editorView.attachToDom(heightInLines: 5)
+      expect(editorView.verticalScrollbar.scrollTop()).toBe 0
+
+    describe "when called with a scroll top argument", ->
+      it "sets the scrollTop of the vertical scrollbar and sets scrollTop on the line numbers and lines", ->
+        editorView.scrollTop(100)
+        expect(editorView.verticalScrollbar.scrollTop()).toBe 100
+        expect(editorView.scrollView.scrollTop()).toBe 0
+        expect(editorView.renderedLines.css('top')).toBe "-100px"
+        expect(editorView.gutter.lineNumbers.css('top')).toBe "-100px"
+
+        editorView.scrollTop(120)
+        expect(editorView.verticalScrollbar.scrollTop()).toBe 120
+        expect(editorView.scrollView.scrollTop()).toBe 0
+        expect(editorView.renderedLines.css('top')).toBe "-120px"
+        expect(editorView.gutter.lineNumbers.css('top')).toBe "-120px"
+
+      it "does not allow negative scrollTops to be assigned", ->
+        editorView.scrollTop(-100)
+        expect(editorView.scrollTop()).toBe 0
+
+      it "doesn't do anything if the scrollTop hasn't changed", ->
+        editorView.scrollTop(100)
+        spyOn(editorView.verticalScrollbar, 'scrollTop')
+        spyOn(editorView.renderedLines, 'css')
+        spyOn(editorView.gutter.lineNumbers, 'css')
+
+        editorView.scrollTop(100)
+        expect(editorView.verticalScrollbar.scrollTop).not.toHaveBeenCalled()
+        expect(editorView.renderedLines.css).not.toHaveBeenCalled()
+        expect(editorView.gutter.lineNumbers.css).not.toHaveBeenCalled()
+
+      describe "when the 'adjustVerticalScrollbar' option is false (defaults to true)", ->
+        it "doesn't adjust the scrollTop of the vertical scrollbar", ->
+          editorView.scrollTop(100, adjustVerticalScrollbar: false)
+          expect(editorView.verticalScrollbar.scrollTop()).toBe 0
+          expect(editorView.renderedLines.css('top')).toBe "-100px"
+          expect(editorView.gutter.lineNumbers.css('top')).toBe "-100px"
+
+    describe "when called with no argument", ->
+      it "returns the last assigned value or 0 if none has been assigned", ->
+        expect(editorView.scrollTop()).toBe 0
+        editorView.scrollTop(50)
+        expect(editorView.scrollTop()).toBe 50
+
+    it "sets the new scroll top position on the active edit session", ->
+      expect(editorView.activeEditSession.getScrollTop()).toBe 0
+      editorView.scrollTop(123)
+      expect(editorView.activeEditSession.getScrollTop()).toBe 123
+
+  describe ".scrollHorizontally(pixelPosition)", ->
+    it "sets the new scroll left position on the active edit session", ->
+      editorView.attachToDom(heightInLines: 5)
+      setEditorWidthInChars(editorView, 5)
+      expect(editorView.activeEditSession.getScrollLeft()).toBe 0
+      editorView.scrollHorizontally(left: 50)
+      expect(editorView.activeEditSession.getScrollLeft()).toBeGreaterThan 0
+      expect(editorView.activeEditSession.getScrollLeft()).toBe editorView.scrollLeft()
+
+  describe "editor:attached event", ->
+    it 'only triggers an editor:attached event when it is first added to the DOM', ->
+      openHandler = jasmine.createSpy('openHandler')
+      editorView.on 'editor:attached', openHandler
+
+      editorView.attachToDom()
+      expect(openHandler).toHaveBeenCalled()
+      [event, eventEditor] = openHandler.argsForCall[0]
+      expect(eventEditor).toBe editorView
+
+      openHandler.reset()
+      editorView.attachToDom()
+      expect(openHandler).not.toHaveBeenCalled()
+
+  describe "editor:path-changed event", ->
+    filePath = null
+
+    beforeEach ->
+      filePath = path.join(temp.dir, 'something.txt')
+      fs.writeFileSync(filePath, filePath)
+
+    afterEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    it "emits event when buffer's path is changed", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      editorView.on 'editor:path-changed', eventHandler
+      editorView.getBuffer().saveAs(filePath)
+      expect(eventHandler).toHaveBeenCalled()
+
+    it "emits event when editor view view receives a new buffer", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      editorView.on 'editor:path-changed', eventHandler
+      editorView.edit(project.openSync(filePath))
+      expect(eventHandler).toHaveBeenCalled()
+
+    it "stops listening to events on previously set buffers", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      oldBuffer = editorView.getBuffer()
+      editorView.on 'editor:path-changed', eventHandler
+
+      editorView.edit(project.openSync(filePath))
+      expect(eventHandler).toHaveBeenCalled()
+
+      eventHandler.reset()
+      oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
+      expect(eventHandler).not.toHaveBeenCalled()
+
+      eventHandler.reset()
+      editorView.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
+      expect(eventHandler).toHaveBeenCalled()
+
+    it "loads the grammar for the new path", ->
+      expect(editorView.getGrammar().name).toBe 'JavaScript'
+      editorView.getBuffer().saveAs(filePath)
+      expect(editorView.getGrammar().name).toBe 'Plain Text'
+
+  describe "font family", ->
+    beforeEach ->
+      expect(editorView.css('font-family')).toBe 'Courier'
+
+    it "when there is no config in fontFamily don't set it", ->
+      atom.config.set('editor.fontFamily', null)
+      expect(editorView.css('font-family')).toBe ''
+
+    describe "when the font family changes", ->
+      [fontFamily] = []
+
+      beforeEach ->
+        if process.platform is 'darwin'
+          fontFamily = "PCMyungjo"
+        else
+          fontFamily = "Consolas"
+
+      it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
+        editorView.attachToDom(12)
+        lineHeightBefore = editorView.lineHeight
+        charWidthBefore = editorView.charWidth
+        editorView.setCursorScreenPosition [5, 6]
+
+        atom.config.set("editor.fontFamily", fontFamily)
+        expect(editorView.css('font-family')).toBe fontFamily
+        expect(editorView.charWidth).not.toBe charWidthBefore
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.lineHeight, left: 6 * editorView.charWidth }
+
+        newEditor = new EditorView(editorView.activeEditSession.copy())
+        newEditor.attachToDom()
+        expect(newEditor.css('font-family')).toBe fontFamily
+
+  describe "font size", ->
+    beforeEach ->
+      expect(editorView.css('font-size')).not.toBe "20px"
+      expect(editorView.css('font-size')).not.toBe "10px"
+
+    it "sets the initial font size based on the value from config", ->
+      expect(editorView.css('font-size')).toBe "#{atom.config.get('editor.fontSize')}px"
+
+    describe "when the font size changes", ->
+      it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
+        atom.config.set("editor.fontSize", 10)
+        editorView.attachToDom()
+        lineHeightBefore = editorView.lineHeight
+        charWidthBefore = editorView.charWidth
+        editorView.setCursorScreenPosition [5, 6]
+
+        atom.config.set("editor.fontSize", 30)
+        expect(editorView.css('font-size')).toBe '30px'
+        expect(editorView.lineHeight).toBeGreaterThan lineHeightBefore
+        expect(editorView.charWidth).toBeGreaterThan charWidthBefore
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.lineHeight, left: 6 * editorView.charWidth }
+        expect(editorView.renderedLines.outerHeight()).toBe buffer.getLineCount() * editorView.lineHeight
+        expect(editorView.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editorView.lineHeight
+
+        newEditor = new EditorView(editorView.activeEditSession.copy())
+        editorView.remove()
+        newEditor.attachToDom()
+        expect(newEditor.css('font-size')).toBe '30px'
+
+      it "updates the position and size of selection regions", ->
+        atom.config.set("editor.fontSize", 10)
+        editorView.setSelectedBufferRange([[5, 2], [5, 7]])
+        editorView.attachToDom()
+
+        atom.config.set("editor.fontSize", 30)
+        selectionRegion = editorView.find('.region')
+        expect(selectionRegion.position().top).toBe 5 * editorView.lineHeight
+        expect(selectionRegion.position().left).toBe 2 * editorView.charWidth
+        expect(selectionRegion.height()).toBe editorView.lineHeight
+        expect(selectionRegion.width()).toBe 5 * editorView.charWidth
+
+      it "updates lines if there are unrendered lines", ->
+        editorView.attachToDom(heightInLines: 5)
+        originalLineCount = editorView.renderedLines.find(".line").length
+        expect(originalLineCount).toBeGreaterThan 0
+
+        atom.config.set("editor.fontSize", 10)
+        expect(editorView.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
+
+      describe "when the font size changes while editor view view is detached", ->
+        it "redraws the editor view view according to the new font size when it is reattached", ->
+          editorView.setCursorScreenPosition([4, 2])
+          editorView.attachToDom()
+          initialLineHeight = editorView.lineHeight
+          initialCharWidth = editorView.charWidth
+          initialCursorPosition = editorView.getCursorView().position()
+          initialScrollbarHeight = editorView.verticalScrollbarContent.height()
+          editorView.detach()
+
+          atom.config.set("editor.fontSize", 10)
+          expect(editorView.lineHeight).toBe initialLineHeight
+          expect(editorView.charWidth).toBe initialCharWidth
+
+          editorView.attachToDom()
+          expect(editorView.lineHeight).not.toBe initialLineHeight
+          expect(editorView.charWidth).not.toBe initialCharWidth
+          expect(editorView.getCursorView().position()).not.toEqual initialCursorPosition
+          expect(editorView.verticalScrollbarContent.height()).not.toBe initialScrollbarHeight
+
+  describe "mouse events", ->
+    beforeEach ->
+      editorView.attachToDom()
+      editorView.css(position: 'absolute', top: 10, left: 10, width: 400)
+
+    describe "single-click", ->
+      it "re-positions the cursor to the clicked row / column", ->
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 10])
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 3, column: 10)
+
+      describe "when the lines are scrolled to the right", ->
+        it "re-positions the cursor on the clicked location", ->
+          setEditorWidthInChars(editorView, 30)
+          expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 30]) # scrolls lines to the right
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 50])
+          expect(editorView.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
+      describe "when the editor view view is using a variable-width font", ->
+        beforeEach ->
+          editorView.setFontFamily('sans-serif')
+
+      it "positions the cursor to the clicked row and column", ->
+          {top, left} = editorView.pixelOffsetForScreenPosition([3, 30])
+          editorView.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
+          expect(editorView.getCursorScreenPosition()).toEqual [3, 30]
+
+    describe "double-click", ->
+      it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [8, 24], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [8, 24], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedText()).toBe "concat"
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [8, 7], shiftKey: true)
+        editorView.renderedLines.trigger 'mouseup'
+
+        expect(editorView.getSelectedText()).toBe "return sort(left).concat"
+
+      it "stops selecting by word when the selection is emptied", ->
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedText()).toBe "quicksort"
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 10])
+        editorView.renderedLines.trigger 'mouseup'
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
+        expect(editorView.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
+
+      describe "when clicking between a word and a non-word", ->
+        it "selects the word", ->
+          expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 21], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 21], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editorView.getSelectedText()).toBe "function"
+
+          editorView.setCursorBufferPosition([0, 0])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 22], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 22], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editorView.getSelectedText()).toBe "items"
+
+          editorView.setCursorBufferPosition([0, 0])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 28], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 28], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editorView.getSelectedText()).toBe "{"
+
+    describe "triple/quardruple/etc-click", ->
+      it "selects the line under the cursor", ->
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+        # Triple click
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 8], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 8], originalEvent: {detail: 3})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedText()).toBe "  var sort = function(items) {\n"
+
+        # Quad click
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [2, 3], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [2, 3], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [2, 3], originalEvent: {detail: 3})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [2, 3], originalEvent: {detail: 4})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedText()).toBe "    if (items.length <= 1) return items;\n"
+
+      it "expands the selection linewise in either direction on a subsequent shift-click, but stops selecting linewise once the selection is emptied", ->
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 8], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 8], originalEvent: {detail: 3})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedBufferRange()).toEqual [[1, 0], [5, 0]]
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [2, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelection().isEmpty()).toBeTruthy()
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedBufferRange()).toEqual [[2, 8], [3, 8]]
+
+    describe "shift-click", ->
+      it "selects from the cursor's current location to the clicked location", ->
+        editorView.setCursorScreenPosition([4, 7])
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true)
+        expect(editorView.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+    describe "shift-double-click", ->
+      it "expands the selection on the first click and ignores the second click", ->
+        editorView.setCursorScreenPosition([4, 7])
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+    describe "shift-triple-click", ->
+      it "expands the selection on the first click and ignores the second click", ->
+        editorView.setCursorScreenPosition([4, 7])
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+    describe "meta-click", ->
+      it "places an additional cursor", ->
+        editorView.attachToDom()
+        setEditorHeightInLines(editorView, 5)
+        editorView.setCursorBufferPosition([3, 0])
+        editorView.scrollTop(editorView.lineHeight * 6)
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [6, 0], metaKey: true)
+        expect(editorView.scrollTop()).toBe editorView.lineHeight * (6 - editorView.vScrollMargin)
+
+        [cursor1, cursor2] = editorView.getCursorViews()
+        expect(cursor1.position()).toEqual(top: 3 * editorView.lineHeight, left: 0)
+        expect(cursor1.getBufferPosition()).toEqual [3, 0]
+        expect(cursor2.position()).toEqual(top: 6 * editorView.lineHeight, left: 0)
+        expect(cursor2.getBufferPosition()).toEqual [6, 0]
+
+    describe "click and drag", ->
+      it "creates a selection from the initial click to mouse cursor's location ", ->
+        editorView.attachToDom()
+        editorView.css(position: 'absolute', top: 10, left: 10)
+
+        # start
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
+
+        # moving changes selection
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+
+        range = editorView.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editorView, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 8])
+
+        range = editorView.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+      it "selects and scrolls if the mouse is dragged outside of the editor view view itself", ->
+        editorView.vScrollMargin = 0
+        editorView.attachToDom(heightInLines: 5)
+        editorView.scrollToBottom()
+
+        spyOn(window, 'setInterval').andCallFake ->
+
+        # start
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [12, 0])
+        originalScrollTop = editorView.scrollTop()
+
+        # moving changes selection
+        $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+        expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+
+        # every mouse move selects more text
+        for x in [0..10]
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+
+        expect(editorView.scrollTop()).toBe 0
+
+      it "ignores non left-click and drags", ->
+        editorView.attachToDom()
+        editorView.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editorView: editorView, point: [4, 10])
+        event.originalEvent.which = 2
+        editorView.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editorView.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
+      it "ignores ctrl-click and drags", ->
+        editorView.attachToDom()
+        editorView.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editorView: editorView, point: [4, 10])
+        event.ctrlKey = true
+        editorView.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editorView.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
+    describe "double-click and drag", ->
+      it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
+        expect(editorView.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
+        expect(editorView.getSelectedText()).toBe "quicksort"
+
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [1, 8])
+        expect(editorView.getSelectedBufferRange()).toEqual [[0, 4], [1, 10]]
+        expect(editorView.getCursorBufferPosition()).toEqual [1, 10]
+
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [0, 1])
+        expect(editorView.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
+        expect(editorView.getCursorBufferPosition()).toEqual [0, 0]
+
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
+
+        # shift-clicking still selects by word, but does not preserve the initial range
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [5, 25], originalEvent: {detail: 1}, shiftKey: true)
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editorView.getSelectedBufferRange()).toEqual [[0, 13], [5, 27]]
+
+    describe "triple-click and drag", ->
+      it "expands the initial selection linewise in either direction", ->
+        editorView.attachToDom()
+
+        # triple click
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 7], originalEvent: {detail: 1})
+        $(document).trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 7], originalEvent: {detail: 2})
+        $(document).trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 7], originalEvent: {detail: 3})
+        expect(editorView.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
+
+        # moving changes selection linewise
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        expect(editorView.getSelectedBufferRange()).toEqual [[4, 0], [6, 0]]
+        expect(editorView.getCursorBufferPosition()).toEqual [6, 0]
+
+        # moving changes selection linewise
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [2, 27])
+        expect(editorView.getSelectedBufferRange()).toEqual [[2, 0], [5, 0]]
+        expect(editorView.getCursorBufferPosition()).toEqual [2, 0]
+
+        # mouse up may occur outside of editorView, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+    describe "meta-click and drag", ->
+      it "adds an additional selection", ->
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        editorView.renderedLines.trigger 'mouseup'
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [6, 10], metaKey: true)
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 27], metaKey: true)
+        editorView.renderedLines.trigger 'mouseup'
+
+        selections = editorView.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
+        expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
+
+  describe "when text input events are triggered on the hidden input element", ->
+    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+      editorView.attachToDom()
+      editorView.setCursorScreenPosition(row: 1, column: 6)
+
+      expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
+
+      editorView.hiddenInput.textInput 'q'
+
+      expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
+      expect(editorView.getCursorScreenPosition()).toEqual(row: 1, column: 7)
+      expect(editorView.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
+
+  describe "selection rendering", ->
+    [charWidth, lineHeight, selection, selectionView] = []
+
+    beforeEach ->
+      editorView.attachToDom()
+      editorView.width(500)
+      { charWidth, lineHeight } = editorView
+      selection = editorView.getSelection()
+      selectionView = editorView.getSelectionView()
+
+    describe "when a selection is added", ->
+      it "adds a selection view for it with the proper regions", ->
+        editorView.activeEditSession.addSelectionForBufferRange([[2, 7], [2, 25]])
+        selectionViews = editorView.getSelectionViews()
+        expect(selectionViews.length).toBe 2
+        expect(selectionViews[1].regions.length).toBe 1
+        region = selectionViews[1].regions[0]
+        expect(region.position().top).toBeCloseTo(2 * lineHeight)
+        expect(region.position().left).toBeCloseTo(7 * charWidth)
+        expect(region.height()).toBeCloseTo lineHeight
+        expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
+
+    describe "when a selection changes", ->
+      describe "when the selection is within a single line", ->
+        it "covers the selection's range with a single region", ->
+          selection.setBufferRange([[2, 7], [2, 25]])
+
+          expect(selectionView.regions.length).toBe 1
+          region = selectionView.regions[0]
+          expect(region.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region.position().left).toBeCloseTo(7 * charWidth)
+          expect(region.height()).toBeCloseTo lineHeight
+          expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
+
+      describe "when the selection spans 2 lines", ->
+        it "covers the selection's range with 2 regions", ->
+          selection.setBufferRange([[2,7],[3,25]])
+
+          expect(selectionView.regions.length).toBe 2
+
+          region1 = selectionView.regions[0]
+          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.height()).toBeCloseTo lineHeight
+
+          expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
+          region2 = selectionView.regions[1]
+          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().left).toBeCloseTo(0)
+          expect(region2.height()).toBeCloseTo lineHeight
+          expect(region2.width()).toBeCloseTo(25 * charWidth)
+
+      describe "when the selection spans more than 2 lines", ->
+        it "covers the selection's range with 3 regions", ->
+          selection.setBufferRange([[2,7],[6,25]])
+
+          expect(selectionView.regions.length).toBe 3
+
+          region1 = selectionView.regions[0]
+          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.height()).toBeCloseTo lineHeight
+
+          expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
+          region2 = selectionView.regions[1]
+          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().left).toBeCloseTo(0)
+          expect(region2.height()).toBeCloseTo(3 * lineHeight)
+          expect(region2.width()).toBeCloseTo(editorView.renderedLines.outerWidth())
+
+          # resizes with the editorView
+          expect(editorView.width()).toBeLessThan(800)
+          editorView.width(800)
+          editorView.resize() # call to trigger the resize event.
+
+          region2 = selectionView.regions[1]
+          expect(region2.width()).toBe(editorView.renderedLines.outerWidth())
+
+          region3 = selectionView.regions[2]
+          expect(region3.position().top).toBeCloseTo(6 * lineHeight)
+          expect(region3.position().left).toBeCloseTo(0)
+          expect(region3.height()).toBeCloseTo lineHeight
+          expect(region3.width()).toBeCloseTo(25 * charWidth)
+
+      it "clears previously drawn regions before creating new ones", ->
+        selection.setBufferRange([[2,7],[4,25]])
+        expect(selectionView.regions.length).toBe 3
+        expect(selectionView.find('.region').length).toBe 3
+
+        selectionView.updateDisplay()
+        expect(selectionView.regions.length).toBe 3
+        expect(selectionView.find('.region').length).toBe 3
+
+    describe "when a selection merges with another selection", ->
+      it "removes the merged selection view", ->
+        editSession = editorView.activeEditSession
+        editSession.setCursorScreenPosition([4, 10])
+        editSession.selectToScreenPosition([5, 27])
+        editSession.addCursorAtScreenPosition([3, 10])
+        editSession.selectToScreenPosition([6, 27])
+
+        expect(editorView.getSelectionViews().length).toBe 1
+        expect(editorView.find('.region').length).toBe 3
+
+    describe "when a selection is added and removed before the display is updated", ->
+      it "does not attempt to render the selection", ->
+        # don't update display until we request it
+        jasmine.unspy(editorView, 'requestDisplayUpdate')
+        spyOn(editorView, 'requestDisplayUpdate')
+
+        editSession = editorView.activeEditSession
+        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        selection.destroy()
+        editorView.updateDisplay()
+        expect(editorView.getSelectionViews().length).toBe 1
+
+    describe "when the selection is created with the selectAll event", ->
+      it "does not scroll to the end of the buffer", ->
+        editorView.height(150)
+        editorView.selectAll()
+        expect(editorView.scrollTop()).toBe 0
+
+        # regression: does not scroll the scroll view when the editorView is refocused
+        editorView.hiddenInput.blur()
+        editorView.hiddenInput.focus()
+        expect(editorView.scrollTop()).toBe 0
+        expect(editorView.scrollView.scrollTop()).toBe 0
+
+        # does autoscroll when the selection is cleared
+        editorView.moveCursorDown()
+        expect(editorView.scrollTop()).toBeGreaterThan(0)
+
+    describe "selection autoscrolling and highlighting when setting selected buffer range", ->
+      beforeEach ->
+        setEditorHeightInLines(editorView, 4)
+
+      describe "if autoscroll is true", ->
+        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
+          editorView.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editorView.scrollTop()).toBe 0
+
+          editorView.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
+          expect(editorView.scrollTop()).toBe 5 * editorView.lineHeight
+
+        it "highlights the selection if autoscroll is true", ->
+          editorView.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editorView.getSelectionView()).toHaveClass 'highlighted'
+          advanceClock(1000)
+          expect(editorView.getSelectionView()).not.toHaveClass 'highlighted'
+
+          editorView.setSelectedBufferRange([[3, 0], [5, 0]], autoscroll: true)
+          expect(editorView.getSelectionView()).toHaveClass 'highlighted'
+
+          advanceClock(500)
+          spyOn(editorView.getSelectionView(), 'removeClass').andCallThrough()
+          editorView.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editorView.getSelectionView().removeClass).toHaveBeenCalledWith('highlighted')
+          expect(editorView.getSelectionView()).toHaveClass 'highlighted'
+
+          advanceClock(500)
+          expect(editorView.getSelectionView()).toHaveClass 'highlighted'
+
+      describe "if autoscroll is false", ->
+        it "does not scroll to the selection or the cursor", ->
+          editorView.scrollToBottom()
+          scrollTopBefore = editorView.scrollTop()
+          editorView.setSelectedBufferRange([[0, 0], [1, 0]], autoscroll: false)
+          expect(editorView.scrollTop()).toBe scrollTopBefore
+
+      describe "if autoscroll is not specified", ->
+        it "autoscrolls to the cursor as normal", ->
+          editorView.scrollToBottom()
+          editorView.setSelectedBufferRange([[0, 0], [1, 0]])
+          expect(editorView.scrollTop()).toBe 0
+
+  describe "cursor rendering", ->
+    describe "when the cursor moves", ->
+      charWidth = null
+
+      beforeEach ->
+        editorView.attachToDom()
+        editorView.vScrollMargin = 3
+        editorView.hScrollMargin = 5
+        {charWidth} = editorView
+
+      it "repositions the cursor's view on screen", ->
+        editorView.setCursorScreenPosition(row: 2, column: 2)
+        expect(editorView.getCursorView().position()).toEqual(top: 2 * editorView.lineHeight, left: 2 * editorView.charWidth)
+
+      it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
+        cursorView = editorView.getCursorView()
+        expect(editorView.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
+        editorView.setSelectedBufferRange([[0, 0], [3, 0]])
+        expect(editorView.getSelection().isEmpty()).toBeFalsy()
+        expect(cursorView).toBeHidden()
+
+        editorView.setCursorBufferPosition([1, 3])
+        expect(editorView.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
+      it "moves the hiddenInput to the same position with cursor's view", ->
+        editorView.setCursorScreenPosition(row: 2, column: 2)
+        expect(editorView.getCursorView().offset()).toEqual(editorView.hiddenInput.offset())
+
+      describe "when the editor view is using a variable-width font", ->
+        beforeEach ->
+          editorView.setFontFamily('sans-serif')
+
+        describe "on #darwin or #linux", ->
+          it "correctly positions the cursor", ->
+            editorView.setCursorBufferPosition([3, 30])
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 178}
+            editorView.setCursorBufferPosition([3, Infinity])
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 353}
+
+        describe "on #win32", ->
+          it "correctly positions the cursor", ->
+            editorView.setCursorBufferPosition([3, 30])
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 175}
+            editorView.setCursorBufferPosition([3, Infinity])
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 346}
+
+      describe "autoscrolling", ->
+        it "only autoscrolls when the last cursor is moved", ->
+          editorView.setCursorBufferPosition([11,0])
+          editorView.addCursorAtBufferPosition([6,50])
+          [cursor1, cursor2] = editorView.getCursors()
+
+          spyOn(editorView, 'scrollToPixelPosition')
+          cursor1.setScreenPosition([10, 10])
+          expect(editorView.scrollToPixelPosition).not.toHaveBeenCalled()
+
+          cursor2.setScreenPosition([11, 11])
+          expect(editorView.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll if the 'autoscroll' option is false", ->
+          editorView.setCursorBufferPosition([11,0])
+          spyOn(editorView, 'scrollToPixelPosition')
+          editorView.setCursorScreenPosition([10, 10], autoscroll: false)
+          expect(editorView.scrollToPixelPosition).not.toHaveBeenCalled()
+
+        it "autoscrolls to cursor if autoscroll is true, even if the position does not change", ->
+          spyOn(editorView, 'scrollToPixelPosition')
+          editorView.setCursorScreenPosition([4, 10], autoscroll: false)
+          editorView.setCursorScreenPosition([4, 10])
+          expect(editorView.scrollToPixelPosition).toHaveBeenCalled()
+          editorView.scrollToPixelPosition.reset()
+
+          editorView.setCursorBufferPosition([4, 10])
+          expect(editorView.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll the cursor based on a buffer change, unless the buffer change was initiated by the cursor", ->
+          lastVisibleRow = editorView.getLastVisibleScreenRow()
+          editorView.addCursorAtBufferPosition([lastVisibleRow, 0])
+          spyOn(editorView, 'scrollToPixelPosition')
+          buffer.insert([lastVisibleRow, 0], "\n\n")
+          expect(editorView.scrollToPixelPosition).not.toHaveBeenCalled()
+          editorView.insertText('\n\n')
+          expect(editorView.scrollToPixelPosition.callCount).toBe 1
+
+        it "autoscrolls on undo/redo", ->
+          spyOn(editorView, 'scrollToPixelPosition')
+          editorView.insertText('\n\n')
+          expect(editorView.scrollToPixelPosition.callCount).toBe 1
+          editorView.undo()
+          expect(editorView.scrollToPixelPosition.callCount).toBe 2
+          editorView.redo()
+          expect(editorView.scrollToPixelPosition.callCount).toBe 3
+
+        describe "when the last cursor exceeds the upper or lower scroll margins", ->
+          describe "when the editor view is taller than twice the vertical scroll margin", ->
+            it "sets the scrollTop so the cursor remains within the scroll margin", ->
+              setEditorHeightInLines(editorView, 10)
+
+              _.times 6, -> editorView.moveCursorDown()
+              expect(editorView.scrollTop()).toBe(0)
+
+              editorView.moveCursorDown()
+              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+
+              editorView.moveCursorDown()
+              expect(editorView.scrollTop()).toBe(editorView.lineHeight * 2)
+
+              _.times 3, -> editorView.moveCursorUp()
+
+              editorView.moveCursorUp()
+              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+
+              editorView.moveCursorUp()
+              expect(editorView.scrollTop()).toBe(0)
+
+          describe "when the editor view is shorter than twice the vertical scroll margin", ->
+            it "sets the scrollTop based on a reduced scroll margin, which prevents a jerky tug-of-war between upper and lower scroll margins", ->
+              setEditorHeightInLines(editorView, 5)
+
+              _.times 3, -> editorView.moveCursorDown()
+
+              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+
+              editorView.moveCursorUp()
+              expect(editorView.renderedLines.css('top')).toBe "0px"
+
+        describe "when the last cursor exceeds the right or left scroll margins", ->
+          describe "when soft-wrap is disabled", ->
+            describe "when the editor view is wider than twice the horizontal scroll margin", ->
+              it "sets the scrollView's scrollLeft so the cursor remains within the scroll margin", ->
+                setEditorWidthInChars(editorView, 30)
+
+                # moving right
+                editorView.setCursorScreenPosition([2, 24])
+                expect(editorView.scrollLeft()).toBe 0
+
+                editorView.setCursorScreenPosition([2, 25])
+                expect(editorView.scrollLeft()).toBe charWidth
+
+                editorView.setCursorScreenPosition([2, 28])
+                expect(editorView.scrollLeft()).toBe charWidth * 4
+
+                # moving left
+                editorView.setCursorScreenPosition([2, 9])
+                expect(editorView.scrollLeft()).toBe charWidth * 4
+
+                editorView.setCursorScreenPosition([2, 8])
+                expect(editorView.scrollLeft()).toBe charWidth * 3
+
+                editorView.setCursorScreenPosition([2, 5])
+                expect(editorView.scrollLeft()).toBe 0
+
+            describe "when the editor view is narrower than twice the horizontal scroll margin", ->
+              it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
+                editorView.hScrollMargin = 6
+                setEditorWidthInChars(editorView, 7)
+
+                editorView.setCursorScreenPosition([2, 3])
+                window.advanceClock()
+                expect(editorView.scrollLeft()).toBe(0)
+
+                editorView.setCursorScreenPosition([2, 4])
+                window.advanceClock()
+                expect(editorView.scrollLeft()).toBe(charWidth)
+
+                editorView.setCursorScreenPosition([2, 3])
+                window.advanceClock()
+                expect(editorView.scrollLeft()).toBe(0)
+
+          describe "when soft-wrap is enabled", ->
+            beforeEach ->
+              editSession.setSoftWrap(true)
+
+            it "does not scroll the buffer horizontally", ->
+              editorView.width(charWidth * 30)
+
+              # moving right
+              editorView.setCursorScreenPosition([2, 24])
+              expect(editorView.scrollLeft()).toBe 0
+
+              editorView.setCursorScreenPosition([2, 25])
+              expect(editorView.scrollLeft()).toBe 0
+
+              editorView.setCursorScreenPosition([2, 28])
+              expect(editorView.scrollLeft()).toBe 0
+
+              # moving left
+              editorView.setCursorScreenPosition([2, 9])
+              expect(editorView.scrollLeft()).toBe 0
+
+              editorView.setCursorScreenPosition([2, 8])
+              expect(editorView.scrollLeft()).toBe 0
+
+              editorView.setCursorScreenPosition([2, 5])
+              expect(editorView.scrollLeft()).toBe 0
+
+  describe "when editor:toggle-soft-wrap is toggled", ->
+    describe "when the text exceeds the editor view width and the scroll-view is horizontally scrolled", ->
+      it "wraps the text and renders properly", ->
+        editorView.attachToDom(heightInLines: 30, widthInChars: 30)
+        editorView.setWidthInChars(100)
+        editorView.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
+        editorView.scrollLeft(editorView.charWidth * 30)
+        editorView.trigger "editor:toggle-soft-wrap"
+        expect(editorView.scrollLeft()).toBe 0
+        expect(editorView.activeEditSession.getSoftWrapColumn()).not.toBe 100
+
+  describe "text rendering", ->
+    describe "when all lines in the buffer are visible on screen", ->
+      beforeEach ->
+        editorView.attachToDom()
+        expect(editorView.trueHeight()).toBeCloseTo buffer.getLineCount() * editorView.lineHeight
+
+      it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
+        expect(editorView.renderedLines.find('.line').length).toEqual(buffer.getLineCount())
+        expect(buffer.lineForRow(2)).toContain('<')
+        expect(editorView.renderedLines.find('.line:eq(2)').html()).toContain '&lt;'
+
+        # renders empty lines with a non breaking space
+        expect(buffer.lineForRow(10)).toBe ''
+        expect(editorView.renderedLines.find('.line:eq(10)').html()).toBe '&nbsp;'
+
+      it "syntax highlights code based on the file type", ->
+        line0 = editorView.renderedLines.find('.line:first')
+        span0 = line0.children('span:eq(0)')
+        expect(span0).toMatchSelector '.source.js'
+        expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
+        expect(span0.children('span:eq(0)').text()).toBe 'var'
+
+        span0_1 = span0.children('span:eq(1)')
+        expect(span0_1).toMatchSelector '.meta.function.js'
+        expect(span0_1.text()).toBe 'quicksort = function ()'
+        expect(span0_1.children('span:eq(0)')).toMatchSelector '.entity.name.function.js'
+        expect(span0_1.children('span:eq(0)').text()).toBe "quicksort"
+        expect(span0_1.children('span:eq(1)')).toMatchSelector '.keyword.operator.js'
+        expect(span0_1.children('span:eq(1)').text()).toBe "="
+        expect(span0_1.children('span:eq(2)')).toMatchSelector '.storage.type.function.js'
+        expect(span0_1.children('span:eq(2)').text()).toBe "function"
+        expect(span0_1.children('span:eq(3)')).toMatchSelector '.punctuation.definition.parameters.begin.js'
+        expect(span0_1.children('span:eq(3)').text()).toBe "("
+        expect(span0_1.children('span:eq(4)')).toMatchSelector '.punctuation.definition.parameters.end.js'
+        expect(span0_1.children('span:eq(4)').text()).toBe ")"
+
+        expect(span0.children('span:eq(2)')).toMatchSelector '.meta.brace.curly.js'
+        expect(span0.children('span:eq(2)').text()).toBe "{"
+
+        line12 = editorView.renderedLines.find('.line:eq(11)').children('span:eq(0)')
+        expect(line12.children('span:eq(1)')).toMatchSelector '.keyword'
+
+      it "wraps hard tabs in a span", ->
+        editorView.setText('\t<- hard tab')
+        line0 = editorView.renderedLines.find('.line:first')
+        span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.hard-tab'
+        expect(span0_0.text()).toBe ' '
+
+      it "wraps leading whitespace in a span", ->
+        line1 = editorView.renderedLines.find('.line:eq(1)')
+        span0_0 = line1.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.leading-whitespace'
+        expect(span0_0.text()).toBe '  '
+
+      describe "when the line has trailing whitespace", ->
+        it "wraps trailing whitespace in a span", ->
+          editorView.setText('trailing whitespace ->   ')
+          line0 = editorView.renderedLines.find('.line:first')
+          span0_last = line0.children('span:eq(0)').children('span:last')
+          expect(span0_last).toMatchSelector '.trailing-whitespace'
+          expect(span0_last.text()).toBe '   '
+
+      describe "when lines are updated in the buffer", ->
+        it "syntax highlights the updated lines", ->
+          expect(editorView.renderedLines.find('.line:eq(0) > span:first > span:first')).toMatchSelector '.storage.modifier.js'
+          buffer.insert([0, 0], "q")
+          expect(editorView.renderedLines.find('.line:eq(0) > span:first > span:first')).not.toMatchSelector '.storage.modifier.js'
+
+          # verify that re-highlighting can occur below the changed line
+          buffer.insert([5,0], "/* */")
+          buffer.insert([1,0], "/*")
+          expect(editorView.renderedLines.find('.line:eq(2) > span:first > span:first')).toMatchSelector '.comment'
+
+    describe "when some lines at the end of the buffer are not visible on screen", ->
+      beforeEach ->
+        editorView.attachToDom(heightInLines: 5.5)
+
+      it "only renders the visible lines plus the overdrawn lines, setting the padding-bottom of the lines element to account for the missing lines", ->
+        expect(editorView.renderedLines.find('.line').length).toBe 8
+        expectedPaddingBottom = (buffer.getLineCount() - 8) * editorView.lineHeight
+        expect(editorView.renderedLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
+        expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+      it "renders additional lines when the editor view is resized", ->
+        setEditorHeightInLines(editorView, 10)
+        $(window).trigger 'resize'
+
+        expect(editorView.renderedLines.find('.line').length).toBe 12
+        expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+      it "renders correctly when scrolling after text is added to the buffer", ->
+        editorView.insertText("1\n")
+        _.times 4, -> editorView.moveCursorDown()
+        expect(editorView.renderedLines.find('.line:eq(2)').text()).toBe editorView.lineForBufferRow(2)
+        expect(editorView.renderedLines.find('.line:eq(7)').text()).toBe editorView.lineForBufferRow(7)
+
+      it "renders correctly when scrolling after text is removed from buffer", ->
+        editorView.getBuffer().delete([[0,0],[1,0]])
+        expect(editorView.renderedLines.find('.line:eq(0)').text()).toBe editorView.lineForBufferRow(0)
+        expect(editorView.renderedLines.find('.line:eq(5)').text()).toBe editorView.lineForBufferRow(5)
+
+        editorView.scrollTop(3 * editorView.lineHeight)
+        expect(editorView.renderedLines.find('.line:first').text()).toBe editorView.lineForBufferRow(1)
+        expect(editorView.renderedLines.find('.line:last').text()).toBe editorView.lineForBufferRow(10)
+
+      describe "when creating and destroying folds that are longer than the visible lines", ->
+        describe "when the cursor precedes the fold when it is destroyed", ->
+          it "renders lines and line numbers correctly", ->
+            scrollHeightBeforeFold = editorView.scrollView.prop('scrollHeight')
+            fold = editorView.createFold(1, 9)
+            fold.destroy()
+            expect(editorView.scrollView.prop('scrollHeight')).toBe scrollHeightBeforeFold
+
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+            expect(editorView.gutter.find('.line-number').length).toBe 8
+            expect(editorView.gutter.find('.line-number:last').intValue()).toBe 8
+
+            editorView.scrollTop(4 * editorView.lineHeight)
+            expect(editorView.renderedLines.find('.line').length).toBe 10
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+        describe "when the cursor follows the fold when it is destroyed", ->
+          it "renders lines and line numbers correctly", ->
+            fold = editorView.createFold(1, 9)
+            editorView.setCursorBufferPosition([10, 0])
+            fold.destroy()
+
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
+
+            expect(editorView.gutter.find('.line-number').length).toBe 8
+            expect(editorView.gutter.find('.line-number:last').text()).toBe '13'
+
+            editorView.scrollTop(4 * editorView.lineHeight)
+
+            expect(editorView.renderedLines.find('.line').length).toBe 10
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+      describe "when scrolling vertically", ->
+        describe "when scrolling less than the editor view's height", ->
+          it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+
+            editorView.scrollTop(editorView.lineHeight * 1.5)
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+            editorView.scrollTop(editorView.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            expect(editorView.renderedLines.find('.line').length).toBe 10
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
+
+            # here we don't scroll far enough to trigger additional rendering
+            editorView.scrollTop(editorView.lineHeight * 5.5) # first visible row will be 5, last will be 10
+            expect(editorView.renderedLines.find('.line').length).toBe 10
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
+
+            editorView.scrollTop(editorView.lineHeight * 7.5) # first visible row is 7, last will be 12
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
+
+            editorView.scrollTop(editorView.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            expect(editorView.renderedLines.find('.line').length).toBe 10
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+
+            editorView.scrollTop(0)
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+        describe "when scrolling more than the editors height", ->
+          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
+            editorView.scrollTop(editorView.layerHeight - editorView.scrollView.height())
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
+
+            editorView.verticalScrollbar.scrollBottom(0)
+            editorView.verticalScrollbar.trigger 'scroll'
+            expect(editorView.renderedLines.find('.line').length).toBe 8
+            expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+        it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
+          editorView.scrollTop(editorView.lineHeight * 3)
+          firstVisibleBufferRow = 3
+          expectedPaddingTop = (firstVisibleBufferRow - editorView.lineOverdraw) * editorView.lineHeight
+          expect(editorView.renderedLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
+
+          lastVisibleBufferRow = Math.ceil(3 + 5.5) # scroll top in lines + height in lines
+          lastOverdrawnRow = lastVisibleBufferRow + editorView.lineOverdraw
+          expectedPaddingBottom = ((buffer.getLineCount() - lastOverdrawnRow) * editorView.lineHeight)
+          expect(editorView.renderedLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
+
+          editorView.scrollToBottom()
+          # scrolled to bottom, first visible row is 5 and first rendered row is 3
+          firstVisibleBufferRow = Math.floor(buffer.getLineCount() - 5.5)
+          firstOverdrawnBufferRow = firstVisibleBufferRow - editorView.lineOverdraw
+          expectedPaddingTop = firstOverdrawnBufferRow * editorView.lineHeight
+          expect(editorView.renderedLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
+          expect(editorView.renderedLines.css('padding-bottom')).toBe "0px"
+
+    describe "when lines are added", ->
+      beforeEach ->
+        editorView.attachToDom(heightInLines: 5)
+
+      describe "when the change precedes the first rendered row", ->
+        it "inserts and removes rendered lines to account for upstream change", ->
+          editorView.scrollToBottom()
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [3,0]], "1\n2\n3\n")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change straddles the first rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          editorView.scrollToBottom()
+
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change straddles the last rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[12,0], [12,0]], "12\n13\n14\n")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
+
+      it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
+        maxLineLength = editorView.getMaxScreenLineLength()
+        setEditorWidthInChars(editorView, maxLineLength)
+        widthBefore = editorView.renderedLines.width()
+        expect(widthBefore).toBe editorView.scrollView.width() + 20
+        buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
+        expect(editorView.renderedLines.width()).toBeGreaterThan widthBefore
+
+    describe "when lines are removed", ->
+      beforeEach ->
+        editorView.attachToDom(heightInLines: 5)
+
+      it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
+        maxLineLength = editorView.getMaxScreenLineLength()
+        setEditorWidthInChars(editorView, maxLineLength)
+        buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
+        expect(editorView.renderedLines.width()).toBeGreaterThan editorView.scrollView.width()
+        widthBefore = editorView.renderedLines.width()
+        buffer.delete([[12, 0], [12, Infinity]])
+        expect(editorView.renderedLines.width()).toBe editorView.scrollView.width() + 20
+
+      describe "when the change the precedes the first rendered row", ->
+        it "removes rendered lines to account for upstream change", ->
+          editorView.scrollToBottom()
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [2,0]], "")
+          expect(editorView.renderedLines.find(".line").length).toBe 6
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(11)
+
+      describe "when the change straddles the first rendered row", ->
+        it "renders the correct rows", ->
+          editorView.scrollToBottom()
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[7,0], [11,0]], "1\n2\n")
+          expect(editorView.renderedLines.find(".line").length).toBe 5
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(10)
+
+      describe "when the change straddles the last rendered row", ->
+        it "renders the correct rows", ->
+          buffer.change([[2,0], [7,0]], "")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[10,0], [12,0]], "")
+          expect(editorView.renderedLines.find(".line").length).toBe 7
+          expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
+
+      describe "when the last line is removed when the editor view is scrolled to the bottom", ->
+        it "reduces the editor view's scrollTop (due to the reduced total scroll height) and renders the correct screen lines", ->
+          editorView.setCursorScreenPosition([Infinity, Infinity])
+          editorView.insertText('\n\n\n')
+          editorView.scrollToBottom()
+
+          expect(buffer.getLineCount()).toBe 16
+
+          initialScrollTop = editorView.scrollTop()
+          expect(editorView.firstRenderedScreenRow).toBe 9
+          expect(editorView.lastRenderedScreenRow).toBe 15
+
+          editorView.backspace()
+
+          expect(editorView.scrollTop()).toBeLessThan initialScrollTop
+          expect(editorView.firstRenderedScreenRow).toBe 9
+          expect(editorView.lastRenderedScreenRow).toBe 14
+
+          expect(editorView.find('.line').length).toBe 6
+
+          editorView.backspace()
+          expect(editorView.firstRenderedScreenRow).toBe 9
+          expect(editorView.lastRenderedScreenRow).toBe 13
+
+          expect(editorView.find('.line').length).toBe 5
+
+          editorView.backspace()
+          expect(editorView.firstRenderedScreenRow).toBe 6
+          expect(editorView.lastRenderedScreenRow).toBe 12
+
+          expect(editorView.find('.line').length).toBe 7
+
+    describe "when folding leaves less then a screen worth of text (regression)", ->
+      it "renders lines properly", ->
+        editorView.lineOverdraw = 1
+        editorView.attachToDom(heightInLines: 5)
+        editorView.activeEditSession.foldBufferRow(4)
+        editorView.activeEditSession.foldBufferRow(0)
+
+        expect(editorView.renderedLines.find('.line').length).toBe 1
+        expect(editorView.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
+
+    describe "when folding leaves fewer screen lines than the first rendered screen line (regression)", ->
+      it "clears all screen lines and does not throw any exceptions", ->
+        editorView.lineOverdraw = 1
+        editorView.attachToDom(heightInLines: 5)
+        editorView.scrollToBottom()
+        editorView.activeEditSession.foldBufferRow(0)
+        expect(editorView.renderedLines.find('.line').length).toBe 1
+        expect(editorView.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
+
+    describe "when autoscrolling at the end of the document", ->
+      it "renders lines properly", ->
+        editorView.edit(project.openSync('two-hundred.txt'))
+        editorView.attachToDom(heightInLines: 5.5)
+
+        expect(editorView.renderedLines.find('.line').length).toBe 8
+
+        editorView.moveCursorToBottom()
+
+        expect(editorView.renderedLines.find('.line').length).toBe 8
+
+    describe "when line has a character that could push it to be too tall (regression)", ->
+      it "does renders the line at a consistent height", ->
+        editorView.attachToDom()
+        buffer.insert([0, 0], "–")
+        expect(editorView.find('.line:eq(0)').outerHeight()).toBe editorView.find('.line:eq(1)').outerHeight()
+
+    describe "when editor.showInvisibles config is set to true", ->
+      it "displays spaces, tabs, and newlines using visible non-empty values", ->
+        editorView.setText " a line with tabs\tand spaces "
+        editorView.attachToDom()
+
+        expect(atom.config.get("editor.showInvisibles")).toBeFalsy()
+        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
+
+        atom.config.set("editor.showInvisibles", true)
+        space = editorView.invisibles?.space
+        expect(space).toBeTruthy()
+        tab = editorView.invisibles?.tab
+        expect(tab).toBeTruthy()
+        eol = editorView.invisibles?.eol
+        expect(eol).toBeTruthy()
+        expect(editorView.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}#{eol}"
+
+        atom.config.set("editor.showInvisibles", false)
+        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
+
+      it "displays newlines as their own token outside of the other tokens scope", ->
+        editorView.setShowInvisibles(true)
+        editorView.attachToDom()
+        editorView.setText "var"
+        expect(editorView.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible-character">¬</span>'
+
+      it "allows invisible glyphs to be customized via the editor.invisibles config", ->
+        editorView.setText(" \t ")
+        editorView.attachToDom()
+        atom.config.set("editor.showInvisibles", true)
+        atom.config.set("editor.invisibles", eol: ";", space: "_", tab: "tab")
+        expect(editorView.find(".line:first").text()).toBe "_tab _;"
+
+      it "displays trailing carriage return using a visible non-empty value", ->
+        editorView.setText "a line that ends with a carriage return\r\n"
+        editorView.attachToDom()
+
+        expect(atom.config.get("editor.showInvisibles")).toBeFalsy()
+        expect(editorView.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+
+        atom.config.set("editor.showInvisibles", true)
+        cr = editorView.invisibles?.cr
+        expect(cr).toBeTruthy()
+        eol = editorView.invisibles?.eol
+        expect(eol).toBeTruthy()
+        expect(editorView.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+
+      describe "when wrapping is on", ->
+        beforeEach ->
+          editSession.setSoftWrap(true)
+
+        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+          editorView.setText "a line that wraps"
+          editorView.attachToDom()
+          editorView.setWidthInChars(6)
+          atom.config.set "editor.showInvisibles", true
+          space = editorView.invisibles?.space
+          expect(space).toBeTruthy()
+          eol = editorView.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editorView.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+
+        it "displays trailing carriage return using a visible non-empty value", ->
+          editorView.setText "a line that\r\n"
+          editorView.attachToDom()
+          editorView.setWidthInChars(6)
+          atom.config.set "editor.showInvisibles", true
+          space = editorView.invisibles?.space
+          expect(space).toBeTruthy()
+          cr = editorView.invisibles?.cr
+          expect(cr).toBeTruthy()
+          eol = editorView.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editorView.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+          expect(editorView.renderedLines.find('.line:last').text()).toBe "#{eol}"
+
+    describe "when editor.showIndentGuide is set to true", ->
+      it "adds an indent-guide class to each leading whitespace span", ->
+        editorView.attachToDom()
+
+        expect(atom.config.get("editor.showIndentGuide")).toBeFalsy()
+        atom.config.set("editor.showIndentGuide", true)
+        expect(editorView.showIndentGuide).toBeTruthy()
+
+        expect(editorView.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
+
+        expect(editorView.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+        expect(editorView.renderedLines.find('.line:eq(1) .indent-guide').text()).toBe '  '
+
+        expect(editorView.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+        expect(editorView.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
+        expect(editorView.renderedLines.find('.line:eq(3) .indent-guide').length).toBe 2
+        expect(editorView.renderedLines.find('.line:eq(3) .indent-guide').text()).toBe '    '
+
+        expect(editorView.renderedLines.find('.line:eq(4) .indent-guide').length).toBe 2
+        expect(editorView.renderedLines.find('.line:eq(4) .indent-guide').text()).toBe '    '
+
+        expect(editorView.renderedLines.find('.line:eq(5) .indent-guide').length).toBe 3
+        expect(editorView.renderedLines.find('.line:eq(5) .indent-guide').text()).toBe '      '
+
+        expect(editorView.renderedLines.find('.line:eq(6) .indent-guide').length).toBe 3
+        expect(editorView.renderedLines.find('.line:eq(6) .indent-guide').text()).toBe '      '
+
+        expect(editorView.renderedLines.find('.line:eq(7) .indent-guide').length).toBe 2
+        expect(editorView.renderedLines.find('.line:eq(7) .indent-guide').text()).toBe '    '
+
+        expect(editorView.renderedLines.find('.line:eq(8) .indent-guide').length).toBe 2
+        expect(editorView.renderedLines.find('.line:eq(8) .indent-guide').text()).toBe '    '
+
+        expect(editorView.renderedLines.find('.line:eq(9) .indent-guide').length).toBe 1
+        expect(editorView.renderedLines.find('.line:eq(9) .indent-guide').text()).toBe '  '
+
+        expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+        expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+        expect(editorView.renderedLines.find('.line:eq(11) .indent-guide').length).toBe 1
+        expect(editorView.renderedLines.find('.line:eq(11) .indent-guide').text()).toBe '  '
+
+        expect(editorView.renderedLines.find('.line:eq(12) .indent-guide').length).toBe 0
+
+      describe "when the indentation level on a line before an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editorView.setCursorBufferPosition([9])
+          editorView.indentSelectedRows()
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
+      describe "when the indentation level on a line after an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editorView.setCursorBufferPosition([11])
+          editorView.indentSelectedRows()
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
+      describe "when a line contains only whitespace", ->
+        it "displays an indent guide on the line", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+
+          editorView.setCursorBufferPosition([10])
+          editorView.indent()
+          editorView.indent()
+          expect(editorView.getCursorBufferPosition()).toEqual [10, 4]
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
+        it "uses the highest indent guide level from the next or previous non-empty line", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+
+          editorView.setCursorBufferPosition([1, Infinity])
+          editorView.insertNewline()
+          expect(editorView.getCursorBufferPosition()).toEqual [2, 0]
+          expect(editorView.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+          expect(editorView.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
+      describe "when the line has leading and trailing whitespace", ->
+        it "does not display the indent guide in the trailing whitespace", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+
+          editorView.insertText("/*\n * \n*/")
+          expect(editorView.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+          expect(editorView.renderedLines.find('.line:eq(1) .indent-guide')).toHaveClass('leading-whitespace')
+
+      describe "when the line is empty and end of show invisibles are enabled", ->
+        it "renders the indent guides interleaved with the end of line invisibles", ->
+          editorView.attachToDom()
+          atom.config.set("editor.showIndentGuide", true)
+          atom.config.set("editor.showInvisibles", true)
+          eol = editorView.invisibles?.eol
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol} "
+          expect(editorView.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
+
+          editorView.setCursorBufferPosition([9])
+          editorView.indent()
+
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
+          expect(editorView.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
+
+  describe "when soft-wrap is enabled", ->
+    beforeEach ->
+      jasmine.unspy(window, 'setTimeout')
+      editSession.setSoftWrap(true)
+      editorView.attachToDom()
+      setEditorHeightInLines(editorView, 20)
+      setEditorWidthInChars(editorView, 50)
+      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 50
+
+    it "wraps lines that are too long to fit within the editor view's width, adjusting cursor positioning accordingly", ->
+      expect(editorView.renderedLines.find('.line').length).toBe 16
+      expect(editorView.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+      expect(editorView.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
+
+      editorView.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
+      expect(editorView.find('.cursor').offset()).toEqual(editorView.renderedLines.find('.line:eq(4)').offset())
+
+      editorView.setCursorBufferPosition([4, 0])
+      expect(editorView.find('.cursor').offset()).toEqual(editorView.renderedLines.find('.line:eq(5)').offset())
+
+      editorView.getSelection().setBufferRange([[6, 30], [6, 55]])
+      [region1, region2] = editorView.getSelectionView().regions
+      expect(region1.offset().top).toBeCloseTo(editorView.renderedLines.find('.line:eq(7)').offset().top)
+      expect(region2.offset().top).toBeCloseTo(editorView.renderedLines.find('.line:eq(8)').offset().top)
+
+    it "handles changes to wrapped lines correctly", ->
+      buffer.insert([6, 28], '1234567')
+      expect(editorView.renderedLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+      expect(editorView.renderedLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+      expect(editorView.renderedLines.find('.line:eq(9)').text()).toBe '    }'
+
+    it "changes the max line length and repositions the cursor when the window size changes", ->
+      editorView.setCursorBufferPosition([3, 60])
+      setEditorWidthInChars(editorView, 40)
+      expect(editorView.renderedLines.find('.line').length).toBe 19
+      expect(editorView.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+      expect(editorView.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+      expect(editorView.bufferPositionForScreenPosition(editorView.getCursorScreenPosition())).toEqual [3, 60]
+
+    it "does not wrap the lines of any newly assigned buffers", ->
+      otherEditSession = project.openSync()
+      otherEditSession.buffer.setText([1..100].join(''))
+      editorView.edit(otherEditSession)
+      expect(editorView.renderedLines.find('.line').length).toBe(1)
+
+    it "unwraps lines when softwrap is disabled", ->
+      editorView.toggleSoftWrap()
+      expect(editorView.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+    it "allows the cursor to move down to the last line", ->
+      _.times editorView.getLastScreenRow(), -> editorView.moveCursorDown()
+      expect(editorView.getCursorScreenPosition()).toEqual [editorView.getLastScreenRow(), 0]
+      editorView.moveCursorDown()
+      expect(editorView.getCursorScreenPosition()).toEqual [editorView.getLastScreenRow(), 2]
+
+    it "allows the cursor to move up to a shorter soft wrapped line", ->
+      editorView.setCursorScreenPosition([11, 15])
+      editorView.moveCursorUp()
+      expect(editorView.getCursorScreenPosition()).toEqual [10, 10]
+      editorView.moveCursorUp()
+      editorView.moveCursorUp()
+      expect(editorView.getCursorScreenPosition()).toEqual [8, 15]
+
+    it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
+      editorView.setCursorScreenPosition([11, 0])
+      editorView.moveCursorLeft()
+      expect(editorView.getCursorScreenPosition()).toEqual [10, 10]
+
+      editorView.moveCursorRight()
+      expect(editorView.getCursorScreenPosition()).toEqual [11, 0]
+
+    it "calls .setWidthInChars() when the editor view is attached because now its dimensions are available to calculate it", ->
+      otherEditor = new EditorView(editSession: project.openSync('sample.js'))
+      spyOn(otherEditor, 'setWidthInChars')
+
+      otherEditor.activeEditSession.setSoftWrap(true)
+      expect(otherEditor.setWidthInChars).not.toHaveBeenCalled()
+
+      otherEditor.simulateDomAttachment()
+      expect(otherEditor.setWidthInChars).toHaveBeenCalled()
+      otherEditor.remove()
+
+    describe "when the editor view's width changes", ->
+      it "updates the width in characters on the edit session", ->
+        previousSoftWrapColumn = editSession.getSoftWrapColumn()
+
+        spyOn(editorView, 'setWidthInChars').andCallThrough()
+        editorView.width(editorView.width() / 2)
+
+        waitsFor ->
+          editorView.setWidthInChars.callCount > 0
+
+        runs ->
+          expect(editSession.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
+
+  describe "gutter rendering", ->
+    beforeEach ->
+      editorView.attachToDom(heightInLines: 5.5)
+
+    it "creates a line number element for each visible line with &nbsp; padding to the left of the number", ->
+      expect(editorView.gutter.find('.line-number').length).toBe 8
+      expect(editorView.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editorView.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
+
+      # here we don't scroll far enough to trigger additional rendering
+      editorView.scrollTop(editorView.lineHeight * 1.5)
+      expect(editorView.renderedLines.find('.line').length).toBe 8
+      expect(editorView.gutter.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editorView.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
+
+      editorView.scrollTop(editorView.lineHeight * 3.5)
+      expect(editorView.renderedLines.find('.line').length).toBe 10
+      expect(editorView.gutter.find('.line-number:first').html()).toBe "&nbsp;2"
+      expect(editorView.gutter.find('.line-number:last').html()).toBe "11"
+
+    describe "when lines are inserted", ->
+      it "re-renders the correct line number range in the gutter", ->
+        editorView.scrollTop(3 * editorView.lineHeight)
+        expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
+
+        buffer.insert([6, 0], '\n')
+
+        expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
+
+      it "re-renders the correct line number range when there are folds", ->
+        editorView.activeEditSession.foldBufferRow(1)
+        expect(editorView.gutter.find('.line-number-1')).toHaveClass 'fold'
+
+        buffer.insert([0, 0], '\n')
+
+        expect(editorView.gutter.find('.line-number-2')).toHaveClass 'fold'
+
+    describe "when wrapping is on", ->
+      it "renders a • instead of line number for wrapped portions of lines", ->
+        editSession.setSoftWrap(true)
+        editorView.setWidthInChars(50)
+        expect(editorView.gutter.find('.line-number').length).toEqual(8)
+        expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'
+        expect(editorView.gutter.find('.line-number:eq(5)').intValue()).toBe 5
+
+    describe "when there are folds", ->
+      it "skips line numbers covered by the fold and updates them when the fold changes", ->
+        editorView.createFold(3, 5)
+        expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number:eq(4)').intValue()).toBe 7
+
+        buffer.insert([4,0], "\n\n")
+        expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number:eq(4)').intValue()).toBe 9
+
+        buffer.delete([[3,0], [6,0]])
+        expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number:eq(4)').intValue()).toBe 6
+
+      it "redraws gutter numbers when lines are unfolded", ->
+        setEditorHeightInLines(editorView, 20)
+        fold = editorView.createFold(2, 12)
+        expect(editorView.gutter.find('.line-number').length).toBe 3
+
+        fold.destroy()
+        expect(editorView.gutter.find('.line-number').length).toBe 13
+
+      it "styles folded line numbers", ->
+        editorView.createFold(3, 5)
+        expect(editorView.gutter.find('.line-number.fold').length).toBe 1
+        expect(editorView.gutter.find('.line-number.fold:eq(0)').intValue()).toBe 4
+
+    describe "when the scrollView is scrolled to the right", ->
+      it "adds a drop shadow to the gutter", ->
+        editorView.attachToDom()
+        editorView.width(100)
+
+        expect(editorView.gutter).not.toHaveClass('drop-shadow')
+
+        editorView.scrollLeft(10)
+        editorView.scrollView.trigger('scroll')
+
+        expect(editorView.gutter).toHaveClass('drop-shadow')
+
+        editorView.scrollLeft(0)
+        editorView.scrollView.trigger('scroll')
+
+        expect(editorView.gutter).not.toHaveClass('drop-shadow')
+
+    describe "when the editor view is scrolled vertically", ->
+      it "adjusts the padding-top to account for non-rendered line numbers", ->
+        editorView.scrollTop(editorView.lineHeight * 3.5)
+        expect(editorView.gutter.lineNumbers.css('padding-top')).toBe "#{editorView.lineHeight * 1}px"
+        expect(editorView.gutter.lineNumbers.css('padding-bottom')).toBe "#{editorView.lineHeight * 2}px"
+        expect(editorView.renderedLines.find('.line').length).toBe 10
+        expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
+
+    describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
+      it "updates the line numbers to reflect the shorter buffer", ->
+        emptyEditSession = project.openSync(null)
+        editorView.edit(emptyEditSession)
+        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
+
+        editorView.edit(editSession)
+        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
+
+        editorView.edit(emptyEditSession)
+        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
+
+    describe "when the editor view is mini", ->
+      it "hides the gutter", ->
+        miniEditor = new EditorView(mini: true)
+        miniEditor.attachToDom()
+        expect(miniEditor.gutter).toBeHidden()
+
+      it "doesn't highlight the only line", ->
+        miniEditor = new EditorView(mini: true)
+        miniEditor.attachToDom()
+        expect(miniEditor.getCursorBufferPosition().row).toBe 0
+        expect(miniEditor.find('.line.cursor-line').length).toBe 0
+
+      it "doesn't show the end of line invisible", ->
+        atom.config.set "editor.showInvisibles", true
+        miniEditor = new EditorView(mini: true)
+        miniEditor.attachToDom()
+        space = miniEditor.invisibles?.space
+        expect(space).toBeTruthy()
+        tab = miniEditor.invisibles?.tab
+        expect(tab).toBeTruthy()
+        miniEditor.setText(" a line with tabs\tand spaces ")
+        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
+
+      it "doesn't show the indent guide", ->
+        atom.config.set "editor.showIndentGuide", true
+        miniEditor = new EditorView(mini: true)
+        miniEditor.attachToDom()
+        miniEditor.setText("      and indented line")
+        expect(miniEditor.renderedLines.find('.indent-guide').length).toBe 0
+
+
+      it "lets you set the grammar", ->
+        miniEditor = new EditorView(mini: true)
+        miniEditor.setText("var something")
+        previousTokens = miniEditor.lineForScreenRow(0).tokens
+        miniEditor.setGrammar(atom.syntax.selectGrammar('something.js'))
+        expect(miniEditor.getGrammar().name).toBe "JavaScript"
+        expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
+
+        # doesn't allow regular editors to set grammars
+        expect(-> editorView.setGrammar()).toThrow()
+
+    describe "when the editor.showLineNumbers config is false", ->
+      it "doesn't render any line numbers", ->
+        expect(editorView.gutter.lineNumbers).toBeVisible()
+        atom.config.set("editor.showLineNumbers", false)
+        expect(editorView.gutter.lineNumbers).not.toBeVisible()
+
+    describe "using gutter's api", ->
+      it "can get all the line number elements", ->
+        elements = editorView.gutter.getLineNumberElements()
+        len = editorView.gutter.lastScreenRow - editorView.gutter.firstScreenRow + 1
+        expect(elements).toHaveLength(len)
+
+      it "can get a single line number element", ->
+        element = editorView.gutter.getLineNumberElement(3)
+        expect(element).toBeTruthy()
+
+      it "returns falsy when there is no line element", ->
+        expect(editorView.gutter.getLineNumberElement(42)).toHaveLength 0
+
+      it "can add and remove classes to all the line numbers", ->
+        wasAdded = editorView.gutter.addClassToAllLines('heyok')
+        expect(wasAdded).toBe true
+
+        elements = editorView.gutter.getLineNumberElementsForClass('heyok')
+        expect($(elements)).toHaveClass('heyok')
+
+        editorView.gutter.removeClassFromAllLines('heyok')
+        expect($(editorView.gutter.getLineNumberElements())).not.toHaveClass('heyok')
+
+      it "can add and remove classes from a single line number", ->
+        wasAdded = editorView.gutter.addClassToLine(3, 'heyok')
+        expect(wasAdded).toBe true
+
+        element = editorView.gutter.getLineNumberElement(2)
+        expect($(element)).not.toHaveClass('heyok')
+
+      it "can fetch line numbers by their class", ->
+        editorView.gutter.addClassToLine(1, 'heyok')
+        editorView.gutter.addClassToLine(3, 'heyok')
+
+        elements = editorView.gutter.getLineNumberElementsForClass('heyok')
+        expect(elements.length).toBe 2
+
+        expect($(elements[0])).toHaveClass 'line-number-1'
+        expect($(elements[0])).toHaveClass 'heyok'
+
+        expect($(elements[1])).toHaveClass 'line-number-3'
+        expect($(elements[1])).toHaveClass 'heyok'
+
+  describe "gutter line highlighting", ->
+    beforeEach ->
+      editorView.attachToDom(heightInLines: 5.5)
+
+    describe "when there is no wrapping", ->
+      it "highlights the line where the initial cursor position is", ->
+        expect(editorView.getCursorBufferPosition().row).toBe 0
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editorView.setCursorBufferPosition([1,0])
+        expect(editorView.getCursorBufferPosition().row).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
+
+    describe "when there is wrapping", ->
+      beforeEach ->
+        editorView.attachToDom(30)
+        editSession.setSoftWrap(true)
+        setEditorWidthInChars(editorView, 20)
+
+      it "highlights the line where the initial cursor position is", ->
+        expect(editorView.getCursorBufferPosition().row).toBe 0
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editorView.setCursorBufferPosition([1,0])
+        expect(editorView.getCursorBufferPosition().row).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
+
+    describe "when the selection spans multiple lines", ->
+      beforeEach ->
+        editorView.attachToDom(30)
+
+      it "highlights the foreground of the gutter", ->
+        editorView.getSelection().setBufferRange([[0,0],[2,2]])
+        expect(editorView.getSelection().isSingleScreenLine()).toBe false
+        expect(editorView.find('.line-number.cursor-line').length).toBe 3
+
+      it "doesn't highlight the background of the gutter", ->
+        editorView.getSelection().setBufferRange([[0,0],[2,0]])
+        expect(editorView.getSelection().isSingleScreenLine()).toBe false
+        expect(editorView.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 0
+
+      it "doesn't highlight the last line if it ends at the beginning of a line", ->
+        editorView.getSelection().setBufferRange([[0,0],[1,0]])
+        expect(editorView.getSelection().isSingleScreenLine()).toBe false
+        expect(editorView.find('.line-number.cursor-line').length).toBe 1
+        expect(editorView.find('.line-number.cursor-line').intValue()).toBe 1
+
+    it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
+      editorView.setCursorScreenPosition([1,0])
+      editorView.backspace()
+      expect(editorView.find('.line-number.cursor-line').length).toBe 1
+      expect(editorView.find('.line-number.cursor-line').intValue()).toBe 1
+
+  describe "line highlighting", ->
+    beforeEach ->
+      editorView.attachToDom(30)
+
+    describe "when there is no wrapping", ->
+      it "highlights the line where the initial cursor position is", ->
+        expect(editorView.getCursorBufferPosition().row).toBe 0
+        expect(editorView.find('.line.cursor-line').length).toBe 1
+        expect(editorView.find('.line.cursor-line').text()).toBe buffer.lineForRow(0)
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editorView.setCursorBufferPosition([1,0])
+        expect(editorView.getCursorBufferPosition().row).toBe 1
+        expect(editorView.find('.line.cursor-line').length).toBe 1
+        expect(editorView.find('.line.cursor-line').text()).toBe buffer.lineForRow(1)
+
+      it "when a newline is deleted with backspace, the line of the new cursor position is highlighted", ->
+        editorView.setCursorScreenPosition([1,0])
+        editorView.backspace()
+        expect(editorView.find('.line.cursor-line').length).toBe 1
+
+    describe "when there is wrapping", ->
+      beforeEach ->
+        editSession.setSoftWrap(true)
+        setEditorWidthInChars(editorView, 20)
+
+      it "highlights the line where the initial cursor position is", ->
+        expect(editorView.getCursorBufferPosition().row).toBe 0
+        expect(editorView.find('.line.cursor-line').length).toBe 1
+        expect(editorView.find('.line.cursor-line').text()).toBe 'var quicksort = '
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editorView.setCursorBufferPosition([1,0])
+        expect(editorView.getCursorBufferPosition().row).toBe 1
+        expect(editorView.find('.line.cursor-line').length).toBe 1
+        expect(editorView.find('.line.cursor-line').text()).toBe '  var sort = '
+
+    describe "when there is a non-empty selection", ->
+      it "does not highlight the line", ->
+        editorView.setSelectedBufferRange([[1, 0], [1, 1]])
+        expect(editorView.find('.line.cursor-line').length).toBe 0
+
+  describe "folding", ->
+    beforeEach ->
+      editSession = project.openSync('two-hundred.txt')
+      buffer = editSession.buffer
+      editorView.edit(editSession)
+      editorView.attachToDom()
+
+    describe "when a fold-selection event is triggered", ->
+      it "folds the lines covered by the selection into a single line with a fold class and marker", ->
+        editorView.getSelection().setBufferRange([[4,29],[7,4]])
+        editorView.trigger 'editor:fold-selection'
+
+        expect(editorView.renderedLines.find('.line:eq(4)')).toHaveClass('fold')
+        expect(editorView.renderedLines.find('.line:eq(4) > .fold-marker')).toExist()
+        expect(editorView.renderedLines.find('.line:eq(5)').text()).toBe '8'
+
+        expect(editorView.getSelection().isEmpty()).toBeTruthy()
+        expect(editorView.getCursorScreenPosition()).toEqual [5, 0]
+
+      it "keeps the gutter line and the editor view line the same heights (regression)", ->
+        editorView.getSelection().setBufferRange([[4,29],[7,4]])
+        editorView.trigger 'editor:fold-selection'
+
+        expect(editorView.gutter.find('.line-number:eq(4)').height()).toBe editorView.renderedLines.find('.line:eq(4)').height()
+
+    describe "when a fold placeholder line is clicked", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
+        editorView.setCursorBufferPosition([3,0])
+        editSession.createFold(3, 5)
+
+        foldLine = editorView.find('.line.fold')
+        expect(foldLine).toExist()
+        foldLine.mousedown()
+
+        expect(editorView.find('.fold')).not.toExist()
+        expect(editorView.find('.fold-marker')).not.toExist()
+        expect(editorView.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editorView.renderedLines.find('.line:eq(5)').text()).toMatch /5/
+
+        expect(editorView.getCursorBufferPosition()).toEqual [3, 0]
+
+    describe "when the unfold-current-row event is triggered when the cursor is on a fold placeholder line", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
+        editorView.setCursorBufferPosition([3,0])
+        editorView.trigger 'editor:fold-current-row'
+
+        editorView.setCursorBufferPosition([3,0])
+        editorView.trigger 'editor:unfold-current-row'
+
+        expect(editorView.find('.fold')).not.toExist()
+        expect(editorView.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editorView.renderedLines.find('.line:eq(5)').text()).toMatch /5/
+
+        expect(editorView.getCursorBufferPosition()).toEqual [3, 0]
+
+    describe "when a selection starts/stops intersecting a fold", ->
+      it "adds/removes the 'fold-selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
+        editorView.createFold(2, 4)
+
+        editorView.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, isReversed: true)
+        expect(editorView.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
+
+        editorView.setSelectedBufferRange([[1, 0], [1, 1]], preserveFolds: true)
+        expect(editorView.lineElementForScreenRow(2)).not.toMatchSelector('.fold.fold-selected')
+
+        editorView.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)
+        expect(editorView.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
+
+        editorView.setCursorScreenPosition([3,0])
+        expect(editorView.lineElementForScreenRow(2)).not.toMatchSelector('.fold.fold-selected')
+
+        editorView.setCursorScreenPosition([2,0])
+        expect(editorView.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
+        expect(editorView.find('.cursor')).toBeHidden()
+
+        editorView.setCursorScreenPosition([3,0])
+        expect(editorView.find('.cursor')).toBeVisible()
+
+    describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
+      it "renders the fold's line element with the 'fold-selected' class", ->
+        setEditorHeightInLines(editorView, 5)
+        editorView.resetDisplay()
+
+        editorView.createFold(2, 4)
+        editorView.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)
+        expect(editorView.renderedLines.find('.fold.fold-selected')).toExist()
+
+        editorView.scrollToBottom()
+        expect(editorView.renderedLines.find('.fold.fold-selected')).not.toExist()
+
+        editorView.scrollTop(0)
+        expect(editorView.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
+
+  describe "paging up and down", ->
+    beforeEach ->
+      editorView.attachToDom()
+
+    it "moves to the last line when page down is repeated from the first line", ->
+      rows = editorView.getLineCount() - 1
+      expect(rows).toBeGreaterThan(0)
+      row = editorView.getCursor().getScreenPosition().row
+      expect(row).toBe(0)
+      while row < rows
+        editorView.pageDown()
+        newRow = editorView.getCursor().getScreenPosition().row
+        expect(newRow).toBeGreaterThan(row)
+        if (newRow <= row)
+          break
+        row = newRow
+      expect(row).toBe(rows)
+      expect(editorView.getLastVisibleScreenRow()).toBe(rows)
+
+    it "moves to the first line when page up is repeated from the last line", ->
+      editorView.moveCursorToBottom()
+      row = editorView.getCursor().getScreenPosition().row
+      expect(row).toBeGreaterThan(0)
+      while row > 0
+        editorView.pageUp()
+        newRow = editorView.getCursor().getScreenPosition().row
+        expect(newRow).toBeLessThan(row)
+        if (newRow >= row)
+          break
+        row = newRow
+      expect(row).toBe(0)
+      expect(editorView.getFirstVisibleScreenRow()).toBe(0)
+
+    it "resets to original position when down is followed by up", ->
+      expect(editorView.getCursor().getScreenPosition().row).toBe(0)
+      editorView.pageDown()
+      expect(editorView.getCursor().getScreenPosition().row).toBeGreaterThan(0)
+      editorView.pageUp()
+      expect(editorView.getCursor().getScreenPosition().row).toBe(0)
+      expect(editorView.getFirstVisibleScreenRow()).toBe(0)
+
+  describe ".checkoutHead()", ->
+    [filePath, originalPathText] = []
+
+    beforeEach ->
+      filePath = project.resolve('git/working-dir/file.txt')
+      originalPathText = fs.readFileSync(filePath, 'utf8')
+      editorView.edit(project.openSync(filePath))
+
+    afterEach ->
+      fs.writeFileSync(filePath, originalPathText)
+
+    it "restores the contents of the editor view to the HEAD revision", ->
+      editorView.setText('')
+      editorView.getBuffer().save()
+
+      fileChangeHandler = jasmine.createSpy('fileChange')
+      editorView.getBuffer().file.on 'contents-changed', fileChangeHandler
+
+      editorView.checkoutHead()
+
+      waitsFor "file to trigger contents-changed event", ->
+        fileChangeHandler.callCount > 0
+
+      runs ->
+        expect(editorView.getText()).toBe(originalPathText)
+
+  describe ".pixelPositionForBufferPosition(position)", ->
+    describe "when the editor view is detached", ->
+      it "returns top and left values of 0", ->
+        expect(editorView.isOnDom()).toBeFalsy()
+        expect(editorView.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor view is invisible", ->
+      it "returns top and left values of 0", ->
+        editorView.attachToDom()
+        editorView.hide()
+        expect(editorView.isVisible()).toBeFalsy()
+        expect(editorView.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor view is attached and visible", ->
+      beforeEach ->
+        editorView.attachToDom()
+
+      it "returns the top and left pixel positions", ->
+        expect(editorView.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
+      it "caches the left position", ->
+        editorView.renderedLines.css('font-size', '16px')
+        expect(editorView.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+        # make characters smaller
+        editorView.renderedLines.css('font-size', '15px')
+
+        expect(editorView.pixelPositionForBufferPosition([2,8])).toEqual top: 40, left: 80
+
+  describe "when clicking in the gutter", ->
+    beforeEach ->
+      editorView.attachToDom()
+
+    describe "when single clicking", ->
+      it "moves the cursor to the start of the selected line", ->
+        expect(editorView.getCursorScreenPosition()).toEqual [0,0]
+        event = $.Event("mousedown")
+        event.pageY = editorView.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        editorView.gutter.find(".line-number:eq(1)").trigger event
+        expect(editorView.getCursorScreenPosition()).toEqual [1,0]
+
+    describe "when shift-clicking", ->
+      it "selects to the start of the selected line", ->
+        expect(editorView.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+        event = $.Event("mousedown")
+        event.pageY = editorView.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        event.shiftKey = true
+        editorView.gutter.find(".line-number:eq(1)").trigger event
+        expect(editorView.getSelection().getScreenRange()).toEqual [[0,0], [2,0]]
+
+    describe "when mousing down and then moving across multiple lines before mousing up", ->
+      describe "when selecting from top to bottom", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editorView.gutter.find(".line-number:eq(1)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editorView.gutter.find(".line-number:eq(1)").trigger mousedownEvent
+
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editorView.gutter.find(".line-number:eq(5)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editorView.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
+
+          $(document).trigger 'mouseup'
+
+          expect(editorView.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
+
+      describe "when selecting from bottom to top", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editorView.gutter.find(".line-number:eq(5)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editorView.gutter.find(".line-number:eq(5)").trigger mousedownEvent
+
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editorView.gutter.find(".line-number:eq(1)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editorView.gutter.find(".line-number:eq(1)").trigger mousemoveEvent
+
+          $(document).trigger 'mouseup'
+
+          expect(editorView.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
+
+  describe "when clicking below the last line", ->
+    beforeEach ->
+      editorView.attachToDom()
+
+    it "move the cursor to the end of the file", ->
+      expect(editorView.getCursorScreenPosition()).toEqual [0,0]
+      event = mousedownEvent(editorView: editorView, point: [Infinity, 10])
+      editorView.underlayer.trigger event
+      expect(editorView.getCursorScreenPosition()).toEqual [12,2]
+
+    it "selects to the end of the files when shift is pressed", ->
+      expect(editorView.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+      event = mousedownEvent(editorView: editorView, point: [Infinity, 10], shiftKey: true)
+      editorView.underlayer.trigger event
+      expect(editorView.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
+
+  describe ".reloadGrammar()", ->
+    [filePath] = []
+
+    beforeEach ->
+      tmpdir = fs.absolute(temp.dir)
+      filePath = path.join(tmpdir, "grammar-change.txt")
+      fs.writeFileSync(filePath, "var i;")
+
+    afterEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    it "updates all the rendered lines when the grammar changes", ->
+      editorView.edit(project.openSync(filePath))
+      expect(editorView.getGrammar().name).toBe 'Plain Text'
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      editorView.reloadGrammar()
+      expect(editorView.getGrammar().name).toBe 'JavaScript'
+
+      tokenizedBuffer = editorView.activeEditSession.displayBuffer.tokenizedBuffer
+      line0 = tokenizedBuffer.lineForScreenRow(0)
+      expect(line0.tokens.length).toBe 3
+      expect(line0.tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+
+    it "doesn't update the rendered lines when the grammar doesn't change", ->
+      expect(editorView.getGrammar().name).toBe 'JavaScript'
+      spyOn(editorView, 'updateDisplay').andCallThrough()
+      editorView.reloadGrammar()
+      expect(editorView.reloadGrammar()).toBeFalsy()
+      expect(editorView.updateDisplay).not.toHaveBeenCalled()
+      expect(editorView.getGrammar().name).toBe 'JavaScript'
+
+    it "emits an editor:grammar-changed event when updated", ->
+      editorView.edit(project.openSync(filePath))
+
+      eventHandler = jasmine.createSpy('eventHandler')
+      editorView.on('editor:grammar-changed', eventHandler)
+      editorView.reloadGrammar()
+
+      expect(eventHandler).not.toHaveBeenCalled()
+
+      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
+      editorView.reloadGrammar()
+      expect(eventHandler).toHaveBeenCalled()
+
+  describe ".replaceSelectedText()", ->
+    it "doesn't call the replace function when the selection is empty", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        'new'
+
+      editorView.moveCursorToTop()
+      edited = editorView.replaceSelectedText(replacer)
+      expect(replaced).toBe false
+      expect(edited).toBe false
+
+    it "returns true when transformed text is non-empty", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        'new'
+
+      editorView.moveCursorToTop()
+      editorView.selectToEndOfLine()
+      edited = editorView.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe true
+
+    it "returns false when transformed text is null", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        null
+
+      editorView.moveCursorToTop()
+      editorView.selectToEndOfLine()
+      edited = editorView.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe false
+
+    it "returns false when transformed text is undefined", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        undefined
+
+      editorView.moveCursorToTop()
+      editorView.selectToEndOfLine()
+      edited = editorView.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe false
+
+  describe "when editor:copy-path is triggered", ->
+    it "copies the absolute path to the editor view's file to the pasteboard", ->
+      editorView.trigger 'editor:copy-path'
+      expect(atom.pasteboard.read()[0]).toBe editorView.getPath()
+
+  describe "when editor:move-line-up is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is up", ->
+        editorView.setCursorBufferPosition([1,0])
+        editorView.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editorView.setCursorBufferPosition([1,2])
+        editorView.trigger 'editor:move-line-up'
+        expect(editorView.getCursorBufferPosition()).toEqual [0,2]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editorView.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editorView.getSelectedText()).toBe 'var'
+          editorView.trigger 'editor:move-line-up'
+          expect(editorView.getSelectedBufferRange()).toEqual [[0, 2], [0, 5]]
+          expect(editorView.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines up", ->
+          editorView.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editorView.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(3)).toBe '  var sort = function(items) {'
+
+        it "maintains the selection", ->
+          editorView.setSelectedBufferRange([[2, 0], [3, 62]])
+          editorView.trigger 'editor:move-line-up'
+          expect(editorView.getSelectedBufferRange()).toEqual [[1, 0], [2, 62]]
+
+      describe "when the last line is selected", ->
+        it "moves the selected line up", ->
+          editorView.setSelectedBufferRange([[12, 0], [12, Infinity]])
+          editorView.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+
+      describe "when the last two lines are selected", ->
+        it "moves the selected lines up", ->
+          editorView.setSelectedBufferRange([[11, 0], [12, Infinity]])
+          editorView.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(10)).toBe '  return sort(Array.apply(this, arguments));'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe ''
+
+    describe "when the cursor is on the first line", ->
+      it "does not move the line", ->
+        editorView.setCursorBufferPosition([0,0])
+        originalText = editorView.getText()
+        editorView.trigger 'editor:move-line-up'
+        expect(editorView.getText()).toBe originalText
+
+    describe "when the cursor is on the trailing newline", ->
+      it "does not move the line", ->
+        editorView.moveCursorToBottom()
+        editorView.insertNewline()
+        editorView.moveCursorToBottom()
+        originalText = editorView.getText()
+        editorView.trigger 'editor:move-line-up'
+        expect(editorView.getText()).toBe originalText
+
+    describe "when the cursor is on a folded line", ->
+      it "moves all lines in the fold up and preserves the fold", ->
+        editorView.setCursorBufferPosition([4, 0])
+        editorView.foldCurrentRow()
+        editorView.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(buffer.lineForRow(7)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(editorView.getSelectedBufferRange()).toEqual [[3, 0], [3, 0]]
+        expect(editorView.isFoldedAtScreenRow(3)).toBeTruthy()
+
+    describe "when the selection contains a folded and unfolded line", ->
+      it "moves the selected lines up and preserves the fold", ->
+        editorView.setCursorBufferPosition([4, 0])
+        editorView.foldCurrentRow()
+        editorView.setCursorBufferPosition([3, 4])
+        editorView.selectDown()
+        expect(editorView.isFoldedAtScreenRow(4)).toBeTruthy()
+        editorView.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(editorView.getSelectedBufferRange()).toEqual [[2, 4], [3, 0]]
+        expect(editorView.isFoldedAtScreenRow(3)).toBeTruthy()
+
+    describe "when an entire line is selected including the newline", ->
+      it "moves the selected line up", ->
+        editorView.setCursorBufferPosition([1])
+        editorView.selectToEndOfLine()
+        editorView.selectRight()
+        editorView.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+  describe "when editor:move-line-down is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is down", ->
+        editorView.setCursorBufferPosition([0, 0])
+        editorView.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editorView.setCursorBufferPosition([0, 2])
+        editorView.trigger 'editor:move-line-down'
+        expect(editorView.getCursorBufferPosition()).toEqual [1, 2]
+
+    describe "when the cursor is on the last line", ->
+      it "does not move the line", ->
+        editorView.moveCursorToBottom()
+        editorView.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(editorView.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "when the cursor is on the second to last line", ->
+      it "moves the line down", ->
+        editorView.setCursorBufferPosition([11, 0])
+        editorView.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(11)).toBe '};'
+        expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+        expect(buffer.lineForRow(13)).toBeUndefined()
+
+    describe "when the cursor is on the second to last line and the last line is empty", ->
+      it "does not move the line", ->
+        editorView.moveCursorToBottom()
+        editorView.insertNewline()
+        editorView.setCursorBufferPosition([12, 2])
+        editorView.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(buffer.lineForRow(13)).toBe ''
+        expect(editorView.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editorView.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editorView.getSelectedText()).toBe 'var'
+          editorView.trigger 'editor:move-line-down'
+          expect(editorView.getSelectedBufferRange()).toEqual [[2, 2], [2, 5]]
+          expect(editorView.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines down", ->
+          editorView.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editorView.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(2)).toBe '    while(items.length > 0) {'
+          expect(buffer.lineForRow(3)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '      current = items.shift();'
+
+        it "maintains the selection", ->
+          editorView.setSelectedBufferRange([[2, 0], [3, 62]])
+          editorView.trigger 'editor:move-line-down'
+          expect(editorView.getSelectedBufferRange()).toEqual [[3, 0], [4, 62]]
+
+      describe "when the cursor is on a folded line", ->
+        it "moves all lines in the fold down and preserves the fold", ->
+          editorView.setCursorBufferPosition([4, 0])
+          editorView.foldCurrentRow()
+          editorView.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(4)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editorView.getSelectedBufferRange()).toEqual [[5, 0], [5, 0]]
+          expect(editorView.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when the selection contains a folded and unfolded line", ->
+        it "moves the selected lines down and preserves the fold", ->
+          editorView.setCursorBufferPosition([4, 0])
+          editorView.foldCurrentRow()
+          editorView.setCursorBufferPosition([3, 4])
+          editorView.selectDown()
+          expect(editorView.isFoldedAtScreenRow(4)).toBeTruthy()
+          editorView.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(3)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editorView.getSelectedBufferRange()).toEqual [[4, 4], [5, 0]]
+          expect(editorView.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when an entire line is selected including the newline", ->
+        it "moves the selected line down", ->
+          editorView.setCursorBufferPosition([1])
+          editorView.selectToEndOfLine()
+          editorView.selectRight()
+          editorView.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
+
+  describe "when editor:duplicate-line is triggered", ->
+    describe "where there is no selection", ->
+      describe "when the cursor isn't on a folded line", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editorView.setCursorBufferPosition([0, 5])
+          editorView.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+          expect(editorView.getCursorBufferPosition()).toEqual [1, 5]
+
+      describe "when the cursor is on a folded line", ->
+        it "duplicates the entire fold before and moves the cursor to the new fold", ->
+          editorView.setCursorBufferPosition([4])
+          editorView.foldCurrentRow()
+          editorView.trigger 'editor:duplicate-line'
+          expect(editorView.getCursorScreenPosition()).toEqual [5]
+          expect(editorView.isFoldedAtScreenRow(4)).toBeTruthy()
+          expect(editorView.isFoldedAtScreenRow(5)).toBeTruthy()
+          expect(buffer.lineForRow(8)).toBe '    while(items.length > 0) {'
+          expect(buffer.lineForRow(9)).toBe '      current = items.shift();'
+          expect(buffer.lineForRow(10)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+          expect(buffer.lineForRow(11)).toBe '    }'
+
+      describe "when the cursor is on the last line and it doesn't have a trailing newline", ->
+        it "inserts a newline and the duplicated line", ->
+          editorView.moveCursorToBottom()
+          editorView.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(12)).toBe '};'
+          expect(buffer.lineForRow(13)).toBe '};'
+          expect(buffer.lineForRow(14)).toBeUndefined()
+          expect(editorView.getCursorBufferPosition()).toEqual [13, 2]
+
+      describe "when the cursor in on the last line and it is only a newline", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editorView.moveCursorToBottom()
+          editorView.insertNewline()
+          editorView.moveCursorToBottom()
+          editorView.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(13)).toBe ''
+          expect(buffer.lineForRow(14)).toBe ''
+          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(editorView.getCursorBufferPosition()).toEqual [14, 0]
+
+      describe "when the cursor is on the second to last line and the last line only a newline", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editorView.moveCursorToBottom()
+          editorView.insertNewline()
+          editorView.setCursorBufferPosition([12])
+          editorView.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(12)).toBe '};'
+          expect(buffer.lineForRow(13)).toBe '};'
+          expect(buffer.lineForRow(14)).toBe ''
+          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(editorView.getCursorBufferPosition()).toEqual [13, 0]
+
+  describe "editor:save-debug-snapshot", ->
+    it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
+      saveDialogCallback = null
+      spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
+      spyOn(fs, 'writeFileSync')
+
+      editorView.trigger 'editor:save-debug-snapshot'
+
+      statePath = path.join(temp.dir, 'state')
+      expect(atom.showSaveDialog).toHaveBeenCalled()
+      saveDialogCallback(statePath)
+      expect(fs.writeFileSync).toHaveBeenCalled()
+      expect(fs.writeFileSync.argsForCall[0][0]).toBe statePath
+      expect(typeof fs.writeFileSync.argsForCall[0][1]).toBe 'string'
+
+  describe "when the escape key is pressed on the editor view", ->
+    it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
+      keymap.bindKeys 'name', '.editor', 'escape': 'test-event'
+      testEventHandler = jasmine.createSpy("testEventHandler")
+
+      editorView.on 'test-event', testEventHandler
+      editorView.activeEditSession.addSelectionForBufferRange([[3, 0], [3, 0]])
+      expect(editorView.activeEditSession.getSelections().length).toBe 2
+
+      editorView.trigger(keydownEvent('escape'))
+      expect(editorView.activeEditSession.getSelections().length).toBe 1
+      expect(testEventHandler).not.toHaveBeenCalled()
+
+      editorView.trigger(keydownEvent('escape'))
+      expect(testEventHandler).toHaveBeenCalled()
+
+  describe "when the editor view is attached but invisible", ->
+    describe "when the editor view's text is changed", ->
+      it "redraws the editor view when it is next shown", ->
+        window.rootView = new RootView
+        rootView.openSync('sample.js')
+        rootView.attachToDom()
+        editorView = rootView.getActiveView()
+
+        view = $$ -> @div id: 'view', tabindex: -1, 'View'
+        editorView.getPane().showItem(view)
+        expect(editorView.isVisible()).toBeFalsy()
+
+        editorView.setText('hidden changes')
+        editorView.setCursorBufferPosition([0,4])
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editorView.on 'editor:display-updated', displayUpdatedHandler
+        editorView.getPane().showItem(editorView.getModel())
+        expect(editorView.isVisible()).toBeTruthy()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editorView.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+      it "redraws the editor view when it is next reattached", ->
+        editorView.attachToDom()
+        editorView.hide()
+        editorView.setText('hidden changes')
+        editorView.setCursorBufferPosition([0,4])
+        editorView.detach()
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editorView.on 'editor:display-updated', displayUpdatedHandler
+        editorView.show()
+        editorView.attachToDom()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editorView.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+  describe "editor:scroll-to-cursor", ->
+    it "scrolls to and centers the editor view on the cursor's position", ->
+      editorView.attachToDom(heightInLines: 3)
+      editorView.setCursorBufferPosition([1, 2])
+      editorView.scrollToBottom()
+      expect(editorView.getFirstVisibleScreenRow()).not.toBe 0
+      expect(editorView.getLastVisibleScreenRow()).not.toBe 2
+      editorView.trigger('editor:scroll-to-cursor')
+      expect(editorView.getFirstVisibleScreenRow()).toBe 0
+      expect(editorView.getLastVisibleScreenRow()).toBe 2
+
+  describe "when the editor view is removed", ->
+    it "fires a editor:will-be-removed event", ->
+      window.rootView = new RootView
+      rootView.openSync('sample.js')
+      rootView.attachToDom()
+      editorView = rootView.getActiveView()
+
+      willBeRemovedHandler = jasmine.createSpy('fileChange')
+      editorView.on 'editor:will-be-removed', willBeRemovedHandler
+      editorView.getPane().destroyActiveItem()
+      expect(willBeRemovedHandler).toHaveBeenCalled()
+
+  describe "when setInvisibles is toggled (regression)", ->
+    it "renders inserted newlines properly", ->
+      editorView.setShowInvisibles(true)
+      editorView.setCursorBufferPosition([0, 0])
+      editorView.attachToDom(heightInLines: 20)
+      editorView.setShowInvisibles(false)
+      editorView.insertText("\n")
+
+      for rowNumber in [1..5]
+        expect(editorView.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
+
+  describe "when the window is resized", ->
+    it "updates the active edit session with the current soft wrap column", ->
+      editorView.attachToDom()
+      setEditorWidthInChars(editorView, 50)
+      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 50
+      setEditorWidthInChars(editorView, 100)
+      $(window).trigger 'resize'
+      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 100
