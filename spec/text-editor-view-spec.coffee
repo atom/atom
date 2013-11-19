@@ -1,4 +1,5 @@
-{_, $, $$, fs, TextEditorView, Range, RootView} = require 'atom'
+{_, $, $$, fs, Range, RootView} = require 'atom'
+TextEditorView = require '../src/text-editor-view'
 path = require 'path'
 temp = require 'temp'
 
