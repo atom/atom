@@ -87,3 +87,21 @@
   'meta-8': 'pane:show-item-8'
   'meta-9': 'pane:show-item-9'
 
+'body.platform-darwin .editor':
+  # Apple Specific
+  'meta-backspace': 'editor:backspace-to-beginning-of-line'
+  'meta-delete': 'editor:backspace-to-beginning-of-line'
+  'ctrl-A': 'editor:select-to-first-character-of-line'
+  'ctrl-E': 'editor:select-to-end-of-line'
+  'meta-left': 'editor:move-to-first-character-of-line'
+  'meta-right': 'editor:move-to-end-of-line'
+  'meta-shift-left': 'editor:select-to-first-character-of-line'
+  'meta-shift-right': 'editor:select-to-end-of-line'
+  'alt-backspace': 'editor:backspace-to-beginning-of-word'
+  'alt-delete': 'editor:delete-to-end-of-word'
+  'ctrl-a': 'editor:move-to-first-character-of-line'
+  'ctrl-e': 'editor:move-to-end-of-line'
+  'ctrl-k': 'editor:cut-to-end-of-line'
+
+  # Atom Specific
+  'ctrl-W': 'editor:select-word'

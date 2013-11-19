@@ -1,29 +1,13 @@
 '.editor':
-  # Apple Specific
+  # Platform Bindings
   'alt-left': 'editor:move-to-previous-word-boundary'
   'alt-right': 'editor:move-to-next-word-boundary'
   'alt-shift-left': 'editor:select-to-previous-word-boundary'
   'alt-shift-right': 'editor:select-to-next-word-boundary'
-  'meta-backspace': 'editor:backspace-to-beginning-of-line'
-  'meta-delete': 'editor:backspace-to-beginning-of-line'
-  'ctrl-A': 'editor:select-to-first-character-of-line'
-  'ctrl-E': 'editor:select-to-end-of-line'
-  'meta-left': 'editor:move-to-first-character-of-line'
-  'meta-right': 'editor:move-to-end-of-line'
-  'meta-shift-left': 'editor:select-to-first-character-of-line'
-  'meta-shift-right': 'editor:select-to-end-of-line'
   'home': 'editor:move-to-first-character-of-line'
   'end': 'editor:move-to-end-of-line'
   'shift-home': 'editor:select-to-first-character-of-line'
   'shift-end': 'editor:select-to-end-of-line'
-  'alt-backspace': 'editor:backspace-to-beginning-of-word'
-  'alt-delete': 'editor:delete-to-end-of-word'
-  'ctrl-a': 'editor:move-to-first-character-of-line'
-  'ctrl-e': 'editor:move-to-end-of-line'
-  'ctrl-k': 'editor:cut-to-end-of-line'
-
-  # Atom Specific
-  'ctrl-W': 'editor:select-word'
 
   # Sublime Parity
   'meta-a': 'core:select-all'

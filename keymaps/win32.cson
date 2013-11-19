@@ -33,6 +33,8 @@
   'pageup': 'core:page-up'
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
+  'ctrl-tab': 'pane:show-next-item'
+  'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-shift-up': 'core:move-up'
   'ctrl-shift-down': 'core:move-down'
   'ctrl-=': 'window:increase-font-size'
@@ -47,3 +49,7 @@
   'ctrl-k alt-meta-w': 'pane:close-other-items' # Atom Specific
   'ctrl-k meta-left': 'window:focus-previous-pane'
   'ctrl-k meta-right': 'window:focus-next-pane'
+
+'body.platform-win32 .editor':
+  # Windows specific
+  'ctrl-delete': 'editor:backspace-to-beginning-of-word'
