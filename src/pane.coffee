@@ -48,7 +48,7 @@ class Pane extends View
         @addItem(deserialize(itemState), index + i, updateState: false)
 
     @subscribe @state, 'changed', ({newValues, siteId}) =>
-      return if site is @state.siteId
+      return if siteId is @state.siteId
       if newValues.activeItemUri
         @showItemForUri(newValues.activeItemUri)
 

@@ -26,7 +26,6 @@ window.setUpEnvironment = (windowMode) ->
   window.config = atom.config
   window.syntax = atom.syntax
   window.keymap = atom.keymap
-  window.site = atom.site
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
