@@ -432,7 +432,7 @@ describe 'TextBuffer', ->
         expect(event.newText).toBe "foo\nbar"
 
     it "allows a 'changed' event handler to safely undo the change", ->
-      buffer.one 'changed', -> buffer.undo()
+      buffer.once 'changed', -> buffer.undo()
       buffer.change([0, 0], "hello")
       expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
