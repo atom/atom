@@ -2,7 +2,7 @@
 {Range} = require 'telepath'
 _ = require 'underscore-plus'
 
-# Private: Represents the portion of the {TextEditorView} containing row numbers.
+# Private: Represents the portion of the {EditorView} containing row numbers.
 #
 # The gutter also indicates if rows are folded.
 module.exports =
@@ -52,9 +52,9 @@ class Gutter extends View
 
   ### Public ###
 
-  # Retrieves the containing {TextEditorView}.
+  # Retrieves the containing {EditorView}.
   #
-  # Returns an {TextEditorView}.
+  # Returns an {EditorView}.
   getEditorView: ->
     @parentView
 

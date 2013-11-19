@@ -7,7 +7,7 @@ Q = require 'q'
 telepath = require 'telepath'
 
 TextBuffer = require './text-buffer'
-TextEditor = require './text-editor'
+Editor = require './editor'
 {Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
@@ -133,14 +133,14 @@ class Project extends telepath.Model
     @rootDirectory?.contains(pathToCheck) ? false
 
   # Public: Given a path to a file, this constructs and associates a new
-  # {TextEditor}, showing the file.
+  # {Editor}, showing the file.
   #
   # * filePath:
   #   The {String} path of the file to associate with
   # * editSessionOptions:
-  #   Options that you can pass to the {TextEditor} constructor
+  #   Options that you can pass to the {Editor} constructor
   #
-  # Returns a promise that resolves to an {TextEditor}.
+  # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     resource = null
@@ -160,18 +160,18 @@ class Project extends telepath.Model
 
     @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {TextEditor}s for all open files.
+  # Public: Retrieves all {Editor}s for all open files.
   #
-  # Returns an {Array} of {TextEditor}s.
+  # Returns an {Array} of {Editor}s.
   getEditSessions: ->
     new Array(@editSessions...)
 
-  # Public: Add the given {TextEditor}.
+  # Public: Add the given {Editor}.
   addEditSession: (editSession) ->
     @editSessions.push editSession
     @emit 'edit-session-created', editSession
 
-  # Public: Return and removes the given {TextEditor}.
+  # Public: Return and removes the given {Editor}.
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
@@ -332,7 +332,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    editSession = new TextEditor(_.extend({buffer}, editSessionOptions))
+    editSession = new Editor(_.extend({buffer}, editSessionOptions))
     @addEditSession(editSession)
     editSession
 

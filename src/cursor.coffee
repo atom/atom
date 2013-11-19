@@ -5,7 +5,7 @@ _ = require 'underscore-plus'
 # Public: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
-# Cursors belong to {TextEditor}s and have some metadata attached in the form
+# Cursors belong to {Editor}s and have some metadata attached in the form
 # of a {StringMarker}.
 module.exports =
 class Cursor
@@ -17,7 +17,7 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  # Private: Instantiated by an {TextEditor}
+  # Private: Instantiated by an {Editor}
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
     @marker.on 'changed', (e) =>
@@ -62,7 +62,7 @@ class Cursor
   #   An {Array} of two numbers: the screen row, and the screen column.
   # * options:
   #    + autoscroll:
-  #      A Boolean which, if `true`, scrolls the {TextEditor} to wherever the
+  #      A Boolean which, if `true`, scrolls the {Editor} to wherever the
   #      cursor moves to.
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
@@ -78,7 +78,7 @@ class Cursor
   #   An {Array} of two numbers: the buffer row, and the buffer column.
   # * options:
   #    + autoscroll:
-  #      A Boolean which, if `true`, scrolls the {TextEditor} to wherever the
+  #      A Boolean which, if `true`, scrolls the {Editor} to wherever the
   #      cursor moves to.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
@@ -118,7 +118,7 @@ class Cursor
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
     new RegExp(segments.join("|"), "g")
 
-  # Public: Identifies if this cursor is the last in the {TextEditor}.
+  # Public: Identifies if this cursor is the last in the {Editor}.
   #
   # "Last" is defined as the most recently added cursor.
   #

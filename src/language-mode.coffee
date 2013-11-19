@@ -22,9 +22,9 @@ class LanguageMode
 
   ### Public ###
 
-  # Sets up a `LanguageMode` for the given {TextEditor}.
+  # Sets up a `LanguageMode` for the given {Editor}.
   #
-  # editSession - The {TextEditor} to associate with
+  # editSession - The {Editor} to associate with
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
 

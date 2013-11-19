@@ -1,6 +1,6 @@
 clipboard = require 'clipboard'
 
-describe "TextEditor", ->
+describe "Editor", ->
   [buffer, editSession, lineLengths] = []
 
   convertToHardTabs = (buffer) ->

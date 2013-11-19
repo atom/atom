@@ -1,11 +1,11 @@
-TextEditor = require '../src/text-editor'
+Editor = require '../src/editor'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []
 
   beforeEach ->
     buffer = project.bufferForPathSync('sample.js')
-    editSession = new TextEditor(buffer: buffer, tabLength: 2)
+    editSession = new Editor(buffer: buffer, tabLength: 2)
     selection = editSession.getSelection()
 
   afterEach ->

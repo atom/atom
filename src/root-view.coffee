@@ -5,12 +5,12 @@ Q = require 'q'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 telepath = require 'telepath'
-TextEditorView = require './text-editor-view'
+EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
 PaneRow = require './pane-row'
 PaneContainer = require './pane-container'
-TextEditor = require './text-editor'
+Editor = require './editor'
 
 # Public: The container for the entire Atom application.
 #
@@ -38,7 +38,7 @@ TextEditor = require './text-editor'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, TextEditorView)
+  registerDeserializers(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
 
@@ -169,7 +169,7 @@ class RootView extends View
   # * options
   #   + initialLine: The buffer line number to open to.
   #
-  # Returns a promise that resolves to the {TextEditor} for the file URI.
+  # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
     changeFocus = options.changeFocus ? true
     filePath = project.resolve(filePath)
@@ -249,7 +249,7 @@ class RootView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {TextEditorView}s.
+  # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -259,7 +259,7 @@ class RootView extends View
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
-      for item in pane.getItems() when item instanceof TextEditor
+      for item in pane.getItems() when item instanceof Editor
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
@@ -308,14 +308,14 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {TextEditorView}.
+  # Private: Fires a callback on each open {EditorView}.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {TextEditor}.
+  # Public: Fires a callback on each open {Editor}.
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 

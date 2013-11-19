@@ -126,12 +126,12 @@ class TextBuffer extends telepath.Model
 
   # Identifies if the buffer belongs to multiple editors.
   #
-  # For example, if the {TextEditorView} was split.
+  # For example, if the {EditorView} was split.
   #
   # Returns a {Boolean}.
   hasMultipleEditors: -> @refcount > 1
 
-  # Reloads a file in the {TextEditor}.
+  # Reloads a file in the {Editor}.
   #
   # Sets the buffer's content to the cached disk contents
   reload: ->
