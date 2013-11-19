@@ -18,7 +18,7 @@ class Cursor
   needsAutoscroll: null
 
   # Private: Instantiated by an {Editor}
-  constructor: ({@editSession, @marker}) ->
+  constructor: ({@editor, @marker}) ->
     @updateVisibility()
     @marker.on 'changed', (e) =>
       @updateVisibility()
@@ -37,10 +37,10 @@ class Cursor
         textChanged: textChanged
 
       @emit 'moved', movedEvent
-      @editSession.emit 'cursor-moved', movedEvent
+      @editor.emit 'cursor-moved', movedEvent
     @marker.on 'destroyed', =>
       @destroyed = true
-      @editSession.removeCursor(this)
+      @editor.removeCursor(this)
       @emit 'destroyed'
     @needsAutoscroll = true
 
@@ -124,7 +124,7 @@ class Cursor
   #
   # Returns a Boolean.
   isLastCursor: ->
-    this == @editSession.getCursor()
+    this == @editor.getCursor()
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
@@ -135,7 +135,7 @@ class Cursor
   isSurroundedByWhitespace: ->
     {row, column} = @getBufferPosition()
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
-    /^\s+$/.test @editSession.getTextInBufferRange(range)
+    /^\s+$/.test @editor.getTextInBufferRange(range)
 
   # Public: Returns whether the cursor is currently between a word and non-word
   # character. The non-word characters are defined by the
@@ -150,7 +150,7 @@ class Cursor
 
     {row, column} = @getBufferPosition()
     range = [[row, column - 1], [row, column + 1]]
-    [before, after] = @editSession.getTextInBufferRange(range)
+    [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
     nonWordCharacters = atom.config.get('editor.nonWordCharacters').split('')
@@ -160,7 +160,7 @@ class Cursor
   isInsideWord: ->
     {row, column} = @getBufferPosition()
     range = [[row, column], [row, Infinity]]
-    @editSession.getTextInBufferRange(range).search(@wordRegExp()) == 0
+    @editor.getTextInBufferRange(range).search(@wordRegExp()) == 0
 
   # Public: Prevents this cursor from causing scrolling.
   clearAutoscroll: ->
@@ -189,7 +189,7 @@ class Cursor
   # Public: Returns the cursor's current buffer row of text excluding its line
   # ending.
   getCurrentBufferLine: ->
-    @editSession.lineForBufferRow(@getBufferRow())
+    @editor.lineForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
   moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
@@ -248,7 +248,7 @@ class Cursor
 
   # Public: Moves the cursor to the bottom of the buffer.
   moveToBottom: ->
-    @setBufferPosition(@editSession.getEofBufferPosition())
+    @setBufferPosition(@editor.getEofBufferPosition())
 
   # Public: Moves the cursor to the beginning of the screen line.
   moveToBeginningOfLine: ->
@@ -258,7 +258,7 @@ class Cursor
   # line.
   moveToFirstCharacterOfLine: ->
     {row, column} = @getScreenPosition()
-    screenline = @editSession.lineForScreenRow(row)
+    screenline = @editor.lineForScreenRow(row)
 
     goalColumn = screenline.text.search(/\S/)
     return if goalColumn == -1
@@ -272,7 +272,7 @@ class Cursor
     position = @getBufferPosition()
     scanRange = @getCurrentLineBufferRange()
     endOfLeadingWhitespace = null
-    @editSession.scanInBufferRange /^[ \t]*/, scanRange, ({range}) =>
+    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) =>
       endOfLeadingWhitespace = range.end
 
     @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
@@ -318,11 +318,11 @@ class Cursor
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
       if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = range.start
       if not beginningOfWordPosition?.isEqual(currentBufferPosition)
@@ -334,11 +334,11 @@ class Cursor
   # the current word, or the previous word.
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
       if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
         # force it to stop at the beginning of each line
         beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
@@ -356,10 +356,10 @@ class Cursor
   # the current word, or the previous word.
   getMoveNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
+    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
       if range.start.row > currentBufferPosition.row
         # force it to stop at the beginning of each line
         endOfWordPosition = new Point(range.start.row, 0)
@@ -386,10 +386,10 @@ class Cursor
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true
     currentBufferPosition = @getBufferPosition()
-    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
+    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
       if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
         endOfWordPosition = range.end
       if not endOfWordPosition?.isEqual(currentBufferPosition)
@@ -407,10 +407,10 @@ class Cursor
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     start = if @isInsideWord() then @getEndOfCurrentWordBufferPosition() else currentBufferPosition
-    scanRange = [start, @editSession.getEofBufferPosition()]
+    scanRange = [start, @editor.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
-    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
       beginningOfNextWordPosition = range.start
       stop()
 
@@ -432,7 +432,7 @@ class Cursor
   #    + includeNewline:
   #      A boolean which controls whether the Range should include the newline.
   getCurrentLineBufferRange: (options) ->
-    @editSession.bufferRangeForBufferRow(@getBufferRow(), options)
+    @editor.bufferRangeForBufferRow(@getBufferRow(), options)
 
   # Public: Retrieves the range for the current paragraph.
   #
@@ -440,11 +440,11 @@ class Cursor
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
-    @editSession.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
+    @editor.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
 
   # Public: Returns the characters preceeding the cursor in the current word.
   getCurrentWordPrefix: ->
-    @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
+    @editor.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
 
   # Public: Returns whether the cursor is at the start of a line.
   isAtBeginningOfLine: ->
@@ -452,8 +452,8 @@ class Cursor
 
   # Public: Returns the indentation level of the current line.
   getIndentLevel: ->
-    if @editSession.getSoftTabs()
-      @getBufferColumn() / @editSession.getTabLength()
+    if @editor.getSoftTabs()
+      @getBufferColumn() / @editor.getTabLength()
     else
       @getBufferColumn()
 
@@ -465,13 +465,13 @@ class Cursor
   #
   # Returns an {Array} of {String}s.
   getScopes: ->
-    @editSession.scopesForBufferPosition(@getBufferPosition())
+    @editor.scopesForBufferPosition(@getBufferPosition())
 
   # Public: Returns true if this cursor has no non-whitespace characters before
   # its current position.
   hasPrecedingCharactersOnLine: ->
     bufferPosition = @getBufferPosition()
-    line = @editSession.lineForBufferRow(bufferPosition.row)
+    line = @editor.lineForBufferRow(bufferPosition.row)
     firstCharacterColumn = line.search(/\S/)
 
     if firstCharacterColumn is -1

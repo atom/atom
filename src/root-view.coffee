@@ -176,19 +176,19 @@ class RootView extends View
     initialLine = options.initialLine
     activePane = @getActivePane()
 
-    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
-    promise = project.open(filePath, {initialLine}) if not editSession
+    editor = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
+    promise = project.open(filePath, {initialLine}) if not editor
 
-    Q(editSession ? promise)
-      .then (editSession) =>
+    Q(editor ? promise)
+      .then (editor) =>
         if not activePane
-          activePane = new Pane(editSession)
+          activePane = new Pane(editor)
           @panes.setRoot(activePane)
 
-        activePane.showItem(editSession)
+        activePane.showItem(editor)
         activePane.focus() if changeFocus
         @trigger "uri-opened"
-        editSession
+        editor
       .catch (error) ->
         console.error(error.stack ? error)
 

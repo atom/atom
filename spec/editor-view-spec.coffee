@@ -7,14 +7,14 @@ path = require 'path'
 temp = require 'temp'
 
 describe "EditorView", ->
-  [buffer, editorView, editSession, cachedLineHeight, cachedCharWidth] = []
+  [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
     atom.activatePackage('language-text', sync: true)
     atom.activatePackage('language-javascript', sync: true)
-    editSession = project.openSync('sample.js')
-    buffer = editSession.buffer
-    editorView = new EditorView(editSession)
+    editor = project.openSync('sample.js')
+    buffer = editor.buffer
+    editorView = new EditorView(editor)
     editorView.lineOverdraw = 2
     editorView.isFocused = true
     editorView.enableKeymap()
@@ -37,7 +37,7 @@ describe "EditorView", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new EditorView(editSession: project.openSync('sample.js'))
+    editorForMeasurement = new EditorView(editor: project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -103,12 +103,12 @@ describe "EditorView", ->
     it "triggers an alert", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      editSession = project.openSync(filePath)
-      editorView.edit(editSession)
+      editor = project.openSync(filePath)
+      editorView.edit(editor)
       editorView.insertText("now the buffer is modified")
 
       fileChangeHandler = jasmine.createSpy('fileChange')
-      editSession.buffer.file.on 'contents-changed', fileChangeHandler
+      editor.buffer.file.on 'contents-changed', fileChangeHandler
 
       spyOn(atom, "confirm")
 
@@ -125,7 +125,7 @@ describe "EditorView", ->
       editorView.remove()
       expect(editorView.activeEditSession.destroyed).toBeTruthy()
 
-  describe ".edit(editSession)", ->
+  describe ".edit(editor)", ->
     [newEditSession, newBuffer] = []
 
     beforeEach ->
@@ -154,7 +154,7 @@ describe "EditorView", ->
       editorView.insertText("hello")
       expect(editorView.lineElementForScreenRow(40).text()).toBe "hello3"
 
-      editorView.edit(editSession)
+      editorView.edit(editor)
       { firstRenderedScreenRow, lastRenderedScreenRow } = editorView
       expect(editorView.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe buffer.lineForRow(firstRenderedScreenRow)
       expect(editorView.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editorView.lastRenderedScreenRow)
@@ -821,11 +821,11 @@ describe "EditorView", ->
 
     describe "when a selection merges with another selection", ->
       it "removes the merged selection view", ->
-        editSession = editorView.activeEditSession
-        editSession.setCursorScreenPosition([4, 10])
-        editSession.selectToScreenPosition([5, 27])
-        editSession.addCursorAtScreenPosition([3, 10])
-        editSession.selectToScreenPosition([6, 27])
+        editor = editorView.activeEditSession
+        editor.setCursorScreenPosition([4, 10])
+        editor.selectToScreenPosition([5, 27])
+        editor.addCursorAtScreenPosition([3, 10])
+        editor.selectToScreenPosition([6, 27])
 
         expect(editorView.getSelectionViews().length).toBe 1
         expect(editorView.find('.region').length).toBe 3
@@ -836,8 +836,8 @@ describe "EditorView", ->
         jasmine.unspy(editorView, 'requestDisplayUpdate')
         spyOn(editorView, 'requestDisplayUpdate')
 
-        editSession = editorView.activeEditSession
-        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        editor = editorView.activeEditSession
+        selection = editor.addSelectionForBufferRange([[3, 0], [3, 4]])
         selection.destroy()
         editorView.updateDisplay()
         expect(editorView.getSelectionViews().length).toBe 1
@@ -1075,7 +1075,7 @@ describe "EditorView", ->
 
           describe "when soft-wrap is enabled", ->
             beforeEach ->
-              editSession.setSoftWrap(true)
+              editor.setSoftWrap(true)
 
             it "does not scroll the buffer horizontally", ->
               editorView.width(charWidth * 30)
@@ -1545,7 +1545,7 @@ describe "EditorView", ->
 
       describe "when wrapping is on", ->
         beforeEach ->
-          editSession.setSoftWrap(true)
+          editor.setSoftWrap(true)
 
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
           editorView.setText "a line that wraps"
@@ -1699,7 +1699,7 @@ describe "EditorView", ->
   describe "when soft-wrap is enabled", ->
     beforeEach ->
       jasmine.unspy(window, 'setTimeout')
-      editSession.setSoftWrap(true)
+      editor.setSoftWrap(true)
       editorView.attachToDom()
       setEditorHeightInLines(editorView, 20)
       setEditorWidthInChars(editorView, 50)
@@ -1768,7 +1768,7 @@ describe "EditorView", ->
       expect(editorView.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor view is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new EditorView(editSession: project.openSync('sample.js'))
+      otherEditor = new EditorView(editor: project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
@@ -1780,7 +1780,7 @@ describe "EditorView", ->
 
     describe "when the editor view's width changes", ->
       it "updates the width in characters on the edit session", ->
-        previousSoftWrapColumn = editSession.getSoftWrapColumn()
+        previousSoftWrapColumn = editor.getSoftWrapColumn()
 
         spyOn(editorView, 'setWidthInChars').andCallThrough()
         editorView.width(editorView.width() / 2)
@@ -1789,7 +1789,7 @@ describe "EditorView", ->
           editorView.setWidthInChars.callCount > 0
 
         runs ->
-          expect(editSession.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
+          expect(editor.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
 
   describe "gutter rendering", ->
     beforeEach ->
@@ -1832,7 +1832,7 @@ describe "EditorView", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
-        editSession.setSoftWrap(true)
+        editor.setSoftWrap(true)
         editorView.setWidthInChars(50)
         expect(editorView.gutter.find('.line-number').length).toEqual(8)
         expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
@@ -1898,7 +1898,7 @@ describe "EditorView", ->
         editorView.edit(emptyEditSession)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
-        editorView.edit(editSession)
+        editorView.edit(editor)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
 
         editorView.edit(emptyEditSession)
@@ -2014,7 +2014,7 @@ describe "EditorView", ->
     describe "when there is wrapping", ->
       beforeEach ->
         editorView.attachToDom(30)
-        editSession.setSoftWrap(true)
+        editor.setSoftWrap(true)
         setEditorWidthInChars(editorView, 20)
 
       it "highlights the line where the initial cursor position is", ->
@@ -2077,7 +2077,7 @@ describe "EditorView", ->
 
     describe "when there is wrapping", ->
       beforeEach ->
-        editSession.setSoftWrap(true)
+        editor.setSoftWrap(true)
         setEditorWidthInChars(editorView, 20)
 
       it "highlights the line where the initial cursor position is", ->
@@ -2098,9 +2098,9 @@ describe "EditorView", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = project.openSync('two-hundred.txt')
-      buffer = editSession.buffer
-      editorView.edit(editSession)
+      editor = project.openSync('two-hundred.txt')
+      buffer = editor.buffer
+      editorView.edit(editor)
       editorView.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
@@ -2124,7 +2124,7 @@ describe "EditorView", ->
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
         editorView.setCursorBufferPosition([3,0])
-        editSession.createFold(3, 5)
+        editor.createFold(3, 5)
 
         foldLine = editorView.find('.line.fold')
         expect(foldLine).toExist()

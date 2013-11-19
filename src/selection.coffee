@@ -9,20 +9,20 @@ class Selection
 
   cursor: null
   marker: null
-  editSession: null
+  editor: null
   initialScreenRange: null
   wordwise: false
   needsAutoscroll: null
 
 
   # Private:
-  constructor: ({@cursor, @marker, @editSession}) ->
+  constructor: ({@cursor, @marker, @editor}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
       @destroyed = true
-      @editSession.removeSelection(this)
-      @emit 'destroyed' unless @editSession.destroyed
+      @editor.removeSelection(this)
+      @emit 'destroyed' unless @editor.destroyed
 
   # Private:
   destroy: ->
@@ -65,7 +65,7 @@ class Selection
   # * options:
   #   + A hash of options matching those found in {.setBufferRange}
   setScreenRange: (screenRange, options) ->
-    @setBufferRange(@editSession.bufferRangeForScreenRange(screenRange), options)
+    @setBufferRange(@editor.bufferRangeForScreenRange(screenRange), options)
 
   # Public: Returns the buffer {Range} for the selection.
   getBufferRange: ->
@@ -84,7 +84,7 @@ class Selection
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
     options.isReversed ?= @isReversed()
-    @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
       @marker.setBufferRange(bufferRange, options)
@@ -102,7 +102,7 @@ class Selection
 
   # Public: Returns the text in the selection.
   getText: ->
-    @editSession.buffer.getTextInRange(@getBufferRange())
+    @editor.buffer.getTextInRange(@getBufferRange())
 
   # Public: Clears the selection, moving the marker to the head.
   clear: ->
@@ -132,7 +132,7 @@ class Selection
   # * row:
   #   The line Number to select (default: the row of the cursor)
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    range = @editSession.bufferRangeForBufferRow(row, includeNewline: true)
+    range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
     @setBufferRange(range)
     @linewise = true
     @wordwise = false
@@ -202,7 +202,7 @@ class Selection
 
   # Public: Selects all the text in the buffer.
   selectAll: ->
-    @setBufferRange(@editSession.buffer.getRange(), autoscroll: false)
+    @setBufferRange(@editor.buffer.getRange(), autoscroll: false)
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the line.
@@ -247,17 +247,17 @@ class Selection
     range = (@getGoalBufferRange() ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
 
-    for row in [nextRow..@editSession.getLastBufferRow()]
+    for row in [nextRow..@editor.getLastBufferRow()]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editSession.clipBufferRange(range)
+      clippedRange = @editor.clipBufferRange(range)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
   # Public:
@@ -274,14 +274,14 @@ class Selection
     for row in [previousRow..0]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editSession.clipBufferRange(range)
+      clippedRange = @editor.clipBufferRange(range)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
   # Public: Replaces text at the current selection.
@@ -302,7 +302,7 @@ class Selection
   #      if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
-    @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
+    @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
@@ -310,18 +310,18 @@ class Selection
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editSession.buffer.change(oldBufferRange, text, pick(options, 'undo'))
+    newBufferRange = @editor.buffer.change(oldBufferRange, text, pick(options, 'undo'))
     if options.select
       @setBufferRange(newBufferRange, isReversed: wasReversed)
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     if options.autoIndent
-      @editSession.autoIndentBufferRow(row) for row in newBufferRange.getRows()
+      @editor.autoIndentBufferRow(row) for row in newBufferRange.getRows()
     else if options.autoIndentNewline and text == '\n'
-      @editSession.autoIndentBufferRow(newBufferRange.end.row)
+      @editor.autoIndentBufferRow(newBufferRange.end.row)
     else if options.autoDecreaseIndent and /\S/.test text
-      @editSession.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
+      @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
 
@@ -336,9 +336,9 @@ class Selection
     isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
 
     lines = text.split('\n')
-    firstLineIndentLevel = @editSession.indentLevelForLine(lines[0])
+    firstLineIndentLevel = @editor.indentLevelForLine(lines[0])
     if isCursorInsideExistingLine
-      minimumIndentLevel = @editSession.indentationForBufferRow(@cursor.getBufferRow())
+      minimumIndentLevel = @editor.indentationForBufferRow(@cursor.getBufferRow())
     else
       minimumIndentLevel = @cursor.getIndentLevel()
 
@@ -349,7 +349,7 @@ class Selection
       else if line == '' # remove all indentation from empty lines
         indentLevel = 0
       else
-        lineIndentLevel = @editSession.indentLevelForLine(lines[i])
+        lineIndentLevel = @editor.indentLevelForLine(lines[i])
         indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
 
       normalizedLines.push(@setIndentationForLine(line, indentLevel))
@@ -367,13 +367,13 @@ class Selection
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()
-      desiredIndent = @editSession.suggestedIndentForBufferRow(row)
+      desiredIndent = @editor.suggestedIndentForBufferRow(row)
       delta = desiredIndent - @cursor.getIndentLevel()
 
       if autoIndent and delta > 0
-        @insertText(@editSession.buildIndentString(delta))
+        @insertText(@editor.buildIndentString(delta))
       else
-        @insertText(@editSession.getTabText())
+        @insertText(@editor.getTabText())
     else
       @indentSelectedRows()
 
@@ -381,18 +381,18 @@ class Selection
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
-      @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
+      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
 
   # Public: ?
   setIndentationForLine: (line, indentLevel) ->
     desiredIndentLevel = Math.max(0, indentLevel)
-    desiredIndentString = @editSession.buildIndentString(desiredIndentLevel)
+    desiredIndentString = @editor.buildIndentString(desiredIndentLevel)
     line.replace(/^[\t ]*/, desiredIndentString)
 
   # Public: Removes the first character before the selection if the selection
   # is empty otherwise it deletes the selection.
   backspace: ->
-    @selectLeft() if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
+    @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
   # Public: Removes from the start of the selection to the beginning of the
@@ -414,7 +414,7 @@ class Selection
   # selection if the selection is empty.
   delete: ->
     if @isEmpty()
-      if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
+      if @cursor.isAtEndOfLine() and fold = @editor.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
         @selectToBufferPosition(fold.getBufferRange().end)
       else
         @selectRight()
@@ -429,9 +429,9 @@ class Selection
   # Public: Removes only the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
-    if bufferRange.isEmpty() and fold = @editSession.largestFoldContainingBufferRow(bufferRange.start.row)
+    if bufferRange.isEmpty() and fold = @editor.largestFoldContainingBufferRow(bufferRange.start.row)
       bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
-    @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
+    @editor.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 
   # Public: Removes the line at the beginning of the selection if the selection
@@ -440,18 +440,18 @@ class Selection
   deleteLine: ->
     if @isEmpty()
       start = @cursor.getScreenRow()
-      range = @editSession.bufferRowsForScreenRows(start, start + 1)
+      range = @editor.bufferRowsForScreenRows(start, start + 1)
       if range[1] > range[0]
-        @editSession.buffer.deleteRows(range[0], range[1] - 1)
+        @editor.buffer.deleteRows(range[0], range[1] - 1)
       else
-        @editSession.buffer.deleteRow(range[0])
+        @editor.buffer.deleteRow(range[0])
     else
       range = @getBufferRange()
       start = range.start.row
       end = range.end.row
-      if end isnt @editSession.buffer.getLastRow() and range.end.column is 0
+      if end isnt @editor.buffer.getLastRow() and range.end.column is 0
         end--
-      @editSession.buffer.deleteRows(start, end)
+      @editor.buffer.deleteRows(start, end)
 
   # Public: Joins the current line with the one below it.
   #
@@ -459,16 +459,16 @@ class Selection
   joinLine: ->
     selectedRange = @getBufferRange()
     if selectedRange.isEmpty()
-      return if selectedRange.start.row is @editSession.buffer.getLastRow()
+      return if selectedRange.start.row is @editor.buffer.getLastRow()
     else
-      joinMarker = @editSession.markBufferRange(selectedRange, invalidationStrategy: 'never')
+      joinMarker = @editor.markBufferRange(selectedRange, invalidationStrategy: 'never')
 
     rowCount = Math.max(1, selectedRange.getRowCount() - 1)
     for row in [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
       nextRow = selectedRange.start.row + 1
-      if nextRow <= @editSession.buffer.getLastRow() and @editSession.buffer.lineLengthForRow(nextRow) > 0
+      if nextRow <= @editor.buffer.getLastRow() and @editor.buffer.lineLengthForRow(nextRow) > 0
         @insertText(' ')
         @cursor.moveToEndOfLine()
       @modifySelection =>
@@ -484,8 +484,8 @@ class Selection
   # Public: Removes one level of indent from the currently selected rows.
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
-    buffer = @editSession.buffer
-    leadingTabRegex = new RegExp("^ {1,#{@editSession.getTabLength()}}|\t")
+    buffer = @editor.buffer
+    leadingTabRegex = new RegExp("^ {1,#{@editor.getTabLength()}}|\t")
     for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
@@ -494,7 +494,7 @@ class Selection
   # by the relevant grammars.
   autoIndentSelectedRows: ->
     [start, end] = @getBufferRowRange()
-    @editSession.autoIndentBufferRows(start, end)
+    @editor.autoIndentBufferRows(start, end)
 
   # Public: Wraps the selected lines in comments if they aren't currently part
   # of a comment.
@@ -503,7 +503,7 @@ class Selection
   #
   # Returns an Array of the commented {Range}s.
   toggleLineComments: ->
-    @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
+    @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   # Public: Cuts the selection until the end of the line.
   #
@@ -527,19 +527,19 @@ class Selection
   #   ?
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
-    text = @editSession.buffer.getTextInRange(@getBufferRange())
+    text = @editor.buffer.getTextInRange(@getBufferRange())
     if maintainPasteboard
       [currentText, metadata] = atom.pasteboard.read()
       text = currentText + '\n' + text
     else
-      metadata = { indentBasis: @editSession.indentationForBufferRow(@getBufferRange().start.row) }
+      metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
 
     atom.pasteboard.write(text, metadata)
 
   # Public: Creates a fold containing the current selection.
   fold: ->
     range = @getBufferRange()
-    @editSession.createFold(range.start.row, range.end.row)
+    @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
   # Public: ?

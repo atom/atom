@@ -77,16 +77,16 @@ class EditorView extends View
 
   # The constructor for setting up an `EditorView` instance.
   #
-  # editSessionOrOptions - Either an {Editor}, or an object with one property, `mini`.
+  # editorOrOptions - Either an {Editor}, or an object with one property, `mini`.
   #                        If `mini` is `true`, a "miniature" `Editor` is constructed.
   #                        Typically, this is ideal for scenarios where you need an Atom editor,
   #                        but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
-  initialize: (editSessionOrOptions) ->
-    if editSessionOrOptions instanceof Editor
-      editSession = editSessionOrOptions
+  initialize: (editorOrOptions) ->
+    if editorOrOptions instanceof Editor
+      editor = editorOrOptions
     else
-      {editSession, @mini} = editSessionOrOptions ? {}
+      {editor, @mini} = editorOrOptions ? {}
 
     @id = EditorView.nextEditorId++
     @lineCache = []
@@ -100,8 +100,8 @@ class EditorView extends View
     @newCursors = []
     @newSelections = []
 
-    if editSession?
-      @edit(editSession)
+    if editor?
+      @edit(editor)
     else if @mini
       @edit(new Editor
         buffer: TextBuffer.createAsRoot()
@@ -788,14 +788,14 @@ class EditorView extends View
 
     @trigger 'editor:attached', [this]
 
-  edit: (editSession) ->
-    return if editSession is @activeEditSession
+  edit: (editor) ->
+    return if editor is @activeEditSession
 
     if @activeEditSession
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 
-    @activeEditSession = editSession
+    @activeEditSession = editor
 
     return unless @activeEditSession?
 
@@ -832,19 +832,19 @@ class EditorView extends View
     @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()
-      _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editSession has a chance to display
+      _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editor has a chance to display
 
   getModel: ->
     @activeEditSession
 
-  setModel: (editSession) ->
-    @edit(editSession)
+  setModel: (editor) ->
+    @edit(editor)
 
-  showBufferConflictAlert: (editSession) ->
+  showBufferConflictAlert: (editor) ->
     atom.confirm(
-      editSession.getPath(),
+      editor.getPath(),
       "Has changed on disk. Do you want to reload it?",
-      "Reload", (=> editSession.buffer.reload()),
+      "Reload", (=> editor.buffer.reload()),
       "Cancel"
     )
 
@@ -1183,11 +1183,11 @@ class EditorView extends View
 
     @clearRenderedLines()
     @removeAllCursorAndSelectionViews()
-    editSessionScrollTop = @activeEditSession.getScrollTop() ? 0
-    editSessionScrollLeft = @activeEditSession.getScrollLeft() ? 0
+    editorScrollTop = @activeEditSession.getScrollTop() ? 0
+    editorScrollLeft = @activeEditSession.getScrollLeft() ? 0
     @updateLayerDimensions()
-    @scrollTop(editSessionScrollTop)
-    @scrollLeft(editSessionScrollLeft)
+    @scrollTop(editorScrollTop)
+    @scrollLeft(editorScrollLeft)
     @setSoftWrap(@activeEditSession.getSoftWrap())
     @newCursors = @activeEditSession.getAllCursors()
     @newSelections = @activeEditSession.getAllSelections()

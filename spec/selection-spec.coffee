@@ -1,12 +1,12 @@
 Editor = require '../src/editor'
 
 describe "Selection", ->
-  [buffer, editSession, selection] = []
+  [buffer, editor, selection] = []
 
   beforeEach ->
     buffer = project.bufferForPathSync('sample.js')
-    editSession = new Editor(buffer: buffer, tabLength: 2)
-    selection = editSession.getSelection()
+    editor = new Editor(buffer: buffer, tabLength: 2)
+    selection = editor.getSelection()
 
   afterEach ->
     buffer.destroy()

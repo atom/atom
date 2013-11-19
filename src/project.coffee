@@ -37,7 +37,7 @@ class Project extends telepath.Model
       buffer.once 'destroyed', => @removeBuffer(buffer)
 
     @openers = []
-    @editSessions = []
+    @editors = []
     @setPath(@path)
 
   # Private: Called by telepath.
@@ -52,7 +52,7 @@ class Project extends telepath.Model
 
   # Private:
   destroy: ->
-    editSession.destroy() for editSession in @getEditSessions()
+    editor.destroy() for editor in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -137,7 +137,7 @@ class Project extends telepath.Model
   #
   # * filePath:
   #   The {String} path of the file to associate with
-  # * editSessionOptions:
+  # * editorOptions:
   #   Options that you can pass to the {Editor} constructor
   #
   # Returns a promise that resolves to an {Editor}.
@@ -164,16 +164,16 @@ class Project extends telepath.Model
   #
   # Returns an {Array} of {Editor}s.
   getEditSessions: ->
-    new Array(@editSessions...)
+    new Array(@editors...)
 
   # Public: Add the given {Editor}.
-  addEditSession: (editSession) ->
-    @editSessions.push editSession
-    @emit 'edit-session-created', editSession
+  addEditSession: (editor) ->
+    @editors.push editor
+    @emit 'editor-created', editor
 
   # Public: Return and removes the given {Editor}.
-  removeEditSession: (editSession) ->
-    _.remove(@editSessions, editSession)
+  removeEditSession: (editor) ->
+    _.remove(@editors, editor)
 
   # Private: Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -331,15 +331,15 @@ class Project extends telepath.Model
     deferred.promise
 
   # Private:
-  buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    editSession = new Editor(_.extend({buffer}, editSessionOptions))
-    @addEditSession(editSession)
-    editSession
+  buildEditSessionForBuffer: (buffer, editorOptions) ->
+    editor = new Editor(_.extend({buffer}, editorOptions))
+    @addEditSession(editor)
+    editor
 
   # Private:
   eachEditSession: (callback) ->
-    callback(editSession) for editSession in @getEditSessions()
-    @on 'edit-session-created', (editSession) -> callback(editSession)
+    callback(editor) for editor in @getEditSessions()
+    @on 'editor-created', (editor) -> callback(editor)
 
   # Private:
   eachBuffer: (args...) ->

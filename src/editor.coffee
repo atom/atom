@@ -27,8 +27,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # ## Example
 # ```coffeescript
-# global.rootView.eachEditSession (editSession) ->
-#   editSession.insertText('Hello World')
+# global.rootView.eachEditSession (editor) ->
+#   editor.insertText('Hello World')
 # ```
 #
 # ## Collaboration builtin
@@ -160,8 +160,8 @@ class Editor
     newEditSession = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
     newEditSession.setScrollTop(@getScrollTop())
     newEditSession.setScrollLeft(@getScrollLeft())
-    for marker in @findMarkers(editSessionId: @id)
-      marker.copy(editSessionId: newEditSession.id, preserveFolds: true)
+    for marker in @findMarkers(editorId: @id)
+      marker.copy(editorId: newEditSession.id, preserveFolds: true)
     project.addEditSession(newEditSession)
     newEditSession
 
@@ -868,7 +868,7 @@ class Editor
   # Public: Adds and returns a cursor at the given {DisplayBufferMarker}
   # position.
   addCursor: (marker) ->
-    cursor = new Cursor(editSession: this, marker: marker)
+    cursor = new Cursor(editor: this, marker: marker)
     if marker.isLocal()
       @cursors.push(cursor)
     else
@@ -892,7 +892,7 @@ class Editor
     unless marker.getAttributes().preserveFolds
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
-    selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
+    selection = new Selection(_.extend({editor: this, marker, cursor}, options))
 
     if marker.isLocal()
       @selections.push(selection)
@@ -1435,7 +1435,7 @@ class Editor
 
   # Private:
   getSelectionMarkerAttributes: ->
-    type: 'selection', editSessionId: @id, invalidate: 'never'
+    type: 'selection', editorId: @id, invalidate: 'never'
 
   # Private:
   getDebugSnapshot: ->

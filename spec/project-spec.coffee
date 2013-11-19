@@ -36,58 +36,58 @@ describe "Project", ->
 
   describe "when an edit session is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
-      editSession = project.openSync("a")
+      editor = project.openSync("a")
       anotherEditSession = project.openSync("a")
 
-      expect(project.editSessions.length).toBe 2
-      expect(editSession.buffer).toBe anotherEditSession.buffer
+      expect(project.editors.length).toBe 2
+      expect(editor.buffer).toBe anotherEditSession.buffer
 
-      editSession.destroy()
-      expect(project.editSessions.length).toBe 1
+      editor.destroy()
+      expect(project.editors.length).toBe 1
 
       anotherEditSession.destroy()
-      expect(project.editSessions.length).toBe 0
+      expect(project.editors.length).toBe 0
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
-      editSession = project.openSync()
-      editSession.saveAs(tempFile)
+      editor = project.openSync()
+      editor.saveAs(tempFile)
       expect(project.getPath()).toBe path.dirname(tempFile)
 
   describe "when an edit session is deserialized", ->
-    it "emits an 'edit-session-created' event and stores the edit session", ->
-      handler = jasmine.createSpy('editSessionCreatedHandler')
-      project.on 'edit-session-created', handler
+    it "emits an 'editor-created' event and stores the edit session", ->
+      handler = jasmine.createSpy('editorCreatedHandler')
+      project.on 'editor-created', handler
 
-      editSession1 = project.openSync("a")
+      editor1 = project.openSync("a")
       expect(handler.callCount).toBe 1
       expect(project.getEditSessions().length).toBe 1
-      expect(project.getEditSessions()[0]).toBe editSession1
+      expect(project.getEditSessions()[0]).toBe editor1
 
-      editSession2 = deserialize(editSession1.serialize())
+      editor2 = deserialize(editor1.serialize())
       expect(handler.callCount).toBe 2
       expect(project.getEditSessions().length).toBe 2
-      expect(project.getEditSessions()[0]).toBe editSession1
-      expect(project.getEditSessions()[1]).toBe editSession2
+      expect(project.getEditSessions()[0]).toBe editor1
+      expect(project.getEditSessions()[1]).toBe editor2
 
   describe "when an edit session is copied", ->
-    it "emits an 'edit-session-created' event and stores the edit session", ->
-      handler = jasmine.createSpy('editSessionCreatedHandler')
-      project.on 'edit-session-created', handler
+    it "emits an 'editor-created' event and stores the edit session", ->
+      handler = jasmine.createSpy('editorCreatedHandler')
+      project.on 'editor-created', handler
 
-      editSession1 = project.openSync("a")
+      editor1 = project.openSync("a")
       expect(handler.callCount).toBe 1
       expect(project.getEditSessions().length).toBe 1
-      expect(project.getEditSessions()[0]).toBe editSession1
+      expect(project.getEditSessions()[0]).toBe editor1
 
-      editSession2 = editSession1.copy()
+      editor2 = editor1.copy()
       expect(handler.callCount).toBe 2
       expect(project.getEditSessions().length).toBe 2
-      expect(project.getEditSessions()[0]).toBe editSession1
-      expect(project.getEditSessions()[1]).toBe editSession2
+      expect(project.getEditSessions()[0]).toBe editor1
+      expect(project.getEditSessions()[1]).toBe editor2
 
   describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
@@ -96,7 +96,7 @@ describe "Project", ->
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       project.on 'buffer-created', newBufferHandler
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
-      project.on 'edit-session-created', newEditSessionHandler
+      project.on 'editor-created', newEditSessionHandler
 
       fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
       barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
@@ -109,34 +109,34 @@ describe "Project", ->
 
     describe "when passed a path that doesn't match a custom opener", ->
       describe "when given an absolute path that hasn't been opened previously", ->
-        it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.openSync(absolutePath)
-          expect(editSession.buffer.getPath()).toBe absolutePath
-          expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
-          expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+        it "returns a new edit session for the given path and emits 'buffer-created' and 'editor-created' events", ->
+          editor = project.openSync(absolutePath)
+          expect(editor.buffer.getPath()).toBe absolutePath
+          expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
+          expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when given a relative path that hasn't been opened previously", ->
-        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.openSync('a')
-          expect(editSession.buffer.getPath()).toBe absolutePath
-          expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
-          expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'editor-created' events", ->
+          editor = project.openSync('a')
+          expect(editor.buffer.getPath()).toBe absolutePath
+          expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
+          expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when passed the path to a buffer that has already been opened", ->
-        it "returns a new edit session containing previously opened buffer and emits a 'edit-session-created' event", ->
-          editSession = project.openSync(absolutePath)
+        it "returns a new edit session containing previously opened buffer and emits a 'editor-created' event", ->
+          editor = project.openSync(absolutePath)
           newBufferHandler.reset()
-          expect(project.openSync(absolutePath).buffer).toBe editSession.buffer
-          expect(project.openSync('a').buffer).toBe editSession.buffer
+          expect(project.openSync(absolutePath).buffer).toBe editor.buffer
+          expect(project.openSync('a').buffer).toBe editor.buffer
           expect(newBufferHandler).not.toHaveBeenCalled()
-          expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+          expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when not passed a path", ->
-        it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = project.openSync()
-          expect(editSession.buffer.getPath()).toBeUndefined()
-          expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
-          expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+        it "returns a new edit session and emits 'buffer-created' and 'editor-created' events", ->
+          editor = project.openSync()
+          expect(editor.buffer.getPath()).toBeUndefined()
+          expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
+          expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
@@ -152,7 +152,7 @@ describe "Project", ->
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       project.on 'buffer-created', newBufferHandler
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
-      project.on 'edit-session-created', newEditSessionHandler
+      project.on 'editor-created', newEditSessionHandler
 
       fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
       barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
@@ -165,50 +165,50 @@ describe "Project", ->
 
     describe "when passed a path that doesn't match a custom opener", ->
       describe "when given an absolute path that isn't currently open", ->
-        it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = null
+        it "returns a new edit session for the given path and emits 'buffer-created' and 'editor-created' events", ->
+          editor = null
           waitsForPromise ->
-            project.open(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editor = o
 
           runs ->
-            expect(editSession.buffer.getPath()).toBe absolutePath
-            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
-            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+            expect(editor.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when given a relative path that isn't currently opened", ->
-        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = null
+        it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'editor-created' events", ->
+          editor = null
           waitsForPromise ->
-            project.open(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editor = o
 
           runs ->
-            expect(editSession.buffer.getPath()).toBe absolutePath
-            expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
-            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+            expect(editor.buffer.getPath()).toBe absolutePath
+            expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
+            expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when passed the path to a buffer that is currently opened", ->
-        it "returns a new edit session containing currently opened buffer and emits a 'edit-session-created' event", ->
-          editSession = null
+        it "returns a new edit session containing currently opened buffer and emits a 'editor-created' event", ->
+          editor = null
           waitsForPromise ->
-            project.open(absolutePath).then (o) -> editSession = o
+            project.open(absolutePath).then (o) -> editor = o
 
           runs ->
             newBufferHandler.reset()
-            expect(project.openSync(absolutePath).buffer).toBe editSession.buffer
-            expect(project.openSync('a').buffer).toBe editSession.buffer
+            expect(project.openSync(absolutePath).buffer).toBe editor.buffer
+            expect(project.openSync('a').buffer).toBe editor.buffer
             expect(newBufferHandler).not.toHaveBeenCalled()
-            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+            expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
       describe "when not passed a path", ->
-        it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
-          editSession = null
+        it "returns a new edit session and emits 'buffer-created' and 'editor-created' events", ->
+          editor = null
           waitsForPromise ->
-            project.open().then (o) -> editSession = o
+            project.open().then (o) -> editor = o
 
           runs ->
-            expect(editSession.buffer.getPath()).toBeUndefined()
-            expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
-            expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+            expect(editor.buffer.getPath()).toBeUndefined()
+            expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
+            expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
@@ -336,8 +336,8 @@ describe "Project", ->
 
     describe "when a buffer is already open", ->
       it "replaces properly and saves when not modified", ->
-        editSession = project.openSync('sample.js')
-        expect(editSession.isModified()).toBeFalsy()
+        editor = project.openSync('sample.js')
+        expect(editor.isModified()).toBeFalsy()
 
         results = []
         waitsForPromise ->
@@ -349,12 +349,12 @@ describe "Project", ->
           expect(results[0].filePath).toBe filePath
           expect(results[0].replacements).toBe 6
 
-          expect(editSession.isModified()).toBeFalsy()
+          expect(editor.isModified()).toBeFalsy()
 
       it "does NOT save when modified", ->
-        editSession = project.openSync('sample.js')
-        editSession.buffer.change([[0,0],[0,0]], 'omg')
-        expect(editSession.isModified()).toBeTruthy()
+        editor = project.openSync('sample.js')
+        editor.buffer.change([[0,0],[0,0]], 'omg')
+        expect(editor.isModified()).toBeTruthy()
 
         results = []
         waitsForPromise ->
@@ -366,7 +366,7 @@ describe "Project", ->
           expect(results[0].filePath).toBe filePath
           expect(results[0].replacements).toBe 6
 
-          expect(editSession.isModified()).toBeTruthy()
+          expect(editor.isModified()).toBeTruthy()
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
@@ -519,8 +519,8 @@ describe "Project", ->
           expect(resultHandler).not.toHaveBeenCalled()
 
       it "scans buffer contents if the buffer is modified", ->
-        editSession = project.openSync("a")
-        editSession.setText("Elephant")
+        editor = project.openSync("a")
+        editor.setText("Elephant")
         results = []
         waitsForPromise ->
           project.scan /a|Elephant/, (result) -> results.push result
