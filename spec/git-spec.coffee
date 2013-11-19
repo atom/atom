@@ -242,10 +242,10 @@ describe "Git", ->
 
       statusHandler = jasmine.createSpy('statusHandler')
       project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().trigger 'path-changed'
+      editSession.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().trigger 'path-changed'
+      editSession.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->

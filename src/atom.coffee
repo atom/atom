@@ -1,8 +1,4 @@
 #TODO remove once all packages have been updated
-{Emitter} = require 'emissary'
-Emitter::trigger = (args...) -> @emit(args...)
-
-#TODO remove once all packages have been updated
 fs = require 'fs-plus'
 fs.exists = fs.existsSync
 fs.makeTree = fs.makeTreeSync
