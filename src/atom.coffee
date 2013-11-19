@@ -71,8 +71,7 @@ class Atom
 
   # Private:
   setBodyPlatformClass: ->
-    bodyEl = document.getElementsByTagName('body')[0]
-    bodyEl.classList.add("platform-#{process.platform}")
+    document.body.classList.add("platform-#{process.platform}")
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
