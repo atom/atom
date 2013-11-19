@@ -2525,6 +2525,13 @@ describe "EditSession", ->
             editSession.insertText("foo", indentBasis: 5)
             expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
 
+          it "does not adjust the whitespace if there are preceding characters", ->
+            copyText(" foo")
+            editSession.setCursorBufferPosition([5, 30])
+            editSession.pasteText()
+
+            expect(editSession.lineForBufferRow(5)).toBe "      current = items.shift(); foo"
+
         describe "when the inserted text contains newlines", ->
           describe "when the cursor is preceded only by whitespace characters", ->
             it "normalizes indented lines to the cursor's current indentation level", ->

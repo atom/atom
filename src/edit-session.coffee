@@ -564,8 +564,11 @@ class EditSession
   pasteText: (options={}) ->
     [text, metadata] = atom.pasteboard.read()
 
+    containsNewlines = text.indexOf('\n') isnt -1
+
     if atom.config.get('editor.normalizeIndentOnPaste') and metadata
-      options.indentBasis ?= metadata.indentBasis
+      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
+        options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
 
