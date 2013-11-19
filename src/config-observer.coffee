@@ -5,5 +5,5 @@ module.exports =
 
   unobserveConfig: ->
     if @configSubscriptions?
-      subscription.cancel() for keyPath, subscription of @configSubscriptions
+      subscription.off() for keyPath, subscription of @configSubscriptions
       @configSubscriptions = null
