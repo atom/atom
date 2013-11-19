@@ -19,9 +19,20 @@ describe "Project", ->
     it "destroys unretained buffers and does not include them in the serialized state", ->
       project.bufferForPathSync('a')
       expect(project.getBuffers().length).toBe 1
-      deserializedProject = deserialize(project.serialize())
+      project.getState().serializeForPersistence()
+      deserializedProject = atom.replicate().get('project')
       expect(deserializedProject.getBuffers().length).toBe 0
       expect(project.getBuffers().length).toBe 0
+
+    it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
+      project.openSync('a')
+      expect(project.getBuffers().length).toBe 1
+      project.getState().serializeForPersistence()
+      deserializedProject = atom.replicate().get('project')
+
+      expect(deserializedProject.getBuffers().length).toBe 1
+      deserializedProject.getBuffers()[0].destroy()
+      expect(deserializedProject.getBuffers().length).toBe 0
 
   describe "when an edit session is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->

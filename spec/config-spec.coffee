@@ -158,12 +158,12 @@ describe "Config", ->
       expect(atom.config.get("foo.quux.y")).toBe 1
 
   describe ".observe(keyPath)", ->
-    observeHandler = null
+    [observeHandler, observeSubscription] = []
 
     beforeEach ->
       observeHandler = jasmine.createSpy("observeHandler")
       atom.config.set("foo.bar.baz", "value 1")
-      atom.config.observe "foo.bar.baz", observeHandler
+      observeSubscription = atom.config.observe "foo.bar.baz", observeHandler
 
     it "fires the given callback with the current value at the keypath", ->
       expect(observeHandler).toHaveBeenCalledWith("value 1")
@@ -191,6 +191,12 @@ describe "Config", ->
 
       atom.config.set("foo.bar.baz", "i'm back")
       expect(observeHandler).toHaveBeenCalledWith("i'm back", {previous: undefined})
+
+    it "does not fire the callback once the observe subscription is off'ed", ->
+      observeHandler.reset() # clear the initial call
+      observeSubscription.off()
+      atom.config.set('foo.bar.baz', "value 2")
+      expect(observeHandler).not.toHaveBeenCalled()
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->

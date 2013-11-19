@@ -335,9 +335,6 @@ class EditSession
   # {Delegates to: TextBuffer.getPath}
   getPath: -> @buffer.getPath()
 
-  # {Delegates to: TextBuffer.getRelativePath}
-  getRelativePath: -> @buffer.getRelativePath()
-
   # {Delegates to: TextBuffer.getText}
   getText: -> @buffer.getText()
 
@@ -567,8 +564,11 @@ class EditSession
   pasteText: (options={}) ->
     [text, metadata] = atom.pasteboard.read()
 
+    containsNewlines = text.indexOf('\n') isnt -1
+
     if atom.config.get('editor.normalizeIndentOnPaste') and metadata
-      options.indentBasis ?= metadata.indentBasis
+      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
+        options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
 

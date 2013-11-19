@@ -365,7 +365,9 @@ class DisplayBuffer
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
-  # Retrieves the grammar for the buffer.
+  # Get the grammar for this buffer.
+  #
+  # Returns the current {TextMateGrammar} or the {NullGrammar}.
   getGrammar: ->
     @tokenizedBuffer.grammar
 

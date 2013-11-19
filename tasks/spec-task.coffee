@@ -2,6 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 _ = require 'underscore-plus'
+
 async = require 'async'
 
 module.exports = (grunt) ->
@@ -10,7 +11,7 @@ module.exports = (grunt) ->
   packageSpecQueue = null
 
   runPackageSpecs = (callback) ->
-    passed = true
+    failedPackages = []
     rootDir = grunt.config.get('atom.shellAppDir')
     appDir = grunt.config.get('atom.appDir')
     atomPath = path.join(appDir, 'atom.sh')
@@ -23,10 +24,10 @@ module.exports = (grunt) ->
         opts:
           cwd: packagePath
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
-      grunt.log.writeln("Launching #{path.basename(packagePath)} specs.")
+      grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        grunt.log.writeln()
-        passed = passed and not error and code is 0
+        
+        failedPackages.push path.basename(packagePath) if error
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -37,7 +38,7 @@ module.exports = (grunt) ->
       packageSpecQueue.push(packagePath)
 
     packageSpecQueue.concurrency = 1
-    packageSpecQueue.drain = -> callback(null, passed)
+    packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
@@ -49,15 +50,20 @@ module.exports = (grunt) ->
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     spawn options, (error, results, code) ->
-      grunt.log.writeln()
       packageSpecQueue.concurrency = 2
-      callback(null, not error and code is 0)
+      callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
     startTime = Date.now()
+
     async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
-      [coreSpecPassed, packageSpecsPassed] = results
+      [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
-      grunt.log.writeln("Total spec time: #{elapsedTime}s")
-      done(coreSpecPassed and packageSpecsPassed)
+      grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
+      failures = failedPackages
+      failures.push "atom core" if coreSpecFailed
+
+      grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
+
+      done(!coreSpecFailed and failedPackages.length == 0)
