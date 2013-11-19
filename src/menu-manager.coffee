@@ -73,6 +73,8 @@ class MenuManager
 
   # Private
   normalizeLabel: (label) ->
+    return undefined unless label?
+
     if process.platform is 'win32'
       label.replace(/\&/g, '')
     else
