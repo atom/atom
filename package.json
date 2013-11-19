@@ -39,8 +39,7 @@
     "semver": "~1.1.4",
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",
-    "runas": "~0.2.0",
-    "keytar": "~0.12.0"
+    "runas": "~0.2.0"
   },
   "devDependencies": {
     "jasmine-focused": "~0.15.0",
