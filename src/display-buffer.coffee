@@ -27,7 +27,7 @@ class DisplayBuffer
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
-      @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
+      @tokenizedBuffer = atom.deserializers.deserialize(@state.get('tokenizedBuffer'))
       @buffer = @tokenizedBuffer.buffer
     else
       {@buffer, softWrap, editorWidthInChars} = optionsOrState
