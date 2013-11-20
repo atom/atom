@@ -102,7 +102,7 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.deactivatePackages()
+  atom.packages.deactivatePackages()
   atom.menu.template = []
 
   window.rootView?.remove?()

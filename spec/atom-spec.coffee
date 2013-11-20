@@ -32,25 +32,25 @@ describe "the `atom` global", ->
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
         it "throws an error", ->
-          pack = atom.activatePackage('package-with-main')
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.isPackageActive(pack.name)).toBeTruthy()
-          expect( -> atom.unloadPackage(pack.name)).toThrow()
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.isPackageActive(pack.name)).toBeTruthy()
+          pack = atom.packages.activatePackage('package-with-main')
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
+          expect( -> atom.packages.unloadPackage(pack.name)).toThrow()
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
 
       describe "when the package is not loaded", ->
         it "throws an error", ->
-          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
-          expect( -> atom.unloadPackage('unloaded')).toThrow()
-          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
+          expect(atom.packages.isPackageLoaded('unloaded')).toBeFalsy()
+          expect( -> atom.packages.unloadPackage('unloaded')).toThrow()
+          expect(atom.packages.isPackageLoaded('unloaded')).toBeFalsy()
 
       describe "when the package is loaded", ->
         it "no longers reports it as being loaded", ->
-          pack = atom.loadPackage('package-with-main')
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          atom.unloadPackage(pack.name)
-          expect(atom.isPackageLoaded(pack.name)).toBeFalsy()
+          pack = atom.packages.loadPackage('package-with-main')
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          atom.packages.unloadPackage(pack.name)
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeFalsy()
 
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
@@ -304,7 +304,7 @@ describe "the `atom` global", ->
           spyOn(console, 'error')
           atom.activatePackage('package-with-serialize-error',  immediate: true)
           atom.activatePackage('package-with-serialization', immediate: true)
-          atom.deactivatePackages()
+          atom.packages.deactivatePackages()
           expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
           expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()

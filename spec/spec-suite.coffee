@@ -29,7 +29,8 @@ runAllSpecs = ->
     setSpecType('core')
 
   fixturesPackagesPath = path.join(__dirname, 'fixtures', 'packages')
-  packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
+  packagePaths = atom.packages.getAvailablePackageNames().map (packageName) ->
+    atom.packages.resolvePackagePath(packageName)
   packagePaths = _.groupBy packagePaths, (packagePath) ->
     if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
       'fixtures'
