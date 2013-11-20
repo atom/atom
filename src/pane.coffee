@@ -416,7 +416,7 @@ class Pane extends View
 
   # Private:
   copyActiveItem: ->
-    @activeItem.copy?() ? deserialize(@activeItem.serialize())
+    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Private:
   remove: (selector, keepData) ->
