@@ -141,8 +141,6 @@ class Atom
   #TODO Remove theses once packages have been migrated
   activatePackage: (args...) -> @packages.activatePackage(args...)
   deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
-  getActivePackage: (args...) -> @packages.getActivePackage(args...)
-  getActivePackages: (args...) -> @packages.getActivePackages(args...)
 
   loadThemes: ->
     @themes.load()
