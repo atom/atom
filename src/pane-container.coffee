@@ -89,10 +89,10 @@ class PaneContainer extends View
   reopenItem: ->
     if lastItemState = @destroyedItemStates.pop()
       if activePane = @getActivePane()
-        activePane.showItem(deserialize(lastItemState))
+        activePane.showItem(atom.deserializers.deserialize(lastItemState))
         true
       else
-        newPane = new Pane(deserialize(lastItemState))
+        newPane = new Pane(atom.deserializers.deserialize(lastItemState))
         @setRoot(newPane)
         newPane.focus()
 
