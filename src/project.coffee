@@ -137,7 +137,7 @@ class Project extends telepath.Model
   #
   # * filePath:
   #   The {String} path of the file to associate with
-  # * editorOptions:
+  # * options:
   #   Options that you can pass to the {Editor} constructor
   #
   # Returns a promise that resolves to an {Editor}.
