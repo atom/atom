@@ -22,8 +22,6 @@ window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
   window.resourcePath = atom.getLoadSettings().resourcePath
   atom.initialize()
-  #TODO remove once all packages use the atom global
-  window.config = atom.config
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
