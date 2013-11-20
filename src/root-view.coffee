@@ -105,7 +105,7 @@ class RootView extends View
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
 
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(project.getPath(), 'spec'))
+    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
       atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
@@ -176,7 +176,7 @@ class RootView extends View
     initialLine = options.initialLine
     activePane = @getActivePane()
 
-    editor = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
+    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
     promise = project.open(filePath, {initialLine}) if not editor
 
     Q(editor ? promise)
