@@ -1,4 +1,4 @@
-'body.platform-darwin':
+'.workspace-darwin':
   # Apple specific
   'meta-q': 'application:quit'
   'meta-h': 'application:hide'
@@ -87,7 +87,7 @@
   'meta-8': 'pane:show-item-8'
   'meta-9': 'pane:show-item-9'
 
-'.platform-darwin .editor':
+'.workspace-darwin .editor':
   # Apple Specific
   'meta-backspace': 'editor:backspace-to-beginning-of-line'
   'meta-delete': 'editor:backspace-to-beginning-of-line'

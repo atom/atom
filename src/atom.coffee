@@ -65,7 +65,7 @@ class Atom
 
   # Private:
   setBodyPlatformClass: ->
-    document.body.classList.add("platform-#{process.platform}")
+    document.body.classList.add("workspace-#{process.platform}")
 
   getCurrentWindow: ->
     remote.getCurrentWindow()

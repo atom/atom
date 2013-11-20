@@ -1,4 +1,4 @@
-'body.platform-win32':
+'.workspace-win32':
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -50,6 +50,6 @@
   'ctrl-k meta-left': 'window:focus-previous-pane'
   'ctrl-k meta-right': 'window:focus-next-pane'
 
-'.platform-win32 .editor':
+'.workspace-win32 .editor':
   # Windows specific
   'ctrl-delete': 'editor:backspace-to-beginning-of-word'
