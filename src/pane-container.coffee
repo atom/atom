@@ -5,7 +5,7 @@ telepath = require 'telepath'
 # Private: Manages the list of panes within a {RootView}
 module.exports =
 class PaneContainer extends View
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   ### Internal ###
   @acceptsDocuments: true

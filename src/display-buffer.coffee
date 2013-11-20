@@ -18,7 +18,7 @@ class DisplayBuffer
   _.extend @prototype, ConfigObserver
 
   @acceptsDocuments: true
-  registerDeserializer(this)
+  atom.deserializers.add(this)
   @version: 2
 
   @deserialize: (state) -> new this(state)

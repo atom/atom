@@ -16,7 +16,7 @@ describe "Pane", ->
     isEqual: (other) -> @id == other.id and @text == other.text
 
   beforeEach ->
-    registerDeserializer(TestView)
+    atom.deserializers.add(TestView)
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
@@ -26,7 +26,7 @@ describe "Pane", ->
     container.setRoot(pane)
 
   afterEach ->
-    unregisterDeserializer(TestView)
+    atom.deserializers.remove(TestView)
 
   describe ".initialize(items...)", ->
     it "displays the first item in the pane", ->
@@ -678,12 +678,12 @@ describe "Pane", ->
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = deserialize(pane.serialize())
+      newPane = atom.deserializers.deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
       pane.showItem(editor2)
-      newPane = deserialize(pane.serialize())
+      newPane = atom.deserializers.deserialize(pane.serialize())
       expect(newPane.activeItem).toEqual editor2
 
     it "does not show items that cannot be deserialized", ->
@@ -693,7 +693,7 @@ describe "Pane", ->
       paneState = pane.serialize()
       paneState.get('items').set(pane.items.indexOf(view2), {deserializer: 'Bogus'}) # nuke serialized state of active item
 
-      newPane = deserialize(paneState)
+      newPane = atom.deserializers.deserialize(paneState)
       expect(newPane.activeItem).toEqual pane.items[0]
       expect(newPane.items.length).toBe pane.items.length - 1
 
@@ -704,7 +704,7 @@ describe "Pane", ->
         container.remove()
         project.destroy()
         window.project = projectReplica
-        container = deserialize(containerState)
+        container = atom.deserializers.deserialize(containerState)
         pane = container.getRoot()
         container.attachToDom()
 

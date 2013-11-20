@@ -42,7 +42,7 @@ class Editor
 
   @acceptsDocuments: true
 
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   @version: 5
 

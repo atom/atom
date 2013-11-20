@@ -20,7 +20,7 @@ describe "DisplayBuffer", ->
       displayBuffer.setTabLength(4)
       displayBuffer.setEditorWidthInChars(64)
       displayBuffer.createFold(2, 4)
-      displayBuffer2 = deserialize(displayBuffer.serialize())
+      displayBuffer2 = atom.deserializers.deserialize(displayBuffer.serialize())
       expect(displayBuffer2.id).toBe displayBuffer.id
       expect(displayBuffer2.buffer).toBe displayBuffer.buffer
       expect(displayBuffer2.tokenizedBuffer.buffer).toBe displayBuffer.tokenizedBuffer.buffer

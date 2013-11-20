@@ -14,7 +14,7 @@ describe "the `atom` global", ->
           pack = atom.packages.loadPackage('package-with-activation-events')
           spyOn(pack, 'activateStylesheets').andCallThrough()
           expect(pack.mainModule).toBeNull()
-          object = deserialize({deserializer: 'Foo', data: 5})
+          object = atom.deserializers.deserialize({deserializer: 'Foo', data: 5})
           expect(pack.mainModule).toBeDefined()
           expect(object.constructor.name).toBe 'Foo'
           expect(object.data).toBe 5

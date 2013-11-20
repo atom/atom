@@ -25,7 +25,7 @@ describe "RootView", ->
       rootView.remove()
       project.destroy()
       window.project = project2
-      window.rootView = deserialize(rootViewState)
+      window.rootView = atom.deserializers.deserialize(rootViewState)
       rootView.attachToDom()
 
     describe "when the serialized RootView has an unsaved buffer", ->

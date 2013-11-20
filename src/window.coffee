@@ -93,16 +93,6 @@ window.deserializeEditorWindow = ->
 window.onerror = ->
   atom.openDevTools()
 
-#TODO remove once all packages use the atom global
-window.registerDeserializer = (args...) ->
-  atom.deserializers.add(args...)
-window.unregisterDeserializer = (args...) ->
-  atom.deserializers.remove(args...)
-window.deserialize = (args...) ->
-  atom.deserializers.deserialize(args...)
-window.requireWithGlobals = (args...) ->
-  atom.requireWithGlobals(args...)
-
 # Public: Measure how long a function takes to run.
 #
 # * description:

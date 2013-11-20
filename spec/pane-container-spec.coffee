@@ -9,7 +9,7 @@ describe "PaneContainer", ->
 
   beforeEach ->
     class TestView extends View
-      registerDeserializer(this)
+      atom.deserializers.add(this)
       @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
@@ -25,7 +25,7 @@ describe "PaneContainer", ->
     pane3 = pane2.splitDown(new TestView('3'))
 
   afterEach ->
-    unregisterDeserializer(TestView)
+    atom.deserializers.remove(TestView)
 
   describe ".focusNextPane()", ->
     it "focuses the pane following the focused pane or the first pane if no pane has focus", ->

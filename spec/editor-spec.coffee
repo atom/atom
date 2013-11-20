@@ -28,7 +28,7 @@ describe "Editor", ->
         editor.foldBufferRow(4)
         expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-        editor2 = deserialize(editor.serialize())
+        editor2 = atom.deserializers.deserialize(editor.serialize())
 
         expect(editor2.id).toBe editor.id
         expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
