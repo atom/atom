@@ -58,7 +58,7 @@ class File
     previouslyExisted = @exists()
     @cachedContents = text
     fs.writeFileSync(@getPath(), text)
-    @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
+    @subscribeToNativeChangeEvents() if not previouslyExisted and @hasSubscriptions()
 
   # Private: Deprecated
   readSync: (flushCache) ->

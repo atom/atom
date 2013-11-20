@@ -1,4 +1,4 @@
-{Document, Point, Range, Site} = require 'telepath'
+{Document, Point, Range} = require 'telepath'
 
 module.exports =
   _: require 'underscore-plus'
@@ -11,7 +11,6 @@ module.exports =
   Git: require '../src/git'
   Point: Point
   Range: Range
-  Site: Site
 
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process
@@ -22,7 +21,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$$ = $$
   module.exports.$$$ = $$$
   module.exports.Editor = require '../src/editor'
-  module.exports.pathForRepositoryUrl = require('../src/project').pathForRepositoryUrl
   module.exports.RootView = require '../src/root-view'
   module.exports.SelectList = require '../src/select-list'
   module.exports.ScrollView = require '../src/scroll-view'

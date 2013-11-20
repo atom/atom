@@ -13,11 +13,11 @@ describe 'TextBuffer', ->
     buffer = project.bufferForPathSync(filePath)
 
   afterEach ->
-    buffer?.release()
+    buffer?.destroy()
 
   describe 'constructor', ->
     beforeEach ->
-      buffer.release()
+      buffer.destroy()
       buffer = null
 
     describe "when given a path", ->
@@ -311,8 +311,8 @@ describe 'TextBuffer', ->
 
     it "returns false until the buffer is fully loaded", ->
       buffer.release()
-      filePath = temp.openSync('atom').path
-      buffer = new TextBuffer({project, filePath})
+      buffer = new TextBuffer({filePath: temp.openSync('atom').path})
+      project.addBuffer(buffer)
 
       expect(buffer.isModified()).toBeFalsy()
 
@@ -432,7 +432,7 @@ describe 'TextBuffer', ->
         expect(event.newText).toBe "foo\nbar"
 
     it "allows a 'changed' event handler to safely undo the change", ->
-      buffer.one 'changed', -> buffer.undo()
+      buffer.once 'changed', -> buffer.undo()
       buffer.change([0, 0], "hello")
       expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
@@ -553,35 +553,6 @@ describe 'TextBuffer', ->
 
       waitsFor ->
         changeHandler.callCount > 0
-
-  describe ".getRelativePath()", ->
-    [filePath, newPath, bufferToChange, eventHandler] = []
-
-    beforeEach ->
-      filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
-      newPath = "#{filePath}-i-moved"
-      fs.writeFileSync(filePath, "")
-      bufferToChange = project.bufferForPathSync(filePath)
-      eventHandler = jasmine.createSpy('eventHandler')
-      bufferToChange.on 'path-changed', eventHandler
-
-    afterEach ->
-      bufferToChange.destroy()
-      fs.removeSync(filePath) if fs.existsSync(filePath)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
-
-    it "updates when the text buffer's file is moved", ->
-      expect(bufferToChange.getRelativePath()).toBe('atom-manipulate-me')
-
-      jasmine.unspy(window, "setTimeout")
-      eventHandler.reset()
-      fs.moveSync(filePath, newPath)
-
-      waitsFor "buffer path change", ->
-        eventHandler.callCount > 0
-
-      runs ->
-        expect(bufferToChange.getRelativePath()).toBe('atom-manipulate-me-i-moved')
 
   describe ".getTextInRange(range)", ->
     describe "when range is empty", ->
@@ -926,22 +897,28 @@ describe 'TextBuffer', ->
             expect(buffer.getText()).toBe "\ninitialtexthello\n1\n2\n"
 
   describe "serialization", ->
-    buffer2 = null
+    [buffer2, project2] = []
+
+    beforeEach ->
+      buffer.destroy()
+
+      filePath = temp.openSync('atom').path
+      fs.writeFileSync(filePath, "words")
+      buffer = project.bufferForPathSync(filePath)
 
     afterEach ->
       buffer2?.release()
+      project2?.destroy()
 
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
 
-        state = buffer.serialize()
-        state.get('text').insertTextAtPoint([0, 0], 'simulate divergence of on-disk contents from serialized contents')
+        project2 = atom.replicate().get('project')
+        buffer2 = project2.getBuffers()[0]
 
-        buffer2 = deserialize(state, {project})
-
-        waitsFor ->
-          buffer2.cachedDiskContents
+        waitsForPromise ->
+          buffer2.load()
 
         runs ->
           expect(buffer2.isModified()).toBeFalsy()
@@ -951,18 +928,11 @@ describe 'TextBuffer', ->
     describe "when the serialized buffer had unsaved changes", ->
       describe "when the disk contents were changed since serialization", ->
         it "loads the disk contents instead of the previous unsaved state", ->
-          buffer.release()
-
-          filePath = temp.openSync('atom').path
-          fs.writeFileSync(filePath, "words")
-          {buffer} = project.openSync(filePath)
           buffer.setText("BUFFER CHANGE")
-
-          state = buffer.serialize()
-          expect(state.getObject('text')).toBe 'BUFFER CHANGE'
           fs.writeFileSync(filePath, "DISK CHANGE")
 
-          buffer2 = deserialize(state, {project})
+          project2 = atom.replicate().get('project')
+          buffer2 = project2.getBuffers()[0]
 
           waitsFor ->
             buffer2.cachedDiskContents
@@ -976,14 +946,14 @@ describe 'TextBuffer', ->
         it "restores the previous unsaved state of the buffer", ->
           previousText = buffer.getText()
           buffer.setText("abc")
+          buffer.retain()
 
-          state = buffer.serialize()
-          expect(state.getObject('text')).toBe 'abc'
+          buffer.getState().serializeForPersistence()
+          project2 = atom.replicate().get('project')
+          buffer2 = project2.getBuffers()[0]
 
-          buffer2 = deserialize(state, {project})
-
-          waitsFor ->
-            buffer2.cachedDiskContents
+          waitsForPromise ->
+            buffer2.load()
 
           runs ->
             expect(buffer2.getPath()).toBe(buffer.getPath())
@@ -999,10 +969,10 @@ describe 'TextBuffer', ->
         buffer = project.bufferForPathSync()
         buffer.setText("abc")
 
-        state = buffer.serialize()
+        state = buffer.getState().clone()
         expect(state.get('path')).toBeUndefined()
         expect(state.getObject('text')).toBe 'abc'
 
-        buffer2 = deserialize(state)
+        buffer2 = project.addBuffer(new TextBuffer(state))
         expect(buffer2.getPath()).toBeUndefined()
         expect(buffer2.getText()).toBe("abc")

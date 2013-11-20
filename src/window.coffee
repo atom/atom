@@ -25,7 +25,6 @@ window.setUpEnvironment = (windowMode) ->
   #TODO remove once all packages use the atom global
   window.config = atom.config
   window.syntax = atom.syntax
-  window.pasteboard = atom.pasteboard
   window.keymap = atom.keymap
   window.site = atom.site
 
@@ -69,7 +68,7 @@ window.startEditorWindow = ->
 window.unloadEditorWindow = ->
   return if not atom.project and not atom.rootView
   windowState = atom.getWindowState()
-  windowState.set('project', atom.project.serialize())
+  windowState.set('project', atom.project)
   windowState.set('syntax', atom.syntax.serialize())
   windowState.set('rootView', atom.rootView.serialize())
   atom.packages.deactivatePackages()
@@ -124,9 +123,9 @@ window.requireWithGlobals = (args...) ->
 #
 # Returns the value returned by the given function.
 window.measure = (description, fn) ->
-  start = new Date().getTime()
+  start = Date.now()
   value = fn()
-  result = new Date().getTime() - start
+  result = Date.now() - start
   console.log description, result
   value
 

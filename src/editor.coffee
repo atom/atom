@@ -104,7 +104,7 @@ class Editor extends View
       @edit(editSession)
     else if @mini
       @edit(new EditSession
-        buffer: new TextBuffer
+        buffer: TextBuffer.createAsRoot()
         softWrap: false
         tabLength: 2
         softTabs: true
@@ -586,8 +586,10 @@ class Editor extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
-  # {Delegates to: TextBuffer.checkoutHead}
-  checkoutHead: -> @getBuffer().checkoutHead()
+  # Checkout the HEAD revision of this editor's file.
+  checkoutHead: ->
+    if path = @getPath()
+      atom.project.getRepo()?.checkoutHead(path)
 
   # {Delegates to: EditSession.setText}
   setText: (text) -> @activeEditSession.setText(text)
@@ -597,9 +599,6 @@ class Editor extends View
 
   # {Delegates to: EditSession.getPath}
   getPath: -> @activeEditSession?.getPath()
-
-  # {Delegates to: EditSession.getRelativePath}
-  getRelativePath: -> @activeEditSession?.getRelativePath()
 
   #  {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
@@ -1722,7 +1721,7 @@ class Editor extends View
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->
     path = @getPath()
-    pasteboard.write(path) if path?
+    atom.pasteboard.write(path) if path?
 
   ### Internal ###
 
@@ -1806,13 +1805,6 @@ class Editor extends View
       htmlEolInvisibles
     else
       '&nbsp;'
-
-  bindToKeyedEvent: (key, event, callback) ->
-    binding = {}
-    binding[key] = event
-    atom.keymap.bindKeys '.editor', binding
-    @on event, =>
-      callback(this, event)
 
   replaceSelectedText: (replaceFn) ->
     selection = @getSelection()

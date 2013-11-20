@@ -20,10 +20,11 @@ describe "RootView", ->
 
     refreshRootViewAndProject = ->
       rootViewState = rootView.serialize()
-      projectState = project.serialize()
+      project.getState().serializeForPersistence()
+      project2 = atom.replicate().get('project')
       rootView.remove()
       project.destroy()
-      window.project = deserialize(projectState)
+      window.project = project2
       window.rootView = deserialize(rootViewState)
       rootView.attachToDom()
 
@@ -136,7 +137,7 @@ describe "RootView", ->
       commandHandler = jasmine.createSpy('commandHandler')
       rootView.on('foo-command', commandHandler)
 
-      atom.keymap.bindKeys('*', 'x': 'foo-command')
+      atom.keymap.bindKeys('name', '*', 'x': 'foo-command')
 
     describe "when a keydown event is triggered in the RootView", ->
       it "triggers matching keybindings for that event", ->

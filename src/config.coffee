@@ -216,8 +216,7 @@ class Config
         callback(value, {previous})
 
     eventName = "updated.#{keyPath.replace(/\./, '-')}"
-    subscription = { cancel: => @off eventName, updateCallback  }
-    @on eventName, updateCallback
+    subscription = @on eventName, updateCallback
     callback(value) if options.callNow ? true
     subscription
 

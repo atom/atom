@@ -1,10 +1,4 @@
 #TODO remove once all packages have been updated
-{Emitter} = require 'emissary'
-Emitter::one = (args...) -> @once(args...)
-Emitter::trigger = (args...) -> @emit(args...)
-Emitter::subscriptionCount = (args...) -> @getSubscriptionCount(args...)
-
-#TODO remove once all packages have been updated
 fs = require 'fs-plus'
 fs.exists = fs.existsSync
 fs.makeTree = fs.makeTreeSync
@@ -44,6 +38,7 @@ class Atom
 
   initialize: ->
     @unsubscribe()
+    @setBodyPlatformClass()
 
     {devMode, resourcePath} = atom.getLoadSettings()
     configDirPath = @getConfigDirPath()
@@ -67,6 +62,10 @@ class Atom
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
     @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+
+  # Private:
+  setBodyPlatformClass: ->
+    document.body.classList.add("platform-#{process.platform}")
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -120,11 +119,10 @@ class Atom
 
   deserializeProject: ->
     Project = require './project'
-    state = @getWindowState()
-    @project = deserialize(state.get('project'))
-    unless @project?
-      @project = new Project(@getLoadSettings().initialPath)
-      state.set('project', @project.getState())
+    @project = @getWindowState('project')
+    unless @project instanceof Project
+      @project = new Project(path: @getLoadSettings().initialPath)
+      @setWindowState('project', @project)
 
   deserializeRootView: ->
     RootView = require './root-view'
@@ -295,6 +293,7 @@ class Atom
 
     doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
+    doc.registerModelClasses(require('./text-buffer'), require('./project'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)
@@ -316,6 +315,10 @@ class Atom
     else
       @windowState
 
+  # Private: Returns a replicated copy of the current state.
+  replicate: ->
+    @getWindowState().replicate()
+
   crashMainProcess: ->
     remote.process.crash()
 
@@ -327,7 +330,7 @@ class Atom
     @rootView.trigger 'beep'
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(@config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(@getConfigDirPath(), "user.coffee")
     try
       require userInitScriptPath if fs.isFileSync(userInitScriptPath)
     catch error

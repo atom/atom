@@ -242,10 +242,10 @@ describe "Git", ->
 
       statusHandler = jasmine.createSpy('statusHandler')
       project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().trigger 'path-changed'
+      editSession.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().trigger 'path-changed'
+      editSession.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->
@@ -257,7 +257,8 @@ describe "Git", ->
 
     it "subscribes to all the serialized buffers in the project", ->
       project.openSync('sample.js')
-      project2 = deserialize(project.serialize())
+      #TODO Replace with atom.replicate().project when Atom is a telepath model
+      project2 = atom.replicate().get('project')
       buffer = project2.getBuffers()[0]
 
       waitsFor ->
