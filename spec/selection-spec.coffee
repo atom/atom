@@ -4,7 +4,7 @@ describe "Selection", ->
   [buffer, editor, selection] = []
 
   beforeEach ->
-    buffer = project.bufferForPathSync('sample.js')
+    buffer = atom.project.bufferForPathSync('sample.js')
     editor = new Editor(buffer: buffer, tabLength: 2)
     selection = editor.getSelection()
 

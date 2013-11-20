@@ -8,8 +8,8 @@ describe "Window", ->
   beforeEach ->
     spyOn(atom, 'hide')
     atom.getLoadSettings() # Causes atom.loadSettings to be initialized
-    atom.loadSettings.initialPath = project.getPath()
-    project.destroy()
+    atom.loadSettings.initialPath = atom.project.getPath()
+    atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
@@ -61,7 +61,7 @@ describe "Window", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
         spyOn(rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
-        editor = rootView.openSync("sample.js")
+        editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(rootView.confirmClose).toHaveBeenCalled()
@@ -69,14 +69,14 @@ describe "Window", ->
 
       it "prompts user to save and handler returns true if don't save", ->
         spyOn(atom, "confirmSync").andReturn(2)
-        editor = rootView.openSync("sample.js")
+        editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
         spyOn(atom, "confirmSync").andReturn(1)
-        editor = rootView.openSync("sample.js")
+        editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
@@ -93,9 +93,9 @@ describe "Window", ->
       expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
-      rootView.openSync('sample.js')
-      buffer = rootView.getActivePaneItem().buffer
-      pane = rootView.getActivePane()
+      atom.rootView.openSync('sample.js')
+      buffer = atom.rootView.getActivePaneItem().buffer
+      pane = atom.rootView.getActivePane()
       pane.splitRight(pane.copyActiveItem())
       expect(atom.rootView.find('.editor').length).toBe 2
 

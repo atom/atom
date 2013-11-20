@@ -8,7 +8,7 @@ describe "Editor", ->
 
   describe "with an initial line option", ->
     beforeEach ->
-      editor = project.openSync('sample.js', initialLine: 2)
+      editor = atom.project.openSync('sample.js', initialLine: 2)
       buffer = editor.buffer
 
     it "opens the file and positions the cursor on line 2", ->
@@ -17,7 +17,7 @@ describe "Editor", ->
   describe "with default options", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
-      editor = project.openSync('sample.js', autoIndent: false)
+      editor = atom.project.openSync('sample.js', autoIndent: false)
       buffer = editor.buffer
       lineLengths = buffer.getLines().map (line) -> line.length
 
@@ -60,7 +60,7 @@ describe "Editor", ->
         atom.config.set('editor.tabLength', 4)
         atom.config.set('editor.softWrap', true)
         atom.config.set('editor.softTabs', false)
-        editor1 = project.openSync('a')
+        editor1 = atom.project.openSync('a')
         expect(editor1.getTabLength()).toBe 4
         expect(editor1.getSoftWrap()).toBe true
         expect(editor1.getSoftTabs()).toBe false
@@ -68,7 +68,7 @@ describe "Editor", ->
         atom.config.set('editor.tabLength', 100)
         atom.config.set('editor.softWrap', false)
         atom.config.set('editor.softTabs', true)
-        editor2 = project.openSync('b')
+        editor2 = atom.project.openSync('b')
         expect(editor2.getTabLength()).toBe 100
         expect(editor2.getSoftWrap()).toBe false
         expect(editor2.getSoftTabs()).toBe true
@@ -1184,7 +1184,7 @@ describe "Editor", ->
           expect(selection.isEmpty()).toBeTruthy()
 
       it "does not share selections between different edit sessions for the same buffer", ->
-        editor2 = project.openSync('sample.js')
+        editor2 = atom.project.openSync('sample.js')
         editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
         editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
         expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
@@ -2036,7 +2036,7 @@ describe "Editor", ->
 
         it "does not explode if the current language mode has no comment regex", ->
           editor.destroy()
-          editor = project.openSync(null, autoIndent: false)
+          editor = atom.project.openSync(null, autoIndent: false)
           editor.setSelectedBufferRange([[4, 5], [4, 5]])
           editor.toggleLineCommentsInSelection()
           expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
@@ -2358,13 +2358,13 @@ describe "Editor", ->
 
     describe "soft-tabs detection", ->
       it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-        editor = project.openSync('sample.js', softTabs: false)
+        editor = atom.project.openSync('sample.js', softTabs: false)
         expect(editor.getSoftTabs()).toBeTruthy()
 
-        editor = project.openSync('sample-with-tabs.coffee', softTabs: true)
+        editor = atom.project.openSync('sample-with-tabs.coffee', softTabs: true)
         expect(editor.getSoftTabs()).toBeFalsy()
 
-        editor = project.openSync(null, softTabs: false)
+        editor = atom.project.openSync(null, softTabs: false)
         expect(editor.getSoftTabs()).toBeFalsy()
 
     describe ".indentLevelForLine(line)", ->
@@ -2393,7 +2393,7 @@ describe "Editor", ->
         jsGrammar = atom.syntax.selectGrammar('a.js')
         atom.syntax.removeGrammar(jsGrammar)
 
-        editor = project.openSync('sample.js', autoIndent: false)
+        editor = atom.project.openSync('sample.js', autoIndent: false)
         expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
         expect(editor.lineForScreenRow(0).tokens.length).toBe 1
 
@@ -2614,7 +2614,7 @@ describe "Editor", ->
         expect(editor.shouldPromptToSave()).toBeFalsy()
         buffer.setText('changed')
         expect(editor.shouldPromptToSave()).toBeTruthy()
-        editor2 = project.openSync('sample.js', autoIndent: false)
+        editor2 = atom.project.openSync('sample.js', autoIndent: false)
         expect(editor.shouldPromptToSave()).toBeFalsy()
         editor2.destroy()
         expect(editor.shouldPromptToSave()).toBeTruthy()

@@ -20,8 +20,8 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editor1 = project.openSync('sample.js')
-    editor2 = project.openSync('sample.txt')
+    editor1 = atom.project.openSync('sample.js')
+    editor2 = atom.project.openSync('sample.txt')
     pane = new Pane(view1, editor1, view2, editor2)
     container.setRoot(pane)
 
@@ -702,8 +702,8 @@ describe "Pane", ->
         projectReplica = atom.replicate().get('project')
         containerState = container.serialize()
         container.remove()
-        project.destroy()
         window.project = projectReplica
+        atom.project.destroy()
         container = atom.deserializers.deserialize(containerState)
         pane = container.getRoot()
         container.attachToDom()

@@ -447,7 +447,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is added", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editor = project.openSync('sample.js')
+          editor = atom.project.openSync('sample.js')
           editor.setText("// http://github.com")
 
           {tokens} = editor.lineForScreenRow(0)
@@ -462,7 +462,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editor = project.openSync('sample.js')
+          editor = atom.project.openSync('sample.js')
           editor.setText("// SELECT * FROM OCTOCATS")
 
           {tokens} = editor.lineForScreenRow(0)

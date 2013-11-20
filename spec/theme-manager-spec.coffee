@@ -80,7 +80,7 @@ describe "ThemeManager", ->
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
-      cssPath = project.resolve('css.css')
+      cssPath = atom.project.resolve('css.css')
       lengthBefore = $('head style').length
 
       themeManager.requireStylesheet(cssPath)
@@ -97,7 +97,7 @@ describe "ThemeManager", ->
       $('head style[id*="css.css"]').remove()
 
     it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
-      lessPath = project.resolve('sample.less')
+      lessPath = atom.project.resolve('sample.less')
       lengthBefore = $('head style').length
       themeManager.requireStylesheet(lessPath)
       expect($('head style').length).toBe lengthBefore + 1
@@ -141,8 +141,8 @@ describe "ThemeManager", ->
   describe "base stylesheet loading", ->
     beforeEach ->
       atom.rootView = new RootView
-      rootView.append $$ -> @div class: 'editor'
-      rootView.attachToDom()
+      atom.rootView.append $$ -> @div class: 'editor'
+      atom.rootView.attachToDom()
       themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
