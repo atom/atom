@@ -23,11 +23,11 @@ describe "the `atom` global", ->
         it "continues if the package has an invalid package.json", ->
           spyOn(console, 'warn')
           atom.config.set("core.disabledPackages", [])
-          expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
+          expect(-> atom.packages.loadPackage("package-with-broken-package-json")).not.toThrow()
 
         it "continues if the package has an invalid keymap", ->
           atom.config.set("core.disabledPackages", [])
-          expect(-> atom.loadPackage("package-with-broken-keymap")).not.toThrow()
+          expect(-> atom.packages.loadPackage("package-with-broken-keymap")).not.toThrow()
 
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
