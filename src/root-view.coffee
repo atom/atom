@@ -38,7 +38,7 @@ Editor = require './editor'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, EditorView)
+  atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
 

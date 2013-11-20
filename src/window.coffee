@@ -94,18 +94,12 @@ window.onerror = ->
   atom.openDevTools()
 
 #TODO remove once all packages use the atom global
-window.registerDeserializers = (args...) ->
-  atom.deserializers.add(args...)
 window.registerDeserializer = (args...) ->
   atom.deserializers.add(args...)
-window.registerDeferredDeserializer = (args...) ->
-  atom.deserializers.addDeferred(args...)
 window.unregisterDeserializer = (args...) ->
   atom.deserializers.remove(args...)
 window.deserialize = (args...) ->
   atom.deserializers.deserialize(args...)
-window.getDeserializer = (args...) ->
-  atom.deserializers.get(args...)
 window.requireWithGlobals = (args...) ->
   atom.requireWithGlobals(args...)
 
