@@ -324,3 +324,26 @@ describe "Keymap", ->
         bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
         expect(bindings[0].command).toEqual "command-and-grandchild-node"
+
+  describe ".keyBindingsForCommandMatchingElement(element)", ->
+    beforeEach ->
+      keymap.add 'nature',
+        '.green':
+          'ctrl-c': 'cultivate'
+        '.green-2':
+          'ctrl-o': 'cultivate'
+        '.brown':
+          'ctrl-h': 'harvest'
+        '.blue':
+          'ctrl-c': 'fly'
+
+    it "finds a keymap for an element", ->
+      el = $$ -> @div class: 'green'
+      bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
+      expect(bindings).toHaveLength 1
+      expect(bindings[0].keystroke).toEqual "ctrl-c"
+
+    it "no keymap an element without that map", ->
+      el = $$ -> @div class: 'brown'
+      bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
+      expect(bindings).toHaveLength 0

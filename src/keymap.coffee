@@ -43,12 +43,29 @@ class Keymap
     keyBindings = @keyBindingsForKeystroke(keystroke)
     @keyBindingsMatchingElement(element, keyBindings)
 
+  # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
+  # that match a command.
+  #
+  # * command:
+  #   The string representing the command (tree-view:toggle)
+  # * element:
+  #   The DOM node that will match a {KeyBinding}'s selector.
+  keyBindingsForCommandMatchingElement: (command, element) ->
+    keyBindings = @keyBindingsForCommand(command)
+    @keyBindingsMatchingElement(element, keyBindings)
+
   # Public: Returns an array of {KeyBinding}s that match a keystroke
   # * keystroke:
   #   The string representing the keys pressed (e.g. ctrl-P)
   keyBindingsForKeystroke: (keystroke) ->
     keystroke = KeyBinding.normalizeKeystroke(keystroke)
-    keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
+    @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
+
+  # Public: Returns an array of {KeyBinding}s that match a command
+  # * keystroke:
+  #   The string representing the keys pressed (e.g. ctrl-P)
+  keyBindingsForCommand: (command) ->
+    @keyBindings.filter (keyBinding) -> keyBinding.command == command
 
   # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
   # whos selector matches the element.
