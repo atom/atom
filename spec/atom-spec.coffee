@@ -11,7 +11,7 @@ describe "the `atom` global", ->
     describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->
         it "requires the package's main module if one of its deferred deserializers is referenced", ->
-          pack = atom.loadPackage('package-with-activation-events')
+          pack = atom.package.loadPackage('package-with-activation-events')
           spyOn(pack, 'activateStylesheets').andCallThrough()
           expect(pack.mainModule).toBeNull()
           object = deserialize({deserializer: 'Foo', data: 5})
