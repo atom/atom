@@ -22,11 +22,11 @@ describe "the `atom` global", ->
 
         it "continues if the package has an invalid package.json", ->
           spyOn(console, 'warn')
-          config.set("core.disabledPackages", [])
+          atom.config.set("core.disabledPackages", [])
           expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
 
         it "continues if the package has an invalid keymap", ->
-          config.set("core.disabledPackages", [])
+          atom.config.set("core.disabledPackages", [])
           expect(-> atom.loadPackage("package-with-broken-keymap")).not.toThrow()
 
     describe ".unloadPackage(name)", ->
@@ -72,10 +72,10 @@ describe "the `atom` global", ->
               expect(pack.mainModule).toBe indexModule
 
           it "assigns config defaults from the module", ->
-            expect(config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
+            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
             atom.activatePackage('package-with-config-defaults')
-            expect(config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(config.get('package-with-config-defaults.numbers.two')).toBe 2
+            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
+            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
           describe "when the package metadata includes activation events", ->
             [mainModule, pack] = []
@@ -95,14 +95,14 @@ describe "the `atom` global", ->
 
             it "triggers the activation event on all handlers registered during activation", ->
               rootView.openSync()
-              editor = rootView.getActiveView()
+              editorView = rootView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
-              editor.command 'activation-event', eventHandler
-              editor.trigger 'activation-event'
+              editorView.command 'activation-event', eventHandler
+              editorView.trigger 'activation-event'
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.activationEventCallCount).toBe 1
               expect(eventHandler.callCount).toBe 1
-              editor.trigger 'activation-event'
+              editorView.trigger 'activation-event'
               expect(mainModule.activationEventCallCount).toBe 2
               expect(eventHandler.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
@@ -125,7 +125,7 @@ describe "the `atom` global", ->
           expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
         it "logs warning instead of throwing an exception if the package fails to load", ->
-          config.set("core.disabledPackages", [])
+          atom.config.set("core.disabledPackages", [])
           spyOn(console, "warn")
           expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
           expect(console.warn).toHaveBeenCalled()
@@ -137,28 +137,28 @@ describe "the `atom` global", ->
               element2 = $$ -> @div class: 'test-2'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
-              expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
-              expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)).toHaveLength 0
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
 
               atom.activatePackage("package-with-keymaps")
 
-              expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
-              expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
-              expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe "test-1"
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)[0].command).toBe "test-2"
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
 
           describe "when the metadata contains a 'keymaps' manifest", ->
             it "loads only the keymaps specified by the manifest, in the specified order", ->
               element1 = $$ -> @div class: 'test-1'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
 
               atom.activatePackage("package-with-keymaps-manifest")
 
-              expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
-              expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
-              expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe 'keymap-1'
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-n', element1)[0].command).toBe 'keymap-2'
+              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-y', element3)).toHaveLength 0
 
         describe "menu loading", ->
           beforeEach ->
@@ -200,6 +200,11 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+
+              one = atom.themes.stringToId(one)
+              two = atom.themes.stringToId(two)
+              three = atom.themes.stringToId(three)
+
               expect(atom.themes.stylesheetElementForId(one)).not.toExist()
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
@@ -216,6 +221,12 @@ describe "the `atom` global", ->
               one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
               two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
               three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.css")
+
+
+              one = atom.themes.stringToId(one)
+              two = atom.themes.stringToId(two)
+              three = atom.themes.stringToId(three)
+
               expect(atom.themes.stylesheetElementForId(one)).not.toExist()
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
@@ -229,36 +240,37 @@ describe "the `atom` global", ->
         describe "grammar loading", ->
           it "loads the package's grammars", ->
             atom.activatePackage('package-with-grammars')
-            expect(syntax.selectGrammar('a.alot').name).toBe 'Alot'
-            expect(syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
+            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
             atom.activatePackage("package-with-scoped-properties")
-            expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
       describe "textmate packages", ->
         it "loads the package's grammars", ->
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
           it "loads the package's preferences as scoped properties", ->
             jasmine.unspy(window, 'setTimeout')
-            spyOn(syntax, 'addProperties').andCallThrough()
+            spyOn(atom.syntax, 'addProperties').andCallThrough()
 
             atom.activatePackage('package-with-preferences-tmbundle')
 
             waitsFor ->
-              syntax.addProperties.callCount > 0
+              atom.syntax.addProperties.callCount > 0
+
             runs ->
-              expect(syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
+              expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
@@ -300,14 +312,14 @@ describe "the `atom` global", ->
         it "removes the package's grammars", ->
           atom.activatePackage('package-with-grammars')
           atom.deactivatePackage('package-with-grammars')
-          expect(syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
-          expect(syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+          expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
+          expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
         it "removes the package's keymaps", ->
           atom.activatePackage('package-with-keymaps')
           atom.deactivatePackage('package-with-keymaps')
-          expect(keymap.bindingsForElement($$ -> @div class: 'test-1')['ctrl-z']).toBeUndefined()
-          expect(keymap.bindingsForElement($$ -> @div class: 'test-2')['ctrl-z']).toBeUndefined()
+          expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
+          expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
 
         it "removes the package's stylesheets", ->
           atom.activatePackage('package-with-stylesheets')
@@ -321,22 +333,22 @@ describe "the `atom` global", ->
 
         it "removes the package's scoped-properties", ->
           atom.activatePackage("package-with-scoped-properties")
-          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
           atom.deactivatePackage("package-with-scoped-properties")
-          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
       describe "textmate packages", ->
         it "removes the package's grammars", ->
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
           atom.activatePackage('language-ruby', sync: true)
-          expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
           atom.deactivatePackage('language-ruby')
-          expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
           atom.activatePackage('language-ruby', sync: true)
           atom.deactivatePackage('language-ruby')
-          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
     describe ".activate()", ->
       packageActivator = null
@@ -376,7 +388,7 @@ describe "the `atom` global", ->
           packageName = 'package-with-main'
           atom.config.pushAtKeyPath('core.disabledPackages', packageName)
           atom.packages.observeDisabledPackages()
-          expect(config.get('core.disabledPackages')).toContain packageName
+          expect(atom.config.get('core.disabledPackages')).toContain packageName
 
           pack = atom.packages.enablePackage(packageName)
 
@@ -384,19 +396,19 @@ describe "the `atom` global", ->
           activatedPackages = atom.packages.getActivePackages()
           expect(loadedPackages).toContain(pack)
           expect(activatedPackages).toContain(pack)
-          expect(config.get('core.disabledPackages')).not.toContain packageName
+          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
         it ".disablePackage() disables an enabled package", ->
           packageName = 'package-with-main'
           atom.packages.activatePackage(packageName)
           atom.packages.observeDisabledPackages()
-          expect(config.get('core.disabledPackages')).not.toContain packageName
+          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
           pack = atom.packages.disablePackage(packageName)
 
           activatedPackages = atom.packages.getActivePackages()
           expect(activatedPackages).not.toContain(pack)
-          expect(config.get('core.disabledPackages')).toContain packageName
+          expect(atom.config.get('core.disabledPackages')).toContain packageName
 
       describe "with themes", ->
         beforeEach ->
@@ -409,20 +421,20 @@ describe "the `atom` global", ->
         it ".enablePackage() and .disablePackage() enables and disables a theme", ->
           packageName = 'theme-with-package-file'
 
-          expect(config.get('core.themes')).not.toContain packageName
-          expect(config.get('core.disabledPackages')).not.toContain packageName
+          expect(atom.config.get('core.themes')).not.toContain packageName
+          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
           # enabling of theme
           pack = atom.packages.enablePackage(packageName)
           activatedPackages = atom.packages.getActivePackages()
           expect(activatedPackages).toContain(pack)
-          expect(config.get('core.themes')).toContain packageName
-          expect(config.get('core.disabledPackages')).not.toContain packageName
+          expect(atom.config.get('core.themes')).toContain packageName
+          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
           # disabling of theme
           pack = atom.packages.disablePackage(packageName)
           activatedPackages = atom.packages.getActivePackages()
           expect(activatedPackages).not.toContain(pack)
-          expect(config.get('core.themes')).not.toContain packageName
-          expect(config.get('core.themes')).not.toContain packageName
-          expect(config.get('core.disabledPackages')).not.toContain packageName
+          expect(atom.config.get('core.themes')).not.toContain packageName
+          expect(atom.config.get('core.themes')).not.toContain packageName
+          expect(atom.config.get('core.disabledPackages')).not.toContain packageName

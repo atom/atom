@@ -62,7 +62,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
-    console.log("App load time: #{Date.now() - startTime}ms")
+    console.log("App load time: #{Date.now() - startTime}ms") unless args.test
 
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 

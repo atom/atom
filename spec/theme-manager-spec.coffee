@@ -6,9 +6,11 @@ AtomPackage = require '../src/atom-package'
 
 describe "ThemeManager", ->
   themeManager = null
+  resourcePath = atom.getLoadSettings().resourcePath
+  configDirPath = atom.getConfigDirPath()
 
   beforeEach ->
-    themeManager = new ThemeManager(atom.packages)
+    themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath})
 
   afterEach ->
     themeManager.deactivateThemes()
@@ -30,7 +32,7 @@ describe "ThemeManager", ->
 
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
-      config.set('core.themes', ['atom-dark-syntax', 'atom-dark-ui', 'atom-light-ui'])
+      atom.config.set('core.themes', ['atom-dark-syntax', 'atom-dark-ui', 'atom-light-ui'])
 
       paths = themeManager.getImportPaths()
 
@@ -40,7 +42,7 @@ describe "ThemeManager", ->
       expect(paths[1]).toContain 'atom-light-ui'
 
     it "ignores themes that cannot be resolved to a directory", ->
-      config.set('core.themes', ['definitely-not-a-theme'])
+      atom.config.set('core.themes', ['definitely-not-a-theme'])
       expect(-> themeManager.getImportPaths()).not.toThrow()
 
   describe "when the core.themes config value changes", ->
@@ -49,24 +51,24 @@ describe "ThemeManager", ->
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
       themeManager.activateThemes()
 
-      config.set('core.themes', [])
+      atom.config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
       expect(reloadHandler).toHaveBeenCalled()
 
-      config.set('core.themes', ['atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-dark-syntax'])
       expect($('style.theme').length).toBe 1
       expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
 
-      config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
       expect($('style.theme').length).toBe 2
       expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
       expect($('style.theme:eq(1)').attr('id')).toMatch /atom-light-syntax/
 
-      config.set('core.themes', [])
+      atom.config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
 
       # atom-dark-ui has an directory path, the syntax ones dont.
-      config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
+      atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
       importPaths = themeManager.getImportPaths()
       expect(importPaths.length).toBe 1
       expect(importPaths[0]).toContain 'atom-dark-ui'
@@ -85,7 +87,7 @@ describe "ThemeManager", ->
       expect($('head style').length).toBe lengthBefore + 1
 
       element = $('head style[id*="css.css"]')
-      expect(element.attr('id')).toBe cssPath
+      expect(element.attr('id')).toBe themeManager.stringToId(cssPath)
       expect(element.text()).toBe fs.readFileSync(cssPath, 'utf8')
 
       # doesn't append twice
@@ -101,7 +103,7 @@ describe "ThemeManager", ->
       expect($('head style').length).toBe lengthBefore + 1
 
       element = $('head style[id*="sample.less"]')
-      expect(element.attr('id')).toBe lessPath
+      expect(element.attr('id')).toBe themeManager.stringToId(lessPath)
       expect(element.text()).toBe """
       #header {
         color: #4d926f;
@@ -119,9 +121,9 @@ describe "ThemeManager", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
+      expect($('head style[id*="css.css"]').attr('id')).toBe themeManager.stringToId(project.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
+      expect($('head style[id*="sample.less"]').attr('id')).toBe themeManager.stringToId(project.resolve('sample.less'))
 
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()
@@ -144,7 +146,7 @@ describe "ThemeManager", ->
       themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
-      config.set('core.themes', ['theme-with-ui-variables'])
+      atom.config.set('core.themes', ['theme-with-ui-variables'])
 
       # an override loaded in the base css
       expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"

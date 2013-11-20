@@ -5,9 +5,15 @@ var path = require('path');
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
   index = (index == undefined ? 0 : index);
-  if (index < commands.length)
-    safeExec(commands[index], executeCommands.bind(this, commands, done, index + 1));
-  else
+  if (index < commands.length) {
+    var command = commands[index];
+    var options = null;
+    if (typeof command !== 'string') {
+      options = command.options;
+      command = command.command;
+    }
+    safeExec(command, options, executeCommands.bind(this, commands, done, index + 1));
+  } else
     done(null);
 }
 
@@ -21,8 +27,8 @@ var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  joinCommands('cd vendor/apm', 'npm install --silent .'),
-  'npm install --silent vendor/apm',
+  {command: joinCommands('cd vendor/apm', 'npm install --silent .'), options: {ignoreStdout: true}},
+  {command: 'npm install --silent vendor/apm', options: {ignoreStdout: true}},
   echoNewLine,
   'node node_modules/atom-package-manager/bin/apm clean',
   'node node_modules/atom-package-manager/bin/apm install --silent',

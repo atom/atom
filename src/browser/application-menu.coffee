@@ -22,7 +22,7 @@ class ApplicationMenu
   #   The Object which describes the menu to display.
   # * keystrokesByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
+  #   the keystroke.
   update: (template, keystrokesByCommand) ->
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
@@ -97,14 +97,14 @@ class ApplicationMenu
       ]
     ]
 
-  # Private: Combines a menu template with the appropriate keystrokes.
+  # Private: Combines a menu template with the appropriate keystroke.
   #
   # * template:
   #   An Object conforming to atom-shell's menu api but lacking accelerator and
   #   click properties.
   # * keystrokesByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
+  #   the keystroke.
   #
   # Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
@@ -123,15 +123,15 @@ class ApplicationMenu
   #   The name of the command.
   # * keystrokesByCommand:
   #   An Object where the keys are commands and the values are Arrays containing
-  #   the keystrokes.
+  #   the keystroke.
   #
   # Returns a String containing the keystroke in a format that can be interpreted
   #   by atom shell to provide nice icons where available.
   acceleratorForCommand: (command, keystrokesByCommand) ->
-    keystroke = keystrokesByCommand[command]?[0]
-    return null unless keystroke
+    firstKeystroke = keystrokesByCommand[command]?[0]
+    return null unless firstKeystroke
 
-    modifiers = keystroke.split('-')
+    modifiers = firstKeystroke.split('-')
     key = modifiers.pop()
 
     modifiers.push("Shift") if key != key.toLowerCase()

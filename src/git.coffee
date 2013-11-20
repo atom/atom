@@ -12,7 +12,7 @@ GitUtils = require 'git-utils'
 # ## Example
 #
 # ```coffeescript
-# git = global.project.getRepo()
+# git = atom.project.getRepo()
 # console.log git.getOriginUrl()
 # ```
 module.exports =
@@ -71,8 +71,7 @@ class Git
         @refreshStatus()
 
     if project?
-      @subscribeToBuffer(buffer) for buffer in project.getBuffers()
-      @subscribe project, 'buffer-created', (buffer) => @subscribeToBuffer(buffer)
+      @subscribe project.buffers.onEach (buffer) => @subscribeToBuffer(buffer)
 
   # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
@@ -216,7 +215,8 @@ class Git
   #
   # Returns a Number representing the status.
   getDirectoryStatus: (directoryPath)  ->
-    directoryPath = "#{directoryPath}/"
+    {sep} = require 'path'
+    directoryPath = "#{directoryPath}#{sep}"
     directoryStatus = 0
     for path, status of @statuses
       directoryStatus |= status if path.indexOf(directoryPath) is 0

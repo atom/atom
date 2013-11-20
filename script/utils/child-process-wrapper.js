@@ -10,7 +10,7 @@ exports.safeExec = function(command, options, callback) {
   if (!options)
     options = {};
 
-  // This needed to be increase for `apm test` runs that generate tons of failures
+  // This needed to be increased for `apm test` runs that generate many failures
   // The default is 200KB.
   options.maxBuffer = 1024 * 1024;
 
@@ -21,7 +21,8 @@ exports.safeExec = function(command, options, callback) {
       callback(null);
   });
   child.stderr.pipe(process.stderr);
-  child.stdout.pipe(process.stdout);
+  if (!options.ignoreStdout)
+    child.stdout.pipe(process.stdout);
 }
 
 // Same with safeExec but call child_process.spawn instead.

@@ -89,7 +89,7 @@ class AtomPackage extends Package
 
     @requireMainModule()
     if @mainModule?
-      config.setDefaults(@name, @mainModule.configDefaults)
+      atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
@@ -105,9 +105,9 @@ class AtomPackage extends Package
     atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
-    syntax.addGrammar(grammar) for grammar in @grammars
+    atom.syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
-      syntax.addProperties(scopedPropertiesPath, selector, properties)
+      atom.syntax.addProperties(scopedPropertiesPath, selector, properties)
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
@@ -180,8 +180,8 @@ class AtomPackage extends Package
     @configActivated = false
 
   deactivateResources: ->
-    syntax.removeGrammar(grammar) for grammar in @grammars
-    syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
+    atom.syntax.removeGrammar(grammar) for grammar in @grammars
+    atom.syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false
@@ -216,14 +216,18 @@ class AtomPackage extends Package
         @activateStylesheets()
         @requireMainModule()
 
+  # Private: TODO remove once packages have been updated
+  getRootView: ->
+    atom?.rootView ? window.rootView
+
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
-      rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
+      @getRootView().command(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      rootView.command(@metadata.activationEvents, @handleActivationEvent)
+      @getRootView().command(@metadata.activationEvents, @handleActivationEvent)
     else
-      rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      @getRootView().command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   handleActivationEvent: (event) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
@@ -234,11 +238,11 @@ class AtomPackage extends Package
 
   unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
-      rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
+      @getRootView().off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      rootView.off(@metadata.activationEvents, @handleActivationEvent)
+      @getRootView().off(@metadata.activationEvents, @handleActivationEvent)
     else
-      rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      @getRootView().off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []

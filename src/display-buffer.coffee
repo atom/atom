@@ -33,12 +33,12 @@ class DisplayBuffer
       {@buffer, softWrap, editorWidthInChars} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
-      @state = site.createDocument
+      @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrap: softWrap ? config.get('editor.softWrap') ? false
+        softWrap: softWrap ? atom.config.get('editor.softWrap') ? false
         editorWidthInChars: editorWidthInChars
 
     @markers = {}
@@ -56,7 +56,7 @@ class DisplayBuffer
         @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @getSoftWrap() and config.get('editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @getSoftWrap() and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @getSoftWrap()
@@ -113,8 +113,8 @@ class DisplayBuffer
 
   getSoftWrapColumn: ->
     editorWidthInChars = @state.get('editorWidthInChars')
-    if config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(editorWidthInChars, config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
+    if atom.config.get('editor.softWrapAtPreferredLineLength')
+      Math.min(editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
     else
       editorWidthInChars
 
@@ -365,7 +365,9 @@ class DisplayBuffer
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
-  # Retrieves the grammar for the buffer.
+  # Get the grammar for this buffer.
+  #
+  # Returns the current {TextMateGrammar} or the {NullGrammar}.
   getGrammar: ->
     @tokenizedBuffer.grammar
 

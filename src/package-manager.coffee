@@ -40,6 +40,12 @@ class PackageManager
   getApmPath: ->
     @apmPath ?= require.resolve('atom-package-manager/bin/apm')
 
+  # Public: Get the paths being used to look for packages.
+  #
+  # Returns an Array of String directory paths.
+  getPackageDirPaths: ->
+    _.clone(@packageDirPaths)
+
   getPackageState: (name) ->
     @packageStates[name]
 
@@ -106,13 +112,13 @@ class PackageManager
 
   unobserveDisabledPackages: ->
     return unless @observingDisabledPackages
-    config.unobserve('core.disabledPackages')
+    atom.config.unobserve('core.disabledPackages')
     @observingDisabledPackages = false
 
   observeDisabledPackages: ->
     return if @observingDisabledPackages
 
-    config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+    atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 
@@ -182,11 +188,23 @@ class PackageManager
     return packagePath if @isInternalPackage(packagePath)
 
   isPackageDisabled: (name) ->
-    _.include(config.get('core.disabledPackages') ? [], name)
+    _.include(atom.config.get('core.disabledPackages') ? [], name)
 
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)
     engines?.atom?
+
+  isBundledPackage: (packageName) ->
+    @getPackageDependencies().hasOwnProperty(packageName)
+
+  getPackageDependencies: ->
+    unless @packageDependencies?
+      try
+        metadataPath = path.join(@resourcePath, 'package.json')
+        {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+      @packageDependencies ?= {}
+
+    @packageDependencies
 
   getAvailablePackagePaths: ->
     packagePaths = []
@@ -195,11 +213,8 @@ class PackageManager
       for packagePath in fs.listSync(packageDirPath)
         packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
-    try
-      metadataPath = path.join(@resourcePath, 'package.json')
-      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
     packagesPath = path.join(@resourcePath, 'node_modules')
-    for packageName, packageVersion of packageDependencies ? {}
+    for packageName, packageVersion of @getPackageDependencies()
       packagePath = path.join(packagesPath, packageName)
       packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 

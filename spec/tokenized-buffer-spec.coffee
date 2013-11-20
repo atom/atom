@@ -350,7 +350,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      buffer = project.buildBufferSync 'sample-with-pairs.js'
+      buffer = project.bufferForPathSync 'sample-with-pairs.js'
       buffer.setText """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
@@ -393,7 +393,7 @@ describe "TokenizedBuffer", ->
       buffer = project.bufferForPathSync()
       buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
+      tokenizedBuffer.setGrammar(atom.syntax.selectGrammar('test.erb'))
       fullyTokenize(tokenizedBuffer)
 
       {tokens} = tokenizedBuffer.lineForScreenRow(0)

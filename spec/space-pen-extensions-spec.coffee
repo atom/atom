@@ -23,21 +23,21 @@ describe "SpacePen extensions", ->
       expect(observeHandler).toHaveBeenCalledWith(undefined)
       observeHandler.reset()
 
-      config.set("foo.bar", "hello")
+      atom.config.set("foo.bar", "hello")
 
       expect(observeHandler).toHaveBeenCalledWith("hello", previous: undefined)
       observeHandler.reset()
 
       view.unobserveConfig()
 
-      config.set("foo.bar", "goodbye")
+      atom.config.set("foo.bar", "goodbye")
 
       expect(observeHandler).not.toHaveBeenCalled()
 
     it "unobserves when the view is removed", ->
       observeHandler.reset()
       parent.remove()
-      config.set("foo.bar", "hello")
+      atom.config.set("foo.bar", "hello")
       expect(observeHandler).not.toHaveBeenCalled()
 
   describe "View.subscribe(eventEmitter, eventName, callback)", ->

@@ -25,7 +25,6 @@ window.setUpEnvironment = (windowMode) ->
   #TODO remove once all packages use the atom global
   window.config = atom.config
   window.syntax = atom.syntax
-  window.pasteboard = atom.pasteboard
   window.keymap = atom.keymap
   window.site = atom.site
 
@@ -42,12 +41,15 @@ window.setUpDefaultEvents = ->
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
-  installAtomCommand()
-  installApmCommand()
+  if process.platform is 'darwin'
+    installAtomCommand()
+    installApmCommand()
 
   windowEventHandler = new WindowEventHandler
-  restoreDimensions()
+  atom.restoreDimensions()
   atom.config.load()
+  atom.config.setDefaults('core', require('./root-view').configDefaults)
+  atom.config.setDefaults('editor', require('./editor-view').configDefaults)
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()
@@ -66,7 +68,7 @@ window.startEditorWindow = ->
 window.unloadEditorWindow = ->
   return if not atom.project and not atom.rootView
   windowState = atom.getWindowState()
-  windowState.set('project', atom.project.serialize())
+  windowState.set('project', atom.project)
   windowState.set('syntax', atom.syntax.serialize())
   windowState.set('rootView', atom.rootView.serialize())
   atom.packages.deactivatePackages()
@@ -93,15 +95,10 @@ window.deserializeEditorWindow = ->
   atom.deserializeRootView()
   window.rootView = atom.rootView
 
-window.getDimensions = -> atom.getDimensions()
-
-window.setDimensions = (args...) -> atom.setDimensions(args...)
-
-window.restoreDimensions = (args...) -> atom.restoreDimensions(args...)
-
 window.onerror = ->
   atom.openDevTools()
 
+#TODO remove once all packages use the atom global
 window.registerDeserializers = (args...) ->
   atom.deserializers.add(args...)
 window.registerDeserializer = (args...) ->
@@ -126,9 +123,9 @@ window.requireWithGlobals = (args...) ->
 #
 # Returns the value returned by the given function.
 window.measure = (description, fn) ->
-  start = new Date().getTime()
+  start = Date.now()
   value = fn()
-  result = new Date().getTime() - start
+  result = Date.now() - start
   console.log description, result
   value
 

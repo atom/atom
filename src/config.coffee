@@ -33,23 +33,7 @@ class Config
 
   # Private: Created during initialization, available as `global.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
-    @bundledKeymapsDirPath = path.join(@resourcePath, "keymaps")
-    @bundledMenusDirPath = path.join(resourcePath, "menus")
-    @nodeModulesDirPath = path.join(@resourcePath, "node_modules")
-    @bundledPackageDirPaths = [@nodeModulesDirPath]
-    @lessSearchPaths = [
-      path.join(@resourcePath, 'static', 'variables')
-      path.join(@resourcePath, 'static')
-    ]
-    @packageDirPaths = [path.join(@configDirPath, "packages")]
-    if atom.getLoadSettings().devMode
-      @packageDirPaths.unshift(path.join(@configDirPath, "dev", "packages"))
-    @userPackageDirPaths = _.clone(@packageDirPaths)
-    @userStoragePath = path.join(@configDirPath, "storage")
-
-    @defaultSettings =
-      core: _.clone(require('./root-view').configDefaults)
-      editor: _.clone(require('./editor').configDefaults)
+    @defaultSettings = {}
     @settings = {}
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -163,6 +147,15 @@ class Config
       @update()
     value
 
+  # Public: Toggle the value at the key path.
+  #
+  # The new value will be `true` if the value is currently falsy and will be
+  # `false` if the value is currently truthy.
+  #
+  # Returns the new value.
+  toggle: (keyPath) ->
+    @set(keyPath, !@get(keyPath))
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.
@@ -223,8 +216,7 @@ class Config
         callback(value, {previous})
 
     eventName = "updated.#{keyPath.replace(/\./, '-')}"
-    subscription = { cancel: => @off eventName, updateCallback  }
-    @on eventName, updateCallback
+    subscription = @on eventName, updateCallback
     callback(value) if options.callNow ? true
     subscription
 

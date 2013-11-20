@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
-BindingSet = require './binding-set'
+KeyBinding = require './key-binding'
 {Emitter} = require 'emissary'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
@@ -25,166 +25,46 @@ module.exports =
 class Keymap
   Emitter.includeInto(this)
 
-  bindingSets: null
-  nextBindingSetIndex: 0
-  bindingSetsByFirstKeystroke: null
-  queuedKeystrokes: null
+  constructor: ({@resourcePath, @configDirPath})->
+    @keyBindings = []
 
-  constructor: ->
-    @bindingSets = []
-    @bindingSetsByFirstKeystroke = {}
+  # Public: Returns an array of all {KeyBinding}s.
+  getKeyBindings: ->
+    _.clone(@keyBindings)
 
-  loadBundledKeymaps: ->
-    @loadDirectory(config.bundledKeymapsDirPath)
-    @emit('bundled-keymaps-loaded')
-
-  loadUserKeymap: ->
-    userKeymapPath = CSON.resolve(path.join(config.configDirPath, 'keymap'))
-    @load(userKeymapPath) if userKeymapPath
-
-  loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
-
-  load: (path) ->
-    @add(path, CSON.readFileSync(path))
-
-  add: (args...) ->
-    name = args.shift() if args.length > 1
-    keymap = args.shift()
-    for selector, bindings of keymap
-      @bindKeys(name, selector, bindings)
-
-  remove: (name) ->
-    for bindingSet in @bindingSets.filter((bindingSet) -> bindingSet.name is name)
-      _.remove(@bindingSets, bindingSet)
-      for keystrokes of bindingSet.commandsByKeystrokes
-        keystroke = keystrokes.split(' ')[0]
-        _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
-
-  # Public: Returns an array of objects that represent every keystroke to
-  # command mapping. Each object contains the following keys `source`,
-  # `selector`, `command`, `keystrokes`.
-  getAllKeyMappings: ->
-    mappings = []
-    for bindingSet in @bindingSets
-      selector = bindingSet.getSelector()
-      source = @determineSource(bindingSet.getName())
-      for keystrokes, command of bindingSet.getCommandsByKeystrokes()
-        mappings.push {keystrokes, command, selector, source}
-
-    mappings
-
-  # Private: Returns a user friendly description of where a keybinding was
-  # loaded from.
+  # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
+  # that match a keystroke and element.
   #
-  # * filePath:
-  #   The absolute path from which the keymap was loaded
+  # * keystroke:
+  #   The string representing the keys pressed (e.g. ctrl-P).
+  # * element:
+  #   The DOM node that will match a {KeyBinding}'s selector.
+  keyBindingsForKeystrokeMatchingElement: (keystroke, element) ->
+    keyBindings = @keyBindingsForKeystroke(keystroke)
+    @keyBindingsMatchingElement(element, keyBindings)
+
+  # Public: Returns an array of {KeyBinding}s that match a keystroke
+  # * keystroke:
+  #   The string representing the keys pressed (e.g. ctrl-P)
+  keyBindingsForKeystroke: (keystroke) ->
+    keystroke = KeyBinding.normalizeKeystroke(keystroke)
+    keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
+
+  # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
+  # whos selector matches the element.
   #
-  # Returns one of:
-  # * `Core` indicates it comes from a bundled package.
-  # * `User` indicates that it was defined by a user.
-  # * `<package-name>` the package which defined it.
-  # * `Unknown` if an invalid path was passed in.
-  determineSource: (filePath) ->
-    return 'Unknown' unless filePath
+  # * element:
+  #   The DOM node that will match a {KeyBinding}'s selector.
+  keyBindingsMatchingElement: (element, keyBindings=@keyBindings) ->
+    keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
+    keyBindings.sort (a, b) -> a.compare(b)
 
-    pathParts = filePath.split(path.sep)
-    if _.contains(pathParts, 'node_modules') or _.contains(pathParts, 'atom') or _.contains(pathParts, 'src')
-      'Core'
-    else if _.contains(pathParts, '.atom') and _.contains(pathParts, 'keymaps') and !_.contains(pathParts, 'packages')
-      'User'
-    else
-      packageNameIndex = pathParts.length - 3
-      pathParts[packageNameIndex]
-
-  bindKeys: (args...) ->
-    name = args.shift() if args.length > 2
-    [selector, bindings] = args
-    bindingSet = new BindingSet(selector, bindings, @nextBindingSetIndex++, name)
-    @bindingSets.unshift(bindingSet)
-    for keystrokes of bindingSet.commandsByKeystrokes
-      keystroke = keystrokes.split(' ')[0] # only index by first keystroke
-      @bindingSetsByFirstKeystroke[keystroke] ?= []
-      @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
-
-  unbindKeys: (selector, bindings) ->
-    bindingSet = _.detect @bindingSets, (bindingSet) ->
-      bindingSet.selector is selector and bindingSet.bindings is bindings
-
-    if bindingSet
-      _.remove(@bindingSets, bindingSet)
-
-  bindingsForElement: (element) ->
-    keystrokeMap = {}
-    currentNode = $(element)
-
-    while currentNode.length
-      bindingSets = @bindingSetsForNode(currentNode)
-      _.defaults(keystrokeMap, set.commandsByKeystrokes) for set in bindingSets
-      currentNode = currentNode.parent()
-
-    keystrokeMap
-
-  handleKeyEvent: (event) =>
-    event.keystrokes = @multiKeystrokeStringForEvent(event)
-    isMultiKeystroke = @queuedKeystrokes?
-    @queuedKeystrokes = null
-
-    firstKeystroke = event.keystrokes.split(' ')[0]
-    bindingSetsForFirstKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke]
-    if bindingSetsForFirstKeystroke?
-      currentNode = $(event.target)
-      currentNode = rootView if currentNode is $('body')[0]
-      while currentNode.length
-        candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
-        for bindingSet in candidateBindingSets
-          command = bindingSet.commandForEvent(event)
-          if command is 'native!'
-            return true
-          else if command
-            continue if @triggerCommandEvent(event, command)
-            return false
-          else if command == false
-            return false
-
-          if bindingSet.matchesKeystrokePrefix(event)
-            @queuedKeystrokes = event.keystrokes
-            return false
-        currentNode = currentNode.parent()
-
-    return false if isMultiKeystroke
-    return false if firstKeystroke is 'tab'
-
-  bindingSetsForNode: (node, candidateBindingSets = @bindingSets) ->
-    bindingSets = candidateBindingSets.filter (set) -> node.is(set.selector)
-    bindingSets.sort (a, b) ->
-      if b.specificity == a.specificity
-        b.index - a.index
-      else
-        b.specificity - a.specificity
-
-  triggerCommandEvent: (keyEvent, commandName) ->
-    keyEvent.target = rootView[0] if keyEvent.target == document.body and window.rootView
-    commandEvent = $.Event(commandName)
-    commandEvent.keyEvent = keyEvent
-    aborted = false
-    commandEvent.abortKeyBinding = ->
-      @stopImmediatePropagation()
-      aborted = true
-    $(keyEvent.target).trigger(commandEvent)
-    aborted
-
-  multiKeystrokeStringForEvent: (event) ->
-    currentKeystroke = @keystrokeStringForEvent(event)
-    if @queuedKeystrokes
-      if currentKeystroke in Modifiers
-        @queuedKeystrokes
-      else
-        @queuedKeystrokes + ' ' + currentKeystroke
-    else
-      currentKeystroke
-
-  keystrokeStringForEvent: (event) ->
+  # Public: Returns a keystroke string derived from an event.
+  # * event:
+  #   A DOM or jQuery event
+  # * previousKeystroke:
+  #   An optional string used for multiKeystrokes
+  keystrokeStringForEvent: (event, previousKeystroke) ->
     if event.originalEvent.keyIdentifier.indexOf('U+') == 0
       hexCharCode = event.originalEvent.keyIdentifier[2..]
       charCode = parseInt(hexCharCode, 16)
@@ -207,16 +87,73 @@ class Keymap
     else
       key = key.toLowerCase()
 
-    [modifiers..., key].join('-')
+    keystroke = [modifiers..., key].join('-')
 
-  keystrokesByCommandForSelector: (selector)->
-    keystrokesByCommand = {}
-    for bindingSet in @bindingSets
-      for keystroke, command of bindingSet.commandsByKeystrokes
-        continue if selector? and selector != bindingSet.selector
-        keystrokesByCommand[command] ?= []
-        keystrokesByCommand[command].push keystroke
-    keystrokesByCommand
+    if previousKeystroke
+      if keystroke in Modifiers
+        previousKeystroke
+      else
+        "#{previousKeystroke} #{keystroke}"
+    else
+      keystroke
+
+  loadBundledKeymaps: ->
+    @loadDirectory(path.join(@resourcePath, 'keymaps'))
+    @emit('bundled-keymaps-loaded')
+
+  loadUserKeymap: ->
+    userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))
+    @load(userKeymapPath) if userKeymapPath
+
+  loadDirectory: (directoryPath) ->
+    @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
+
+  load: (path) ->
+    @add(path, CSON.readFileSync(path))
+
+  add: (source, keyMappingsBySelector) ->
+    for selector, keyMappings of keyMappingsBySelector
+      @bindKeys(source, selector, keyMappings)
+
+  remove: (source) ->
+    @keyBindings = @keyBindings.filter (keyBinding) -> keyBinding.source isnt source
+
+  bindKeys: (source, selector, keyMappings) ->
+    for keystroke, command of keyMappings
+      @keyBindings.push new KeyBinding(source, command, keystroke, selector)
+
+  handleKeyEvent: (event) ->
+    element = event.target
+    element = rootView if element == document.body
+    keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
+    keyBindings = @keyBindingsForKeystrokeMatchingElement(keystroke, element)
+
+    if keyBindings.length == 0 and @queuedKeystroke
+      @queuedKeystroke = null
+      return false
+    else
+      @queuedKeystroke = null
+
+    for keyBinding in keyBindings
+      partialMatch = keyBinding.keystroke isnt keystroke
+      if partialMatch
+        @queuedKeystroke = keystroke
+        shouldBubble = false
+      else
+        if keyBinding.command is 'native!'
+          shouldBubble = true
+        else if @triggerCommandEvent(element, keyBinding.command)
+          shouldBubble = false
+
+      break if shouldBubble?
+
+    shouldBubble ? true
+
+  triggerCommandEvent: (element, commandName) ->
+    commandEvent = $.Event(commandName)
+    commandEvent.abortKeyBinding = -> commandEvent.stopImmediatePropagation()
+    $(element).trigger(commandEvent)
+    not commandEvent.isImmediatePropagationStopped()
 
   isAscii: (charCode) ->
     0 <= charCode <= 127
