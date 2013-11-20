@@ -66,7 +66,7 @@ describe "AtomPackage", ->
 
     describe "events", ->
       beforeEach ->
-        themePath = project.resolve('packages/theme-with-package-file')
+        themePath = atom.project.resolve('packages/theme-with-package-file')
         theme = Package.load(themePath)
         theme.activate()
 
