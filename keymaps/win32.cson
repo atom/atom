@@ -1,4 +1,4 @@
-'body.platform-win32':
+'.platform-win32':
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -45,12 +45,12 @@
   'ctrl-k down': 'pane:split-down' # Atom Specific
   'ctrl-k left': 'pane:split-left' # Atom Specific
   'ctrl-k right': 'pane:split-right' # Atom Specific
-  'ctrl-k cmd-w': 'pane:close' # Atom Specific
-  'ctrl-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
-  'ctrl-k cmd-left': 'window:focus-previous-pane'
-  'ctrl-k cmd-right': 'window:focus-next-pane'
+  'ctrl-k ctrl-w': 'pane:close' # Atom Specific
+  'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k ctrl-left': 'window:focus-previous-pane'
+  'ctrl-k ctrl-right': 'window:focus-next-pane'
 
-'body.platform-win32 .editor':
+'.platform-win32 .editor':
   # Windows specific
   'ctrl-delete': 'editor:backspace-to-beginning-of-word'
 
@@ -60,7 +60,7 @@
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
 
-'body.platform-win32 .editor:not(.mini)':
+'.platform-win32 .editor:not(.mini)':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
@@ -94,7 +94,7 @@
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'body.platform-win32 input:not(.hidden-input), body.platform-win32 .native-key-bindings':
+'.platform-win32 input:not(.hidden-input), .platform-win32 .native-key-bindings':
   'ctrl-z': 'native!'
   'ctrl-Z': 'native!'
   'ctrl-x': 'native!'

@@ -123,9 +123,9 @@ window.requireWithGlobals = (args...) ->
 #
 # Returns the value returned by the given function.
 window.measure = (description, fn) ->
-  start = new Date().getTime()
+  start = Date.now()
   value = fn()
-  result = new Date().getTime() - start
+  result = Date.now() - start
   console.log description, result
   value
 

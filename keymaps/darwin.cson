@@ -1,4 +1,4 @@
-'body.platform-darwin':
+'.platform-darwin':
   # Apple specific
   'cmd-q': 'application:quit'
   'cmd-h': 'application:hide'
@@ -87,7 +87,7 @@
   'cmd-8': 'pane:show-item-8'
   'cmd-9': 'pane:show-item-9'
 
-'body.platform-darwin .editor':
+'.platform-darwin .editor':
   # Apple Specific
   'cmd-backspace': 'editor:backspace-to-beginning-of-line'
   'cmd-delete': 'editor:backspace-to-beginning-of-line'

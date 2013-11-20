@@ -262,12 +262,13 @@ describe "the `atom` global", ->
         describe "when the package has no grammars but does have preferences", ->
           it "loads the package's preferences as scoped properties", ->
             jasmine.unspy(window, 'setTimeout')
-            spyOn(syntax, 'addProperties').andCallThrough()
+            spyOn(atom.syntax, 'addProperties').andCallThrough()
 
             atom.activatePackage('package-with-preferences-tmbundle')
 
             waitsFor ->
               atom.syntax.addProperties.callCount > 0
+
             runs ->
               expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
