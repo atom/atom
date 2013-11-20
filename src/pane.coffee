@@ -33,7 +33,8 @@ class Pane extends View
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @items = _.compact(@state.get('items').map (item) -> deserialize(item))
+      @items = _.compact @state.get('items').map (item) ->
+        atom.deserializers.deserialize(item)
     else
       @items = args
       @state = atom.site.createDocument
@@ -45,7 +46,7 @@ class Pane extends View
       for itemState in removedValues
         @removeItemAtIndex(index, updateState: false)
       for itemState, i in insertedValues
-        @addItem(deserialize(itemState), index + i, updateState: false)
+        @addItem(atom.deserializers.deserialize(itemState), index + i, updateState: false)
 
     @subscribe @state, 'changed', ({newValues, siteId}) =>
       return if siteId is @state.siteId
@@ -416,7 +417,7 @@ class Pane extends View
 
   # Private:
   copyActiveItem: ->
-    @activeItem.copy?() ? deserialize(@activeItem.serialize())
+    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Private:
   remove: (selector, keepData) ->

@@ -61,7 +61,7 @@ class Atom
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
-    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+    @syntax = @deserializers.deserialize(@getWindowState('syntax')) ? new Syntax()
 
   # Private:
   setBodyPlatformClass: ->
@@ -127,7 +127,7 @@ class Atom
   deserializeRootView: ->
     RootView = require './root-view'
     state = @getWindowState()
-    @rootView = deserialize(state.get('rootView'))
+    @rootView = @deserializers.deserialize(state.get('rootView'))
     unless @rootView?
       @rootView = new RootView()
       state.set('rootView', @rootView.getState())

@@ -15,7 +15,7 @@ describe "the `syntax` global", ->
       filePath = '/foo/bar/file.js'
       expect(atom.syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
       atom.syntax.setGrammarOverrideForPath(filePath, 'source.ruby')
-      syntax2 = deserialize(atom.syntax.serialize())
+      syntax2 = atom.deserializers.deserialize(atom.syntax.serialize())
       syntax2.addGrammar(grammar) for grammar in atom.syntax.grammars when grammar isnt atom.syntax.nullGrammar
       expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
 

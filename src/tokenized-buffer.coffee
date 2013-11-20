@@ -21,7 +21,7 @@ class TokenizedBuffer
   visible: false
 
   @acceptsDocuments: true
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   @deserialize: (state) ->
     new this(state)

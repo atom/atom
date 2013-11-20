@@ -1,5 +1,5 @@
 class Foo
-  registerDeserializer(this)
+  atom.deserializers.add(this)
   @deserialize: ({data}) -> new Foo(data)
   constructor: (@data) ->
 

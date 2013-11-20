@@ -22,7 +22,7 @@ describe "TokenizedBuffer", ->
     it "constructs a tokenized buffer with the same buffer and tabLength setting", ->
       buffer = project.bufferForPathSync('sample.js')
       tokenizedBuffer1 = new TokenizedBuffer(buffer: buffer, tabLength: 4)
-      tokenizedBuffer2 = deserialize(tokenizedBuffer1.serialize())
+      tokenizedBuffer2 = atom.deserializers.deserialize(tokenizedBuffer1.serialize())
       expect(tokenizedBuffer2.buffer).toBe tokenizedBuffer1.buffer
       expect(tokenizedBuffer2.getTabLength()).toBe tokenizedBuffer1.getTabLength()
 

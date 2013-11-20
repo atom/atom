@@ -42,7 +42,7 @@ class Editor
 
   @acceptsDocuments: true
 
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   @version: 5
 
@@ -67,7 +67,7 @@ class Editor
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
-      displayBuffer = deserialize(@state.get('displayBuffer'))
+      displayBuffer = atom.deserializers.deserialize(@state.get('displayBuffer'))
       @setBuffer(displayBuffer.buffer)
       @setDisplayBuffer(displayBuffer)
       for marker in @findMarkers(@getSelectionMarkerAttributes())

@@ -9,7 +9,7 @@ describe "PaneContainer", ->
 
   beforeEach ->
     class TestView extends View
-      registerDeserializer(this)
+      atom.deserializers.add(this)
       @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
@@ -25,7 +25,7 @@ describe "PaneContainer", ->
     pane3 = pane2.splitDown(new TestView('3'))
 
   afterEach ->
-    unregisterDeserializer(TestView)
+    atom.deserializers.remove(TestView)
 
   describe ".focusNextPane()", ->
     it "focuses the pane following the focused pane or the first pane if no pane has focus", ->
@@ -190,7 +190,7 @@ describe "PaneContainer", ->
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
-      newContainer = deserialize(container.serialize())
+      newContainer = atom.deserializers.deserialize(container.serialize())
       expect(newContainer.find('.row > :contains(1)')).toExist()
       expect(newContainer.find('.row > .column > :contains(2)')).toExist()
       expect(newContainer.find('.row > .column > :contains(3)')).toExist()
@@ -202,7 +202,7 @@ describe "PaneContainer", ->
     xit "removes empty panes on deserialization", ->
       # only deserialize pane 1's view successfully
       TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
-      newContainer = deserialize(container.serialize())
+      newContainer = atom.deserializers.deserialize(container.serialize())
       expect(newContainer.find('.row, .column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
 
