@@ -89,7 +89,7 @@
     "go-to-line": "0.8.0",
     "grammar-selector": "0.9.0",
     "image-view": "0.8.0",
-    "keybinding-resolver": "0.3.0",
+    "keybinding-resolver": "0.4.0",
     "link": "0.7.0",
     "markdown-preview": "0.17.0",
     "metrics": "0.11.0",
