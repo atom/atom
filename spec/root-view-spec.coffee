@@ -10,7 +10,7 @@ describe "RootView", ->
   beforeEach ->
     project.setPath(project.resolve('dir'))
     pathToOpen = project.resolve('a')
-    window.rootView = new RootView
+    atom.rootView = new RootView
     rootView.enableKeymap()
     rootView.openSync(pathToOpen)
     rootView.focus()
@@ -25,7 +25,7 @@ describe "RootView", ->
       rootView.remove()
       project.destroy()
       window.project = project2
-      window.rootView = atom.deserializers.deserialize(rootViewState)
+      atom.rootView = atom.deserializers.deserialize(rootViewState)
       rootView.attachToDom()
 
     describe "when the serialized RootView has an unsaved buffer", ->

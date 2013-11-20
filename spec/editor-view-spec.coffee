@@ -2740,7 +2740,7 @@ describe "EditorView", ->
   describe "when the editor view is attached but invisible", ->
     describe "when the editor view's text is changed", ->
       it "redraws the editor view when it is next shown", ->
-        window.rootView = new RootView
+        atom.rootView = new RootView
         rootView.openSync('sample.js')
         rootView.attachToDom()
         editorView = rootView.getActiveView()
@@ -2794,7 +2794,7 @@ describe "EditorView", ->
 
   describe "when the editor view is removed", ->
     it "fires a editor:will-be-removed event", ->
-      window.rootView = new RootView
+      atom.rootView = new RootView
       rootView.openSync('sample.js')
       rootView.attachToDom()
       editorView = rootView.getActiveView()

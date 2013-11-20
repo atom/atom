@@ -1048,7 +1048,7 @@ class EditorView extends View
   remove: (selector, keepData) ->
     return super if keepData or @removed
     super
-    rootView?.focus()
+    atom.rootView?.focus()
 
   beforeRemove: ->
     @trigger 'editor:will-be-removed'

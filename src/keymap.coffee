@@ -141,7 +141,7 @@ class Keymap
 
   handleKeyEvent: (event) ->
     element = event.target
-    element = rootView if element == document.body
+    element = atom.rootView if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
     keyBindings = @keyBindingsForKeystrokeMatchingElement(keystroke, element)
 

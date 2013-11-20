@@ -15,14 +15,14 @@ describe "AtomPackage", ->
     describe "when the theme contains a single style file", ->
       it "loads and applies css", ->
         expect($(".editor").css("padding-bottom")).not.toBe "1234px"
-        themePath = project.resolve('packages/theme-with-index-css')
+        themePath = atom.project.resolve('packages/theme-with-index-css')
         theme = Package.load(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "1234px"
 
       it "parses, loads and applies less", ->
         expect($(".editor").css("padding-bottom")).not.toBe "1234px"
-        themePath = project.resolve('packages/theme-with-index-less')
+        themePath = atom.project.resolve('packages/theme-with-index-less')
         theme = Package.load(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "4321px"
@@ -33,7 +33,7 @@ describe "AtomPackage", ->
         expect($(".editor").css("padding-right")).not.toBe("102px")
         expect($(".editor").css("padding-bottom")).not.toBe("103px")
 
-        themePath = project.resolve('packages/theme-with-package-file')
+        themePath = atom.project.resolve('packages/theme-with-package-file')
         theme = Package.load(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe("101px")
@@ -46,7 +46,7 @@ describe "AtomPackage", ->
         expect($(".editor").css("padding-right")).not.toBe "20px"
         expect($(".editor").css("padding-bottom")).not.toBe "30px"
 
-        themePath = project.resolve('packages/theme-without-package-file')
+        themePath = atom.project.resolve('packages/theme-without-package-file')
         theme = Package.load(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "10px"
@@ -55,7 +55,7 @@ describe "AtomPackage", ->
 
     describe "reloading a theme", ->
       beforeEach ->
-        themePath = project.resolve('packages/theme-with-package-file')
+        themePath = atom.project.resolve('packages/theme-with-package-file')
         theme = Package.load(themePath)
         theme.activate()
 

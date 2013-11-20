@@ -5,7 +5,7 @@ ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
-    window.rootView = new RootView
+    atom.rootView = new RootView
 
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->

@@ -97,7 +97,7 @@ describe "Window", ->
       buffer = rootView.getActivePaneItem().buffer
       pane = rootView.getActivePane()
       pane.splitRight(pane.copyActiveItem())
-      expect(window.rootView.find('.editor').length).toBe 2
+      expect(atom.rootView.find('.editor').length).toBe 2
 
       window.unloadEditorWindow()
 

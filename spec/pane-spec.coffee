@@ -475,7 +475,7 @@ describe "Pane", ->
     describe "when it is the last pane", ->
       beforeEach ->
         expect(container.getPanes().length).toBe 1
-        window.rootView = focus: jasmine.createSpy("rootView.focus")
+        atom.rootView = focus: jasmine.createSpy("rootView.focus")
 
       describe "when the removed pane is focused", ->
         it "calls focus on rootView so we don't lose focus", ->

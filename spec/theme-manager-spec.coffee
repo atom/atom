@@ -140,7 +140,7 @@ describe "ThemeManager", ->
 
   describe "base stylesheet loading", ->
     beforeEach ->
-      window.rootView = new RootView
+      atom.rootView = new RootView
       rootView.append $$ -> @div class: 'editor'
       rootView.attachToDom()
       themeManager.activateThemes()
