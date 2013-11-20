@@ -1,4 +1,4 @@
-'body.platform-darwin':
+'.platform-darwin':
   # Apple specific
   'meta-q': 'application:quit'
   'meta-h': 'application:hide'

@@ -1,4 +1,4 @@
-'body.platform-win32':
+'.platform-win32':
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
