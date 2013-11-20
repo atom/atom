@@ -69,7 +69,7 @@ class RootView extends View
 
     if state instanceof telepath.Document
       @state = state
-      panes = deserialize(state.get('panes'))
+      panes = atom.deserializers.deserialize(state.get('panes'))
     else
       panes = new PaneContainer
       @state = atom.site.createDocument

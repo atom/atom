@@ -23,7 +23,7 @@ class PaneContainer extends View
 
     if state instanceof telepath.Document
       @state = state
-      @setRoot(deserialize(@state.get('root')))
+      @setRoot(atom.deserializers.deserialize(@state.get('root')))
     else
       @state = atom.site.createDocument(deserializer: 'PaneContainer')
 
