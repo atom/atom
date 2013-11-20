@@ -49,7 +49,6 @@ beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
-  window.project = atom.project
   atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
@@ -105,14 +104,10 @@ afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
 
-  window.rootView?.remove?()
-  atom.rootView?.remove?() if atom.rootView isnt window.rootView
-  window.rootView = null
+  atom.rootView?.remove?()
   atom.rootView = null
 
-  window.project?.destroy?()
-  atom.project?.destroy?() if atom.project isnt window.project
-  window.project = null
+  atom.project?.destroy?()
   atom.project = null
 
   $('#jasmine-content').empty() unless window.debugContent

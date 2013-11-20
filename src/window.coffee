@@ -72,8 +72,6 @@ window.unloadEditorWindow = ->
   atom.rootView.remove()
   atom.project.destroy()
   windowEventHandler?.unsubscribe()
-  window.rootView = null
-  window.project = null
 
 installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
@@ -86,9 +84,7 @@ installApmCommand = (callback) ->
 window.deserializeEditorWindow = ->
   atom.deserializePackageStates()
   atom.deserializeProject()
-  window.project = atom.project
   atom.deserializeRootView()
-  window.rootView = atom.rootView
 
 window.onerror = ->
   atom.openDevTools()
