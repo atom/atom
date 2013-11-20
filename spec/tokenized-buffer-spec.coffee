@@ -5,7 +5,7 @@ describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
-    atom.activatePackage('language-javascript', sync: true)
+    atom.packages.activatePackage('language-javascript', sync: true)
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
@@ -319,7 +319,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
-      atom.activatePackage('language-coffee-script', sync: true)
+      atom.packages.activatePackage('language-coffee-script', sync: true)
       buffer = project.bufferForPathSync('sample-with-tabs.coffee')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
@@ -349,7 +349,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       buffer = project.bufferForPathSync 'sample-with-pairs.js'
       buffer.setText """
         'abc\uD835\uDF97def'
@@ -387,8 +387,8 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
-      atom.activatePackage('language-ruby-on-rails', sync: true)
-      atom.activatePackage('language-ruby', sync: true)
+      atom.packages.activatePackage('language-ruby-on-rails', sync: true)
+      atom.packages.activatePackage('language-ruby', sync: true)
 
       buffer = project.bufferForPathSync()
       buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
@@ -399,7 +399,7 @@ describe "TokenizedBuffer", ->
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
 
-      atom.activatePackage('language-html', sync: true)
+      atom.packages.activatePackage('language-html', sync: true)
       fullyTokenize(tokenizedBuffer)
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]

@@ -83,7 +83,6 @@ beforeEach ->
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.save.reset()
   atom.config = config
-  window.config = config
 
   # make editor display updates synchronous
   spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -103,7 +102,7 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.deactivatePackages()
+  atom.packages.deactivatePackages()
   atom.menu.template = []
 
   window.rootView?.remove?()

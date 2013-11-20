@@ -39,7 +39,7 @@ class TokenizedBuffer
         bufferPath: @buffer.getPath()
         tabLength: tabLength ? atom.config.get('editor.tabLength') ? 2
 
-    @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
+    @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
         @resetTokenizedLines() if @hasTokenForSelector(grammar.injectionSelector)
       else

@@ -6,13 +6,13 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    atom.activatePackage('language-text', sync: true)
-    atom.activatePackage('language-javascript', sync: true)
-    atom.activatePackage('language-coffee-script', sync: true)
-    atom.activatePackage('language-ruby', sync: true)
-    atom.activatePackage('language-html', sync: true)
-    atom.activatePackage('language-php', sync: true)
-    atom.activatePackage('language-python', sync: true)
+    atom.packages.activatePackage('language-text', sync: true)
+    atom.packages.activatePackage('language-javascript', sync: true)
+    atom.packages.activatePackage('language-coffee-script', sync: true)
+    atom.packages.activatePackage('language-ruby', sync: true)
+    atom.packages.activatePackage('language-html', sync: true)
+    atom.packages.activatePackage('language-php', sync: true)
+    atom.packages.activatePackage('language-python', sync: true)
     grammar = atom.syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
@@ -211,8 +211,8 @@ describe "TextMateGrammar", ->
       describe "when the pattern includes rules from another grammar", ->
         describe "when a grammar matching the desired scope is available", ->
           it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
-            atom.activatePackage('language-html', sync: true)
-            atom.activatePackage('language-ruby-on-rails', sync: true)
+            atom.packages.activatePackage('language-html', sync: true)
+            atom.packages.activatePackage('language-ruby-on-rails', sync: true)
 
             grammar = atom.syntax.grammarForScopeName('text.html.ruby')
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
@@ -242,8 +242,8 @@ describe "TextMateGrammar", ->
             expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
 
           it "updates the grammar if the included grammar is updated later", ->
-            atom.activatePackage('language-html', sync: true)
-            atom.activatePackage('language-ruby-on-rails', sync: true)
+            atom.packages.activatePackage('language-html', sync: true)
+            atom.packages.activatePackage('language-ruby-on-rails', sync: true)
 
             grammar = atom.syntax.selectGrammar('foo.html.erb')
             grammarUpdatedHandler = jasmine.createSpy("grammarUpdatedHandler")
@@ -252,7 +252,7 @@ describe "TextMateGrammar", ->
             {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
             expect(tokens[12].value).toBe " select * from users;"
 
-            atom.activatePackage('language-sql', sync: true)
+            atom.packages.activatePackage('language-sql', sync: true)
             expect(grammarUpdatedHandler).toHaveBeenCalled()
             {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
             expect(tokens[12].value).toBe " "
@@ -260,8 +260,8 @@ describe "TextMateGrammar", ->
 
         describe "when a grammar matching the desired scope is unavailable", ->
           it "updates the grammar if a matching grammar is added later", ->
-            atom.deactivatePackage('language-html')
-            atom.activatePackage('language-ruby-on-rails', sync: true)
+            atom.packages.deactivatePackage('language-html')
+            atom.packages.activatePackage('language-ruby-on-rails', sync: true)
 
             grammar = atom.syntax.grammarForScopeName('text.html.ruby')
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
@@ -270,7 +270,7 @@ describe "TextMateGrammar", ->
             expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
             expect(tokens[3]).toEqual value: 'User', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","support.class.ruby"]
 
-            atom.activatePackage('language-html', sync: true)
+            atom.packages.activatePackage('language-html', sync: true)
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
             expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
             expect(tokens[1]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
@@ -314,7 +314,7 @@ describe "TextMateGrammar", ->
 
     describe "when inside a C block", ->
       beforeEach ->
-        atom.activatePackage('language-c', sync: true)
+        atom.packages.activatePackage('language-c', sync: true)
 
       it "correctly parses a method. (regression)", ->
         grammar = atom.syntax.selectGrammar("hello.c")
@@ -330,7 +330,7 @@ describe "TextMateGrammar", ->
     describe "when the grammar can infinitely loop over a line", ->
       it "aborts tokenization", ->
         spyOn(console, 'error')
-        atom.activatePackage("package-with-infinite-loop-grammar")
+        atom.packages.activatePackage("package-with-infinite-loop-grammar")
         grammar = atom.syntax.selectGrammar("something.package-with-infinite-loop-grammar")
         {tokens} = grammar.tokenizeLine("abc")
         expect(tokens[0].value).toBe "a"
@@ -339,7 +339,7 @@ describe "TextMateGrammar", ->
 
     describe "when a grammar has a pattern that has back references in the match value", ->
       it "does not special handle the back references and instead allows oniguruma to resolve them", ->
-        atom.activatePackage('language-sass', sync: true)
+        atom.packages.activatePackage('language-sass', sync: true)
         grammar = atom.syntax.selectGrammar("style.scss")
         {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
         expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]
@@ -428,14 +428,14 @@ describe "TextMateGrammar", ->
 
     describe "when the grammar's pattern name has a group number in it", ->
       it "replaces the group number with the matched captured text", ->
-        atom.activatePackage('language-hyperlink', sync: true)
+        atom.packages.activatePackage('language-hyperlink', sync: true)
         grammar = atom.syntax.grammarForScopeName("text.hyperlink")
         {tokens} = grammar.tokenizeLine("https://github.com")
         expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]
 
     describe "when the grammar has an injection selector", ->
       it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
-        atom.activatePackage('language-hyperlink', sync: true)
+        atom.packages.activatePackage('language-hyperlink', sync: true)
         grammar = atom.syntax.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
@@ -454,7 +454,7 @@ describe "TextMateGrammar", ->
           expect(tokens[1].value).toBe " http://github.com"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-          atom.activatePackage('language-hyperlink', sync: true)
+          atom.packages.activatePackage('language-hyperlink', sync: true)
 
           {tokens} = editor.lineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
@@ -481,7 +481,7 @@ describe "TextMateGrammar", ->
           expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-          atom.activatePackage('language-sql', sync: true)
+          atom.packages.activatePackage('language-sql', sync: true)
 
           {tokens} = editor.lineForScreenRow(0)
           expect(tokens[2].value).toBe "SELECT"
@@ -514,7 +514,7 @@ describe "TextMateGrammar", ->
       lines = null
 
       beforeEach ->
-        atom.activatePackage('language-todo', sync: true)
+        atom.packages.activatePackage('language-todo', sync: true)
         grammar = atom.syntax.selectGrammar('main.rb')
         lines = grammar.tokenizeLines "# TODO be nicer"
 
@@ -528,7 +528,7 @@ describe "TextMateGrammar", ->
 
     describe "Git commit messages", ->
       beforeEach ->
-        atom.activatePackage('language-git', sync: true)
+        atom.packages.activatePackage('language-git', sync: true)
         grammar = atom.syntax.selectGrammar('COMMIT_EDITMSG')
         lines = grammar.tokenizeLines """
           longggggggggggggggggggggggggggggggggggggggggggggggg
@@ -547,7 +547,7 @@ describe "TextMateGrammar", ->
 
     describe "C++", ->
       beforeEach ->
-        atom.activatePackage('language-c', sync: true)
+        atom.packages.activatePackage('language-c', sync: true)
         grammar = atom.syntax.selectGrammar('includes.cc')
         lines = grammar.tokenizeLines """
           #include "a.h"
@@ -585,8 +585,8 @@ describe "TextMateGrammar", ->
 
     describe "Objective-C", ->
       beforeEach ->
-        atom.activatePackage('language-c', sync: true)
-        atom.activatePackage('language-objective-c', sync: true)
+        atom.packages.activatePackage('language-c', sync: true)
+        atom.packages.activatePackage('language-objective-c', sync: true)
         grammar = atom.syntax.selectGrammar('function.mm')
         lines = grammar.tokenizeLines """
           void test() {
@@ -612,7 +612,7 @@ describe "TextMateGrammar", ->
 
     describe "Java", ->
       beforeEach ->
-        atom.activatePackage('language-java', sync: true)
+        atom.packages.activatePackage('language-java', sync: true)
         grammar = atom.syntax.selectGrammar('Function.java')
 
       it "correctly parses single line comments", ->
@@ -664,7 +664,7 @@ describe "TextMateGrammar", ->
 
       describe "when the line contains unicode characters", ->
         it "correctly parses tokens starting after them", ->
-          atom.activatePackage('language-json', sync: true)
+          atom.packages.activatePackage('language-json', sync: true)
           grammar = atom.syntax.selectGrammar('package.json')
           {tokens} = grammar.tokenizeLine '{"\u2026": 1}'
 

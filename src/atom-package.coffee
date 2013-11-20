@@ -212,7 +212,7 @@ class AtomPackage extends Package
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
-      registerDeferredDeserializer deserializerName, =>
+      atom.deserializers.addDeferred deserializerName, =>
         @activateStylesheets()
         @requireMainModule()
 

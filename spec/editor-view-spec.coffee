@@ -10,8 +10,8 @@ describe "EditorView", ->
   [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('language-text', sync: true)
-    atom.activatePackage('language-javascript', sync: true)
+    atom.packages.activatePackage('language-text', sync: true)
+    atom.packages.activatePackage('language-javascript', sync: true)
     editor = project.openSync('sample.js')
     buffer = editor.buffer
     editorView = new EditorView(editor)
@@ -2723,7 +2723,7 @@ describe "EditorView", ->
 
   describe "when the escape key is pressed on the editor view", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
-      keymap.bindKeys 'name', '.editor', 'escape': 'test-event'
+      atom.keymap.bindKeys 'name', '.editor', 'escape': 'test-event'
       testEventHandler = jasmine.createSpy("testEventHandler")
 
       editorView.on 'test-event', testEventHandler

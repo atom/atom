@@ -38,7 +38,7 @@ Editor = require './editor'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, EditorView)
+  atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
 
@@ -107,10 +107,10 @@ class RootView extends View
 
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
-      atom.config.set("editor.fontSize", config.get("editor.fontSize") + 1)
+      atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
     @command 'window:decrease-font-size', =>
-      fontSize = config.get "editor.fontSize"
+      fontSize = atom.config.get "editor.fontSize"
       atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()

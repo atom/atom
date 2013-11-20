@@ -6,7 +6,7 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       editor = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -109,7 +109,7 @@ describe "LanguageMode", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      atom.activatePackage('language-coffee-script', sync: true)
+      atom.packages.activatePackage('language-coffee-script', sync: true)
       editor = project.openSync('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -156,7 +156,7 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.activatePackage('language-css', sync: true)
+      atom.packages.activatePackage('language-css', sync: true)
       editor = project.openSync('css.css', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -197,8 +197,8 @@ describe "LanguageMode", ->
 
   describe "less", ->
     beforeEach ->
-      atom.activatePackage('language-less', sync: true)
-      atom.activatePackage('language-css', sync: true)
+      atom.packages.activatePackage('language-less', sync: true)
+      atom.packages.activatePackage('language-css', sync: true)
       editor = project.openSync('sample.less', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -209,7 +209,7 @@ describe "LanguageMode", ->
 
   describe "folding", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       editor = project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -299,7 +299,7 @@ describe "LanguageMode", ->
 
   describe "folding with comments", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       editor = project.openSync('sample-with-comments.js', autoIndent: false)
       {buffer, languageMode} = editor
 
@@ -352,8 +352,8 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.activatePackage('language-source', sync: true)
-      atom.activatePackage('language-css', sync: true)
+      atom.packages.activatePackage('language-source', sync: true)
+      atom.packages.activatePackage('language-css', sync: true)
       editor = project.openSync('css.css', autoIndent: true)
 
     describe "suggestedIndentForBufferRow", ->
