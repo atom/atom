@@ -111,11 +111,11 @@ describe "PaneContainer", ->
 
       describe "when the last-closed pane item is an edit session", ->
         it "reopens the edit session (regression)", ->
-          editSession = project.openSync('sample.js')
-          pane3.showItem(editSession)
-          pane3.destroyItem(editSession)
+          editor = project.openSync('sample.js')
+          pane3.showItem(editor)
+          pane3.destroyItem(editor)
           expect(container.reopenItem()).toBeTruthy()
-          expect(pane3.activeItem.getPath()).toBe editSession.getPath()
+          expect(pane3.activeItem.getPath()).toBe editor.getPath()
           expect(container.reopenItem()).toBeFalsy()
 
     describe "when there is no active pane", ->

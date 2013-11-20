@@ -208,44 +208,44 @@ describe "Git", ->
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
 
   describe "buffer events", ->
-    [originalContent, editSession] = []
+    [originalContent, editor] = []
 
     beforeEach ->
-      editSession = project.openSync('sample.js')
-      originalContent = editSession.getText()
+      editor = project.openSync('sample.js')
+      originalContent = editor.getText()
 
     afterEach ->
-      fs.writeFileSync(editSession.getPath(), originalContent)
+      fs.writeFileSync(editor.getPath(), originalContent)
 
     it "emits a status-changed event when a buffer is saved", ->
-      editSession.insertNewline()
+      editor.insertNewline()
 
       statusHandler = jasmine.createSpy('statusHandler')
       project.getRepo().on 'status-changed', statusHandler
-      editSession.save()
+      editor.save()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
 
     it "emits a status-changed event when a buffer is reloaded", ->
-      fs.writeFileSync(editSession.getPath(), 'changed')
+      fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
       project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().reload()
+      editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().reload()
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
-      fs.writeFileSync(editSession.getPath(), 'changed')
+      fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
       project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().emit 'path-changed'
+      editor.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().emit 'path-changed'
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      editor.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->

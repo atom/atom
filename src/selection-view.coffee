@@ -11,12 +11,12 @@ class SelectionView extends View
   regions: null
   needsRemoval: false
 
-  initialize: ({@editor, @selection} = {}) ->
+  initialize: ({@editorView, @selection} = {}) ->
     @regions = []
-    @selection.on 'screen-range-changed', => @editor.requestDisplayUpdate()
+    @selection.on 'screen-range-changed', => @editorView.requestDisplayUpdate()
     @selection.on 'destroyed', =>
       @needsRemoval = true
-      @editor.requestDisplayUpdate()
+      @editorView.requestDisplayUpdate()
 
     if @selection.marker.isRemote()
       @addClass("site-#{@selection.marker.getOriginSiteId()}")
@@ -26,7 +26,7 @@ class SelectionView extends View
     range = @getScreenRange()
 
     @trigger 'selection:changed'
-    @editor.highlightFoldsContainingBufferRange(@getBufferRange())
+    @editorView.highlightFoldsContainingBufferRange(@getBufferRange())
     return if range.isEmpty()
 
     rowSpan = range.end.row - range.start.row
@@ -40,11 +40,11 @@ class SelectionView extends View
       @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
 
   appendRegion: (rows, start, end) ->
-    { lineHeight, charWidth } = @editor
-    css = @editor.pixelPositionForScreenPosition(start)
+    { lineHeight, charWidth } = @editorView
+    css = @editorView.pixelPositionForScreenPosition(start)
     css.height = lineHeight * rows
     if end
-      css.width = @editor.pixelPositionForScreenPosition(end).left - css.left
+      css.width = @editorView.pixelPositionForScreenPosition(end).left - css.left
     else
       css.right = 0
 
@@ -57,7 +57,7 @@ class SelectionView extends View
     startRow = start.row
     endRow = end.row
     endRow-- if end.column == 0
-    @editor.pixelPositionForScreenPosition([((startRow + endRow + 1) / 2), start.column])
+    @editorView.pixelPositionForScreenPosition([((startRow + endRow + 1) / 2), start.column])
 
   clearRegions: ->
     region.remove() for region in @regions
@@ -85,5 +85,5 @@ class SelectionView extends View
     @removeClass('highlighted')
 
   remove: ->
-    @editor.removeSelectionView(this)
+    @editorView.removeSelectionView(this)
     super

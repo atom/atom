@@ -5,12 +5,12 @@ Q = require 'q'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 telepath = require 'telepath'
-Editor = require './editor'
+EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
 PaneRow = require './pane-row'
 PaneContainer = require './pane-container'
-EditSession = require './edit-session'
+Editor = require './editor'
 
 # Public: The container for the entire Atom application.
 #
@@ -38,7 +38,7 @@ EditSession = require './edit-session'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
+  registerDeserializers(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
 
@@ -169,26 +169,26 @@ class RootView extends View
   # * options
   #   + initialLine: The buffer line number to open to.
   #
-  # Returns a promise that resolves to the {EditSession} for the file URI.
+  # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
     changeFocus = options.changeFocus ? true
     filePath = project.resolve(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
 
-    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
-    promise = project.open(filePath, {initialLine}) if not editSession
+    editor = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
+    promise = project.open(filePath, {initialLine}) if not editor
 
-    Q(editSession ? promise)
-      .then (editSession) =>
+    Q(editor ? promise)
+      .then (editor) =>
         if not activePane
-          activePane = new Pane(editSession)
+          activePane = new Pane(editor)
           @panes.setRoot(activePane)
 
-        activePane.showItem(editSession)
+        activePane.showItem(editor)
         activePane.focus() if changeFocus
         @trigger "uri-opened"
-        editSession
+        editor
       .catch (error) ->
         console.error(error.stack ? error)
 
@@ -249,7 +249,7 @@ class RootView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {Editor}s.
+  # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -259,7 +259,7 @@ class RootView extends View
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
-      for item in pane.getItems() when item instanceof EditSession
+      for item in pane.getItems() when item instanceof Editor
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
@@ -267,7 +267,7 @@ class RootView extends View
   #
   # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
+    _.uniq(_.flatten(@getEditors().map (editorView) -> editorView.getOpenBufferPaths()))
 
   # Public: Returns the currently focused {Pane}.
   getActivePane: ->
@@ -308,14 +308,14 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {Editor}.
+  # Private: Fires a callback on each open {EditorView}.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {EditSession}.
+  # Public: Fires a callback on each open {Editor}.
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 
@@ -325,6 +325,6 @@ class RootView extends View
 
   # Private: Destroys everything.
   remove: ->
-    editor.remove() for editor in @getEditors()
+    editorView.remove() for editorView in @getEditors()
     project?.destroy()
     super

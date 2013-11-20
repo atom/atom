@@ -5,7 +5,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "Pane", ->
-  [container, view1, view2, editSession1, editSession2, pane] = []
+  [container, view1, view2, editor1, editor2, pane] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -20,9 +20,9 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editSession1 = project.openSync('sample.js')
-    editSession2 = project.openSync('sample.txt')
-    pane = new Pane(view1, editSession1, view2, editSession2)
+    editor1 = project.openSync('sample.js')
+    editor2 = project.openSync('sample.txt')
+    pane = new Pane(view1, editor1, view2, editor2)
     container.setRoot(pane)
 
   afterEach ->
@@ -52,9 +52,9 @@ describe "Pane", ->
       expect(itemChangedHandler.argsForCall[0][1]).toBe view2
       itemChangedHandler.reset()
 
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       expect(itemChangedHandler).toHaveBeenCalled()
-      expect(itemChangedHandler.argsForCall[0][1]).toBe editSession1
+      expect(itemChangedHandler.argsForCall[0][1]).toBe editor1
       itemChangedHandler.reset()
 
     describe "if the pane's active view is focused before calling showItem", ->
@@ -70,12 +70,12 @@ describe "Pane", ->
       view3 = null
       beforeEach ->
         view3 = new TestView(id: 'view-3', text: "View 3")
-        pane.showItem(editSession1)
+        pane.showItem(editor1)
         expect(pane.getActiveItemIndex()).toBe 1
 
       it "adds it to the items list after the active item", ->
         pane.showItem(view3)
-        expect(pane.getItems()).toEqual [view1, editSession1, view3, view2, editSession2]
+        expect(pane.getItems()).toEqual [view1, editor1, view3, view2, editor2]
         expect(pane.activeItem).toBe view3
         expect(pane.getActiveItemIndex()).toBe 2
 
@@ -89,19 +89,19 @@ describe "Pane", ->
     describe "when showing a model item", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
-          pane.showItem(editSession1)
-          editor = pane.activeView
-          expect(editor.css('display')).not.toBe 'none'
-          expect(editor.activeEditSession).toBe editSession1
+          pane.showItem(editor1)
+          editorView = pane.activeView
+          expect(editorView.css('display')).not.toBe 'none'
+          expect(editorView.activeEditSession).toBe editor1
 
       describe "when a valid view has already been appended for another item", ->
         it "multiple views are created for multiple items", ->
-          pane.showItem(editSession1)
-          pane.showItem(editSession2)
+          pane.showItem(editor1)
+          pane.showItem(editor2)
           expect(pane.itemViews.find('.editor').length).toBe 2
-          editor = pane.activeView
-          expect(editor.css('display')).not.toBe 'none'
-          expect(editor.activeEditSession).toBe editSession2
+          editorView = pane.activeView
+          expect(editorView.css('display')).not.toBe 'none'
+          expect(editorView.activeEditSession).toBe editor2
 
         it "creates a new view with the item", ->
           initialViewCount = pane.itemViews.find('.test-view').length
@@ -141,77 +141,77 @@ describe "Pane", ->
   describe ".destroyItem(item)", ->
     describe "if the item is not modified", ->
       it "removes the item and tries to call destroy on it", ->
-        pane.destroyItem(editSession2)
-        expect(pane.getItems().indexOf(editSession2)).toBe -1
-        expect(editSession2.destroyed).toBeTruthy()
+        pane.destroyItem(editor2)
+        expect(pane.getItems().indexOf(editor2)).toBe -1
+        expect(editor2.destroyed).toBeTruthy()
 
     describe "if the item is modified", ->
       beforeEach ->
-        spyOn(editSession2, 'save')
-        spyOn(editSession2, 'saveAs')
+        spyOn(editor2, 'save')
+        spyOn(editor2, 'saveAs')
 
-        editSession2.insertText('a')
-        expect(editSession2.isModified()).toBeTruthy()
+        editor2.insertText('a')
+        expect(editor2.isModified()).toBeTruthy()
 
       describe "if the [Save] option is selected", ->
         describe "when the item has a uri", ->
           it "saves the item before removing and destroying it", ->
             spyOn(atom, 'confirmSync').andReturn(0)
-            pane.destroyItem(editSession2)
+            pane.destroyItem(editor2)
 
-            expect(editSession2.save).toHaveBeenCalled()
-            expect(pane.getItems().indexOf(editSession2)).toBe -1
-            expect(editSession2.destroyed).toBeTruthy()
+            expect(editor2.save).toHaveBeenCalled()
+            expect(pane.getItems().indexOf(editor2)).toBe -1
+            expect(editor2.destroyed).toBeTruthy()
 
         describe "when the item has no uri", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
-            editSession2.buffer.setPath(undefined)
+            editor2.buffer.setPath(undefined)
 
             spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
             spyOn(atom, 'confirmSync').andReturn(0)
-            pane.destroyItem(editSession2)
+            pane.destroyItem(editor2)
 
             expect(atom.showSaveDialogSync).toHaveBeenCalled()
 
-            expect(editSession2.saveAs).toHaveBeenCalledWith("/selected/path")
-            expect(pane.getItems().indexOf(editSession2)).toBe -1
-            expect(editSession2.destroyed).toBeTruthy()
+            expect(editor2.saveAs).toHaveBeenCalledWith("/selected/path")
+            expect(pane.getItems().indexOf(editor2)).toBe -1
+            expect(editor2.destroyed).toBeTruthy()
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
           spyOn(atom, 'confirmSync').andReturn(2)
-          pane.destroyItem(editSession2)
+          pane.destroyItem(editor2)
 
-          expect(editSession2.save).not.toHaveBeenCalled()
-          expect(pane.getItems().indexOf(editSession2)).toBe -1
-          expect(editSession2.destroyed).toBeTruthy()
+          expect(editor2.save).not.toHaveBeenCalled()
+          expect(pane.getItems().indexOf(editor2)).toBe -1
+          expect(editor2.destroyed).toBeTruthy()
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
           spyOn(atom, 'confirmSync').andReturn(1)
-          pane.destroyItem(editSession2)
+          pane.destroyItem(editor2)
 
-          expect(editSession2.save).not.toHaveBeenCalled()
-          expect(pane.getItems().indexOf(editSession2)).not.toBe -1
-          expect(editSession2.destroyed).toBeFalsy()
+          expect(editor2.save).not.toHaveBeenCalled()
+          expect(pane.getItems().indexOf(editor2)).not.toBe -1
+          expect(editor2.destroyed).toBeFalsy()
 
   describe ".removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
       pane.removeItem(view1)
-      expect(pane.getItems()).toEqual [editSession1, view2, editSession2]
-      expect(pane.activeItem).toBe editSession1
+      expect(pane.getItems()).toEqual [editor1, view2, editor2]
+      expect(pane.activeItem).toBe editor1
 
-      pane.showItem(editSession2)
-      pane.removeItem(editSession2)
-      expect(pane.getItems()).toEqual [editSession1, view2]
-      expect(pane.activeItem).toBe editSession1
+      pane.showItem(editor2)
+      pane.removeItem(editor2)
+      expect(pane.getItems()).toEqual [editor1, view2]
+      expect(pane.activeItem).toBe editor1
 
     it "triggers 'pane:item-removed' with the item and its former index", ->
       itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
       pane.on 'pane:item-removed', itemRemovedHandler
-      pane.removeItem(editSession1)
+      pane.removeItem(editor1)
       expect(itemRemovedHandler).toHaveBeenCalled()
-      expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
+      expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
 
     describe "when removing the last item", ->
       it "removes the pane", ->
@@ -236,11 +236,11 @@ describe "Pane", ->
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
-        pane.showItem(editSession1)
-        pane.showItem(editSession2)
-        pane.removeItem(editSession2)
+        pane.showItem(editor1)
+        pane.showItem(editor2)
+        pane.removeItem(editor2)
         expect(pane.itemViews.find('.editor')).toExist()
-        pane.removeItem(editSession1)
+        pane.removeItem(editor1)
         expect(pane.itemViews.find('.editor')).not.toExist()
 
   describe ".moveItem(item, index)", ->
@@ -249,21 +249,21 @@ describe "Pane", ->
       pane.on 'pane:item-moved', itemMovedHandler
 
       pane.moveItem(view1, 2)
-      expect(pane.getItems()).toEqual [editSession1, view2, view1, editSession2]
+      expect(pane.getItems()).toEqual [editor1, view2, view1, editor2]
       expect(itemMovedHandler).toHaveBeenCalled()
       expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [view1, 2]
       itemMovedHandler.reset()
 
-      pane.moveItem(editSession1, 3)
-      expect(pane.getItems()).toEqual [view2, view1, editSession2, editSession1]
+      pane.moveItem(editor1, 3)
+      expect(pane.getItems()).toEqual [view2, view1, editor2, editor1]
       expect(itemMovedHandler).toHaveBeenCalled()
-      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 3]
+      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editor1, 3]
       itemMovedHandler.reset()
 
-      pane.moveItem(editSession1, 1)
-      expect(pane.getItems()).toEqual [view2, editSession1, view1, editSession2]
+      pane.moveItem(editor1, 1)
+      expect(pane.getItems()).toEqual [view2, editor1, view1, editor2]
       expect(itemMovedHandler).toHaveBeenCalled()
-      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
+      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
       itemMovedHandler.reset()
 
   describe ".moveItemToPane(item, pane, index)", ->
@@ -275,21 +275,21 @@ describe "Pane", ->
 
     it "moves the item to the given pane at the given index", ->
       pane.moveItemToPane(view1, pane2, 1)
-      expect(pane.getItems()).toEqual [editSession1, view2, editSession2]
+      expect(pane.getItems()).toEqual [editor1, view2, editor2]
       expect(pane2.getItems()).toEqual [view3, view1]
 
     describe "when it is the last item on the source pane", ->
       it "removes the source pane, but does not destroy the item", ->
         pane.removeItem(view1)
         pane.removeItem(view2)
-        pane.removeItem(editSession2)
+        pane.removeItem(editor2)
 
-        expect(pane.getItems()).toEqual [editSession1]
-        pane.moveItemToPane(editSession1, pane2, 1)
+        expect(pane.getItems()).toEqual [editor1]
+        pane.moveItemToPane(editor1, pane2, 1)
 
         expect(pane.hasParent()).toBeFalsy()
-        expect(pane2.getItems()).toEqual [view3, editSession1]
-        expect(editSession1.destroyed).toBeFalsy()
+        expect(pane2.getItems()).toEqual [view3, editor1]
+        expect(editor1.destroyed).toBeFalsy()
 
     describe "when the item is a jQuery object", ->
       it "preserves data by detaching instead of removing", ->
@@ -303,37 +303,37 @@ describe "Pane", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")
       container.on 'core:close', containerCloseHandler
 
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       initialItemCount = pane.getItems().length
       pane.trigger 'core:close'
       expect(pane.getItems().length).toBe initialItemCount - 1
-      expect(editSession1.destroyed).toBeTruthy()
+      expect(editor1.destroyed).toBeTruthy()
 
       expect(containerCloseHandler).not.toHaveBeenCalled()
 
   describe "pane:close", ->
     it "destroys all items and removes the pane", ->
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       pane.trigger 'pane:close'
       expect(pane.hasParent()).toBeFalsy()
-      expect(editSession2.destroyed).toBeTruthy()
-      expect(editSession1.destroyed).toBeTruthy()
+      expect(editor2.destroyed).toBeTruthy()
+      expect(editor1.destroyed).toBeTruthy()
 
   describe "pane:close-other-items", ->
     it "destroys all items except the current", ->
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       pane.trigger 'pane:close-other-items'
-      expect(editSession2.destroyed).toBeTruthy()
-      expect(pane.getItems()).toEqual [editSession1]
+      expect(editor2.destroyed).toBeTruthy()
+      expect(pane.getItems()).toEqual [editor1]
 
   describe "core:save", ->
     describe "when the current item has a uri", ->
       describe "when the current item has a save method", ->
         it "saves the current item", ->
-          spyOn(editSession2, 'save')
-          pane.showItem(editSession2)
+          spyOn(editor2, 'save')
+          pane.showItem(editor2)
           pane.trigger 'core:save'
-          expect(editSession2.save).toHaveBeenCalled()
+          expect(editor2.save).toHaveBeenCalled()
 
       describe "when the current item has no save method", ->
         it "does nothing", ->
@@ -347,14 +347,14 @@ describe "Pane", ->
 
       describe "when the current item has a saveAs method", ->
         it "opens a save dialog and saves the current item as the selected path", ->
-          spyOn(editSession2, 'saveAs')
-          editSession2.buffer.setPath(undefined)
-          pane.showItem(editSession2)
+          spyOn(editor2, 'saveAs')
+          editor2.buffer.setPath(undefined)
+          pane.showItem(editor2)
 
           pane.trigger 'core:save'
 
           expect(atom.showSaveDialogSync).toHaveBeenCalled()
-          expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
+          expect(editor2.saveAs).toHaveBeenCalledWith('/selected/path')
 
       describe "when the current item has no saveAs method", ->
         it "does nothing", ->
@@ -368,13 +368,13 @@ describe "Pane", ->
 
     describe "when the current item has a saveAs method", ->
       it "opens the save dialog and calls saveAs on the item with the selected path", ->
-        spyOn(editSession2, 'saveAs')
-        pane.showItem(editSession2)
+        spyOn(editor2, 'saveAs')
+        pane.showItem(editor2)
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editSession2.getPath()))
-        expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editor2.getPath()))
+        expect(editor2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
       it "does nothing", ->
@@ -386,11 +386,11 @@ describe "Pane", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.activeItem).toBe view1
       pane.trigger 'pane:show-previous-item'
-      expect(pane.activeItem).toBe editSession2
+      expect(pane.activeItem).toBe editor2
       pane.trigger 'pane:show-previous-item'
       expect(pane.activeItem).toBe view2
       pane.trigger 'pane:show-next-item'
-      expect(pane.activeItem).toBe editSession2
+      expect(pane.activeItem).toBe editor2
       pane.trigger 'pane:show-next-item'
       expect(pane.activeItem).toBe view1
 
@@ -424,8 +424,8 @@ describe "Pane", ->
   describe ".remove()", ->
     it "destroys all the pane's items", ->
       pane.remove()
-      expect(editSession1.destroyed).toBeTruthy()
-      expect(editSession2.destroyed).toBeTruthy()
+      expect(editor1.destroyed).toBeTruthy()
+      expect(editor2.destroyed).toBeTruthy()
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
@@ -438,7 +438,7 @@ describe "Pane", ->
       [paneToLeft, paneToRight] = []
 
       beforeEach ->
-        pane.showItem(editSession1)
+        pane.showItem(editor1)
         paneToLeft = pane.splitLeft(pane.copyActiveItem())
         paneToRight = pane.splitRight(pane.copyActiveItem())
         container.attachToDom()
@@ -492,7 +492,7 @@ describe "Pane", ->
 
   describe ".getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       expect(pane.getNextPane()).toBeUndefined
       pane2 = pane.splitRight(pane.copyActiveItem())
       expect(pane.getNextPane()).toBe pane2
@@ -538,7 +538,7 @@ describe "Pane", ->
     [pane1, view3, view4] = []
     beforeEach ->
       pane1 = pane
-      pane.showItem(editSession1)
+      pane.showItem(editor1)
       view3 = new TestView(id: 'view-3', text: 'View 3')
       view4 = new TestView(id: 'view-4', text: 'View 4')
 
@@ -547,8 +547,8 @@ describe "Pane", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane1.splitRight(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-        expect(pane2.items).toEqual [editSession1]
-        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
+        expect(pane2.items).toEqual [editor1]
+        expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitRight(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -571,8 +571,8 @@ describe "Pane", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitLeft(pane1.copyActiveItem())
         expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
-        expect(pane2.items).toEqual [editSession1]
-        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
+        expect(pane2.items).toEqual [editor1]
+        expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitLeft(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -583,8 +583,8 @@ describe "Pane", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitDown(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
-        expect(pane2.items).toEqual [editSession1]
-        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
+        expect(pane2.items).toEqual [editor1]
+        expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitDown(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -595,8 +595,8 @@ describe "Pane", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitUp(pane1.copyActiveItem())
         expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
-        expect(pane2.items).toEqual [editSession1]
-        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
+        expect(pane2.items).toEqual [editor1]
+        expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitUp(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -673,18 +673,18 @@ describe "Pane", ->
 
   describe ".itemForUri(uri)", ->
     it "returns the item for which a call to .getUri() returns the given uri", ->
-      expect(pane.itemForUri(editSession1.getUri())).toBe editSession1
-      expect(pane.itemForUri(editSession2.getUri())).toBe editSession2
+      expect(pane.itemForUri(editor1.getUri())).toBe editor1
+      expect(pane.itemForUri(editor2.getUri())).toBe editor2
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
       newPane = deserialize(pane.serialize())
-      expect(newPane.getItems()).toEqual [view1, editSession1, view2, editSession2]
+      expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
-      pane.showItem(editSession2)
+      pane.showItem(editor2)
       newPane = deserialize(pane.serialize())
-      expect(newPane.activeItem).toEqual editSession2
+      expect(newPane.activeItem).toEqual editor2
 
     it "does not show items that cannot be deserialized", ->
       spyOn(console, 'warn')

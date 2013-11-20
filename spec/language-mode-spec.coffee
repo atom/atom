@@ -1,14 +1,14 @@
 describe "LanguageMode", ->
-  [editSession, buffer, languageMode] = []
+  [editor, buffer, languageMode] = []
 
   afterEach ->
-    editSession.destroy()
+    editor.destroy()
 
   describe "javascript", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      editSession = project.openSync('sample.js', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('sample.js', autoIndent: false)
+      {buffer, languageMode} = editor
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns the minimum indent level for the given row range", ->
@@ -110,8 +110,8 @@ describe "LanguageMode", ->
   describe "coffeescript", ->
     beforeEach ->
       atom.activatePackage('language-coffee-script', sync: true)
-      editSession = project.openSync('coffee.coffee', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('coffee.coffee', autoIndent: false)
+      {buffer, languageMode} = editor
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -157,8 +157,8 @@ describe "LanguageMode", ->
   describe "css", ->
     beforeEach ->
       atom.activatePackage('language-css', sync: true)
-      editSession = project.openSync('css.css', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('css.css', autoIndent: false)
+      {buffer, languageMode} = editor
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -199,8 +199,8 @@ describe "LanguageMode", ->
     beforeEach ->
       atom.activatePackage('language-less', sync: true)
       atom.activatePackage('language-css', sync: true)
-      editSession = project.openSync('sample.less', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('sample.less', autoIndent: false)
+      {buffer, languageMode} = editor
 
     describe "when commenting lines", ->
       it "only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart`", ->
@@ -210,67 +210,67 @@ describe "LanguageMode", ->
   describe "folding", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      editSession = project.openSync('sample.js', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('sample.js', autoIndent: false)
+      {buffer, languageMode} = editor
 
     it "maintains cursor buffer position when a folding/unfolding", ->
-      editSession.setCursorBufferPosition([5,5])
+      editor.setCursorBufferPosition([5,5])
       languageMode.foldAll()
-      expect(editSession.getCursorBufferPosition()).toEqual([5,5])
+      expect(editor.getCursorBufferPosition()).toEqual([5,5])
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
-        initialScreenLineCount = editSession.getScreenLineCount()
+        initialScreenLineCount = editor.getScreenLineCount()
         languageMode.foldBufferRow(0)
         languageMode.foldBufferRow(1)
-        expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
+        expect(editor.getScreenLineCount()).toBeLessThan initialScreenLineCount
         languageMode.unfoldAll()
-        expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
+        expect(editor.getScreenLineCount()).toBe initialScreenLineCount
 
     describe ".foldAll()", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editSession.lineForScreenRow(0).fold
+        fold1 = editor.lineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
         fold1.destroy()
 
-        fold2 = editSession.lineForScreenRow(1).fold
+        fold2 = editor.lineForScreenRow(1).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
         fold2.destroy()
 
-        fold3 = editSession.lineForScreenRow(4).fold
+        fold3 = editor.lineForScreenRow(4).fold
         expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
 
     describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
           languageMode.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(1).fold
+          fold = editor.lineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 9
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           languageMode.foldBufferRow(8)
-          fold = editSession.lineForScreenRow(1).fold
+          fold = editor.lineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 9
 
       describe "when the bufferRow is already folded", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           languageMode.foldBufferRow(2)
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
-          expect(editSession.lineForScreenRow(0).fold).not.toBeDefined()
+          expect(editor.lineForScreenRow(1).fold).toBeDefined()
+          expect(editor.lineForScreenRow(0).fold).not.toBeDefined()
 
           languageMode.foldBufferRow(1)
-          expect(editSession.lineForScreenRow(0).fold).toBeDefined()
+          expect(editor.lineForScreenRow(0).fold).toBeDefined()
 
       describe "when the bufferRow is in a multi-line comment", ->
         it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
           buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           languageMode.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(1).fold
+          fold = editor.lineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 3
 
@@ -278,7 +278,7 @@ describe "LanguageMode", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           buffer.insert([1,0], "  //this is a single line comment\n")
           languageMode.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(0).fold
+          fold = editor.lineForScreenRow(0).fold
           expect(fold.getStartRow()).toBe 0
           expect(fold.getEndRow()).toBe 13
 
@@ -286,77 +286,77 @@ describe "LanguageMode", ->
       describe "when bufferRow can be unfolded", ->
         it "destroys a fold based on the syntactic region starting at the given row", ->
           languageMode.foldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+          expect(editor.lineForScreenRow(1).fold).toBeDefined()
 
           languageMode.unfoldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
 
       describe "when bufferRow can't be unfolded", ->
         it "does not throw an error", ->
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
           languageMode.unfoldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
 
   describe "folding with comments", ->
     beforeEach ->
       atom.activatePackage('language-javascript', sync: true)
-      editSession = project.openSync('sample-with-comments.js', autoIndent: false)
-      {buffer, languageMode} = editSession
+      editor = project.openSync('sample-with-comments.js', autoIndent: false)
+      {buffer, languageMode} = editor
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
-        initialScreenLineCount = editSession.getScreenLineCount()
+        initialScreenLineCount = editor.getScreenLineCount()
         languageMode.foldBufferRow(0)
         languageMode.foldBufferRow(5)
-        expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
+        expect(editor.getScreenLineCount()).toBeLessThan initialScreenLineCount
         languageMode.unfoldAll()
-        expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
+        expect(editor.getScreenLineCount()).toBe initialScreenLineCount
 
     describe ".foldAll()", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editSession.lineForScreenRow(0).fold
+        fold1 = editor.lineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
         fold1.destroy()
 
-        fold2 = editSession.lineForScreenRow(1).fold
+        fold2 = editor.lineForScreenRow(1).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
 
-        fold3 = editSession.lineForScreenRow(2).fold.destroy()
+        fold3 = editor.lineForScreenRow(2).fold.destroy()
 
-        fold4 = editSession.lineForScreenRow(3).fold
+        fold4 = editor.lineForScreenRow(3).fold
         expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
 
     describe ".foldAllAtIndentLevel()", ->
       it "folds every foldable range at a given indentLevel", ->
         languageMode.foldAllAtIndentLevel(2)
 
-        fold1 = editSession.lineForScreenRow(6).fold
+        fold1 = editor.lineForScreenRow(6).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
         fold1.destroy()
 
-        fold2 = editSession.lineForScreenRow(11).fold
+        fold2 = editor.lineForScreenRow(11).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
         fold2.destroy()
 
       it "does not fold anything but the indentLevel", ->
         languageMode.foldAllAtIndentLevel(0)
 
-        fold1 = editSession.lineForScreenRow(0).fold
+        fold1 = editor.lineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
         fold1.destroy()
 
-        fold2 = editSession.lineForScreenRow(5).fold
+        fold2 = editor.lineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
 
   describe "css", ->
     beforeEach ->
       atom.activatePackage('language-source', sync: true)
       atom.activatePackage('language-css', sync: true)
-      editSession = project.openSync('css.css', autoIndent: true)
+      editor = project.openSync('css.css', autoIndent: true)
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->
-        editSession.setText('.test {\npadding: 0;\n}')
-        expect(editSession.suggestedIndentForBufferRow(2)).toBe 0
+        editor.setText('.test {\npadding: 0;\n}')
+        expect(editor.suggestedIndentForBufferRow(2)).toBe 0

@@ -447,25 +447,25 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is added", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.openSync('sample.js')
-          editSession.setText("// http://github.com")
+          editor = project.openSync('sample.js')
+          editor.setText("// http://github.com")
 
-          {tokens} = editSession.lineForScreenRow(0)
+          {tokens} = editor.lineForScreenRow(0)
           expect(tokens[1].value).toBe " http://github.com"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
           atom.activatePackage('language-hyperlink', sync: true)
 
-          {tokens} = editSession.lineForScreenRow(0)
+          {tokens} = editor.lineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.openSync('sample.js')
-          editSession.setText("// SELECT * FROM OCTOCATS")
+          editor = project.openSync('sample.js')
+          editor.setText("// SELECT * FROM OCTOCATS")
 
-          {tokens} = editSession.lineForScreenRow(0)
+          {tokens} = editor.lineForScreenRow(0)
           expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
@@ -477,13 +477,13 @@ describe "TextMateGrammar", ->
             patterns: [ { include: "source.sql" } ]
           ))
 
-          {tokens} = editSession.lineForScreenRow(0)
+          {tokens} = editor.lineForScreenRow(0)
           expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
           atom.activatePackage('language-sql', sync: true)
 
-          {tokens} = editSession.lineForScreenRow(0)
+          {tokens} = editor.lineForScreenRow(0)
           expect(tokens[2].value).toBe "SELECT"
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
