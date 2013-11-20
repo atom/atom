@@ -142,7 +142,6 @@ class Atom
   activatePackage: (args...) -> @packages.activatePackage(args...)
   deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
   getActivePackage: (args...) -> @packages.getActivePackage(args...)
-  isPackageActive: (args...) -> @packages.isPackageActive(args...)
   getActivePackages: (args...) -> @packages.getActivePackages(args...)
 
   loadThemes: ->
