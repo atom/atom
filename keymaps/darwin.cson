@@ -87,7 +87,7 @@
   'meta-8': 'pane:show-item-8'
   'meta-9': 'pane:show-item-9'
 
-'body.platform-darwin .editor':
+'.platform-darwin .editor':
   # Apple Specific
   'meta-backspace': 'editor:backspace-to-beginning-of-line'
   'meta-delete': 'editor:backspace-to-beginning-of-line'
