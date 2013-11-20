@@ -16,7 +16,7 @@ describe "Editor", ->
 
   describe "with default options", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       editor = project.openSync('sample.js', autoIndent: false)
       buffer = editor.buffer
       lineLengths = buffer.getLines().map (line) -> line.length

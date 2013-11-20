@@ -138,10 +138,6 @@ class Atom
     @packages.packageStates = state.getObject('packageStates') ? {}
     state.remove('packageStates')
 
-  #TODO Remove theses once packages have been migrated
-  activatePackage: (args...) -> @packages.activatePackage(args...)
-  deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
-
   loadThemes: ->
     @themes.load()
 

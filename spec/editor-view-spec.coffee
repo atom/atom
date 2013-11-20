@@ -10,8 +10,8 @@ describe "EditorView", ->
   [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('language-text', sync: true)
-    atom.activatePackage('language-javascript', sync: true)
+    atom.packages.activatePackage('language-text', sync: true)
+    atom.packages.activatePackage('language-javascript', sync: true)
     editor = project.openSync('sample.js')
     buffer = editor.buffer
     editorView = new EditorView(editor)
