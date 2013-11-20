@@ -242,8 +242,8 @@ describe "TextMateGrammar", ->
             expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
 
           it "updates the grammar if the included grammar is updated later", ->
-            atom.activatePackage('language-html', sync: true)
-            atom.activatePackage('language-ruby-on-rails', sync: true)
+            atom.packages.activatePackage('language-html', sync: true)
+            atom.packages.activatePackage('language-ruby-on-rails', sync: true)
 
             grammar = atom.syntax.selectGrammar('foo.html.erb')
             grammarUpdatedHandler = jasmine.createSpy("grammarUpdatedHandler")
@@ -260,8 +260,8 @@ describe "TextMateGrammar", ->
 
         describe "when a grammar matching the desired scope is unavailable", ->
           it "updates the grammar if a matching grammar is added later", ->
-            atom.deactivatePackage('language-html')
-            atom.activatePackage('language-ruby-on-rails', sync: true)
+            atom.packages.deactivatePackage('language-html')
+            atom.packages.activatePackage('language-ruby-on-rails', sync: true)
 
             grammar = atom.syntax.grammarForScopeName('text.html.ruby')
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
