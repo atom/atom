@@ -145,9 +145,6 @@ class Atom
   isPackageActive: (args...) -> @packages.isPackageActive(args...)
   getActivePackages: (args...) -> @packages.getActivePackages(args...)
   loadPackage: (args...) -> @packages.loadPackage(args...)
-  unloadPackage: (args...) -> @packages.unloadPackage(args...)
-  getLoadedPackage: (args...) -> @packages.getLoadedPackage(args...)
-  getLoadedPackages: (args...) -> @packages.getLoadedPackages(args...)
 
   loadThemes: ->
     @themes.load()
