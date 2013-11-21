@@ -482,13 +482,13 @@ describe "Pane", ->
           container.attachToDom()
           pane.focus()
           pane.remove()
-          expect(rootView.focus).toHaveBeenCalled()
+          expect(atom.rootView.focus).toHaveBeenCalled()
 
       describe "when the removed pane is not focused", ->
         it "does not call focus on root view", ->
           expect(pane).not.toMatchSelector ':has(:focus)'
           pane.remove()
-          expect(rootView.focus).not.toHaveBeenCalled()
+          expect(atom.rootView.focus).not.toHaveBeenCalled()
 
   describe ".getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
