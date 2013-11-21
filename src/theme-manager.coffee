@@ -112,7 +112,7 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
   # Internal-only:
-  stylesheetElementForId: (id, htmlElement) ->
+  stylesheetElementForId: (id, htmlElement=$('html')) ->
     htmlElement.find("""head style[id="#{id}"]""")
 
   # Internal-only:
