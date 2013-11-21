@@ -34,6 +34,8 @@ class MenuManager
   #
   # Returns true to include the selector, false otherwise.
   includeSelector: (selector) ->
+    return true if document.body.webkitMatchesSelector(selector)
+
     unless @testEditor?
       @testEditor = document.createElement('div')
       @testEditor.classList.add('editor')
@@ -41,7 +43,7 @@ class MenuManager
       testBody.classList.add(document.body.classList.toString().split(' ')...)
       testBody.appendChild(@testEditor)
 
-    document.body.webkitMatchesSelector(selector) or @testEditor.webkitMatchesSelector(selector)
+    @testEditor.webkitMatchesSelector(selector)
 
   # Public: Refreshes the currently visible menu.
   update: ->
