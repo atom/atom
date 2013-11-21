@@ -30,7 +30,7 @@ class MenuManager
   # Public: Refreshes the currently visible menu.
   update: ->
     keystrokesByCommand = {}
-    selectors = ['body', '.editor', '.editor:not(.mini)']
+    selectors = ['body', ".platform-#{process.platform}", '.editor', '.editor:not(.mini)']
     for binding in atom.keymap.getKeyBindings() when binding.selector in selectors
       keystrokesByCommand[binding.command] ?= []
       keystrokesByCommand[binding.command].push binding.keystroke
