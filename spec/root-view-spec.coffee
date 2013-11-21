@@ -8,7 +8,7 @@ describe "RootView", ->
   pathToOpen = null
 
   beforeEach ->
-    atom.project.setPath(project.resolve('dir'))
+    atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
     atom.rootView = new RootView
     atom.rootView.enableKeymap()
@@ -21,7 +21,7 @@ describe "RootView", ->
     refreshRootViewAndProject = ->
       project2 = atom.replicate().get('project')
       atom.project = project2
-      atom.rootViewState = atom.rootView.serialize()
+      rootViewState = atom.rootView.serialize()
       atom.project.getState().serializeForPersistence()
       atom.rootView.remove()
       atom.project.destroy()
@@ -35,13 +35,13 @@ describe "RootView", ->
         editor1 = atom.rootView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(rootView.getActiveView()).toBe atom.rootView.getEditors()[2]
+        expect(atom.rootView.getActiveView()).toBe atom.rootView.getEditors()[2]
 
         refreshRootViewAndProject()
 
-        expect(rootView.getEditors().length).toBe 2
-        expect(rootView.getActiveView()).toBe atom.rootView.getEditors()[1]
-        expect(rootView.title).toBe "untitled - #{project.getPath()}"
+        expect(atom.rootView.getEditors().length).toBe 2
+        expect(atom.rootView.getActiveView()).toBe atom.rootView.getEditors()[1]
+        expect(atom.rootView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
@@ -50,16 +50,16 @@ describe "RootView", ->
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
         pane4 = pane2.splitDown()
-        pane2.showItem(project.openSync('b'))
-        pane3.showItem(project.openSync('../sample.js'))
+        pane2.showItem(atom.project.openSync('b'))
+        pane3.showItem(atom.project.openSync('../sample.js'))
         pane3.activeItem.setCursorScreenPosition([2, 4])
-        pane4.showItem(project.openSync('../sample.txt'))
+        pane4.showItem(atom.project.openSync('../sample.txt'))
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
         refreshRootViewAndProject()
 
-        expect(rootView.getEditors().length).toBe 4
+        expect(atom.rootView.getEditors().length).toBe 4
         editor1 = atom.rootView.panes.find('.row > .pane .editor:eq(0)').view()
         editor3 = atom.rootView.panes.find('.row > .pane .editor:eq(1)').view()
         editor2 = atom.rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
@@ -84,14 +84,14 @@ describe "RootView", ->
         expect(editor3.isFocused).toBeFalsy()
         expect(editor4.isFocused).toBeFalsy()
 
-        expect(rootView.title).toBe "#{path.basename(editor2.getPath())} - #{project.getPath()}"
+        expect(atom.rootView.title).toBe "#{path.basename(editor2.getPath())} - #{atom.project.getPath()}"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
         atom.rootView.getActivePane().remove()
-        expect(rootView.getEditors().length).toBe 0
+        expect(atom.rootView.getEditors().length).toBe 0
         refreshRootViewAndProject()
-        expect(rootView.getEditors().length).toBe 0
+        expect(atom.rootView.getEditors().length).toBe 0
 
   describe "focus", ->
     beforeEach ->
@@ -107,7 +107,7 @@ describe "RootView", ->
     describe "when there is no active view", ->
       beforeEach ->
         atom.rootView.getActivePane().remove()
-        expect(rootView.getActiveView()).toBeUndefined()
+        expect(atom.rootView.getActiveView()).toBeUndefined()
         atom.rootView.attachToDom()
         expect(document.activeElement).toBe document.body
 
@@ -150,7 +150,7 @@ describe "RootView", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         atom.project.setPath(undefined)
-        expect(rootView.title).toBe 'untitled'
+        expect(atom.rootView.title).toBe 'untitled'
 
     describe "when the project has a path", ->
       beforeEach ->
@@ -159,25 +159,25 @@ describe "RootView", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.rootView.getActivePaneItem()
-          expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+          expect(atom.rootView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.rootView.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(rootView.title).toBe "#{editor.getTitle()} - #{project.getPath()}"
+          expect(atom.rootView.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.rootView.getActivePane().showNextItem()
           item = atom.rootView.getActivePaneItem()
-          expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+          expect(atom.rootView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.rootView.getActivePane().remove()
-          expect(rootView.getActivePaneItem()).toBeUndefined()
-          expect(rootView.title).toBe atom.project.getPath()
+          expect(atom.rootView.getActivePaneItem()).toBeUndefined()
+          expect(atom.rootView.title).toBe atom.project.getPath()
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -185,13 +185,13 @@ describe "RootView", ->
           pane.splitRight()
           initialTitle = atom.rootView.title
           pane.showNextItem()
-          expect(rootView.title).toBe initialTitle
+          expect(atom.rootView.title).toBe initialTitle
 
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
-        rootView2 = atom.deserializers.deserialize(rootView.serialize())
+        rootView2 = atom.deserializers.deserialize(atom.rootView.serialize())
         item = atom.rootView.getActivePaneItem()
-        expect(rootView2.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+        expect(rootView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         rootView2.remove()
 
   describe "font size adjustment", ->
@@ -216,37 +216,37 @@ describe "RootView", ->
       beforeEach ->
         spyOn(Pane.prototype, 'focus')
         atom.rootView.getActivePane().remove()
-        expect(rootView.getActivePane()).toBeUndefined()
+        expect(atom.rootView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
           editor = atom.rootView.openSync()
-          expect(rootView.getActivePane().activeItem).toBe editor
+          expect(atom.rootView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBeUndefined()
-          expect(rootView.getActivePane().focus).toHaveBeenCalled()
+          expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
 
         it "can create multiple empty edit sessions as an item on a new pane", ->
           editor = atom.rootView.openSync()
           editor2 = atom.rootView.openSync()
-          expect(rootView.getActivePane().getItems().length).toBe 2
+          expect(atom.rootView.getActivePane().getItems().length).toBe 2
           expect(editor).not.toBe editor2
 
       describe "when called with a path", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editor = atom.rootView.openSync('b')
-          expect(rootView.getActivePane().activeItem).toBe editor
+          expect(atom.rootView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-          expect(rootView.getActivePane().focus).toHaveBeenCalled()
+          expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
         it "does not focus the new pane", ->
           editor = atom.rootView.openSync('b', changeFocus: false)
-          expect(rootView.getActivePane().focus).not.toHaveBeenCalled()
+          expect(atom.rootView.getActivePane().focus).not.toHaveBeenCalled()
 
       describe "when the split option is 'right'", ->
         it "creates a new pane and opens the file in said pane", ->
           editor = atom.rootView.openSync('b', split: 'right')
-          expect(rootView.getActivePane().activeItem).toBe editor
+          expect(atom.rootView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
     describe "when there is an active pane", ->
@@ -300,14 +300,14 @@ describe "RootView", ->
           expect(pane2[0]).not.toBe pane1[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
-          expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
           editor = atom.rootView.openSync('file1', split: 'right')
           pane3 = atom.rootView.getActivePane()
           expect(pane3[0]).toBe pane2[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
 
-          expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
   describe ".openSingletonSync(filePath, options)", ->
     describe "when there is an active pane", ->
@@ -322,17 +322,17 @@ describe "RootView", ->
         expect(pane2[0]).not.toBe pane1[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane1.focus()
-        expect(rootView.getActivePane()[0]).toBe pane1[0]
+        expect(atom.rootView.getActivePane()[0]).toBe pane1[0]
 
         atom.rootView.openSingletonSync('b', split: 'right')
         pane3 = atom.rootView.getActivePane()
         expect(pane3[0]).toBe pane2[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "handles split: left by opening to the left pane when necessary", ->
         atom.rootView.openSingletonSync('b', split: 'right')
@@ -346,20 +346,20 @@ describe "RootView", ->
 
         expect(pane1.itemForUri('file1')).toBeTruthy()
         expect(pane2.itemForUri('file1')).toBeFalsy()
-        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane2.focus()
-        expect(rootView.getActivePane()[0]).toBe pane2[0]
+        expect(atom.rootView.getActivePane()[0]).toBe pane2[0]
 
         atom.rootView.openSingletonSync('file1', split: 'left')
         activePane = atom.rootView.getActivePane()
         expect(activePane[0]).toBe pane1[0]
-        expect(rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "reuses the file when already open", ->
         atom.rootView.openSync('b')
         atom.rootView.openSingletonSync('b', split: 'right')
-        expect(rootView.panes.find('.pane').toArray()).toEqual [pane1[0]]
+        expect(atom.rootView.panes.find('.pane').toArray()).toEqual [pane1[0]]
 
   describe ".open(filePath)", ->
     beforeEach ->
@@ -368,7 +368,7 @@ describe "RootView", ->
     describe "when there is no active pane", ->
       beforeEach ->
         atom.rootView.getActivePane().remove()
-        expect(rootView.getActivePane()).toBeUndefined()
+        expect(atom.rootView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
@@ -378,9 +378,9 @@ describe "RootView", ->
             atom.rootView.open().then (o) -> editor = o
 
           runs ->
-            expect(rootView.getActivePane().activeItem).toBe editor
+            expect(atom.rootView.getActivePane().activeItem).toBe editor
             expect(editor.getPath()).toBeUndefined()
-            expect(rootView.getActivePane().focus).toHaveBeenCalled()
+            expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
 
         it "can create multiple empty edit sessions as items on a pane", ->
           editor1 = null
@@ -395,7 +395,7 @@ describe "RootView", ->
                 editor2 = o
 
           runs ->
-            expect(rootView.getActivePane().getItems().length).toBe 2
+            expect(atom.rootView.getActivePane().getItems().length).toBe 2
             expect(editor1).not.toBe editor2
 
       describe "when called with a path", ->
@@ -405,9 +405,9 @@ describe "RootView", ->
             atom.rootView.open('b').then (o) -> editor = o
 
           runs ->
-            expect(rootView.getActivePane().activeItem).toBe editor
+            expect(atom.rootView.getActivePane().activeItem).toBe editor
             expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-            expect(rootView.getActivePane().focus).toHaveBeenCalled()
+            expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
 
     describe "when there is an active pane", ->
       [activePane] = []
