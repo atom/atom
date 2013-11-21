@@ -36,6 +36,8 @@ class MenuManager
   includeSelector: (selector) ->
     return true if document.body.webkitMatchesSelector(selector)
 
+    # Simulate an .editor element attached to a body element that has the same
+    # classes as the current body element.
     unless @testEditor?
       @testEditor = document.createElement('div')
       @testEditor.classList.add('editor')
