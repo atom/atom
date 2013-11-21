@@ -1,13 +1,3 @@
-#TODO remove once all packages have been updated
-fs = require 'fs-plus'
-fs.exists = fs.existsSync
-fs.makeTree = fs.makeTreeSync
-fs.move = fs.moveSync
-fs.read = (filePath) -> fs.readFileSync(filePath, 'utf8')
-fs.remove = fs.removeSync
-fs.write = fs.writeFile
-fs.writeSync = fs.writeFileSync
-
 fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
