@@ -16,6 +16,7 @@ class KeyBinding
       keys = @getParser().parse(keystroke)
       modifiers = keys[0...-1]
       modifiers.sort()
+      modifiers = ((if m == 'meta' then 'cmd' else m) for m in modifiers or [])
       [modifiers..., _.last(keys)].join('-')
     normalizedKeystroke.join(' ')
 

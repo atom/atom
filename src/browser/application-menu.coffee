@@ -137,6 +137,7 @@ class ApplicationMenu
     modifiers.push("Shift") if key != key.toLowerCase()
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
+              .replace(/meta/ig, "Command")
               .replace(/cmd/ig, "Command")
               .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
