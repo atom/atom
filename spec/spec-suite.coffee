@@ -23,9 +23,10 @@ setSpecDirectory = (specDirectory) ->
   setSpecField('specDirectory', specDirectory)
 
 runAllSpecs = ->
+  {resourcePath} = atom.getLoadSettings()
   # Only run core specs when resource path is the Atom repository
-  if Git.exists(window.resourcePath)
-    requireSpecs(path.join(window.resourcePath, 'spec'))
+  if Git.exists(resourcePath)
+    requireSpecs(path.join(resourcePath, 'spec'))
     setSpecType('core')
 
   fixturesPackagesPath = path.join(__dirname, 'fixtures', 'packages')
@@ -34,7 +35,7 @@ runAllSpecs = ->
   packagePaths = _.groupBy packagePaths, (packagePath) ->
     if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
       'fixtures'
-    else if packagePath.indexOf("#{window.resourcePath}#{path.sep}") is 0
+    else if packagePath.indexOf("#{resourcePath}#{path.sep}") is 0
       'bundled'
     else
       'user'
