@@ -307,11 +307,11 @@ class Atom
     @rootView.trigger 'beep'
 
   requireUserInitScript: ->
-    userInitScriptPath = path.join(@getConfigDirPath(), "user.coffee")
-    try
-      require userInitScriptPath if fs.isFileSync(userInitScriptPath)
-    catch error
-      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+    if userInitScriptPath = fs.resolve(@getConfigDirPath(), 'user', ['js', 'coffee'])
+      try
+        require userInitScriptPath
+      catch error
+        console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
