@@ -273,7 +273,7 @@ class Atom
     if windowStatePath = @getWindowStatePath()
       windowState.saveSync(windowStatePath)
     else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serialize())
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serializeForPersistence())
 
   getWindowState: (keyPath) ->
     @windowState ?= @loadWindowState()
