@@ -137,7 +137,6 @@ module.exports = (grunt) ->
         'exports/**/*.coffee'
         'src/**/*.coffee'
         'tasks/**/*.coffee'
-        '!tasks/node_modules/**/*.coffee'
         'Gruntfile.coffee'
       ]
       test: [
