@@ -43,6 +43,8 @@ describe "apm develop", ->
       spyOn(Develop.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
         repoUrl = path.join(__dirname, 'fixtures', 'repo.git')
         callback(null, repoUrl)
+      spyOn(Develop.prototype, "installDependencies").andCallFake (packageDirectory, options) ->
+        @linkPackage(packageDirectory, options)
 
       callback = jasmine.createSpy('callback')
       apm.run(['develop', "fake-package"], callback)
