@@ -20,7 +20,7 @@ describe "RootView", ->
 
     refreshRootViewAndProject = ->
       project2 = atom.replicate().get('project')
-      window.project = project2
+      atom.project = project2
       atom.rootViewState = atom.rootView.serialize()
       atom.project.getState().serializeForPersistence()
       atom.rootView.remove()

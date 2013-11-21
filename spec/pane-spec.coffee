@@ -702,7 +702,7 @@ describe "Pane", ->
         projectReplica = atom.replicate().get('project')
         containerState = container.serialize()
         container.remove()
-        window.project = projectReplica
+        atom.project = projectReplica
         atom.project.destroy()
         container = atom.deserializers.deserialize(containerState)
         pane = container.getRoot()
