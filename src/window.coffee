@@ -11,7 +11,6 @@ windowEventHandler = null
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
-  window.resourcePath = atom.getLoadSettings().resourcePath
   atom.initialize()
 
 # Set up the default event handlers and menus for a non-editor windows.
