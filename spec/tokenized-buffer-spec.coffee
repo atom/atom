@@ -20,7 +20,7 @@ describe "TokenizedBuffer", ->
 
   describe "@deserialize(state)", ->
     it "constructs a tokenized buffer with the same buffer and tabLength setting", ->
-      buffer = project.bufferForPathSync('sample.js')
+      buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer1 = new TokenizedBuffer(buffer: buffer, tabLength: 4)
       tokenizedBuffer2 = atom.deserializers.deserialize(tokenizedBuffer1.serialize())
       expect(tokenizedBuffer2.buffer).toBe tokenizedBuffer1.buffer
@@ -28,7 +28,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer is destroyed", ->
     beforeEach ->
-      buffer = project.bufferForPathSync('sample.js')
+      buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
 
@@ -40,7 +40,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
-      buffer = project.bufferForPathSync('sample.js')
+      buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
       tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
@@ -320,7 +320,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       atom.packages.activatePackage('language-coffee-script', sync: true)
-      buffer = project.bufferForPathSync('sample-with-tabs.coffee')
+      buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
 
@@ -350,7 +350,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
-      buffer = project.bufferForPathSync 'sample-with-pairs.js'
+      buffer = atom.project.bufferForPathSync 'sample-with-pairs.js'
       buffer.setText """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
@@ -390,7 +390,7 @@ describe "TokenizedBuffer", ->
       atom.packages.activatePackage('language-ruby-on-rails', sync: true)
       atom.packages.activatePackage('language-ruby', sync: true)
 
-      buffer = project.bufferForPathSync()
+      buffer = atom.project.bufferForPathSync()
       buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
       tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(atom.syntax.selectGrammar('test.erb'))
@@ -410,7 +410,7 @@ describe "TokenizedBuffer", ->
       buffer.release()
 
     it "returns the correct token (regression)", ->
-      buffer = project.bufferForPathSync('sample.js')
+      buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
@@ -419,7 +419,7 @@ describe "TokenizedBuffer", ->
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
-      buffer = project.bufferForPathSync('sample.js')
+      buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 

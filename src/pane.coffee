@@ -427,7 +427,7 @@ class Pane extends View
   # Private:
   beforeRemove: ->
     if @is(':has(:focus)')
-      @getContainer().focusNextPane() or rootView?.focus()
+      @getContainer().focusNextPane() or atom.rootView?.focus()
     else if @isActive()
       @getContainer().makeNextPaneActive()
 

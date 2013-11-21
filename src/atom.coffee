@@ -173,7 +173,7 @@ class Atom
     callback(showSaveDialogSync())
 
   showSaveDialogSync: (defaultPath) ->
-    defaultPath ?= project?.getPath()
+    defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 

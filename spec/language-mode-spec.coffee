@@ -7,7 +7,7 @@ describe "LanguageMode", ->
   describe "javascript", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
-      editor = project.openSync('sample.js', autoIndent: false)
+      editor = atom.project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
@@ -110,7 +110,7 @@ describe "LanguageMode", ->
   describe "coffeescript", ->
     beforeEach ->
       atom.packages.activatePackage('language-coffee-script', sync: true)
-      editor = project.openSync('coffee.coffee', autoIndent: false)
+      editor = atom.project.openSync('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editor
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -157,7 +157,7 @@ describe "LanguageMode", ->
   describe "css", ->
     beforeEach ->
       atom.packages.activatePackage('language-css', sync: true)
-      editor = project.openSync('css.css', autoIndent: false)
+      editor = atom.project.openSync('css.css', autoIndent: false)
       {buffer, languageMode} = editor
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -199,7 +199,7 @@ describe "LanguageMode", ->
     beforeEach ->
       atom.packages.activatePackage('language-less', sync: true)
       atom.packages.activatePackage('language-css', sync: true)
-      editor = project.openSync('sample.less', autoIndent: false)
+      editor = atom.project.openSync('sample.less', autoIndent: false)
       {buffer, languageMode} = editor
 
     describe "when commenting lines", ->
@@ -210,7 +210,7 @@ describe "LanguageMode", ->
   describe "folding", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
-      editor = project.openSync('sample.js', autoIndent: false)
+      editor = atom.project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
 
     it "maintains cursor buffer position when a folding/unfolding", ->
@@ -300,7 +300,7 @@ describe "LanguageMode", ->
   describe "folding with comments", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
-      editor = project.openSync('sample-with-comments.js', autoIndent: false)
+      editor = atom.project.openSync('sample-with-comments.js', autoIndent: false)
       {buffer, languageMode} = editor
 
     describe ".unfoldAll()", ->
@@ -354,7 +354,7 @@ describe "LanguageMode", ->
     beforeEach ->
       atom.packages.activatePackage('language-source', sync: true)
       atom.packages.activatePackage('language-css', sync: true)
-      editor = project.openSync('css.css', autoIndent: true)
+      editor = atom.project.openSync('css.css', autoIndent: true)
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->

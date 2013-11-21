@@ -9,5 +9,5 @@ module.exports =
 
   activate: ->
     @activateCallCount++
-    rootView.getActiveView()?.command 'activation-event', =>
+    atom.rootView.getActiveView()?.command 'activation-event', =>
       @activationEventCallCount++

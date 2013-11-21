@@ -31,7 +31,7 @@ class TokenizedBuffer
       @state = optionsOrState
 
       # TODO: This needs to be made async, but should wait until the new Telepath changes land
-      @buffer = project.bufferForPathSync(optionsOrState.get('bufferPath'))
+      @buffer = atom.project.bufferForPathSync(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState
       @state = atom.site.createDocument

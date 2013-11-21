@@ -20,8 +20,8 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editor1 = project.openSync('sample.js')
-    editor2 = project.openSync('sample.txt')
+    editor1 = atom.project.openSync('sample.js')
+    editor2 = atom.project.openSync('sample.txt')
     pane = new Pane(view1, editor1, view2, editor2)
     container.setRoot(pane)
 
@@ -475,20 +475,20 @@ describe "Pane", ->
     describe "when it is the last pane", ->
       beforeEach ->
         expect(container.getPanes().length).toBe 1
-        window.rootView = focus: jasmine.createSpy("rootView.focus")
+        atom.rootView = focus: jasmine.createSpy("rootView.focus")
 
       describe "when the removed pane is focused", ->
         it "calls focus on rootView so we don't lose focus", ->
           container.attachToDom()
           pane.focus()
           pane.remove()
-          expect(rootView.focus).toHaveBeenCalled()
+          expect(atom.rootView.focus).toHaveBeenCalled()
 
       describe "when the removed pane is not focused", ->
         it "does not call focus on root view", ->
           expect(pane).not.toMatchSelector ':has(:focus)'
           pane.remove()
-          expect(rootView.focus).not.toHaveBeenCalled()
+          expect(atom.rootView.focus).not.toHaveBeenCalled()
 
   describe ".getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
@@ -702,8 +702,8 @@ describe "Pane", ->
         projectReplica = atom.replicate().get('project')
         containerState = container.serialize()
         container.remove()
-        project.destroy()
-        window.project = projectReplica
+        atom.project = projectReplica
+        atom.project.destroy()
         container = atom.deserializers.deserialize(containerState)
         pane = container.getRoot()
         container.attachToDom()
