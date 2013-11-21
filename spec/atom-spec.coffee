@@ -5,16 +5,16 @@ ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
-    window.rootView = new RootView
+    atom.rootView = new RootView
 
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->
         it "requires the package's main module if one of its deferred deserializers is referenced", ->
-          pack = atom.loadPackage('package-with-activation-events')
+          pack = atom.packages.loadPackage('package-with-activation-events')
           spyOn(pack, 'activateStylesheets').andCallThrough()
           expect(pack.mainModule).toBeNull()
-          object = deserialize({deserializer: 'Foo', data: 5})
+          object = atom.deserializers.deserialize({deserializer: 'Foo', data: 5})
           expect(pack.mainModule).toBeDefined()
           expect(object.constructor.name).toBe 'Foo'
           expect(object.data).toBe 5
@@ -23,34 +23,34 @@ describe "the `atom` global", ->
         it "continues if the package has an invalid package.json", ->
           spyOn(console, 'warn')
           atom.config.set("core.disabledPackages", [])
-          expect(-> atom.loadPackage("package-with-broken-package-json")).not.toThrow()
+          expect(-> atom.packages.loadPackage("package-with-broken-package-json")).not.toThrow()
 
         it "continues if the package has an invalid keymap", ->
           atom.config.set("core.disabledPackages", [])
-          expect(-> atom.loadPackage("package-with-broken-keymap")).not.toThrow()
+          expect(-> atom.packages.loadPackage("package-with-broken-keymap")).not.toThrow()
 
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
         it "throws an error", ->
-          pack = atom.activatePackage('package-with-main')
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.isPackageActive(pack.name)).toBeTruthy()
-          expect( -> atom.unloadPackage(pack.name)).toThrow()
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.isPackageActive(pack.name)).toBeTruthy()
+          pack = atom.packages.activatePackage('package-with-main')
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
+          expect( -> atom.packages.unloadPackage(pack.name)).toThrow()
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
 
       describe "when the package is not loaded", ->
         it "throws an error", ->
-          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
-          expect( -> atom.unloadPackage('unloaded')).toThrow()
-          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
+          expect(atom.packages.isPackageLoaded('unloaded')).toBeFalsy()
+          expect( -> atom.packages.unloadPackage('unloaded')).toThrow()
+          expect(atom.packages.isPackageLoaded('unloaded')).toBeFalsy()
 
       describe "when the package is loaded", ->
         it "no longers reports it as being loaded", ->
-          pack = atom.loadPackage('package-with-main')
-          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
-          atom.unloadPackage(pack.name)
-          expect(atom.isPackageLoaded(pack.name)).toBeFalsy()
+          pack = atom.packages.loadPackage('package-with-main')
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+          atom.packages.unloadPackage(pack.name)
+          expect(atom.packages.isPackageLoaded(pack.name)).toBeFalsy()
 
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
@@ -59,7 +59,7 @@ describe "the `atom` global", ->
             it "requires the module at the specified path", ->
               mainModule = require('./fixtures/packages/package-with-main/main-module')
               spyOn(mainModule, 'activate')
-              pack = atom.activatePackage('package-with-main')
+              pack = atom.packages.activatePackage('package-with-main')
               expect(mainModule.activate).toHaveBeenCalled()
               expect(pack.mainModule).toBe mainModule
 
@@ -67,13 +67,13 @@ describe "the `atom` global", ->
             it "requires index.coffee", ->
               indexModule = require('./fixtures/packages/package-with-index/index')
               spyOn(indexModule, 'activate')
-              pack = atom.activatePackage('package-with-index')
+              pack = atom.packages.activatePackage('package-with-index')
               expect(indexModule.activate).toHaveBeenCalled()
               expect(pack.mainModule).toBe indexModule
 
           it "assigns config defaults from the module", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
-            atom.activatePackage('package-with-config-defaults')
+            atom.packages.activatePackage('package-with-config-defaults')
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
@@ -85,24 +85,24 @@ describe "the `atom` global", ->
               spyOn(mainModule, 'activate').andCallThrough()
               AtomPackage = require '../src/atom-package'
               spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
-              pack = atom.activatePackage('package-with-activation-events')
+              pack = atom.packages.activatePackage('package-with-activation-events')
 
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
               expect(pack.requireMainModule).not.toHaveBeenCalled()
               expect(mainModule.activate).not.toHaveBeenCalled()
-              rootView.trigger 'activation-event'
+              atom.rootView.trigger 'activation-event'
               expect(mainModule.activate).toHaveBeenCalled()
 
             it "triggers the activation event on all handlers registered during activation", ->
-              rootView.openSync()
-              editor = rootView.getActiveView()
+              atom.rootView.openSync()
+              editorView = atom.rootView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
-              editor.command 'activation-event', eventHandler
-              editor.trigger 'activation-event'
+              editorView.command 'activation-event', eventHandler
+              editorView.trigger 'activation-event'
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.activationEventCallCount).toBe 1
               expect(eventHandler.callCount).toBe 1
-              editor.trigger 'activation-event'
+              editorView.trigger 'activation-event'
               expect(mainModule.activationEventCallCount).toBe 2
               expect(eventHandler.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
@@ -111,23 +111,23 @@ describe "the `atom` global", ->
           it "does not throw an exception", ->
             spyOn(console, "error")
             spyOn(console, "warn").andCallThrough()
-            expect(-> atom.activatePackage('package-without-module')).not.toThrow()
+            expect(-> atom.packages.activatePackage('package-without-module')).not.toThrow()
             expect(console.error).not.toHaveBeenCalled()
             expect(console.warn).not.toHaveBeenCalled()
 
         it "passes the activate method the package's previously serialized state if it exists", ->
-          pack = atom.activatePackage("package-with-serialization")
+          pack = atom.packages.activatePackage("package-with-serialization")
           expect(pack.mainModule.someNumber).not.toBe 77
           pack.mainModule.someNumber = 77
-          atom.deactivatePackage("package-with-serialization")
+          atom.packages.deactivatePackage("package-with-serialization")
           spyOn(pack.mainModule, 'activate').andCallThrough()
-          atom.activatePackage("package-with-serialization")
+          atom.packages.activatePackage("package-with-serialization")
           expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
         it "logs warning instead of throwing an exception if the package fails to load", ->
           atom.config.set("core.disabledPackages", [])
           spyOn(console, "warn")
-          expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
+          expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
           expect(console.warn).toHaveBeenCalled()
 
         describe "keymap loading", ->
@@ -141,7 +141,7 @@ describe "the `atom` global", ->
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)).toHaveLength 0
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
 
-              atom.activatePackage("package-with-keymaps")
+              atom.packages.activatePackage("package-with-keymaps")
 
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe "test-1"
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)[0].command).toBe "test-2"
@@ -154,7 +154,7 @@ describe "the `atom` global", ->
 
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
 
-              atom.activatePackage("package-with-keymaps-manifest")
+              atom.packages.activatePackage("package-with-keymaps-manifest")
 
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe 'keymap-1'
               expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-n', element1)[0].command).toBe 'keymap-2'
@@ -171,7 +171,7 @@ describe "the `atom` global", ->
 
               expect(atom.contextMenu.definitionsForElement(element)).toEqual []
 
-              atom.activatePackage("package-with-menus")
+              atom.packages.activatePackage("package-with-menus")
 
               expect(atom.menu.template.length).toBe 2
               expect(atom.menu.template[0].label).toBe "Second to Last"
@@ -186,7 +186,7 @@ describe "the `atom` global", ->
 
               expect(atom.contextMenu.definitionsForElement(element)).toEqual []
 
-              atom.activatePackage("package-with-menus-manifest")
+              atom.packages.activatePackage("package-with-menus-manifest")
 
               expect(atom.menu.template[0].label).toBe "Second to Last"
               expect(atom.menu.template[1].label).toBe "Last"
@@ -209,7 +209,7 @@ describe "the `atom` global", ->
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
-              atom.activatePackage("package-with-stylesheets-manifest")
+              atom.packages.activatePackage("package-with-stylesheets-manifest")
 
               expect(atom.themes.stylesheetElementForId(one)).toExist()
               expect(atom.themes.stylesheetElementForId(two)).toExist()
@@ -231,7 +231,7 @@ describe "the `atom` global", ->
               expect(atom.themes.stylesheetElementForId(two)).not.toExist()
               expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
-              atom.activatePackage("package-with-stylesheets")
+              atom.packages.activatePackage("package-with-stylesheets")
               expect(atom.themes.stylesheetElementForId(one)).toExist()
               expect(atom.themes.stylesheetElementForId(two)).toExist()
               expect(atom.themes.stylesheetElementForId(three)).toExist()
@@ -239,24 +239,24 @@ describe "the `atom` global", ->
 
         describe "grammar loading", ->
           it "loads the package's grammars", ->
-            atom.activatePackage('package-with-grammars')
+            atom.packages.activatePackage('package-with-grammars')
             expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
             expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
-            atom.activatePackage("package-with-scoped-properties")
+            atom.packages.activatePackage("package-with-scoped-properties")
             expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('language-ruby', sync: true)
+          atom.packages.activatePackage('language-ruby', sync: true)
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-          atom.activatePackage('language-ruby', sync: true)
+          atom.packages.activatePackage('language-ruby', sync: true)
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
@@ -264,7 +264,7 @@ describe "the `atom` global", ->
             jasmine.unspy(window, 'setTimeout')
             spyOn(atom.syntax, 'addProperties').andCallThrough()
 
-            atom.activatePackage('package-with-preferences-tmbundle')
+            atom.packages.activatePackage('package-with-preferences-tmbundle')
 
             waitsFor ->
               atom.syntax.addProperties.callCount > 0
@@ -275,55 +275,55 @@ describe "the `atom` global", ->
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
         it "calls `deactivate` on the package's main module if activate was successful", ->
-          pack = atom.activatePackage("package-with-deactivate")
-          expect(atom.isPackageActive("package-with-deactivate")).toBeTruthy()
+          pack = atom.packages.activatePackage("package-with-deactivate")
+          expect(atom.packages.isPackageActive("package-with-deactivate")).toBeTruthy()
           spyOn(pack.mainModule, 'deactivate').andCallThrough()
 
-          atom.deactivatePackage("package-with-deactivate")
+          atom.packages.deactivatePackage("package-with-deactivate")
           expect(pack.mainModule.deactivate).toHaveBeenCalled()
-          expect(atom.isPackageActive("package-with-module")).toBeFalsy()
+          expect(atom.packages.isPackageActive("package-with-module")).toBeFalsy()
 
           spyOn(console, 'warn')
-          badPack = atom.activatePackage("package-that-throws-on-activate")
-          expect(atom.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
+          badPack = atom.packages.activatePackage("package-that-throws-on-activate")
+          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
           spyOn(badPack.mainModule, 'deactivate').andCallThrough()
 
-          atom.deactivatePackage("package-that-throws-on-activate")
+          atom.packages.deactivatePackage("package-that-throws-on-activate")
           expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
-          expect(atom.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
+          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
 
         it "does not serialize packages that have not been activated called on their main module", ->
           spyOn(console, 'warn')
-          badPack = atom.activatePackage("package-that-throws-on-activate")
+          badPack = atom.packages.activatePackage("package-that-throws-on-activate")
           spyOn(badPack.mainModule, 'serialize').andCallThrough()
 
-          atom.deactivatePackage("package-that-throws-on-activate")
+          atom.packages.deactivatePackage("package-that-throws-on-activate")
           expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
         it "absorbs exceptions that are thrown by the package module's serialize methods", ->
           spyOn(console, 'error')
-          atom.activatePackage('package-with-serialize-error',  immediate: true)
-          atom.activatePackage('package-with-serialization', immediate: true)
-          atom.deactivatePackages()
+          atom.packages.activatePackage('package-with-serialize-error',  immediate: true)
+          atom.packages.activatePackage('package-with-serialization', immediate: true)
+          atom.packages.deactivatePackages()
           expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
           expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
-          atom.activatePackage('package-with-grammars')
-          atom.deactivatePackage('package-with-grammars')
+          atom.packages.activatePackage('package-with-grammars')
+          atom.packages.deactivatePackage('package-with-grammars')
           expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
           expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
         it "removes the package's keymaps", ->
-          atom.activatePackage('package-with-keymaps')
-          atom.deactivatePackage('package-with-keymaps')
+          atom.packages.activatePackage('package-with-keymaps')
+          atom.packages.deactivatePackage('package-with-keymaps')
           expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
           expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
 
         it "removes the package's stylesheets", ->
-          atom.activatePackage('package-with-stylesheets')
-          atom.deactivatePackage('package-with-stylesheets')
+          atom.packages.activatePackage('package-with-stylesheets')
+          atom.packages.deactivatePackage('package-with-stylesheets')
           one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
           two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
           three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
@@ -332,22 +332,22 @@ describe "the `atom` global", ->
           expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
         it "removes the package's scoped-properties", ->
-          atom.activatePackage("package-with-scoped-properties")
+          atom.packages.activatePackage("package-with-scoped-properties")
           expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
-          atom.deactivatePackage("package-with-scoped-properties")
+          atom.packages.deactivatePackage("package-with-scoped-properties")
           expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
       describe "textmate packages", ->
         it "removes the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('language-ruby', sync: true)
+          atom.packages.activatePackage('language-ruby', sync: true)
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.deactivatePackage('language-ruby')
+          atom.packages.deactivatePackage('language-ruby')
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
-          atom.activatePackage('language-ruby', sync: true)
-          atom.deactivatePackage('language-ruby')
+          atom.packages.activatePackage('language-ruby', sync: true)
+          atom.packages.deactivatePackage('language-ruby')
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
     describe ".activate()", ->

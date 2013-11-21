@@ -5,8 +5,8 @@ describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
-    atom.activatePackage('language-javascript', sync: true)
-    buffer = project.bufferForPathSync('sample.js')
+    atom.packages.activatePackage('language-javascript', sync: true)
+    buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
@@ -20,7 +20,7 @@ describe "DisplayBuffer", ->
       displayBuffer.setTabLength(4)
       displayBuffer.setEditorWidthInChars(64)
       displayBuffer.createFold(2, 4)
-      displayBuffer2 = deserialize(displayBuffer.serialize())
+      displayBuffer2 = atom.deserializers.deserialize(displayBuffer.serialize())
       expect(displayBuffer2.id).toBe displayBuffer.id
       expect(displayBuffer2.buffer).toBe displayBuffer.buffer
       expect(displayBuffer2.tokenizedBuffer.buffer).toBe displayBuffer.tokenizedBuffer.buffer
@@ -154,7 +154,7 @@ describe "DisplayBuffer", ->
 
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
-          buffer = project.buildBufferSync(null, '')
+          buffer = atom.project.buildBufferSync(null, '')
           displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
@@ -206,7 +206,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       displayBuffer.destroy()
       buffer.release()
-      buffer = project.bufferForPathSync('two-hundred.txt')
+      buffer = atom.project.bufferForPathSync('two-hundred.txt')
       displayBuffer = new DisplayBuffer({buffer, tabLength})
       displayBuffer.on 'changed', changeHandler
 

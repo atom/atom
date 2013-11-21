@@ -7,7 +7,7 @@ Q = require 'q'
 telepath = require 'telepath'
 
 TextBuffer = require './text-buffer'
-EditSession = require './edit-session'
+Editor = require './editor'
 {Emitter} = require 'emissary'
 Directory = require './directory'
 Task = require './task'
@@ -37,7 +37,7 @@ class Project extends telepath.Model
       buffer.once 'destroyed', => @removeBuffer(buffer)
 
     @openers = []
-    @editSessions = []
+    @editors = []
     @setPath(@path)
 
   # Private: Called by telepath.
@@ -52,7 +52,7 @@ class Project extends telepath.Model
 
   # Private:
   destroy: ->
-    editSession.destroy() for editSession in @getEditSessions()
+    editor.destroy() for editor in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -133,14 +133,14 @@ class Project extends telepath.Model
     @rootDirectory?.contains(pathToCheck) ? false
 
   # Public: Given a path to a file, this constructs and associates a new
-  # {EditSession}, showing the file.
+  # {Editor}, showing the file.
   #
   # * filePath:
   #   The {String} path of the file to associate with
-  # * editSessionOptions:
-  #   Options that you can pass to the {EditSession} constructor
+  # * options:
+  #   Options that you can pass to the {Editor} constructor
   #
-  # Returns a promise that resolves to an {EditSession}.
+  # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     resource = null
@@ -160,20 +160,20 @@ class Project extends telepath.Model
 
     @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {EditSession}s for all open files.
+  # Public: Retrieves all {Editor}s for all open files.
   #
-  # Returns an {Array} of {EditSession}s.
+  # Returns an {Array} of {Editor}s.
   getEditSessions: ->
-    new Array(@editSessions...)
+    new Array(@editors...)
 
-  # Public: Add the given {EditSession}.
-  addEditSession: (editSession) ->
-    @editSessions.push editSession
-    @emit 'edit-session-created', editSession
+  # Public: Add the given {Editor}.
+  addEditSession: (editor) ->
+    @editors.push editor
+    @emit 'editor-created', editor
 
-  # Public: Return and removes the given {EditSession}.
-  removeEditSession: (editSession) ->
-    _.remove(@editSessions, editSession)
+  # Public: Return and removes the given {Editor}.
+  removeEditSession: (editor) ->
+    _.remove(@editors, editor)
 
   # Private: Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -331,15 +331,15 @@ class Project extends telepath.Model
     deferred.promise
 
   # Private:
-  buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    editSession = new EditSession(_.extend({buffer}, editSessionOptions))
-    @addEditSession(editSession)
-    editSession
+  buildEditSessionForBuffer: (buffer, editorOptions) ->
+    editor = new Editor(_.extend({buffer}, editorOptions))
+    @addEditSession(editor)
+    editor
 
   # Private:
   eachEditSession: (callback) ->
-    callback(editSession) for editSession in @getEditSessions()
-    @on 'edit-session-created', (editSession) -> callback(editSession)
+    callback(editor) for editor in @getEditSessions()
+    @on 'editor-created', (editor) -> callback(editor)
 
   # Private:
   eachBuffer: (args...) ->

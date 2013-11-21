@@ -2,8 +2,8 @@ require './benchmark-helper'
 {$, _, RootView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
-describe "editor.", ->
-  editor = null
+describe "editorView.", ->
+  editorView = null
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
@@ -12,19 +12,19 @@ describe "editor.", ->
 
     rootView.width(1024)
     rootView.height(768)
-    rootView.openSync() # open blank editor
-    editor = rootView.getActiveView()
+    rootView.openSync()
+    editorView = rootView.getActiveView()
 
   afterEach ->
-    if editor.pendingDisplayUpdate
+    if editorView.pendingDisplayUpdate
       waitsFor "editor to finish rendering", (done) ->
-        editor.on 'editor:display-updated', done
+        editorView.on 'editor:display-updated', done
 
   describe "keymap.", ->
     event = null
 
     beforeEach ->
-      event = keydownEvent('x', target: editor.hiddenInput[0])
+      event = keydownEvent('x', target: editorView.hiddenInput[0])
 
     benchmark "keydown-event-with-no-binding", 10, ->
       keymap.handleKeyEvent(event)
@@ -35,8 +35,8 @@ describe "editor.", ->
 
   describe "empty-file.", ->
     benchmark "insert-delete", ->
-      editor.insertText('x')
-      editor.backspace()
+      editorView.insertText('x')
+      editorView.backspace()
 
   describe "300-line-file.", ->
     beforeEach ->
@@ -44,81 +44,81 @@ describe "editor.", ->
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
-        editor.insertText('x')
-        editor.backspace()
+        editorView.insertText('x')
+        editorView.backspace()
 
       benchmark "insert-delete-rehighlight", ->
-        editor.insertText('"')
-        editor.backspace()
+        editorView.insertText('"')
+        editorView.backspace()
 
     describe "at-end.", ->
       beforeEach ->
-        editor.moveCursorToBottom()
+        editorView.moveCursorToBottom()
 
       benchmark "insert-delete", ->
-        editor.insertText('"')
-        editor.backspace()
+        editorView.insertText('"')
+        editorView.backspace()
 
     describe "empty-vs-set-innerHTML.", ->
       [firstRow, lastRow] = []
       beforeEach ->
-        firstRow = editor.getFirstVisibleScreenRow()
-        lastRow = editor.getLastVisibleScreenRow()
+        firstRow = editorView.getFirstVisibleScreenRow()
+        lastRow = editorView.getLastVisibleScreenRow()
 
       benchmark "build-gutter-html.", 1000, ->
-        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editorView.gutter.renderLineNumbers(null, firstRow, lastRow)
 
       benchmark "set-innerHTML.", 1000, ->
-        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
-        editor.gutter.lineNumbers[0].innerHtml = ''
+        editorView.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editorView.gutter.lineNumbers[0].innerHtml = ''
 
       benchmark "empty.", 1000, ->
-        editor.gutter.renderLineNumbers(null, firstRow, lastRow)
-        editor.gutter.lineNumbers.empty()
+        editorView.gutter.renderLineNumbers(null, firstRow, lastRow)
+        editorView.gutter.lineNumbers.empty()
 
     describe "positionLeftForLineAndColumn.", ->
       line = null
       beforeEach ->
-        editor.scrollTop(2000)
-        editor.resetDisplay()
-        line = editor.lineElementForScreenRow(106)[0]
+        editorView.scrollTop(2000)
+        editorView.resetDisplay()
+        line = editorView.lineElementForScreenRow(106)[0]
 
       describe "one-line.", ->
         beforeEach ->
-          editor.clearCharacterWidthCache()
+          editorView.clearCharacterWidthCache()
 
         benchmark "uncached", 5000, ->
-          editor.positionLeftForLineAndColumn(line, 106, 82)
-          editor.clearCharacterWidthCache()
+          editorView.positionLeftForLineAndColumn(line, 106, 82)
+          editorView.clearCharacterWidthCache()
 
         benchmark "cached", 5000, ->
-          editor.positionLeftForLineAndColumn(line, 106, 82)
+          editorView.positionLeftForLineAndColumn(line, 106, 82)
 
       describe "multiple-lines.", ->
         [firstRow, lastRow] = []
         beforeEach ->
-          firstRow = editor.getFirstVisibleScreenRow()
-          lastRow = editor.getLastVisibleScreenRow()
+          firstRow = editorView.getFirstVisibleScreenRow()
+          lastRow = editorView.getLastVisibleScreenRow()
 
         benchmark "cache-entire-visible-area", 100, ->
           for i in [firstRow..lastRow]
-            line = editor.lineElementForScreenRow(i)[0]
-            editor.positionLeftForLineAndColumn(line, i, Math.max(0, editor.lineLengthForBufferRow(i)))
+            line = editorView.lineElementForScreenRow(i)[0]
+            editorView.positionLeftForLineAndColumn(line, i, Math.max(0, editorView.lineLengthForBufferRow(i)))
 
     describe "text-rendering.", ->
       beforeEach ->
-        editor.scrollTop(2000)
+        editorView.scrollTop(2000)
 
       benchmark "resetDisplay", 50, ->
-        editor.resetDisplay()
+        editorView.resetDisplay()
 
       benchmark "htmlForScreenRows", 1000, ->
-        lastRow = editor.getLastScreenRow()
-        editor.htmlForScreenRows(0, lastRow)
+        lastRow = editorView.getLastScreenRow()
+        editorView.htmlForScreenRows(0, lastRow)
 
       benchmark "htmlForScreenRows.htmlParsing", 50, ->
-        lastRow = editor.getLastScreenRow()
-        html = editor.htmlForScreenRows(0, lastRow)
+        lastRow = editorView.getLastScreenRow()
+        html = editorView.htmlForScreenRows(0, lastRow)
 
         div = document.createElement('div')
         div.innerHTML = html
@@ -126,44 +126,44 @@ describe "editor.", ->
     describe "gutter-api.", ->
       describe "getLineNumberElementsForClass.", ->
         beforeEach ->
-          editor.gutter.addClassToLine(20, 'omgwow')
-          editor.gutter.addClassToLine(40, 'omgwow')
+          editorView.gutter.addClassToLine(20, 'omgwow')
+          editorView.gutter.addClassToLine(40, 'omgwow')
 
         benchmark "DOM", 20000, ->
-          editor.gutter.getLineNumberElementsForClass('omgwow')
+          editorView.gutter.getLineNumberElementsForClass('omgwow')
 
       benchmark "getLineNumberElement.DOM", 20000, ->
-        editor.gutter.getLineNumberElement(12)
+        editorView.gutter.getLineNumberElement(12)
 
       benchmark "toggle-class", 2000, ->
-        editor.gutter.addClassToLine(40, 'omgwow')
-        editor.gutter.removeClassFromLine(40, 'omgwow')
+        editorView.gutter.addClassToLine(40, 'omgwow')
+        editorView.gutter.removeClassFromLine(40, 'omgwow')
 
       describe "find-then-unset.", ->
         classes = ['one', 'two', 'three', 'four']
 
         benchmark "single-class", 200, ->
-          editor.gutter.addClassToLine(30, 'omgwow')
-          editor.gutter.addClassToLine(40, 'omgwow')
-          editor.gutter.removeClassFromAllLines('omgwow')
+          editorView.gutter.addClassToLine(30, 'omgwow')
+          editorView.gutter.addClassToLine(40, 'omgwow')
+          editorView.gutter.removeClassFromAllLines('omgwow')
 
         benchmark "multiple-class", 200, ->
-          editor.gutter.addClassToLine(30, 'one')
-          editor.gutter.addClassToLine(30, 'two')
+          editorView.gutter.addClassToLine(30, 'one')
+          editorView.gutter.addClassToLine(30, 'two')
 
-          editor.gutter.addClassToLine(40, 'two')
-          editor.gutter.addClassToLine(40, 'three')
-          editor.gutter.addClassToLine(40, 'four')
+          editorView.gutter.addClassToLine(40, 'two')
+          editorView.gutter.addClassToLine(40, 'three')
+          editorView.gutter.addClassToLine(40, 'four')
 
           for klass in classes
-            editor.gutter.removeClassFromAllLines(klass)
+            editorView.gutter.removeClassFromAllLines(klass)
 
     describe "line-htmlification.", ->
       div = null
       html = null
       beforeEach ->
-        lastRow = editor.getLastScreenRow()
-        html = editor.htmlForScreenRows(0, lastRow)
+        lastRow = editorView.getLastScreenRow()
+        html = editorView.htmlForScreenRows(0, lastRow)
         div = document.createElement('div')
 
       benchmark "setInnerHTML", 1, ->
@@ -178,40 +178,40 @@ describe "editor.", ->
         rootView.openSync('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
-        editor.moveCursorToBottom()
+        editorView.moveCursorToBottom()
 
       describe "on-first-line.", ->
         benchmark "inserting-newline", 5, ->
-          editor.insertNewline()
+          editorView.insertNewline()
 
       describe "on-last-visible-line.", ->
         beforeEach ->
-          editor.setCursorScreenPosition([editor.getLastVisibleScreenRow(), 0])
+          editorView.setCursorScreenPosition([editorView.getLastVisibleScreenRow(), 0])
 
         benchmark "move-down-and-scroll", 300, ->
-          editor.trigger 'move-down'
+          editorView.trigger 'move-down'
 
       describe "at-eof.", ->
         endPosition = null
 
         beforeEach ->
-          editor.moveCursorToBottom()
-          endPosition = editor.getCursorScreenPosition()
+          editorView.moveCursorToBottom()
+          endPosition = editorView.getCursorScreenPosition()
 
         benchmark "move-to-beginning-of-word", ->
-          editor.moveCursorToBeginningOfWord()
-          editor.setCursorScreenPosition(endPosition)
+          editorView.moveCursorToBeginningOfWord()
+          editorView.setCursorScreenPosition(endPosition)
 
         benchmark "insert", ->
-          editor.insertText('x')
+          editorView.insertText('x')
 
 describe "TokenizedBuffer.", ->
   describe "coffee-script-grammar.", ->
     [languageMode, buffer] = []
 
     beforeEach ->
-      editSession = benchmarkFixturesProject.openSync('medium.coffee')
-      { languageMode, buffer } = editSession
+      editor = benchmarkFixturesProject.openSync('medium.coffee')
+      { languageMode, buffer } = editor
 
     benchmark "construction", 20, ->
       new TokenizedBuffer(buffer, { languageMode, tabLength: 2})

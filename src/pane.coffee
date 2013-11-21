@@ -7,7 +7,7 @@ PaneColumn = require './pane-column'
 
 # Public: A container which can contains multiple items to be switched between.
 #
-# Items can be almost anything however most commonly they're {Editor}s.
+# Items can be almost anything however most commonly they're {EditorView}s.
 #
 # Most packages won't need to use this class, unless you're interested in
 # building a package that deals with switching between panes or tiems.
@@ -33,7 +33,8 @@ class Pane extends View
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @items = _.compact(@state.get('items').map (item) -> deserialize(item))
+      @items = _.compact @state.get('items').map (item) ->
+        atom.deserializers.deserialize(item)
     else
       @items = args
       @state = atom.site.createDocument
@@ -45,10 +46,10 @@ class Pane extends View
       for itemState in removedValues
         @removeItemAtIndex(index, updateState: false)
       for itemState, i in insertedValues
-        @addItem(deserialize(itemState), index + i, updateState: false)
+        @addItem(atom.deserializers.deserialize(itemState), index + i, updateState: false)
 
     @subscribe @state, 'changed', ({newValues, siteId}) =>
-      return if site is @state.siteId
+      return if siteId is @state.siteId
       if newValues.activeItemUri
         @showItemForUri(newValues.activeItemUri)
 
@@ -416,7 +417,7 @@ class Pane extends View
 
   # Private:
   copyActiveItem: ->
-    @activeItem.copy?() ? deserialize(@activeItem.serialize())
+    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Private:
   remove: (selector, keepData) ->
@@ -426,7 +427,7 @@ class Pane extends View
   # Private:
   beforeRemove: ->
     if @is(':has(:focus)')
-      @getContainer().focusNextPane() or rootView?.focus()
+      @getContainer().focusNextPane() or atom.rootView?.focus()
     else if @isActive()
       @getContainer().makeNextPaneActive()
 

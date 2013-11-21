@@ -9,7 +9,7 @@ Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'telepath'
 Project = require '../src/project'
-Editor = require '../src/editor'
+EditorView = require '../src/editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
 platform = require './spec-helper-platform'
@@ -49,7 +49,6 @@ beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
-  window.project = atom.project
   atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
@@ -75,7 +74,7 @@ beforeEach ->
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', RootView.configDefaults)
-  config.setDefaults('editor', Editor.configDefaults)
+  config.setDefaults('editor', EditorView.configDefaults)
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
@@ -83,10 +82,9 @@ beforeEach ->
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.save.reset()
   atom.config = config
-  window.config = config
 
   # make editor display updates synchronous
-  spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
@@ -103,17 +101,13 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.deactivatePackages()
+  atom.packages.deactivatePackages()
   atom.menu.template = []
 
-  window.rootView?.remove?()
-  atom.rootView?.remove?() if atom.rootView isnt window.rootView
-  window.rootView = null
+  atom.rootView?.remove?()
   atom.rootView = null
 
-  window.project?.destroy?()
-  atom.project?.destroy?() if atom.project isnt window.project
-  window.project = null
+  atom.project?.destroy?()
   atom.project = null
 
   $('#jasmine-content').empty() unless window.debugContent
@@ -174,8 +168,8 @@ window.keydownEvent = (key, properties={}) ->
 
 window.mouseEvent = (type, properties) ->
   if properties.point
-    {point, editor} = properties
-    {top, left} = @pagePixelPositionForPoint(editor, point)
+    {point, editorView} = properties
+    {top, left} = @pagePixelPositionForPoint(editorView, point)
     properties.pageX = left + 1
     properties.pageY = top + 1
   properties.originalEvent ?= {detail: 1}
@@ -236,22 +230,22 @@ window.advanceClock = (delta=1) ->
 
   callback() for callback in callbacks
 
-window.pagePixelPositionForPoint = (editor, point) ->
+window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
-  top = editor.renderedLines.offset().top + point.row * editor.lineHeight
-  left = editor.renderedLines.offset().left + point.column * editor.charWidth - editor.renderedLines.scrollLeft()
+  top = editorView.renderedLines.offset().top + point.row * editorView.lineHeight
+  left = editorView.renderedLines.offset().left + point.column * editorView.charWidth - editorView.renderedLines.scrollLeft()
   { top, left }
 
 window.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
-window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
-  editor.width(charWidth * widthInChars + editor.gutter.outerWidth())
-  $(window).trigger 'resize' # update width of editor's on-screen lines
+window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
+  editorView.width(charWidth * widthInChars + editorView.gutter.outerWidth())
+  $(window).trigger 'resize' # update width of editor view's on-screen lines
 
-window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
-  editor.height(charHeight * heightInChars + editor.renderedLines.position().top)
-  $(window).trigger 'resize' # update editor's on-screen lines
+window.setEditorHeightInLines = (editorView, heightInChars, charHeight=editorView.lineHeight) ->
+  editorView.height(charHeight * heightInChars + editorView.renderedLines.position().top)
+  $(window).trigger 'resize' # update editor view's on-screen lines
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)

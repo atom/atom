@@ -18,7 +18,7 @@ class DisplayBuffer
   _.extend @prototype, ConfigObserver
 
   @acceptsDocuments: true
-  registerDeserializer(this)
+  atom.deserializers.add(this)
   @version: 2
 
   @deserialize: (state) -> new this(state)
@@ -27,7 +27,7 @@ class DisplayBuffer
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
-      @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
+      @tokenizedBuffer = atom.deserializers.deserialize(@state.get('tokenizedBuffer'))
       @buffer = @tokenizedBuffer.buffer
     else
       {@buffer, softWrap, editorWidthInChars} = optionsOrState

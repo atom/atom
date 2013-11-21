@@ -1,5 +1,5 @@
 class Foo
-  registerDeserializer(this)
+  atom.deserializers.add(this)
   @deserialize: ({data}) -> new Foo(data)
   constructor: (@data) ->
 
@@ -9,5 +9,5 @@ module.exports =
 
   activate: ->
     @activateCallCount++
-    rootView.getActiveView()?.command 'activation-event', =>
+    atom.rootView.getActiveView()?.command 'activation-event', =>
       @activationEventCallCount++

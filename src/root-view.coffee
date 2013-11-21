@@ -5,12 +5,12 @@ Q = require 'q'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 telepath = require 'telepath'
-Editor = require './editor'
+EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
 PaneRow = require './pane-row'
 PaneContainer = require './pane-container'
-EditSession = require './edit-session'
+Editor = require './editor'
 
 # Public: The container for the entire Atom application.
 #
@@ -38,7 +38,7 @@ EditSession = require './edit-session'
 #
 module.exports =
 class RootView extends View
-  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
+  atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
 
@@ -69,7 +69,7 @@ class RootView extends View
 
     if state instanceof telepath.Document
       @state = state
-      panes = deserialize(state.get('panes'))
+      panes = atom.deserializers.deserialize(state.get('panes'))
     else
       panes = new PaneContainer
       @state = atom.site.createDocument
@@ -85,7 +85,7 @@ class RootView extends View
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    project.on 'path-changed', => @updateTitle()
+    atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
@@ -105,12 +105,12 @@ class RootView extends View
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
 
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(project.getPath(), 'spec'))
+    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
-      atom.config.set("editor.fontSize", config.get("editor.fontSize") + 1)
+      atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
     @command 'window:decrease-font-size', =>
-      fontSize = config.get "editor.fontSize"
+      fontSize = atom.config.get "editor.fontSize"
       atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()
@@ -169,26 +169,26 @@ class RootView extends View
   # * options
   #   + initialLine: The buffer line number to open to.
   #
-  # Returns a promise that resolves to the {EditSession} for the file URI.
+  # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
     changeFocus = options.changeFocus ? true
-    filePath = project.resolve(filePath)
+    filePath = atom.project.resolve(filePath)
     initialLine = options.initialLine
     activePane = @getActivePane()
 
-    editSession = activePane.itemForUri(project.relativize(filePath)) if activePane and filePath
-    promise = project.open(filePath, {initialLine}) if not editSession
+    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
+    promise = atom.project.open(filePath, {initialLine}) if not editor
 
-    Q(editSession ? promise)
-      .then (editSession) =>
+    Q(editor ? promise)
+      .then (editor) =>
         if not activePane
-          activePane = new Pane(editSession)
+          activePane = new Pane(editor)
           @panes.setRoot(activePane)
 
-        activePane.showItem(editSession)
+        activePane.showItem(editor)
         activePane.focus() if changeFocus
         @trigger "uri-opened"
-        editSession
+        editor
       .catch (error) ->
         console.error(error.stack ? error)
 
@@ -196,13 +196,13 @@ class RootView extends View
   openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
     changeFocus ?= true
     pane ?= @getActivePane()
-    uri = project.relativize(uri)
+    uri = atom.project.relativize(uri)
 
     if pane
       if uri
-        paneItem = pane.itemForUri(uri) ? project.openSync(uri, {initialLine})
+        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
       else
-        paneItem = project.openSync()
+        paneItem = atom.project.openSync()
 
       if split == 'right'
         panes = @getPanes()
@@ -215,7 +215,7 @@ class RootView extends View
 
       pane.showItem(paneItem)
     else
-      paneItem = project.openSync(uri, {initialLine})
+      paneItem = atom.project.openSync(uri, {initialLine})
       pane = new Pane(paneItem)
       @panes.setRoot(pane)
 
@@ -224,7 +224,7 @@ class RootView extends View
 
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
     changeFocus ?= true
-    uri = project.relativize(uri)
+    uri = atom.project.relativize(uri)
     pane = @panes.paneForUri(uri)
 
     if pane
@@ -237,7 +237,7 @@ class RootView extends View
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
-    if projectPath = project.getPath()
+    if projectPath = atom.project.getPath()
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
@@ -249,7 +249,7 @@ class RootView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {Editor}s.
+  # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -259,7 +259,7 @@ class RootView extends View
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
-      for item in pane.getItems() when item instanceof EditSession
+      for item in pane.getItems() when item instanceof Editor
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
@@ -267,7 +267,7 @@ class RootView extends View
   #
   # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
+    _.uniq(_.flatten(@getEditors().map (editorView) -> editorView.getOpenBufferPaths()))
 
   # Public: Returns the currently focused {Pane}.
   getActivePane: ->
@@ -308,23 +308,23 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {Editor}.
+  # Private: Fires a callback on each open {EditorView}.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {EditSession}.
+  # Public: Fires a callback on each open {Editor}.
   eachEditSession: (callback) ->
-    project.eachEditSession(callback)
+    atom.project.eachEditSession(callback)
 
   # Private: Fires a callback on each open {TextBuffer}.
   eachBuffer: (callback) ->
-    project.eachBuffer(callback)
+    atom.project.eachBuffer(callback)
 
   # Private: Destroys everything.
   remove: ->
-    editor.remove() for editor in @getEditors()
-    project?.destroy()
+    editorView.remove() for editorView in @getEditors()
+    atom.project?.destroy()
     super

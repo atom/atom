@@ -159,11 +159,11 @@ describe "Keymap", ->
 
       describe "when the event's target is the document body", ->
         it "triggers the mapped event on the rootView", ->
-          window.rootView = new RootView
-          rootView.attachToDom()
+          atom.rootView = new RootView
+          atom.rootView.attachToDom()
           keymap.bindKeys 'name', 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
-          rootView.on 'foo', fooHandler
+          atom.rootView.on 'foo', fooHandler
 
           result = keymap.handleKeyEvent(keydownEvent('x', target: document.body))
           expect(result).toBe(false)
@@ -324,3 +324,26 @@ describe "Keymap", ->
         bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
         expect(bindings[0].command).toEqual "cmd-and-grandchild-node"
+
+  describe ".keyBindingsForCommandMatchingElement(element)", ->
+    beforeEach ->
+      keymap.add 'nature',
+        '.green':
+          'ctrl-c': 'cultivate'
+        '.green-2':
+          'ctrl-o': 'cultivate'
+        '.brown':
+          'ctrl-h': 'harvest'
+        '.blue':
+          'ctrl-c': 'fly'
+
+    it "finds a keymap for an element", ->
+      el = $$ -> @div class: 'green'
+      bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
+      expect(bindings).toHaveLength 1
+      expect(bindings[0].keystroke).toEqual "ctrl-c"
+
+    it "no keymap an element without that map", ->
+      el = $$ -> @div class: 'brown'
+      bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
+      expect(bindings).toHaveLength 0

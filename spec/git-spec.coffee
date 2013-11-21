@@ -182,10 +182,10 @@ describe "Git", ->
 
     beforeEach ->
       repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      modifiedPath = project.resolve('git/working-dir/file.txt')
+      modifiedPath = atom.project.resolve('git/working-dir/file.txt')
       originalModifiedPathText = fs.readFileSync(modifiedPath, 'utf8')
-      newPath = project.resolve('git/working-dir/untracked.txt')
-      cleanPath = project.resolve('git/working-dir/other.txt')
+      newPath = atom.project.resolve('git/working-dir/untracked.txt')
+      cleanPath = atom.project.resolve('git/working-dir/other.txt')
       fs.writeFileSync(newPath, '')
 
     afterEach ->
@@ -208,44 +208,44 @@ describe "Git", ->
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
 
   describe "buffer events", ->
-    [originalContent, editSession] = []
+    [originalContent, editor] = []
 
     beforeEach ->
-      editSession = project.openSync('sample.js')
-      originalContent = editSession.getText()
+      editor = atom.project.openSync('sample.js')
+      originalContent = editor.getText()
 
     afterEach ->
-      fs.writeFileSync(editSession.getPath(), originalContent)
+      fs.writeFileSync(editor.getPath(), originalContent)
 
     it "emits a status-changed event when a buffer is saved", ->
-      editSession.insertNewline()
+      editor.insertNewline()
 
       statusHandler = jasmine.createSpy('statusHandler')
-      project.getRepo().on 'status-changed', statusHandler
-      editSession.save()
+      atom.project.getRepo().on 'status-changed', statusHandler
+      editor.save()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
 
     it "emits a status-changed event when a buffer is reloaded", ->
-      fs.writeFileSync(editSession.getPath(), 'changed')
+      fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().reload()
+      atom.project.getRepo().on 'status-changed', statusHandler
+      editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().reload()
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
-      fs.writeFileSync(editSession.getPath(), 'changed')
+      fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      project.getRepo().on 'status-changed', statusHandler
-      editSession.getBuffer().emit 'path-changed'
+      atom.project.getRepo().on 'status-changed', statusHandler
+      editor.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
-      editSession.getBuffer().emit 'path-changed'
+      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      editor.getBuffer().emit 'path-changed'
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->
@@ -256,7 +256,7 @@ describe "Git", ->
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
-      project.openSync('sample.js')
+      atom.project.openSync('sample.js')
       #TODO Replace with atom.replicate().project when Atom is a telepath model
       project2 = atom.replicate().get('project')
       buffer = project2.getBuffers()[0]

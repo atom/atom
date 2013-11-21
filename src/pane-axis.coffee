@@ -12,7 +12,8 @@ class PaneAxis extends View
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @state.get('children').each (child, index) => @addChild(deserialize(child), index, updateState: false)
+      @state.get('children').each (child, index) =>
+        @addChild(atom.deserializers.deserialize(child), index, updateState: false)
     else
       @state = atom.site.createDocument(deserializer: @className(), children: [])
       @addChild(child) for child in args
@@ -22,7 +23,7 @@ class PaneAxis extends View
       for childState in removedValues
         @removeChild(@children(":eq(#{index})").view(), updateState: false)
       for childState, i in insertedValues
-        @addChild(deserialize(childState), index + i, updateState: false)
+        @addChild(atom.deserializers.deserialize(childState), index + i, updateState: false)
 
   addChild: (child, index=@children().length, options={}) ->
     @insertAt(index, child)

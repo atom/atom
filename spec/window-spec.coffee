@@ -8,11 +8,11 @@ describe "Window", ->
   beforeEach ->
     spyOn(atom, 'hide')
     atom.getLoadSettings() # Causes atom.loadSettings to be initialized
-    atom.loadSettings.initialPath = project.getPath()
-    project.destroy()
+    atom.loadSettings.initialPath = atom.project.getPath()
+    atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
-    projectPath = project.getPath()
+    projectPath = atom.project.getPath()
 
   afterEach ->
     windowEventHandler.unsubscribe()
@@ -59,31 +59,31 @@ describe "Window", ->
 
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
-        spyOn(rootView, 'confirmClose').andCallThrough()
+        spyOn(atom.rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.openSync("sample.js")
-        editSession.insertText("I look different, I feel different.")
+        editor = atom.rootView.openSync("sample.js")
+        editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
-        expect(rootView.confirmClose).toHaveBeenCalled()
+        expect(atom.rootView.confirmClose).toHaveBeenCalled()
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->
         spyOn(atom, "confirmSync").andReturn(2)
-        editSession = rootView.openSync("sample.js")
-        editSession.insertText("I look different, I feel different.")
+        editor = atom.rootView.openSync("sample.js")
+        editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
         spyOn(atom, "confirmSync").andReturn(1)
-        editSession = rootView.openSync("sample.js")
-        editSession.insertText("I look different, I feel different.")
+        editor = atom.rootView.openSync("sample.js")
+        editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(atom.confirmSync).toHaveBeenCalled()
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      rootViewState = rootView.serialize()
+      rootViewState = atom.rootView.serialize()
       syntaxState = atom.syntax.serialize()
 
       window.unloadEditorWindow()
@@ -93,11 +93,11 @@ describe "Window", ->
       expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
-      rootView.openSync('sample.js')
-      buffer = rootView.getActivePaneItem().buffer
-      pane = rootView.getActivePane()
+      atom.rootView.openSync('sample.js')
+      buffer = atom.rootView.getActivePaneItem().buffer
+      pane = atom.rootView.getActivePane()
       pane.splitRight(pane.copyActiveItem())
-      expect(window.rootView.find('.editor').length).toBe 2
+      expect(atom.rootView.find('.editor').length).toBe 2
 
       window.unloadEditorWindow()
 

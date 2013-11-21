@@ -1,5 +1,5 @@
 {$, View} = require './space-pen-extensions'
-Editor = require './editor'
+EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a widget for users to make a selection from a list of
@@ -10,7 +10,7 @@ class SelectList extends View
   # Private:
   @content: ->
     @div class: @viewClass(), =>
-      @subview 'miniEditor', new Editor(mini: true)
+      @subview 'miniEditor', new EditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
@@ -171,7 +171,7 @@ class SelectList extends View
     if @previouslyFocusedElement?.isOnDom()
       @previouslyFocusedElement.focus()
     else
-      rootView.focus()
+      atom.rootView.focus()
 
   # Public:
   cancelled: ->

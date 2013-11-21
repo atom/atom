@@ -5,7 +5,7 @@ telepath = require 'telepath'
 # Private: Manages the list of panes within a {RootView}
 module.exports =
 class PaneContainer extends View
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   ### Internal ###
   @acceptsDocuments: true
@@ -23,7 +23,7 @@ class PaneContainer extends View
 
     if state instanceof telepath.Document
       @state = state
-      @setRoot(deserialize(@state.get('root')))
+      @setRoot(atom.deserializers.deserialize(@state.get('root')))
     else
       @state = atom.site.createDocument(deserializer: 'PaneContainer')
 
@@ -89,10 +89,10 @@ class PaneContainer extends View
   reopenItem: ->
     if lastItemState = @destroyedItemStates.pop()
       if activePane = @getActivePane()
-        activePane.showItem(deserialize(lastItemState))
+        activePane.showItem(atom.deserializers.deserialize(lastItemState))
         true
       else
-        newPane = new Pane(deserialize(lastItemState))
+        newPane = new Pane(atom.deserializers.deserialize(lastItemState))
         @setRoot(newPane)
         newPane.focus()
 
@@ -147,7 +147,7 @@ class PaneContainer extends View
     callback(pane) for pane in @getPanes()
     paneAttached = (e) -> callback($(e.target).view())
     @on 'pane:attached', paneAttached
-    cancel: => @off 'pane:attached', paneAttached
+    off: => @off 'pane:attached', paneAttached
 
   getFocusedPane: ->
     @find('.pane:has(:focus)').view()
