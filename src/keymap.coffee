@@ -93,10 +93,10 @@ class Keymap
     modifiers = []
     if event.altKey and key not in Modifiers
       modifiers.push 'alt'
-    if event.ctrlKey and key not in Modifiers
-      modifiers.push 'ctrl'
     if event.metaKey and key not in Modifiers
       modifiers.push 'cmd'
+    if event.ctrlKey and key not in Modifiers
+      modifiers.push 'ctrl'
 
     if event.shiftKey and key not in Modifiers
       isNamedKey = key.length > 1
