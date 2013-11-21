@@ -296,7 +296,7 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
         expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'cmd-['
         expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-cmd-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-cmd-ctrl-left'
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
