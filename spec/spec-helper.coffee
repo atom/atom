@@ -70,7 +70,7 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
-  config = new Config({resourcePath,  configDirPath: atom.getConfigDirPath()})
+  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', RootView.configDefaults)
