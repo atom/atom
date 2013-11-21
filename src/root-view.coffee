@@ -127,9 +127,6 @@ class RootView extends View
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
 
-    if @state.get('fullScreen')
-      setImmediate => atom.setFullScreen(true)
-
   # Private:
   serialize: ->
     state = @state.clone()

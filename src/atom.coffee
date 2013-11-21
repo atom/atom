@@ -186,6 +186,16 @@ class Atom
   hide: ->
     @getCurrentWindow().hide()
 
+  # Private: Schedule the window to be shown and focused on the next tick.
+  #
+  # This is done in a next tick to prevent a white flicker from occurring
+  # if called synchronously.
+  displayWindow: ->
+    setImmediate =>
+      @show()
+      @focus()
+      @setFullScreen(true) if @rootView.getState().get('fullScreen')
+
   close: ->
     @getCurrentWindow().close()
 
