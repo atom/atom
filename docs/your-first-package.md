@@ -245,7 +245,7 @@ $('ol.entries li.file.status-modified span.name').each (i, el) ->
   parents.each (i, el) ->
     filePath.unshift($(el).find('div.header span.name').eq(0).text())
 
-  modifiedFilePath = path.join(project.rootDirectory.path, filePath.join(path.sep))
+  modifiedFilePath = path.join(atom.project.rootDirectory.path, filePath.join(path.sep))
   modifiedFiles.push modifiedFilePath
 ```
 
