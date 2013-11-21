@@ -15,4 +15,27 @@ jQuery.cleanData = (elements) ->
       view.unsubscribe()
   originalCleanData(elements)
 
+tooltipDefaults =
+  delay:
+    show: 500
+    hide: 100
+  container: 'body'
+  html: true
+
+getKeystroke = (bindings) ->
+  if bindings and bindings.length
+    "<span class=\"keystroke\">#{bindings[0].keystroke}</span>"
+  else
+    ''
+
+jQuery.fn.setTooltip = (title, {command, commandElement}={}) ->
+  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery : jQuery})
+
+  bindings = if commandElement
+    atom.keymap.keyBindingsForCommandMatchingElement(command, commandElement)
+  else
+    atom.keymap.keyBindingsForCommand(command)
+
+  this.tooltip(jQuery.extend(tooltipDefaults, {title: "#{title} #{getKeystroke(bindings)}"}))
+
 module.exports = spacePen
