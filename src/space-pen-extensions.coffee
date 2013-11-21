@@ -23,13 +23,13 @@ tooltipDefaults =
   html: true
 
 getKeystroke = (bindings) ->
-  if bindings and bindings.length
+  if bindings?.length
     "<span class=\"keystroke\">#{bindings[0].keystroke}</span>"
   else
     ''
 
 jQuery.fn.setTooltip = (title, {command, commandElement}={}) ->
-  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery : jQuery})
+  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery})
 
   bindings = if commandElement
     atom.keymap.keyBindingsForCommandMatchingElement(command, commandElement)
