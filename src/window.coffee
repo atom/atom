@@ -8,15 +8,6 @@ WindowEventHandler = require './window-event-handler'
 
 windowEventHandler = null
 
-# Schedule the window to be shown and focused on the next tick
-#
-# This is done in a next tick to prevent a white flicker from occurring
-# if called synchronously.
-displayWindow = ->
-  setImmediate ->
-    atom.show()
-    atom.focus()
-
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
@@ -58,7 +49,7 @@ window.startEditorWindow = ->
     unloadEditorWindow()
     false
 
-  displayWindow()
+  atom.displayWindow()
 
 window.unloadEditorWindow = ->
   return if not atom.project and not atom.rootView

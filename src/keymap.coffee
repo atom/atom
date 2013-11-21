@@ -6,7 +6,7 @@ CSON = require 'season'
 KeyBinding = require './key-binding'
 {Emitter} = require 'emissary'
 
-Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
+Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']
 
 # Internal: Associates keymaps with actions.
 #
@@ -93,10 +93,10 @@ class Keymap
     modifiers = []
     if event.altKey and key not in Modifiers
       modifiers.push 'alt'
+    if event.metaKey and key not in Modifiers
+      modifiers.push 'cmd'
     if event.ctrlKey and key not in Modifiers
       modifiers.push 'ctrl'
-    if event.metaKey and key not in Modifiers
-      modifiers.push 'meta'
 
     if event.shiftKey and key not in Modifiers
       isNamedKey = key.length > 1
