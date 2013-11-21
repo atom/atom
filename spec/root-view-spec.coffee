@@ -19,12 +19,12 @@ describe "RootView", ->
     viewState = null
 
     refreshRootViewAndProject = ->
-      project2 = atom.replicate().get('project')
-      atom.project = project2
       rootViewState = atom.rootView.serialize()
       atom.project.getState().serializeForPersistence()
+      project2 = atom.replicate().get('project')
       atom.rootView.remove()
       atom.project.destroy()
+      atom.project = project2
       atom.rootView = atom.deserializers.deserialize(rootViewState)
       atom.rootView.attachToDom()
 
