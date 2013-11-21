@@ -277,7 +277,7 @@ describe "EditorView", ->
     it "emits event when editor view view receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on 'editor:path-changed', eventHandler
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -285,7 +285,7 @@ describe "EditorView", ->
       oldBuffer = editorView.getBuffer()
       editorView.on 'editor:path-changed', eventHandler
 
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1481,7 +1481,7 @@ describe "EditorView", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editorView.edit(project.openSync('two-hundred.txt'))
+        editorView.edit(atom.project.openSync('two-hundred.txt'))
         editorView.attachToDom(heightInLines: 5.5)
 
         expect(editorView.renderedLines.find('.line').length).toBe 8
@@ -2236,7 +2236,7 @@ describe "EditorView", ->
     beforeEach ->
       filePath = atom.project.resolve('git/working-dir/file.txt')
       originalPathText = fs.readFileSync(filePath, 'utf8')
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
 
     afterEach ->
       fs.writeFileSync(filePath, originalPathText)
@@ -2369,7 +2369,7 @@ describe "EditorView", ->
       fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(editorView.getGrammar().name).toBe 'Plain Text'
       atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editorView.reloadGrammar()
@@ -2389,7 +2389,7 @@ describe "EditorView", ->
       expect(editorView.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
 
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on('editor:grammar-changed', eventHandler)
