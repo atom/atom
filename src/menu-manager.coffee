@@ -49,7 +49,6 @@ class MenuManager
   update: ->
     keystrokesByCommand = {}
     for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
-      console.log binding.selector
       keystrokesByCommand[binding.command] ?= []
       keystrokesByCommand[binding.command].push binding.keystroke
     @sendToBrowserProcess(@template, keystrokesByCommand)
