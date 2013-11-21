@@ -121,9 +121,9 @@ describe "ThemeManager", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[id*="css.css"]').attr('id')).toBe themeManager.stringToId(project.resolve('css.css'))
+      expect($('head style[id*="css.css"]').attr('id')).toBe themeManager.stringToId(atom.project.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[id*="sample.less"]').attr('id')).toBe themeManager.stringToId(project.resolve('sample.less'))
+      expect($('head style[id*="sample.less"]').attr('id')).toBe themeManager.stringToId(atom.project.resolve('sample.less'))
 
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()
@@ -149,7 +149,7 @@ describe "ThemeManager", ->
       atom.config.set('core.themes', ['theme-with-ui-variables'])
 
       # an override loaded in the base css
-      expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
+      expect(atom.rootView.css("background-color")).toBe "rgb(0, 0, 255)"
 
       # from within the theme itself
       expect($(".editor").css("padding-top")).toBe "150px"

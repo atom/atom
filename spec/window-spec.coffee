@@ -12,7 +12,7 @@ describe "Window", ->
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
-    projectPath = project.getPath()
+    projectPath = atom.project.getPath()
 
   afterEach ->
     windowEventHandler.unsubscribe()
@@ -59,12 +59,12 @@ describe "Window", ->
 
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
-        spyOn(rootView, 'confirmClose').andCallThrough()
+        spyOn(atom.rootView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirmSync").andReturn(2)
         editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
-        expect(rootView.confirmClose).toHaveBeenCalled()
+        expect(atom.rootView.confirmClose).toHaveBeenCalled()
         expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->
@@ -83,7 +83,7 @@ describe "Window", ->
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      rootViewState = rootView.serialize()
+      rootViewState = atom.rootView.serialize()
       syntaxState = atom.syntax.serialize()
 
       window.unloadEditorWindow()
