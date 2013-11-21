@@ -84,7 +84,7 @@ describe "PaneContainer", ->
       expect(panes).toEqual [pane4]
 
       panes = []
-      subscription.cancel()
+      subscription.off()
       pane4.splitDown()
       expect(panes).toEqual []
 
