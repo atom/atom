@@ -112,8 +112,8 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
   # Internal-only:
-  stylesheetElementForId: (id) ->
-    $("""head style[id="#{id}"]""")
+  stylesheetElementForId: (id, htmlElement) ->
+    htmlElement.find("""head style[id="#{id}"]""")
 
   # Internal-only:
   resolveStylesheet: (stylesheetPath) ->
@@ -128,10 +128,10 @@ class ThemeManager
   #   LESS file in the stylesheets path.
   #
   # Returns the absolute path to the stylesheet
-  requireStylesheet: (stylesheetPath) ->
+  requireStylesheet: (stylesheetPath, ttype = 'bundled', htmlElement) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content)
+      @applyStylesheet(fullPath, content, ttype = 'bundled', htmlElement)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -170,12 +170,12 @@ class ThemeManager
     @stylesheetElementForId(@stringToId(fullPath)).remove()
 
   # Internal-only:
-  applyStylesheet: (path, text, ttype = 'bundled') ->
-    styleElement = @stylesheetElementForId(@stringToId(path))
+  applyStylesheet: (path, text, ttype = 'bundled', htmlElement=$('html')) ->
+    styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
     if styleElement.length
       styleElement.text(text)
     else
-      if $("head style.#{ttype}").length
-        $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
+      if htmlElement.find("head style.#{ttype}").length
+        htmlElement.find("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
       else
-        $("head").append "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
+        htmlElement.find("head").append "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
