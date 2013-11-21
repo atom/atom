@@ -8,6 +8,7 @@ request = require 'request'
 auth = require './auth'
 config = require './config'
 Command = require './command'
+Install = require './install'
 Link = require './link'
 
 module.exports =
@@ -27,8 +28,9 @@ class Develop extends Command
     options.usage """
       Usage: apm develop <package_name>
 
-      Clone the given package's Git repository to ~/github/<package_name> and
-      link it for development to ~/.atom/packages/dev/<package_name>.
+      Clone the given package's Git repository to ~/github/<package_name>,
+      install its dependencies, and link it for development to
+      ~/.atom/packages/dev/<package_name>.
 
       Once this command completes you can open a dev window from atom using
       cmd-shift-o to run the package out of the newly cloned repository.
@@ -68,10 +70,21 @@ class Develop extends Command
     @spawn command, args, (code, stderr='', stdout='') =>
       if code is 0
         process.stdout.write '\u2713\n'.green
-        @linkPackage(packageDirectory, options)
+        @installDependencies(packageDirectory, options)
       else
         process.stdout.write '\u2717\n'.red
         options.callback("#{stdout}\n#{stderr}")
+
+  installDependencies: (packageDirectory, options) ->
+    process.chdir(packageDirectory)
+    installOptions = _.clone(options)
+    installOptions.callback = (error) =>
+      if error?
+        options.callback(error)
+      else
+        @linkPackage(packageDirectory, options)
+
+    new Install().run(installOptions)
 
   linkPackage: (packageDirectory, options) ->
     linkOptions = _.clone(options)
