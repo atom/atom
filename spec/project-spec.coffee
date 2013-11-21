@@ -8,7 +8,7 @@ BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
   beforeEach ->
-    atom.project.setPath(project.resolve('dir'))
+    atom.project.setPath(atom.project.resolve('dir'))
 
   describe "serialization", ->
     deserializedProject = null
@@ -18,15 +18,17 @@ describe "Project", ->
 
     it "destroys unretained buffers and does not include them in the serialized state", ->
       atom.project.bufferForPathSync('a')
-      expect(project.getBuffers().length).toBe 1
+      expect(atom.project.getBuffers().length).toBe 1
+
       atom.project.getState().serializeForPersistence()
       deserializedProject = atom.replicate().get('project')
+
       expect(deserializedProject.getBuffers().length).toBe 0
-      expect(project.getBuffers().length).toBe 0
+      expect(atom.project.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
       atom.project.openSync('a')
-      expect(project.getBuffers().length).toBe 1
+      expect(atom.project.getBuffers().length).toBe 1
       atom.project.getState().serializeForPersistence()
       deserializedProject = atom.replicate().get('project')
 
@@ -39,23 +41,23 @@ describe "Project", ->
       editor = atom.project.openSync("a")
       anotherEditSession = atom.project.openSync("a")
 
-      expect(project.editors.length).toBe 2
+      expect(atom.project.editors.length).toBe 2
       expect(editor.buffer).toBe anotherEditSession.buffer
 
       editor.destroy()
-      expect(project.editors.length).toBe 1
+      expect(atom.project.editors.length).toBe 1
 
       anotherEditSession.destroy()
-      expect(project.editors.length).toBe 0
+      expect(atom.project.editors.length).toBe 0
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
       atom.project.setPath(undefined)
-      expect(project.getPath()).toBeUndefined()
+      expect(atom.project.getPath()).toBeUndefined()
       editor = atom.project.openSync()
       editor.saveAs(tempFile)
-      expect(project.getPath()).toBe path.dirname(tempFile)
+      expect(atom.project.getPath()).toBe path.dirname(tempFile)
 
   describe "when an edit session is deserialized", ->
     it "emits an 'editor-created' event and stores the edit session", ->
@@ -64,14 +66,14 @@ describe "Project", ->
 
       editor1 = atom.project.openSync("a")
       expect(handler.callCount).toBe 1
-      expect(project.getEditSessions().length).toBe 1
-      expect(project.getEditSessions()[0]).toBe editor1
+      expect(atom.project.getEditSessions().length).toBe 1
+      expect(atom.project.getEditSessions()[0]).toBe editor1
 
       editor2 = atom.deserializers.deserialize(editor1.serialize())
       expect(handler.callCount).toBe 2
-      expect(project.getEditSessions().length).toBe 2
-      expect(project.getEditSessions()[0]).toBe editor1
-      expect(project.getEditSessions()[1]).toBe editor2
+      expect(atom.project.getEditSessions().length).toBe 2
+      expect(atom.project.getEditSessions()[0]).toBe editor1
+      expect(atom.project.getEditSessions()[1]).toBe editor2
 
   describe "when an edit session is copied", ->
     it "emits an 'editor-created' event and stores the edit session", ->
@@ -80,14 +82,14 @@ describe "Project", ->
 
       editor1 = atom.project.openSync("a")
       expect(handler.callCount).toBe 1
-      expect(project.getEditSessions().length).toBe 1
-      expect(project.getEditSessions()[0]).toBe editor1
+      expect(atom.project.getEditSessions().length).toBe 1
+      expect(atom.project.getEditSessions()[0]).toBe editor1
 
       editor2 = editor1.copy()
       expect(handler.callCount).toBe 2
-      expect(project.getEditSessions().length).toBe 2
-      expect(project.getEditSessions()[0]).toBe editor1
-      expect(project.getEditSessions()[1]).toBe editor2
+      expect(atom.project.getEditSessions().length).toBe 2
+      expect(atom.project.getEditSessions()[0]).toBe editor1
+      expect(atom.project.getEditSessions()[1]).toBe editor2
 
   describe ".openSync(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
@@ -126,8 +128,8 @@ describe "Project", ->
         it "returns a new edit session containing previously opened buffer and emits a 'editor-created' event", ->
           editor = atom.project.openSync(absolutePath)
           newBufferHandler.reset()
-          expect(project.openSync(absolutePath).buffer).toBe editor.buffer
-          expect(project.openSync('a').buffer).toBe editor.buffer
+          expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
+          expect(atom.project.openSync('a').buffer).toBe editor.buffer
           expect(newBufferHandler).not.toHaveBeenCalled()
           expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
@@ -141,8 +143,8 @@ describe "Project", ->
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         pathToOpen = atom.project.resolve('a.foo')
-        expect(project.openSync(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
-        expect(project.openSync("bar://baz")).toEqual { bar: "bar://baz" }
+        expect(atom.project.openSync(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
+        expect(atom.project.openSync("bar://baz")).toEqual { bar: "bar://baz" }
 
   describe ".open(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
@@ -194,8 +196,8 @@ describe "Project", ->
 
           runs ->
             newBufferHandler.reset()
-            expect(project.openSync(absolutePath).buffer).toBe editor.buffer
-            expect(project.openSync('a').buffer).toBe editor.buffer
+            expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
+            expect(atom.project.openSync('a').buffer).toBe editor.buffer
             expect(newBufferHandler).not.toHaveBeenCalled()
             expect(newEditSessionHandler).toHaveBeenCalledWith editor
 
@@ -237,7 +239,7 @@ describe "Project", ->
     describe "when opening a previously opened path", ->
       it "does not create a new buffer", ->
         buffer = atom.project.bufferForPathSync("a").retain()
-        expect(project.bufferForPathSync("a")).toBe buffer
+        expect(atom.project.bufferForPathSync("a")).toBe buffer
 
         alternativeBuffer = atom.project.bufferForPathSync("b").retain().release()
         expect(alternativeBuffer).not.toBe buffer
@@ -245,7 +247,7 @@ describe "Project", ->
 
       it "creates a new buffer if the previous buffer was destroyed", ->
         buffer = atom.project.bufferForPathSync("a").retain().release()
-        expect(project.bufferForPathSync("a").retain().release()).not.toBe buffer
+        expect(atom.project.bufferForPathSync("a").retain().release()).not.toBe buffer
 
   describe ".bufferForPath(path)", ->
     [buffer] = []
@@ -279,39 +281,39 @@ describe "Project", ->
     describe "when passed an absolute or relative path", ->
       it "returns an absolute path based on the atom.project's root", ->
         absolutePath = require.resolve('./fixtures/dir/a')
-        expect(project.resolve('a')).toBe absolutePath
-        expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
-        expect(project.resolve('a/../a')).toBe absolutePath
+        expect(atom.project.resolve('a')).toBe absolutePath
+        expect(atom.project.resolve(absolutePath + '/../a')).toBe absolutePath
+        expect(atom.project.resolve('a/../a')).toBe absolutePath
 
     describe "when passed a uri with a scheme", ->
       it "does not modify uris that begin with a scheme", ->
-        expect(project.resolve('http://zombo.com')).toBe 'http://zombo.com'
+        expect(atom.project.resolve('http://zombo.com')).toBe 'http://zombo.com'
 
   describe ".setPath(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
         atom.project.setPath(require.resolve('./fixtures/dir/a'))
-        expect(project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
-        expect(project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        expect(atom.project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
         directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
         atom.project.setPath(directory)
-        expect(project.getPath()).toEqual directory
-        expect(project.getRootDirectory().path).toEqual directory
+        expect(atom.project.getPath()).toEqual directory
+        expect(atom.project.getRootDirectory().path).toEqual directory
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
         atom.project.setPath(null)
-        expect(project.getPath()?).toBeFalsy()
-        expect(project.getRootDirectory()?).toBeFalsy()
+        expect(atom.project.getPath()?).toBeFalsy()
+        expect(atom.project.getRootDirectory()?).toBeFalsy()
 
   describe ".replace()", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 
     beforeEach ->
-      atom.project.setPath(project.resolve('../'))
+      atom.project.setPath(atom.project.resolve('../'))
 
       filePath = atom.project.resolve('sample.js')
       commentFilePath = atom.project.resolve('sample-with-comments.js')
@@ -441,7 +443,7 @@ describe "Project", ->
 
         beforeEach ->
           sourceProjectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-          atom.projectPath = path.join(temp.mkdirSync("atom"))
+          projectPath = path.join(temp.mkdirSync("atom"))
 
           writerStream = fstream.Writer(projectPath)
           fstream.Reader(sourceProjectPath).pipe(writerStream)
@@ -470,7 +472,7 @@ describe "Project", ->
             expect(resultHandler).not.toHaveBeenCalled()
 
       it "includes only files when a directory filter is specified", ->
-        atom.projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
+        projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
         atom.project.setPath(projectPath)
 
         filePath = path.join(projectPath, 'a-dir', 'oh-git')
@@ -488,7 +490,7 @@ describe "Project", ->
           expect(matches.length).toBe 1
 
       it "includes files and folders that begin with a '.'", ->
-        atom.projectPath = temp.mkdirSync()
+        projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
         fs.writeFileSync(filePath, 'match this')
         atom.project.setPath(projectPath)
@@ -505,7 +507,7 @@ describe "Project", ->
           expect(matches.length).toBe 1
 
       it "excludes values in core.ignoredNames", ->
-        atom.projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
+        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
         ignoredNames = atom.config.get("core.ignoredNames")
         ignoredNames.push("a")
         atom.config.set("core.ignoredNames", ignoredNames)
