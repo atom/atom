@@ -1,6 +1,8 @@
 {Document} = require 'telepath'
 
 # Public: Manages the deserializers used for serialized state
+#
+# Should be accessed via `atom.deserializers`
 module.exports =
 class DeserializerManager
   constructor: ->
