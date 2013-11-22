@@ -13,7 +13,7 @@ TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 NoScope = ['no-scope']
 LongLineLength = 1000
 
-# Private: Represents the entire visual pane in Atom.
+# Public: Represents the entire visual pane in Atom.
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
 module.exports =
