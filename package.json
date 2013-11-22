@@ -12,7 +12,7 @@
   "atomShellVersion": "0.6.11",
   "dependencies": {
     "async": "0.2.6",
-    "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0",
+    "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.2",
     "clear-cut": "0.2.0",
     "coffee-script": "1.6.3",
     "coffeestack": "0.6.0",
