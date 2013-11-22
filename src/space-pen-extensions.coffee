@@ -74,7 +74,7 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
 
   tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
 
-  this.tooltip(jQuery.extend(tooltipDefaults, tooltipOptions))
+  this.tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
 
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.replaceModifiers = replaceModifiers
