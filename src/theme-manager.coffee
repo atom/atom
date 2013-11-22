@@ -56,6 +56,7 @@ class ThemeManager
       themeNames = _.clone(themeNames).reverse()
 
       @packageManager.activatePackage(themeName) for themeName in themeNames
+      @refreshLessCache()
       @loadUserStylesheet()
       @reloadBaseStylesheets()
       @emit('reloaded')
@@ -65,6 +66,10 @@ class ThemeManager
     @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  # Internal-only:
+  refreshLessCache: ->
+    @lessCache?.setImportPaths(@getImportPaths())
 
   # Public: Set the list of enabled themes.
   #
@@ -146,9 +151,9 @@ class ThemeManager
 
   # Internal-only:
   loadLessStylesheet: (lessStylesheetPath) ->
-    unless lessCache?
+    unless @lessCache?
       LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath})
+      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
 
     try
       @lessCache.read(lessStylesheetPath)

@@ -39,7 +39,9 @@ specPackageName = null
 specPackagePath = null
 specProjectPath = null
 
-if specDirectory = atom.getLoadSettings().specDirectory
+{specDirectory, resourcePath} = atom.getLoadSettings()
+
+if specDirectory
   specPackagePath = path.resolve(specDirectory, '..')
   try
     specPackageName = fs.readObjectSync(path.join(specPackagePath, 'package.json'))?.name
@@ -68,9 +70,7 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
-  config = new Config
-    resourcePath: window.resourcePath
-    configDirPath: atom.getConfigDirPath()
+  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', RootView.configDefaults)

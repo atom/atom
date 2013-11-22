@@ -27,11 +27,30 @@ class MenuManager
     @merge(@template, item) for item in items
     @update()
 
+  # Private: Should the binding for the given selector be included in the menu
+  # commands.
+  #
+  # * selector: A String selector to check.
+  #
+  # Returns true to include the selector, false otherwise.
+  includeSelector: (selector) ->
+    return true if document.body.webkitMatchesSelector(selector)
+
+    # Simulate an .editor element attached to a body element that has the same
+    # classes as the current body element.
+    unless @testEditor?
+      @testEditor = document.createElement('div')
+      @testEditor.classList.add('editor')
+      testBody = document.createElement('body')
+      testBody.classList.add(document.body.classList.toString().split(' ')...)
+      testBody.appendChild(@testEditor)
+
+    @testEditor.webkitMatchesSelector(selector)
+
   # Public: Refreshes the currently visible menu.
   update: ->
     keystrokesByCommand = {}
-    selectors = ['body', ".platform-#{process.platform}", '.editor', '.editor:not(.mini)']
-    for binding in atom.keymap.getKeyBindings() when binding.selector in selectors
+    for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
       keystrokesByCommand[binding.command] ?= []
       keystrokesByCommand[binding.command].push binding.keystroke
     @sendToBrowserProcess(@template, keystrokesByCommand)
@@ -40,8 +59,8 @@ class MenuManager
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    data = CSON.readFileSync(platformMenuPath)
-    @add(data.menu)
+    {menu} = CSON.readFileSync(platformMenuPath)
+    @add(menu)
 
   # Private: Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.

@@ -159,15 +159,16 @@ class Keymap
       else
         if keyBinding.command is 'native!'
           shouldBubble = true
-        else if @triggerCommandEvent(element, keyBinding.command)
+        else if @triggerCommandEvent(element, keyBinding.command, event)
           shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble ? true
 
-  triggerCommandEvent: (element, commandName) ->
+  triggerCommandEvent: (element, commandName, event) ->
     commandEvent = $.Event(commandName)
+    commandEvent.originalEvent = event
     commandEvent.abortKeyBinding = -> commandEvent.stopImmediatePropagation()
     $(element).trigger(commandEvent)
     not commandEvent.isImmediatePropagationStopped()
