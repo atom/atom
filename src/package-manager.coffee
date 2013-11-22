@@ -4,21 +4,21 @@ _ = require 'underscore-plus'
 Package = require './package'
 path = require 'path'
 
-###
-Packages have a lifecycle
-
-* The paths to all non-disabled packages and themes are found on disk (these are available packages)
-* Every package (except those in core.disabledPackages) is 'loaded', meaning
-  `Package` objects are created, and their metadata loaded. This includes themes,
-  as themes are packages
-* The ThemeManager.activateThemes() is called 'activating' all the themes, meaning
-  their stylesheets are loaded into the window.
-* The PackageManager.activatePackages() function is called 'activating' non-theme
-  package, meaning its resources -- keymaps, classes, etc. -- are loaded, and
-  the package's activate() method is called.
-* Packages and themes can then be enabled and disabled via the public
-  .enablePackage(name) and .disablePackage(name) functions.
-###
+# Public: Package manager for coordinating the lifecycle of Atom packages.
+#
+# Packages can be loaded, activated, and deactivated, and unloaded:
+#  * Loading a package reads and parses the package's metadata and resources
+#    such as keymaps, menus, stylesheets, etc.
+#  * Activating a package registers the loaded resources and calls `activate()`
+#    on the package's main module.
+#  * Deactivating a package unregisters the package's resources  and calls
+#    `deactivate()` on the package's main module.
+#  * Unloading a package removes it completely from the package manager.
+#
+# Packages can also be enabled/disabled via the `core.disabledPackages` config
+# settings and also by calling `enablePackage()/disablePackage()`.
+#
+# An instance of this class is globally available via `atom.packages`.
 module.exports =
 class PackageManager
   Emitter.includeInto(this)
