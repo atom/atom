@@ -1,3 +1,4 @@
+# Private: TODO remove once telepath upgrades are complete.
 module.exports =
 class SiteShim
   constructor: (document) ->
