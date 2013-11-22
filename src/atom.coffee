@@ -239,18 +239,20 @@ class Atom
 
   # Public: Open a confirm dialog.
   #
-  # Example:
+  # ## Example:
+  # ```coffeescript
   #  atom.confirm
   #    message: 'How you feeling?'
   #    detailedMessage: 'Be honest.'
   #    buttons:
   #      Good: -> window.alert('good to hear')
   #      Bad: ->  window.alert('bummer')
+  # ```
   #
   # * options:
   #    + message: The string message to display.
   #    + detailedMessage: The string detailed message to display.
-  #    + buttons: Either an array of strings or an object where the the values
+  #    + buttons: Either an array of strings or an object where the values
   #      are callbacks to invoke when clicked.
   #
   # Returns the chosen index if buttons was an array or the return of the
