@@ -7,15 +7,15 @@ class DeserializerManager
     @deserializers = {}
     @deferredDeserializers = {}
 
-  # Public: Add a deserializer.
+  # Public: Register the given class(es) as deserializers.
   add: (klasses...) ->
     @deserializers[klass.name] = klass for klass in klasses
 
-  # Public: Add a deferred deserializer.
+  # Public: Add a deferred deserializer for the given class name.
   addDeferred: (name, fn) ->
     @deferredDeserializers[name] = fn
 
-  # Public: Remove a deserializer.
+  # Public: Remove the given class(es) as deserializers.
   remove: (klasses...) ->
     delete @deserializers[klass.name] for klass in klasses
 
@@ -32,7 +32,7 @@ class DeserializerManager
     else
       console.warn "No deserializer found for", state
 
-  # Public: Get the deserializer for the state.
+  # Private: Get the deserializer for the state.
   get: (state) ->
     return unless state?
 
