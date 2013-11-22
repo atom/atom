@@ -46,42 +46,44 @@ class PackageManager
   getPackageDirPaths: ->
     _.clone(@packageDirPaths)
 
+  # Private:
   getPackageState: (name) ->
     @packageStates[name]
 
+  # Private:
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
-  # Public:
+  # Public: Enable the package with the given name
   enablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.enable()
     pack
 
-  # Public:
+  # Public: Disable the package with the given name
   disablePackage: (name) ->
     pack = @loadPackage(name)
     pack?.disable()
     pack
 
-  # Internal-only: Activate all the packages that should be activated.
+  # Private: Activate all the packages that should be activated.
   activate: ->
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
     @emit 'activated'
 
-  # Public: another type of package manager can handle other package types.
+  # Private: another type of package manager can handle other package types.
   # See ThemeManager
   registerPackageActivator: (activator, types) ->
     @packageActivators.push([activator, types])
 
-  # Internal-only:
+  # Private:
   activatePackages: (packages) ->
     @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
-  # Internal-only: Activate a single package by name
+  # Private: Activate a single package by name
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
@@ -89,10 +91,12 @@ class PackageManager
       pack.activate(options)
       pack
 
+  # Private: Deactivate all packages
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
     @unobserveDisabledPackages()
 
+  # Private: Deactivate the package with the given name
   deactivatePackage: (name) ->
     if pack = @getActivePackage(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
@@ -101,20 +105,25 @@ class PackageManager
     else
       throw new Error("No active package for name '#{name}'")
 
+  # Public: Get an array of all the active packages
   getActivePackages: ->
     _.values(@activePackages)
 
+  # Public: Get the active package with the given name
   getActivePackage: (name) ->
     @activePackages[name]
 
+  # Public: Is the package with the given name active?
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
+  # Private:
   unobserveDisabledPackages: ->
     return unless @observingDisabledPackages
     atom.config.unobserve('core.disabledPackages')
     @observingDisabledPackages = false
 
+  # Private:
   observeDisabledPackages: ->
     return if @observingDisabledPackages
 
@@ -128,6 +137,7 @@ class PackageManager
 
     @observingDisabledPackages = true
 
+  # Private:
   loadPackages: (options) ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
@@ -139,6 +149,7 @@ class PackageManager
     @loadPackage(packagePath, options) for packagePath in packagePaths
     @emit 'loaded'
 
+  # Private:
   loadPackage: (nameOrPath, options) ->
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
@@ -150,10 +161,12 @@ class PackageManager
     else
       throw new Error("Could not resolve '#{nameOrPath}' to a package path")
 
+  # Private:
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
     null
 
+  # Private:
   unloadPackage: (name) ->
     if @isPackageActive(name)
       throw new Error("Tried to unload active package '#{name}'")
@@ -163,12 +176,15 @@ class PackageManager
     else
       throw new Error("No loaded package for name '#{name}'")
 
+  # Public: Get the loaded package with the given name
   getLoadedPackage: (name) ->
     @loadedPackages[name]
 
+  # Public: Is the package with the given name loaded?
   isPackageLoaded: (name) ->
     @getLoadedPackage(name)?
 
+  # Public: Get an array of all the loaded packages
   getLoadedPackages: ->
     _.values(@loadedPackages)
 
@@ -178,6 +194,7 @@ class PackageManager
   getLoadedPackagesForTypes: (types) ->
     pack for pack in @getLoadedPackages() when pack.getType() in types
 
+  # Public: Resolve the given package name to a path on disk.
   resolvePackagePath: (name) ->
     return name if fs.isDirectorySync(name)
 
@@ -185,18 +202,22 @@ class PackageManager
     return packagePath if fs.isDirectorySync(packagePath)
 
     packagePath = path.join(@resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
+    return packagePath if @hasAtomEngine(packagePath)
 
+  # Public: Is the package with the given name disabled?
   isPackageDisabled: (name) ->
     _.include(atom.config.get('core.disabledPackages') ? [], name)
 
-  isInternalPackage: (packagePath) ->
-    {engines} = Package.loadMetadata(packagePath, true)
-    engines?.atom?
+  # Private:
+  hasAtomEngine: (packagePath) ->
+    metadata = Package.loadMetadata(packagePath, true)
+    metadata?.engines?.atom?
 
-  isBundledPackage: (packageName) ->
+  # Public: Is the package with the given name bundled with Atom?
+  isBundledPackage: (name) ->
     @getPackageDependencies().hasOwnProperty(packageName)
 
+  # Private:
   getPackageDependencies: ->
     unless @packageDependencies?
       try
@@ -206,6 +227,7 @@ class PackageManager
 
     @packageDependencies
 
+  # Public: Get an array of all the available package paths.
   getAvailablePackagePaths: ->
     packagePaths = []
 
@@ -220,9 +242,11 @@ class PackageManager
 
     _.uniq(packagePaths)
 
+  # Public: Get an array of all the available package names.
   getAvailablePackageNames: ->
     _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
 
+  # Public: Get an array of all the available package metadata.
   getAvailablePackageMetadata: ->
     packages = []
     for packagePath in @getAvailablePackagePaths()
