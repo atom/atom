@@ -215,7 +215,7 @@ class PackageManager
 
   # Public: Is the package with the given name bundled with Atom?
   isBundledPackage: (name) ->
-    @getPackageDependencies().hasOwnProperty(packageName)
+    @getPackageDependencies().hasOwnProperty(name)
 
   # Private:
   getPackageDependencies: ->
