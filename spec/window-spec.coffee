@@ -11,7 +11,7 @@ describe "Window", ->
     atom.loadSettings.initialPath = atom.project.getPath()
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
-    window.deserializeEditorWindow()
+    atom.deserializeEditorWindow()
     projectPath = atom.project.getPath()
 
   afterEach ->

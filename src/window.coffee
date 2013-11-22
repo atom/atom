@@ -33,7 +33,7 @@ window.startEditorWindow = ->
   atom.keymap.loadBundledKeymaps()
   atom.themes.loadBaseStylesheets()
   atom.packages.loadPackages()
-  deserializeEditorWindow()
+  atom.deserializeEditorWindow()
   atom.packages.activate()
   atom.keymap.loadUserKeymap()
   atom.requireUserInitScript()
@@ -67,11 +67,6 @@ installApmCommand = (callback) ->
   {resourcePath} = atom.getLoadSettings()
   commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
   require('./command-installer').install(commandPath, callback)
-
-window.deserializeEditorWindow = ->
-  atom.deserializePackageStates()
-  atom.deserializeProject()
-  atom.deserializeRootView()
 
 window.onerror = ->
   atom.openDevTools()

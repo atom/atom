@@ -132,6 +132,11 @@ class Atom
     @packages.packageStates = state.getObject('packageStates') ? {}
     state.remove('packageStates')
 
+  deserializeEditorWindow: ->
+    @deserializePackageStates()
+    @deserializeProject()
+    @deserializeRootView()
+
   loadThemes: ->
     @themes.load()
 
