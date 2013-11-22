@@ -344,10 +344,14 @@ class Atom
     app.getVersion()
 
   # Public: Get the directory path to Atom's configuration area.
+  #
+  # Returns the absolute path to ~/.atom
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
 
   # Public: Get the directory path to Atom's storage area.
+  #
+  # Returns the absoluste path to ~/.atom/storage
   getStorageDirPath: ->
     @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
 
