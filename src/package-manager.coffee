@@ -23,6 +23,7 @@ module.exports =
 class PackageManager
   Emitter.includeInto(this)
 
+  # Private:
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]
     if devMode
