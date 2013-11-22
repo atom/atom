@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>atom</id>
-    <version>30.0.0</version>
+    <version><%= version %></version>
     <authors>The Atom Community</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <title>Atom</title>
@@ -11,6 +11,6 @@
   </metadata>
 
   <files>
-    <file src="C:\a\**\*" target="lib\net40" />
+    <file src="<%= build_dir %>\**\*" target="lib\net40" />
   </files>
 </package>
