@@ -22,18 +22,18 @@ WindowEventHandler = require './window-event-handler'
 #
 # An instance of this class is always available as the `atom` global.
 #
-# The `atom` global also contains several useful properties that can be
-# accessed directly from this object:
-#  `atom.config`      - A {Config} instance
-#  `atom.contextMenu` - A {ContextMenuManager} instance
-#  `atom.keymap`      - A {Keymap} instance
-#  `atom.menu`        - A {MenuManager} instance
-#  `atom.rootView`    - A {RootView} instance
-#  `atom.packages     - A {PackageManager} instance
-#  `atom.pasteboard`  - A {Pasteboard} instance
-#  `atom.project`     - A {Project} instance
-#  `atom.syntax`      - A {Syntax} instance
-#  `atom.themes`      - A {ThemeManager} instance
+# ## Useful properties available:
+#
+#  * `atom.config`      - A {Config} instance
+#  * `atom.contextMenu` - A {ContextMenuManager} instance
+#  * `atom.keymap`      - A {Keymap} instance
+#  * `atom.menu`        - A {MenuManager} instance
+#  * `atom.rootView`    - A {RootView} instance
+#  * `atom.packages`    - A {PackageManager} instance
+#  * `atom.pasteboard`  - A {Pasteboard} instance
+#  * `atom.project`     - A {Project} instance
+#  * `atom.syntax`      - A {Syntax} instance
+#  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
 class Atom
   Subscriber.includeInto(this)
@@ -241,12 +241,12 @@ class Atom
   #
   # ## Example:
   # ```coffeescript
-  #  atom.confirm
-  #    message: 'How you feeling?'
-  #    detailedMessage: 'Be honest.'
-  #    buttons:
-  #      Good: -> window.alert('good to hear')
-  #      Bad: ->  window.alert('bummer')
+  #   atom.confirm
+  #      message: 'How you feeling?'
+  #      detailedMessage: 'Be honest.'
+  #      buttons:
+  #        Good: -> window.alert('good to hear')
+  #        Bad: ->  window.alert('bummer')
   # ```
   #
   # * options:
