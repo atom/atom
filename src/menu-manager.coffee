@@ -55,7 +55,7 @@ class MenuManager
       keystrokesByCommand[binding.command].push binding.keystroke
     @sendToBrowserProcess(@template, keystrokesByCommand)
 
-  # Private
+  # Private:
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
@@ -85,12 +85,12 @@ class MenuManager
         filtered[key].push(binding)
     filtered
 
-  # Private
+  # Private:
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
 
-  # Private
+  # Private:
   normalizeLabel: (label) ->
     return undefined unless label?
 
