@@ -1,7 +1,5 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
-ipc = require 'ipc'
 WindowEventHandler = require './window-event-handler'
 
 ### Internal ###
