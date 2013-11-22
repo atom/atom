@@ -20,8 +20,9 @@ window.setUpDefaultEvents = ->
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   if process.platform is 'darwin'
-    installAtomCommand()
-    installApmCommand()
+    CommandInstaller = require './command-installer'
+    CommandInstaller.installAtomCommand()
+    CommandInstaller.installApmCommand()
 
   windowEventHandler = new WindowEventHandler
   atom.restoreDimensions()
@@ -55,16 +56,6 @@ window.unloadEditorWindow = ->
   atom.rootView.remove()
   atom.project.destroy()
   windowEventHandler?.unsubscribe()
-
-installAtomCommand = (callback) ->
-  {resourcePath} = atom.getLoadSettings()
-  commandPath = path.join(resourcePath, 'atom.sh')
-  require('./command-installer').install(commandPath, callback)
-
-installApmCommand = (callback) ->
-  {resourcePath} = atom.getLoadSettings()
-  commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
-  require('./command-installer').install(commandPath, callback)
 
 window.onerror = ->
   atom.openDevTools()
