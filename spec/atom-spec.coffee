@@ -5,7 +5,7 @@ ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
-    window.rootView = new RootView
+    atom.rootView = new RootView
 
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
@@ -90,12 +90,12 @@ describe "the `atom` global", ->
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
               expect(pack.requireMainModule).not.toHaveBeenCalled()
               expect(mainModule.activate).not.toHaveBeenCalled()
-              rootView.trigger 'activation-event'
+              atom.rootView.trigger 'activation-event'
               expect(mainModule.activate).toHaveBeenCalled()
 
             it "triggers the activation event on all handlers registered during activation", ->
-              rootView.openSync()
-              editorView = rootView.getActiveView()
+              atom.rootView.openSync()
+              editorView = atom.rootView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
               editorView.command 'activation-event', eventHandler
               editorView.trigger 'activation-event'

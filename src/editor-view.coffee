@@ -13,7 +13,7 @@ TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 NoScope = ['no-scope']
 LongLineLength = 1000
 
-# Private: Represents the entire visual pane in Atom.
+# Public: Represents the entire visual pane in Atom.
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
 module.exports =
@@ -1048,7 +1048,7 @@ class EditorView extends View
   remove: (selector, keepData) ->
     return super if keepData or @removed
     super
-    rootView?.focus()
+    atom.rootView?.focus()
 
   beforeRemove: ->
     @trigger 'editor:will-be-removed'

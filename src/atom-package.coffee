@@ -216,18 +216,14 @@ class AtomPackage extends Package
         @activateStylesheets()
         @requireMainModule()
 
-  # Private: TODO remove once packages have been updated
-  getRootView: ->
-    atom?.rootView ? window.rootView
-
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
-      @getRootView().command(event, @handleActivationEvent) for event in @metadata.activationEvents
+      atom.rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      @getRootView().command(@metadata.activationEvents, @handleActivationEvent)
+      atom.rootView.command(@metadata.activationEvents, @handleActivationEvent)
     else
-      @getRootView().command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      atom.rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   handleActivationEvent: (event) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
@@ -238,11 +234,11 @@ class AtomPackage extends Package
 
   unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
-      @getRootView().off(event, @handleActivationEvent) for event in @metadata.activationEvents
+      atom.rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      @getRootView().off(@metadata.activationEvents, @handleActivationEvent)
+      atom.rootView.off(@metadata.activationEvents, @handleActivationEvent)
     else
-      @getRootView().off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      atom.rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []

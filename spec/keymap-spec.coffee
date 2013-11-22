@@ -21,19 +21,19 @@ describe "Keymap", ->
   describe ".handleKeyEvent(event)", ->
     deleteCharHandler = null
     insertCharHandler = null
-    metaZHandler = null
+    commandZHandler = null
 
     beforeEach ->
       keymap.bindKeys 'name', '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys 'name', '.insert-mode', 'x': 'insertChar'
-      keymap.bindKeys 'name', '.command-mode', 'meta-z': 'metaZPressed'
+      keymap.bindKeys 'name', '.command-mode', 'cmd-z': 'commandZPressed'
 
       deleteCharHandler = jasmine.createSpy('deleteCharHandler')
       insertCharHandler = jasmine.createSpy('insertCharHandler')
-      metaZHandler = jasmine.createSpy('metaZHandler')
+      commandZHandler = jasmine.createSpy('commandZHandler')
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
-      fragment.on 'metaZPressed', metaZHandler
+      fragment.on 'commandZPressed', commandZHandler
 
     describe "when no binding matches the event's keystroke", ->
       it "does not return false so the event continues to propagate", ->
@@ -45,7 +45,7 @@ describe "Keymap", ->
         result = keymap.handleKeyEvent(event)
 
         expect(result).toBe(false)
-        expect(metaZHandler).toHaveBeenCalled()
+        expect(commandZHandler).toHaveBeenCalled()
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
@@ -159,11 +159,11 @@ describe "Keymap", ->
 
       describe "when the event's target is the document body", ->
         it "triggers the mapped event on the rootView", ->
-          window.rootView = new RootView
-          rootView.attachToDom()
+          atom.rootView = new RootView
+          atom.rootView.attachToDom()
           keymap.bindKeys 'name', 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
-          rootView.on 'foo', fooHandler
+          atom.rootView.on 'foo', fooHandler
 
           result = keymap.handleKeyEvent(keydownEvent('x', target: document.body))
           expect(result).toBe(false)
@@ -291,12 +291,12 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('left'))).toBe 'left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('\b'))).toBe 'backspace'
 
-    describe "when ctrl, alt or meta is pressed with a non-modifier key", ->
+    describe "when ctrl, alt or command is pressed with a non-modifier key", ->
       it "returns a string that identifies the key pressed", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'meta-['
+        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'cmd-['
         expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-meta-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-cmd-ctrl-left'
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
@@ -317,13 +317,13 @@ describe "Keymap", ->
 
     describe "when multiple bindings match a keystroke", ->
       it "only returns bindings that match the most specific selector", ->
-        keymap.bindKeys 'name', '.command-mode', 'g': 'command-mode'
-        keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
+        keymap.bindKeys 'name', '.command-mode', 'g': 'cmd-mode'
+        keymap.bindKeys 'name', '.command-mode .grandchild-node', 'g': 'cmd-and-grandchild-node'
         keymap.bindKeys 'name', '.grandchild-node', 'g': 'grandchild-node'
 
         bindings = keymap.keyBindingsMatchingElement(fragment.find('.grandchild-node'))
         expect(bindings).toHaveLength 3
-        expect(bindings[0].command).toEqual "command-and-grandchild-node"
+        expect(bindings[0].command).toEqual "cmd-and-grandchild-node"
 
   describe ".keyBindingsForCommandMatchingElement(element)", ->
     beforeEach ->

@@ -84,7 +84,7 @@ describe "PaneContainer", ->
       expect(panes).toEqual [pane4]
 
       panes = []
-      subscription.cancel()
+      subscription.off()
       pane4.splitDown()
       expect(panes).toEqual []
 
@@ -111,7 +111,7 @@ describe "PaneContainer", ->
 
       describe "when the last-closed pane item is an edit session", ->
         it "reopens the edit session (regression)", ->
-          editor = project.openSync('sample.js')
+          editor = atom.project.openSync('sample.js')
           pane3.showItem(editor)
           pane3.destroyItem(editor)
           expect(container.reopenItem()).toBeTruthy()

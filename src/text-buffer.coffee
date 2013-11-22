@@ -86,7 +86,7 @@ class TextBuffer extends telepath.Model
       @file?.off()
       @unsubscribe()
       @destroyed = true
-      @emit 'destroyed'
+      @emit 'destroyed', this
 
   isRetained: -> @refcount > 0
 

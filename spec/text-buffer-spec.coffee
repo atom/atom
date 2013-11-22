@@ -10,7 +10,7 @@ describe 'TextBuffer', ->
   beforeEach ->
     filePath = require.resolve('./fixtures/sample.js')
     fileContents = fs.readFileSync(filePath, 'utf8')
-    buffer = project.bufferForPathSync(filePath)
+    buffer = atom.project.bufferForPathSync(filePath)
 
   afterEach ->
     buffer?.destroy()
@@ -24,12 +24,12 @@ describe 'TextBuffer', ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
           filePath = require.resolve './fixtures/sample.txt'
-          buffer = project.bufferForPathSync(filePath)
+          buffer = atom.project.bufferForPathSync(filePath)
           expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
         it "does not allow the initial state of the buffer to be undone", ->
           filePath = require.resolve './fixtures/sample.txt'
-          buffer = project.bufferForPathSync(filePath)
+          buffer = atom.project.bufferForPathSync(filePath)
           buffer.undo()
           expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
@@ -37,13 +37,13 @@ describe 'TextBuffer', ->
         it "is modified and is initially empty", ->
           filePath = "does-not-exist.txt"
           expect(fs.existsSync(filePath)).toBeFalsy()
-          buffer = project.bufferForPathSync(filePath)
+          buffer = atom.project.bufferForPathSync(filePath)
           expect(buffer.isModified()).toBeTruthy()
           expect(buffer.getText()).toBe ''
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
-        buffer = project.bufferForPathSync(null)
+        buffer = atom.project.bufferForPathSync(null)
         expect(buffer .getText()).toBe ""
 
   describe "path-changed event", ->
@@ -53,7 +53,7 @@ describe 'TextBuffer', ->
       filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
       fs.writeFileSync(filePath, "")
-      bufferToChange = project.bufferForPathSync(filePath)
+      bufferToChange = atom.project.bufferForPathSync(filePath)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
@@ -85,7 +85,7 @@ describe 'TextBuffer', ->
       buffer.release()
       filePath = temp.openSync('atom').path
       fs.writeFileSync(filePath, "first")
-      buffer = project.bufferForPathSync(filePath).retain()
+      buffer = atom.project.bufferForPathSync(filePath).retain()
 
     afterEach ->
       buffer.release()
@@ -156,7 +156,7 @@ describe 'TextBuffer', ->
     beforeEach ->
       filePath = path.join(temp.dir, 'atom-file-to-delete.txt')
       fs.writeFileSync(filePath, 'delete me')
-      bufferToDelete = project.bufferForPathSync(filePath)
+      bufferToDelete = atom.project.bufferForPathSync(filePath)
       filePath = bufferToDelete.getPath() # symlinks may have been converted
 
       expect(bufferToDelete.getPath()).toBe filePath
@@ -214,7 +214,7 @@ describe 'TextBuffer', ->
       buffer.release()
       filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeFileSync(filePath, 'delete me')
-      buffer = project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -227,7 +227,7 @@ describe 'TextBuffer', ->
       filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeFileSync(filePath, '')
       buffer.release()
-      buffer = project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -251,7 +251,7 @@ describe 'TextBuffer', ->
       filePath = path.join(temp.dir, 'atom-tmp-file')
       fs.writeFileSync(filePath, '')
       buffer.release()
-      buffer = project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -275,7 +275,7 @@ describe 'TextBuffer', ->
       fs.removeSync(filePath) if fs.existsSync(filePath)
       expect(fs.existsSync(filePath)).toBeFalsy()
       buffer.release()
-      buffer = project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -298,12 +298,12 @@ describe 'TextBuffer', ->
 
     it "returns false for an empty buffer with no path", ->
       buffer.release()
-      buffer = project.bufferForPathSync(null)
+      buffer = atom.project.bufferForPathSync(null)
       expect(buffer.isModified()).toBeFalsy()
 
     it "returns true for a non-empty buffer with no path", ->
       buffer.release()
-      buffer = project.bufferForPathSync(null)
+      buffer = atom.project.bufferForPathSync(null)
       buffer.setText('a')
       expect(buffer.isModified()).toBeTruthy()
       buffer.setText('\n')
@@ -312,7 +312,7 @@ describe 'TextBuffer', ->
     it "returns false until the buffer is fully loaded", ->
       buffer.release()
       buffer = new TextBuffer({filePath: temp.openSync('atom').path})
-      project.addBuffer(buffer)
+      atom.project.addBuffer(buffer)
 
       expect(buffer.isModified()).toBeFalsy()
 
@@ -466,7 +466,7 @@ describe 'TextBuffer', ->
       beforeEach ->
         filePath = path.join(temp.dir, 'temp.txt')
         fs.writeFileSync(filePath, "")
-        saveBuffer = project.bufferForPathSync(filePath)
+        saveBuffer = atom.project.bufferForPathSync(filePath)
         saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
@@ -500,7 +500,7 @@ describe 'TextBuffer', ->
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
-        saveBuffer = project.bufferForPathSync(null)
+        saveBuffer = atom.project.bufferForPathSync(null)
         saveBuffer.setText "hi"
         expect(-> saveBuffer.save()).toThrow()
 
@@ -524,7 +524,7 @@ describe 'TextBuffer', ->
       filePath = path.join(temp.dir, 'temp.txt')
       fs.removeSync filePath if fs.existsSync(filePath)
 
-      saveAsBuffer = project.bufferForPathSync(null).retain()
+      saveAsBuffer = atom.project.bufferForPathSync(null).retain()
       eventHandler = jasmine.createSpy('eventHandler')
       saveAsBuffer.on 'path-changed', eventHandler
 
@@ -539,7 +539,7 @@ describe 'TextBuffer', ->
       newPath = path.join(temp.dir, 'new.txt')
       fs.writeFileSync(originalPath, "")
 
-      saveAsBuffer = project.bufferForPathSync(originalPath).retain()
+      saveAsBuffer = atom.project.bufferForPathSync(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
       saveAsBuffer.on 'changed', changeHandler
       saveAsBuffer.saveAs(newPath)
@@ -904,7 +904,7 @@ describe 'TextBuffer', ->
 
       filePath = temp.openSync('atom').path
       fs.writeFileSync(filePath, "words")
-      buffer = project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath)
 
     afterEach ->
       buffer2?.release()
@@ -966,13 +966,13 @@ describe 'TextBuffer', ->
       it "restores the previous unsaved state of the buffer", ->
         buffer.release()
 
-        buffer = project.bufferForPathSync()
+        buffer = atom.project.bufferForPathSync()
         buffer.setText("abc")
 
         state = buffer.getState().clone()
         expect(state.get('path')).toBeUndefined()
         expect(state.getObject('text')).toBe 'abc'
 
-        buffer2 = project.addBuffer(new TextBuffer(state))
+        buffer2 = atom.project.addBuffer(new TextBuffer(state))
         expect(buffer2.getPath()).toBeUndefined()
         expect(buffer2.getText()).toBe("abc")

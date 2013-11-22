@@ -12,7 +12,7 @@ describe "EditorView", ->
   beforeEach ->
     atom.packages.activatePackage('language-text', sync: true)
     atom.packages.activatePackage('language-javascript', sync: true)
-    editor = project.openSync('sample.js')
+    editor = atom.project.openSync('sample.js')
     buffer = editor.buffer
     editorView = new EditorView(editor)
     editorView.lineOverdraw = 2
@@ -37,7 +37,7 @@ describe "EditorView", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new EditorView(editor: project.openSync('sample.js'))
+    editorForMeasurement = new EditorView(editor: atom.project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -103,7 +103,7 @@ describe "EditorView", ->
     it "triggers an alert", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      editor = project.openSync(filePath)
+      editor = atom.project.openSync(filePath)
       editorView.edit(editor)
       editorView.insertText("now the buffer is modified")
 
@@ -129,7 +129,7 @@ describe "EditorView", ->
     [newEditSession, newBuffer] = []
 
     beforeEach ->
-      newEditSession = project.openSync('two-hundred.txt')
+      newEditSession = atom.project.openSync('two-hundred.txt')
       newBuffer = newEditSession.buffer
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
@@ -168,7 +168,7 @@ describe "EditorView", ->
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      tempEditSession = project.openSync(filePath)
+      tempEditSession = atom.project.openSync(filePath)
       editorView.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
 
@@ -277,7 +277,7 @@ describe "EditorView", ->
     it "emits event when editor view view receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on 'editor:path-changed', eventHandler
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -285,7 +285,7 @@ describe "EditorView", ->
       oldBuffer = editorView.getBuffer()
       editorView.on 'editor:path-changed', eventHandler
 
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1481,7 +1481,7 @@ describe "EditorView", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editorView.edit(project.openSync('two-hundred.txt'))
+        editorView.edit(atom.project.openSync('two-hundred.txt'))
         editorView.attachToDom(heightInLines: 5.5)
 
         expect(editorView.renderedLines.find('.line').length).toBe 8
@@ -1736,7 +1736,7 @@ describe "EditorView", ->
       expect(editorView.bufferPositionForScreenPosition(editorView.getCursorScreenPosition())).toEqual [3, 60]
 
     it "does not wrap the lines of any newly assigned buffers", ->
-      otherEditSession = project.openSync()
+      otherEditSession = atom.project.openSync()
       otherEditSession.buffer.setText([1..100].join(''))
       editorView.edit(otherEditSession)
       expect(editorView.renderedLines.find('.line').length).toBe(1)
@@ -1768,7 +1768,7 @@ describe "EditorView", ->
       expect(editorView.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor view is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new EditorView(editor: project.openSync('sample.js'))
+      otherEditor = new EditorView(editor: atom.project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
@@ -1894,7 +1894,7 @@ describe "EditorView", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditSession = project.openSync(null)
+        emptyEditSession = atom.project.openSync(null)
         editorView.edit(emptyEditSession)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
@@ -2098,7 +2098,7 @@ describe "EditorView", ->
 
   describe "folding", ->
     beforeEach ->
-      editor = project.openSync('two-hundred.txt')
+      editor = atom.project.openSync('two-hundred.txt')
       buffer = editor.buffer
       editorView.edit(editor)
       editorView.attachToDom()
@@ -2234,9 +2234,9 @@ describe "EditorView", ->
     [filePath, originalPathText] = []
 
     beforeEach ->
-      filePath = project.resolve('git/working-dir/file.txt')
+      filePath = atom.project.resolve('git/working-dir/file.txt')
       originalPathText = fs.readFileSync(filePath, 'utf8')
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
 
     afterEach ->
       fs.writeFileSync(filePath, originalPathText)
@@ -2369,7 +2369,7 @@ describe "EditorView", ->
       fs.removeSync(filePath) if fs.existsSync(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
       expect(editorView.getGrammar().name).toBe 'Plain Text'
       atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editorView.reloadGrammar()
@@ -2389,7 +2389,7 @@ describe "EditorView", ->
       expect(editorView.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      editorView.edit(project.openSync(filePath))
+      editorView.edit(atom.project.openSync(filePath))
 
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on('editor:grammar-changed', eventHandler)
@@ -2740,10 +2740,10 @@ describe "EditorView", ->
   describe "when the editor view is attached but invisible", ->
     describe "when the editor view's text is changed", ->
       it "redraws the editor view when it is next shown", ->
-        window.rootView = new RootView
-        rootView.openSync('sample.js')
-        rootView.attachToDom()
-        editorView = rootView.getActiveView()
+        atom.rootView = new RootView
+        atom.rootView.openSync('sample.js')
+        atom.rootView.attachToDom()
+        editorView = atom.rootView.getActiveView()
 
         view = $$ -> @div id: 'view', tabindex: -1, 'View'
         editorView.getPane().showItem(view)
@@ -2794,10 +2794,10 @@ describe "EditorView", ->
 
   describe "when the editor view is removed", ->
     it "fires a editor:will-be-removed event", ->
-      window.rootView = new RootView
-      rootView.openSync('sample.js')
-      rootView.attachToDom()
-      editorView = rootView.getActiveView()
+      atom.rootView = new RootView
+      atom.rootView.openSync('sample.js')
+      atom.rootView.attachToDom()
+      editorView = atom.rootView.getActiveView()
 
       willBeRemovedHandler = jasmine.createSpy('fileChange')
       editorView.on 'editor:will-be-removed', willBeRemovedHandler

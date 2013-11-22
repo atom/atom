@@ -61,7 +61,7 @@ class Git
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
-    {project, refreshOnWindowFocus} = options
+    {@project, refreshOnWindowFocus} = options
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
@@ -70,8 +70,8 @@ class Git
         @refreshIndex()
         @refreshStatus()
 
-    if project?
-      @subscribe project.buffers.onEach (buffer) => @subscribeToBuffer(buffer)
+    if @project?
+      @subscribe @project.buffers.onEach (buffer) => @subscribeToBuffer(buffer)
 
   # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
@@ -145,7 +145,7 @@ class Git
   # Public: Returns true if at the root, false if in a subfolder of the
   # repository.
   isProjectAtRoot: ->
-    @projectAtRoot ?= project.relativize(@getWorkingDirectory()) is ''
+    @projectAtRoot ?= @project?.relativize(@getWorkingDirectory()) is ''
 
   # Public: Makes a path relative to the repository's working directory.
   relativize: (path) -> @getRepo().relativize(path)

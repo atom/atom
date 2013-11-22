@@ -6,7 +6,7 @@ CSON = require 'season'
 KeyBinding = require './key-binding'
 {Emitter} = require 'emissary'
 
-Modifiers = ['alt', 'control', 'ctrl', 'shift', 'meta']
+Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']
 
 # Internal: Associates keymaps with actions.
 #
@@ -93,10 +93,10 @@ class Keymap
     modifiers = []
     if event.altKey and key not in Modifiers
       modifiers.push 'alt'
+    if event.metaKey and key not in Modifiers
+      modifiers.push 'cmd'
     if event.ctrlKey and key not in Modifiers
       modifiers.push 'ctrl'
-    if event.metaKey and key not in Modifiers
-      modifiers.push 'meta'
 
     if event.shiftKey and key not in Modifiers
       isNamedKey = key.length > 1
@@ -141,7 +141,7 @@ class Keymap
 
   handleKeyEvent: (event) ->
     element = event.target
-    element = rootView if element == document.body
+    element = atom.rootView if element == document.body
     keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
     keyBindings = @keyBindingsForKeystrokeMatchingElement(keystroke, element)
 
@@ -159,15 +159,16 @@ class Keymap
       else
         if keyBinding.command is 'native!'
           shouldBubble = true
-        else if @triggerCommandEvent(element, keyBinding.command)
+        else if @triggerCommandEvent(element, keyBinding.command, event)
           shouldBubble = false
 
       break if shouldBubble?
 
     shouldBubble ? true
 
-  triggerCommandEvent: (element, commandName) ->
+  triggerCommandEvent: (element, commandName, event) ->
     commandEvent = $.Event(commandName)
+    commandEvent.originalEvent = event
     commandEvent.abortKeyBinding = -> commandEvent.stopImmediatePropagation()
     $(element).trigger(commandEvent)
     not commandEvent.isImmediatePropagationStopped()

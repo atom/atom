@@ -1,5 +1,5 @@
 require '../src/window'
-window.setUpEnvironment('spec')
+atom.setUpEnvironment('spec')
 atom.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
@@ -39,7 +39,9 @@ specPackageName = null
 specPackagePath = null
 specProjectPath = null
 
-if specDirectory = atom.getLoadSettings().specDirectory
+{specDirectory, resourcePath} = atom.getLoadSettings()
+
+if specDirectory
   specPackagePath = path.resolve(specDirectory, '..')
   try
     specPackageName = fs.readObjectSync(path.join(specPackagePath, 'package.json'))?.name
@@ -49,7 +51,6 @@ beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
-  window.project = atom.project
   atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
@@ -69,9 +70,7 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
-  config = new Config
-    resourcePath: window.resourcePath
-    configDirPath: atom.getConfigDirPath()
+  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', RootView.configDefaults)
@@ -105,14 +104,10 @@ afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
 
-  window.rootView?.remove?()
-  atom.rootView?.remove?() if atom.rootView isnt window.rootView
-  window.rootView = null
+  atom.rootView?.remove?()
   atom.rootView = null
 
-  window.project?.destroy?()
-  atom.project?.destroy?() if atom.project isnt window.project
-  window.project = null
+  atom.project?.destroy?()
   atom.project = null
 
   $('#jasmine-content').empty() unless window.debugContent

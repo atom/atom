@@ -112,9 +112,11 @@ class File
   exists: ->
     fs.existsSync(@getPath())
 
+  # Private:
   setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
 
+  # Public: Get the SHA-1 digest of this file
   getDigest: ->
     @digest ? @setDigest(@readSync())
 

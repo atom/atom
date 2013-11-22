@@ -5,6 +5,6 @@ require './window'
 
 Atom = require './atom'
 window.atom = new Atom()
-window.setUpEnvironment('editor')
-window.startEditorWindow()
+atom.setUpEnvironment('editor')
+atom.startEditorWindow()
 console.log "Window load time: #{Date.now() - startTime}ms"

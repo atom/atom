@@ -1,5 +1,6 @@
 Menu = require 'menu'
 
+# Private:
 module.exports =
 class ContextMenu
   constructor: (template, browserWindow) ->

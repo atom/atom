@@ -107,13 +107,14 @@ class Editor
           when 'scrollLeft'
             @emit 'scroll-left-changed', newValue
 
-    project.addEditSession(this) if registerEditSession
+    atom.project.addEditSession(this) if registerEditSession
 
   # Private:
   setBuffer: (@buffer) ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      project.setPath(path.dirname(@getPath())) unless project.getPath()?
+      unless atom.project.getPath()?
+        atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
       @emit "path-changed"
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
@@ -142,7 +143,7 @@ class Editor
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
-    project?.removeEditSession(this)
+    atom.project?.removeEditSession(this)
     @emit 'destroyed'
     @off()
 
@@ -162,7 +163,7 @@ class Editor
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditSession.id, preserveFolds: true)
-    project.addEditSession(newEditSession)
+    atom.project.addEditSession(newEditSession)
     newEditSession
 
   # Public: Retrieves the filename of the open file.

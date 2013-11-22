@@ -5,27 +5,32 @@ LessCache = require 'less-cache'
 
 tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
+# Private: {LessCache} wrapper used by {ThemeManager} to read stylesheets.
 module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)
 
   @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
 
-  constructor: ({resourcePath}) ->
+  constructor: ({resourcePath, importPaths}) ->
     @lessSearchPaths = [
       path.join(resourcePath, 'static', 'variables')
       path.join(resourcePath, 'static')
     ]
 
+    if importPaths?
+      importPaths = importPaths.concat(@lessSearchPaths)
+    else
+      importPaths = @lessSearchPaths
+
     @cache = new LessCache
       cacheDir: @constructor.cacheDir
-      importPaths: @getImportPaths()
+      importPaths: importPaths
       resourcePath: resourcePath
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
 
-    @subscribe atom.themes, 'reloaded', => @cache.setImportPaths(@getImportPaths())
-
-  getImportPaths: -> atom.themes.getImportPaths().concat(@lessSearchPaths)
+  setImportPaths: (importPaths=[]) ->
+    @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
 
   read: (stylesheetPath) -> @cache.readFileSync(stylesheetPath)
 
