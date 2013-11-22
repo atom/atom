@@ -8,11 +8,6 @@ WindowEventHandler = require './window-event-handler'
 
 windowEventHandler = null
 
-# This method is called in any window needing a general environment, including specs
-window.setUpEnvironment = (windowMode) ->
-  atom.windowMode = windowMode
-  atom.initialize()
-
 # Set up the default event handlers and menus for a non-editor windows.
 #
 # This can be used by packages to have a minimum level of keybindings and

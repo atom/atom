@@ -53,6 +53,10 @@ class Atom
     @pasteboard = new Pasteboard()
     @syntax = @deserializers.deserialize(@getWindowState('syntax')) ? new Syntax()
 
+  # Private: This method is called in any window needing a general environment, including specs
+  setUpEnvironment: (@windowMode) ->
+    @initialize()
+
   # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
