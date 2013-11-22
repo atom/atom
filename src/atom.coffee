@@ -343,10 +343,6 @@ class Atom
   getVersion: ->
     app.getVersion()
 
-  # Private:
-  getHomeDirPath: ->
-    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')

@@ -47,7 +47,7 @@ class RootView extends View
     excludeVcsIgnoredPaths: true
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
-    projectHome: path.join(atom.getHomeDirPath(), 'github')
+    projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
 
   @acceptsDocuments: true
