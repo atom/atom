@@ -842,12 +842,12 @@ class EditorView extends View
     @edit(editor)
 
   showBufferConflictAlert: (editor) ->
-    atom.confirm(
-      editor.getPath(),
-      "Has changed on disk. Do you want to reload it?",
-      "Reload", (=> editor.buffer.reload()),
-      "Cancel"
-    )
+    atom.confirm
+      message: editor.getPath()
+      detailedMessage: "Has changed on disk. Do you want to reload it?"
+      buttons:
+        Reload: -> editor.getBuffer().reload()
+        Cancel: null
 
   scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?

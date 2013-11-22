@@ -239,33 +239,40 @@ class Atom
 
   # Public: Open a confirm dialog.
   #
-  # The callback for the registered button will be called when clicked.
+  # Example:
+  #  atom.confirm
+  #    message: 'How you feeling?'
+  #    detailedMessage: 'Be honest.'
+  #    buttons:
+  #      Good: -> window.alert('good to hear')
+  #      Bad: ->  window.alert('bummer')
   #
-  # FIXME This API could be improved regarding parameters and shift off the
-  # given array.
+  # * options:
+  #    + message: The string message to display.
+  #    + detailedMessage: The string detailed message to display.
+  #    + buttons: Either an array of strings or an object where the the values
+  #      are callbacks to invoke when clicked.
   #
-  # * message: The string message to display.
-  # * detailedMessage: The string detailed message to display.
-  # * buttonLabelsAndCallbacks: An array of alternating button labels and
-  #   callbacks.
-  confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-    buttons = []
-    callbacks = []
-    while buttonLabelsAndCallbacks.length
-      do =>
-        buttons.push buttonLabelsAndCallbacks.shift()
-        callbacks.push buttonLabelsAndCallbacks.shift()
+  # Returns the chosen index if buttons was an array or the return of the
+  # callback if buttons was an object.
+  confirm: ({message, detailedMessage, buttons}={}) ->
+    buttons ?= {}
+    if _.isArray(buttons)
+      buttonLabels = buttons
+    else
+      buttonLabels = Object.keys(buttons)
 
-    chosen = @confirmSync(message, detailedMessage, buttons)
-    callbacks[chosen]?()
-
-  # Private:
-  confirmSync: (message, detailedMessage, buttons, browserWindow=@getCurrentWindow()) ->
-    dialog.showMessageBox browserWindow,
+    chosen = dialog.showMessageBox @getCurrentWindow(),
       type: 'info'
       message: message
       detail: detailedMessage
-      buttons: buttons
+      buttons: buttonLabels
+
+    if _.isArray(buttons)
+      chosen
+    else
+      callback = buttons[buttonLabels[chosen]]
+      callback?()
 
   # Private:
   showSaveDialog: (callback) ->

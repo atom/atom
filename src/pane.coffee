@@ -220,12 +220,11 @@ class Pane extends View
     return true unless item.shouldPromptToSave?()
 
     uri = item.getUri()
-    chosen = atom.confirmSync(
-      "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
-      "Your changes will be lost if you close this item without saving."
-      ["Save", "Cancel", "Don't Save"]
-      atom.getCurrentWindow()
-    )
+    chosen = atom.confirm
+      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
+      detailedMessage: "Your changes will be lost if you close this item without saving."
+      buttons: ["Save", "Cancel", "Don't Save"]
+
     switch chosen
       when 0 then @saveItem(item, -> true)
       when 1 then false
