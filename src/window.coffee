@@ -64,11 +64,13 @@ window.unloadEditorWindow = ->
   windowEventHandler?.unsubscribe()
 
 installAtomCommand = (callback) ->
-  commandPath = path.join(window.resourcePath, 'atom.sh')
+  {resourcePath} = atom.getLoadSettings()
+  commandPath = path.join(resourcePath, 'atom.sh')
   require('./command-installer').install(commandPath, callback)
 
 installApmCommand = (callback) ->
-  commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
+  {resourcePath} = atom.getLoadSettings()
+  commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
   require('./command-installer').install(commandPath, callback)
 
 window.deserializeEditorWindow = ->
