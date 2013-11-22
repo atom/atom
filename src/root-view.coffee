@@ -248,7 +248,7 @@ class RootView extends View
 
   # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditors: ->
-    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
+    @panes.find('.pane > .item-view > .editor').map(-> $(this).view()).toArray()
 
   # Private: Retrieves all of the modified buffers that are open and unsaved.
   #
