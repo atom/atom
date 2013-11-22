@@ -347,10 +347,6 @@ class Atom
   getHomeDirPath: ->
     process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
-  # Private:
-  getTempDirPath: ->
-    if process.platform is 'win32' then os.tmpdir() else '/tmp'
-
   # Public: Get the directory path to Atom's configuration area.
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
