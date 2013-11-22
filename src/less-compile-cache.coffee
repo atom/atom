@@ -11,21 +11,25 @@ class LessCompileCache
 
   @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
 
-  constructor: ({resourcePath}) ->
+  constructor: ({resourcePath, importPaths}) ->
     @lessSearchPaths = [
       path.join(resourcePath, 'static', 'variables')
       path.join(resourcePath, 'static')
     ]
 
+    if importPaths?
+      importPaths = importPaths.concat(@lessSearchPaths)
+    else
+      importPaths = @lessSearchPaths
+
     @cache = new LessCache
       cacheDir: @constructor.cacheDir
-      importPaths: @getImportPaths()
+      importPaths: importPaths
       resourcePath: resourcePath
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
 
-    @subscribe atom.themes, 'reloaded', => @cache.setImportPaths(@getImportPaths())
-
-  getImportPaths: -> atom.themes.getImportPaths().concat(@lessSearchPaths)
+  setImportPaths: (importPaths=[]) ->
+    @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
 
   read: (stylesheetPath) -> @cache.readFileSync(stylesheetPath)
 
