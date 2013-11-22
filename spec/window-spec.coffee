@@ -11,7 +11,7 @@ describe "Window", ->
     atom.loadSettings.initialPath = atom.project.getPath()
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
-    window.deserializeEditorWindow()
+    atom.deserializeEditorWindow()
     projectPath = atom.project.getPath()
 
   afterEach ->
@@ -86,7 +86,7 @@ describe "Window", ->
       rootViewState = atom.rootView.serialize()
       syntaxState = atom.syntax.serialize()
 
-      window.unloadEditorWindow()
+      atom.unloadEditorWindow()
 
       expect(atom.getWindowState().getObject('rootView')).toEqual rootViewState.toObject()
       expect(atom.getWindowState().getObject('syntax')).toEqual syntaxState
@@ -99,7 +99,7 @@ describe "Window", ->
       pane.splitRight(pane.copyActiveItem())
       expect(atom.rootView.find('.editor').length).toBe 2
 
-      window.unloadEditorWindow()
+      atom.unloadEditorWindow()
 
       expect(buffer.getSubscriptionCount()).toBe 0
 

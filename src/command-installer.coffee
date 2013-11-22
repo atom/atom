@@ -47,3 +47,13 @@ module.exports =
             symlinkCommand(commandPath, destinationPath, installCallback)
       else
         installCallback(new Error("No destination directory exists to install"))
+
+  installAtomCommand: (callback) ->
+    {resourcePath} = atom.getLoadSettings()
+    commandPath = path.join(resourcePath, 'atom.sh')
+    @install(commandPath, callback)
+
+  installApmCommand: (callback) ->
+    {resourcePath} = atom.getLoadSettings()
+    commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
+    @install(commandPath, callback)

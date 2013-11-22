@@ -1,5 +1,5 @@
 require '../src/window'
-window.setUpEnvironment('spec')
+atom.setUpEnvironment('spec')
 atom.restoreDimensions()
 
 require '../vendor/jasmine-jquery'

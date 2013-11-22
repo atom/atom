@@ -1,19 +1,22 @@
-fs = require 'fs-plus'
-{$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
-Package = require './package'
+crypto = require 'crypto'
 ipc = require 'ipc'
+os = require 'os'
+path = require 'path'
 remote = require 'remote'
 shell = require 'shell'
-crypto = require 'crypto'
-path = require 'path'
-os = require 'os'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
+
+_ = require 'underscore-plus'
 {Document} = require 'telepath'
-DeserializerManager = require './deserializer-manager'
+fs = require 'fs-plus'
 {Subscriber} = require 'emissary'
+
+{$} = require './space-pen-extensions'
+DeserializerManager = require './deserializer-manager'
+Package = require './package'
 SiteShim = require './site-shim'
+WindowEventHandler = require './window-event-handler'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -52,6 +55,10 @@ class Atom
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
     @syntax = @deserializers.deserialize(@getWindowState('syntax')) ? new Syntax()
+
+  # Private: This method is called in any window needing a general environment, including specs
+  setUpEnvironment: (@windowMode) ->
+    @initialize()
 
   # Private:
   setBodyPlatformClass: ->
@@ -127,6 +134,64 @@ class Atom
     state = @getWindowState()
     @packages.packageStates = state.getObject('packageStates') ? {}
     state.remove('packageStates')
+
+  deserializeEditorWindow: ->
+    @deserializePackageStates()
+    @deserializeProject()
+    @deserializeRootView()
+
+  # Private: This method is only called when opening a real application window
+  startEditorWindow: ->
+    if process.platform is 'darwin'
+      CommandInstaller = require './command-installer'
+      CommandInstaller.installAtomCommand()
+      CommandInstaller.installApmCommand()
+
+    @windowEventHandler = new WindowEventHandler
+    @restoreDimensions()
+    @config.load()
+    @config.setDefaults('core', require('./root-view').configDefaults)
+    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @keymap.loadBundledKeymaps()
+    @themes.loadBaseStylesheets()
+    @packages.loadPackages()
+    @deserializeEditorWindow()
+    @packages.activate()
+    @keymap.loadUserKeymap()
+    @requireUserInitScript()
+    @menu.update()
+
+    $(window).on 'unload', =>
+      $(document.body).hide()
+      @unloadEditorWindow()
+      false
+
+    @displayWindow()
+
+  unloadEditorWindow: ->
+    return if not @project and not @rootView
+
+    windowState = @getWindowState()
+    windowState.set('project', @project)
+    windowState.set('syntax', @syntax.serialize())
+    windowState.set('rootView', @rootView.serialize())
+    @packages.deactivatePackages()
+    windowState.set('packageStates', @packages.packageStates)
+    @saveWindowState()
+    @rootView.remove()
+    @project.destroy()
+    @windowEventHandler?.unsubscribe()
+
+  # Set up the default event handlers and menus for a non-editor window.
+  #
+  # This can be used by packages to have a minimum level of keybindings and
+  # menus available when not using the standard editor window.
+  #
+  # This should only be called after setUpEnvironment() has been called.
+  setUpDefaultEvents: ->
+    @windowEventHandler = new WindowEventHandler
+    @keymap.loadBundledKeymaps()
+    @menu.update()
 
   loadThemes: ->
     @themes.load()
