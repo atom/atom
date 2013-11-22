@@ -584,12 +584,6 @@ class DisplayBuffer
       line = @lineForRow(row).text
       console.log row, line, line.length
 
-  getDebugSnapshot: ->
-    lines = ["Display Buffer:"]
-    for screenLine, row in @linesForRows(0, @getLastRow())
-      lines.push "#{row}: #{screenLine.text}"
-    lines.join('\n')
-
   ### Internal ###
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>

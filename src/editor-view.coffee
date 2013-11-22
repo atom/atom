@@ -205,7 +205,6 @@ class EditorView extends View
         'editor:duplicate-line': @duplicateLine
         'editor:join-line': @joinLine
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
-        'editor:save-debug-snapshot': @saveDebugSnapshot
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': @scrollToCursorPosition
 
@@ -1826,25 +1825,6 @@ class EditorView extends View
   beginTransaction: -> @activeEditSession.beginTransaction()
   commitTransaction: -> @activeEditSession.commitTransaction()
   abortTransaction: -> @activeEditSession.abortTransaction()
-
-  saveDebugSnapshot: ->
-    atom.showSaveDialog (path) =>
-      fs.writeFileSync(path, @getDebugSnapshot()) if path
-
-  getDebugSnapshot: ->
-    [
-      "Debug Snapshot: #{@getPath()}"
-      @getRenderedLinesDebugSnapshot()
-      @activeEditSession.getDebugSnapshot()
-      @getBuffer().getDebugSnapshot()
-    ].join('\n\n')
-
-  getRenderedLinesDebugSnapshot: ->
-    lines = ['Rendered Lines:']
-    firstRenderedScreenRow = @firstRenderedScreenRow
-    @renderedLines.find('.line').each (n) ->
-      lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
-    lines.join('\n')
 
   logScreenLines: (start, end) ->
     @activeEditSession.logScreenLines(start, end)
