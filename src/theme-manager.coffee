@@ -146,7 +146,7 @@ class ThemeManager
 
   # Internal-only:
   loadLessStylesheet: (lessStylesheetPath) ->
-    unless lessCache?
+    unless @lessCache?
       LessCompileCache = require './less-compile-cache'
       @lessCache = new LessCompileCache({@resourcePath})
 
