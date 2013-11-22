@@ -14,7 +14,6 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-
   # Private:
   constructor: ({@cursor, @marker, @editor}) ->
     @cursor.selection = this
@@ -592,9 +591,15 @@ class Selection
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
-  # Public: ?
-  compare: (other) ->
-    @getBufferRange().compare(other.getBufferRange())
+  # Public: Compare this selection's buffer range to another selection's buffer
+  # range.
+  #
+  # See {Range.compare} for more details.
+  #
+  # * otherSelection:
+  #   A {Selection} to compare with.
+  compare: (otherSelection) ->
+    @getBufferRange().compare(otherSelection.getBufferRange())
 
   # Public: Returns true if it was locally created.
   isLocal: ->
