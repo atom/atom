@@ -60,26 +60,26 @@ describe "Window", ->
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls rootView.confirmClose", ->
         spyOn(atom.rootView, 'confirmClose').andCallThrough()
-        spyOn(atom, "confirmSync").andReturn(2)
+        spyOn(atom, "confirm").andReturn(2)
         editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
         expect(atom.rootView.confirmClose).toHaveBeenCalled()
-        expect(atom.confirmSync).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->
-        spyOn(atom, "confirmSync").andReturn(2)
+        spyOn(atom, "confirm").andReturn(2)
         editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
-        expect(atom.confirmSync).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
-        spyOn(atom, "confirmSync").andReturn(1)
+        spyOn(atom, "confirm").andReturn(1)
         editor = atom.rootView.openSync("sample.js")
         editor.insertText("I look different, I feel different.")
         $(window).trigger(beforeUnloadEvent)
-        expect(atom.confirmSync).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->

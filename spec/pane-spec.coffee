@@ -156,7 +156,7 @@ describe "Pane", ->
       describe "if the [Save] option is selected", ->
         describe "when the item has a uri", ->
           it "saves the item before removing and destroying it", ->
-            spyOn(atom, 'confirmSync').andReturn(0)
+            spyOn(atom, 'confirm').andReturn(0)
             pane.destroyItem(editor2)
 
             expect(editor2.save).toHaveBeenCalled()
@@ -168,7 +168,7 @@ describe "Pane", ->
             editor2.buffer.setPath(undefined)
 
             spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
-            spyOn(atom, 'confirmSync').andReturn(0)
+            spyOn(atom, 'confirm').andReturn(0)
             pane.destroyItem(editor2)
 
             expect(atom.showSaveDialogSync).toHaveBeenCalled()
@@ -179,7 +179,7 @@ describe "Pane", ->
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
-          spyOn(atom, 'confirmSync').andReturn(2)
+          spyOn(atom, 'confirm').andReturn(2)
           pane.destroyItem(editor2)
 
           expect(editor2.save).not.toHaveBeenCalled()
@@ -188,7 +188,7 @@ describe "Pane", ->
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
-          spyOn(atom, 'confirmSync').andReturn(1)
+          spyOn(atom, 'confirm').andReturn(1)
           pane.destroyItem(editor2)
 
           expect(editor2.save).not.toHaveBeenCalled()

@@ -169,24 +169,24 @@ describe "PaneContainer", ->
     it "returns true after modified files are saved", ->
       pane1.itemAtIndex(0).shouldPromptToSave = -> true
       pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirmSync").andReturn(0)
+      spyOn(atom, "confirm").andReturn(0)
 
       saved = container.confirmClose()
 
       runs ->
         expect(saved).toBeTruthy()
-        expect(atom.confirmSync).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
     it "returns false if the user cancels saving", ->
       pane1.itemAtIndex(0).shouldPromptToSave = -> true
       pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirmSync").andReturn(1)
+      spyOn(atom, "confirm").andReturn(1)
 
       saved = container.confirmClose()
 
       runs ->
         expect(saved).toBeFalsy()
-        expect(atom.confirmSync).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
