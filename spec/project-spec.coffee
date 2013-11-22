@@ -67,7 +67,7 @@ describe "Project", ->
       expect(project.getEditSessions().length).toBe 1
       expect(project.getEditSessions()[0]).toBe editor1
 
-      editor2 = deserialize(editor1.serialize())
+      editor2 = atom.deserializers.deserialize(editor1.serialize())
       expect(handler.callCount).toBe 2
       expect(project.getEditSessions().length).toBe 2
       expect(project.getEditSessions()[0]).toBe editor1

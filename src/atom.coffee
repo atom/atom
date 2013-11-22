@@ -61,7 +61,7 @@ class Atom
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
-    @syntax = deserialize(@getWindowState('syntax')) ? new Syntax()
+    @syntax = @deserializers.deserialize(@getWindowState('syntax')) ? new Syntax()
 
   # Private:
   setBodyPlatformClass: ->
@@ -127,7 +127,7 @@ class Atom
   deserializeRootView: ->
     RootView = require './root-view'
     state = @getWindowState()
-    @rootView = deserialize(state.get('rootView'))
+    @rootView = @deserializers.deserialize(state.get('rootView'))
     unless @rootView?
       @rootView = new RootView()
       state.set('rootView', @rootView.getState())
@@ -137,29 +137,6 @@ class Atom
     state = @getWindowState()
     @packages.packageStates = state.getObject('packageStates') ? {}
     state.remove('packageStates')
-
-  #TODO Remove theses once packages have been migrated
-  getPackageState: (args...) -> @packages.getPackageState(args...)
-  setPackageState: (args...) -> @packages.setPackageState(args...)
-  activatePackages: (args...) -> @packages.activatePackages(args...)
-  activatePackage: (args...) -> @packages.activatePackage(args...)
-  deactivatePackages: (args...) -> @packages.deactivatePackages(args...)
-  deactivatePackage: (args...) -> @packages.deactivatePackage(args...)
-  getActivePackage: (args...) -> @packages.getActivePackage(args...)
-  isPackageActive: (args...) -> @packages.isPackageActive(args...)
-  getActivePackages: (args...) -> @packages.getActivePackages(args...)
-  loadPackages: (args...) -> @packages.loadPackages(args...)
-  loadPackage: (args...) -> @packages.loadPackage(args...)
-  unloadPackage: (args...) -> @packages.unloadPackage(args...)
-  resolvePackagePath: (args...) -> @packages.resolvePackagePath(args...)
-  isInternalPackage: (args...) -> @packages.isInternalPackage(args...)
-  getLoadedPackage: (args...) -> @packages.getLoadedPackage(args...)
-  isPackageLoaded: (args...) -> @packages.isPackageLoaded(args...)
-  getLoadedPackages: (args...) -> @packages.getLoadedPackages(args...)
-  isPackageDisabled: (args...) -> @packages.isPackageDisabled(args...)
-  getAvailablePackagePaths: (args...) -> @packages.getAvailablePackagePaths(args...)
-  getAvailablePackageNames: (args...) -> @packages.getAvailablePackageNames(args...)
-  getAvailablePackageMetadata: (args...)-> @packages.getAvailablePackageMetadata(args...)
 
   loadThemes: ->
     @themes.load()

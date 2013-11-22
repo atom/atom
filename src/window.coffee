@@ -22,11 +22,6 @@ window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
   window.resourcePath = atom.getLoadSettings().resourcePath
   atom.initialize()
-  #TODO remove once all packages use the atom global
-  window.config = atom.config
-  window.syntax = atom.syntax
-  window.keymap = atom.keymap
-  window.site = atom.site
 
 # Set up the default event handlers and menus for a non-editor windows.
 #
@@ -97,22 +92,6 @@ window.deserializeEditorWindow = ->
 
 window.onerror = ->
   atom.openDevTools()
-
-#TODO remove once all packages use the atom global
-window.registerDeserializers = (args...) ->
-  atom.deserializers.add(args...)
-window.registerDeserializer = (args...) ->
-  atom.deserializers.add(args...)
-window.registerDeferredDeserializer = (args...) ->
-  atom.deserializers.addDeferred(args...)
-window.unregisterDeserializer = (args...) ->
-  atom.deserializers.remove(args...)
-window.deserialize = (args...) ->
-  atom.deserializers.deserialize(args...)
-window.getDeserializer = (args...) ->
-  atom.deserializers.get(args...)
-window.requireWithGlobals = (args...) ->
-  atom.requireWithGlobals(args...)
 
 # Public: Measure how long a function takes to run.
 #

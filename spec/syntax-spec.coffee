@@ -5,23 +5,23 @@ TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->
   beforeEach ->
-    atom.activatePackage('language-text', sync: true)
-    atom.activatePackage('language-javascript', sync: true)
-    atom.activatePackage('language-coffee-script', sync: true)
-    atom.activatePackage('language-ruby', sync: true)
+    atom.packages.activatePackage('language-text', sync: true)
+    atom.packages.activatePackage('language-javascript', sync: true)
+    atom.packages.activatePackage('language-coffee-script', sync: true)
+    atom.packages.activatePackage('language-ruby', sync: true)
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->
       filePath = '/foo/bar/file.js'
       expect(atom.syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
       atom.syntax.setGrammarOverrideForPath(filePath, 'source.ruby')
-      syntax2 = deserialize(atom.syntax.serialize())
+      syntax2 = atom.deserializers.deserialize(atom.syntax.serialize())
       syntax2.addGrammar(grammar) for grammar in atom.syntax.grammars when grammar isnt atom.syntax.nullGrammar
       expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
-      atom.activatePackage('language-git', sync: true)
+      atom.packages.activatePackage('language-git', sync: true)
 
       expect(atom.syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
       expect(atom.syntax.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
@@ -34,7 +34,7 @@ describe "the `syntax` global", ->
       expect(atom.syntax.selectGrammar(filePath).name).toBe "Ruby"
 
     it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
-      atom.activatePackage('language-property-list', sync: true)
+      atom.packages.activatePackage('language-property-list', sync: true)
 
       fileContent = "first-line\n<html>"
       expect(atom.syntax.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"

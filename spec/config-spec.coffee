@@ -112,7 +112,7 @@ describe "Config", ->
 
     beforeEach ->
       spyOn(nodeFs, 'writeFileSync')
-      jasmine.unspy config, 'save'
+      jasmine.unspy atom.config, 'save'
 
     describe "when ~/.atom/config.json exists", ->
       it "writes any non-default properties to ~/.atom/config.json", ->

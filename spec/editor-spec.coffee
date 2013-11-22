@@ -16,7 +16,7 @@ describe "Editor", ->
 
   describe "with default options", ->
     beforeEach ->
-      atom.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
       editor = project.openSync('sample.js', autoIndent: false)
       buffer = editor.buffer
       lineLengths = buffer.getLines().map (line) -> line.length
@@ -28,7 +28,7 @@ describe "Editor", ->
         editor.foldBufferRow(4)
         expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-        editor2 = deserialize(editor.serialize())
+        editor2 = atom.deserializers.deserialize(editor.serialize())
 
         expect(editor2.id).toBe editor.id
         expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()

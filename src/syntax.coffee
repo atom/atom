@@ -11,7 +11,7 @@ module.exports =
 class Syntax
   Emitter.includeInto(this)
 
-  registerDeserializer(this)
+  atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
     syntax = new Syntax()

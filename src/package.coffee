@@ -45,7 +45,7 @@ class Package
     @name = basename(@path)
 
   isActive: ->
-    atom.isPackageActive(@name)
+    atom.packages.isPackageActive(@name)
 
   isTheme: ->
     !!@metadata?.theme
