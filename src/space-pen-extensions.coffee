@@ -21,12 +21,15 @@ tooltipDefaults =
     hide: 100
   container: 'body'
   html: true
+  placement: 'auto top'
 
 modifiers =
   cmd: '⌘'
-  option: '⌥'
   ctrl: '⌃'
+  alt: '⌥'
+  option: '⌥'
   shift: '⇧'
+  enter: '⏎'
   left: '←'
   right: '→'
   up: '↑'
