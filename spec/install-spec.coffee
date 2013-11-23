@@ -1,11 +1,10 @@
-fs = require 'fs'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
-mkdir = require('mkdirp').sync
 
 describe 'apm install', ->
   atomHome = null
@@ -59,7 +58,7 @@ describe 'apm install', ->
     describe 'when a module name is specified', ->
       it 'installs the module', ->
         testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
-        mkdir(testModuleDirectory)
+        fs.makeTreeSync(testModuleDirectory)
         existingTestModuleFile = path.join(testModuleDirectory, 'will-be-deleted.js')
         fs.writeFileSync(existingTestModuleFile, '')
         expect(fs.existsSync(existingTestModuleFile)).toBeTruthy()

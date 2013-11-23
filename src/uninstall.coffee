@@ -41,7 +41,7 @@ class Uninstall
 
       try
         packagePath = path.join(packagesDirectory, packageName)
-        fs.rm(packagePath)
+        fs.removeSync(packagePath)
         process.stdout.write '\u2713\n'.green
       catch error
         process.stdout.write '\u2717\n'.red

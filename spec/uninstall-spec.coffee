@@ -1,8 +1,7 @@
-fs = require 'fs'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 apm = require '../lib/apm-cli'
-mkdir = require('mkdirp').sync
 
 describe 'apm uninstall', ->
   beforeEach ->
@@ -37,7 +36,7 @@ describe 'apm uninstall', ->
     it 'deletes the package', ->
       atomHome = temp.mkdirSync('apm-home-dir-')
       packagePath = path.join(atomHome, 'packages', 'test-package')
-      mkdir(path.join(packagePath, 'lib'))
+      fs.makeTreeSync(path.join(packagePath, 'lib'))
       fs.writeFileSync(path.join(packagePath, 'package.json'), "{}")
       process.env.ATOM_HOME = atomHome
 

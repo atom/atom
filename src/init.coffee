@@ -45,7 +45,7 @@ class Generator extends Command
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
 
-    fs.mkdir(packagePath)
+    fs.makeTreeSync(packagePath)
 
     for childPath in fs.listRecursive(templatePath)
       templateChildPath = path.resolve(templatePath, childPath)
@@ -55,10 +55,10 @@ class Generator extends Command
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
       sourcePath = path.join(packagePath, relativePath)
-      if fs.isDirectory(templateChildPath)
-        fs.mkdir(sourcePath)
-      else if fs.isFile(templateChildPath)
-        fs.mkdir(path.dirname(sourcePath))
+      if fs.isDirectorySync(templateChildPath)
+        fs.makeTreeSync(sourcePath)
+      else if fs.isFileSync(templateChildPath)
+        fs.makeTreeSync(path.dirname(sourcePath))
         contents = fs.readFileSync(templateChildPath).toString()
         content = @replacePackageNamePlaceholders(contents, packageName)
         fs.writeFileSync(sourcePath, content)

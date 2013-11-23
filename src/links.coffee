@@ -35,7 +35,7 @@ class Links
     symlinks = []
     for directory in fs.list(directoryPath)
       symlinkPath = path.join(directoryPath, directory)
-      symlinks.push(symlinkPath) if fs.isLink(symlinkPath)
+      symlinks.push(symlinkPath) if fs.isSymbolicLinkSync(symlinkPath)
     symlinks
 
   logLinks: (directoryPath) ->

@@ -1,11 +1,10 @@
-fs = require 'fs'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
-mkdir = require('mkdirp').sync
 
 describe 'apm update', ->
   [moduleDirectory, server] = []
@@ -40,7 +39,7 @@ describe 'apm update', ->
 
   it 'uninstalls any packages not referenced in the package.json and installs any missing packages', ->
     removedPath = path.join(moduleDirectory, 'node_modules', 'will-be-removed')
-    mkdir removedPath
+    fs.makeTreeSync(removedPath)
 
     callback = jasmine.createSpy('callback')
     apm.run(['update'], callback)

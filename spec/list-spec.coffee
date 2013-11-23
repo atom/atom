@@ -1,9 +1,8 @@
-fs = require 'fs'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
-mkdir = require('mkdirp').sync
 
 describe 'apm list', ->
   [resourcePath, atomHome] = []
@@ -19,7 +18,7 @@ describe 'apm list', ->
 
   it 'lists the built-in packages', ->
     packagesPath = path.join(resourcePath, 'src', 'packages')
-    mkdir(packagesPath)
+    fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
     apm.run(['list'])
@@ -28,7 +27,7 @@ describe 'apm list', ->
 
   it 'lists the packages included in node_modules with an atom engine specified', ->
     packagesPath = path.join(resourcePath, 'node_modules')
-    mkdir(packagesPath)
+    fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
     apm.run(['list'])
@@ -37,7 +36,7 @@ describe 'apm list', ->
 
   it 'includes vendored packages', ->
     packagesPath = path.join(resourcePath, 'vendor', 'packages')
-    mkdir(packagesPath)
+    fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
     apm.run(['list'])
@@ -46,7 +45,7 @@ describe 'apm list', ->
 
   it 'lists the installed packages', ->
     packagesPath = path.join(atomHome, 'packages')
-    mkdir(packagesPath)
+    fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
     apm.run(['list'])
@@ -55,7 +54,7 @@ describe 'apm list', ->
 
   it 'labels disabled packages', ->
     packagesPath = path.join(atomHome, 'packages')
-    mkdir(packagesPath)
+    fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
     configPath = path.join(atomHome, 'config.cson')
     fs.writeFileSync(configPath, 'core: disabledPackages: ["test-module"]')

@@ -39,7 +39,7 @@ class Unlink
   unlinkPath: (pathToUnlink) ->
     try
       process.stdout.write "Unlinking #{pathToUnlink} "
-      fs.unlinkSync(pathToUnlink) if fs.isLink(pathToUnlink)
+      fs.unlinkSync(pathToUnlink) if fs.isSymbolicLinkSync(pathToUnlink)
       process.stdout.write '\u2713\n'.green
     catch error
       process.stdout.write '\u2717\n'.red
@@ -49,11 +49,11 @@ class Unlink
     try
       for child in fs.list(@devPackagesPath)
         packagePath = path.join(@devPackagesPath, child)
-        @unlinkPath(packagePath) if fs.isLink(packagePath)
+        @unlinkPath(packagePath) if fs.isSymbolicLinkSync(packagePath)
       unless options.argv.dev
         for child in fs.list(@packagesPath)
           packagePath = path.join(@packagesPath, child)
-          @unlinkPath(packagePath) if fs.isLink(packagePath)
+          @unlinkPath(packagePath) if fs.isSymbolicLinkSync(packagePath)
       callback()
     catch error
       callback(error)

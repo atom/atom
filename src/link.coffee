@@ -40,8 +40,8 @@ class Link
       targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
 
     try
-      fs.unlinkSync(targetPath) if fs.isLink(targetPath)
-      fs.mkdir path.dirname(targetPath)
+      fs.unlinkSync(targetPath) if fs.isSymbolicLinkSync(targetPath)
+      fs.makeTreeSync path.dirname(targetPath)
       fs.safeSymlinkSync(linkPath, targetPath)
       console.log "#{targetPath} -> #{linkPath}"
       callback()

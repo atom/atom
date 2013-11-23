@@ -50,7 +50,7 @@ class Install extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
 
-    fs.mkdir(@atomDirectory)
+    fs.makeTreeSync(@atomDirectory)
     @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
       if code is 0
         callback()
@@ -75,7 +75,7 @@ class Install extends Command
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
-      fs.mkdir(nodeModulesDirectory)
+      fs.makeTreeSync(nodeModulesDirectory)
       installOptions.cwd = installDirectory
 
     @fork @atomNpmPath, installArgs, installOptions, (code, stderr='', stdout='') =>
@@ -90,7 +90,7 @@ class Install extends Command
         callback()
       else
         if installGlobally
-          fs.rm(installDirectory)
+          fs.removeSync(installDirectory)
           process.stdout.write '\u2717\n'.red
 
         callback("#{stdout}\n#{stderr}")
@@ -191,7 +191,7 @@ class Install extends Command
   getPackageCachePath: (packageName, packageVersion) ->
     cacheDir = config.getPackageCacheDirectory()
     cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
-    return cachePath if fs.isFile(cachePath)
+    return cachePath if fs.isFileSync(cachePath)
 
   # Is the package at the specified version already installed?
   #
@@ -326,9 +326,9 @@ class Install extends Command
     async.waterfall commands, callback
 
   createAtomDirectories: ->
-    fs.mkdir(@atomDirectory)
-    fs.mkdir(@atomPackagesDirectory)
-    fs.mkdir(@atomNodeDirectory)
+    fs.makeTreeSync(@atomDirectory)
+    fs.makeTreeSync(@atomPackagesDirectory)
+    fs.makeTreeSync(@atomNodeDirectory)
 
   run: (options) ->
     {callback} = options

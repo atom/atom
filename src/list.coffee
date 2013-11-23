@@ -46,7 +46,7 @@ class List
   listPackages: (directoryPath) ->
     packages = []
     for child in fs.list(directoryPath)
-      continue unless fs.isDirectory(path.join(directoryPath, child))
+      continue unless fs.isDirectorySync(path.join(directoryPath, child))
 
       manifest = null
       if manifestPath = CSON.resolve(path.join(directoryPath, child, 'package'))
