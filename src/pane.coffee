@@ -6,6 +6,8 @@ class Pane extends Model
   @properties
     items: []
     activeItemId: null
+    widthPercent: 100
+    heightPercent: 100
 
   @relatesToOne 'activeItem', ->
     @items.where(id: @$activeItemId)
