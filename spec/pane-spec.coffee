@@ -1,7 +1,7 @@
 Pane = require '../src/pane'
 PaneContainer = require '../src/pane-container'
 
-fdescribe "Pane", ->
+describe "Pane", ->
   [container, pane, item1, item2, item3] = []
 
   beforeEach ->

@@ -4,6 +4,7 @@ PaneAxis = require './pane-axis'
 module.exports =
 class Pane extends Model
   @properties
+    container: null
     items: []
     activeItemId: null
     widthPercent: 100
@@ -34,8 +35,11 @@ class Pane extends Model
     @setActiveItem(@items.getFirst()) if wasEmpty
     items
 
-  moveItem: (item, index) ->
-    @items.insert(index, item)
+  moveItem: (item, newIndex) ->
+    oldIndex = @items.indexOf(item)
+    throw new Error("Can't move non-existent item") if oldIndex is -1
+    @items.insert(newIndex, item)
+    @items.splice(oldIndex, 1)
 
   removeItem: (item) ->
     index = @items.indexOf(item)
@@ -78,10 +82,12 @@ class Pane extends Model
     @split('vertical', 'after', items)
 
   split: (orientation, side, items) ->
-    unless @grandparent.orientation is orientation
-      @parent.insertBefore(this, new PaneAxis({orientation, children: [this]}))
+    unless @container.orientation is orientation
+      axis = new PaneAxis({orientation, @container, children: [this]})
+      @container.children.replace(this, axis)
+      @container = axis
 
-    pane = new Pane({items})
+    pane = new Pane({@container, items})
     switch side
-      when 'before' then @parent.insertBefore(this, pane)
-      when 'after' then @parent.insertAfter(this, pane)
+      when 'before' then @container.children.insertBefore(this, pane)
+      when 'after' then @container.children.insertAfter(this, pane)
