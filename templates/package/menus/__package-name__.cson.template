@@ -2,4 +2,16 @@
 # for more details.
 "context-menu":
   ".overlayer":
-      "Enable '__package-name__'": "__package-name__:toggle"
+      "Enable "__package-name__"": "__package-name__:toggle"
+
+"menu": [
+  {
+    "label": "Packages"
+    "submenu": [
+      "label": "__package-name__"
+      "submenu": [
+        { "label": "Toggle", "command": "__package-name__:toggle" }
+      ]
+    ]
+  }
+]
