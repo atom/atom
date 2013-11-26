@@ -14,7 +14,7 @@ class ContextMenuManager
     @devModeDefinitions = {}
     @activeElement = null
 
-    @devModeDefinitions['#root-view'] = [
+    @devModeDefinitions['#workspace-view'] = [
       label: 'Inspect Element'
       command: 'application:inspect'
       executeAtBuild: (e) ->
