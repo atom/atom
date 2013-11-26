@@ -6,19 +6,17 @@ class Pane extends Model
   @properties
     container: null
     items: []
-    activeItemId: null
+    activeItem: null
     widthPercent: 100
     heightPercent: 100
-
-  @relatesToOne 'activeItem', ->
-    @items.where(id: @$activeItemId)
 
   attached: ->
     @setActiveItem(@items.getFirst()) unless @activeItem?
 
   setActiveItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
-    @activeItemId = item?.id
+    @activeItem = item
+    item
 
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
