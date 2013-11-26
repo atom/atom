@@ -67,11 +67,11 @@ object.
 
 Your package's top-level module should implement the following methods:
 
-- `activate(workspaceView, state)`: This **required** method is called when your
-package is loaded. It is always passed the global `atom.workspaceView`, and is
-sometimes passed state data if the window has been reloaded and your module
-implements the `serialize` method. Use this to do initialization work when your
-package is started (like setting up DOM elements or binding events).
+- `activate(state)`: This **required** method is called when your
+package is activated. It is passed the state data from the last time the window
+was serialized if your module implements the `serialize()` method. Use this to
+do initialization work when your package is started (like setting up DOM
+elements or binding events).
 
 - `serialize()`: This **optional** method is called when the window is shutting
 down, allowing you to return JSON to represent the state of your component. When
@@ -104,7 +104,7 @@ module.exports = require "./lib/my-package"
 `my-package/my-package.coffee` might start:
 ```coffeescript
 module.exports =
-  activate: (atom.workspaceView, state) -> # ...
+  activate: (state) -> # ...
   deactivate: -> # ...
   serialize: -> # ...
 ```
