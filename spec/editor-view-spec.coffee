@@ -99,7 +99,7 @@ describe "EditorView", ->
       editorView.hiddenInput.focusout()
       expect(editorView.isFocused).toBeFalsy()
 
-  describe "when the activeEditSession's file is modified on disk", ->
+  describe "when the editor's file is modified on disk", ->
     it "triggers an alert", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
@@ -123,7 +123,7 @@ describe "EditorView", ->
   describe ".remove()", ->
     it "destroys the edit session", ->
       editorView.remove()
-      expect(editorView.activeEditSession.destroyed).toBeTruthy()
+      expect(editorView.editor.destroyed).toBeTruthy()
 
   describe ".edit(editor)", ->
     [newEditSession, newBuffer] = []
@@ -231,18 +231,18 @@ describe "EditorView", ->
         expect(editorView.scrollTop()).toBe 50
 
     it "sets the new scroll top position on the active edit session", ->
-      expect(editorView.activeEditSession.getScrollTop()).toBe 0
+      expect(editorView.editor.getScrollTop()).toBe 0
       editorView.scrollTop(123)
-      expect(editorView.activeEditSession.getScrollTop()).toBe 123
+      expect(editorView.editor.getScrollTop()).toBe 123
 
   describe ".scrollHorizontally(pixelPosition)", ->
     it "sets the new scroll left position on the active edit session", ->
       editorView.attachToDom(heightInLines: 5)
       setEditorWidthInChars(editorView, 5)
-      expect(editorView.activeEditSession.getScrollLeft()).toBe 0
+      expect(editorView.editor.getScrollLeft()).toBe 0
       editorView.scrollHorizontally(left: 50)
-      expect(editorView.activeEditSession.getScrollLeft()).toBeGreaterThan 0
-      expect(editorView.activeEditSession.getScrollLeft()).toBe editorView.scrollLeft()
+      expect(editorView.editor.getScrollLeft()).toBeGreaterThan 0
+      expect(editorView.editor.getScrollLeft()).toBe editorView.scrollLeft()
 
   describe "editor:attached event", ->
     it 'only triggers an editor:attached event when it is first added to the DOM', ->
@@ -329,7 +329,7 @@ describe "EditorView", ->
         expect(editorView.charWidth).not.toBe charWidthBefore
         expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.lineHeight, left: 6 * editorView.charWidth }
 
-        newEditor = new EditorView(editorView.activeEditSession.copy())
+        newEditor = new EditorView(editorView.editor.copy())
         newEditor.attachToDom()
         expect(newEditor.css('font-family')).toBe fontFamily
 
@@ -357,7 +357,7 @@ describe "EditorView", ->
         expect(editorView.renderedLines.outerHeight()).toBe buffer.getLineCount() * editorView.lineHeight
         expect(editorView.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editorView.lineHeight
 
-        newEditor = new EditorView(editorView.activeEditSession.copy())
+        newEditor = new EditorView(editorView.editor.copy())
         editorView.remove()
         newEditor.attachToDom()
         expect(newEditor.css('font-size')).toBe '30px'
@@ -738,7 +738,7 @@ describe "EditorView", ->
 
     describe "when a selection is added", ->
       it "adds a selection view for it with the proper regions", ->
-        editorView.activeEditSession.addSelectionForBufferRange([[2, 7], [2, 25]])
+        editorView.editor.addSelectionForBufferRange([[2, 7], [2, 25]])
         selectionViews = editorView.getSelectionViews()
         expect(selectionViews.length).toBe 2
         expect(selectionViews[1].regions.length).toBe 1
@@ -821,7 +821,7 @@ describe "EditorView", ->
 
     describe "when a selection merges with another selection", ->
       it "removes the merged selection view", ->
-        editor = editorView.activeEditSession
+        editor = editorView.editor
         editor.setCursorScreenPosition([4, 10])
         editor.selectToScreenPosition([5, 27])
         editor.addCursorAtScreenPosition([3, 10])
@@ -836,7 +836,7 @@ describe "EditorView", ->
         jasmine.unspy(editorView, 'requestDisplayUpdate')
         spyOn(editorView, 'requestDisplayUpdate')
 
-        editor = editorView.activeEditSession
+        editor = editorView.editor
         selection = editor.addSelectionForBufferRange([[3, 0], [3, 4]])
         selection.destroy()
         editorView.updateDisplay()
@@ -1109,7 +1109,7 @@ describe "EditorView", ->
         editorView.scrollLeft(editorView.charWidth * 30)
         editorView.trigger "editor:toggle-soft-wrap"
         expect(editorView.scrollLeft()).toBe 0
-        expect(editorView.activeEditSession.getSoftWrapColumn()).not.toBe 100
+        expect(editorView.editor.getSoftWrapColumn()).not.toBe 100
 
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
@@ -1464,8 +1464,8 @@ describe "EditorView", ->
       it "renders lines properly", ->
         editorView.lineOverdraw = 1
         editorView.attachToDom(heightInLines: 5)
-        editorView.activeEditSession.foldBufferRow(4)
-        editorView.activeEditSession.foldBufferRow(0)
+        editorView.editor.foldBufferRow(4)
+        editorView.editor.foldBufferRow(0)
 
         expect(editorView.renderedLines.find('.line').length).toBe 1
         expect(editorView.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
@@ -1475,7 +1475,7 @@ describe "EditorView", ->
         editorView.lineOverdraw = 1
         editorView.attachToDom(heightInLines: 5)
         editorView.scrollToBottom()
-        editorView.activeEditSession.foldBufferRow(0)
+        editorView.editor.foldBufferRow(0)
         expect(editorView.renderedLines.find('.line').length).toBe 1
         expect(editorView.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
 
@@ -1703,7 +1703,7 @@ describe "EditorView", ->
       editorView.attachToDom()
       setEditorHeightInLines(editorView, 20)
       setEditorWidthInChars(editorView, 50)
-      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 50
+      expect(editorView.editor.getSoftWrapColumn()).toBe 50
 
     it "wraps lines that are too long to fit within the editor view's width, adjusting cursor positioning accordingly", ->
       expect(editorView.renderedLines.find('.line').length).toBe 16
@@ -1771,7 +1771,7 @@ describe "EditorView", ->
       otherEditor = new EditorView(editor: atom.project.openSync('sample.js'))
       spyOn(otherEditor, 'setWidthInChars')
 
-      otherEditor.activeEditSession.setSoftWrap(true)
+      otherEditor.editor.setSoftWrap(true)
       expect(otherEditor.setWidthInChars).not.toHaveBeenCalled()
 
       otherEditor.simulateDomAttachment()
@@ -1823,7 +1823,7 @@ describe "EditorView", ->
         expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
 
       it "re-renders the correct line number range when there are folds", ->
-        editorView.activeEditSession.foldBufferRow(1)
+        editorView.editor.foldBufferRow(1)
         expect(editorView.gutter.find('.line-number-1')).toHaveClass 'fold'
 
         buffer.insert([0, 0], '\n')
@@ -2399,7 +2399,7 @@ describe "EditorView", ->
       editorView.reloadGrammar()
       expect(editorView.getGrammar().name).toBe 'JavaScript'
 
-      tokenizedBuffer = editorView.activeEditSession.displayBuffer.tokenizedBuffer
+      tokenizedBuffer = editorView.editor.displayBuffer.tokenizedBuffer
       line0 = tokenizedBuffer.lineForScreenRow(0)
       expect(line0.tokens.length).toBe 3
       expect(line0.tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
@@ -2751,11 +2751,11 @@ describe "EditorView", ->
       testEventHandler = jasmine.createSpy("testEventHandler")
 
       editorView.on 'test-event', testEventHandler
-      editorView.activeEditSession.addSelectionForBufferRange([[3, 0], [3, 0]])
-      expect(editorView.activeEditSession.getSelections().length).toBe 2
+      editorView.editor.addSelectionForBufferRange([[3, 0], [3, 0]])
+      expect(editorView.editor.getSelections().length).toBe 2
 
       editorView.trigger(keydownEvent('escape'))
-      expect(editorView.activeEditSession.getSelections().length).toBe 1
+      expect(editorView.editor.getSelections().length).toBe 1
       expect(testEventHandler).not.toHaveBeenCalled()
 
       editorView.trigger(keydownEvent('escape'))
@@ -2843,7 +2843,7 @@ describe "EditorView", ->
     it "updates the active edit session with the current soft wrap column", ->
       editorView.attachToDom()
       setEditorWidthInChars(editorView, 50)
-      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 50
+      expect(editorView.editor.getSoftWrapColumn()).toBe 50
       setEditorWidthInChars(editorView, 100)
       $(window).trigger 'resize'
-      expect(editorView.activeEditSession.getSoftWrapColumn()).toBe 100
+      expect(editorView.editor.getSoftWrapColumn()).toBe 100

@@ -64,7 +64,7 @@ class EditorView extends View
   selectionViews: null
   lineCache: null
   isFocused: false
-  activeEditSession: null
+  editor: null
   attached: false
   lineOverdraw: 10
   pendingChanges: null
@@ -217,294 +217,294 @@ class EditorView extends View
         @command name, (e) => method.call(this, e); false
 
   # {Delegates to: Editor.getCursor}
-  getCursor: -> @activeEditSession.getCursor()
+  getCursor: -> @editor.getCursor()
 
   # {Delegates to: Editor.getCursors}
-  getCursors: -> @activeEditSession.getCursors()
+  getCursors: -> @editor.getCursors()
 
   # {Delegates to: Editor.addCursorAtScreenPosition}
-  addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
+  addCursorAtScreenPosition: (screenPosition) -> @editor.addCursorAtScreenPosition(screenPosition)
 
   # {Delegates to: Editor.addCursorAtBufferPosition}
-  addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
+  addCursorAtBufferPosition: (bufferPosition) -> @editor.addCursorAtBufferPosition(bufferPosition)
 
   # {Delegates to: Editor.moveCursorUp}
-  moveCursorUp: -> @activeEditSession.moveCursorUp()
+  moveCursorUp: -> @editor.moveCursorUp()
 
   # {Delegates to: Editor.moveCursorDown}
-  moveCursorDown: -> @activeEditSession.moveCursorDown()
+  moveCursorDown: -> @editor.moveCursorDown()
 
   # {Delegates to: Editor.moveCursorLeft}
-  moveCursorLeft: -> @activeEditSession.moveCursorLeft()
+  moveCursorLeft: -> @editor.moveCursorLeft()
 
   # {Delegates to: Editor.moveCursorRight}
-  moveCursorRight: -> @activeEditSession.moveCursorRight()
+  moveCursorRight: -> @editor.moveCursorRight()
 
   # {Delegates to: Editor.moveCursorToBeginningOfWord}
-  moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
+  moveCursorToBeginningOfWord: -> @editor.moveCursorToBeginningOfWord()
 
   # {Delegates to: Editor.moveCursorToEndOfWord}
-  moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
+  moveCursorToEndOfWord: -> @editor.moveCursorToEndOfWord()
 
   # {Delegates to: Editor.moveCursorToBeginningOfNextWord}
-  moveCursorToBeginningOfNextWord: -> @activeEditSession.moveCursorToBeginningOfNextWord()
+  moveCursorToBeginningOfNextWord: -> @editor.moveCursorToBeginningOfNextWord()
 
   # {Delegates to: Editor.moveCursorToTop}
-  moveCursorToTop: -> @activeEditSession.moveCursorToTop()
+  moveCursorToTop: -> @editor.moveCursorToTop()
 
   # {Delegates to: Editor.moveCursorToBottom}
-  moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
+  moveCursorToBottom: -> @editor.moveCursorToBottom()
 
   # {Delegates to: Editor.moveCursorToBeginningOfLine}
-  moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
+  moveCursorToBeginningOfLine: -> @editor.moveCursorToBeginningOfLine()
 
   # {Delegates to: Editor.moveCursorToFirstCharacterOfLine}
-  moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+  moveCursorToFirstCharacterOfLine: -> @editor.moveCursorToFirstCharacterOfLine()
 
   # {Delegates to: Editor.moveCursorToPreviousWordBoundary}
-  moveCursorToPreviousWordBoundary: -> @activeEditSession.moveCursorToPreviousWordBoundary()
+  moveCursorToPreviousWordBoundary: -> @editor.moveCursorToPreviousWordBoundary()
 
   # {Delegates to: Editor.moveCursorToNextWordBoundary}
-  moveCursorToNextWordBoundary: -> @activeEditSession.moveCursorToNextWordBoundary()
+  moveCursorToNextWordBoundary: -> @editor.moveCursorToNextWordBoundary()
 
   # {Delegates to: Editor.moveCursorToEndOfLine}
-  moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  moveCursorToEndOfLine: -> @editor.moveCursorToEndOfLine()
 
   # {Delegates to: Editor.moveLineUp}
-  moveLineUp: -> @activeEditSession.moveLineUp()
+  moveLineUp: -> @editor.moveLineUp()
 
   # {Delegates to: Editor.moveLineDown}
-  moveLineDown: -> @activeEditSession.moveLineDown()
+  moveLineDown: -> @editor.moveLineDown()
 
   # {Delegates to: Editor.setCursorScreenPosition}
-  setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
+  setCursorScreenPosition: (position, options) -> @editor.setCursorScreenPosition(position, options)
 
   # {Delegates to: Editor.duplicateLine}
-  duplicateLine: -> @activeEditSession.duplicateLine()
+  duplicateLine: -> @editor.duplicateLine()
 
   # {Delegates to: Editor.joinLine}
-  joinLine: -> @activeEditSession.joinLine()
+  joinLine: -> @editor.joinLine()
 
   # {Delegates to: Editor.getCursorScreenPosition}
-  getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
+  getCursorScreenPosition: -> @editor.getCursorScreenPosition()
 
   # {Delegates to: Editor.getCursorScreenRow}
-  getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
+  getCursorScreenRow: -> @editor.getCursorScreenRow()
 
   # {Delegates to: Editor.setCursorBufferPosition}
-  setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
+  setCursorBufferPosition: (position, options) -> @editor.setCursorBufferPosition(position, options)
 
   # {Delegates to: Editor.getCursorBufferPosition}
-  getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
+  getCursorBufferPosition: -> @editor.getCursorBufferPosition()
 
   # {Delegates to: Editor.getCurrentParagraphBufferRange}
-  getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
+  getCurrentParagraphBufferRange: -> @editor.getCurrentParagraphBufferRange()
 
   # {Delegates to: Editor.getWordUnderCursor}
-  getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
+  getWordUnderCursor: (options) -> @editor.getWordUnderCursor(options)
 
   # {Delegates to: Editor.getSelection}
-  getSelection: (index) -> @activeEditSession.getSelection(index)
+  getSelection: (index) -> @editor.getSelection(index)
 
   # {Delegates to: Editor.getSelections}
-  getSelections: -> @activeEditSession.getSelections()
+  getSelections: -> @editor.getSelections()
 
   # {Delegates to: Editor.getSelectionsOrderedByBufferPosition}
-  getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
+  getSelectionsOrderedByBufferPosition: -> @editor.getSelectionsOrderedByBufferPosition()
 
   # {Delegates to: Editor.getLastSelectionInBuffer}
-  getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
+  getLastSelectionInBuffer: -> @editor.getLastSelectionInBuffer()
 
   # {Delegates to: Editor.getSelectedText}
-  getSelectedText: -> @activeEditSession.getSelectedText()
+  getSelectedText: -> @editor.getSelectedText()
 
   # {Delegates to: Editor.getSelectedBufferRanges}
-  getSelectedBufferRanges: -> @activeEditSession.getSelectedBufferRanges()
+  getSelectedBufferRanges: -> @editor.getSelectedBufferRanges()
 
   # {Delegates to: Editor.getSelectedBufferRange}
-  getSelectedBufferRange: -> @activeEditSession.getSelectedBufferRange()
+  getSelectedBufferRange: -> @editor.getSelectedBufferRange()
 
   # {Delegates to: Editor.setSelectedBufferRange}
-  setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
+  setSelectedBufferRange: (bufferRange, options) -> @editor.setSelectedBufferRange(bufferRange, options)
 
   # {Delegates to: Editor.setSelectedBufferRanges}
-  setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
+  setSelectedBufferRanges: (bufferRanges, options) -> @editor.setSelectedBufferRanges(bufferRanges, options)
 
   # {Delegates to: Editor.addSelectionForBufferRange}
-  addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
+  addSelectionForBufferRange: (bufferRange, options) -> @editor.addSelectionForBufferRange(bufferRange, options)
 
   # {Delegates to: Editor.selectRight}
-  selectRight: -> @activeEditSession.selectRight()
+  selectRight: -> @editor.selectRight()
 
   # {Delegates to: Editor.selectLeft}
-  selectLeft: -> @activeEditSession.selectLeft()
+  selectLeft: -> @editor.selectLeft()
 
   # {Delegates to: Editor.selectUp}
-  selectUp: -> @activeEditSession.selectUp()
+  selectUp: -> @editor.selectUp()
 
   # {Delegates to: Editor.selectDown}
-  selectDown: -> @activeEditSession.selectDown()
+  selectDown: -> @editor.selectDown()
 
   # {Delegates to: Editor.selectToTop}
-  selectToTop: -> @activeEditSession.selectToTop()
+  selectToTop: -> @editor.selectToTop()
 
   # {Delegates to: Editor.selectToBottom}
-  selectToBottom: -> @activeEditSession.selectToBottom()
+  selectToBottom: -> @editor.selectToBottom()
 
   # {Delegates to: Editor.selectAll}
-  selectAll: -> @activeEditSession.selectAll()
+  selectAll: -> @editor.selectAll()
 
   # {Delegates to: Editor.selectToBeginningOfLine}
-  selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+  selectToBeginningOfLine: -> @editor.selectToBeginningOfLine()
 
   # {Delegates to: Editor.selectToFirstCharacterOfLine}
-  selectToFirstCharacterOfLine: -> @activeEditSession.selectToFirstCharacterOfLine()
+  selectToFirstCharacterOfLine: -> @editor.selectToFirstCharacterOfLine()
 
   # {Delegates to: Editor.selectToEndOfLine}
-  selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  selectToEndOfLine: -> @editor.selectToEndOfLine()
 
   # {Delegates to: Editor.selectToPreviousWordBoundary}
-  selectToPreviousWordBoundary: -> @activeEditSession.selectToPreviousWordBoundary()
+  selectToPreviousWordBoundary: -> @editor.selectToPreviousWordBoundary()
 
   # {Delegates to: Editor.selectToNextWordBoundary}
-  selectToNextWordBoundary: -> @activeEditSession.selectToNextWordBoundary()
+  selectToNextWordBoundary: -> @editor.selectToNextWordBoundary()
 
   # {Delegates to: Editor.addSelectionBelow}
-  addSelectionBelow: -> @activeEditSession.addSelectionBelow()
+  addSelectionBelow: -> @editor.addSelectionBelow()
 
   # {Delegates to: Editor.addSelectionAbove}
-  addSelectionAbove: -> @activeEditSession.addSelectionAbove()
+  addSelectionAbove: -> @editor.addSelectionAbove()
 
   # {Delegates to: Editor.selectToBeginningOfWord}
-  selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  selectToBeginningOfWord: -> @editor.selectToBeginningOfWord()
 
   # {Delegates to: Editor.selectToEndOfWord}
-  selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  selectToEndOfWord: -> @editor.selectToEndOfWord()
 
   # {Delegates to: Editor.selectToBeginningOfNextWord}
-  selectToBeginningOfNextWord: -> @activeEditSession.selectToBeginningOfNextWord()
+  selectToBeginningOfNextWord: -> @editor.selectToBeginningOfNextWord()
 
   # {Delegates to: Editor.selectWord}
-  selectWord: -> @activeEditSession.selectWord()
+  selectWord: -> @editor.selectWord()
 
   # {Delegates to: Editor.selectLine}
-  selectLine: -> @activeEditSession.selectLine()
+  selectLine: -> @editor.selectLine()
 
   # {Delegates to: Editor.selectToScreenPosition}
-  selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  selectToScreenPosition: (position) -> @editor.selectToScreenPosition(position)
 
   # {Delegates to: Editor.transpose}
-  transpose: -> @activeEditSession.transpose()
+  transpose: -> @editor.transpose()
 
   # {Delegates to: Editor.upperCase}
-  upperCase: -> @activeEditSession.upperCase()
+  upperCase: -> @editor.upperCase()
 
   # {Delegates to: Editor.lowerCase}
-  lowerCase: -> @activeEditSession.lowerCase()
+  lowerCase: -> @editor.lowerCase()
 
   # {Delegates to: Editor.clearSelections}
-  clearSelections: -> @activeEditSession.clearSelections()
+  clearSelections: -> @editor.clearSelections()
 
   # {Delegates to: Editor.backspace}
-  backspace: -> @activeEditSession.backspace()
+  backspace: -> @editor.backspace()
 
   # {Delegates to: Editor.backspaceToBeginningOfWord}
-  backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  backspaceToBeginningOfWord: -> @editor.backspaceToBeginningOfWord()
 
   # {Delegates to: Editor.backspaceToBeginningOfLine}
-  backspaceToBeginningOfLine: -> @activeEditSession.backspaceToBeginningOfLine()
+  backspaceToBeginningOfLine: -> @editor.backspaceToBeginningOfLine()
 
   # {Delegates to: Editor.delete}
-  delete: -> @activeEditSession.delete()
+  delete: -> @editor.delete()
 
   # {Delegates to: Editor.deleteToEndOfWord}
-  deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  deleteToEndOfWord: -> @editor.deleteToEndOfWord()
 
   # {Delegates to: Editor.deleteLine}
-  deleteLine: -> @activeEditSession.deleteLine()
+  deleteLine: -> @editor.deleteLine()
 
   # {Delegates to: Editor.cutToEndOfLine}
-  cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
+  cutToEndOfLine: -> @editor.cutToEndOfLine()
 
   # {Delegates to: Editor.insertText}
-  insertText: (text, options) -> @activeEditSession.insertText(text, options)
+  insertText: (text, options) -> @editor.insertText(text, options)
 
   # {Delegates to: Editor.insertNewline}
-  insertNewline: -> @activeEditSession.insertNewline()
+  insertNewline: -> @editor.insertNewline()
 
   # {Delegates to: Editor.insertNewlineBelow}
-  insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertNewlineBelow: -> @editor.insertNewlineBelow()
 
   # {Delegates to: Editor.insertNewlineAbove}
-  insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
+  insertNewlineAbove: -> @editor.insertNewlineAbove()
 
   # {Delegates to: Editor.indent}
-  indent: (options) -> @activeEditSession.indent(options)
+  indent: (options) -> @editor.indent(options)
 
   # {Delegates to: Editor.autoIndentSelectedRows}
-  autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows()
+  autoIndent: (options) -> @editor.autoIndentSelectedRows()
 
   # {Delegates to: Editor.indentSelectedRows}
-  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  indentSelectedRows: -> @editor.indentSelectedRows()
 
   # {Delegates to: Editor.outdentSelectedRows}
-  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
+  outdentSelectedRows: -> @editor.outdentSelectedRows()
 
   # {Delegates to: Editor.cutSelectedText}
-  cutSelection: -> @activeEditSession.cutSelectedText()
+  cutSelection: -> @editor.cutSelectedText()
 
   # {Delegates to: Editor.copySelectedText}
-  copySelection: -> @activeEditSession.copySelectedText()
+  copySelection: -> @editor.copySelectedText()
 
   # {Delegates to: Editor.pasteText}
-  paste: (options) -> @activeEditSession.pasteText(options)
+  paste: (options) -> @editor.pasteText(options)
 
   # {Delegates to: Editor.undo}
-  undo: -> @activeEditSession.undo()
+  undo: -> @editor.undo()
 
   # {Delegates to: Editor.redo}
-  redo: -> @activeEditSession.redo()
+  redo: -> @editor.redo()
 
   # {Delegates to: Editor.createFold}
-  createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  createFold: (startRow, endRow) -> @editor.createFold(startRow, endRow)
 
   # {Delegates to: Editor.foldCurrentRow}
-  foldCurrentRow: -> @activeEditSession.foldCurrentRow()
+  foldCurrentRow: -> @editor.foldCurrentRow()
 
   # {Delegates to: Editor.unfoldCurrentRow}
-  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
+  unfoldCurrentRow: -> @editor.unfoldCurrentRow()
 
   # {Delegates to: Editor.foldAll}
-  foldAll: -> @activeEditSession.foldAll()
+  foldAll: -> @editor.foldAll()
 
   # {Delegates to: Editor.unfoldAll}
-  unfoldAll: -> @activeEditSession.unfoldAll()
+  unfoldAll: -> @editor.unfoldAll()
 
   # {Delegates to: Editor.foldSelection}
-  foldSelection: -> @activeEditSession.foldSelection()
+  foldSelection: -> @editor.foldSelection()
 
   # {Delegates to: Editor.destroyFoldsContainingBufferRow}
-  destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
+  destroyFoldsContainingBufferRow: (bufferRow) -> @editor.destroyFoldsContainingBufferRow(bufferRow)
 
   # {Delegates to: Editor.isFoldedAtScreenRow}
-  isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
+  isFoldedAtScreenRow: (screenRow) -> @editor.isFoldedAtScreenRow(screenRow)
 
   # {Delegates to: Editor.isFoldedAtBufferRow}
-  isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
+  isFoldedAtBufferRow: (bufferRow) -> @editor.isFoldedAtBufferRow(bufferRow)
 
   # {Delegates to: Editor.isFoldedAtCursorRow}
-  isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
+  isFoldedAtCursorRow: -> @editor.isFoldedAtCursorRow()
 
-  foldAllAtIndentLevel: (indentLevel) -> @activeEditSession.foldAllAtIndentLevel(indentLevel)
+  foldAllAtIndentLevel: (indentLevel) -> @editor.foldAllAtIndentLevel(indentLevel)
 
   # {Delegates to: Editor.lineForScreenRow}
-  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
+  lineForScreenRow: (screenRow) -> @editor.lineForScreenRow(screenRow)
 
   # {Delegates to: Editor.linesForScreenRows}
-  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
+  linesForScreenRows: (start, end) -> @editor.linesForScreenRows(start, end)
 
   # {Delegates to: Editor.getScreenLineCount}
-  getScreenLineCount: -> @activeEditSession.getScreenLineCount()
+  getScreenLineCount: -> @editor.getScreenLineCount()
 
   # Private:
   setHeightInLines: (heightInLines)->
@@ -514,42 +514,42 @@ class EditorView extends View
   # {Delegates to: Editor.setEditorWidthInChars}
   setWidthInChars: (widthInChars) ->
     widthInChars ?= @calculateWidthInChars()
-    @activeEditSession.setEditorWidthInChars(widthInChars) if widthInChars
+    @editor.setEditorWidthInChars(widthInChars) if widthInChars
 
   # {Delegates to: Editor.getMaxScreenLineLength}
-  getMaxScreenLineLength: -> @activeEditSession.getMaxScreenLineLength()
+  getMaxScreenLineLength: -> @editor.getMaxScreenLineLength()
 
   # {Delegates to: Editor.getLastScreenRow}
-  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
+  getLastScreenRow: -> @editor.getLastScreenRow()
 
   # {Delegates to: Editor.clipScreenPosition}
-  clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
+  clipScreenPosition: (screenPosition, options={}) -> @editor.clipScreenPosition(screenPosition, options)
 
   # {Delegates to: Editor.screenPositionForBufferPosition}
-  screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
+  screenPositionForBufferPosition: (position, options) -> @editor.screenPositionForBufferPosition(position, options)
 
   # {Delegates to: Editor.bufferPositionForScreenPosition}
-  bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
+  bufferPositionForScreenPosition: (position, options) -> @editor.bufferPositionForScreenPosition(position, options)
 
   # {Delegates to: Editor.screenRangeForBufferRange}
-  screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
+  screenRangeForBufferRange: (range) -> @editor.screenRangeForBufferRange(range)
 
   # {Delegates to: Editor.bufferRangeForScreenRange}
-  bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
+  bufferRangeForScreenRange: (range) -> @editor.bufferRangeForScreenRange(range)
 
   # {Delegates to: Editor.bufferRowsForScreenRows}
-  bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
+  bufferRowsForScreenRows: (startRow, endRow) -> @editor.bufferRowsForScreenRows(startRow, endRow)
 
   # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight
-    @activeEditSession.moveCursorDown(@getPageRows())
+    @editor.moveCursorDown(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
   # Public: Emulates the "page up" key, where the frst row of a buffer scrolls to become the last.
   pageUp: ->
     newScrollTop = @scrollTop() - @scrollView[0].clientHeight
-    @activeEditSession.moveCursorUp(@getPageRows())
+    @editor.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
   # Gets the number of actual page rows existing in an editor.
@@ -603,13 +603,13 @@ class EditorView extends View
       atom.project.getRepo()?.checkoutHead(path)
 
   # {Delegates to: Editor.setText}
-  setText: (text) -> @activeEditSession.setText(text)
+  setText: (text) -> @editor.setText(text)
 
   # {Delegates to: Editor.getText}
-  getText: -> @activeEditSession.getText()
+  getText: -> @editor.getText()
 
   # {Delegates to: Editor.getPath}
-  getPath: -> @activeEditSession?.getPath()
+  getPath: -> @editor?.getPath()
 
   #  {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
@@ -677,9 +677,9 @@ class EditorView extends View
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
       id = $(e.currentTarget).attr('fold-id')
-      marker = @activeEditSession.displayBuffer.getMarker(id)
-      @activeEditSession.setCursorBufferPosition(marker.getBufferRange().start)
-      @activeEditSession.destroyFoldWithId(id)
+      marker = @editor.displayBuffer.getMarker(id)
+      @editor.setCursorBufferPosition(marker.getBufferRange().start)
+      @editor.destroyFoldWithId(id)
       false
 
     @renderedLines.on 'mousedown', (e) =>
@@ -694,9 +694,9 @@ class EditorView extends View
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
-        @activeEditSession.selectWord() unless e.shiftKey
+        @editor.selectWord() unless e.shiftKey
       else if clickCount == 3
-        @activeEditSession.selectLine() unless e.shiftKey
+        @editor.selectLine() unless e.shiftKey
 
       @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
@@ -770,8 +770,8 @@ class EditorView extends View
     $(document).one "mouseup.editor-#{@id}", =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
-      @activeEditSession.mergeIntersectingSelections(isReversed: @activeEditSession.getLastSelection().isReversed())
-      @activeEditSession.finalizeSelections()
+      @editor.mergeIntersectingSelections(isReversed: @editor.getLastSelection().isReversed())
+      @editor.finalizeSelections()
       @syncCursorAnimations()
 
   afterAttach: (onDom) ->
@@ -800,53 +800,53 @@ class EditorView extends View
     @trigger 'editor:attached', [this]
 
   edit: (editor) ->
-    return if editor is @activeEditSession
+    return if editor is @editor
 
-    if @activeEditSession
-      @saveScrollPositionForActiveEditSession()
-      @activeEditSession.off(".editor")
+    if @editor
+      @saveScrollPositionForeditor()
+      @editor.off(".editor")
 
-    @activeEditSession = editor
+    @editor = editor
 
-    return unless @activeEditSession?
+    return unless @editor?
 
-    @activeEditSession.setVisible(true)
+    @editor.setVisible(true)
 
-    @activeEditSession.on "contents-conflicted.editor", =>
-      @showBufferConflictAlert(@activeEditSession)
+    @editor.on "contents-conflicted.editor", =>
+      @showBufferConflictAlert(@editor)
 
-    @activeEditSession.on "path-changed.editor", =>
+    @editor.on "path-changed.editor", =>
       @reloadGrammar()
       @trigger 'editor:path-changed'
 
-    @activeEditSession.on "grammar-changed.editor", =>
+    @editor.on "grammar-changed.editor", =>
       @trigger 'editor:grammar-changed'
 
-    @activeEditSession.on 'selection-added.editor', (selection) =>
+    @editor.on 'selection-added.editor', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @activeEditSession.on 'screen-lines-changed.editor', (e) =>
+    @editor.on 'screen-lines-changed.editor', (e) =>
       @handleScreenLinesChange(e)
 
-    @activeEditSession.on 'scroll-top-changed.editor', (scrollTop) =>
+    @editor.on 'scroll-top-changed.editor', (scrollTop) =>
       @scrollTop(scrollTop)
 
-    @activeEditSession.on 'scroll-left-changed.editor', (scrollLeft) =>
+    @editor.on 'scroll-left-changed.editor', (scrollLeft) =>
       @scrollLeft(scrollLeft)
 
-    @activeEditSession.on 'soft-wrap-changed.editor', (softWrap) =>
+    @editor.on 'soft-wrap-changed.editor', (softWrap) =>
       @setSoftWrap(softWrap)
 
     @trigger 'editor:path-changed'
     @resetDisplay()
 
-    if @attached and @activeEditSession.buffer.isInConflict()
-      _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editor has a chance to display
+    if @attached and @editor.buffer.isInConflict()
+      _.defer => @showBufferConflictAlert(@editor) # Display after editor has a chance to display
 
   getModel: ->
-    @activeEditSession
+    @editor
 
   setModel: (editor) ->
     @edit(editor)
@@ -875,7 +875,7 @@ class EditorView extends View
 
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
-    @activeEditSession.setScrollTop(@scrollTop())
+    @editor.setScrollTop(@scrollTop())
 
   scrollBottom: (scrollBottom) ->
     if scrollBottom?
@@ -886,14 +886,14 @@ class EditorView extends View
   scrollLeft: (scrollLeft) ->
     if scrollLeft?
       @scrollView.scrollLeft(scrollLeft)
-      @activeEditSession.setScrollLeft(@scrollLeft())
+      @editor.setScrollLeft(@scrollLeft())
     else
       @scrollView.scrollLeft()
 
   scrollRight: (scrollRight) ->
     if scrollRight?
       @scrollView.scrollRight(scrollRight)
-      @activeEditSession.setScrollLeft(@scrollLeft())
+      @editor.setScrollLeft(@scrollLeft())
     else
       @scrollView.scrollRight()
 
@@ -902,7 +902,7 @@ class EditorView extends View
   # Retrieves the {Editor}'s buffer.
   #
   # Returns the current {TextBuffer}.
-  getBuffer: -> @activeEditSession.buffer
+  getBuffer: -> @editor.buffer
 
   # Scrolls the editor to the bottom.
   scrollToBottom: ->
@@ -959,19 +959,19 @@ class EditorView extends View
         else
           element.removeClass('fold-selected')
 
-  saveScrollPositionForActiveEditSession: ->
+  saveScrollPositionForeditor: ->
     if @attached
-      @activeEditSession.setScrollTop(@scrollTop())
-      @activeEditSession.setScrollLeft(@scrollLeft())
+      @editor.setScrollTop(@scrollTop())
+      @editor.setScrollLeft(@scrollLeft())
 
   # Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
-    @activeEditSession.setSoftTabs(not @activeEditSession.getSoftTabs())
+    @editor.setSoftTabs(not @editor.getSoftTabs())
 
   # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
     @setWidthInChars()
-    @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
+    @editor.setSoftWrap(not @editor.getSoftWrap())
 
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
@@ -1063,7 +1063,7 @@ class EditorView extends View
   beforeRemove: ->
     @trigger 'editor:will-be-removed'
     @removed = true
-    @activeEditSession?.destroy()
+    @editor?.destroy()
     $(window).off(".editor-#{@id}")
     $(document).off(".editor-#{@id}")
 
@@ -1131,7 +1131,7 @@ class EditorView extends View
 
   # Scrolls the editor horizontally to a given position.
   scrollHorizontally: (pixelPosition) ->
-    return if @activeEditSession.getSoftWrap()
+    return if @editor.getSoftWrap()
 
     charsInView = @scrollView.width() / @charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
@@ -1144,7 +1144,7 @@ class EditorView extends View
       @scrollRight(desiredRight)
     else if desiredLeft < @scrollLeft()
       @scrollLeft(desiredLeft)
-    @saveScrollPositionForActiveEditSession()
+    @saveScrollPositionForeditor()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -1194,14 +1194,14 @@ class EditorView extends View
 
     @clearRenderedLines()
     @removeAllCursorAndSelectionViews()
-    editorScrollTop = @activeEditSession.getScrollTop() ? 0
-    editorScrollLeft = @activeEditSession.getScrollLeft() ? 0
+    editorScrollTop = @editor.getScrollTop() ? 0
+    editorScrollLeft = @editor.getScrollLeft() ? 0
     @updateLayerDimensions()
     @scrollTop(editorScrollTop)
     @scrollLeft(editorScrollLeft)
-    @setSoftWrap(@activeEditSession.getSoftWrap())
-    @newCursors = @activeEditSession.getAllCursors()
-    @newSelections = @activeEditSession.getAllSelections()
+    @setSoftWrap(@editor.getSoftWrap())
+    @newCursors = @editor.getAllCursors()
+    @newSelections = @editor.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)
 
   requestDisplayUpdate: ->
@@ -1213,8 +1213,8 @@ class EditorView extends View
       @pendingDisplayUpdate = false
 
   updateDisplay: (options={}) ->
-    return unless @attached and @activeEditSession
-    return if @activeEditSession.destroyed
+    return unless @attached and @editor
+    return if @editor.destroyed
     unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
@@ -1488,7 +1488,7 @@ class EditorView extends View
   htmlForScreenRows: (startRow, endRow) ->
     htmlLines = ''
     screenRow = startRow
-    for line in @activeEditSession.linesForScreenRows(startRow, endRow)
+    for line in @editor.linesForScreenRows(startRow, endRow)
       htmlLines += @htmlForScreenLine(line, screenRow++)
     htmlLines
 
@@ -1503,36 +1503,36 @@ class EditorView extends View
     eolInvisibles = @getEndOfLineInvisibles(screenLine)
     htmlEolInvisibles = @buildHtmlEndOfLineInvisibles(screenLine)
 
-    indentation = EditorView.buildIndentation(screenRow, @activeEditSession)
+    indentation = EditorView.buildIndentation(screenRow, @editor)
 
-    EditorView.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, @showIndentGuide, indentation, @activeEditSession, @mini})
+    EditorView.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, @showIndentGuide, indentation, @editor, @mini})
 
-  @buildIndentation: (screenRow, activeEditSession) ->
-    bufferRow = activeEditSession.bufferPositionForScreenPosition([screenRow]).row
-    bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+  @buildIndentation: (screenRow, editor) ->
+    bufferRow = editor.bufferPositionForScreenPosition([screenRow]).row
+    bufferLine = editor.lineForBufferRow(bufferRow)
     if bufferLine is ''
       indentation = 0
       nextRow = screenRow + 1
-      while nextRow < activeEditSession.getBuffer().getLineCount()
-        bufferRow = activeEditSession.bufferPositionForScreenPosition([nextRow]).row
-        bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+      while nextRow < editor.getBuffer().getLineCount()
+        bufferRow = editor.bufferPositionForScreenPosition([nextRow]).row
+        bufferLine = editor.lineForBufferRow(bufferRow)
         if bufferLine isnt ''
-          indentation = Math.ceil(activeEditSession.indentLevelForLine(bufferLine))
+          indentation = Math.ceil(editor.indentLevelForLine(bufferLine))
           break
         nextRow++
 
       previousRow = screenRow - 1
       while previousRow >= 0
-        bufferRow = activeEditSession.bufferPositionForScreenPosition([previousRow]).row
-        bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+        bufferRow = editor.bufferPositionForScreenPosition([previousRow]).row
+        bufferLine = editor.lineForBufferRow(bufferRow)
         if bufferLine isnt ''
-          indentation = Math.max(indentation, Math.ceil(activeEditSession.indentLevelForLine(bufferLine)))
+          indentation = Math.max(indentation, Math.ceil(editor.indentLevelForLine(bufferLine)))
           break
         previousRow--
 
       indentation
     else
-      Math.ceil(activeEditSession.indentLevelForLine(bufferLine))
+      Math.ceil(editor.indentLevelForLine(bufferLine))
 
   buildHtmlEndOfLineInvisibles: (screenLine) ->
     invisibles = []
@@ -1553,7 +1553,7 @@ class EditorView extends View
     @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
   toggleLineCommentsInSelection: ->
-    @activeEditSession.toggleLineCommentsInSelection()
+    @editor.toggleLineCommentsInSelection()
 
   ### Public ###
 
@@ -1590,7 +1590,7 @@ class EditorView extends View
     return 0 if column == 0
 
     bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
-    tokenizedLine = @activeEditSession.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
 
     left = 0
     index = 0
@@ -1726,20 +1726,20 @@ class EditorView extends View
 
   # {Delegates to: Editor.getGrammar}
   getGrammar: ->
-    @activeEditSession.getGrammar()
+    @editor.getGrammar()
 
   # {Delegates to: Editor.setGrammar}
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
-    @activeEditSession.setGrammar(grammar)
+    @editor.setGrammar(grammar)
 
   # {Delegates to: Editor.reloadGrammar}
   reloadGrammar: ->
-    @activeEditSession.reloadGrammar()
+    @editor.reloadGrammar()
 
   # {Delegates to: Editor.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) ->
-    @activeEditSession.scopesForBufferPosition(bufferPosition)
+    @editor.scopesForBufferPosition(bufferPosition)
 
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->
@@ -1748,7 +1748,7 @@ class EditorView extends View
 
   ### Internal ###
 
-  @buildLineHtml: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, showIndentGuide, indentation, activeEditSession, mini}) ->
+  @buildLineHtml: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, showIndentGuide, indentation, editor, mini}) ->
     scopeStack = []
     line = []
 
@@ -1757,7 +1757,7 @@ class EditorView extends View
     line.push("<div #{attributePairs}>")
 
     if text == ''
-      html = EditorView.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini)
+      html = EditorView.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)
@@ -1803,11 +1803,11 @@ class EditorView extends View
     scopeStack.pop()
     line.push("</span>")
 
-  @buildEmptyLineHtml: (showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, activeEditSession, mini) ->
+  @buildEmptyLineHtml: (showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini) ->
     indentCharIndex = 0
     if not mini and showIndentGuide
       if indentation > 0
-        tabLength = activeEditSession.getTabLength()
+        tabLength = editor.getTabLength()
         indentGuideHtml = ''
         for level in [0...indentation]
           indentLevelHtml = "<span class='indent-guide'>"
@@ -1839,15 +1839,15 @@ class EditorView extends View
     @insertText(text, select: true)
     true
 
-  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @editor.consolidateSelections()
 
   logCursorScope: ->
-    console.log @activeEditSession.getCursorScopes()
+    console.log @editor.getCursorScopes()
 
-  transact: (fn) -> @activeEditSession.transact(fn)
-  beginTransaction: -> @activeEditSession.beginTransaction()
-  commitTransaction: -> @activeEditSession.commitTransaction()
-  abortTransaction: -> @activeEditSession.abortTransaction()
+  transact: (fn) -> @editor.transact(fn)
+  beginTransaction: -> @editor.beginTransaction()
+  commitTransaction: -> @editor.commitTransaction()
+  abortTransaction: -> @editor.abortTransaction()
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
@@ -1857,7 +1857,7 @@ class EditorView extends View
     [
       "Debug Snapshot: #{@getPath()}"
       @getRenderedLinesDebugSnapshot()
-      @activeEditSession.getDebugSnapshot()
+      @editor.getDebugSnapshot()
       @getBuffer().getDebugSnapshot()
     ].join('\n\n')
 
@@ -1869,7 +1869,7 @@ class EditorView extends View
     lines.join('\n')
 
   logScreenLines: (start, end) ->
-    @activeEditSession.logScreenLines(start, end)
+    @editor.logScreenLines(start, end)
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->
