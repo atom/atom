@@ -526,32 +526,3 @@ describe "WorkspaceView", ->
       subscription.off()
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
-
-  describe ".eachBuffer(callback)", ->
-    beforeEach ->
-      atom.workspaceView.attachToDom()
-
-    it "invokes the callback for existing buffer", ->
-      count = 0
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-      atom.workspaceView.eachBuffer(callback)
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()
-
-    it "invokes the callback for new buffer", ->
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-
-      atom.workspaceView.eachBuffer(callback)
-      count = 0
-      callbackBuffer = null
-      atom.workspaceView.openSync(require.resolve('./fixtures/sample.txt'))
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()

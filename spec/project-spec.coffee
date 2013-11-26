@@ -545,3 +545,32 @@ describe "Project", ->
           resultForA = _.find results, ({filePath}) -> path.basename(filePath) == 'a'
           expect(resultForA.matches).toHaveLength 1
           expect(resultForA.matches[0].matchText).toBe 'Elephant'
+
+  describe ".eachBuffer(callback)", ->
+    beforeEach ->
+      atom.project.bufferForPathSync('a')
+
+    it "invokes the callback for existing buffer", ->
+      count = 0
+      count = 0
+      callbackBuffer = null
+      callback = (buffer) ->
+        callbackBuffer = buffer
+        count++
+      atom.project.eachBuffer(callback)
+      expect(count).toBe 1
+      expect(callbackBuffer).toBe atom.project.getBuffers()[0]
+
+    it "invokes the callback for new buffers", ->
+      count = 0
+      callbackBuffer = null
+      callback = (buffer) ->
+        callbackBuffer = buffer
+        count++
+
+      atom.project.eachBuffer(callback)
+      count = 0
+      callbackBuffer = null
+      atom.project.bufferForPathSync(require.resolve('./fixtures/sample.txt'))
+      expect(count).toBe 1
+      expect(callbackBuffer).toBe atom.project.getBuffers()[1]
