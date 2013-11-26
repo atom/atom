@@ -8,11 +8,11 @@ view objects inherit from the jQuery prototype, and wrap DOM nodes
 View objects are actually jQuery wrappers around DOM fragments, supporting all
 the typical jQuery traversal and manipulation methods. In addition, view objects
 have methods that are view-specific. For example, you could call both general
-and view-specific on the global `rootView` instance:
+and view-specific on the global `atom.workspaceView` instance:
 
 ```coffeescript
-rootView.find('.editor.active') # standard jQuery method
-rootView.getActiveEditor()      # view-specific method
+atom.workspaceView.find('.editor.active') # standard jQuery method
+atom.workspaceView.getActiveEditor()      # view-specific method
 ```
 
 If you retrieve a jQuery wrapper for an element associated with a view, use the
@@ -20,7 +20,7 @@ If you retrieve a jQuery wrapper for an element associated with a view, use the
 
 ```coffeescript
 # this is a plain jQuery object; you can't call view-specific methods
-editorElement = rootView.find('.editor.active')
+editorElement = atom.workspaceView.find('.editor.active')
 
 # get the view object by calling `.view()` to call view-specific methods
 editorView = editorElement.view()
@@ -31,7 +31,7 @@ Refer to the [SpacePen] documentation for more details.
 
 ### RootView
 
-The root of Atom's view hierarchy is a global called `rootView`, which is a
+The root of Atom's view hierarchy is a global called `atom.workspaceView`, which is a
 singleton instance of the `RootView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
 `alt-cmd-i`, you can see the internal structure of `RootView`:
@@ -55,10 +55,10 @@ outlets as follows:
 
 ```coffeescript
 # place a view to the left of the panes (or use .append() to place it to the right)
-rootView.horizontal.prepend(new MyView)
+atom.workspaceView.horizontal.prepend(new MyView)
 
 # place a view below the panes (or use .prepend() to place it above)
-rootView.vertical.append(new MyOtherView)
+atom.workspaceView.vertical.append(new MyOtherView)
 ```
 
 [spacepen]: http://github.com/nathansobo/space-pen

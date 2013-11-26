@@ -67,8 +67,8 @@ object.
 
 Your package's top-level module should implement the following methods:
 
-- `activate(rootView, state)`: This **required** method is called when your
-package is loaded. It is always passed the window's global `rootView`, and is
+- `activate(workspaceView, state)`: This **required** method is called when your
+package is loaded. It is always passed the global `atom.workspaceView`, and is
 sometimes passed state data if the window has been reloaded and your module
 implements the `serialize` method. Use this to do initialization work when your
 package is started (like setting up DOM elements or binding events).
@@ -104,7 +104,7 @@ module.exports = require "./lib/my-package"
 `my-package/my-package.coffee` might start:
 ```coffeescript
 module.exports =
-  activate: (rootView, state) -> # ...
+  activate: (atom.workspaceView, state) -> # ...
   deactivate: -> # ...
   serialize: -> # ...
 ```
