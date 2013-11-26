@@ -312,14 +312,6 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {Editor}.
-  eachEditSession: (callback) ->
-    atom.project.eachEditSession(callback)
-
-  # Private: Fires a callback on each open {TextBuffer}.
-  eachBuffer: (callback) ->
-    atom.project.eachBuffer(callback)
-
   # Private: Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditors()
