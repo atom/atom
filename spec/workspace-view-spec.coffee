@@ -487,7 +487,7 @@ describe "WorkspaceView", ->
       lowerRightEditor = rightEditor.splitDown()
       expect(lowerRightEditor.find(".line:first").text()).toBe "    "
 
-  describe ".eachEditor(callback)", ->
+  describe ".eachEditorView(callback)", ->
     beforeEach ->
       atom.workspaceView.attachToDom()
 
@@ -497,7 +497,7 @@ describe "WorkspaceView", ->
       callback = (editor) ->
         callbackEditor = editor
         count++
-      atom.workspaceView.eachEditor(callback)
+      atom.workspaceView.eachEditorView(callback)
       expect(count).toBe 1
       expect(callbackEditor).toBe atom.workspaceView.getActiveView()
 
@@ -508,7 +508,7 @@ describe "WorkspaceView", ->
         callbackEditor = editor
         count++
 
-      atom.workspaceView.eachEditor(callback)
+      atom.workspaceView.eachEditorView(callback)
       count = 0
       callbackEditor = null
       atom.workspaceView.getActiveView().splitRight()
@@ -519,7 +519,7 @@ describe "WorkspaceView", ->
       count = 0
       callback = (editor) -> count++
 
-      subscription = atom.workspaceView.eachEditor(callback)
+      subscription = atom.workspaceView.eachEditorView(callback)
       expect(count).toBe 1
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2

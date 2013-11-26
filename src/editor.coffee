@@ -27,8 +27,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # ## Example
 # ```coffeescript
-# global.workspaceView.eachEditor (editor) ->
-#   editor.insertText('Hello World')
+#   atom.workspaceView.eachEditorView (editorView) ->
+#     editorView.insertText('Hello World')
 # ```
 #
 # ## Collaboration builtin

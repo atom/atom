@@ -305,8 +305,8 @@ class WorkspaceView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {EditorView}.
-  eachEditor: (callback) ->
+  # Public: Fires a callback on each open {EditorView}.
+  eachEditorView: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
