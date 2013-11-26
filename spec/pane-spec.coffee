@@ -1,18 +1,25 @@
+{Model} = require 'telepath'
 Pane = require '../src/pane'
 PaneContainer = require '../src/pane-container'
+Focusable = require '../src/focusable'
 
 describe "Pane", ->
   [container, pane, item1, item2, item3] = []
 
+  class Item extends Model
+    Focusable.includeInto(this)
+
   beforeEach ->
     container = PaneContainer.createAsRoot()
     pane = container.root
-    pane.addItems([{title: "Item 1"}, {title: "Item 2"}, {title: "Item 3"}])
-    [item1, item2, item3] = pane.items.getValues()
+    item1 = new Item
+    item2 = new Item
+    item3 = new Item
+    pane.addItems([item1, item2, item3])
 
   describe "construction", ->
     it "assigns the given items and sets the first item as the active item", ->
-      expect(pane.items.map('title')).toEqual ["Item 1", "Item 2", "Item 3"]
+      expect(pane.items).toEqual [item1, item2, item3]
       expect(pane.activeItem).toBe item1
 
     it "does not assign an active item if no items are provided", ->
@@ -29,23 +36,21 @@ describe "Pane", ->
     describe "if the item isn't present in the items list", ->
       it "adds it after the current active item", ->
         pane.setActiveItem(item2)
-        pane.setActiveItem({title: "Item 4"})
-        expect(pane.activeItem).toEqual {title: "Item 4"}
-        expect(pane.items).toEqual [item1, item2, {title: "Item 4"}, item3]
+        item4 = pane.setActiveItem(new Item)
+        expect(pane.activeItem).toBe item4
+        expect(pane.items).toEqual [item1, item2, item4, item3]
 
   describe "::addItem(item)", ->
     describe "when the pane has no items", ->
       it "adds the item and makes it the active item", ->
         pane.removeItems()
-        item4 = pane.addItem({title: "Item 4"})
-        expect(item4.toObject()).toEqual {title: "Item 4"}
+        item4 = pane.addItem(new Item)
         expect(pane.items).toEqual [item4]
-        expect(pane.activeItem).toBe pane.items.get(0)
+        expect(pane.activeItem).toBe item4
 
     describe "when the pane has items", ->
       it "adds the item after the active item", ->
-        item4 = pane.addItem({title: "Item 4"})
-        expect(item4.toObject()).toEqual {title: "Item 4"}
+        item4 = pane.addItem(new Item)
         expect(pane.activeItem).toBe pane.items.getFirst()
         expect(pane.items).toEqual [item1, item4, item2, item3]
 
