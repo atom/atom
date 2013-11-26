@@ -604,6 +604,9 @@ class EditorView extends View
   # {Delegates to: Editor.setText}
   setText: (text) -> @editor.setText(text)
 
+  # {Delegates to: Editor.save}
+  save: -> @editor.save()
+
   # {Delegates to: Editor.getText}
   getText: -> @editor.getText()
 
