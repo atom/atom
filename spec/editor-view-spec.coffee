@@ -1934,7 +1934,6 @@ describe "EditorView", ->
         miniEditor.setText("      and indented line")
         expect(miniEditor.renderedLines.find('.indent-guide').length).toBe 0
 
-
       it "lets you set the grammar", ->
         miniEditor = new EditorView(mini: true)
         miniEditor.setText("var something")
@@ -1945,6 +1944,31 @@ describe "EditorView", ->
 
         # doesn't allow regular editors to set grammars
         expect(-> editorView.setGrammar()).toThrow()
+
+      describe "placeholderText", ->
+        it "is hidden and shown when appropriate", ->
+          miniEditor = new EditorView(mini: true, placeholderText: 'octokitten')
+          miniEditor.attachToDom()
+
+          expect(miniEditor.underlayer.find('.placeholder-text')).toExist()
+
+          miniEditor.setText("var something")
+          expect(miniEditor.underlayer.find('.placeholder-text')).not.toExist()
+
+          miniEditor.setText("")
+          expect(miniEditor.underlayer.find('.placeholder-text')).toExist()
+
+        it "can be set", ->
+          miniEditor = new EditorView(mini: true)
+          miniEditor.attachToDom()
+
+          expect(miniEditor.find('.placeholder-text').text()).toEqual ''
+
+          miniEditor.setPlaceholderText 'octokitten'
+          expect(miniEditor.find('.placeholder-text').text()).toEqual 'octokitten'
+
+          miniEditor.setPlaceholderText 'new one'
+          expect(miniEditor.find('.placeholder-text').text()).toEqual 'new one'
 
     describe "when the editor.showLineNumbers config is false", ->
       it "doesn't render any line numbers", ->
