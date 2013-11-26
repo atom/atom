@@ -29,18 +29,18 @@ editorView.setCursorBufferPosition([1, 2])
 
 Refer to the [SpacePen] documentation for more details.
 
-### RootView
+### WorkspaceView
 
 The root of Atom's view hierarchy is a global called `atom.workspaceView`, which is a
-singleton instance of the `RootView` view class. The root view fills the entire
+singleton instance of the `WorkspaceView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
-`alt-cmd-i`, you can see the internal structure of `RootView`:
+`alt-cmd-i`, you can see the internal structure of `WorkspaceView`:
 
-![RootView in the inspector][rootview-inspector]
+![WorkspaceView in the inspector][workspaceview-inspector]
 
 #### Panes
 
-The `RootView` contains a `#horizontal` and a `#vertical` axis surrounding
+The `WorkspaceView` contains a `#horizontal` and a `#vertical` axis surrounding
 `#panes`. Elements in the horizontal axis will tile across the window
 horizontally, appearing to have a vertical orientation. Items in the vertical
 axis will tile across the window vertically, appearing to have a horizontal
@@ -62,4 +62,4 @@ atom.workspaceView.vertical.append(new MyOtherView)
 ```
 
 [spacepen]: http://github.com/nathansobo/space-pen
-[rootview-inspector]: https://f.cloud.github.com/assets/1424/1091631/1932c2d6-166b-11e3-8adf-9690fe82d3b8.png
+[workspaceView-inspector]: https://f.cloud.github.com/assets/1424/1091631/1932c2d6-166b-11e3-8adf-9690fe82d3b8.png
