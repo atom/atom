@@ -43,11 +43,6 @@ class Atom
     @workspaceViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
 
-    #TODO Remove once all `atom.workspaceView` references have been updated
-    Object.defineProperty this, 'workspaceView',
-      get: -> @workspaceView
-      set: (workspaceView) -> @workspaceView = workspaceView
-
   # Private: Initialize all the properties in this object.
   initialize: ->
     @unsubscribe()
