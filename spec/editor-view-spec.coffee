@@ -1,4 +1,4 @@
-WorkspaceView = require '../src/root-view'
+WorkspaceView = require '../src/workspace-view'
 EditorView = require '../src/editor-view'
 {$, $$} = require '../src/space-pen-extensions'
 _ = require 'underscore-plus'

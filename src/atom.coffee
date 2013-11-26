@@ -141,7 +141,7 @@ class Atom
 
   # Private:
   deserializeWorkspaceView: ->
-    WorkspaceView = require './root-view'
+    WorkspaceView = require './workspace-view'
     state = @getWindowState()
     @workspaceView = @deserializers.deserialize(state.get('workspaceView'))
     unless @workspaceView?
@@ -171,7 +171,7 @@ class Atom
     @windowEventHandler = new WindowEventHandler
     @restoreDimensions()
     @config.load()
-    @config.setDefaults('core', require('./root-view').configDefaults)
+    @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
