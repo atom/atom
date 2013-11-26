@@ -43,6 +43,11 @@ class Atom
     @rootViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
 
+    #TODO Remove once all `atom.rootView` references have been updated
+    Object.defineProperty this, 'workspaceView',
+      get: -> @rootView
+      set: (workspaceView) -> @rootView = workspaceView
+
   # Private: Initialize all the properties in this object.
   initialize: ->
     @unsubscribe()
