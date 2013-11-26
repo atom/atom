@@ -1729,7 +1729,6 @@ class EditorView extends View
 
   # {Delegates to: Editor.setGrammar}
   setGrammar: (grammar) ->
-    throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @editor.setGrammar(grammar)
 
   # {Delegates to: Editor.reloadGrammar}
