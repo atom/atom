@@ -37,7 +37,7 @@ Editor = require './editor'
 #    the front.
 #
 module.exports =
-class RootView extends View
+class WorkspaceView extends View
   atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
 
   @version: 1
@@ -61,7 +61,7 @@ class RootView extends View
 
   # Private:
   @deserialize: (state) ->
-    new RootView(state)
+    new WorkspaceView(state)
 
   # Private:
   initialize: (state={}) ->

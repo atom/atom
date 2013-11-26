@@ -475,20 +475,20 @@ describe "Pane", ->
     describe "when it is the last pane", ->
       beforeEach ->
         expect(container.getPanes().length).toBe 1
-        atom.rootView = focus: jasmine.createSpy("rootView.focus")
+        atom.workspaceView = focus: jasmine.createSpy("workspaceView.focus")
 
       describe "when the removed pane is focused", ->
-        it "calls focus on rootView so we don't lose focus", ->
+        it "calls focus on workspaceView so we don't lose focus", ->
           container.attachToDom()
           pane.focus()
           pane.remove()
-          expect(atom.rootView.focus).toHaveBeenCalled()
+          expect(atom.workspaceView.focus).toHaveBeenCalled()
 
       describe "when the removed pane is not focused", ->
         it "does not call focus on root view", ->
           expect(pane).not.toMatchSelector ':has(:focus)'
           pane.remove()
-          expect(atom.rootView.focus).not.toHaveBeenCalled()
+          expect(atom.workspaceView.focus).not.toHaveBeenCalled()
 
   describe ".getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->

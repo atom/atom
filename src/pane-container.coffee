@@ -2,7 +2,7 @@
 Pane = require './pane'
 telepath = require 'telepath'
 
-# Private: Manages the list of panes within a {RootView}
+# Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainer extends View
   atom.deserializers.add(this)

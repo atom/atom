@@ -171,7 +171,7 @@ class SelectList extends View
     if @previouslyFocusedElement?.isOnDom()
       @previouslyFocusedElement.focus()
     else
-      atom.rootView.focus()
+      atom.workspaceView.focus()
 
   # Public:
   cancelled: ->
