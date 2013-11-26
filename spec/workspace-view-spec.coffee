@@ -267,14 +267,14 @@ describe "WorkspaceView", ->
       describe "when called with a path", ->
         describe "when the active pane already has an edit session item for the path being opened", ->
           it "shows the existing edit session in the pane", ->
-            previousEditSession = activePane.activeItem
+            previousEditor = activePane.activeItem
 
             editor = atom.workspaceView.openSync('b')
             expect(activePane.activeItem).toBe editor
-            expect(editor).not.toBe previousEditSession
+            expect(editor).not.toBe previousEditor
 
-            editor = atom.workspaceView.openSync(previousEditSession.getPath())
-            expect(editor).toBe previousEditSession
+            editor = atom.workspaceView.openSync(previousEditor.getPath())
+            expect(editor).toBe previousEditor
             expect(activePane.activeItem).toBe editor
 
             expect(activePane.focus).toHaveBeenCalled()
@@ -431,7 +431,7 @@ describe "WorkspaceView", ->
       describe "when called with a path", ->
         describe "when the active pane already has an item for the given path", ->
           it "shows the existing edit session in the pane", ->
-            previousEditSession = activePane.activeItem
+            previousEditor = activePane.activeItem
 
             editor = null
             waitsForPromise ->
@@ -439,13 +439,13 @@ describe "WorkspaceView", ->
 
             runs ->
               expect(activePane.activeItem).toBe editor
-              expect(editor).not.toBe previousEditSession
+              expect(editor).not.toBe previousEditor
 
             waitsForPromise ->
-              atom.workspaceView.open(previousEditSession.getPath()).then (o) -> editor = o
+              atom.workspaceView.open(previousEditor.getPath()).then (o) -> editor = o
 
             runs ->
-              expect(editor).toBe previousEditSession
+              expect(editor).toBe previousEditor
               expect(activePane.activeItem).toBe editor
               expect(activePane.focus).toHaveBeenCalled()
 

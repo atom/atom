@@ -126,11 +126,11 @@ describe "EditorView", ->
       expect(editorView.editor.destroyed).toBeTruthy()
 
   describe ".edit(editor)", ->
-    [newEditSession, newBuffer] = []
+    [newEditor, newBuffer] = []
 
     beforeEach ->
-      newEditSession = atom.project.openSync('two-hundred.txt')
-      newBuffer = newEditSession.buffer
+      newEditor = atom.project.openSync('two-hundred.txt')
+      newBuffer = newEditor.buffer
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
       editorView.attachToDom(heightInLines: 5, widthInChars: 30)
@@ -141,10 +141,10 @@ describe "EditorView", ->
       previousScrollTop = editorView.scrollTop()
       previousScrollLeft = editorView.scrollLeft()
 
-      newEditSession.setScrollTop(900)
-      newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
+      newEditor.setScrollTop(900)
+      newEditor.setSelectedBufferRange([[40, 0], [43, 1]])
 
-      editorView.edit(newEditSession)
+      editorView.edit(newEditor)
       { firstRenderedScreenRow, lastRenderedScreenRow } = editorView
       expect(editorView.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
       expect(editorView.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editorView.lastRenderedScreenRow)
@@ -168,14 +168,14 @@ describe "EditorView", ->
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      tempEditSession = atom.project.openSync(filePath)
-      editorView.edit(tempEditSession)
-      tempEditSession.insertText("a buffer change")
+      tempEditor = atom.project.openSync(filePath)
+      editorView.edit(tempEditor)
+      tempEditor.insertText("a buffer change")
 
       spyOn(atom, "confirm")
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
-      tempEditSession.on 'contents-conflicted', contentsConflictedHandler
+      tempEditor.on 'contents-conflicted', contentsConflictedHandler
       fs.writeFileSync(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
@@ -1736,9 +1736,9 @@ describe "EditorView", ->
       expect(editorView.bufferPositionForScreenPosition(editorView.getCursorScreenPosition())).toEqual [3, 60]
 
     it "does not wrap the lines of any newly assigned buffers", ->
-      otherEditSession = atom.project.openSync()
-      otherEditSession.buffer.setText([1..100].join(''))
-      editorView.edit(otherEditSession)
+      otherEditor = atom.project.openSync()
+      otherEditor.buffer.setText([1..100].join(''))
+      editorView.edit(otherEditor)
       expect(editorView.renderedLines.find('.line').length).toBe(1)
 
     it "unwraps lines when softwrap is disabled", ->
@@ -1894,14 +1894,14 @@ describe "EditorView", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditSession = atom.project.openSync(null)
-        editorView.edit(emptyEditSession)
+        emptyEditor = atom.project.openSync(null)
+        editorView.edit(emptyEditor)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
         editorView.edit(editor)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
 
-        editorView.edit(emptyEditSession)
+        editorView.edit(emptyEditor)
         expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
     describe "when the editor view is mini", ->

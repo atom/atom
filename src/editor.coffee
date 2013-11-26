@@ -27,7 +27,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # ## Example
 # ```coffeescript
-# global.workspaceView.eachEditSession (editor) ->
+# global.workspaceView.eachEditor (editor) ->
 #   editor.insertText('Hello World')
 # ```
 #
@@ -75,7 +75,7 @@ class Editor
         @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
-      registerEditSession = true
+      registerEditor = true
     else
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
       @id = guid.create().toString()
@@ -107,7 +107,7 @@ class Editor
           when 'scrollLeft'
             @emit 'scroll-left-changed', newValue
 
-    atom.project.addEditSession(this) if registerEditSession
+    atom.project.addEditor(this) if registerEditor
 
   # Private:
   setBuffer: (@buffer) ->
@@ -143,7 +143,7 @@ class Editor
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
-    atom.project?.removeEditSession(this)
+    atom.project?.removeEditor(this)
     @emit 'destroyed'
     @off()
 
@@ -158,13 +158,13 @@ class Editor
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditSession = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
-    newEditSession.setScrollTop(@getScrollTop())
-    newEditSession.setScrollLeft(@getScrollLeft())
+    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
+    newEditor.setScrollTop(@getScrollTop())
+    newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
-      marker.copy(editorId: newEditSession.id, preserveFolds: true)
-    atom.project.addEditSession(newEditSession)
-    newEditSession
+      marker.copy(editorId: newEditor.id, preserveFolds: true)
+    atom.project.addEditor(newEditor)
+    newEditor
 
   # Public: Retrieves the filename of the open file.
   #
