@@ -17,7 +17,7 @@ jQuery.cleanData = (elements) ->
 
 tooltipDefaults =
   delay:
-    show: 500
+    show: 1000
     hide: 100
   container: 'body'
   html: true
