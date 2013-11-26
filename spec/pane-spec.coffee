@@ -40,6 +40,17 @@ describe "Pane", ->
         expect(pane.activeItem).toBe item4
         expect(pane.items).toEqual [item1, item2, item4, item3]
 
+    describe "if the pane has focus before making the item active and the item is focusable", ->
+      it "focuses the item after adding it", ->
+        expect(pane.hasFocus()).toBe false
+        item4 = pane.setActiveItem(new Item)
+        expect(item4.hasFocus()).toBe false
+
+        pane.focused = true
+        item5 = pane.setActiveItem(new Item)
+        expect(item5.hasFocus()).toBe true
+        expect(pane.hasFocus()).toBe true
+
   describe "::addItem(item)", ->
     describe "when the pane has no items", ->
       it "adds the item and makes it the active item", ->

@@ -1,5 +1,6 @@
 {Subscriber} = require 'emissary'
 Mixin = require 'mixto'
+FocusManager = require './focus-manager'
 
 module.exports =
 class Focusable extends Mixin
@@ -8,7 +9,7 @@ class Focusable extends Mixin
   @included: ->
     @properties
       focused: false
-      focusManager: null
+      focusManager: -> new FocusManager
 
     @behavior 'focusedDocument', ->
       @$focusManager.flatMapLatest (manager) -> manager.$focusedDocument
@@ -22,3 +23,9 @@ class Focusable extends Mixin
         @focusManager.focusedDocument = this
       else if @focusManager.focusedDocument is this
         @focusManager.focusedDocument = null
+
+  setFocused: (@focused) ->
+
+  # Override this if this object has focusable children
+  hasFocus: ->
+    @focused

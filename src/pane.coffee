@@ -1,8 +1,11 @@
 {Model} = require 'telepath'
+Focusable = require './focusable'
 PaneAxis = require './pane-axis'
 
 module.exports =
 class Pane extends Model
+  Focusable.includeInto(this)
+
   @properties
     container: null
     items: []
@@ -13,9 +16,14 @@ class Pane extends Model
   attached: ->
     @setActiveItem(@items.getFirst()) unless @activeItem?
 
+  hasFocus: ->
+    @focused or @activeItem?.hasFocus()
+
   setActiveItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
+    hadFocus = @hasFocus()
     @activeItem = item
+    item.setFocused?(true) if hadFocus
     item
 
   getActiveItemIndex: ->
@@ -85,7 +93,7 @@ class Pane extends Model
       @container.children.replace(this, axis)
       @container = axis
 
-    pane = new Pane({@container, items})
+    pane = new Pane({@container, @focusManager, items})
     switch side
       when 'before' then @container.children.insertBefore(this, pane)
       when 'after' then @container.children.insertAfter(this, pane)
