@@ -1,17 +1,17 @@
 __PackageName__View = require '../lib/__package-name__-view'
-{RootView} = require 'atom'
+{WorkspaceView} = require 'atom'
 
 describe "__PackageName__View", ->
   __packageName__ = null
 
   beforeEach ->
-    atom.rootView = new RootView
+    atom.workspaceView = new WorkspaceView
     __packageName__ = atom.packages.activatePackage('__packageName__', immediate: true)
 
   describe "when the __package-name__:toggle event is triggered", ->
     it "attaches and then detaches the view", ->
-      expect(atom.rootView.find('.__package-name__')).not.toExist()
-      atom.rootView.trigger '__package-name__:toggle'
-      expect(atom.rootView.find('.__package-name__')).toExist()
-      atom.rootView.trigger '__package-name__:toggle'
-      expect(atom.rootView.find('.__package-name__')).not.toExist()
+      expect(atom.workspaceView.find('.__package-name__')).not.toExist()
+      atom.workspaceView.trigger '__package-name__:toggle'
+      expect(atom.workspaceView.find('.__package-name__')).toExist()
+      atom.workspaceView.trigger '__package-name__:toggle'
+      expect(atom.workspaceView.find('.__package-name__')).not.toExist()

@@ -7,7 +7,7 @@ class __PackageName__View extends View
       @div "The __PackageName__ package is Alive! It's ALIVE!", class: "message"
 
   initialize: (serializeState) ->
-    atom.rootView.command "__package-name__:toggle", => @toggle()
+    atom.workspaceView.command "__package-name__:toggle", => @toggle()
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -21,4 +21,4 @@ class __PackageName__View extends View
     if @hasParent()
       @detach()
     else
-      atom.rootView.append(this)
+      atom.workspaceView.append(this)
