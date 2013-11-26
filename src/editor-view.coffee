@@ -86,8 +86,7 @@ class EditorView extends View
     if editorOrOptions instanceof Editor
       editor = editorOrOptions
     else
-      {editor, editSession, @mini, placeholderText} = editorOrOptions ? {}
-      editor ?= editSession # TODO: Remove this line after packages have updated their api to use Editor and EditorView
+      {editor, @mini, placeholderText} = editorOrOptions ? {}
 
     @id = EditorView.nextEditorId++
     @lineCache = []
