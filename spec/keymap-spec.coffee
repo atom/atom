@@ -1,7 +1,7 @@
 path = require 'path'
 
 Keymap = require '../src/keymap'
-{$, $$, RootView} = require 'atom'
+{$, $$, WorkspaceView} = require 'atom'
 
 describe "Keymap", ->
   fragment = null
@@ -158,12 +158,12 @@ describe "Keymap", ->
             expect(bazHandler).toHaveBeenCalled()
 
       describe "when the event's target is the document body", ->
-        it "triggers the mapped event on the rootView", ->
-          atom.rootView = new RootView
-          atom.rootView.attachToDom()
+        it "triggers the mapped event on the workspaceView", ->
+          atom.workspaceView = new WorkspaceView
+          atom.workspaceView.attachToDom()
           keymap.bindKeys 'name', 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
-          atom.rootView.on 'foo', fooHandler
+          atom.workspaceView.on 'foo', fooHandler
 
           result = keymap.handleKeyEvent(keydownEvent('x', target: document.body))
           expect(result).toBe(false)
