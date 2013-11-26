@@ -1,3 +1,18 @@
-# DOCUMENT: link to keymap documentation
-'body':
-  'meta-alt-ctrl-o': '__package-name__:toggle'
+# Keybindings require three things to be fully defined: the DOM element which
+# they apply to, the keybinding itself and the command to execute.
+#
+# Below is a basic keybinding which registers on all platforms by applying to
+# the root workspace element.
+
+# For more detailed documentation see
+# https://www.atom.io/docs/latest/internals/keymaps
+'.workspace':
+  'ctrl-alt-o': '__package-name__:toggle'
+
+# You can also target specific platforms by using the `platform-darwin` or
+# `platform-win32` classes on the workspace element like so:
+#
+# Note: this binding will override the other binding as the CSS is more
+# specific than that of the keybinding above.
+'.workspace.platform-darwin':
+  'cmd-alt-ctrl-o': '__package-name__:toggle'

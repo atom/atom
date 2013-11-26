@@ -1,4 +1,5 @@
-# DOCUMENT: link to menu documentation
+# Have questions, see https://www.atom.io/docs/latest/creating-a-package#menus
+# for more details.
 "context-menu":
   ".overlayer":
       "Enable '__package-name__'": "__package-name__:toggle"
