@@ -82,6 +82,10 @@ jQuery.fn.hideTooltip = ->
     tip.leave(currentTarget: this)
     tip.hide()
 
+jQuery.fn.destroyTooltip = ->
+  @hideTooltip()
+  @tooltip('destroy')
+
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.replaceModifiers = replaceModifiers
 
