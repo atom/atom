@@ -35,12 +35,12 @@ describe "WorkspaceView", ->
         editor1 = atom.workspaceView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[2]
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[2]
 
         refreshWorkspaceViewAndProject()
 
-        expect(atom.workspaceView.getEditors().length).toBe 2
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[1]
+        expect(atom.workspaceView.getEditorViews().length).toBe 2
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[1]
         expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
@@ -59,7 +59,7 @@ describe "WorkspaceView", ->
 
         refreshWorkspaceViewAndProject()
 
-        expect(atom.workspaceView.getEditors().length).toBe 4
+        expect(atom.workspaceView.getEditorViews().length).toBe 4
         editor1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
         editor3 = atom.workspaceView.panes.find('.row > .pane .editor:eq(1)').view()
         editor2 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(0)').view()
@@ -89,9 +89,9 @@ describe "WorkspaceView", ->
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
         atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getEditors().length).toBe 0
+        expect(atom.workspaceView.getEditorViews().length).toBe 0
         refreshWorkspaceViewAndProject()
-        expect(atom.workspaceView.getEditors().length).toBe 0
+        expect(atom.workspaceView.getEditorViews().length).toBe 0
 
   describe "focus", ->
     beforeEach ->

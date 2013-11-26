@@ -247,7 +247,7 @@ class WorkspaceView extends View
     document.title = title
 
   # Private: Returns an Array of  all of the application's {EditorView}s.
-  getEditors: ->
+  getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
   # Private: Retrieves all of the modified buffers that are open and unsaved.
