@@ -8,6 +8,7 @@ describe "Pane", ->
 
   class Item extends Model
     Focusable.includeInto(this)
+    attached: -> @manageFocus()
 
   beforeEach ->
     container = PaneContainer.createAsRoot()
@@ -152,3 +153,30 @@ describe "Pane", ->
       it "creates the new pane with items if they are provided", ->
         pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
         expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
+
+  describe "when a pane is focused", ->
+    [pane1, pane2, item4, item5] = []
+
+    beforeEach ->
+      pane1 = pane
+      item4 = new Item
+      item5 = new Item
+      pane2 = pane1.splitRight(item4, item5)
+
+    it "focuses the active item if it is focusable", ->
+      expect(pane1.hasFocus()).toBe false
+      expect(pane1.activeItem.hasFocus()).toBe false
+
+      pane1.focused = true
+      expect(pane1.hasFocus()).toBe true
+      expect(pane1.activeItem.hasFocus()).toBe true
+
+      pane2.focused = true
+      expect(pane1.hasFocus()).toBe false
+      expect(pane2.hasFocus()).toBe true
+      expect(pane2.activeItem.hasFocus()).toBe true
+
+    it "retains focus for itself if the active item isn't focusable", ->
+      pane1.removeItems()
+      pane1.focused = true
+      expect(pane1.hasFocus()).toBe true

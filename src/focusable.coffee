@@ -24,6 +24,8 @@ class Focusable extends Mixin
       else if @focusManager.focusedDocument is this
         @focusManager.focusedDocument = null
 
+  setFocusManager: (@focusManager) ->
+
   setFocused: (@focused) ->
 
   # Override this if this object has focusable children

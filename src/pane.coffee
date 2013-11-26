@@ -14,7 +14,11 @@ class Pane extends Model
     heightPercent: 100
 
   attached: ->
+    @manageFocus()
     @setActiveItem(@items.getFirst()) unless @activeItem?
+    @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)
+    @subscribe @$focused, 'value', (focused) =>
+      @activeItem?.setFocused?(true) if focused
 
   hasFocus: ->
     @focused or @activeItem?.hasFocus()
