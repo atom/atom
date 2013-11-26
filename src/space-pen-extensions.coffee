@@ -76,6 +76,12 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
 
   this.tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
 
+jQuery.fn.hideTooltip = ->
+  tip = @data('bs.tooltip')
+  if tip
+    tip.leave(currentTarget: this)
+    tip.hide()
+
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.replaceModifiers = replaceModifiers
 
