@@ -35,9 +35,10 @@
     "season": "0.14.0",
     "semver": "1.1.4",
     "space-pen": "2.0.0",
-    "telepath": "0.46.0",
+    "telepath": "0.47.0",
     "temp": "0.5.0",
-    "underscore-plus": "0.3.0"
+    "underscore-plus": "0.3.0",
+    "mixto": "~0.3.0"
   },
   "devDependencies": {
     "biscotto": "0.0.17",
