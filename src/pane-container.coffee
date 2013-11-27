@@ -13,6 +13,14 @@ class PaneContainer extends Model
 
   @relatesToOne 'root', -> @children
 
+  @behavior 'activePaneItem', -> @$activePane.flatMapLatest (pane) -> pane.$activeItem
+
   attached: ->
     @activePane ?= @root
     @root.setFocusManager?(@focusManager)
+
+  # Deprecated
+  getActivePane: -> @activePane
+
+  # Deprecated
+  getActivePaneItem: -> @activePaneItem
