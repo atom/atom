@@ -22,14 +22,12 @@ module.exports = (grunt) ->
     cp 'atom.sh', path.join(appDir, 'atom.sh')
     cp 'package.json', path.join(appDir, 'package.json')
 
-    iconPath = path.resolve(__dirname, '..', 'resources', 'atom.png')
-    cp iconPath, path.join(appDir, 'atom.png')
-
     packageDirectories = []
     nonPackageDirectories = [
       'benchmark'
       'dot-atom'
       'vendor'
+      'resources'
     ]
 
     {devDependencies} = grunt.file.readJSON('package.json')
@@ -44,6 +42,8 @@ module.exports = (grunt) ->
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
       path.join('vendor', 'apm')
+      path.join('resources', 'mac')
+      path.join('resources', 'win')
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
