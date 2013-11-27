@@ -21,10 +21,8 @@ class Pane extends Model
     @manageFocus()
     @setActiveItem(@items.getFirst()) unless @activeItem?
     @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)
-    @subscribe @$focused, 'value', (focused) =>
-      @activeItem?.setFocused?(true) if focused
-    @subscribe @$hasFocus, 'value', (hasFocus) =>
-      @container?.activePane = this if hasFocus
+    @subscribe @$focused, 'value', (focused) => @activeItem?.setFocused?(true) if focused
+    @subscribe @$hasFocus, 'value', (hasFocus) => @container?.activePane = this if hasFocus
 
   setActiveItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
