@@ -409,6 +409,7 @@ class Atom
       require('./project'),
       require('./tokenized-buffer')
       require('./display-buffer')
+      require('./editor')
     )
     # TODO: Remove this when everything is using telepath models
     if @site?

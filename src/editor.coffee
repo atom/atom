@@ -1,8 +1,7 @@
 _ = require 'underscore-plus'
 path = require 'path'
-telepath = require 'telepath'
 guid = require 'guid'
-{Point, Range} = telepath
+{Model, Point, Range} = require 'telepath'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
@@ -36,22 +35,15 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # FIXME: Describe how there are both local and remote cursors and selections and
 # why that is.
 module.exports =
-class Editor
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class Editor extends Model
+  @properties
+    buffer: null
+    displayBuffer: null
+    softTabs: null
+    scrollTop: 0
+    scrollLeft: 0
 
-  @acceptsDocuments: true
-
-  atom.deserializers.add(this)
-
-  @version: 5
-
-  @deserialize: (state) ->
-    new Editor(state)
-
-  id: null
   languageMode: null
-  displayBuffer: null
   cursors: null
   remoteCursors: null
   selections: null
@@ -59,58 +51,36 @@ class Editor
   suppressSelectionMerging: false
 
   # Private:
-  constructor: (optionsOrState) ->
+  attached: ->
     @cursors = []
     @remoteCursors = []
     @selections = []
     @remoteSelections = []
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-      @id = @state.get('id')
-      displayBuffer = atom.deserializers.deserialize(@state.get('displayBuffer'))
-      @setBuffer(displayBuffer.buffer)
-      @setDisplayBuffer(displayBuffer)
-      for marker in @findMarkers(@getSelectionMarkerAttributes())
-        marker.setAttributes(preserveFolds: true)
-        @addSelection(marker)
-      @setScrollTop(@state.get('scrollTop'))
-      @setScrollLeft(@state.get('scrollLeft'))
-      registerEditor = true
-    else
-      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
-      @id = guid.create().toString()
-      displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        version: @constructor.version
-        id: @id
-        displayBuffer: displayBuffer.getState()
-        softTabs: buffer.usesSoftTabs() ? softTabs ? atom.config.get('editor.softTabs') ? true
-        scrollTop: 0
-        scrollLeft: 0
-      @setBuffer(buffer)
-      @setDisplayBuffer(displayBuffer)
+    @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
-    if @getCursors().length is 0 and not suppressCursorCreation
-      if initialLine
-        position = [initialLine, 0]
+    @displayBuffer = new DisplayBuffer({@buffer, @tabLength, @softWrap})
+
+    @subscribeToBuffer()
+    @subscribeToDisplayBuffer()
+
+    for marker in @findMarkers(@getSelectionMarkerAttributes())
+      marker.setAttributes(preserveFolds: true)
+      @addSelection(marker)
+
+    if @getCursors().length is 0 and not @suppressCursorCreation
+      if @initialLine
+        position = [@initialLine, 0]
       else
-        position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
+        position = @getRemoteCursor()?.getBufferPosition() ? [0, 0]
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @subscribe @state, 'changed', ({newValues}) =>
-      for key, newValue of newValues
-        switch key
-          when 'scrollTop'
-            @emit 'scroll-top-changed', newValue
-          when 'scrollLeft'
-            @emit 'scroll-left-changed', newValue
 
-    atom.project.addEditor(this) if registerEditor
+    @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
+    @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
   # Private:
-  setBuffer: (@buffer) ->
+  subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       unless atom.project.getPath()?
@@ -123,7 +93,7 @@ class Editor
     @preserveCursorPositionOnBufferReload()
 
   # Private:
-  setDisplayBuffer: (@displayBuffer) ->
+  subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
@@ -855,6 +825,9 @@ class Editor
 
   # Public: Returns an Array of all remove {Cursor}s.
   getRemoteCursors: -> new Array(@remoteCursors...)
+
+  getRemoteCursor: ->
+    _.last(@remoteCursors)
 
   # Public: Adds and returns a cursor at the given screen position.
   addCursorAtScreenPosition: (screenPosition) ->
