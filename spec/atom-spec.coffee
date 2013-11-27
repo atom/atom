@@ -1,11 +1,11 @@
-{$, $$, fs, RootView}  = require 'atom'
+{$, $$, fs, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
-    atom.rootView = new RootView
+    atom.workspaceView = new WorkspaceView
 
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
@@ -90,12 +90,12 @@ describe "the `atom` global", ->
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
               expect(pack.requireMainModule).not.toHaveBeenCalled()
               expect(mainModule.activate).not.toHaveBeenCalled()
-              atom.rootView.trigger 'activation-event'
+              atom.workspaceView.trigger 'activation-event'
               expect(mainModule.activate).toHaveBeenCalled()
 
             it "triggers the activation event on all handlers registered during activation", ->
-              atom.rootView.openSync()
-              editorView = atom.rootView.getActiveView()
+              atom.workspaceView.openSync()
+              editorView = atom.workspaceView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
               editorView.command 'activation-event', eventHandler
               editorView.trigger 'activation-event'

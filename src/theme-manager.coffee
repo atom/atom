@@ -8,11 +8,9 @@ Package = require './package'
 AtomPackage = require './atom-package'
 {$} = require './space-pen-extensions'
 
-
 # Private: Handles discovering and loading available themes.
-###
-Themes are a subset of packages
-###
+#
+# Themes are a subset of packages
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)

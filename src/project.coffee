@@ -44,10 +44,21 @@ class Project extends telepath.Model
   beforePersistence: ->
     @destroyUnretainedBuffers()
 
-  # Public:
+  # Public: Register an opener for project files.
+  #
+  # An {Editor} will be used if no openers return a value.
+  #
+  # ## Example:
+  # ```coffeescript
+  #   atom.project.registerOpener (filePath) ->
+  #     if path.extname(filePath) is '.toml'
+  #       return new TomlEditor(filePath)
+  # ```
+  #
+  # * opener: A function to be called when a path is being opened.
   registerOpener: (opener) -> @openers.push(opener)
 
-  # Public:
+  # Public: Remove a previously registered opener.
   unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Private:
@@ -90,7 +101,7 @@ class Project extends telepath.Model
 
     @emit "path-changed"
 
-  # Public: Returns the name of the root directory.
+  # Public: Returns the root {Directory} object for this project.
   getRootDirectory: ->
     @rootDirectory
 

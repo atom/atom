@@ -34,7 +34,7 @@ Editor = require './editor'
 #    the front.
 #
 module.exports =
-class RootView extends View
+class WorkspaceView extends View
   atom.deserializers.add(this, EditorView)
 
   @version: 1
@@ -44,21 +44,21 @@ class RootView extends View
     excludeVcsIgnoredPaths: true
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
-    projectHome: path.join(atom.getHomeDirPath(), 'github')
+    projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
 
   @acceptsDocuments: true
 
   # Private:
   @content: (state) ->
-    @div id: 'root-view', tabindex: -1, =>
+    @div id: 'workspace', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div outlet: 'panes'
 
   # Private:
   @deserialize: (state) ->
-    new RootView(state)
+    new WorkspaceView(state)
 
   # Private:
   initialize: (state={}) ->

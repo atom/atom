@@ -21,14 +21,29 @@ WindowEventHandler = require './window-event-handler'
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
+#
+# ## Useful properties available:
+#
+#  * `atom.config`      - A {Config} instance
+#  * `atom.contextMenu` - A {ContextMenuManager} instance
+#  * `atom.keymap`      - A {Keymap} instance
+#  * `atom.menu`        - A {MenuManager} instance
+#  * `atom.workspaceView`    - A {WorkspaceView} instance
+#  * `atom.packages`    - A {PackageManager} instance
+#  * `atom.pasteboard`  - A {Pasteboard} instance
+#  * `atom.project`     - A {Project} instance
+#  * `atom.syntax`      - A {Syntax} instance
+#  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
 class Atom
   Subscriber.includeInto(this)
 
+  # Private:
   constructor: ->
-    @rootViewParentSelector = 'body'
+    @workspaceViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
 
+  # Private: Initialize all the properties in this object.
   initialize: ->
     @unsubscribe()
     @setBodyPlatformClass()
@@ -64,6 +79,7 @@ class Atom
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
+  # Public: Get the current window
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
@@ -98,6 +114,7 @@ class Atom
     else
       browserWindow.center()
 
+  # Private:
   restoreDimensions: ->
     dimensions = @getWindowState().getObject('dimensions')
     unless dimensions?.width and dimensions?.height
@@ -114,6 +131,7 @@ class Atom
     @loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings)
     _.deepClone(@loadSettings)
 
+  # Private:
   deserializeProject: ->
     Project = require './project'
     @project = @getWindowState('project')
@@ -121,24 +139,27 @@ class Atom
       @project = new Project(path: @getLoadSettings().initialPath)
       @setWindowState('project', @project)
 
-  deserializeRootView: ->
-    RootView = require './root-view'
+  # Private:
+  deserializeWorkspaceView: ->
+    WorkspaceView = require './workspace-view'
     state = @getWindowState()
-    @rootView = @deserializers.deserialize(state.get('rootView'))
-    unless @rootView?
-      @rootView = new RootView()
-      state.set('rootView', @rootView.getState())
-    $(@rootViewParentSelector).append(@rootView)
+    @workspaceView = @deserializers.deserialize(state.get('workspaceView'))
+    unless @workspaceView?
+      @workspaceView = new WorkspaceView()
+      state.set('workspaceView', @workspaceView.getState())
+    $(@workspaceViewParentSelector).append(@workspaceView)
 
+  # Private:
   deserializePackageStates: ->
     state = @getWindowState()
     @packages.packageStates = state.getObject('packageStates') ? {}
     state.remove('packageStates')
 
+  # Private:
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
-    @deserializeRootView()
+    @deserializeWorkspaceView()
 
   # Private: This method is only called when opening a real application window
   startEditorWindow: ->
@@ -150,7 +171,7 @@ class Atom
     @windowEventHandler = new WindowEventHandler
     @restoreDimensions()
     @config.load()
-    @config.setDefaults('core', require('./root-view').configDefaults)
+    @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
@@ -168,17 +189,18 @@ class Atom
 
     @displayWindow()
 
+  # Private:
   unloadEditorWindow: ->
-    return if not @project and not @rootView
+    return if not @project and not @workspaceView
 
     windowState = @getWindowState()
     windowState.set('project', @project)
     windowState.set('syntax', @syntax.serialize())
-    windowState.set('rootView', @rootView.serialize())
+    windowState.set('workspaceView', @workspaceView.serialize())
     @packages.deactivatePackages()
     windowState.set('packageStates', @packages.packageStates)
     @saveWindowState()
-    @rootView.remove()
+    @workspaceView.remove()
     @project.destroy()
     @windowEventHandler?.unsubscribe()
 
@@ -193,9 +215,11 @@ class Atom
     @keymap.loadBundledKeymaps()
     @menu.update()
 
+  # Private:
   loadThemes: ->
     @themes.load()
 
+  # Private:
   watchThemes: ->
     @themes.on 'reloaded', =>
       # Only reload stylesheets from non-theme packages
@@ -203,51 +227,87 @@ class Atom
         pack.reloadStylesheets?()
       null
 
+  # Public: Open a new Atom window using the given options.
+  #
+  # Calling this method without an options parameter will open a prompt to pick
+  # a file/folder to open in the new window.
+  #
+  # * options
+  #   * pathsToOpen: A string array of paths to open
   open: (options) ->
     ipc.sendChannel('open', options)
 
-  confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-    buttons = []
-    callbacks = []
-    while buttonLabelsAndCallbacks.length
-      do =>
-        buttons.push buttonLabelsAndCallbacks.shift()
-        callbacks.push buttonLabelsAndCallbacks.shift()
+  # Public: Open a confirm dialog.
+  #
+  # ## Example:
+  # ```coffeescript
+  #   atom.confirm
+  #      message: 'How you feeling?'
+  #      detailedMessage: 'Be honest.'
+  #      buttons:
+  #        Good: -> window.alert('good to hear')
+  #        Bad: ->  window.alert('bummer')
+  # ```
+  #
+  # * options:
+  #    + message: The string message to display.
+  #    + detailedMessage: The string detailed message to display.
+  #    + buttons: Either an array of strings or an object where the values
+  #      are callbacks to invoke when clicked.
+  #
+  # Returns the chosen index if buttons was an array or the return of the
+  # callback if buttons was an object.
+  confirm: ({message, detailedMessage, buttons}={}) ->
+    buttons ?= {}
+    if _.isArray(buttons)
+      buttonLabels = buttons
+    else
+      buttonLabels = Object.keys(buttons)
 
-    chosen = @confirmSync(message, detailedMessage, buttons)
-    callbacks[chosen]?()
-
-  confirmSync: (message, detailedMessage, buttons, browserWindow=@getCurrentWindow()) ->
-    dialog.showMessageBox browserWindow,
+    chosen = dialog.showMessageBox @getCurrentWindow(),
       type: 'info'
       message: message
       detail: detailedMessage
-      buttons: buttons
+      buttons: buttonLabels
 
+    if _.isArray(buttons)
+      chosen
+    else
+      callback = buttons[buttonLabels[chosen]]
+      callback?()
+
+  # Private:
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
 
+  # Private:
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
+  # Public: Open the dev tools for the current window.
   openDevTools: ->
     @getCurrentWindow().openDevTools()
 
+  # Public: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
     @getCurrentWindow().toggleDevTools()
 
+  # Public: Reload the current window.
   reload: ->
     @getCurrentWindow().restart()
 
+  # Public: Focus the current window.
   focus: ->
     @getCurrentWindow().focus()
     $(window).focus()
 
+  # Public: Show the current window.
   show: ->
     @getCurrentWindow().show()
 
+  # Public: Hide the current window.
   hide: ->
     @getCurrentWindow().hide()
 
@@ -259,45 +319,52 @@ class Atom
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @rootView.getState().get('fullScreen')
+      @setFullScreen(true) if @workspaceView.getState().get('fullScreen')
 
+  # Public: Close the current window.
   close: ->
     @getCurrentWindow().close()
 
+  # Private:
   exit: (status) -> app.exit(status)
 
+  # Public: Is the current window in development mode?
   inDevMode: ->
     @getLoadSettings().devMode
 
+  # Public: Is the current window running specs?
   inSpecMode: ->
     @getLoadSettings().isSpec
 
+  # Public: Toggle the full screen state of the current window.
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
+  # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     @getCurrentWindow().setFullScreen(fullScreen)
 
+  # Public: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
+  # Public: Get the version of the Atom application.
   getVersion: ->
     app.getVersion()
 
-  getHomeDirPath: ->
-    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-
-  getTempDirPath: ->
-    if process.platform is 'win32' then os.tmpdir() else '/tmp'
-
   # Public: Get the directory path to Atom's configuration area.
+  #
+  # Returns the absolute path to ~/.atom
   getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
 
   # Public: Get the directory path to Atom's storage area.
+  #
+  # Returns the absoluste path to ~/.atom/storage
   getStorageDirPath: ->
     @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
 
+  # Private:
   getWindowStatePath: ->
     switch @windowMode
       when 'spec'
@@ -313,11 +380,13 @@ class Atom
     else
       null
 
+  # Public: Set the window state of the given keypath to the value.
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     windowState.set(keyPath, value)
     windowState
 
+  # Private:
   loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
       if fs.existsSync(windowStatePath)
@@ -343,6 +412,7 @@ class Atom
       @site = new SiteShim(doc)
     doc
 
+  # Private:
   saveWindowState: ->
     windowState = @getWindowState()
     if windowStatePath = @getWindowStatePath()
@@ -350,6 +420,7 @@ class Atom
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serializeForPersistence())
 
+  # Public: Get the window state for the key path.
   getWindowState: (keyPath) ->
     @windowState ?= @loadWindowState()
     if keyPath
@@ -361,16 +432,20 @@ class Atom
   replicate: ->
     @getWindowState().replicate()
 
+  # Private:
   crashMainProcess: ->
     remote.process.crash()
 
+  # Private:
   crashRenderProcess: ->
     process.crash()
 
+  # Public: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @rootView.trigger 'beep'
+    @workspaceView.trigger 'beep'
 
+  # Private:
   requireUserInitScript: ->
     if userInitScriptPath = fs.resolve(@getConfigDirPath(), 'user', ['js', 'coffee'])
       try
@@ -378,6 +453,10 @@ class Atom
       catch error
         console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
+  # Public: Require the module with the given globals.
+  #
+  # The globals will be set on the `window` object and removed after the
+  # require completes.
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals

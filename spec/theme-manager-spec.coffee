@@ -1,5 +1,5 @@
 path = require 'path'
-{$, $$, fs, RootView} = require 'atom'
+{$, $$, fs, WorkspaceView} = require 'atom'
 
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'
@@ -140,16 +140,16 @@ describe "ThemeManager", ->
 
   describe "base stylesheet loading", ->
     beforeEach ->
-      atom.rootView = new RootView
-      atom.rootView.append $$ -> @div class: 'editor'
-      atom.rootView.attachToDom()
+      atom.workspaceView = new WorkspaceView
+      atom.workspaceView.append $$ -> @div class: 'editor'
+      atom.workspaceView.attachToDom()
       themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
       atom.config.set('core.themes', ['theme-with-ui-variables'])
 
       # an override loaded in the base css
-      expect(atom.rootView.css("background-color")).toBe "rgb(0, 0, 255)"
+      expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
 
       # from within the theme itself
       expect($(".editor").css("padding-top")).toBe "150px"

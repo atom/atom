@@ -1,52 +1,52 @@
-{$, $$, fs, RootView, View} = require 'atom'
+{$, $$, fs, WorkspaceView, View} = require 'atom'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
 Pane = require '../src/pane'
 
-describe "RootView", ->
+describe "WorkspaceView", ->
   pathToOpen = null
 
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
-    atom.rootView = new RootView
-    atom.rootView.enableKeymap()
-    atom.rootView.openSync(pathToOpen)
-    atom.rootView.focus()
+    atom.workspaceView = new WorkspaceView
+    atom.workspaceView.enableKeymap()
+    atom.workspaceView.openSync(pathToOpen)
+    atom.workspaceView.focus()
 
   describe "@deserialize()", ->
     viewState = null
 
-    refreshRootViewAndProject = ->
-      rootViewState = atom.rootView.serialize()
+    refreshWorkspaceViewAndProject = ->
+      workspaceViewState = atom.workspaceView.serialize()
       atom.project.getState().serializeForPersistence()
       project2 = atom.replicate().get('project')
-      atom.rootView.remove()
+      atom.workspaceView.remove()
       atom.project.destroy()
       atom.project = project2
-      atom.rootView = atom.deserializers.deserialize(rootViewState)
-      atom.rootView.attachToDom()
+      atom.workspaceView = atom.deserializers.deserialize(workspaceViewState)
+      atom.workspaceView.attachToDom()
 
-    describe "when the serialized RootView has an unsaved buffer", ->
+    describe "when the serialized WorkspaceView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
-        atom.rootView.attachToDom()
-        atom.rootView.openSync()
-        editor1 = atom.rootView.getActiveView()
+        atom.workspaceView.attachToDom()
+        atom.workspaceView.openSync()
+        editor1 = atom.workspaceView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(atom.rootView.getActiveView()).toBe atom.rootView.getEditors()[2]
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[2]
 
-        refreshRootViewAndProject()
+        refreshWorkspaceViewAndProject()
 
-        expect(atom.rootView.getEditors().length).toBe 2
-        expect(atom.rootView.getActiveView()).toBe atom.rootView.getEditors()[1]
-        expect(atom.rootView.title).toBe "untitled - #{atom.project.getPath()}"
+        expect(atom.workspaceView.getEditors().length).toBe 2
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[1]
+        expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
-        atom.rootView.attachToDom()
-        pane1 = atom.rootView.getActivePane()
+        atom.workspaceView.attachToDom()
+        pane1 = atom.workspaceView.getActivePane()
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
         pane4 = pane2.splitDown()
@@ -57,13 +57,13 @@ describe "RootView", ->
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
-        refreshRootViewAndProject()
+        refreshWorkspaceViewAndProject()
 
-        expect(atom.rootView.getEditors().length).toBe 4
-        editor1 = atom.rootView.panes.find('.row > .pane .editor:eq(0)').view()
-        editor3 = atom.rootView.panes.find('.row > .pane .editor:eq(1)').view()
-        editor2 = atom.rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-        editor4 = atom.rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+        expect(atom.workspaceView.getEditors().length).toBe 4
+        editor1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
+        editor3 = atom.workspaceView.panes.find('.row > .pane .editor:eq(1)').view()
+        editor2 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(0)').view()
+        editor4 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
         expect(editor1.getPath()).toBe atom.project.resolve('a')
         expect(editor2.getPath()).toBe atom.project.resolve('b')
@@ -84,181 +84,181 @@ describe "RootView", ->
         expect(editor3.isFocused).toBeFalsy()
         expect(editor4.isFocused).toBeFalsy()
 
-        expect(atom.rootView.title).toBe "#{path.basename(editor2.getPath())} - #{atom.project.getPath()}"
+        expect(atom.workspaceView.title).toBe "#{path.basename(editor2.getPath())} - #{atom.project.getPath()}"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
-        atom.rootView.getActivePane().remove()
-        expect(atom.rootView.getEditors().length).toBe 0
-        refreshRootViewAndProject()
-        expect(atom.rootView.getEditors().length).toBe 0
+        atom.workspaceView.getActivePane().remove()
+        expect(atom.workspaceView.getEditors().length).toBe 0
+        refreshWorkspaceViewAndProject()
+        expect(atom.workspaceView.getEditors().length).toBe 0
 
   describe "focus", ->
     beforeEach ->
-      atom.rootView.attachToDom()
+      atom.workspaceView.attachToDom()
 
     describe "when there is an active view", ->
       it "hands off focus to the active view", ->
-        editorView = atom.rootView.getActiveView()
+        editorView = atom.workspaceView.getActiveView()
         editorView.isFocused = false
-        atom.rootView.focus()
+        atom.workspaceView.focus()
         expect(editorView.isFocused).toBeTruthy()
 
     describe "when there is no active view", ->
       beforeEach ->
-        atom.rootView.getActivePane().remove()
-        expect(atom.rootView.getActiveView()).toBeUndefined()
-        atom.rootView.attachToDom()
+        atom.workspaceView.getActivePane().remove()
+        expect(atom.workspaceView.getActiveView()).toBeUndefined()
+        atom.workspaceView.attachToDom()
         expect(document.activeElement).toBe document.body
 
       describe "when are visible focusable elements (with a -1 tabindex)", ->
         it "passes focus to the first focusable element", ->
           focusable1 = $$ -> @div "One", id: 'one', tabindex: -1
           focusable2 = $$ -> @div "Two", id: 'two', tabindex: -1
-          atom.rootView.horizontal.append(focusable1, focusable2)
+          atom.workspaceView.horizontal.append(focusable1, focusable2)
           expect(document.activeElement).toBe document.body
 
-          atom.rootView.focus()
+          atom.workspaceView.focus()
           expect(document.activeElement).toBe focusable1[0]
 
       describe "when there are no visible focusable elements", ->
         it "surrenders focus to the body", ->
           focusable = $$ -> @div "One", id: 'one', tabindex: -1
-          atom.rootView.horizontal.append(focusable)
+          atom.workspaceView.horizontal.append(focusable)
           focusable.hide()
           expect(document.activeElement).toBe document.body
 
-          atom.rootView.focus()
+          atom.workspaceView.focus()
           expect(document.activeElement).toBe document.body
 
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
       commandHandler = jasmine.createSpy('commandHandler')
-      atom.rootView.on('foo-command', commandHandler)
+      atom.workspaceView.on('foo-command', commandHandler)
 
       atom.keymap.bindKeys('name', '*', 'x': 'foo-command')
 
-    describe "when a keydown event is triggered in the RootView", ->
+    describe "when a keydown event is triggered in the WorkspaceView", ->
       it "triggers matching keybindings for that event", ->
-        event = keydownEvent 'x', target: atom.rootView[0]
+        event = keydownEvent 'x', target: atom.workspaceView[0]
 
-        atom.rootView.trigger(event)
+        atom.workspaceView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
   describe "window title", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         atom.project.setPath(undefined)
-        expect(atom.rootView.title).toBe 'untitled'
+        expect(atom.workspaceView.title).toBe 'untitled'
 
     describe "when the project has a path", ->
       beforeEach ->
-        atom.rootView.openSync('b')
+        atom.workspaceView.openSync('b')
 
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
-          item = atom.rootView.getActivePaneItem()
-          expect(atom.rootView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+          item = atom.workspaceView.getActivePaneItem()
+          expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
-          editor = atom.rootView.getActivePaneItem()
+          editor = atom.workspaceView.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(atom.rootView.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
+          expect(atom.workspaceView.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
-          atom.rootView.getActivePane().showNextItem()
-          item = atom.rootView.getActivePaneItem()
-          expect(atom.rootView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+          atom.workspaceView.getActivePane().showNextItem()
+          item = atom.workspaceView.getActivePaneItem()
+          expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
-          atom.rootView.getActivePane().remove()
-          expect(atom.rootView.getActivePaneItem()).toBeUndefined()
-          expect(atom.rootView.title).toBe atom.project.getPath()
+          atom.workspaceView.getActivePane().remove()
+          expect(atom.workspaceView.getActivePaneItem()).toBeUndefined()
+          expect(atom.workspaceView.title).toBe atom.project.getPath()
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
-          pane = atom.rootView.getActivePane()
+          pane = atom.workspaceView.getActivePane()
           pane.splitRight()
-          initialTitle = atom.rootView.title
+          initialTitle = atom.workspaceView.title
           pane.showNextItem()
-          expect(atom.rootView.title).toBe initialTitle
+          expect(atom.workspaceView.title).toBe initialTitle
 
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
-        rootView2 = atom.deserializers.deserialize(atom.rootView.serialize())
-        item = atom.rootView.getActivePaneItem()
-        expect(rootView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
-        rootView2.remove()
+        workspaceView2 = atom.deserializers.deserialize(atom.workspaceView.serialize())
+        item = atom.workspaceView.getActivePaneItem()
+        expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+        workspaceView2.remove()
 
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
       fontSizeBefore = atom.config.get('editor.fontSize')
-      atom.rootView.trigger 'window:increase-font-size'
+      atom.workspaceView.trigger 'window:increase-font-size'
       expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
-      atom.rootView.trigger 'window:increase-font-size'
+      atom.workspaceView.trigger 'window:increase-font-size'
       expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 2
-      atom.rootView.trigger 'window:decrease-font-size'
+      atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
-      atom.rootView.trigger 'window:decrease-font-size'
+      atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
       atom.config.set("editor.fontSize", 1)
-      atom.rootView.trigger 'window:decrease-font-size'
+      atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe 1
 
   describe ".openSync(filePath, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
         spyOn(Pane.prototype, 'focus')
-        atom.rootView.getActivePane().remove()
-        expect(atom.rootView.getActivePane()).toBeUndefined()
+        atom.workspaceView.getActivePane().remove()
+        expect(atom.workspaceView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
-          editor = atom.rootView.openSync()
-          expect(atom.rootView.getActivePane().activeItem).toBe editor
+          editor = atom.workspaceView.openSync()
+          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBeUndefined()
-          expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
+          expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
 
         it "can create multiple empty edit sessions as an item on a new pane", ->
-          editor = atom.rootView.openSync()
-          editor2 = atom.rootView.openSync()
-          expect(atom.rootView.getActivePane().getItems().length).toBe 2
+          editor = atom.workspaceView.openSync()
+          editor2 = atom.workspaceView.openSync()
+          expect(atom.workspaceView.getActivePane().getItems().length).toBe 2
           expect(editor).not.toBe editor2
 
       describe "when called with a path", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
-          editor = atom.rootView.openSync('b')
-          expect(atom.rootView.getActivePane().activeItem).toBe editor
+          editor = atom.workspaceView.openSync('b')
+          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-          expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
+          expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
         it "does not focus the new pane", ->
-          editor = atom.rootView.openSync('b', changeFocus: false)
-          expect(atom.rootView.getActivePane().focus).not.toHaveBeenCalled()
+          editor = atom.workspaceView.openSync('b', changeFocus: false)
+          expect(atom.workspaceView.getActivePane().focus).not.toHaveBeenCalled()
 
       describe "when the split option is 'right'", ->
         it "creates a new pane and opens the file in said pane", ->
-          editor = atom.rootView.openSync('b', split: 'right')
-          expect(atom.rootView.getActivePane().activeItem).toBe editor
+          editor = atom.workspaceView.openSync('b', split: 'right')
+          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
     describe "when there is an active pane", ->
       [activePane, initialItemCount] = []
       beforeEach ->
-        activePane = atom.rootView.getActivePane()
+        activePane = atom.workspaceView.getActivePane()
         spyOn(activePane, 'focus')
         initialItemCount = activePane.getItems().length
 
       describe "when called with no path", ->
         it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
-          editor = atom.rootView.openSync()
+          editor = atom.workspaceView.openSync()
           expect(activePane.getItems().length).toBe initialItemCount + 1
           expect(activePane.activeItem).toBe editor
           expect(editor.getPath()).toBeUndefined()
@@ -269,11 +269,11 @@ describe "RootView", ->
           it "shows the existing edit session in the pane", ->
             previousEditSession = activePane.activeItem
 
-            editor = atom.rootView.openSync('b')
+            editor = atom.workspaceView.openSync('b')
             expect(activePane.activeItem).toBe editor
             expect(editor).not.toBe previousEditSession
 
-            editor = atom.rootView.openSync(previousEditSession.getPath())
+            editor = atom.workspaceView.openSync(previousEditSession.getPath())
             expect(editor).toBe previousEditSession
             expect(activePane.activeItem).toBe editor
 
@@ -281,85 +281,85 @@ describe "RootView", ->
 
         describe "when the active pane does not have an edit session item for the path being opened", ->
           it "creates a new edit session for the given path in the active editor", ->
-            editor = atom.rootView.openSync('b')
+            editor = atom.workspaceView.openSync('b')
             expect(activePane.items.length).toBe 2
             expect(activePane.activeItem).toBe editor
             expect(activePane.focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
         it "does not focus the active pane", ->
-          editor = atom.rootView.openSync('b', changeFocus: false)
+          editor = atom.workspaceView.openSync('b', changeFocus: false)
           expect(activePane.focus).not.toHaveBeenCalled()
 
       describe "when the split option is 'right'", ->
         it "creates a new pane and opens the file in said pane", ->
-          pane1 = atom.rootView.getActivePane()
+          pane1 = atom.workspaceView.getActivePane()
 
-          editor = atom.rootView.openSync('b', split: 'right')
-          pane2 = atom.rootView.getActivePane()
+          editor = atom.workspaceView.openSync('b', split: 'right')
+          pane2 = atom.workspaceView.getActivePane()
           expect(pane2[0]).not.toBe pane1[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
-          expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
-          editor = atom.rootView.openSync('file1', split: 'right')
-          pane3 = atom.rootView.getActivePane()
+          editor = atom.workspaceView.openSync('file1', split: 'right')
+          pane3 = atom.workspaceView.getActivePane()
           expect(pane3[0]).toBe pane2[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
 
-          expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
   describe ".openSingletonSync(filePath, options)", ->
     describe "when there is an active pane", ->
       [pane1] = []
       beforeEach ->
         spyOn(Pane.prototype, 'focus').andCallFake -> @makeActive()
-        pane1 = atom.rootView.getActivePane()
+        pane1 = atom.workspaceView.getActivePane()
 
       it "creates a new pane and reuses the file when already open", ->
-        atom.rootView.openSingletonSync('b', split: 'right')
-        pane2 = atom.rootView.getActivePane()
+        atom.workspaceView.openSingletonSync('b', split: 'right')
+        pane2 = atom.workspaceView.getActivePane()
         expect(pane2[0]).not.toBe pane1[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane1.focus()
-        expect(atom.rootView.getActivePane()[0]).toBe pane1[0]
+        expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
 
-        atom.rootView.openSingletonSync('b', split: 'right')
-        pane3 = atom.rootView.getActivePane()
+        atom.workspaceView.openSingletonSync('b', split: 'right')
+        pane3 = atom.workspaceView.getActivePane()
         expect(pane3[0]).toBe pane2[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "handles split: left by opening to the left pane when necessary", ->
-        atom.rootView.openSingletonSync('b', split: 'right')
-        pane2 = atom.rootView.getActivePane()
+        atom.workspaceView.openSingletonSync('b', split: 'right')
+        pane2 = atom.workspaceView.getActivePane()
         expect(pane2[0]).not.toBe pane1[0]
 
-        atom.rootView.openSingletonSync('file1', split: 'left')
+        atom.workspaceView.openSingletonSync('file1', split: 'left')
 
-        activePane = atom.rootView.getActivePane()
+        activePane = atom.workspaceView.getActivePane()
         expect(activePane[0]).toBe pane1[0]
 
         expect(pane1.itemForUri('file1')).toBeTruthy()
         expect(pane2.itemForUri('file1')).toBeFalsy()
-        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane2.focus()
-        expect(atom.rootView.getActivePane()[0]).toBe pane2[0]
+        expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
 
-        atom.rootView.openSingletonSync('file1', split: 'left')
-        activePane = atom.rootView.getActivePane()
+        atom.workspaceView.openSingletonSync('file1', split: 'left')
+        activePane = atom.workspaceView.getActivePane()
         expect(activePane[0]).toBe pane1[0]
-        expect(atom.rootView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "reuses the file when already open", ->
-        atom.rootView.openSync('b')
-        atom.rootView.openSingletonSync('b', split: 'right')
-        expect(atom.rootView.panes.find('.pane').toArray()).toEqual [pane1[0]]
+        atom.workspaceView.openSync('b')
+        atom.workspaceView.openSingletonSync('b', split: 'right')
+        expect(atom.workspaceView.panes.find('.pane').toArray()).toEqual [pane1[0]]
 
   describe ".open(filePath)", ->
     beforeEach ->
@@ -367,60 +367,60 @@ describe "RootView", ->
 
     describe "when there is no active pane", ->
       beforeEach ->
-        atom.rootView.getActivePane().remove()
-        expect(atom.rootView.getActivePane()).toBeUndefined()
+        atom.workspaceView.getActivePane().remove()
+        expect(atom.workspaceView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
         it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
           editor = null
 
           waitsForPromise ->
-            atom.rootView.open().then (o) -> editor = o
+            atom.workspaceView.open().then (o) -> editor = o
 
           runs ->
-            expect(atom.rootView.getActivePane().activeItem).toBe editor
+            expect(atom.workspaceView.getActivePane().activeItem).toBe editor
             expect(editor.getPath()).toBeUndefined()
-            expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
+            expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
 
         it "can create multiple empty edit sessions as items on a pane", ->
           editor1 = null
           editor2 = null
 
           waitsForPromise ->
-            atom.rootView.open()
+            atom.workspaceView.open()
               .then (o) ->
                 editor1 = o
-                atom.rootView.open()
+                atom.workspaceView.open()
               .then (o) ->
                 editor2 = o
 
           runs ->
-            expect(atom.rootView.getActivePane().getItems().length).toBe 2
+            expect(atom.workspaceView.getActivePane().getItems().length).toBe 2
             expect(editor1).not.toBe editor2
 
       describe "when called with a path", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editor = null
           waitsForPromise ->
-            atom.rootView.open('b').then (o) -> editor = o
+            atom.workspaceView.open('b').then (o) -> editor = o
 
           runs ->
-            expect(atom.rootView.getActivePane().activeItem).toBe editor
+            expect(atom.workspaceView.getActivePane().activeItem).toBe editor
             expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-            expect(atom.rootView.getActivePane().focus).toHaveBeenCalled()
+            expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
 
     describe "when there is an active pane", ->
       [activePane] = []
 
       beforeEach ->
-        activePane = atom.rootView.getActivePane()
+        activePane = atom.workspaceView.getActivePane()
 
       describe "when called with no path", ->
         it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
           editor = null
 
           waitsForPromise ->
-            atom.rootView.open().then (o) -> editor = o
+            atom.workspaceView.open().then (o) -> editor = o
 
           runs ->
             expect(activePane.getItems().length).toBe 2
@@ -435,14 +435,14 @@ describe "RootView", ->
 
             editor = null
             waitsForPromise ->
-              atom.rootView.open('b').then (o) -> editor = o
+              atom.workspaceView.open('b').then (o) -> editor = o
 
             runs ->
               expect(activePane.activeItem).toBe editor
               expect(editor).not.toBe previousEditSession
 
             waitsForPromise ->
-              atom.rootView.open(previousEditSession.getPath()).then (o) -> editor = o
+              atom.workspaceView.open(previousEditSession.getPath()).then (o) -> editor = o
 
             runs ->
               expect(editor).toBe previousEditSession
@@ -454,7 +454,7 @@ describe "RootView", ->
             editor = null
 
             waitsForPromise ->
-              atom.rootView.open('b').then (o) -> editor = o
+              atom.workspaceView.open('b').then (o) -> editor = o
 
             runs ->
               expect(activePane.activeItem).toBe editor
@@ -463,9 +463,9 @@ describe "RootView", ->
 
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
-      atom.rootView.height(200)
-      atom.rootView.attachToDom()
-      rightEditor = atom.rootView.getActiveView()
+      atom.workspaceView.height(200)
+      atom.workspaceView.attachToDom()
+      rightEditor = atom.workspaceView.getActiveView()
       rightEditor.setText(" \t ")
       leftEditor = rightEditor.splitLeft()
       expect(rightEditor.find(".line:first").text()).toBe "    "
@@ -473,14 +473,14 @@ describe "RootView", ->
 
       withInvisiblesShowing = "#{rightEditor.invisibles.space}#{rightEditor.invisibles.tab} #{rightEditor.invisibles.space}#{rightEditor.invisibles.eol}"
 
-      atom.rootView.trigger "window:toggle-invisibles"
+      atom.workspaceView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe withInvisiblesShowing
       expect(leftEditor.find(".line:first").text()).toBe withInvisiblesShowing
 
       lowerLeftEditor = leftEditor.splitDown()
       expect(lowerLeftEditor.find(".line:first").text()).toBe withInvisiblesShowing
 
-      atom.rootView.trigger "window:toggle-invisibles"
+      atom.workspaceView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe "    "
       expect(leftEditor.find(".line:first").text()).toBe "    "
 
@@ -489,7 +489,7 @@ describe "RootView", ->
 
   describe ".eachEditor(callback)", ->
     beforeEach ->
-      atom.rootView.attachToDom()
+      atom.workspaceView.attachToDom()
 
     it "invokes the callback for existing editor", ->
       count = 0
@@ -497,9 +497,9 @@ describe "RootView", ->
       callback = (editor) ->
         callbackEditor = editor
         count++
-      atom.rootView.eachEditor(callback)
+      atom.workspaceView.eachEditor(callback)
       expect(count).toBe 1
-      expect(callbackEditor).toBe atom.rootView.getActiveView()
+      expect(callbackEditor).toBe atom.workspaceView.getActiveView()
 
     it "invokes the callback for new editor", ->
       count = 0
@@ -508,28 +508,28 @@ describe "RootView", ->
         callbackEditor = editor
         count++
 
-      atom.rootView.eachEditor(callback)
+      atom.workspaceView.eachEditor(callback)
       count = 0
       callbackEditor = null
-      atom.rootView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 1
-      expect(callbackEditor).toBe atom.rootView.getActiveView()
+      expect(callbackEditor).toBe atom.workspaceView.getActiveView()
 
     it "returns a subscription that can be disabled", ->
       count = 0
       callback = (editor) -> count++
 
-      subscription = atom.rootView.eachEditor(callback)
+      subscription = atom.workspaceView.eachEditor(callback)
       expect(count).toBe 1
-      atom.rootView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
       subscription.off()
-      atom.rootView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->
-      atom.rootView.attachToDom()
+      atom.workspaceView.attachToDom()
 
     it "invokes the callback for existing buffer", ->
       count = 0
@@ -538,9 +538,9 @@ describe "RootView", ->
       callback = (buffer) ->
         callbackBuffer = buffer
         count++
-      atom.rootView.eachBuffer(callback)
+      atom.workspaceView.eachBuffer(callback)
       expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.rootView.getActiveView().getBuffer()
+      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()
 
     it "invokes the callback for new buffer", ->
       count = 0
@@ -549,9 +549,9 @@ describe "RootView", ->
         callbackBuffer = buffer
         count++
 
-      atom.rootView.eachBuffer(callback)
+      atom.workspaceView.eachBuffer(callback)
       count = 0
       callbackBuffer = null
-      atom.rootView.openSync(require.resolve('./fixtures/sample.txt'))
+      atom.workspaceView.openSync(require.resolve('./fixtures/sample.txt'))
       expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.rootView.getActiveView().getBuffer()
+      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()

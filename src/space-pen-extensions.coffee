@@ -17,11 +17,12 @@ jQuery.cleanData = (elements) ->
 
 tooltipDefaults =
   delay:
-    show: 500
+    show: 1000
     hide: 100
   container: 'body'
   html: true
   placement: 'auto top'
+  viewportPadding: 2
 
 modifiers =
   cmd: '⌘'
@@ -60,16 +61,30 @@ getKeystroke = (bindings) ->
     "<span class=\"keystroke\">#{replaceModifiers(bindings[0].keystroke)}</span>"
   else
     ''
-
-jQuery.fn.setTooltip = (title, {command, commandElement}={}) ->
+# options from http://getbootstrap.com/javascript/#tooltips
+jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
   atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery})
+
+  tooltipOptions = {title: tooltipOptions} if _.isString(tooltipOptions)
 
   bindings = if commandElement
     atom.keymap.keyBindingsForCommandMatchingElement(command, commandElement)
   else
     atom.keymap.keyBindingsForCommand(command)
 
-  this.tooltip(jQuery.extend(tooltipDefaults, {title: "#{title} #{getKeystroke(bindings)}"}))
+  tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
+
+  this.tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
+
+jQuery.fn.hideTooltip = ->
+  tip = @data('bs.tooltip')
+  if tip
+    tip.leave(currentTarget: this)
+    tip.hide()
+
+jQuery.fn.destroyTooltip = ->
+  @hideTooltip()
+  @tooltip('destroy')
 
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.replaceModifiers = replaceModifiers

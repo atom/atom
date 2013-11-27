@@ -219,11 +219,11 @@ class AtomPackage extends Package
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
-      atom.rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
+      atom.workspaceView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      atom.rootView.command(@metadata.activationEvents, @handleActivationEvent)
+      atom.workspaceView.command(@metadata.activationEvents, @handleActivationEvent)
     else
-      atom.rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      atom.workspaceView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   handleActivationEvent: (event) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
@@ -234,11 +234,11 @@ class AtomPackage extends Package
 
   unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
-      atom.rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
+      atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
-      atom.rootView.off(@metadata.activationEvents, @handleActivationEvent)
+      atom.workspaceView.off(@metadata.activationEvents, @handleActivationEvent)
     else
-      atom.rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      atom.workspaceView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []
