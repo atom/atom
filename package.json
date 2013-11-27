@@ -81,7 +81,7 @@
     "dev-live-reload": "0.18.0",
     "editor-stats": "0.8.0",
     "exception-reporting": "0.8.0",
-    "feedback": "0.6.0",
+    "feedback": "0.7.0",
     "image-view": "0.9.0",
     "keybinding-resolver": "0.6.0",
     "link": "0.10.0",
