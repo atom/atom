@@ -92,7 +92,7 @@ describe "Pane", ->
           pane.showItem(editor1)
           editorView = pane.activeView
           expect(editorView.css('display')).not.toBe 'none'
-          expect(editorView.activeEditSession).toBe editor1
+          expect(editorView.editor).toBe editor1
 
       describe "when a valid view has already been appended for another item", ->
         it "multiple views are created for multiple items", ->
@@ -101,7 +101,7 @@ describe "Pane", ->
           expect(pane.itemViews.find('.editor').length).toBe 2
           editorView = pane.activeView
           expect(editorView.css('display')).not.toBe 'none'
-          expect(editorView.activeEditSession).toBe editor2
+          expect(editorView.editor).toBe editor2
 
         it "creates a new view with the item", ->
           initialViewCount = pane.itemViews.find('.test-view').length
