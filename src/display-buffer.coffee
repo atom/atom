@@ -1,8 +1,7 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
-telepath = require 'telepath'
-{Point, Range} = telepath
+{Point, Range, Model} = require 'telepath'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
@@ -12,34 +11,17 @@ ConfigObserver = require './config-observer'
 
 # Private:
 module.exports =
-class DisplayBuffer
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class DisplayBuffer extends Model
   _.extend @prototype, ConfigObserver
 
-  @acceptsDocuments: true
-  atom.deserializers.add(this)
-  @version: 2
+  @properties
+    tokenizedBuffer: null
+    buffer: null
+    editorWidthInChars: null
+    softWrap: -> atom.config.get('editor.softWrap') ? false
 
-  @deserialize: (state) -> new this(state)
-
-  constructor: (optionsOrState) ->
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-      @id = @state.get('id')
-      @tokenizedBuffer = atom.deserializers.deserialize(@state.get('tokenizedBuffer'))
-      @buffer = @tokenizedBuffer.buffer
-    else
-      {@buffer, softWrap, editorWidthInChars} = optionsOrState
-      @id = guid.create().toString()
-      @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        version: @constructor.version
-        id: @id
-        tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrap: softWrap ? atom.config.get('editor.softWrap') ? false
-        editorWidthInChars: editorWidthInChars
+  attached: ->
+    @tokenizedBuffer ?= new TokenizedBuffer({@tabLength, @buffer})
 
     @markers = {}
     @foldsByMarkerId = {}
@@ -50,10 +32,12 @@ class DisplayBuffer
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @state, 'changed', ({newValues}) =>
-      if newValues.softWrap?
-        @emit 'soft-wrap-changed', newValues.softWrap
-        @updateWrappedScreenLines()
+    @subscribe @$softWrap.changes(), 'value', (softWrap) =>
+      @emit 'soft-wrap-changed', softWrap
+      @updateWrappedScreenLines()
+
+    @subscribe @$editorWidthInChars.changes(), 'value', (editorWidthInChars) =>
+      @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @getSoftWrap() and atom.config.get('editor.softWrapAtPreferredLineLength')
@@ -65,7 +49,7 @@ class DisplayBuffer
   getState: -> @state
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer = atom.site.createDocument(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -98,18 +82,16 @@ class DisplayBuffer
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  setSoftWrap: (softWrap) -> @state.set('softWrap', softWrap)
+  # Deprecated
+  setSoftWrap: (@softWrap) ->
 
-  getSoftWrap: -> @state.get('softWrap')
+  # Deprecated
+  getSoftWrap: -> @softWrap
 
-  # Set the number of characters that fit horizontally in the editor.
+  # Deprecated: Set the number of characters that fit horizontally in the editor.
   #
   # editorWidthInChars - A {Number} of characters.
-  setEditorWidthInChars: (editorWidthInChars) ->
-    previousWidthInChars = @state.get('editorWidthInChars')
-    @state.set('editorWidthInChars', editorWidthInChars)
-    if editorWidthInChars isnt previousWidthInChars and @getSoftWrap()
-      @updateWrappedScreenLines()
+  setEditorWidthInChars: (@editorWidthInChars) ->
 
   getSoftWrapColumn: ->
     editorWidthInChars = @state.get('editorWidthInChars')

@@ -7,26 +7,13 @@ describe "DisplayBuffer", ->
     tabLength = 2
     atom.packages.activatePackage('language-javascript', sync: true)
     buffer = atom.project.bufferForPathSync('sample.js')
-    displayBuffer = new DisplayBuffer({buffer, tabLength})
+    displayBuffer = atom.site.createDocument(new DisplayBuffer({buffer, tabLength}))
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
 
   afterEach ->
     displayBuffer.destroy()
     buffer.release()
-
-  describe "@deserialize(state)", ->
-    it "constructs a display buffer with the same buffer, folds, editorWidthInChars, and tabLength", ->
-      displayBuffer.setTabLength(4)
-      displayBuffer.setEditorWidthInChars(64)
-      displayBuffer.createFold(2, 4)
-      displayBuffer2 = atom.deserializers.deserialize(displayBuffer.serialize())
-      expect(displayBuffer2.id).toBe displayBuffer.id
-      expect(displayBuffer2.buffer).toBe displayBuffer.buffer
-      expect(displayBuffer2.tokenizedBuffer.buffer).toBe displayBuffer.tokenizedBuffer.buffer
-      expect(displayBuffer2.isFoldedAtBufferRow(2)).toBeTruthy()
-      expect(displayBuffer2.getSoftWrapColumn()).toBe displayBuffer.getSoftWrapColumn()
-      expect(displayBuffer2.getTabLength()).toBe displayBuffer.getTabLength()
 
   describe ".copy()", ->
     it "creates a new DisplayBuffer with the same initial state", ->
@@ -35,7 +22,7 @@ describe "DisplayBuffer", ->
       marker3 = displayBuffer.markBufferPosition([5, 6], id: 3)
       displayBuffer.createFold(3, 5)
 
-      displayBuffer2 = displayBuffer.copy()
+      displayBuffer2 = atom.site.createDocument(displayBuffer.copy())
       expect(displayBuffer2.id).not.toBe displayBuffer.id
       expect(displayBuffer2.buffer).toBe displayBuffer.buffer
       expect(displayBuffer2.getTabLength()).toBe displayBuffer.getTabLength()
@@ -155,7 +142,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
+          displayBuffer = atom.site.createDocument(new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true}))
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -207,7 +194,7 @@ describe "DisplayBuffer", ->
       displayBuffer.destroy()
       buffer.release()
       buffer = atom.project.bufferForPathSync('two-hundred.txt')
-      displayBuffer = new DisplayBuffer({buffer, tabLength})
+      displayBuffer = atom.site.createDocument(new DisplayBuffer({buffer, tabLength}))
       displayBuffer.on 'changed', changeHandler
 
     describe "when folds are created and destroyed", ->
@@ -313,7 +300,7 @@ describe "DisplayBuffer", ->
 
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not create folds in the other display buffer", ->
-          otherDisplayBuffer = new DisplayBuffer({buffer, tabLength})
+          otherDisplayBuffer = atom.site.createDocument(new DisplayBuffer({buffer, tabLength}))
           displayBuffer.createFold(2, 4)
           expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
 
