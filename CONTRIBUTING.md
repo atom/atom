@@ -20,8 +20,8 @@
   * Commit messages are in the present tense
   * Files end with a newline.
   * Requires should be in the following order:
-    * Built in Atom and Atom Shell modules
     * Node Modules
+    * Built in Atom and Atom Shell modules
     * Local Modules (using relative links)
   * Class variables and methods should be in the following order:
     * Class methods (methods starting with a `@`)
