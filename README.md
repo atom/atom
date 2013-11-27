@@ -1,30 +1,17 @@
-# Atom — Futuristic Text Editing
+# Atom — The hackable, ~~collaborative~~ editor of tomorrow!
 
-![atom](https://s3.amazonaws.com/speakeasy/apps/icons/27/medium/7db16e44-ba57-11e2-8c6f-981faf658e00.png)
+![Atom](https://www.atom.io/assets/logo-e793a022e41eff6879fd6205bc06ef92.png)
 
-Check out our [guides](https://www.atom.io/docs/latest/) and [API documentation](https://www.atom.io/docs/api/v34.0.0/api/)
+Check out our [guides and API documentation](https://www.atom.io/docs/latest/)
 
 ## Installing
 
-Download the latest Atom release from [speakeasy](https://speakeasy.githubapp.com/apps/27).
+Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
 
-It will automatically update when a new release is available.
+Atom will automatically update when a new release is available.
 
 ## Building
 
-### Requirements
-
-  * Mountain Lion
-    * Looking for Windows support? Read [here][building].
-  * Boxen (Obviously Atom won't release with this requirement)
-
-### Installation
-
-  1. `gh-setup atom`
-
-  2. `cd ~/github/atom`
-
-  3. `script/build`
-
+  Follow the instructions in the [build docs][building]
 
 [building]: https://github.com/atom/atom/blob/master/docs/building-atom.md
