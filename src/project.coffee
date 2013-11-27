@@ -63,7 +63,7 @@ class Project extends telepath.Model
 
   # Private:
   destroy: ->
-    editor.destroy() for editor in @getEditSessions()
+    editor.destroy() for editor in @getEditors()
     buffer.release() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -161,7 +161,7 @@ class Project extends telepath.Model
       Q(resource)
     else
       @bufferForPath(filePath).then (buffer) =>
-        @buildEditSessionForBuffer(buffer, options)
+        @buildEditorForBuffer(buffer, options)
 
   # Private: Only be used in specs
   openSync: (filePath, options={}) ->
@@ -169,21 +169,21 @@ class Project extends telepath.Model
     for opener in @openers
       return resource if resource = opener(filePath, options)
 
-    @buildEditSessionForBuffer(@bufferForPathSync(filePath), options)
+    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
   # Public: Retrieves all {Editor}s for all open files.
   #
   # Returns an {Array} of {Editor}s.
-  getEditSessions: ->
+  getEditors: ->
     new Array(@editors...)
 
   # Public: Add the given {Editor}.
-  addEditSession: (editor) ->
+  addEditor: (editor) ->
     @editors.push editor
     @emit 'editor-created', editor
 
   # Public: Return and removes the given {Editor}.
-  removeEditSession: (editor) ->
+  removeEditor: (editor) ->
     _.remove(@editors, editor)
 
   # Private: Retrieves all the {TextBuffer}s in the project; that is, the
@@ -343,14 +343,14 @@ class Project extends telepath.Model
     deferred.promise
 
   # Private:
-  buildEditSessionForBuffer: (buffer, editorOptions) ->
+  buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new Editor(_.extend({buffer}, editorOptions))
-    @addEditSession(editor)
+    @addEditor(editor)
     editor
 
   # Private:
-  eachEditSession: (callback) ->
-    callback(editor) for editor in @getEditSessions()
+  eachEditor: (callback) ->
+    callback(editor) for editor in @getEditors()
     @on 'editor-created', (editor) -> callback(editor)
 
   # Private:
