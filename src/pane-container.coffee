@@ -6,8 +6,12 @@ module.exports =
 class PaneContainer extends Model
   Focusable.includeInto(this)
 
-  @property 'children', -> [new Pane(container: this)]
+  @properties
+    children: -> [new Pane(container: this, parent: this)]
+    activePane: null
+
   @relatesToOne 'root', -> @children
 
   attached: ->
-    @root.focusManager = @focusManager
+    @activePane ?= @root
+    @root.setFocusManager?(@focusManager)

@@ -14,6 +14,9 @@ class Focusable extends Mixin
     @behavior 'focusedDocument', ->
       @$focusManager.flatMapLatest (manager) -> manager.$focusedDocument
 
+    # override this behavior if the object has focusable children
+    @behavior 'hasFocus', -> @$focused
+
   manageFocus: ->
     @subscribe @$focusedDocument, 'value', (focusedDocument) =>
       @focused = this is focusedDocument
@@ -27,7 +30,3 @@ class Focusable extends Mixin
   setFocusManager: (@focusManager) ->
 
   setFocused: (@focused) ->
-
-  # Override this if this object has focusable children
-  hasFocus: ->
-    @focused

@@ -3,6 +3,6 @@
 module.exports =
 class PaneAxis extends Model
   @properties
-    container: null
+    parent: null
     orientation: null
     children: []

@@ -43,14 +43,14 @@ describe "Pane", ->
 
     describe "if the pane has focus before making the item active and the item is focusable", ->
       it "focuses the item after adding it", ->
-        expect(pane.hasFocus()).toBe false
+        expect(pane.hasFocus).toBe false
         item4 = pane.setActiveItem(new Item)
-        expect(item4.hasFocus()).toBe false
+        expect(item4.hasFocus).toBe false
 
         pane.focused = true
         item5 = pane.setActiveItem(new Item)
-        expect(item5.hasFocus()).toBe true
-        expect(pane.hasFocus()).toBe true
+        expect(item5.hasFocus).toBe true
+        expect(pane.hasFocus).toBe true
 
   describe "::addItem(item)", ->
     describe "when the pane has no items", ->
@@ -155,28 +155,44 @@ describe "Pane", ->
         expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
 
   describe "when a pane is focused", ->
-    [pane1, pane2, item4, item5] = []
+    [pane1, pane2] = []
 
     beforeEach ->
       pane1 = pane
       item4 = new Item
-      item5 = new Item
-      pane2 = pane1.splitRight(item4, item5)
+      pane2 = pane1.splitRight(item4)
 
     it "focuses the active item if it is focusable", ->
-      expect(pane1.hasFocus()).toBe false
-      expect(pane1.activeItem.hasFocus()).toBe false
+      expect(pane1.hasFocus).toBe false
+      expect(pane1.activeItem.hasFocus).toBe false
 
       pane1.focused = true
-      expect(pane1.hasFocus()).toBe true
-      expect(pane1.activeItem.hasFocus()).toBe true
+      expect(pane1.hasFocus).toBe true
+      expect(pane1.activeItem.hasFocus).toBe true
 
       pane2.focused = true
-      expect(pane1.hasFocus()).toBe false
-      expect(pane2.hasFocus()).toBe true
-      expect(pane2.activeItem.hasFocus()).toBe true
+      expect(pane1.hasFocus).toBe false
+      expect(pane2.hasFocus).toBe true
+      expect(pane2.activeItem.hasFocus).toBe true
 
     it "retains focus for itself if the active item isn't focusable", ->
       pane1.removeItems()
       pane1.focused = true
-      expect(pane1.hasFocus()).toBe true
+      expect(pane1.hasFocus).toBe true
+
+    it "sets the activePane to itself on its container", ->
+      expect(container.activePane).toBe pane1
+      pane2.focused = true
+      expect(container.activePane).toBe pane2
+      pane1.focused = true
+      expect(container.activePane).toBe pane1
+
+  describe "when a pane's active item becomes focused", ->
+    it "sets itself as the the active pane on the pane container", ->
+      pane1 = pane
+      item4 = new Item
+      pane2 = pane1.splitRight(item4)
+
+      expect(container.activePane).toBe pane1
+      pane2.activeItem.focused = true
+      expect(container.activePane).toBe pane2

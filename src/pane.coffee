@@ -8,10 +8,14 @@ class Pane extends Model
 
   @properties
     container: null
+    parent: null
     items: []
     activeItem: null
     widthPercent: 100
     heightPercent: 100
+
+  @behavior 'hasFocus', ->
+    @$focused.or(@$activeItem.flatMapLatest((item) -> item?.$hasFocus))
 
   attached: ->
     @manageFocus()
@@ -19,13 +23,12 @@ class Pane extends Model
     @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)
     @subscribe @$focused, 'value', (focused) =>
       @activeItem?.setFocused?(true) if focused
-
-  hasFocus: ->
-    @focused or @activeItem?.hasFocus()
+    @subscribe @$hasFocus, 'value', (hasFocus) =>
+      @container?.activePane = this if hasFocus
 
   setActiveItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
-    hadFocus = @hasFocus()
+    hadFocus = @hasFocus
     @activeItem = item
     item.setFocused?(true) if hadFocus
     item
@@ -92,12 +95,12 @@ class Pane extends Model
     @split('vertical', 'after', items)
 
   split: (orientation, side, items) ->
-    unless @container.orientation is orientation
-      axis = new PaneAxis({orientation, @container, children: [this]})
-      @container.children.replace(this, axis)
-      @container = axis
+    unless @parent.orientation is orientation
+      axis = new PaneAxis({orientation, @parent, children: [this]})
+      @parent.children.replace(this, axis)
+      @parent = axis
 
-    pane = new Pane({@container, @focusManager, items})
+    pane = new Pane({@container, @parent, @focusManager, items})
     switch side
-      when 'before' then @container.children.insertBefore(this, pane)
-      when 'after' then @container.children.insertAfter(this, pane)
+      when 'before' then @parent.children.insertBefore(this, pane)
+      when 'after' then @parent.children.insertAfter(this, pane)
