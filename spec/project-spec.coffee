@@ -353,6 +353,19 @@ describe "Project", ->
 
           expect(editor.isModified()).toBeFalsy()
 
+      it "does not replace when the path is not specified", ->
+        editor = atom.project.openSync('sample.js')
+        editor = atom.project.openSync('sample-with-comments.js')
+
+        results = []
+        waitsForPromise ->
+          atom.project.replace /items/gi, 'items', [commentFilePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe commentFilePath
+
       it "does NOT save when modified", ->
         editor = atom.project.openSync('sample.js')
         editor.buffer.change([[0,0],[0,0]], 'omg')

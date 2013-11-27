@@ -333,6 +333,7 @@ class Project extends telepath.Model
       task.on 'replace:path-replaced', iterator
 
     for buffer in @buffers.getValues()
+      continue unless buffer.getPath() in filePaths
       replacements = buffer.replace(regex, replacementText, iterator)
       iterator({filePath: buffer.getPath(), replacements}) if replacements
 
