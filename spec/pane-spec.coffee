@@ -196,3 +196,12 @@ describe "Pane", ->
       expect(container.activePane).toBe pane1
       pane2.activeItem.focused = true
       expect(container.activePane).toBe pane2
+
+  describe "::itemForUri(uri)", ->
+    it "returns the first pane item with a matching uri property if one exists", ->
+      item1.set('uri', '/foo/bar')
+      item3.set('uri', '/baz/quux')
+
+      expect(pane.itemForUri('/foo/bar')).toBe item1
+      expect(pane.itemForUri('/baz/quux')).toBe item3
+      expect(pane.itemForUri('/bogus')).toBeUndefined()
