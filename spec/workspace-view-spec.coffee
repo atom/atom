@@ -35,12 +35,12 @@ describe "WorkspaceView", ->
         editor1 = atom.workspaceView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[2]
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[2]
 
         refreshWorkspaceViewAndProject()
 
-        expect(atom.workspaceView.getEditors().length).toBe 2
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditors()[1]
+        expect(atom.workspaceView.getEditorViews().length).toBe 2
+        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[1]
         expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
@@ -59,7 +59,7 @@ describe "WorkspaceView", ->
 
         refreshWorkspaceViewAndProject()
 
-        expect(atom.workspaceView.getEditors().length).toBe 4
+        expect(atom.workspaceView.getEditorViews().length).toBe 4
         editor1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
         editor3 = atom.workspaceView.panes.find('.row > .pane .editor:eq(1)').view()
         editor2 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(0)').view()
@@ -89,9 +89,9 @@ describe "WorkspaceView", ->
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
         atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getEditors().length).toBe 0
+        expect(atom.workspaceView.getEditorViews().length).toBe 0
         refreshWorkspaceViewAndProject()
-        expect(atom.workspaceView.getEditors().length).toBe 0
+        expect(atom.workspaceView.getEditorViews().length).toBe 0
 
   describe "focus", ->
     beforeEach ->
@@ -267,14 +267,14 @@ describe "WorkspaceView", ->
       describe "when called with a path", ->
         describe "when the active pane already has an edit session item for the path being opened", ->
           it "shows the existing edit session in the pane", ->
-            previousEditSession = activePane.activeItem
+            previousEditor = activePane.activeItem
 
             editor = atom.workspaceView.openSync('b')
             expect(activePane.activeItem).toBe editor
-            expect(editor).not.toBe previousEditSession
+            expect(editor).not.toBe previousEditor
 
-            editor = atom.workspaceView.openSync(previousEditSession.getPath())
-            expect(editor).toBe previousEditSession
+            editor = atom.workspaceView.openSync(previousEditor.getPath())
+            expect(editor).toBe previousEditor
             expect(activePane.activeItem).toBe editor
 
             expect(activePane.focus).toHaveBeenCalled()
@@ -431,7 +431,7 @@ describe "WorkspaceView", ->
       describe "when called with a path", ->
         describe "when the active pane already has an item for the given path", ->
           it "shows the existing edit session in the pane", ->
-            previousEditSession = activePane.activeItem
+            previousEditor = activePane.activeItem
 
             editor = null
             waitsForPromise ->
@@ -439,13 +439,13 @@ describe "WorkspaceView", ->
 
             runs ->
               expect(activePane.activeItem).toBe editor
-              expect(editor).not.toBe previousEditSession
+              expect(editor).not.toBe previousEditor
 
             waitsForPromise ->
-              atom.workspaceView.open(previousEditSession.getPath()).then (o) -> editor = o
+              atom.workspaceView.open(previousEditor.getPath()).then (o) -> editor = o
 
             runs ->
-              expect(editor).toBe previousEditSession
+              expect(editor).toBe previousEditor
               expect(activePane.activeItem).toBe editor
               expect(activePane.focus).toHaveBeenCalled()
 
@@ -487,7 +487,7 @@ describe "WorkspaceView", ->
       lowerRightEditor = rightEditor.splitDown()
       expect(lowerRightEditor.find(".line:first").text()).toBe "    "
 
-  describe ".eachEditor(callback)", ->
+  describe ".eachEditorView(callback)", ->
     beforeEach ->
       atom.workspaceView.attachToDom()
 
@@ -497,7 +497,7 @@ describe "WorkspaceView", ->
       callback = (editor) ->
         callbackEditor = editor
         count++
-      atom.workspaceView.eachEditor(callback)
+      atom.workspaceView.eachEditorView(callback)
       expect(count).toBe 1
       expect(callbackEditor).toBe atom.workspaceView.getActiveView()
 
@@ -508,7 +508,7 @@ describe "WorkspaceView", ->
         callbackEditor = editor
         count++
 
-      atom.workspaceView.eachEditor(callback)
+      atom.workspaceView.eachEditorView(callback)
       count = 0
       callbackEditor = null
       atom.workspaceView.getActiveView().splitRight()
@@ -519,39 +519,10 @@ describe "WorkspaceView", ->
       count = 0
       callback = (editor) -> count++
 
-      subscription = atom.workspaceView.eachEditor(callback)
+      subscription = atom.workspaceView.eachEditorView(callback)
       expect(count).toBe 1
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
       subscription.off()
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
-
-  describe ".eachBuffer(callback)", ->
-    beforeEach ->
-      atom.workspaceView.attachToDom()
-
-    it "invokes the callback for existing buffer", ->
-      count = 0
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-      atom.workspaceView.eachBuffer(callback)
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()
-
-    it "invokes the callback for new buffer", ->
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-
-      atom.workspaceView.eachBuffer(callback)
-      count = 0
-      callbackBuffer = null
-      atom.workspaceView.openSync(require.resolve('./fixtures/sample.txt'))
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.workspaceView.getActiveView().getBuffer()

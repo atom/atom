@@ -244,8 +244,8 @@ class WorkspaceView extends View
     document.title = title
 
   # Private: Returns an Array of  all of the application's {EditorView}s.
-  getEditors: ->
-    @panes.find('.pane > .item-view > .editor').map(-> $(this).view()).toArray()
+  getEditorViews: ->
+    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
   # Private: Retrieves all of the modified buffers that are open and unsaved.
   #
@@ -261,7 +261,7 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditors().map (editorView) -> editorView.getOpenBufferPaths()))
+    _.uniq(_.flatten(@getEditorViews().map (editorView) -> editorView.getOpenBufferPaths()))
 
   # Public: Returns the currently focused {Pane}.
   getActivePane: ->
@@ -302,23 +302,15 @@ class WorkspaceView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Private: Fires a callback on each open {EditorView}.
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
+  # Public: Fires a callback on each open {EditorView}.
+  eachEditorView: (callback) ->
+    callback(editor) for editor in @getEditorViews()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Fires a callback on each open {Editor}.
-  eachEditSession: (callback) ->
-    atom.project.eachEditSession(callback)
-
-  # Private: Fires a callback on each open {TextBuffer}.
-  eachBuffer: (callback) ->
-    atom.project.eachBuffer(callback)
-
   # Private: Destroys everything.
   remove: ->
-    editorView.remove() for editorView in @getEditors()
+    editorView.remove() for editorView in @getEditorViews()
     atom.project?.destroy()
     super

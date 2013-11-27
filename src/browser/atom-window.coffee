@@ -10,7 +10,7 @@ _ = require 'underscore-plus'
 # Private:
 module.exports =
 class AtomWindow
-  @iconPath: path.resolve(__dirname, '..', '..', 'atom.png')
+  @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
 
   browserWindow: null
   loaded: null
