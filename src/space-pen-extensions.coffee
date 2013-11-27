@@ -17,7 +17,7 @@ jQuery.cleanData = (elements) ->
 
 tooltipDefaults =
   delay:
-    show: 500
+    show: 1000
     hide: 100
   container: 'body'
   html: true
@@ -75,6 +75,16 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
   tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
 
   this.tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
+
+jQuery.fn.hideTooltip = ->
+  tip = @data('bs.tooltip')
+  if tip
+    tip.leave(currentTarget: this)
+    tip.hide()
+
+jQuery.fn.destroyTooltip = ->
+  @hideTooltip()
+  @tooltip('destroy')
 
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.replaceModifiers = replaceModifiers

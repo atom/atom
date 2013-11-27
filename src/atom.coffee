@@ -28,7 +28,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.contextMenu` - A {ContextMenuManager} instance
 #  * `atom.keymap`      - A {Keymap} instance
 #  * `atom.menu`        - A {MenuManager} instance
-#  * `atom.rootView`    - A {RootView} instance
+#  * `atom.workspaceView`    - A {WorkspaceView} instance
 #  * `atom.packages`    - A {PackageManager} instance
 #  * `atom.pasteboard`  - A {Pasteboard} instance
 #  * `atom.project`     - A {Project} instance
@@ -40,13 +40,8 @@ class Atom
 
   # Private:
   constructor: ->
-    @rootViewParentSelector = 'body'
+    @workspaceViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
-
-    #TODO Remove once all `atom.rootView` references have been updated
-    Object.defineProperty this, 'workspaceView',
-      get: -> @rootView
-      set: (workspaceView) -> @rootView = workspaceView
 
   # Private: Initialize all the properties in this object.
   initialize: ->
@@ -145,14 +140,14 @@ class Atom
       @setWindowState('project', @project)
 
   # Private:
-  deserializeRootView: ->
-    RootView = require './root-view'
+  deserializeWorkspaceView: ->
+    WorkspaceView = require './workspace-view'
     state = @getWindowState()
-    @rootView = @deserializers.deserialize(state.get('rootView'))
-    unless @rootView?
-      @rootView = new RootView()
-      state.set('rootView', @rootView.getState())
-    $(@rootViewParentSelector).append(@rootView)
+    @workspaceView = @deserializers.deserialize(state.get('workspaceView'))
+    unless @workspaceView?
+      @workspaceView = new WorkspaceView()
+      state.set('workspaceView', @workspaceView.getState())
+    $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:
   deserializePackageStates: ->
@@ -164,7 +159,7 @@ class Atom
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
-    @deserializeRootView()
+    @deserializeWorkspaceView()
 
   # Private: This method is only called when opening a real application window
   startEditorWindow: ->
@@ -176,7 +171,7 @@ class Atom
     @windowEventHandler = new WindowEventHandler
     @restoreDimensions()
     @config.load()
-    @config.setDefaults('core', require('./root-view').configDefaults)
+    @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
@@ -196,16 +191,16 @@ class Atom
 
   # Private:
   unloadEditorWindow: ->
-    return if not @project and not @rootView
+    return if not @project and not @workspaceView
 
     windowState = @getWindowState()
     windowState.set('project', @project)
     windowState.set('syntax', @syntax.serialize())
-    windowState.set('rootView', @rootView.serialize())
+    windowState.set('workspaceView', @workspaceView.serialize())
     @packages.deactivatePackages()
     windowState.set('packageStates', @packages.packageStates)
     @saveWindowState()
-    @rootView.remove()
+    @workspaceView.remove()
     @project.destroy()
     @windowEventHandler?.unsubscribe()
 
@@ -324,7 +319,7 @@ class Atom
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @rootView.getState().get('fullScreen')
+      @setFullScreen(true) if @workspaceView.getState().get('fullScreen')
 
   # Public: Close the current window.
   close: ->
@@ -448,7 +443,7 @@ class Atom
   # Public: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @rootView.trigger 'beep'
+    @workspaceView.trigger 'beep'
 
   # Private:
   requireUserInitScript: ->

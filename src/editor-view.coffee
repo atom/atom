@@ -1,4 +1,4 @@
-{View, $, $$} = require './space-pen-extensions'
+{View, $, $$$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
 Gutter = require './gutter'
 {Point, Range} = require 'telepath'
@@ -86,7 +86,7 @@ class EditorView extends View
     if editorOrOptions instanceof Editor
       editor = editorOrOptions
     else
-      {editor, editSession, @mini} = editorOrOptions ? {}
+      {editor, editSession, @mini, placeholderText} = editorOrOptions ? {}
       editor ?= editSession # TODO: Remove this line after packages have updated their api to use Editor and EditorView
 
     @id = EditorView.nextEditorId++
@@ -100,6 +100,8 @@ class EditorView extends View
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
+
+    @setPlaceholderText(placeholderText) if placeholderText
 
     if editor?
       @edit(editor)
@@ -586,6 +588,14 @@ class EditorView extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
+  setPlaceholderText: (placeholderText) ->
+    return unless @mini
+    @placeholderText = placeholderText
+    @requestDisplayUpdate()
+
+  getPlaceholderText: ->
+    @placeholderText
+
   # Checkout the HEAD revision of this editor's file.
   checkoutHead: ->
     if path = @getPath()
@@ -1047,7 +1057,7 @@ class EditorView extends View
   remove: (selector, keepData) ->
     return super if keepData or @removed
     super
-    atom.rootView?.focus()
+    atom.workspaceView?.focus()
 
   beforeRemove: ->
     @trigger 'editor:will-be-removed'
@@ -1209,6 +1219,7 @@ class EditorView extends View
       return
 
     @updateRenderedLines()
+    @updatePlaceholderText()
     @highlightCursorLine()
     @updateCursorViews()
     @updateSelectionViews()
@@ -1267,6 +1278,17 @@ class EditorView extends View
         @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
         selectionView.highlight()
       selectionView.clearAutoscroll()
+
+  updatePlaceholderText: ->
+    return unless @mini
+    if (not @placeholderText) or @getText()
+      @find('.placeholder-text').remove()
+    else if @placeholderText and not @getText()
+      element = @find('.placeholder-text')
+      if element.length
+        element.text(@placeholderText)
+      else
+        @underlayer.append($('<span/>', class: 'placeholder-text', text: @placeholderText))
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()

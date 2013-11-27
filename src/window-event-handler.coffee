@@ -16,8 +16,8 @@ class WindowEventHandler
     @subscribe ipc, 'command', (command, args...) ->
       activeElement = document.activeElement
       # Use root view if body has focus
-      if activeElement is document.body and atom.rootView?
-        activeElement = atom.rootView
+      if activeElement is document.body and atom.workspaceView?
+        activeElement = atom.workspaceView
       $(activeElement).trigger(command, args...)
 
     @subscribe ipc, 'context-command', (command, args...) ->
@@ -29,10 +29,10 @@ class WindowEventHandler
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       unless fs.isDirectorySync(pathToOpen)
-        atom.rootView?.open(pathToOpen, {initialLine})
+        atom.workspaceView?.open(pathToOpen, {initialLine})
 
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.rootView?.confirmClose()
+      confirmed = atom.workspaceView?.confirmClose()
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed

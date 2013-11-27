@@ -1,19 +1,19 @@
 require './benchmark-helper'
-{$, _, RootView} = require 'atom'
+{$, _, WorkspaceView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->
   editorView = null
 
   beforeEach ->
-    window.rootViewParentSelector = '#jasmine-content'
-    window.rootView = new RootView
-    window.rootView.attachToDom()
+    atom.workspaceViewParentSelector = '#jasmine-content'
+    atom.workspaceView = new WorkspaceView
+    atom.workspaceView.attachToDom()
 
-    rootView.width(1024)
-    rootView.height(768)
-    rootView.openSync()
-    editorView = rootView.getActiveView()
+    atom.workspaceView.width(1024)
+    atom.workspaceView.height(768)
+    atom.workspaceView.openSync()
+    editorView = atom.workspaceView.getActiveView()
 
   afterEach ->
     if editorView.pendingDisplayUpdate
@@ -40,7 +40,7 @@ describe "editorView.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      rootView.openSync('medium.coffee')
+      atom.workspaceView.openSync('medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -171,11 +171,11 @@ describe "editorView.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      rootView.openSync('huge.js')
+      atom.workspaceView.openSync('huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
-        rootView.openSync('huge.js')
+        atom.workspaceView.openSync('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editorView.moveCursorToBottom()

@@ -44,12 +44,12 @@ you can map to `body` if you want to scope to anywhere in Atom, or just `.editor
 for the editor portion.
 
 To bind keybindings to a command, we'll need to do a bit of association in our
-CoffeeScript code using the `rootView.command` method. This method takes a command
+CoffeeScript code using the `atom.workspaceView.command` method. This method takes a command
 name and executes a callback function. Open up _lib/changer-view.coffee_, and
-change `rootView.command "changer:toggle"` to look like this:
+change `atom.workspaceView.command "changer:toggle"` to look like this:
 
 ```coffeescript
-rootView.command "changer:magic", => @magic()
+atom.workspaceView.command "changer:magic", => @magic()
 ```
 
 It's common practice to namespace your commands with your package name, separated
@@ -180,7 +180,7 @@ ul.modified-files-list {
 We'll add one more line to the end of the `magic` method to make this pane appear:
 
 ```coffeescript
-rootView.vertical.append(this)
+atom.workspaceView.vertical.append(this)
 ```
 
 If you refresh Atom and hit the key command, you'll see a box appear right underneath
@@ -188,21 +188,21 @@ the editor:
 
 ![Changer_Panel_Append]
 
-As you might have guessed, `rootView.vertical.append` tells Atom to append `this`
+As you might have guessed, `atom.workspaceView.vertical.append` tells Atom to append `this`
 item (_i.e._, whatever is defined by`@content`) _vertically_ to the editor. If
-we had called `rootView.horizontal.append`, the pane would be attached to the
+we had called `atom.workspaceView.horizontal.append`, the pane would be attached to the
 right-hand side of the editor.
 
 Before we populate this panel for real, let's apply some logic to toggle the pane
-off and on, just like we did with the tree view. Replace the `rootView.vertical.append`
+off and on, just like we did with the tree view. Replace the `atom.workspaceView.vertical.append`
 call with this code:
 
 ```coffeescript
 # toggles the pane
 if @hasParent()
-  rootView.vertical.children().last().remove()
+  atom.workspaceView.vertical.children().last().remove()
 else
-  rootView.vertical.append(this)
+  atom.workspaceView.vertical.append(this)
 ```
 
 There are about a hundred different ways to toggle a pane on and off, and this
@@ -261,13 +261,13 @@ appending it to `modifiedFilesList`:
 ```coffeescript
 # toggles the pane
 if @hasParent()
-  rootView.vertical.children().last().remove()
+  atom.workspaceView.vertical.children().last().remove()
 else
   for file in modifiedFiles
     stat = fs.lstatSync(file)
     mtime = stat.mtime
     @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  rootView.vertical.append(this)
+  atom.workspaceView.vertical.append(this)
 ```
 
 When you toggle the modified files list, your pane is now populated with the
@@ -283,13 +283,13 @@ this demonstration, we'll just clear the `modifiedFilesList` each time it's clos
 # toggles the pane
 if @hasParent()
   @modifiedFilesList.empty() # added this to clear the list on close
-  rootView.vertical.children().last().remove()
+  atom.workspaceView.vertical.children().last().remove()
 else
   for file in modifiedFiles
     stat = fs.lstatSync(file)
     mtime = stat.mtime
     @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  rootView.vertical.append(this)
+  atom.workspaceView.vertical.append(this)
 ```
 
 ## Coloring UI Elements

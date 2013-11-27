@@ -22,12 +22,12 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # Almost all extension will interact primiarily with this class as it provides
 # access to objects you'll most commonly interact with. To access it you'll
-# want to register a callback on {RootView} which will be fired once for every
+# want to register a callback on {WorkspaceView} which will be fired once for every
 # existing {Editor} as well as any future {Editor}s.
 #
 # ## Example
 # ```coffeescript
-# global.rootView.eachEditSession (editor) ->
+# global.workspaceView.eachEditSession (editor) ->
 #   editor.insertText('Hello World')
 # ```
 #

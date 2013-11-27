@@ -4,7 +4,7 @@ atom.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
-{_, $, File, RootView, fs} = require 'atom'
+{_, $, File, WorkspaceView, fs} = require 'atom'
 Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'telepath'
@@ -73,7 +73,7 @@ beforeEach ->
   config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
   spyOn(config, 'load')
   spyOn(config, 'save')
-  config.setDefaults('core', RootView.configDefaults)
+  config.setDefaults('core', WorkspaceView.configDefaults)
   config.setDefaults('editor', EditorView.configDefaults)
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
@@ -85,7 +85,7 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
+  spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
@@ -104,8 +104,8 @@ afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
 
-  atom.rootView?.remove?()
-  atom.rootView = null
+  atom.workspaceView?.remove?()
+  atom.workspaceView = null
 
   atom.project?.destroy?()
   atom.project = null

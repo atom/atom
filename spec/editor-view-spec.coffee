@@ -1,4 +1,4 @@
-RootView = require '../src/root-view'
+WorkspaceView = require '../src/workspace-view'
 EditorView = require '../src/editor-view'
 {$, $$} = require '../src/space-pen-extensions'
 _ = require 'underscore-plus'
@@ -1934,7 +1934,6 @@ describe "EditorView", ->
         miniEditor.setText("      and indented line")
         expect(miniEditor.renderedLines.find('.indent-guide').length).toBe 0
 
-
       it "lets you set the grammar", ->
         miniEditor = new EditorView(mini: true)
         miniEditor.setText("var something")
@@ -1945,6 +1944,31 @@ describe "EditorView", ->
 
         # doesn't allow regular editors to set grammars
         expect(-> editorView.setGrammar()).toThrow()
+
+      describe "placeholderText", ->
+        it "is hidden and shown when appropriate", ->
+          miniEditor = new EditorView(mini: true, placeholderText: 'octokitten')
+          miniEditor.attachToDom()
+
+          expect(miniEditor.underlayer.find('.placeholder-text')).toExist()
+
+          miniEditor.setText("var something")
+          expect(miniEditor.underlayer.find('.placeholder-text')).not.toExist()
+
+          miniEditor.setText("")
+          expect(miniEditor.underlayer.find('.placeholder-text')).toExist()
+
+        it "can be set", ->
+          miniEditor = new EditorView(mini: true)
+          miniEditor.attachToDom()
+
+          expect(miniEditor.find('.placeholder-text').text()).toEqual ''
+
+          miniEditor.setPlaceholderText 'octokitten'
+          expect(miniEditor.find('.placeholder-text').text()).toEqual 'octokitten'
+
+          miniEditor.setPlaceholderText 'new one'
+          expect(miniEditor.find('.placeholder-text').text()).toEqual 'new one'
 
     describe "when the editor.showLineNumbers config is false", ->
       it "doesn't render any line numbers", ->
@@ -2725,10 +2749,10 @@ describe "EditorView", ->
   describe "when the editor view is attached but invisible", ->
     describe "when the editor view's text is changed", ->
       it "redraws the editor view when it is next shown", ->
-        atom.rootView = new RootView
-        atom.rootView.openSync('sample.js')
-        atom.rootView.attachToDom()
-        editorView = atom.rootView.getActiveView()
+        atom.workspaceView = new WorkspaceView
+        atom.workspaceView.openSync('sample.js')
+        atom.workspaceView.attachToDom()
+        editorView = atom.workspaceView.getActiveView()
 
         view = $$ -> @div id: 'view', tabindex: -1, 'View'
         editorView.getPane().showItem(view)
@@ -2779,10 +2803,10 @@ describe "EditorView", ->
 
   describe "when the editor view is removed", ->
     it "fires a editor:will-be-removed event", ->
-      atom.rootView = new RootView
-      atom.rootView.openSync('sample.js')
-      atom.rootView.attachToDom()
-      editorView = atom.rootView.getActiveView()
+      atom.workspaceView = new WorkspaceView
+      atom.workspaceView.openSync('sample.js')
+      atom.workspaceView.attachToDom()
+      editorView = atom.workspaceView.getActiveView()
 
       willBeRemovedHandler = jasmine.createSpy('fileChange')
       editorView.on 'editor:will-be-removed', willBeRemovedHandler
