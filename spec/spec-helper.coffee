@@ -49,7 +49,7 @@ if specDirectory
 
 beforeEach ->
   $.fx.off = true
-  projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
+  window.projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
   atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
