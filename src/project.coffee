@@ -224,7 +224,7 @@ class Project extends telepath.Model
 
   # Private: DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -236,7 +236,7 @@ class Project extends telepath.Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)

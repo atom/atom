@@ -18,6 +18,7 @@ class TextBuffer extends telepath.Model
   Subscriber.includeInto(this)
 
   @properties
+    project: null
     text: -> new telepath.String('', replicated: false)
     filePath: null
     relativePath: null
@@ -162,7 +163,7 @@ class TextBuffer extends telepath.Model
     @file?.getPath()
 
   getUri: ->
-    atom.project.relativize(@getPath())
+    @project.relativize(@getPath())
 
   # Sets the path for the file.
   #
