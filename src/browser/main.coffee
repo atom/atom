@@ -67,9 +67,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 
 setupCrashReporter = ->
-  crashReporter.setCompanyName 'GitHub'
-  crashReporter.setSubmissionUrl 'https://speakeasy.githubapp.com/submit_crash_log'
-  crashReporter.setAutoSubmit true
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
 setupAutoUpdater = ->
   autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
