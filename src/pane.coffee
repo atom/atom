@@ -108,4 +108,4 @@ class Pane extends Model
       when 'after' then @parent.children.insertAfter(this, pane)
 
   itemForUri: (uri) ->
-    @items.find({uri})
+    @items.find({uri}) ? @items.find(-> @getUri?() is uri)

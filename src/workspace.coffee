@@ -10,8 +10,10 @@ class Workspace extends Model
 
   @delegates 'activePane', 'activePaneItem', to: 'panes'
 
-  openSync: (uri, options={}) ->
-    editor = @project.openSync(uri)
+  openSync: (uri, {changeFocus, initialLine, split}={}) ->
+    uri = @project.relativize(uri)
+    editor = @activePane.itemForUri(uri) if uri?
+    editor ?= @project.openSync(uri, {initialLine})
     @activePane.setActiveItem(editor)
-    @activePane.focused = true if options.changeFocus ? true
+    @activePane.focused = true if changeFocus ? true
     editor
