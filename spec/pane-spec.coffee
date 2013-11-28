@@ -154,6 +154,24 @@ describe "Pane", ->
         pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
         expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
 
+  describe "::remove()", ->
+    describe "if the pane is the root of its container", ->
+      it "removes all pane items but does not remove the pane", ->
+        expect(container.root).toBe pane
+        expect(pane.items.isEmpty()).toBe false
+        pane.remove()
+        expect(container.root).toBe pane
+        expect(pane.items.isEmpty()).toBe true
+
+    describe "if the pane's parent has more than two children", ->
+      it "removes the pane", ->
+        pane1 = pane
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitRight()
+
+        pane2.remove()
+        expect(container.root.children).toEqual [pane1, pane3]
+
   describe "when a pane is focused", ->
     [pane1, pane2] = []
 

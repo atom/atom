@@ -29,6 +29,13 @@ class Pane extends Model
     @subscribe @$focused, 'value', (focused) => @activeItem?.setFocused?(true) if focused
     @subscribe @$hasFocus, 'value', (hasFocus) => @container?.activePane = this if hasFocus
 
+  remove: ->
+    if @parent is @container
+      @items.clear()
+      false
+    else
+      @parent.children.remove(this)
+
   setActiveItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
     hadFocus = @hasFocus
