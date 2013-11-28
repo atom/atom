@@ -6,3 +6,5 @@ class PaneAxis extends Model
     parent: null
     orientation: null
     children: []
+
+  @relatesToMany 'panes', -> @children.selectMany (child) -> child.panes

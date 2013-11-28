@@ -10,6 +10,7 @@ class Pane extends Model
     container: null
     parent: null
     items: []
+    panes: -> [this]
     activeItem: null
     widthPercent: 100
     heightPercent: 100
