@@ -15,7 +15,11 @@ class Pane extends Model
     heightPercent: 100
 
   @behavior 'hasFocus', ->
-    @$focused.or(@$activeItem.flatMapLatest((item) -> item?.$hasFocus))
+    activeItemFocused =
+      @$activeItem
+        .flatMapLatest((item) -> item?.$hasFocus)
+        .map((value) -> !!value)
+    @$focused.or(activeItemFocused)
 
   attached: ->
     @manageFocus()
