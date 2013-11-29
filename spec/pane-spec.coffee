@@ -172,6 +172,17 @@ describe "Pane", ->
         pane2.remove()
         expect(container.root.children).toEqual [pane1, pane3]
 
+    describe "if the pane's parent has two children", ->
+      it "removes the pane and replaces its parent with its sibling", ->
+        pane1 = pane
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitDown()
+
+        pane3.remove()
+        expect(container.root.children).toEqual [pane1, pane2]
+        pane2.remove()
+        expect(container.root).toBe pane1
+
   describe "when a pane is focused", ->
     [pane1, pane2] = []
 

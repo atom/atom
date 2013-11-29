@@ -8,3 +8,12 @@ class PaneAxis extends Model
     children: []
 
   @relatesToMany 'panes', -> @children.selectMany 'panes'
+
+  @condition
+    when: -> @children.$length.becomesLessThan 2
+    call: 'reparentLastChild'
+
+  reparentLastChild: ->
+    lastChild = @children.getLast()
+    lastChild.parent = @parent
+    @parent.children.replace(this, lastChild)
