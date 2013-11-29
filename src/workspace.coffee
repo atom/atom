@@ -6,9 +6,9 @@ module.exports =
 class Workspace extends Model
   @properties
     project: null
-    panes: -> new PaneContainer
+    paneContainer: -> new PaneContainer
 
-  @delegates 'activePane', 'activePaneItem', to: 'panes'
+  @delegates 'activePane', 'activePaneItem', 'panes', to: 'paneContainer'
 
   openSync: (uri, {changeFocus, initialLine, split}={}) ->
     uri = @project.relativize(uri)
