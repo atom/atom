@@ -12,8 +12,50 @@ describe "Workspace", ->
   afterEach ->
     project.destroy()
 
+  describe "::open(uri, options)", ->
+    it "asynchronously finds or opens an editor for the given uri on the active pane", ->
+      [editor1, editor2, editor3] = []
+
+      waitsForPromise ->
+        workspace.open('a').then (editor) -> editor1 = editor
+
+      runs ->
+        expect(workspace.activePane.items).toEqual [editor1]
+        expect(workspace.activePaneItem).toBe editor1
+
+      waitsForPromise ->
+        workspace.open().then (editor) -> editor2 = editor
+
+      runs ->
+        expect(workspace.activePane.items).toEqual [editor1, editor2]
+        expect(workspace.activePaneItem).toBe editor2
+
+      # don't recycle editors it the uri isn't defined
+      waitsForPromise ->
+        workspace.open().then (editor) -> editor3 = editor
+
+      runs ->
+        expect(editor3).not.toBe editor2
+        expect(workspace.activePane.items).toEqual [editor1, editor2, editor3]
+        expect(workspace.activePaneItem).toBe editor3
+
+      # recycle editors with the same uri
+      waitsForPromise ->
+        workspace.open('a').then (editor) -> expect(editor).toBe editor1
+
+      runs ->
+        expect(workspace.activePane.items).toEqual [editor1, editor2, editor3]
+        expect(workspace.activePaneItem).toBe editor1
+
+    it "focuses the pane after opening if the 'changeFocus' option is not false", ->
+      expect(workspace.activePane.hasFocus).toBe false
+      waitsForPromise -> workspace.open('a', changeFocus: false)
+      runs -> expect(workspace.activePane.hasFocus).toBe false
+      waitsForPromise -> workspace.open('a')
+      runs -> expect(workspace.activePane.hasFocus).toBe true
+
   describe "::openSync(uri, options)", ->
-    it "finds or opens an editor for the given uri on the active pane", ->
+    it "synchronously finds or opens an editor for the given uri on the active pane", ->
       editor1 = workspace.openSync('a')
       expect(workspace.activePane.items).toEqual [editor1]
       expect(workspace.activePaneItem).toBe editor1
@@ -33,7 +75,7 @@ describe "Workspace", ->
       expect(workspace.activePane.items).toEqual [editor1, editor2, editor3]
       expect(workspace.activePaneItem).toBe editor1
 
-    it "focuses the pane if the 'changeFocus' option is not false", ->
+    it "focuses the pane after opening if the 'changeFocus' option is not false", ->
       expect(workspace.activePane.hasFocus).toBe false
       editor1 = workspace.openSync('a', changeFocus: false)
       expect(workspace.activePane.hasFocus).toBe false
