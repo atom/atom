@@ -58,8 +58,8 @@ class WorkspaceView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div 'x-bind-component': "paneContainer"
 
-  @delegates 'open', 'openSync', 'openSingletonSync', 'getActivePane', 'getActivePaneItem',
-             to: 'model'
+  @delegates 'open', 'openSync', 'openSingletonSync', 'panes', 'getPanes', 'activePane',
+            'getActivePane', 'activePaneItem', 'getActivePaneItem', to: 'model'
 
   # Private:
   created: ->
@@ -160,7 +160,7 @@ class WorkspaceView extends View
   # Returns an {Array} of {TextBuffer}s.
   getModifiedBuffers: ->
     modifiedBuffers = []
-    for pane in @getPanes()
+    for pane in @panes
       for item in pane.getItems() when item instanceof Editor
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
@@ -193,10 +193,6 @@ class WorkspaceView extends View
   # Public: Fires a callback on each open {Pane}.
   eachPane: (callback) ->
     @panes.eachPane(callback)
-
-  # Public: Returns an Array of all open {Pane}s.
-  getPanes: ->
-    @panes.getPanes()
 
   # Public: Return the id of the given a {Pane}
   indexOfPane: (pane) ->
