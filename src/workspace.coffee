@@ -66,5 +66,5 @@ class Workspace extends Model
       @paneContainer.activePane = pane
     @openSync(uri, options)
 
-  everyEditor: (fn) ->
+  onEachEditor: (fn) ->
     @editors.onEach(fn)
