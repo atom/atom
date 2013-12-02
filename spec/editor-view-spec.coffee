@@ -6,7 +6,7 @@ fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
 
-fdescribe "EditorView", ->
+describe "EditorView", ->
   [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
