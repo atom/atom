@@ -1,4 +1,5 @@
 {join} = require 'path'
+{Model} = require 'telepath'
 Project = require '../src/project'
 Workspace = require '../src/workspace'
 
@@ -81,3 +82,15 @@ describe "Workspace", ->
       expect(workspace.activePane.hasFocus).toBe false
       editor1 = workspace.openSync('a')
       expect(workspace.activePane.hasFocus).toBe true
+
+  describe "::editors", ->
+    class Item extends Model
+
+    it "contains all editor pane items", ->
+      editor1 = workspace.openSync()
+      editor2 = workspace.openSync('a', split: 'right')
+      otherItem = new Item
+      workspace.activePane.addItem(otherItem)
+
+      expect(workspace.paneItems).toEqual [editor1, editor2, otherItem]
+      expect(workspace.editors).toEqual [editor1, editor2]

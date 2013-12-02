@@ -9,7 +9,10 @@ class Workspace extends Model
     project: null
     paneContainer: -> new PaneContainer
 
-  @delegates 'activePane', 'activePaneItem', 'panes', to: 'paneContainer'
+  @relatesToMany 'editors', ->
+    @paneItems.where (item) -> item.constructor.name is 'Editor'
+
+  @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', to: 'paneContainer'
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
