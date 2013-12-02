@@ -22,9 +22,10 @@ class PaneContainer extends Model
     @root.setFocusManager?(@focusManager)
 
   # Deprecated
+  # Deprecated: Use ::activePane property directly
   getActivePane: -> @activePane
 
-  # Deprecated
+  # Deprecated: Use ::activePaneItem property directly
   getActivePaneItem: -> @activePaneItem
 
   # Public: Returns the first pane with an item for the given uri
