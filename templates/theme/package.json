@@ -6,11 +6,14 @@
   "description": "A short description of your theme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your/repo.git"
+    "url": "https://github.com/atom/__package-name__.git"
   },
-  "bugs": {
-    "url": "https://github.com/your/repo/issues"
-  },
+  "licenses": [
+    {
+      "type": "Apache",
+      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
+    }
+  ],
   "engines": {
     "atom": ">26.0"
   }

@@ -9,6 +9,12 @@
     "type": "git",
     "url": "https://github.com/atom/__package-name__.git"
   },
+  "licenses": [
+    {
+      "type": "Apache",
+      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
+    }
+  ],
   "engines": {
     "atom": ">39.0"
   },
