@@ -66,11 +66,6 @@ class WorkspaceView extends View
     @prepend($$ -> @div class: 'dev-mode') if atom.getLoadSettings().devMode
 
     # @updateTitle()
-
-    @on 'focus', (e) => @handleFocus(e)
-    @subscribe $(window), 'focus', (e) =>
-      @handleFocus(e) if document.activeElement is document.body
-
     atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
@@ -112,26 +107,6 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', =>
       @model.reopenItem()
-
-  # Private:
-  handleFocus: (e) ->
-    return
-    if @getActivePane()
-      @getActivePane().focus()
-      false
-    else
-      @updateTitle()
-      focusableChild = this.find("[tabindex=-1]:visible:first")
-      if focusableChild.length
-        focusableChild.focus()
-        false
-      else
-        $(document.body).focus()
-        true
-
-  # Private:
-  afterAttach: (onDom) ->
-    @focus() if onDom
 
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
