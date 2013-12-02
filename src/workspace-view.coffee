@@ -129,36 +129,13 @@ class WorkspaceView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {EditorView}s.
-  getEditorViews: ->
-    @model.editors.map (editor) => @viewForModel(editor)
-
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @viewForModel(@model.activePaneItem)
 
-  # Public: Focuses the previous pane by id.
-  focusPreviousPane: -> @panes.focusPreviousPane()
-
-  # Public: Focuses the next pane by id.
-  focusNextPane: -> @panes.focusNextPane()
-
-  # Public:
-  #
-  # FIXME: Difference between active and focused pane?
-  getFocusedPane: -> @panes.getFocusedPane()
-
-  # Public: Saves all of the open items within panes.
-  saveAll: ->
-    @panes.saveAll()
-
-  # Public: Fires a callback on each open {Pane}.
-  eachPane: (callback) ->
-    @panes.eachPane(callback)
-
-  # Public: Return the id of the given a {Pane}
-  indexOfPane: (pane) ->
-    @panes.indexOfPane(pane)
+  # Private: Returns an Array of  all of the application's {EditorView}s.
+  getEditorViews: ->
+    @model.editors.map (editor) => @viewForModel(editor)
 
   # Deprecated: Call onEachEditorView instead
   eachEditorView: (callback) ->
