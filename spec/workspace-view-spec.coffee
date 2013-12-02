@@ -17,6 +17,18 @@ describe "WorkspaceView", ->
     atom.workspaceView.openSync(pathToOpen)
     atom.workspaceView.focus()
 
+  describe "::onEachEditorView", ->
+    it "calls the given callback with all current and future editor views", ->
+      editor1 = workspace.openSync('a')
+      workspace.activePane.splitRight()
+      editor2 = workspace.openSync('a')
+      editor3 = workspace.openSync('b')
+
+      editors = []
+      atom.workspaceView.onEachEditorView (view) -> editors.push(view.model)
+
+      expect(editors).toEqual [editor1, editor3]
+
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
