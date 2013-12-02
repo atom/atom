@@ -5,10 +5,7 @@
   "private": true,
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/atom/__package-name__.git"
-  },
+  "repository": "https://github.com/atom/__package-name__.git",
   "licenses": [
     {
       "type": "Apache",

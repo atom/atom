@@ -4,10 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "A short description of your theme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/atom/__package-name__.git"
-  },
+  "repository": "https://github.com/atom/__package-name__.git",
   "licenses": [
     {
       "type": "Apache",
