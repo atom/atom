@@ -206,7 +206,7 @@ specific parts of the interface, like adding a file in the tree-view:
 'context-menu':
   '.tree-view':
     'Add file': 'tree-view:add-file'
-  '#workspace-view':
+  '.workspace':
     'Inspect Element': 'core:inspect'
 ```
 
