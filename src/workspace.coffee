@@ -21,8 +21,11 @@ class Workspace extends Model
   @behavior 'hasFocus', ->
     @$focused.or(@$focusedPane.isDefined())
 
-  @delegates 'activePane', 'getActivePane', 'activePaneItem', 'getActivePaneItem',
-            'getPanes', 'panes', 'paneItems', 'getPaneItems', to: 'paneContainer'
+  @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', to: 'paneContainer'
+
+  # Deprecated: Use properties instead
+  @delegates 'getPanes', 'getActivePane', 'getPaneItems', 'getActivePaneItem',
+             to: 'paneContainer'
 
   attached: ->
     @manageFocus()
