@@ -122,3 +122,11 @@ describe "Workspace", ->
 
       expect(workspace.paneItems).toEqual [editor1, editor2, otherItem]
       expect(workspace.editors).toEqual [editor1, editor2]
+
+  describe "when the workspace is focused", ->
+    it "transfers focus to the active pane", ->
+      expect(workspace.hasFocus).toBe false
+      expect(workspace.activePane.hasFocus).toBe false
+      workspace.focused = true
+      expect(workspace.hasFocus).toBe true
+      expect(workspace.activePane.hasFocus).toBe true

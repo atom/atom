@@ -2,18 +2,32 @@
 Q = require 'q'
 
 PaneContainer = require './pane-container'
+Focusable = require './focusable'
 
 module.exports =
 class Workspace extends Model
+  Focusable.includeInto(this)
+
   @properties
     project: null
-    paneContainer: -> new PaneContainer
+    paneContainer: null
 
   @relatesToMany 'editors', ->
     @paneItems.where (item) -> item.constructor.name is 'Editor'
 
+  @relatesToOne 'focusedPane', ->
+    @panes.where(hasFocus: true)
+
+  @behavior 'hasFocus', ->
+    @$focused.or(@$focusedPane.isDefined())
+
   @delegates 'activePane', 'getActivePane', 'activePaneItem', 'getActivePaneItem',
             'getPanes', 'panes', 'paneItems', 'getPaneItems', to: 'paneContainer'
+
+  attached: ->
+    @manageFocus()
+    @paneContainer = new PaneContainer({@focusManager})
+    @subscribe @$focused, 'value', (focused) => @activePane.setFocused(true) if focused
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
