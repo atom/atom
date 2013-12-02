@@ -52,10 +52,10 @@ class WorkspaceView extends View
     audioBeep: true
 
   # Private:
-  @content: ->
-    @div id: 'workspace', tabindex: -1, =>
-      @div id: 'horizontal', outlet: 'horizontal', =>
-        @div id: 'vertical', outlet: 'vertical', =>
+  @content: (state) ->
+    @div class: 'workspace', tabindex: -1, =>
+      @div class: 'horizontal', outlet: 'horizontal', =>
+        @div class: 'vertical', outlet: 'vertical', =>
           @div 'x-bind-component': "paneContainer"
 
   @delegates 'open', 'openSync', 'openSingletonSync', 'panes', 'activePane', 'activePaneItem',

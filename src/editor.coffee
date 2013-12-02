@@ -1403,10 +1403,3 @@ class Editor extends Model
   # Private:
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
-
-  # Private:
-  getDebugSnapshot: ->
-    [
-      @displayBuffer.getDebugSnapshot()
-      @displayBuffer.tokenizedBuffer.getDebugSnapshot()
-    ].join('\n\n')

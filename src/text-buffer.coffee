@@ -671,9 +671,3 @@ class TextBuffer extends telepath.Model
     for row in [start..end]
       line = @lineForRow(row)
       console.log row, line, line.length
-
-  getDebugSnapshot: ->
-    lines = ['TextBuffer:']
-    for row in [0..@getLastRow()]
-      lines.push "#{row}: #{@lineForRow(row)}"
-    lines.join('\n')

@@ -349,8 +349,8 @@ class AtomApplication
   #      A Boolean which controls whether any newly opened windows should  be in
   #      dev mode or not.
   promptForPath: ({devMode}={}) ->
-    pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-    @openPaths({pathsToOpen, devMode})
+    dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory'], (pathsToOpen) =>
+      @openPaths({pathsToOpen, devMode})
 
   # Public: If an update is available, it returns the new version string
   # otherwise it returns null.
