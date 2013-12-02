@@ -56,7 +56,7 @@ class WorkspaceView extends View
   @content: (state) ->
     @div id: 'workspace', tabindex: -1, =>
       @div outlet: 'horizontal', =>
-        @div id: 'vertical', outlet: 'vertical', =>
+        @div outlet: 'vertical', =>
           @div outlet: 'panes'
 
   # Private:
