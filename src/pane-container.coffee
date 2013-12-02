@@ -26,3 +26,7 @@ class PaneContainer extends Model
 
   # Deprecated
   getActivePaneItem: -> @activePaneItem
+
+  # Public: Returns the first pane with an item for the given uri
+  paneForUri: (uri) ->
+    @panes.find (pane) -> pane.itemForUri(uri)?

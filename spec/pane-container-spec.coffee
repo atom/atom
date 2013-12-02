@@ -9,6 +9,7 @@ describe "PaneContainer", ->
   [container, pane1, pane2, pane3] = []
 
   class Item extends Model
+    @property 'uri'
 
   beforeEach ->
     container = PaneContainer.createAsRoot()
@@ -39,3 +40,16 @@ describe "PaneContainer", ->
       expect(container.paneItems).toEqual [item1, item3]
       pane1.remove()
       expect(container.paneItems).toEqual [item3]
+
+  describe "::paneForUri(uri)", ->
+    it "returns the first pane with an item for the given uri", ->
+      expect(container.paneItems).toEqual []
+      item1 = new Item(uri: 'a')
+      item2 = new Item(uri: 'b')
+      pane1.addItem(item1)
+      pane2.addItem(item1)
+      pane3.addItem(item1)
+      pane3.addItem(item2)
+
+      expect(container.paneForUri('a')).toBe pane1
+      expect(container.paneForUri('b')).toBe pane3
