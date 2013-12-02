@@ -12,8 +12,6 @@ class Pane extends Model
     items: []
     panes: -> [this]
     activeItem: null
-    widthPercent: 100
-    heightPercent: 100
 
   @behavior 'hasFocus', ->
     activeItemFocused =
