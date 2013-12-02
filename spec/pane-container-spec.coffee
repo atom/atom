@@ -21,7 +21,6 @@ describe "PaneContainer", ->
     it "contains all panes currenly in the container", ->
       expect(container.panes).toEqual [pane1, pane2, pane3]
       pane4 = pane3.splitUp()
-      console.log container.root.panes.map('id')
       expect(container.panes).toEqual [pane1, pane2, pane4, pane3]
       pane3.remove()
       expect(container.panes).toEqual [pane1, pane2, pane4]
