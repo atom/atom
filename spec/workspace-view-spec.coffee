@@ -17,44 +17,6 @@ describe "WorkspaceView", ->
     atom.workspaceView.openSync(pathToOpen)
     atom.workspaceView.focus()
 
-  describe "focus", ->
-    beforeEach ->
-      atom.workspaceView.attachToDom()
-
-    describe "when there is an active view", ->
-      it "hands off focus to the active view", ->
-        editorView = atom.workspaceView.getActiveView()
-        editorView.isFocused = false
-        atom.workspaceView.focus()
-        expect(editorView.isFocused).toBeTruthy()
-
-    describe "when there is no active view", ->
-      beforeEach ->
-        atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getActiveView()).toBeUndefined()
-        atom.workspaceView.attachToDom()
-        expect(document.activeElement).toBe document.body
-
-      describe "when are visible focusable elements (with a -1 tabindex)", ->
-        it "passes focus to the first focusable element", ->
-          focusable1 = $$ -> @div "One", id: 'one', tabindex: -1
-          focusable2 = $$ -> @div "Two", id: 'two', tabindex: -1
-          atom.workspaceView.horizontal.append(focusable1, focusable2)
-          expect(document.activeElement).toBe document.body
-
-          atom.workspaceView.focus()
-          expect(document.activeElement).toBe focusable1[0]
-
-      describe "when there are no visible focusable elements", ->
-        it "surrenders focus to the body", ->
-          focusable = $$ -> @div "One", id: 'one', tabindex: -1
-          atom.workspaceView.horizontal.append(focusable)
-          focusable.hide()
-          expect(document.activeElement).toBe document.body
-
-          atom.workspaceView.focus()
-          expect(document.activeElement).toBe document.body
-
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
