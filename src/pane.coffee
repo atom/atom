@@ -412,7 +412,7 @@ class Pane extends View
 
   # Private:
   getContainer: ->
-    @closest('#panes').view()
+    @closest('.panes').view()
 
   # Private:
   copyActiveItem: ->
