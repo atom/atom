@@ -167,9 +167,3 @@ class WorkspaceView extends View
   # Public: Fires the callback for every current and future editor {EditorView}.
   everyEditorView: (callback) ->
     @model.everyEditor (editor) => callback(@viewForModel(editor))
-
-  # # Private: Destroys everything.
-  # remove: ->
-  #   editorView.remove() for editorView in @getEditorViews()
-  #   atom.project?.destroy()
-  #   super
