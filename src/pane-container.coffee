@@ -21,7 +21,9 @@ class PaneContainer extends Model
     @activePane ?= @root
     @root.setFocusManager?(@focusManager)
 
-  # Deprecated
+  # Deprecated: Use ::panes property directly
+  getPanes: -> @panes
+
   # Deprecated: Use ::activePane property directly
   getActivePane: -> @activePane
 
