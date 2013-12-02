@@ -92,11 +92,11 @@ parseCommandLine = ->
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
 
-  if args.h
+  if args.help
     process.stdout.write(options.help())
     process.exit(0)
 
-  if args.v
+  if args.version
     process.stdout.write("#{version}\n")
     process.exit(0)
 
