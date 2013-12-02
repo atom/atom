@@ -16,7 +16,7 @@ class PaneContainer extends View
     container
 
   @content: ->
-    @div id: 'panes'
+    @div class: 'panes'
 
   initialize: (state) ->
     @destroyedItemStates = []
