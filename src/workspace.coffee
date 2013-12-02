@@ -19,7 +19,7 @@ class Workspace extends Model
     @$focused.or(@$focusedPane.isDefined())
 
   @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', 'focusedPane',
-             '$focusedPane', 'focusNextPane', to: 'paneContainer'
+             '$focusedPane', 'focusNextPane', 'focusPreviousPane', to: 'paneContainer'
 
   # Deprecated: Use properties instead
   @delegates 'getPanes', 'getActivePane', 'getPaneItems', 'getActivePaneItem',

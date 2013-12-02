@@ -64,3 +64,15 @@ describe "PaneContainer", ->
       expect(container.focusedPane).toBe pane3
       container.focusNextPane()
       expect(container.focusedPane).toBe pane1
+
+  describe "::focusPreviousPane()", ->
+    it "focuses the previous pane, wrapping around from the beginning to the end", ->
+      expect(container.focusedPane).toBeUndefined()
+      container.focusPreviousPane()
+      expect(container.focusedPane).toBe pane3
+      container.focusPreviousPane()
+      expect(container.focusedPane).toBe pane2
+      container.focusPreviousPane()
+      expect(container.focusedPane).toBe pane1
+      container.focusPreviousPane()
+      expect(container.focusedPane).toBe pane3
