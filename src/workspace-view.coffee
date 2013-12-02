@@ -137,19 +137,6 @@ class WorkspaceView extends View
   confirmClose: ->
     @model.confirmClose()
 
-  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
-    changeFocus ?= true
-    uri = atom.project.relativize(uri)
-    pane = @panes.paneForUri(uri)
-
-    if pane
-      paneItem = pane.itemForUri(uri)
-      pane.showItem(paneItem)
-      pane.focus() if changeFocus
-      paneItem
-    else
-      @openSync(uri, {changeFocus, initialLine, split})
-
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()

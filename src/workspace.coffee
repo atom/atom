@@ -45,5 +45,10 @@ class Workspace extends Model
     @activePane.focused = true if changeFocus ? true
     editor
 
+  openSingletonSync: (uri, options={}) ->
+    if uri? and pane = @paneContainer.paneForUri(@project.relativize(uri))
+      @paneContainer.activePane = pane
+    @openSync(uri, options)
+
   everyEditor: (fn) ->
     @editors.onEach(fn)

@@ -83,6 +83,34 @@ describe "Workspace", ->
       editor1 = workspace.openSync('a')
       expect(workspace.activePane.hasFocus).toBe true
 
+  describe "::openSingletonSync(uri, options)", ->
+    it "shows the pane item for the given uri if it exists, even if it isn't in the active pane", ->
+      pane1 = workspace.activePane
+
+      editor1 = workspace.openSingletonSync('a')
+      expect(workspace.activePane.items).toEqual [editor1]
+      expect(workspace.activePaneItem).toBe editor1
+
+      pane2 = pane1.splitRight()
+      expect(workspace.activePane.id).toBe pane2.id
+      expect(workspace.openSingletonSync('a')).toBe editor1
+      expect(workspace.activePane).toBe pane1
+
+      editor2 = workspace.openSingletonSync()
+      expect(workspace.activePane.items).toEqual [editor1, editor2]
+      expect(workspace.activePaneItem).toBe editor2
+
+      pane2.focused = true
+      expect(workspace.activePane).toBe pane2
+      editor3 = workspace.openSingletonSync()
+      expect(editor3).not.toBe editor2
+      expect(workspace.activePane).toBe pane2
+      expect(pane2.items).toEqual [editor3]
+
+      workspace.openSingletonSync('a', changeFocus: false)
+      expect(workspace.activePane).toBe pane1
+      expect(pane1.hasFocus).toBe false
+
   describe "::editors", ->
     class Item extends Model
 
