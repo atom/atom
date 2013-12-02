@@ -58,8 +58,11 @@ class WorkspaceView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div 'x-bind-component': "paneContainer"
 
-  @delegates 'open', 'openSync', 'openSingletonSync', 'panes', 'getPanes', 'activePane',
-            'getActivePane', 'activePaneItem', 'getActivePaneItem', to: 'model'
+  @delegates 'open', 'openSync', 'openSingletonSync', 'panes', 'activePane', 'activePaneItem',
+             to: 'model'
+
+  # Deprecated: Use properties instead.
+  @delegates 'getPanes', 'getActivePane', 'getActivePaneItem', to: 'model'
 
   # Private:
   created: ->
