@@ -53,7 +53,7 @@ class WorkspaceView extends View
 
   # Private:
   @content: (state) ->
-    @div class: 'workspace', tabindex: -1, =>
+    @div class: 'workspace', tabindex: -1, 'x-bind-focus': "focused", =>
       @div class: 'horizontal', outlet: 'horizontal', =>
         @div class: 'vertical', outlet: 'vertical', =>
           @div 'x-bind-component': "paneContainer"
