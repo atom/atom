@@ -154,6 +154,14 @@ describe "Pane", ->
         pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
         expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
 
+    it "focuses the new pane if the original pane has focus", ->
+      expect(pane1.hasFocus).toBe false
+      pane2 = pane1.splitLeft()
+      expect(pane2.hasFocus).toBe false
+      pane2.focused = true
+      pane3 = pane2.splitLeft()
+      expect(pane3.hasFocus).toBe true
+
   describe "::remove()", ->
     describe "if the pane is the root of its container", ->
       it "removes all pane items but does not remove the pane", ->

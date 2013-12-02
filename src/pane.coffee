@@ -112,6 +112,8 @@ class Pane extends Model
     switch side
       when 'before' then @parent.children.insertBefore(this, pane)
       when 'after' then @parent.children.insertAfter(this, pane)
+    pane.focused = @hasFocus
+    pane
 
   itemForUri: (uri) ->
     @items.find({uri}) ? @items.find(-> @getUri?() is uri)
