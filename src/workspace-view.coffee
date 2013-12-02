@@ -215,12 +215,13 @@ class WorkspaceView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Public: Fires a callback on each open {EditorView}.
+  # Deprecated: Call everyEditorView instead
   eachEditorView: (callback) ->
-    callback(editor) for editor in @getEditorViews()
-    attachedCallback = (e, editor) -> callback(editor)
-    @on('editor:attached', attachedCallback)
-    off: => @off('editor:attached', attachedCallback)
+    @everyEditorView(callback)
+
+  # Public: Fires the callback for every current and future editor {EditorView}.
+  everyEditorView: (callback) ->
+    @model.everyEditor (editor) => callback(@viewForModel(editor))
 
   # # Private: Destroys everything.
   # remove: ->

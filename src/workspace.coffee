@@ -12,7 +12,8 @@ class Workspace extends Model
   @relatesToMany 'editors', ->
     @paneItems.where (item) -> item.constructor.name is 'Editor'
 
-  @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', to: 'paneContainer'
+  @delegates 'activePane', 'getActivePane', 'activePaneItem', 'getActivePaneItem',
+            'getPanes', 'panes', 'paneItems', 'getPaneItems', to: 'paneContainer'
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
@@ -43,3 +44,6 @@ class Workspace extends Model
     @activePane.setActiveItem(editor)
     @activePane.focused = true if changeFocus ? true
     editor
+
+  everyEditor: (fn) ->
+    @editors.onEach(fn)
