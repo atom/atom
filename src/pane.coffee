@@ -13,6 +13,10 @@ class Pane extends Model
     panes: -> [this]
     activeItem: null
 
+  # Public: Contains the active item or nothing. Used in PaneContainer::activePaneItems.
+  @relatesToMany 'activeItems', ->
+    @items.where(id: @$activeItem.map('id'))
+
   @behavior 'hasFocus', ->
     activeItemFocused =
       @$activeItem

@@ -40,6 +40,18 @@ describe "PaneContainer", ->
       pane1.remove()
       expect(container.paneItems).toEqual [item3]
 
+  describe "::activePaneItems", ->
+    it "contains the active item of every pane, if one exists", ->
+      expect(container.activePaneItems).toEqual []
+
+      item1 = new Item
+      item2 = new Item
+      item3 = new Item
+      pane1.addItem(item1)
+      pane1.addItem(item2)
+      pane3.addItem(item3)
+      expect(container.activePaneItems).toEqual [item2, item3]
+
   describe "::paneForUri(uri)", ->
     it "returns the first pane with an item for the given uri", ->
       expect(container.paneItems).toEqual []

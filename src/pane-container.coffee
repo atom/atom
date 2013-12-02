@@ -14,6 +14,7 @@ class PaneContainer extends Model
   @relatesToOne 'root', -> @children
   @relatesToMany 'panes', -> @children.selectMany 'panes'
   @relatesToMany 'paneItems', -> @panes.selectMany 'items'
+  @relatesToMany 'activePaneItems', -> @panes.selectMany 'activeItems'
   @relatesToOne 'focusedPane', -> @panes.where(hasFocus: true)
 
   @behavior 'activePaneItem', -> @$activePane.flatMapLatest (pane) -> pane.$activeItem
