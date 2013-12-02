@@ -5,15 +5,15 @@
   "private": true,
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/atom/__package-name__.git"
-  },
-  "bugs": {
-    "url": "https://github.com/atom/__package-name__/issues"
-  },
+  "repository": "https://github.com/atom/__package-name__.git",
+  "licenses": [
+    {
+      "type": "Apache",
+      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
+    }
+  ],
   "engines": {
-    "atom": ">27.0"
+    "atom": ">39.0"
   },
   "dependencies": {
   }
