@@ -13,6 +13,7 @@ class PaneContainer extends Model
 
   @relatesToOne 'root', -> @children
   @relatesToMany 'panes', -> @children.selectMany 'panes'
+  @relatesToMany 'paneItems', -> @panes.selectMany 'items'
 
   @behavior 'activePaneItem', -> @$activePane.flatMapLatest (pane) -> pane.$activeItem
 
