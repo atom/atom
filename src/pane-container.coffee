@@ -14,6 +14,7 @@ class PaneContainer extends Model
   @relatesToOne 'root', -> @children
   @relatesToMany 'panes', -> @children.selectMany 'panes'
   @relatesToMany 'paneItems', -> @panes.selectMany 'items'
+  @relatesToOne 'focusedPane', -> @panes.where(hasFocus: true)
 
   @behavior 'activePaneItem', -> @$activePane.flatMapLatest (pane) -> pane.$activeItem
 
@@ -33,3 +34,10 @@ class PaneContainer extends Model
   # Public: Returns the first pane with an item for the given uri
   paneForUri: (uri) ->
     @panes.find (pane) -> pane.itemForUri(uri)?
+
+  focusNextPane: ->
+    nextIndex = (@getFocusedPaneIndex() + 1) % @panes.length
+    @panes.get(nextIndex).focused = true
+
+  getFocusedPaneIndex: ->
+    @panes.indexOf(@focusedPane)

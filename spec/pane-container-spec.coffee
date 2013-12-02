@@ -52,3 +52,15 @@ describe "PaneContainer", ->
 
       expect(container.paneForUri('a')).toBe pane1
       expect(container.paneForUri('b')).toBe pane3
+
+  describe "::focusNextPane()", ->
+    it "focuses the next pane, wrapping around from the end to the beginning", ->
+      expect(container.focusedPane).toBeUndefined()
+      container.focusNextPane()
+      expect(container.focusedPane).toBe pane1
+      container.focusNextPane()
+      expect(container.focusedPane).toBe pane2
+      container.focusNextPane()
+      expect(container.focusedPane).toBe pane3
+      container.focusNextPane()
+      expect(container.focusedPane).toBe pane1

@@ -15,13 +15,11 @@ class Workspace extends Model
   @relatesToMany 'editors', ->
     @paneItems.where (item) -> item.constructor.name is 'Editor'
 
-  @relatesToOne 'focusedPane', ->
-    @panes.where(hasFocus: true)
-
   @behavior 'hasFocus', ->
     @$focused.or(@$focusedPane.isDefined())
 
-  @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', to: 'paneContainer'
+  @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', 'focusedPane',
+             '$focusedPane', 'focusNextPane', to: 'paneContainer'
 
   # Deprecated: Use properties instead
   @delegates 'getPanes', 'getActivePane', 'getPaneItems', 'getActivePaneItem',
