@@ -241,6 +241,7 @@ class Project extends telepath.Model
     buffer.load()
       .then((buffer) -> buffer)
       .catch(=> @removeBuffer(buffer))
+    buffer
 
   # Private:
   addBuffer: (buffer, options={}) ->

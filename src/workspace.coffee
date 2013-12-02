@@ -11,10 +11,6 @@ class Workspace extends Model
 
   @delegates 'activePane', 'activePaneItem', 'panes', to: 'paneContainer'
 
-  # Deprecated properties
-  @delegates 'getActivePane', 'getActivePaneItem', 'getPanes', to: 'paneContainer'
-
-
   # Public: Asynchronously opens a given a filepath in Atom.
   #
   # * filePath: A file path

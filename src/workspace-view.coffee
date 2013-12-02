@@ -2,12 +2,15 @@ ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
+Delegator = require 'delegato'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 telepath = require 'telepath'
 EditorView = require './editor-view'
 Pane = require './pane'
 Editor = require './editor'
+PaneContainerView = require './pane-container-view'
+EditorView = require './editor-view'
 
 # Public: The container for the entire Atom application.
 #
@@ -35,9 +38,10 @@ Editor = require './editor'
 #
 module.exports =
 class WorkspaceView extends View
-  atom.deserializers.add(this, EditorView)
+  Delegator.includeInto(this)
 
-  @version: 1
+  @register PaneContainerView
+  @register EditorView
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -47,36 +51,21 @@ class WorkspaceView extends View
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
 
-  @acceptsDocuments: true
-
   # Private:
-  @content: (state) ->
+  @content: ->
     @div id: 'workspace', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
-          @div outlet: 'panes'
+          @div 'x-bind-component': "paneContainer"
+
+  @delegates 'open', 'openSync', 'openSingletonSync', 'getActivePane', 'getActivePaneItem',
+             to: 'model'
 
   # Private:
-  @deserialize: (state) ->
-    new WorkspaceView(state)
-
-  # Private:
-  initialize: (state={}) ->
+  created: ->
     @prepend($$ -> @div class: 'dev-mode') if atom.getLoadSettings().devMode
 
-    if state instanceof telepath.Document
-      @state = state
-      panes = atom.deserializers.deserialize(state.get('panes'))
-    else
-      panes = new PaneContainer
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        version: @constructor.version
-        panes: panes.getState()
-
-    @panes.replaceWith(panes)
-    @panes = panes
-    @updateTitle()
+    # @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -122,20 +111,11 @@ class WorkspaceView extends View
       atom.config.toggle("editor.autoIndent")
 
     @command 'pane:reopen-closed-item', =>
-      @panes.reopenItem()
-
-  # Private:
-  serialize: ->
-    state = @state.clone()
-    state.set('panes', @panes.serialize())
-    state.set('fullScreen', atom.isFullScreen())
-    state
-
-  # Private:
-  getState: -> @state
+      @model.reopenItem()
 
   # Private:
   handleFocus: (e) ->
+    return
     if @getActivePane()
       @getActivePane().focus()
       false
@@ -155,66 +135,7 @@ class WorkspaceView extends View
 
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
-    @panes.confirmClose()
-
-  # Public: Asynchronously opens a given a filepath in Atom.
-  #
-  # * filePath: A file path
-  # * options
-  #   + initialLine: The buffer line number to open to.
-  #
-  # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (filePath, options={}) ->
-    changeFocus = options.changeFocus ? true
-    filePath = atom.project.resolve(filePath)
-    initialLine = options.initialLine
-    activePane = @getActivePane()
-
-    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
-    promise = atom.project.open(filePath, {initialLine}) if not editor
-
-    Q(editor ? promise)
-      .then (editor) =>
-        if not activePane
-          activePane = new Pane(editor)
-          @panes.setRoot(activePane)
-
-        activePane.showItem(editor)
-        activePane.focus() if changeFocus
-        @trigger "uri-opened"
-        editor
-      .catch (error) ->
-        console.error(error.stack ? error)
-
-  # Private: Only used in specs
-  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
-    changeFocus ?= true
-    pane ?= @getActivePane()
-    uri = atom.project.relativize(uri)
-
-    if pane
-      if uri
-        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
-      else
-        paneItem = atom.project.openSync()
-
-      if split == 'right'
-        panes = @getPanes()
-        if panes.length == 1
-          pane = panes[0].splitRight()
-        else
-          pane = _.last(panes)
-      else if split == 'left'
-        pane = @getPanes()[0]
-
-      pane.showItem(paneItem)
-    else
-      paneItem = atom.project.openSync(uri, {initialLine})
-      pane = new Pane(paneItem)
-      @panes.setRoot(pane)
-
-    pane.focus() if changeFocus
-    paneItem
+    @model.confirmClose()
 
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
     changeFocus ?= true
@@ -245,7 +166,7 @@ class WorkspaceView extends View
 
   # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
-    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
+    @model.editors.map (editor) => @viewForModel(editor)
 
   # Private: Retrieves all of the modified buffers that are open and unsaved.
   #
@@ -263,17 +184,9 @@ class WorkspaceView extends View
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@getEditorViews().map (editorView) -> editorView.getOpenBufferPaths()))
 
-  # Public: Returns the currently focused {Pane}.
-  getActivePane: ->
-    @panes.getActivePane()
-
-  # Public: Returns the currently focused item from within the focused {Pane}
-  getActivePaneItem: ->
-    @panes.getActivePaneItem()
-
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
-    @panes.getActiveView()
+    @viewForModel(@model.activePaneItem)
 
   # Public: Focuses the previous pane by id.
   focusPreviousPane: -> @panes.focusPreviousPane()
@@ -309,8 +222,8 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Private: Destroys everything.
-  remove: ->
-    editorView.remove() for editorView in @getEditorViews()
-    atom.project?.destroy()
-    super
+  # # Private: Destroys everything.
+  # remove: ->
+  #   editorView.remove() for editorView in @getEditorViews()
+  #   atom.project?.destroy()
+  #   super

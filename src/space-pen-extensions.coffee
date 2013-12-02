@@ -1,10 +1,42 @@
 _ = require 'underscore-plus'
 spacePen = require 'space-pen'
+television = require 'television'
 ConfigObserver = require './config-observer'
 {Subscriber} = require 'emissary'
+{Model} = require 'telepath'
 
 _.extend spacePen.View.prototype, ConfigObserver
 Subscriber.includeInto(spacePen.View)
+
+# Adapt to television
+class TelevisionView extends spacePen.View
+  television.View.includeInto(this)
+
+  @buildElement: (model) ->
+    new this(model)[0]
+
+  constructor: (args...) ->
+    super
+
+    if args[0] instanceof Model
+      @model = args[0]
+      @element = this[0]
+      @factory = @constructor
+      @factory.cacheView(this)
+
+      @childViews = []
+      @bindings = []
+      @createBindings(@element)
+      @model.on 'detached', => @destroy()
+      @created?()
+
+  _attached: ->
+    @afterAttach?(true)
+
+  _detached: ->
+    @beforeRemove?(true)
+
+spacePen.View = TelevisionView
 
 jQuery = spacePen.jQuery
 originalCleanData = jQuery.cleanData

@@ -117,12 +117,6 @@ class Editor extends Model
     @emit 'destroyed'
     @off()
 
-  # Private:
-  serialize: -> @state.clone()
-
-  # Private:
-  getState: -> @state
-
   # Private: Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
@@ -181,16 +175,16 @@ class Editor extends Model
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
   # Public: FIXME: I don't understand this.
-  setScrollTop: (scrollTop) -> @state.set('scrollTop', scrollTop)
+  setScrollTop: (@scrollTop) ->
 
   # Public: Returns the current `scrollTop` value
-  getScrollTop: -> @state.get('scrollTop') ? 0
+  getScrollTop: -> @scrollTop ? 0
 
   # Public: FIXME: I don't understand this.
-  setScrollLeft: (scrollLeft) -> @state.set('scrollLeft', scrollLeft)
+  setScrollLeft: (@scrollLeft) ->
 
   # Public: Returns the current `scrollLeft` value
-  getScrollLeft: -> @state.get('scrollLeft')
+  getScrollLeft: -> @scrollLeft
 
   # Set the number of characters that can be displayed horizontally in the
   # editor that contains this edit session.
@@ -203,11 +197,10 @@ class Editor extends Model
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
   # Public: Returns whether soft tabs are enabled or not.
-  getSoftTabs: -> @state.get('softTabs')
+  getSoftTabs: -> @softTabs
 
   # Public: Controls whether soft tabs are enabled or not.
-  setSoftTabs: (softTabs) ->
-    @state.set('softTabs', softTabs)
+  setSoftTabs: (@softTabs) ->
 
   # Public: Returns whether soft wrap is enabled or not.
   getSoftWrap: -> @displayBuffer.getSoftWrap()
