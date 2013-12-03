@@ -100,6 +100,42 @@ describe "Pane", ->
       pane.moveItem(item2, 2)
       expect(pane.items).toEqual [item3, item2, item1]
 
+  describe "::activateNextItem()", ->
+    it "activates the next item, wrapping from the end to the beginning", ->
+      expect(pane.activeItem).toBe item1
+      expect(pane.activeItem.hasFocus).toBe false
+
+      pane.activateNextItem()
+      expect(pane.activeItem).toBe item2
+      expect(pane.activeItem.hasFocus).toBe false
+
+      pane.focused = true
+      pane.activateNextItem()
+      expect(pane.activeItem).toBe item3
+      expect(pane.activeItem.hasFocus).toBe true
+
+      pane.activateNextItem()
+      expect(pane.activeItem).toBe item1
+      expect(pane.activeItem.hasFocus).toBe true
+
+  describe "::activatePreviousItem()", ->
+    it "activates the previous item, wrapping from the beginning to the end", ->
+      expect(pane.activeItem).toBe item1
+      expect(pane.activeItem.hasFocus).toBe false
+
+      pane.activatePreviousItem()
+      expect(pane.activeItem).toBe item3
+      expect(pane.activeItem.hasFocus).toBe false
+
+      pane.focused = true
+      pane.activatePreviousItem()
+      expect(pane.activeItem).toBe item2
+      expect(pane.activeItem.hasFocus).toBe true
+
+      pane.activatePreviousItem()
+      expect(pane.activeItem).toBe item1
+      expect(pane.activeItem.hasFocus).toBe true
+
   describe "split methods", ->
     pane1 = null
 
@@ -169,6 +205,7 @@ describe "Pane", ->
       pane2.focused = true
       pane3 = pane2.splitLeft()
       expect(pane3.hasFocus).toBe true
+
 
   describe "::remove()", ->
     describe "if the pane is the root of its container", ->

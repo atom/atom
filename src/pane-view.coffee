@@ -7,6 +7,8 @@ class PaneView extends View
       @div class: "active-item", => @div 'x-bind-component': "activeItem"
 
   created: ->
+    @command 'pane:show-next-item', => @model.activateNextItem()
+    @command 'pane:show-previous-item', => @model.activatePreviousItem()
     @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
     @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
     @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)

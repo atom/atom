@@ -49,6 +49,15 @@ class Pane extends Model
     item.setFocused?(true) if hadFocus
     item
 
+  activateNextItem: ->
+    nextItemIndex = (@getActiveItemIndex() + 1) % @items.length
+    @activateItem(@items.get(nextItemIndex))
+
+  activatePreviousItem: ->
+    previousItemIndex = @getActiveItemIndex() - 1
+    previousItemIndex = @items.length - 1 if previousItemIndex < 0
+    @activateItem(@items.get(previousItemIndex))
+
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
