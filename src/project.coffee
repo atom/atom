@@ -181,6 +181,10 @@ class Project extends telepath.Model
   getBuffers: ->
     new Array(@buffers.getValues()...)
 
+  # Private:
+  findBufferForPath: (filePath) ->
+   _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
+
   # Private: Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
