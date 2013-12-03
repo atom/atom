@@ -51,9 +51,9 @@ class Pane extends Model
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
-  addItem: (item) ->
+  addItem: (item, index=@getActiveItemIndex() + 1) ->
     wasEmpty = @items.isEmpty()
-    item = @items.insert(@getActiveItemIndex() + 1, item)
+    item = @items.insert(index, item)
     @setActiveItem(item) if wasEmpty
     item
 
@@ -82,6 +82,10 @@ class Pane extends Model
   removeItems: ->
     @items.splice(0, @items.length)
 
+  moveItemToPane: (item, pane, index) ->
+    pane.addItem(item, index)
+    @removeItem(item)
+
   getNextItem: (item) ->
     return unless @items.length > 1
 
@@ -97,28 +101,42 @@ class Pane extends Model
       index = @items.length if index is 0
       @items.get(index - 1)
 
-  splitLeft: (items...) ->
-    @split('horizontal', 'before', items)
+  splitLeft: (params) ->
+    @split('horizontal', 'before', params)
 
-  splitRight: (items...) ->
-    @split('horizontal', 'after', items)
+  splitRight: (params) ->
+    @split('horizontal', 'after', params)
 
-  splitUp: (items...) ->
-    @split('vertical', 'before', items)
+  splitUp: (params) ->
+    @split('vertical', 'before', params)
 
-  splitDown: (items...) ->
-    @split('vertical', 'after', items)
+  splitDown: (params) ->
+    @split('vertical', 'after', params)
 
-  split: (orientation, side, items) ->
+  split: (orientation, side, params={}) ->
     unless @parent.orientation is orientation
       axis = new PaneAxis({orientation, @parent, children: [this]})
       @parent.children.replace(this, axis)
       @parent = axis
 
+    {items, copyActiveItem, moveActiveItem} = params
+    items ?= []
+
+    if copyActiveItem
+      if itemCopy = @activeItem?.copy?()
+        items.unshift(itemCopy)
+      else
+        moveActiveItem = true
+
     pane = new Pane({@container, @parent, @focusManager, items})
     switch side
       when 'before' then @parent.children.insertBefore(this, pane)
       when 'after' then @parent.children.insertAfter(this, pane)
+
+    if moveActiveItem and @activeItem?
+      console.log "move active item"
+      @moveItemToPane(@activeItem, pane, 0)
+
     pane.focused = @hasFocus
     pane
 

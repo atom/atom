@@ -4,13 +4,13 @@ PaneContainer = require '../src/pane-container'
 Focusable = require '../src/focusable'
 
 describe "Pane", ->
-  [container, pane, item1, item2, item3] = []
-
-  class Item extends Model
-    Focusable.includeInto(this)
-    attached: -> @manageFocus()
+  [Item, container, pane, item1, item2, item3] = []
 
   beforeEach ->
+    class Item extends Model
+      Focusable.includeInto(this)
+      attached: -> @manageFocus()
+
     container = PaneContainer.createAsRoot()
     pane = container.root
     item1 = new Item
@@ -106,7 +106,7 @@ describe "Pane", ->
     beforeEach ->
       pane1 = pane
 
-    describe "::splitLeft(items...)", ->
+    describe "::splitLeft(params)", ->
       it "inserts a new pane to the left, introducing a horizontal pane axis as a shared parent if needed", ->
         pane2 = pane1.splitLeft()
         expect(container.root.orientation).toBe 'horizontal'
@@ -114,11 +114,7 @@ describe "Pane", ->
         pane3 = pane1.splitLeft()
         expect(container.root.children).toEqual [pane2, pane3, pane1]
 
-      it "creates the new pane with items if they are provided", ->
-        pane2 = pane1.splitLeft({title: "Item 4"}, {title: "Item 5"})
-        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
-
-    describe "::splitRight(items...)", ->
+    describe "::splitRight(params)", ->
       it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
         pane2 = pane1.splitRight()
         expect(container.root.orientation).toBe 'horizontal'
@@ -126,11 +122,7 @@ describe "Pane", ->
         pane3 = pane1.splitRight()
         expect(container.root.children).toEqual [pane1, pane3, pane2]
 
-      it "creates the new pane with items if they are provided", ->
-        pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
-        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
-
-    describe "::splitUp(items...)", ->
+    describe "::splitUp(params)", ->
       it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
         pane2 = pane1.splitUp()
         expect(container.root.orientation).toBe 'vertical'
@@ -138,11 +130,7 @@ describe "Pane", ->
         pane3 = pane1.splitUp()
         expect(container.root.children).toEqual [pane2, pane3, pane1]
 
-      it "creates the new pane with items if they are provided", ->
-        pane2 = pane1.splitUp({title: "Item 4"}, {title: "Item 5"})
-        expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
-
-    describe "::splitDown(items...)", ->
+    describe "::splitDown(params)", ->
       it "inserts a new pane to the right, introducing a horizontal pane axis as a shared parent if needed", ->
         pane2 = pane1.splitDown()
         expect(container.root.orientation).toBe 'vertical'
@@ -150,9 +138,29 @@ describe "Pane", ->
         pane3 = pane1.splitDown()
         expect(container.root.children).toEqual [pane1, pane3, pane2]
 
-      it "creates the new pane with items if they are provided", ->
-        pane2 = pane1.splitRight({title: "Item 4"}, {title: "Item 5"})
+    describe "if called with items", ->
+      it "creates the new pane with the given items", ->
+        pane2 = pane1.splitRight(items: [{title: "Item 4"}, {title: "Item 5"}])
         expect(pane2.items).toEqual [{title: "Item 4"}, {title: "Item 5"}]
+
+    describe "if called with copyActiveItem: true", ->
+      describe "if the active item implements .copy", ->
+        it "copies the active item to the new pane", ->
+          Item.property 'title'
+          Item::copy = -> @clone()
+          item4 = new Item(title: "Alpha")
+          pane1.setActiveItem(item4)
+          pane2 = pane1.splitRight(copyActiveItem: true)
+
+          expect(pane1.items).toEqual [item1, item4, item2, item3]
+          expect(pane2.items).toEqual [item4]
+          expect(pane2.items.getFirst()).not.toBe item4
+
+      describe "if the active item does not implement .copy", ->
+        it "moves the active item to the new pane", ->
+          pane2 = pane1.splitRight(copyActiveItem: true)
+          expect(pane1.items).toEqual [item2, item3]
+          expect(pane2.items).toEqual [item1]
 
     it "focuses the new pane if the original pane has focus", ->
       expect(pane1.hasFocus).toBe false
@@ -197,7 +205,7 @@ describe "Pane", ->
     beforeEach ->
       pane1 = pane
       item4 = new Item
-      pane2 = pane1.splitRight(item4)
+      pane2 = pane1.splitRight(items: [item4])
 
     it "focuses the active item if it is focusable", ->
       expect(pane1.hasFocus).toBe false
@@ -228,7 +236,7 @@ describe "Pane", ->
     it "sets itself as the the active pane on the pane container", ->
       pane1 = pane
       item4 = new Item
-      pane2 = pane1.splitRight(item4)
+      pane2 = pane1.splitRight(items: [item4])
 
       expect(container.activePane).toBe pane1
       pane2.activeItem.focused = true
