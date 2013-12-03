@@ -977,9 +977,11 @@ class EditorView extends View
     @setWidthInChars()
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
+  # Private:
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
+  # Private:
   calculateHeightInLines: ->
     Math.ceil($(window).height() / @lineHeight)
 
@@ -1064,6 +1066,7 @@ class EditorView extends View
     super
     atom.workspaceView?.focus()
 
+  # Private:
   beforeRemove: ->
     @trigger 'editor:will-be-removed'
     @removed = true
@@ -1614,6 +1617,7 @@ class EditorView extends View
         index++
     left
 
+  # Private:
   measureToColumn: (lineElement, tokenizedLine, screenColumn, lineStartBufferColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
@@ -1659,6 +1663,7 @@ class EditorView extends View
 
     returnLeft ? left
 
+  # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
     obj = EditorView.characterWidthCache
@@ -1667,6 +1672,7 @@ class EditorView extends View
       return null unless obj?
     obj[char]
 
+  # Private:
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
     obj = EditorView.characterWidthCache
@@ -1675,6 +1681,7 @@ class EditorView extends View
       obj = obj[scope]
     obj[char] = val
 
+  # Private:
   clearCharacterWidthCache: ->
     EditorView.characterWidthCache = {}
 
