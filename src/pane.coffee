@@ -27,7 +27,7 @@ class Pane extends Model
   created: ->
     console.log "Pane::created"
     @manageFocus()
-    @setActiveItem(@items.getFirst()) unless @activeItem?
+    @activateItem(@items.getFirst()) unless @activeItem?
     @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)
     @subscribe @$focused, 'value', (focused) => @activeItem?.setFocused?(true) if focused
     @subscribe @$hasFocus, 'value', (hasFocus) => @container?.activePane = this if hasFocus
@@ -42,7 +42,7 @@ class Pane extends Model
     else
       @parent.children.remove(this)
 
-  setActiveItem: (item) ->
+  activateItem: (item) ->
     item = @addItem(item) if item? and not @items.contains(item)
     hadFocus = @hasFocus
     @activeItem = item
@@ -55,13 +55,13 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     wasEmpty = @items.isEmpty()
     item = @items.insert(index, item)
-    @setActiveItem(item) if wasEmpty
+    @activateItem(item) if wasEmpty
     item
 
   addItems: (items) ->
     wasEmpty = @items.isEmpty()
     items = @items.insertArray(@getActiveItemIndex() + 1, items)
-    @setActiveItem(@items.getFirst()) if wasEmpty
+    @activateItem(@items.getFirst()) if wasEmpty
     items
 
   moveItem: (item, newIndex) ->
@@ -75,9 +75,9 @@ class Pane extends Model
     unless index is -1
       if item is @activeItem
         if item is @items.getLast()
-          @setActiveItem(@getPreviousItem(item))
+          @activateItem(@getPreviousItem(item))
         else
-          @setActiveItem(@getNextItem(item))
+          @activateItem(@getNextItem(item))
       @items.splice(index, 1)
 
   removeItems: ->

@@ -47,7 +47,7 @@ class Workspace extends Model
 
     Q(editor ? promise)
       .then (editor) =>
-        @activePane.setActiveItem(editor)
+        @activePane.activateItem(editor)
         @activePane.focused = true if changeFocus
         editor
       .catch (error) ->
@@ -57,7 +57,7 @@ class Workspace extends Model
     uri = @project.relativize(uri)
     editor = @activePane.itemForUri(uri) if uri?
     editor ?= @project.openSync(uri, {initialLine})
-    @activePane.setActiveItem(editor)
+    @activePane.activateItem(editor)
     @activePane.focused = true if changeFocus ? true
     editor
 

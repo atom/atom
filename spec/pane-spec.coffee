@@ -28,27 +28,27 @@ describe "Pane", ->
       expect(pane.items).toEqual []
       expect(pane.activeItem).toBeUndefined()
 
-  describe "::setActiveItem(item)", ->
+  describe "::activateItem(item)", ->
     it "changes the active item", ->
       expect(pane.activeItem).toBe item1
-      pane.setActiveItem(item3)
+      pane.activateItem(item3)
       expect(pane.activeItem).toBe item3
 
     describe "if the item isn't present in the items list", ->
       it "adds it after the current active item", ->
-        pane.setActiveItem(item2)
-        item4 = pane.setActiveItem(new Item)
+        pane.activateItem(item2)
+        item4 = pane.activateItem(new Item)
         expect(pane.activeItem).toBe item4
         expect(pane.items).toEqual [item1, item2, item4, item3]
 
     describe "if the pane has focus before making the item active and the item is focusable", ->
       it "focuses the item after adding it", ->
         expect(pane.hasFocus).toBe false
-        item4 = pane.setActiveItem(new Item)
+        item4 = pane.activateItem(new Item)
         expect(item4.hasFocus).toBe false
 
         pane.focused = true
-        item5 = pane.setActiveItem(new Item)
+        item5 = pane.activateItem(new Item)
         expect(item5.hasFocus).toBe true
         expect(pane.hasFocus).toBe true
 
@@ -76,13 +76,13 @@ describe "Pane", ->
     describe "when the removed item is active", ->
       describe "when the removed item is the last item", ->
         it "sets the previous item as the new active item", ->
-          pane.setActiveItem(item3)
+          pane.activateItem(item3)
           pane.removeItem(item3)
           expect(pane.activeItem).toBe item2
 
       describe "when the removed item is not the last item", ->
         it "sets the next item as the new active item", ->
-          pane.setActiveItem(item2)
+          pane.activateItem(item2)
           pane.removeItem(item2)
           expect(pane.activeItem).toBe item3
 
@@ -149,7 +149,7 @@ describe "Pane", ->
           Item.property 'title'
           Item::copy = -> @clone()
           item4 = new Item(title: "Alpha")
-          pane1.setActiveItem(item4)
+          pane1.activateItem(item4)
           pane2 = pane1.splitRight(copyActiveItem: true)
 
           expect(pane1.items).toEqual [item1, item4, item2, item3]
