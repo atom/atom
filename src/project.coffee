@@ -63,7 +63,6 @@ class Project extends telepath.Model
 
   # Private:
   destroy: ->
-    editor.destroy() for editor in @getEditors()
     buffer.release() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -170,21 +169,6 @@ class Project extends telepath.Model
       return resource if resource = opener(filePath, options)
 
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
-
-  # Public: Retrieves all {Editor}s for all open files.
-  #
-  # Returns an {Array} of {Editor}s.
-  getEditors: ->
-    new Array(@editors...)
-
-  # Public: Add the given {Editor}.
-  addEditor: (editor) ->
-    @editors.push editor
-    @emit 'editor-created', editor
-
-  # Public: Return and removes the given {Editor}.
-  removeEditor: (editor) ->
-    _.remove(@editors, editor)
 
   # Private: Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -345,14 +329,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = @createOrphan(new Editor(_.extend({buffer}, editorOptions)))
-    @addEditor(editor)
-    editor
-
-  # Private:
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    @createOrphan(new Editor(_.extend({buffer}, editorOptions)))
 
   # Private:
   eachBuffer: (args...) ->
