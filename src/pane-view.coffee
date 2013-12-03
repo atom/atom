@@ -7,7 +7,7 @@ class PaneView extends View
       @div class: "active-item", => @div 'x-bind-component': "activeItem"
 
   created: ->
-    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
-    @command 'pane:split-right', => @splitRight(@copyActiveItem())
-    @command 'pane:split-up', => @splitUp(@copyActiveItem())
-    @command 'pane:split-down', => @splitDown(@copyActiveItem())
+    @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
+    @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
+    @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)
+    @command 'pane:split-down', => @model.splitDown(copyActiveItem: true)
