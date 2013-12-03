@@ -612,31 +612,34 @@ class EditorView extends View
   # {Delegates to: Editor.getPath}
   getPath: -> @editor?.getPath()
 
-  #  {Delegates to: TextBuffer.getLineCount}
+  # {Delegates to: Editor.transact}
+  transact: (fn) -> @editor.transact(fn)
+
+  # {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 
-  #  {Delegates to: TextBuffer.getLastRow}
+  # {Delegates to: TextBuffer.getLastRow}
   getLastBufferRow: -> @getBuffer().getLastRow()
 
-  #  {Delegates to: TextBuffer.getTextInRange}
+  # {Delegates to: TextBuffer.getTextInRange}
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
 
-  #  {Delegates to: TextBuffer.getEofPosition}
+  # {Delegates to: TextBuffer.getEofPosition}
   getEofPosition: -> @getBuffer().getEofPosition()
 
-  #  {Delegates to: TextBuffer.lineForRow}
+  # {Delegates to: TextBuffer.lineForRow}
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
 
-  #  {Delegates to: TextBuffer.lineLengthForRow}
+  # {Delegates to: TextBuffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
 
-  #  {Delegates to: TextBuffer.rangeForRow}
+  # {Delegates to: TextBuffer.rangeForRow}
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
 
-  #  {Delegates to: TextBuffer.scanInRange}
+  # {Delegates to: TextBuffer.scanInRange}
   scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
 
-  #  {Delegates to: TextBuffer.backwardsScanInRange}
+  # {Delegates to: TextBuffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   ### Internal ###
@@ -1839,9 +1842,10 @@ class EditorView extends View
   logCursorScope: ->
     console.log @editor.getCursorScopes()
 
-  transact: (fn) -> @editor.transact(fn)
   beginTransaction: -> @editor.beginTransaction()
+
   commitTransaction: -> @editor.commitTransaction()
+
   abortTransaction: -> @editor.abortTransaction()
 
   logScreenLines: (start, end) ->
