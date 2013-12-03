@@ -1,53 +1,6 @@
 @import "ui-variables";
 
 .panes {
-  position: relative;
-  -webkit-flex: 1;
-
-  .column {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: hidden;
-  }
-
-  .row {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-x: hidden;
-    margin: 0;
-  }
-
-  .pane {
-    position: absolute;
-    display: -webkit-flex;
-    -webkit-flex-flow: column;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    box-sizing: border-box;
-  }
-
-  .pane .active-item {
-    -webkit-flex: 1;
-    display: -webkit-flex;
-    min-height: 0;
-  }
-
-  .pane .active-item > * {
-    -webkit-flex: 1;
-    min-width: 0;
-  }
-}
-
-
-.panes {
   display: -webkit-flex;
   -webkit-flex: 1;
 
@@ -57,6 +10,23 @@
 
     &.vertical {
       -webkit-flex-flow: column;
+    }
+  }
+
+  .pane {
+    -webkit-flex: 1;
+    display: -webkit-flex;
+    -webkit-flex-flow: column;
+
+    .active-item {
+      -webkit-flex: 1;
+      display: -webkit-flex;
+      min-height: 0;
+
+      > * {
+        -webkit-flex: 1;
+        min-width: 0;
+      }
     }
   }
 }
