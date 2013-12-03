@@ -2832,3 +2832,22 @@ describe "EditorView", ->
       setEditorWidthInChars(editorView, 100)
       $(window).trigger 'resize'
       expect(editorView.editor.getSoftWrapColumn()).toBe 100
+
+  describe "character width caching", ->
+    describe "when soft wrap is enabled", ->
+      it "correctly calculates the the position left for a column", ->
+        editor.setSoftWrap(true)
+        editorView.setText('lllll 00000')
+        editorView.setFontFamily('serif')
+        editorView.setFontSize(10)
+        editorView.attachToDom()
+        editorView.setWidthInChars(5)
+
+        expect(editorView.pixelPositionForScreenPosition([0, 5]).left).toEqual 15
+        expect(editorView.pixelPositionForScreenPosition([1, 5]).left).toEqual 25
+
+        # Check that widths are actually being cached
+        spyOn(editorView, 'measureToColumn').andCallThrough()
+        editorView.pixelPositionForScreenPosition([0, 5])
+        editorView.pixelPositionForScreenPosition([1, 5])
+        expect(editorView.measureToColumn.callCount).toBe 0
