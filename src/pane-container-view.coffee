@@ -7,4 +7,4 @@ class PaneContainerView extends View
   @register PaneAxisView, PaneView
 
   @content: ->
-    @div id: 'panes', => @div 'x-bind-component': "root"
+    @div class: 'panes', => @div 'x-bind-component': "root"

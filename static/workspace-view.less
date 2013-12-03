@@ -28,15 +28,15 @@ h6 {
   background-color: @app-background-color;
   font-family: @font-family;
 
-  .horizontal {
+  > .horizontal {
     display: -webkit-flex;
     height: 100%;
-  }
 
-  .vertical {
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-flow: column;
+    > .vertical {
+      display: -webkit-flex;
+      -webkit-flex: 1;
+      -webkit-flex-flow: column;
+    }
   }
 
   .dev-mode {
@@ -54,51 +54,5 @@ h6 {
     z-index: 1000;
     opacity: 0.75;
     color: @text-color-highlight;
-  }
-}
-
-.panes {
-  position: relative;
-  -webkit-flex: 1;
-
-  .column {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: hidden;
-  }
-
-  .row {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-x: hidden;
-    margin: 0;
-  }
-
-  .pane {
-    position: absolute;
-    display: -webkit-flex;
-    -webkit-flex-flow: column;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    box-sizing: border-box;
-  }
-
-  .pane .active-item {
-    -webkit-flex: 1;
-    display: -webkit-flex;
-    min-height: 0;
-  }
-
-  .pane .active-item > * {
-    -webkit-flex: 1;
-    min-width: 0;
   }
 }
