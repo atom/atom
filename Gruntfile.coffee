@@ -20,6 +20,7 @@ module.exports = (grunt) ->
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     shellAppDir = path.join(buildDir, appName)
     appDir = path.join(shellAppDir, 'resources', 'app')
+    atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
   else
     appName = 'Atom.app'
     tmpDir = '/tmp'
@@ -28,6 +29,7 @@ module.exports = (grunt) ->
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
+    atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
 
   installDir = path.join(installRoot, appName)
 
@@ -171,7 +173,7 @@ module.exports = (grunt) ->
     'download-atom-shell':
       version: packageJson.atomShellVersion
       outputDir: 'atom-shell'
-      downloadDir: if process.platform is 'win32' then os.tmpdir() else '/tmp'
+      downloadDir: atomShellDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
 
     shell:
