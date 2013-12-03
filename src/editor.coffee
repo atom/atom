@@ -12,7 +12,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.
 #
-# An {Editor} represents a unique view of each document, with it's own
+# An {Editor} represents a unique view of each document, with its own
 # {Cursor}s and scroll position.
 #
 # For instance if a user creates a split, Atom creates a second {Editor}
