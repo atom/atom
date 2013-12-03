@@ -181,6 +181,10 @@ class Project extends telepath.Model
   getBuffers: ->
     new Array(@buffers.getValues()...)
 
+  # Private: Is the buffer for the given path modified?
+  isPathModified: (filePath) ->
+    @findBufferForPath(@resolve(filePath))?.isModified()
+
   # Private:
   findBufferForPath: (filePath) ->
    _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
