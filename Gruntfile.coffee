@@ -168,6 +168,12 @@ module.exports = (grunt) ->
             _.extend(context, parsed.attributes)
             parsed.body
 
+    'download-atom-shell':
+      version: packageJson.atomShellVersion
+      outputDir: 'atom-shell'
+      downloadDir: if process.platform is 'win32' then os.tmpdir() else '/tmp'
+      rebuild: true  # rebuild native modules after atom-shell is updated
+
     shell:
       'kill-atom':
         command: 'pkill -9 Atom'
@@ -183,13 +189,14 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-markdown')
+  grunt.loadNpmTasks('grunt-download-atom-shell')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadTasks('tasks')
 
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
-  grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('ci', ['download-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
+  grunt.registerTask('deploy', ['partial-clean', 'download-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
-  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
+  grunt.registerTask('default', ['download-atom-shell', 'build', 'set-development-version', 'install'])
