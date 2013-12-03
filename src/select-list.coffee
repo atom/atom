@@ -25,7 +25,10 @@ class SelectList extends View
   inputThrottle: 50
   cancelling: false
 
-  # Public:
+  # Public: Initialize the select list view.
+  #
+  # This method can be overridden by subclasses but `super` should always
+  # be called.
   initialize: ->
     @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.hiddenInput.on 'focusout', => @cancel() unless @cancelling
@@ -57,12 +60,16 @@ class SelectList extends View
       @populateList() if @isOnDom()
     @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
 
-  # Public:
-  setArray: (@array) ->
+  # Public: Set the array of items to display in the list.
+  #
+  # * array: The array of model elements to display in the list.
+  setArray: (@array=[]) ->
     @populateList()
     @setLoading()
 
-  # Public:
+  # Public: Set the error message to display.
+  #
+  # * message: The error message.
   setError: (message='') ->
     if message.length is 0
       @error.text('').hide()
@@ -70,7 +77,9 @@ class SelectList extends View
       @setLoading()
       @error.text(message).show()
 
-  # Public:
+  # Public: Set the loading message to display.
+  #
+  # * message: The loading message.
   setLoading: (message='') ->
     if message.length is 0
       @loading.text("")
@@ -81,11 +90,18 @@ class SelectList extends View
       @loading.text(message)
       @loadingArea.show()
 
-  # Public:
+  # Public: Get the filter query to use when fuzzy filtering the visible
+  # elements.
+  #
+  # By default this method returns the text in the mini editor but it can be
+  # overridden by subclasses if needed.
+  #
+  # Returns a {String} to use when fuzzy filtering the elements to display.
   getFilterQuery: ->
     @miniEditor.getText()
 
-  # Public:
+  # Public: Build the DOM elements using the array from the last call to
+  # {.setArray}.
   populateList: ->
     return unless @array?
 
@@ -109,7 +125,12 @@ class SelectList extends View
     else
       @setError(@getEmptyMessage(@array.length, filteredArray.length))
 
-  # Public:
+  # Public: Get the message to display when there are no items.
+  #
+  # Subclasses may override this method to customize the message.
+  #
+  # * itemCount: The number of items in the array specified to {.setArray}
+  # * filteredItemCount: The number of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
   # Private:
@@ -124,14 +145,14 @@ class SelectList extends View
     item = @list.find('li:first') unless item.length
     @selectItem(item)
 
-  # Public:
+  # Private:
   selectItem: (item) ->
     return unless item.length
     @list.find('.selected').removeClass('selected')
     item.addClass 'selected'
     @scrollToItem(item)
 
-  # Public:
+  # Private:
   scrollToItem: (item) ->
     scrollTop = @list.scrollTop()
     desiredTop = item.position().top + scrollTop
@@ -142,21 +163,32 @@ class SelectList extends View
     else if desiredBottom > @list.scrollBottom()
       @list.scrollBottom(desiredBottom)
 
-  # Public:
+  # Public: Get the selected DOM element.
+  #
+  # Call {.getSelectedElement} to get the selected model element.
   getSelectedItem: ->
     @list.find('li.selected')
 
-  # Public:
+  # Public: Get the selected model element.
+  #
+  # Call {.getSelectedItem} to get the selected DOM element.
   getSelectedElement: ->
     @getSelectedItem().data('select-list-element')
 
-  # Public:
+  # Private:
   confirmSelection: ->
     element = @getSelectedElement()
     if element?
       @confirmed(element)
     else
       @cancel()
+
+  # Public: Callback function for when a selection is made.
+  #
+  # This method should be overridden by subclasses.
+  #
+  # * element: The selected model element.
+  confirmed: (element) ->
 
   # Private:
   attach: ->
@@ -173,12 +205,12 @@ class SelectList extends View
     else
       atom.workspaceView.focus()
 
-  # Public:
+  # Private:
   cancelled: ->
     @miniEditor.setText('')
     @miniEditor.updateDisplay()
 
-  # Public:
+  # Public: Cancel and close the select list dialog.
   cancel: ->
     @list.empty()
     @cancelling = true
