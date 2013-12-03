@@ -49,7 +49,7 @@ class DisplayBuffer extends Model
   getState: -> @state
 
   copy: ->
-    newDisplayBuffer = atom.site.createDocument(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
+    newDisplayBuffer = @createOrphan(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -555,9 +555,8 @@ class DisplayBuffer extends Model
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
 
-  destroy: ->
+  detached: ->
     marker.unsubscribe() for marker in @getMarkers()
-    @tokenizedBuffer.destroy()
     @unsubscribe()
     @unobserveConfig()
 

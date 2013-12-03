@@ -224,9 +224,8 @@ class TokenizedBuffer extends telepath.Model
     endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
     new Range([position.row, startColumn], [position.row, endColumn])
 
-  destroy: ->
+  detached: ->
     @unsubscribe()
-    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
