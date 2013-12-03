@@ -1611,14 +1611,6 @@ class EditorView extends View
         index++
     left
 
-  scopesForColumn: (tokenizedLine, bufferColumn) ->
-    index = 0
-    for token in tokenizedLine.tokens
-      for char in token.value
-        return token.scopes if index == bufferColumn
-        index++
-    null
-
   measureToColumn: (lineElement, tokenizedLine, screenColumn, lineStartBufferColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
@@ -1639,7 +1631,7 @@ class EditorView extends View
         returnLeft = left if index == screenColumn
         oldLeft = left
 
-        scopes = @scopesForColumn(tokenizedLine, lineStartBufferColumn + index)
+        scopes = tokenizedLine.tokenAtBufferColumn(lineStartBufferColumn + index)?.scopes
         cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
         if cachedCharWidth?
