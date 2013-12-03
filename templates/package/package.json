@@ -13,7 +13,7 @@
     }
   ],
   "engines": {
-    "atom": ">39.0"
+    "atom": ">0.39.0"
   },
   "dependencies": {
   }
