@@ -1587,36 +1587,31 @@ class EditorView extends View
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (lineElement, screenRow, column) ->
-    return 0 if column == 0
+  positionLeftForLineAndColumn: (lineElement, screenRow, screenColumn) ->
+    return 0 if screenColumn == 0
 
     bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
+    bufferColumn = @bufferPositionForScreenPosition([screenRow, screenColumn]).column
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
 
     left = 0
     index = 0
+    startIndex = @bufferPositionForScreenPosition([screenRow, 0]).column
     for token in tokenizedLine.tokens
       for char in token.value
-        return left if index >= column
+        return left if index >= bufferColumn
 
-        val = @getCharacterWidthCache(token.scopes, char)
-        if val?
-          left += val
-        else
-          return @measureToColumn(lineElement, tokenizedLine, column)
+        if index >= startIndex
+          val = @getCharacterWidthCache(token.scopes, char)
+          if val?
+            left += val
+          else
+            return @measureToColumn(lineElement, tokenizedLine, screenColumn, startIndex)
 
         index++
     left
 
-  scopesForColumn: (tokenizedLine, column) ->
-    index = 0
-    for token in tokenizedLine.tokens
-      for char in token.value
-        return token.scopes if index == column
-        index++
-    null
-
-  measureToColumn: (lineElement, tokenizedLine, column) ->
+  measureToColumn: (lineElement, tokenizedLine, screenColumn, lineStartBufferColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
 
@@ -1630,13 +1625,13 @@ class EditorView extends View
 
       for char, i in content
         # Don't continue caching long lines :racehorse:
-        break if index > LongLineLength and column < index
+        break if index > LongLineLength and screenColumn < index
 
         # Dont return right away, finish caching the whole line
-        returnLeft = left if index == column
+        returnLeft = left if index == screenColumn
         oldLeft = left
 
-        scopes = @scopesForColumn(tokenizedLine, index)
+        scopes = tokenizedLine.tokenAtBufferColumn(lineStartBufferColumn + index)?.scopes
         cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
         if cachedCharWidth?
@@ -1655,7 +1650,7 @@ class EditorView extends View
 
         # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
-        return column * cachedCharWidth if index > LongLineLength
+        return screenColumn * cachedCharWidth if index > LongLineLength
 
         index++
 
