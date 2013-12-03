@@ -1212,7 +1212,7 @@ class EditorView extends View
 
   updateDisplay: (options={}) ->
     return unless @attached and @editor
-    return if @editor.destroyed
+    return unless @editor.isAlive()
     unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
