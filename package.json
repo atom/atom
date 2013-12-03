@@ -67,8 +67,7 @@
     "request": "~2.27.0",
     "unzip": "~0.1.9",
     "rcedit": "~0.1.2",
-    "rimraf": "~2.2.2",
-    "grunt-download-atom-shell": "git+ssh://git@github.com:atom/grunt-download-atom-shell.git"
+    "rimraf": "~2.2.2"
   },
   "packageDependencies": {
     "atom-light-ui": "0.11.0",
@@ -149,7 +148,8 @@
     "language-todo": "0.2.0",
     "language-toml": "0.7.0",
     "language-xml": "0.2.0",
-    "language-yaml": "0.1.0"
+    "language-yaml": "0.1.0",
+    "grunt-download-atom-shell": "0.1.1"
   },
   "private": true,
   "scripts": {
