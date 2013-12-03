@@ -9,7 +9,7 @@ describe "Pane", ->
   beforeEach ->
     class Item extends Model
       Focusable.includeInto(this)
-      attached: -> @manageFocus()
+      created: -> @manageFocus()
 
     container = PaneContainer.createAsRoot()
     pane = container.root

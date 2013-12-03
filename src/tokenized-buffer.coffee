@@ -19,7 +19,7 @@ class TokenizedBuffer extends telepath.Model
   invalidRows: null
   visible: false
 
-  attached: ->
+  created: ->
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
         @resetTokenizedLines() if @hasTokenForSelector(grammar.injectionSelector)
@@ -224,7 +224,7 @@ class TokenizedBuffer extends telepath.Model
     endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
     new Range([position.row, startColumn], [position.row, endColumn])
 
-  detached: ->
+  destroyed: ->
     @unsubscribe()
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->

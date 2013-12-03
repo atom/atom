@@ -19,7 +19,7 @@ class PaneContainer extends Model
 
   @behavior 'activePaneItem', -> @$activePane.flatMapLatest (pane) -> pane.$activeItem
 
-  attached: ->
+  created: ->
     @activePane ?= @root
     @root.setFocusManager?(@focusManager)
 

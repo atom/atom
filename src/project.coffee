@@ -32,7 +32,7 @@ class Project extends telepath.Model
     path.join(atom.config.get('core.projectHome'), repoName)
 
   # Private: Called by telepath.
-  attached: ->
+  created: ->
     for buffer in @buffers.getValues()
       buffer.once 'destroyed', (buffer) => @removeBuffer(buffer)
 
@@ -329,7 +329,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    @createOrphan(new Editor(_.extend({buffer}, editorOptions)))
+    @create(new Editor(_.extend({buffer}, editorOptions)))
 
   # Private:
   eachBuffer: (args...) ->

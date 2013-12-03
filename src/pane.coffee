@@ -24,7 +24,8 @@ class Pane extends Model
         .map((value) -> !!value)
     @$focused.or(activeItemFocused)
 
-  attached: ->
+  created: ->
+    console.log "Pane::created"
     @manageFocus()
     @setActiveItem(@items.getFirst()) unless @activeItem?
     @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)

@@ -51,7 +51,7 @@ class Editor extends Model
   suppressSelectionMerging: false
 
   # Private:
-  attached: ->
+  created: ->
     @cursors = []
     @remoteCursors = []
     @selections = []
@@ -105,7 +105,7 @@ class Editor extends Model
     require './editor-view'
 
   # Private:
-  detached: ->
+  destroyed: ->
     return if @destroyed
     @destroyed = true
     @unsubscribe()
@@ -122,7 +122,7 @@ class Editor extends Model
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = @createOrphan(new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true}))
+    newEditor = @create(new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true}))
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)

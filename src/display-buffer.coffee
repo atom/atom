@@ -20,7 +20,7 @@ class DisplayBuffer extends Model
     editorWidthInChars: null
     softWrap: -> atom.config.get('editor.softWrap') ? false
 
-  attached: ->
+  created: ->
     @tokenizedBuffer ?= new TokenizedBuffer({@tabLength, @buffer})
 
     @markers = {}
@@ -49,7 +49,7 @@ class DisplayBuffer extends Model
   getState: -> @state
 
   copy: ->
-    newDisplayBuffer = @createOrphan(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
+    newDisplayBuffer = @create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -555,7 +555,7 @@ class DisplayBuffer extends Model
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
 
-  detached: ->
+  destroyed: ->
     marker.unsubscribe() for marker in @getMarkers()
     @unsubscribe()
     @unobserveConfig()

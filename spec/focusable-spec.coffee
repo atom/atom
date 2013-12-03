@@ -6,7 +6,7 @@ describe "Focusable mixin", ->
   it "ensures that focus uniqueness is conserved among all documents with the same focus manager", ->
     class Item extends Model
       Focusable.includeInto(this)
-      attached: -> @manageFocus()
+      created: -> @manageFocus()
 
     doc = Document.create()
     focusManager = doc.set('focusManager', new FocusManager)

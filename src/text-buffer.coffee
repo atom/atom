@@ -39,7 +39,7 @@ class TextBuffer extends telepath.Model
     @loadWhenAttached = @getState()?
 
   # Private: Called by telepath.
-  attached: ->
+  created: ->
     @loaded = false
     @useSerializedText = @modifiedWhenLastPersisted != false
 

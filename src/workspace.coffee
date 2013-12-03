@@ -26,7 +26,7 @@ class Workspace extends Model
   @delegates 'getPanes', 'getActivePane', 'getPaneItems', 'getActivePaneItem',
              to: 'paneContainer'
 
-  attached: ->
+  created: ->
     @manageFocus()
     @paneContainer = new PaneContainer({@focusManager})
     @subscribe @$focused, 'value', (focused) => @activePane.setFocused(true) if focused

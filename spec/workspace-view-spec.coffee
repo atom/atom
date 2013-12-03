@@ -11,7 +11,7 @@ describe "WorkspaceView", ->
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
-    workspace = atom.project.createOrphan(new Workspace(project: atom.project))
+    workspace = atom.project.create(new Workspace(project: atom.project))
     atom.workspaceView = new WorkspaceView(workspace)
     atom.workspaceView.enableKeymap()
     atom.workspaceView.openSync(pathToOpen)
