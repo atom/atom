@@ -1062,9 +1062,6 @@ class EditorView extends View
     atom.workspaceView?.focus()
 
   beforeRemove: ->
-    @trigger 'editor:will-be-removed'
-    @removed = true
-    @editor?.destroy()
     $(window).off(".editor-#{@id}")
     $(document).off(".editor-#{@id}")
 
