@@ -70,10 +70,10 @@
     "rimraf": "~2.2.2"
   },
   "packageDependencies": {
-    "atom-light-syntax": "0.6.0",
-    "atom-light-ui": "0.11.0",
     "atom-dark-syntax": "0.6.0",
     "atom-dark-ui": "0.10.0",
+    "atom-light-syntax": "0.6.0",
+    "atom-light-ui": "0.11.0",
     "base16-tomorrow-dark-theme": "0.6.0",
     "solarized-dark-syntax": "0.4.0",
     "archive-view": "0.16.0",
