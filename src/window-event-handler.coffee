@@ -32,7 +32,7 @@ class WindowEventHandler
         atom.workspaceView?.open(pathToOpen, {initialLine})
 
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.workspaceView?.confirmClose()
+      confirmed = atom.workspaceView?.promptToSaveItems()
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
       confirmed

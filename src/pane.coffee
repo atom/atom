@@ -172,6 +172,12 @@ class Pane extends Model
       when 1 then false
       when 2 then true
 
+  # Public: Prompt to save all items.
+  promptToSaveItems: ->
+    for item in @items.getValues()
+      return false unless @promptToSaveItem(item)
+    true
+
     # Public: Saves the currently focused item.
   saveActiveItem: =>
     @saveItem(@activeItem)

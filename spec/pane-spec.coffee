@@ -388,3 +388,11 @@ describe "Pane", ->
         expect(pane.promptToSaveItem(item1)).toBe true
         expect(atom.confirm).not.toHaveBeenCalled()
         expect(pane.saveItem).not.toHaveBeenCalled()
+
+  describe "::promptToSaveItems()", ->
+    it "prompts to save every item, returning true if the user cancels any prompting", ->
+      cancelledItem = null
+      spyOn(pane, 'promptToSaveItem').andCallFake (item) -> item isnt cancelledItem
+      expect(pane.promptToSaveItems()).toBe true
+      cancelledItem = item2
+      expect(pane.promptToSaveItems()).toBe false

@@ -99,8 +99,8 @@ class WorkspaceView extends View
     @command 'pane:reopen-closed-item', => @model.reopenPaneItem()
 
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
-  confirmClose: ->
-    @model.confirmClose()
+  promptToSaveItems: ->
+    @model.promptToSaveItems()
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->

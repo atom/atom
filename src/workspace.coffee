@@ -21,7 +21,7 @@ class Workspace extends Model
 
   @delegates 'activePane', 'activePaneItem', 'panes', 'paneItems', 'activePaneItems',
              'focusedPane', '$focusedPane', 'focusNextPane', 'focusPreviousPane',
-             to: 'paneContainer'
+             'promptToSaveItems', to: 'paneContainer'
 
   # Deprecated: Use properties instead
   @delegates 'getPanes', 'getActivePane', 'getPaneItems', 'getActivePaneItem',

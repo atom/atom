@@ -47,3 +47,9 @@ class PaneContainer extends Model
 
   getFocusedPaneIndex: ->
     @panes.indexOf(@focusedPane)
+
+  # Public: Prompt to save all items of all panes.
+  promptToSaveItems: ->
+    for pane in @panes.getValues()
+      return false unless pane.promptToSaveItems()
+    true
