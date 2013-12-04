@@ -20,6 +20,7 @@ module.exports = (grunt) ->
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     shellAppDir = path.join(buildDir, appName)
     appDir = path.join(shellAppDir, 'resources', 'app')
+    atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
   else
     appName = 'Atom.app'
     tmpDir = '/tmp'
@@ -28,6 +29,7 @@ module.exports = (grunt) ->
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
+    atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
 
   installDir = path.join(installRoot, appName)
 
@@ -168,6 +170,12 @@ module.exports = (grunt) ->
             _.extend(context, parsed.attributes)
             parsed.body
 
+    'download-atom-shell':
+      version: packageJson.atomShellVersion
+      outputDir: 'atom-shell'
+      downloadDir: atomShellDownloadDir
+      rebuild: true  # rebuild native modules after atom-shell is updated
+
     shell:
       'kill-atom':
         command: 'pkill -9 Atom'
@@ -183,13 +191,14 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-markdown')
+  grunt.loadNpmTasks('grunt-download-atom-shell')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadTasks('tasks')
 
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['update-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
-  grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('ci', ['download-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
+  grunt.registerTask('deploy', ['partial-clean', 'download-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
-  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
+  grunt.registerTask('default', ['download-atom-shell', 'build', 'set-development-version', 'install'])
