@@ -23,7 +23,7 @@ Note that the last example describes multiple keystrokes in succession:
 
 A semantic event is the name of the custom event that will be triggered on the
 target of the keydown event when a key binding matches. You can use the command
-palette (bound to `cmd-p`), to get a list of relevant events and their bindings
+palette (bound to `cmd-shift-P`), to get a list of relevant events and their bindings
 in any focused context in Atom.
 
 ### Rules for Mapping A Keydown Event to A Semantic Event

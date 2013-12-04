@@ -126,7 +126,7 @@ is recommended).
 Ideally, you won't need much in the way of styling. We've provided a standard
 set of components which define both the colors and UI elements for any package
 that fits into Atom seamlessly. You can view all of Atom's UI components by opening
-the styleguide: open the command palette (`cmd-p`) and search for _styleguide_,
+the styleguide: open the command palette (`cmd-shift-P`) and search for _styleguide_,
 or just type `cmd-ctrl-G`.
 
 If you _do_ need special styling, try to keep only structural styles in the package

@@ -2,12 +2,12 @@
 
 Let's take a look at creating your first package.
 
-To get started, hit `cmd-p`, and start typing "Generate Package" to generate
+To get started, hit `cmd-shift-P`, and start typing "Generate Package" to generate
 a package. Once you select the "Generate Package" command, it'll ask you for a
 name for your new package. Let's call ours _changer_.
 
 Atom will pop open a new window, showing the _changer_ package with a default set of
-folders and files created for us. Hit `cmd-p` and start typing "Changer." You'll
+folders and files created for us. Hit `cmd-shift-P` and start typing "Changer." You'll
 see a new `Changer:Toggle` command which, if selected, pops up a greeting. So far,
 so good!
 

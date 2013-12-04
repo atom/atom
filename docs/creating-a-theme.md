@@ -34,7 +34,7 @@ target elements which are outside of the editor.
 
 Let's create your first theme.
 
-To get started, hit `cmd-p`, and start typing "Generate Theme" to generate
+To get started, hit `cmd-shift-P`, and start typing "Generate Theme" to generate
 a package. Select "Generate Theme," and you'll be asked for a theme name. Let's
 call ours _motif_.
 
@@ -114,7 +114,7 @@ If you are creating an interface theme, you'll want a way to see how your theme
 changes affect all the components in the system. The [styleguide] is a page with
 every component Atom supports rendered.
 
-To open the styleguide, open the command palette (`cmd-p`) and search for
+To open the styleguide, open the command palette (`cmd-shift-P`) and search for
 _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]

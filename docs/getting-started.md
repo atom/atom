@@ -6,13 +6,12 @@ productive as quickly as possible. There are also guides which cover
 
 ## The Command Palette
 
-If there's one key-command you must remember in Atom, it should be `cmd-p`. You
-can always hit `cmd-p` to bring up a list of commands that are relevant to the
-currently focused interface element. If there is a key binding for a given
-command, it is also displayed. This is a great way to explore the system and get
-to know the key commands interactively. If you'd like to learn about adding or
-changing a binding for a command, refer to the [key bindings][key-bindings]
-section below.
+If there's one key-command you remember in Atom, it should be `cmd-shift-P`. You
+can always press `cmd-shift-P` to bring up a list of commands (and key bindings)
+that are relevant to the currently focused interface element. This is a great
+way to explore the system and learn key bindings interactively. For information
+about adding or changing a key binding refer to the [customizing key
+bindings][key-bindings] section.
 
 ![Command Palette]
 
@@ -20,24 +19,24 @@ section below.
 
 ### Working With Files
 
-Atom windows are scoped to the directory in which they're opened from. So if you
-launch Atom from the command line, everything will be relative to the current
-directory. This means that the tree view on the left will only show files
-contained within that directory.
+Atom windows are scoped to the directory they're opened from. If you launch Atom
+from the command line everything will be relative to the current directory. This
+means that the tree view on the left will only show files contained within that
+directory.
 
 This can be a useful way to organize multiple projects, as each project will be
-contained within it's own window and it's state will be unique to that window.
+contained within its own window.
 
 #### Finding Files
 
-The fastest way to find a file in your project is to use the fuzzy finder. Just
-hit `cmd-t` and start typing the name of the file you're looking for. If you
-already have the file open as a tab and want to jump to it, hit `cmd-b` to bring
-up a searchable list of open buffers.
+The fastest way to find a file is to use the fuzzy finder. Press `cmd-t` and
+begin typing the name of the file you're looking for. If you are looking for a
+file that is already open press `cmd-b` to bring up a searchable list of open
+files.
 
 You can also use the tree view to navigate to a file. To open or move focus to
-the tree view, hit `cmd-\`. You can then navigate to a file and select it with
-`return`.
+the tree view, press `cmd-\`. You can then navigate to a file using the arrow
+keys and select it with `return`.
 
 #### Adding, Moving, Deleting Files
 
@@ -46,50 +45,50 @@ select a directory in the tree view and press `a`. Then type the name of the
 file. Any intermediate directories you type will be created automatically if
 needed.
 
-To move or rename a file or directory, select it in the tree view and hit `m`.
-To delete a file, select it in the tree view and hit `delete`.
+To move or rename a file or directory, select it in the tree view and press `m`.
+
+To delete a file, select it in the tree view and press `delete`.
 
 ### Searching
 
 #### Find and Replace
 
 To search within a buffer use `cmd-f`. To search the entire project use
-`cmd-shift-f`. To find and replace within the current buffer use `cmd-alt-f`.
+`cmd-shift-f`.
 
 #### Navigating By Symbols
 
-If you want to jump to a method, the `cmd-j` binding opens a list of all symbols
-in the current file. `cmd-.` jumps to the tag for the word currently under the
-cursor.
+If you want to jump to a method press `cmd-r`. It opens a list of all symbols
+in the current file.
 
-To search for symbols across your project use `cmd-shift-j`, but you'll need to
-make sure you have a tags file generated for the project Also, if you're editing
-CoffeeScript, it's a good idea to update your `~/.ctags` file to understand the
-language. Here is [a good example][ctags].
+To search for symbols across your project use `cmd-shift-r`, but you'll need to
+make sure you have a ctags installed and a tags file generated for your project.
+Also, if you're editing CoffeeScript, it's a good idea to update your `~/.ctags`
+file to understand the language. Here is [a good example][ctags].
 
 ### Split Panes
 
-You can split any editor pane horizontally or vertically by using `ctrl-w s` or
-`ctrl-w v`. Once you have a split pane, you can move focus between them with
-`ctrl-tab` or `ctrl-w w`. To close a pane, close all tabs inside it.
+You can split any editor pane horizontally or vertically by using `cmd-k right` or
+`cmd-k down`. Once you have a split pane, you can move focus between them with
+`cmd-k cmd-right` or `cmd-k cmd-down`. To close a pane, close all tabs inside it.
 
 ### Folding
 
-You can fold everything with `ctrl-{` and unfold everything with
-`ctrl-}`. Or, you can fold / unfold by a single level with `ctrl-[` and
-`ctrl-]`.
+You can fold everything with `alt-cmd-{` and unfold everything with
+`alt-cmd-}`. Or, you can fold / unfold by a single level with `alt-cmd-[` and
+`alt-cmd-]`.
 
 ### Soft-Wrap
 
 If you want to toggle soft wrap, trigger the command from the command palette.
-Hit `cmd-p` to open the palette, then type "wrap" to find the correct
+Press `cmd-shift-P` to open the palette, then type "wrap" to find the correct
 command.
 
 ## Configuration
 
-If you press `cmd-,`, a configuration panel will appear in the currently focused
-pane. This serves as the primary interface for adjusting settings, installing
-packages and changing themes.
+Press `cmd-,` to display the a settings pane. This serves as the primary
+interface for adjusting config settings, installing packages and changing
+themes.
 
 For more advanced configuration see the [customization guide][customization].
 
@@ -97,6 +96,6 @@ For more advanced configuration see the [customization guide][customization].
 [theming]: creating-a-theme.md
 [extending]: creating-a-package.md
 [customization]: customizing-atom.md
-[key-bindings]: #customizing-key-bindings
+[key-bindings]: customizing-atom.md#customizing-key-bindings
 [command palette]: https://f.cloud.github.com/assets/1424/1091618/ee7c3554-166a-11e3-9955-aaa61bb5509c.png
 [ctags]: https://github.com/kevinsawicki/dotfiles/blob/master/.ctags
