@@ -157,7 +157,16 @@ class TextMateGrammar
           ruleStack.pop()
         else if ruleStack.length > previousRuleStackLength # Stack size increased with zero length match
           [penultimateRule, lastRule] = ruleStack[-2..]
+
+          # Same exact rule was pushed but position wasn't advanced
+          if lastRule? and lastRule == penultimateRule
+            popStack = true
+
+          # Rule with same scope name as previous rule was pushed but position wasn't advanced
           if lastRule?.scopeName? and penultimateRule.scopeName == lastRule.scopeName
+            popStack = true
+
+          if popStack
             ruleStack.pop()
             tokens.push(new Token(
               value: line[position...line.length]

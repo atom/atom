@@ -635,11 +635,9 @@ describe "TextMateGrammar", ->
         expect(lastToken.value).toEqual ';'
 
     describe "HTML (Ruby - ERB)", ->
-      beforeEach ->
+      it "correctly parses strings inside tags", ->
         grammar = atom.syntax.selectGrammar('page.erb')
         lines = grammar.tokenizeLines '<% page_title "My Page" %>'
-
-      it "correctly parses strings inside tags", ->
         tokens = lines[0]
 
         expect(tokens[2].value).toEqual '"'
@@ -648,6 +646,16 @@ describe "TextMateGrammar", ->
         expect(tokens[3].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby"]
         expect(tokens[4].value).toEqual '"'
         expect(tokens[4].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby", "punctuation.definition.string.end.ruby"]
+
+      it "does not loop infinitely on <%>", ->
+        atom.packages.activatePackage('language-html', sync: true)
+        atom.packages.activatePackage('language-ruby-on-rails', sync: true)
+
+        grammar = atom.syntax.selectGrammar('foo.html.erb')
+        [tokens] = grammar.tokenizeLines '<%>'
+        expect(tokens.length).toBe 1
+        expect(tokens[0].value).toEqual '<%>'
+        expect(tokens[0].scopes).toEqual ["text.html.erb"]
 
     describe "Unicode support", ->
       describe "Surrogate pair characters", ->
