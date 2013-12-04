@@ -1,4 +1,3 @@
-ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
@@ -73,43 +72,31 @@ class WorkspaceView extends View
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
-    @command 'application:about', -> ipc.sendChannel('command', 'application:about')
-    @command 'application:run-all-specs', -> ipc.sendChannel('command', 'application:run-all-specs')
-    @command 'application:run-benchmarks', -> ipc.sendChannel('command', 'application:run-benchmarks')
-    @command 'application:show-settings', -> ipc.sendChannel('command', 'application:show-settings')
-    @command 'application:quit', -> ipc.sendChannel('command', 'application:quit')
-    @command 'application:hide', -> ipc.sendChannel('command', 'application:hide')
-    @command 'application:hide-other-applications', -> ipc.sendChannel('command', 'application:hide-other-applications')
-    @command 'application:unhide-all-applications', -> ipc.sendChannel('command', 'application:unhide-all-applications')
-    @command 'application:new-window', -> ipc.sendChannel('command', 'application:new-window')
-    @command 'application:new-file', -> ipc.sendChannel('command', 'application:new-file')
-    @command 'application:open', -> ipc.sendChannel('command', 'application:open')
-    @command 'application:open-dev', -> ipc.sendChannel('command', 'application:open-dev')
-    @command 'application:minimize', -> ipc.sendChannel('command', 'application:minimize')
-    @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
-    @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
-
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-    @command 'window:increase-font-size', =>
-      atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
-
-    @command 'window:decrease-font-size', =>
-      fontSize = atom.config.get "editor.fontSize"
-      atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
-
-    @command 'window:focus-next-pane', => @focusNextPane()
-    @command 'window:focus-previous-pane', => @focusPreviousPane()
-    @command 'window:save-all', => @saveAll()
-    @command 'window:toggle-invisibles', =>
-      atom.config.toggle("editor.showInvisibles")
-    @command 'window:toggle-ignored-files', =>
-      atom.config.toggle("core.hideGitIgnoredFiles")
-
-    @command 'window:toggle-auto-indent', =>
-      atom.config.toggle("editor.autoIndent")
-
-    @command 'pane:reopen-closed-item', =>
-      @model.reopenItem()
+    @command 'application:about', => @model.showAboutDialog()
+    @command 'application:run-all-specs', => @model.runAllSpecs()
+    @command 'application:run-benchmarks', => @model.runAllBenchmarks()
+    @command 'application:show-settings', => @model.showSettings()
+    @command 'application:quit', => @model.quitApplication()
+    @command 'application:hide', => @model.hideApplication()
+    @command 'application:hide-other-applications', => @model.hideOtherApplications()
+    @command 'application:unhide-all-applications', => @model.unhideAllApplications()
+    @command 'application:new-window', => @model.openNewWindow()
+    @command 'application:new-file', => @model.openNewFile()
+    @command 'application:open', => @model.showOpenDialog()
+    @command 'application:open-dev', => @model.showOpenDevDialog()
+    @command 'application:minimize', => @model.minimizeWindow()
+    @command 'application:zoom', => @model.zoomWindow()
+    @command 'application:bring-all-windows-to-front', @model.bringAllWindowsToFront()
+    @command 'window:run-package-specs', => @model.runPackageSpecs()
+    @command 'window:increase-font-size', => @model.increaseFontSize()
+    @command 'window:decrease-font-size', => @model.decreaseFontSize()
+    @command 'window:focus-next-pane', => @model.focusNextPane()
+    @command 'window:focus-previous-pane', => @model.focusPreviousPane()
+    @command 'window:save-all', => @model.saveAll()
+    @command 'window:toggle-invisibles', => @model.toggleInvisibles()
+    @command 'window:toggle-ignored-files', => @model.toggleHideGitIgnoredFiles()
+    @command 'window:toggle-auto-indent', => @model.toggleAutoIndent()
+    @command 'pane:reopen-closed-item', => @model.reopenPaneItem()
 
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->

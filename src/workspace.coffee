@@ -1,3 +1,4 @@
+ipc = require 'ipc'
 {Model} = require 'telepath'
 Q = require 'q'
 
@@ -68,3 +69,64 @@ class Workspace extends Model
 
   onEachEditor: (fn) ->
     @editors.onEach(fn)
+
+  showAboutDialog: ->
+    ipc.sendChannel('command', 'application:about')
+
+  runAllSpecs: ->
+    ipc.sendChannel('command', 'application:run-all-specs')
+
+  runBenchmarks: ->
+    ipc.sendChannel('command', 'application:run-benchmarks')
+
+  showSettings: ->
+    ipc.sendChannel('command', 'application:show-settings')
+
+  quitApplication: ->
+    ipc.sendChannel('command', 'application:quit')
+
+  hideApplication: ->
+    ipc.sendChannel('command', 'application:hide')
+
+  hideOtherApplications: ->
+    ipc.sendChannel('command', 'application:hide-other-applications')
+
+  unhideAllApplications: ->
+    ipc.sendChannel('command', 'application:unhide-all-applications')
+
+  openNewWindow: ->
+    ipc.sendChannel('command', 'application:new-window')
+
+  openNewFile: ->
+    ipc.sendChannel('command', 'application:new-file')
+
+  showOpenDialog: ->
+    ipc.sendChannel('command', 'application:open')
+
+  showOpenDevDialog: ->
+    ipc.sendChannel('command', 'application:open-dev')
+
+  minimizeWindow: ->
+    ipc.sendChannel('command', 'application:minimize')
+
+  zoomWindow: ->
+    ipc.sendChannel('command', 'application:zoom')
+
+  bringAllWindowsToFront: ->
+    ipc.sendChannel('command', 'application:bring-all-windows-to-front')
+
+  increaseFontSize: ->
+    atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
+
+  decreaseFontSize: ->
+    fontSize = atom.config.get("editor.fontSize")
+    atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+
+  toggleInvisibles: ->
+    atom.config.toggle("editor.showInvisibles")
+
+  toggleHideGitIgnoredFiles: ->
+    atom.config.toggle("core.hideGitIgnoredFiles")
+
+  toggleAutoIndent: ->
+    atom.config.toggle("editor.autoIndent")
