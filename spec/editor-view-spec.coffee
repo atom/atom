@@ -2730,21 +2730,6 @@ describe "EditorView", ->
           expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editorView.getCursorBufferPosition()).toEqual [13, 0]
 
-  describe "editor:save-debug-snapshot", ->
-    it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
-      saveDialogCallback = null
-      spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'writeFileSync')
-
-      editorView.trigger 'editor:save-debug-snapshot'
-
-      statePath = path.join(temp.dir, 'state')
-      expect(atom.showSaveDialog).toHaveBeenCalled()
-      saveDialogCallback(statePath)
-      expect(fs.writeFileSync).toHaveBeenCalled()
-      expect(fs.writeFileSync.argsForCall[0][0]).toBe statePath
-      expect(typeof fs.writeFileSync.argsForCall[0][1]).toBe 'string'
-
   describe "when the escape key is pressed on the editor view", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
       atom.keymap.bindKeys 'name', '.editor', 'escape': 'test-event'
@@ -2847,3 +2832,22 @@ describe "EditorView", ->
       setEditorWidthInChars(editorView, 100)
       $(window).trigger 'resize'
       expect(editorView.editor.getSoftWrapColumn()).toBe 100
+
+  describe "character width caching", ->
+    describe "when soft wrap is enabled", ->
+      it "correctly calculates the the position left for a column", ->
+        editor.setSoftWrap(true)
+        editorView.setText('lllll 00000')
+        editorView.setFontFamily('serif')
+        editorView.setFontSize(10)
+        editorView.attachToDom()
+        editorView.setWidthInChars(5)
+
+        expect(editorView.pixelPositionForScreenPosition([0, 5]).left).toEqual 15
+        expect(editorView.pixelPositionForScreenPosition([1, 5]).left).toEqual 25
+
+        # Check that widths are actually being cached
+        spyOn(editorView, 'measureToColumn').andCallThrough()
+        editorView.pixelPositionForScreenPosition([0, 5])
+        editorView.pixelPositionForScreenPosition([1, 5])
+        expect(editorView.measureToColumn.callCount).toBe 0

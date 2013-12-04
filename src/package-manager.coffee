@@ -226,6 +226,10 @@ class PackageManager
         {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
       @packageDependencies ?= {}
 
+    # Temporarily ignore 'grunt-download-atom-shell' here, should remove this
+    # when it became a public npm module.
+    delete @packageDependencies['grunt-download-atom-shell']
+
     @packageDependencies
 
   # Public: Get an array of all the available package paths.

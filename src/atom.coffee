@@ -352,6 +352,10 @@ class Atom
   getVersion: ->
     app.getVersion()
 
+  # Public: Gets the user agent of the atom instance.
+  getUserAgent: ->
+    "GitHubAtom/#{app.getVersion()}"
+
   # Public: Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to ~/.atom

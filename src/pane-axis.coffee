@@ -70,7 +70,7 @@ class PaneAxis extends View
     child.detach()
 
   getContainer: ->
-    @closest('#panes').view()
+    @closest('.panes').view()
 
   getActivePaneItem: ->
     @getActivePane()?.activeItem

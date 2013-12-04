@@ -146,7 +146,7 @@
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'body.platform-darwin input:not(.hidden-input), body.platform-darwin .native-key-bindings':
+'body.platform-darwin .native-key-bindings':
   'cmd-z': 'native!'
   'cmd-Z': 'native!'
   'cmd-x': 'native!'

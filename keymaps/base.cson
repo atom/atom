@@ -34,16 +34,21 @@
   'escape': 'editor:consolidate-selections'
 
 # allow standard input fields to work correctly
-'input:not(.hidden-input), .native-key-bindings':
+'body .native-key-bindings':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
+  'enter': 'native!'
+  'backspace': 'native!'
+  'shift-backspace': 'native!'
+  'delete': 'native!'
   'left': 'native!'
   'right': 'native!'
   'shift-left': 'native!'
   'shift-right': 'native!'
-  'backspace': 'native!'
-  'shift-backspace': 'native!'
-  'delete': 'native!'
+  'alt-left': 'native!'
+  'alt-right': 'native!'
+  'alt-shift-left': 'native!'
+  'alt-shift-right': 'native!'
   'ctrl-b': 'native!'
   'ctrl-f': 'native!'
   'ctrl-F': 'native!'

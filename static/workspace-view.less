@@ -21,19 +21,19 @@ h6 {
   font-family: @font-family;
 }
 
-#workspace {
+.workspace {
   height: 100%;
   overflow: hidden;
   position: relative;
   background-color: @app-background-color;
   font-family: @font-family;
 
-  #horizontal {
+  .horizontal {
     display: -webkit-flex;
     height: 100%;
   }
 
-  #vertical {
+  .vertical {
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-flow: column;
@@ -45,7 +45,7 @@ h6 {
       content: ""; // This is not a space, it is a skull and crossbones
     }
 
-    padding: @component-icon-padding;
+    padding: 0 @component-icon-padding;
     position: absolute;
     top: 0;
     right: 0;
@@ -57,7 +57,7 @@ h6 {
   }
 }
 
-#panes {
+.panes {
   position: relative;
   -webkit-flex: 1;
 

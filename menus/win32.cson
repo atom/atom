@@ -165,7 +165,6 @@
       { label: "Install &update", command: 'application:install-update', visible: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
-      { label: 'Report an &Issue', command: 'application:report-issue' }
       { type: 'separator' }
     ]
   }

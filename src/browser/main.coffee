@@ -67,9 +67,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 
 setupCrashReporter = ->
-  crashReporter.setCompanyName 'GitHub'
-  crashReporter.setSubmissionUrl 'https://speakeasy.githubapp.com/submit_crash_log'
-  crashReporter.setAutoSubmit true
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
 setupAutoUpdater = ->
   autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
@@ -92,11 +90,11 @@ parseCommandLine = ->
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
 
-  if args.h
+  if args.help
     process.stdout.write(options.help())
     process.exit(0)
 
-  if args.v
+  if args.version
     process.stdout.write("#{version}\n")
     process.exit(0)
 

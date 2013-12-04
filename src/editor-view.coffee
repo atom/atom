@@ -206,7 +206,6 @@ class EditorView extends View
         'editor:duplicate-line': @duplicateLine
         'editor:join-line': @joinLine
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
-        'editor:save-debug-snapshot': @saveDebugSnapshot
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': @scrollToCursorPosition
 
@@ -613,31 +612,34 @@ class EditorView extends View
   # {Delegates to: Editor.getPath}
   getPath: -> @editor?.getPath()
 
-  #  {Delegates to: TextBuffer.getLineCount}
+  # {Delegates to: Editor.transact}
+  transact: (fn) -> @editor.transact(fn)
+
+  # {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 
-  #  {Delegates to: TextBuffer.getLastRow}
+  # {Delegates to: TextBuffer.getLastRow}
   getLastBufferRow: -> @getBuffer().getLastRow()
 
-  #  {Delegates to: TextBuffer.getTextInRange}
+  # {Delegates to: TextBuffer.getTextInRange}
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
 
-  #  {Delegates to: TextBuffer.getEofPosition}
+  # {Delegates to: TextBuffer.getEofPosition}
   getEofPosition: -> @getBuffer().getEofPosition()
 
-  #  {Delegates to: TextBuffer.lineForRow}
+  # {Delegates to: TextBuffer.lineForRow}
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
 
-  #  {Delegates to: TextBuffer.lineLengthForRow}
+  # {Delegates to: TextBuffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
 
-  #  {Delegates to: TextBuffer.rangeForRow}
+  # {Delegates to: TextBuffer.rangeForRow}
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
 
-  #  {Delegates to: TextBuffer.scanInRange}
+  # {Delegates to: TextBuffer.scanInRange}
   scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
 
-  #  {Delegates to: TextBuffer.backwardsScanInRange}
+  # {Delegates to: TextBuffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   ### Internal ###
@@ -975,9 +977,11 @@ class EditorView extends View
     @setWidthInChars()
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
+  # Private:
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
+  # Private:
   calculateHeightInLines: ->
     Math.ceil($(window).height() / @lineHeight)
 
@@ -1062,6 +1066,7 @@ class EditorView extends View
     super
     atom.workspaceView?.focus()
 
+  # Private:
   beforeRemove: ->
     @trigger 'editor:will-be-removed'
     @removed = true
@@ -1588,36 +1593,32 @@ class EditorView extends View
       @renderedLines[0].removeChild(lineElement)
     { top: row * @lineHeight, left }
 
-  positionLeftForLineAndColumn: (lineElement, screenRow, column) ->
-    return 0 if column == 0
+  positionLeftForLineAndColumn: (lineElement, screenRow, screenColumn) ->
+    return 0 if screenColumn == 0
 
     bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
+    bufferColumn = @bufferPositionForScreenPosition([screenRow, screenColumn]).column
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
 
     left = 0
     index = 0
+    startIndex = @bufferPositionForScreenPosition([screenRow, 0]).column
     for token in tokenizedLine.tokens
       for char in token.value
-        return left if index >= column
+        return left if index >= bufferColumn
 
-        val = @getCharacterWidthCache(token.scopes, char)
-        if val?
-          left += val
-        else
-          return @measureToColumn(lineElement, tokenizedLine, column)
+        if index >= startIndex
+          val = @getCharacterWidthCache(token.scopes, char)
+          if val?
+            left += val
+          else
+            return @measureToColumn(lineElement, tokenizedLine, screenColumn, startIndex)
 
         index++
     left
 
-  scopesForColumn: (tokenizedLine, column) ->
-    index = 0
-    for token in tokenizedLine.tokens
-      for char in token.value
-        return token.scopes if index == column
-        index++
-    null
-
-  measureToColumn: (lineElement, tokenizedLine, column) ->
+  # Private:
+  measureToColumn: (lineElement, tokenizedLine, screenColumn, lineStartBufferColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
 
@@ -1631,13 +1632,13 @@ class EditorView extends View
 
       for char, i in content
         # Don't continue caching long lines :racehorse:
-        break if index > LongLineLength and column < index
+        break if index > LongLineLength and screenColumn < index
 
         # Dont return right away, finish caching the whole line
-        returnLeft = left if index == column
+        returnLeft = left if index == screenColumn
         oldLeft = left
 
-        scopes = @scopesForColumn(tokenizedLine, index)
+        scopes = tokenizedLine.tokenAtBufferColumn(lineStartBufferColumn + index)?.scopes
         cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
         if cachedCharWidth?
@@ -1656,12 +1657,13 @@ class EditorView extends View
 
         # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
-        return column * cachedCharWidth if index > LongLineLength
+        return screenColumn * cachedCharWidth if index > LongLineLength
 
         index++
 
     returnLeft ? left
 
+  # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
     obj = EditorView.characterWidthCache
@@ -1670,6 +1672,7 @@ class EditorView extends View
       return null unless obj?
     obj[char]
 
+  # Private:
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
     obj = EditorView.characterWidthCache
@@ -1678,6 +1681,7 @@ class EditorView extends View
       obj = obj[scope]
     obj[char] = val
 
+  # Private:
   clearCharacterWidthCache: ->
     EditorView.characterWidthCache = {}
 
@@ -1845,29 +1849,11 @@ class EditorView extends View
   logCursorScope: ->
     console.log @editor.getCursorScopes()
 
-  transact: (fn) -> @editor.transact(fn)
   beginTransaction: -> @editor.beginTransaction()
+
   commitTransaction: -> @editor.commitTransaction()
+
   abortTransaction: -> @editor.abortTransaction()
-
-  saveDebugSnapshot: ->
-    atom.showSaveDialog (path) =>
-      fs.writeFileSync(path, @getDebugSnapshot()) if path
-
-  getDebugSnapshot: ->
-    [
-      "Debug Snapshot: #{@getPath()}"
-      @getRenderedLinesDebugSnapshot()
-      @editor.getDebugSnapshot()
-      @getBuffer().getDebugSnapshot()
-    ].join('\n\n')
-
-  getRenderedLinesDebugSnapshot: ->
-    lines = ['Rendered Lines:']
-    firstRenderedScreenRow = @firstRenderedScreenRow
-    @renderedLines.find('.line').each (n) ->
-      lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
-    lines.join('\n')
 
   logScreenLines: (start, end) ->
     @editor.logScreenLines(start, end)
