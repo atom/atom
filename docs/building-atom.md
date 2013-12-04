@@ -8,7 +8,6 @@ atom][download].
 
 * Use OS X 10.8 or later
 * Install the latest node 0.10.x release (32bit preferable)
-* Install cmake
 * Clone [atom][atom-git] to `~/github/atom`
 * Run `~/github/atom/script/build`
 
