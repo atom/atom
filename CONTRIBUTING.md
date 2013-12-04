@@ -1,5 +1,8 @@
 # :tada: Contributing to Atom :tada:
 
+These are just guidelines, not rules, use your best judgement and feel free
+to propose changes to this document in a pull request.
+
 ## Issues
   * Include screenshots and animated GIFs whenever possible, they are immensely
     helpful.
