@@ -27,7 +27,7 @@
     * Class methods (methods starting with a `@`)
     * Instance methods
   * Beware of platform differences
-    * Use `fs.getHomeDirectory()` to get home directory.
+    * Use `require('atom').fs.getHomeDirectory()` to get the home directory.
     * Use `path.join()` to concatenate filenames.
     * Temporary directory is not `/tmp` on Windows, use `os.tmpdir()` when
       possible
