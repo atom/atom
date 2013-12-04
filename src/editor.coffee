@@ -8,6 +8,7 @@ Cursor = require './cursor'
 Selection = require './selection'
 {Emitter, Subscriber} = require 'emissary'
 TextMateScopeSelector = require('first-mate').ScopeSelector
+Focusable = require './focusable'
 
 # Public: The core model of Atom.
 #
@@ -36,6 +37,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # why that is.
 module.exports =
 class Editor extends Model
+  Focusable.includeInto(this)
+
   @properties
     buffer: null
     displayBuffer: null
@@ -50,8 +53,14 @@ class Editor extends Model
   remoteSelections: null
   suppressSelectionMerging: false
 
+  setFocused: (focused) ->
+    console.log "setting focused on editor", focused
+    @focused = focused
+
   # Private:
   created: ->
+    @manageFocus()
+
     @cursors = []
     @remoteCursors = []
     @selections = []

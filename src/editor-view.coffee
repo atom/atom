@@ -46,7 +46,7 @@ class EditorView extends View
         @div class: 'overlayer', outlet: 'overlayer'
         @div class: 'lines', outlet: 'renderedLines'
         @div class: 'underlayer', outlet: 'underlayer', =>
-          @input class: 'hidden-input', outlet: 'hiddenInput'
+          @input class: 'hidden-input', outlet: 'hiddenInput', 'x-bind-focus': "focused"
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 

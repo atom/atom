@@ -41,8 +41,27 @@ describe "Pane", ->
         expect(pane.activeItem).toBe item4
         expect(pane.items).toEqual [item1, item2, item4, item3]
 
-    describe "if the pane has focus before making the item active and the item is focusable", ->
-      it "focuses the item after adding it", ->
+    describe "if the new active item does not implement .setFocused ", ->
+      it "focuses the pane if it was focused before activating the new item", ->
+        item4 = new Item
+        item5 = new Item
+        item4.setFocused = undefined
+        item5.setFocused = undefined
+
+        expect(pane.hasFocus).toBe false
+        pane.activateItem(item4)
+        expect(pane.hasFocus).toBe false
+
+        item6 = pane.activateItem(new Item)
+        pane.setFocused(true)
+        expect(item6.hasFocus).toBe true
+
+        pane.activateItem(item5)
+        expect(pane.hasFocus).toBe true
+        expect(item5.hasFocus).toBe false
+
+    describe "if the new active item implements .setFocused", ->
+      it "focuses the item after making it active", ->
         expect(pane.hasFocus).toBe false
         item4 = pane.activateItem(new Item)
         expect(item4.hasFocus).toBe false

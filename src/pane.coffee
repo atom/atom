@@ -46,7 +46,8 @@ class Pane extends Model
     item = @addItem(item) if item? and not @items.contains(item)
     hadFocus = @hasFocus
     @activeItem = item
-    item.setFocused?(true) if hadFocus
+    if hadFocus
+      @activeItem.setFocused?(true) ? @setFocused(true)
     item
 
   activateNextItem: ->
