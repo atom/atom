@@ -225,7 +225,6 @@ describe "Pane", ->
       pane3 = pane2.splitLeft()
       expect(pane3.hasFocus).toBe true
 
-
   describe "::remove()", ->
     describe "if the pane is the root of its container", ->
       it "removes all pane items but does not remove the pane", ->
