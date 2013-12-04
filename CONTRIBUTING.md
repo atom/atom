@@ -1,5 +1,4 @@
-# :rotating_light: Contributing to Atom :rotating_light:
-
+# :tada: Contributing to Atom :tada:
 
 ## Issues
   * Include screenshots and animated GIFs whenever possible, they are immensely
