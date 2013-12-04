@@ -1,3 +1,5 @@
+@import "ui-variables";
+
 .overlay {
   position: absolute;
   left: 50%;
@@ -8,6 +10,17 @@
 
   background-color: #fff;
   padding: 10px;
+
+  h1 {
+    margin-top: 0;
+    color: @text-color-highlight;
+    font-size: 1.6em;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 1.3em;
+  }
 }
 
 .overlay .editor.mini {
