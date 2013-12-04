@@ -305,3 +305,86 @@ describe "Pane", ->
       expect(pane.itemForUri('/foo/bar')).toBe item1
       expect(pane.itemForUri('/baz/quux')).toBe item3
       expect(pane.itemForUri('/bogus')).toBeUndefined()
+
+  describe "::saveItem(item, nextAction)", ->
+    describe "if the item has a uri", ->
+      it "calls save on the item and runs the next action", ->
+        item1.uri = "/test"
+        item1.save = jasmine.createSpy("item1.save")
+        nextAction = jasmine.createSpy("nextAction").andCallFake -> expect(item1.save.callCount).toBe 1
+        pane.saveItem(item1, nextAction)
+        expect(nextAction.callCount).toBe 1
+
+    describe "if the item does not have a uri", ->
+      it "calls ::saveItemAs with the item and the next action", ->
+        spyOn(pane, 'saveItemAs')
+        expect(item1.getUri).toBeUndefined()
+        expect(item1.uri).toBeUndefined()
+        pane.saveItem(item1, nextAction = ->)
+        expect(pane.saveItemAs).toHaveBeenCalledWith(item1, nextAction)
+
+  describe "::saveItemAs(item, nextAction)", ->
+    describe "if the item implements .saveAs", ->
+      it "prompts for a path, then calls .saveAs with it and runs the next action", ->
+        item1.saveAs = jasmine.createSpy("item1.saveAs")
+        item1.path = "/foo/bar/baz.txt"
+        spyOn(atom, 'showSaveDialogSync').andReturn "/test"
+        nextAction = jasmine.createSpy("nextAction").andCallFake ->
+          expect(item1.saveAs).toHaveBeenCalledWith("/test")
+        pane.saveItemAs(item1, nextAction)
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith("/foo/bar")
+        expect(nextAction.callCount).toBe 1
+
+    describe "if the item does not implement .saveAs", ->
+      it "returns immediately without prompting, saving, or running the next action", ->
+        expect(item1.saveAs).toBeUndefined()
+        spyOn(atom, 'showSaveDialogSync')
+        pane.saveItemAs(item1, nextAction = jasmine.createSpy("nextAction"))
+        expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+        expect(nextAction).not.toHaveBeenCalled()
+
+  describe "::promptToSaveItem(item)", ->
+    confirmChoice = null
+
+    beforeEach ->
+      item1.uri = "/test"
+      spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.indexOf(confirmChoice)
+      spyOn(pane, 'saveItem').andCallFake (item, nextAction) -> nextAction()
+
+    describe "if the item implements .shouldPromptToSave()", ->
+      describe "if item.shouldPromptToSave() is true", ->
+        beforeEach ->
+          item1.shouldPromptToSave = -> true
+
+        describe "if the user chooses to save the item", ->
+          it "saves the item and returns true", ->
+            confirmChoice = "Save"
+            expect(pane.promptToSaveItem(item1)).toBe true
+            expect(pane.saveItem.callCount).toBe 1
+            expect(pane.saveItem.argsForCall[0][0]).toBe item1
+
+        describe "if the user chooses not to save the item", ->
+          it "does not save the item and returns true", ->
+            confirmChoice = "Don't Save"
+            expect(pane.promptToSaveItem(item1)).toBe true
+            expect(pane.saveItem).not.toHaveBeenCalled()
+
+        describe "if the user cancels", ->
+          it "does not save the item and returns false", ->
+            confirmChoice = "Cancel"
+            expect(pane.promptToSaveItem(item1)).toBe false
+            expect(pane.saveItem).not.toHaveBeenCalled()
+
+      describe "if item.shouldPromptToSave() is false", ->
+        it "does not prompt or save the item and returns true", ->
+          item1.shouldPromptToSave = -> false
+          expect(pane.promptToSaveItem(item1)).toBe true
+          expect(atom.confirm).not.toHaveBeenCalled()
+          expect(pane.saveItem).not.toHaveBeenCalled()
+
+    describe "if the item does not implement .shouldPromptToSave()", ->
+      it "does not prompt or save the item and returns true", ->
+        expect(item1.shouldPromptToSave).toBeUndefined()
+        expect(pane.promptToSaveItem(item1)).toBe true
+        expect(atom.confirm).not.toHaveBeenCalled()
+        expect(pane.saveItem).not.toHaveBeenCalled()

@@ -1,3 +1,4 @@
+{dirname} = require 'path'
 {Model} = require 'telepath'
 Focusable = require './focusable'
 PaneAxis = require './pane-axis'
@@ -153,3 +154,52 @@ class Pane extends Model
 
   itemForUri: (uri) ->
     @items.find({uri}) ? @items.find(-> @getUri?() is uri)
+
+  # Public: Prompt the user to save the given item.
+  promptToSaveItem: (item) ->
+    return true unless item.shouldPromptToSave?()
+
+    uri = item.getUri?() ? item.uri
+    chosen = atom.confirm
+      message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
+      detailedMessage: "Your changes will be lost if you close this item without saving."
+      buttons: ["Save", "Cancel", "Don't Save"]
+
+    console.log "CHOSEN", chosen
+
+    switch chosen
+      when 0 then @saveItem(item, -> true)
+      when 1 then false
+      when 2 then true
+
+    # Public: Saves the currently focused item.
+  saveActiveItem: =>
+    @saveItem(@activeItem)
+
+  # Public: Save and prompt for path for the currently focused item.
+  saveActiveItemAs: =>
+    @saveItemAs(@activeItem)
+
+  # Public: Saves the specified item and call the next action when complete.
+  saveItem: (item, nextAction) ->
+    if item.getUri?() ? item.uri
+      item.save?()
+      nextAction?()
+    else
+      @saveItemAs(item, nextAction)
+
+  # Public: Prompts for path and then saves the specified item. Upon completion
+  # it also calls the next action.
+  saveItemAs: (item, nextAction) ->
+    return unless item.saveAs?
+
+    itemPath = item.getPath?() ? item.path
+    itemPath = dirname(itemPath) if itemPath
+    path = atom.showSaveDialogSync(itemPath)
+    if path
+      item.saveAs(path)
+      nextAction?()
+
+  # Public: Saves all items in this pane.
+  saveItems: =>
+    @saveItem(item) for item in @items
