@@ -4,7 +4,8 @@ var path = require('path');
 
 // OAuth token for atom-bot
 // TODO Remove once all repositories are public
-process.env.ATOM_ACCESS_TOKEN = '362295be4c5258d3f7b967bbabae662a455ca2a7';
+if (!process.env.ATOM_ACCESS_TOKEN)
+  process.env.ATOM_ACCESS_TOKEN = '362295be4c5258d3f7b967bbabae662a455ca2a7';
 
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
