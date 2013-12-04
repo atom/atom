@@ -16,7 +16,6 @@
     specs
   * Avoid placing files in `vendor`. 3rd-party packages should be added as a
     `package.json` dependency.
-  * Commit messages are in the present tense
   * Files end with a newline.
   * Requires should be in the following order:
     * Built in Node Modules (such as `path`)
@@ -30,3 +29,12 @@
     * Use `path.join()` to concatenate filenames.
     * Temporary directory is not `/tmp` on Windows, use `os.tmpdir()` when
       possible
+
+## Git Commit Messages
+  * Use the present tense
+  * Reference issues and pull requests liberally
+  * Consider starting the commit message with an applicable emoji:
+    * :lipstick: when improving the format/structure of the code
+    * :racehorse: when improving performance
+    * :non-potable_water: when plugging memory leaks
+    * :memo: when writing docs
