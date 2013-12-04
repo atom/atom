@@ -1,3 +1,6 @@
+# Start the crash reporter before anything else.
+require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
+
 try
   require '../src/window'
   Atom = require '../src/atom'

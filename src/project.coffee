@@ -104,18 +104,6 @@ class Project extends telepath.Model
   getRootDirectory: ->
     @rootDirectory
 
-  # Public: Determines if a path is ignored via Atom configuration.
-  isPathIgnored: (path) ->
-    for segment in path.split("/")
-      ignoredNames = atom.config.get("core.ignoredNames") or []
-      return true if _.contains(ignoredNames, segment)
-
-    @ignoreRepositoryPath(path)
-
-  # Public: Determines if a given path is ignored via repository configuration.
-  ignoreRepositoryPath: (repositoryPath) ->
-    atom.config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
-
   # Public: Given a uri, this resolves it relative to the project directory. If
   # the path is already absolute or if it is prefixed with a scheme, it is
   # returned unchanged.
@@ -177,11 +165,13 @@ class Project extends telepath.Model
   getBuffers: ->
     new Array(@buffers.getValues()...)
 
+  # Private: Is the buffer for the given path modified?
   isPathModified: (filePath) ->
     @findBufferForPath(@resolve(filePath))?.isModified()
 
+  # Private:
   findBufferForPath: (filePath) ->
-    _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
+   _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
 
   # Private: Only to be used in specs
   bufferForPathSync: (filePath) ->

@@ -34,7 +34,7 @@
   'escape': 'editor:consolidate-selections'
 
 # allow standard input fields to work correctly
-'input:not(.hidden-input), .native-key-bindings':
+'body .native-key-bindings':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
   'enter': 'native!'

@@ -12,7 +12,7 @@ Focusable = require './focusable'
 
 # Public: The core model of Atom.
 #
-# An {Editor} represents a unique view of each document, with it's own
+# An {Editor} represents a unique view of each document, with its own
 # {Cursor}s and scroll position.
 #
 # For instance if a user creates a split, Atom creates a second {Editor}
@@ -1225,11 +1225,9 @@ class Editor extends Model
 
   # Public: Transposes the current text selections.
   #
-  # FIXME: I have no idea what this function does.
-  #
-  # This only works if there is more than one selection. Each selection is transferred
-  # to the position of the selection after it. The last selection is transferred to the
-  # position of the first.
+  # The text in each selection is reversed so `abcd` would become `dcba`. The
+  # characters before and after the cursor are swapped when the selection is
+  # empty so `x|y` would become `y|x` where `|` is the cursor location.
   transpose: ->
     @mutateSelectedText (selection) =>
       if selection.isEmpty()
