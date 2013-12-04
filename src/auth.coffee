@@ -27,6 +27,6 @@ module.exports =
 
 getTokenFromKeychain = (tokenName, callback) ->
   command = "security -q find-generic-password -ws '#{tokenName}'"
-  child_process.exec command, (error, stdout='', stderr='') ->
+  child_process.exec command, (error, stdout='') ->
     token = stdout.trim()
     callback(error, token)
