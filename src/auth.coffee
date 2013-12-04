@@ -14,7 +14,10 @@ module.exports =
 
     getNextToken = ->
       unless tokenNames.length
-        return callback('No GitHub API token in keychain\nPlease set the `ATOM_ACCESS_TOKEN` environment variable or sign in to GitHub in Atom')
+        return callback """
+          No GitHub API token in keychain
+          Set the `ATOM_ACCESS_TOKEN` environment variable or sign in to GitHub in Atom
+        """
 
       tokenName = tokenNames.shift()
       getTokenFromKeychain tokenName, (error, token) ->
