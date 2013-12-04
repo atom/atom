@@ -6,10 +6,10 @@ atom][download].
 
 ## OSX
 
-* Use Mountain Lion
+* Use OS X 10.8 or later
 * Install the latest node 0.10.x release (32bit preferable)
 * Clone [atom][atom-git] to `~/github/atom`
-* Run `~/github/atom/script/bootstrap`
+* Run `~/github/atom/script/build`
 
 ## Windows
 
@@ -26,7 +26,7 @@ atom][download].
 * Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
 * Run `script\bootstrap`
 
-[download]: http://www.atom.io
+[download]: https://github.com/atom/atom/releases/latest
 [win-node]: http://nodejs.org/download/
 [win-python]: http://www.python.org/download/
 [win-github]: http://windows.github.com/
