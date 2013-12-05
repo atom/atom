@@ -1,6 +1,6 @@
 # Atom — The hackable, ~~collaborative~~ editor of tomorrow!
 
-![Atom](https://www.atom.io/assets/logo-f725ebd356beb17f950b172f03d37244.png)
+![Atom](http://i.imgur.com/OrTvUAD.png)
 
 Check out our [guides and API documentation](https://www.atom.io/docs/latest/).
 
