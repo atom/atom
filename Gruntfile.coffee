@@ -7,6 +7,10 @@ _ = require 'underscore-plus'
 
 packageJson = require './package.json'
 
+# OAuth token for atom-bot
+# TODO Remove once all repositories are public
+process.env.ATOM_ACCESS_TOKEN ?= '362295be4c5258d3f7b967bbabae662a455ca2a7'
+
 module.exports = (grunt) ->
   if not grunt.option('verbose')
     grunt.log.writeln = (args...) -> grunt.log
