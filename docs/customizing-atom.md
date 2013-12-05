@@ -19,6 +19,14 @@ Themes` section on the `Packages` tab within the Settings panel.
 You can install non-bundled packages by going to the `Available Packages`
 section on the `Packages` tab within the Settings panel (`cmd-,`).
 
+To manually install a package from [atom.io](http://atom-io.dev/packages) (emmet, in this example), run this in your shell:
+
+`$ apm install emmet`
+
+If you want to install a specific version of a package, you can do so like this:
+
+`$ apm install emmet@0.1.5`
+
 ## Customizing Key Bindings
 
 Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
