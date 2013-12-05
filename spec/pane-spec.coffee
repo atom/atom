@@ -226,12 +226,12 @@ describe "Pane", ->
       pane3 = pane2.splitLeft()
       expect(pane3.hasFocus).toBe true
 
-  describe "::remove()", ->
+  describe "::destroy()", ->
     describe "if the pane is the root of its container", ->
       it "removes all pane items but does not remove the pane", ->
         expect(container.root).toBe pane
         expect(pane.items.isEmpty()).toBe false
-        pane.remove()
+        pane.destroy()
         expect(container.root).toBe pane
         expect(pane.items.isEmpty()).toBe true
 
@@ -241,7 +241,7 @@ describe "Pane", ->
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
 
-        pane2.remove()
+        pane2.destroy()
         expect(container.root.children).toEqual [pane1, pane3]
 
     describe "if the pane's parent has two children", ->
@@ -250,9 +250,9 @@ describe "Pane", ->
         pane2 = pane1.splitRight()
         pane3 = pane2.splitDown()
 
-        pane3.remove()
+        pane3.destroy()
         expect(container.root.children).toEqual [pane1, pane2]
-        pane2.remove()
+        pane2.destroy()
         expect(container.root).toBe pane1
 
   describe "when a pane is focused", ->

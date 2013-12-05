@@ -41,12 +41,11 @@ class Pane extends Model
   # Deprecated: Use ::items property directly instead
   getItems: -> @items.getValues()
 
-  remove: ->
+  destroy: ->
     if @parent is @container
       @items.clear()
-      false
     else
-      @parent.children.remove(this)
+      super
 
   activateItem: (item) ->
     hadFocus = @hasFocus
