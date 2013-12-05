@@ -19,19 +19,19 @@ describe "Focusable mixin", ->
     expect(item2.focused).toBe false
     expect(item3.focused).toBe false
 
-    item1.focused = true
+    item1.focus()
     expect(focusManager.focusedDocument).toBe item1
     expect(item1.focused).toBe true
     expect(item2.focused).toBe false
     expect(item3.focused).toBe false
 
-    item2.focused = true
+    item2.focus()
     expect(focusManager.focusedDocument).toBe item2
     expect(item1.focused).toBe false
     expect(item2.focused).toBe true
     expect(item3.focused).toBe false
 
-    item2.focused = false
+    item2.blur()
     expect(focusManager.focusedDocument).toBe null
     expect(item1.focused).toBe false
     expect(item2.focused).toBe false

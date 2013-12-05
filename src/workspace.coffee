@@ -28,9 +28,11 @@ class Workspace extends Model
              to: 'paneContainer'
 
   created: ->
-    @manageFocus()
     @paneContainer = new PaneContainer({@focusManager})
-    @subscribe @$focused, 'value', (focused) => @activePane.setFocused(true) if focused
+    @manageFocus()
+
+  forwardFocus: ->
+    @activePane.focus()
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
@@ -49,7 +51,7 @@ class Workspace extends Model
     Q(editor ? promise)
       .then (editor) =>
         @activePane.activateItem(editor)
-        @activePane.focused = true if changeFocus
+        @activePane.focus() if changeFocus
         editor
       .catch (error) ->
         console.error(error.stack ? error)
@@ -59,7 +61,7 @@ class Workspace extends Model
     editor = @activePane.itemForUri(uri) if uri?
     editor ?= @project.openSync(uri, {initialLine})
     @activePane.activateItem(editor)
-    @activePane.focused = true if changeFocus ? true
+    @activePane.focus() if changeFocus ? true
     editor
 
   openSingletonSync: (uri, options={}) ->

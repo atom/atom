@@ -53,10 +53,6 @@ class Editor extends Model
   remoteSelections: null
   suppressSelectionMerging: false
 
-  setFocused: (focused) ->
-    console.log "setting focused on editor", focused
-    @focused = focused
-
   # Private:
   created: ->
     @manageFocus()

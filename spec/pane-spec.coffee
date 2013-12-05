@@ -41,32 +41,33 @@ describe "Pane", ->
         expect(pane.activeItem).toBe item4
         expect(pane.items).toEqual [item1, item2, item4, item3]
 
-    describe "if the new active item does not implement .setFocused ", ->
+    describe "if the new active item does not implement .focus() ", ->
       it "focuses the pane if it was focused before activating the new item", ->
+        pane.blur()
         item4 = new Item
         item5 = new Item
-        item4.setFocused = undefined
-        item5.setFocused = undefined
+        item4.focus = undefined
+        item5.focus = undefined
 
         expect(pane.hasFocus).toBe false
         pane.activateItem(item4)
         expect(pane.hasFocus).toBe false
 
         item6 = pane.activateItem(new Item)
-        pane.setFocused(true)
+        pane.focus()
         expect(item6.hasFocus).toBe true
 
         pane.activateItem(item5)
         expect(pane.hasFocus).toBe true
         expect(item5.hasFocus).toBe false
 
-    describe "if the new active item implements .setFocused", ->
+    describe "if the new active item implements .focus()", ->
       it "focuses the item after making it active", ->
         expect(pane.hasFocus).toBe false
         item4 = pane.activateItem(new Item)
         expect(item4.hasFocus).toBe false
 
-        pane.focused = true
+        pane.focus()
         item5 = pane.activateItem(new Item)
         expect(item5.hasFocus).toBe true
         expect(pane.hasFocus).toBe true
@@ -128,7 +129,7 @@ describe "Pane", ->
       expect(pane.activeItem).toBe item2
       expect(pane.activeItem.hasFocus).toBe false
 
-      pane.focused = true
+      pane.focus()
       pane.activateNextItem()
       expect(pane.activeItem).toBe item3
       expect(pane.activeItem.hasFocus).toBe true
@@ -146,7 +147,7 @@ describe "Pane", ->
       expect(pane.activeItem).toBe item3
       expect(pane.activeItem.hasFocus).toBe false
 
-      pane.focused = true
+      pane.focus()
       pane.activatePreviousItem()
       expect(pane.activeItem).toBe item2
       expect(pane.activeItem.hasFocus).toBe true
@@ -221,7 +222,7 @@ describe "Pane", ->
       expect(pane1.hasFocus).toBe false
       pane2 = pane1.splitLeft()
       expect(pane2.hasFocus).toBe false
-      pane2.focused = true
+      pane2.focus()
       pane3 = pane2.splitLeft()
       expect(pane3.hasFocus).toBe true
 
@@ -266,25 +267,25 @@ describe "Pane", ->
       expect(pane1.hasFocus).toBe false
       expect(pane1.activeItem.hasFocus).toBe false
 
-      pane1.focused = true
+      pane1.focus()
       expect(pane1.hasFocus).toBe true
       expect(pane1.activeItem.hasFocus).toBe true
 
-      pane2.focused = true
+      pane2.focus()
       expect(pane1.hasFocus).toBe false
       expect(pane2.hasFocus).toBe true
       expect(pane2.activeItem.hasFocus).toBe true
 
     it "retains focus for itself if the active item isn't focusable", ->
       pane1.removeItems()
-      pane1.focused = true
+      pane1.focus()
       expect(pane1.hasFocus).toBe true
 
     it "sets the activePane to itself on its container", ->
       expect(container.activePane).toBe pane1
-      pane2.focused = true
+      pane2.focus()
       expect(container.activePane).toBe pane2
-      pane1.focused = true
+      pane1.focus()
       expect(container.activePane).toBe pane1
 
   describe "when a pane's active item becomes focused", ->
@@ -294,7 +295,7 @@ describe "Pane", ->
       pane2 = pane1.splitRight(items: [item4])
 
       expect(container.activePane).toBe pane1
-      pane2.activeItem.focused = true
+      pane2.activeItem.focus()
       expect(container.activePane).toBe pane2
 
   describe "::itemForUri(uri)", ->

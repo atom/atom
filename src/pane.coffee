@@ -26,12 +26,17 @@ class Pane extends Model
     @$focused.or(activeItemFocused)
 
   created: ->
-    console.log "Pane::created"
     @manageFocus()
     @activateItem(@items.getFirst()) unless @activeItem?
     @subscribe @items.onEach (item) => item.setFocusManager?(@focusManager)
-    @subscribe @$focused, 'value', (focused) => @activeItem?.setFocused?(true) if focused
     @subscribe @$hasFocus, 'value', (hasFocus) => @container?.activePane = this if hasFocus
+
+  forwardFocus: ->
+    @activeItem?.focus?()
+
+  forwardBlur: ->
+    @activeItem?.blur?()
+    true
 
   # Deprecated: Use ::items property directly instead
   getItems: -> @items.getValues()
@@ -44,11 +49,10 @@ class Pane extends Model
       @parent.children.remove(this)
 
   activateItem: (item) ->
-    item = @addItem(item) if item? and not @items.contains(item)
     hadFocus = @hasFocus
+    item = @addItem(item) if item? and not @items.contains(item)
     @activeItem = item
-    if hadFocus
-      @activeItem.setFocused?(true) ? @setFocused(true)
+    @focus() if hadFocus
     item
 
   activateNextItem: ->
@@ -126,6 +130,8 @@ class Pane extends Model
     @split('vertical', 'after', params)
 
   split: (orientation, side, params={}) ->
+    hadFocus = @hasFocus
+
     unless @parent.orientation is orientation
       axis = new PaneAxis({orientation, @parent, children: [this]})
       @parent.children.replace(this, axis)
@@ -146,10 +152,9 @@ class Pane extends Model
       when 'after' then @parent.children.insertAfter(this, pane)
 
     if moveActiveItem and @activeItem?
-      console.log "move active item"
       @moveItemToPane(@activeItem, pane, 0)
 
-    pane.focused = @hasFocus
+    pane.focus() if hadFocus
     pane
 
   itemForUri: (uri) ->
@@ -164,8 +169,6 @@ class Pane extends Model
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
-
-    console.log "CHOSEN", chosen
 
     switch chosen
       when 0 then @saveItem(item, -> true)

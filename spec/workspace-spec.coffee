@@ -100,7 +100,7 @@ describe "Workspace", ->
       expect(workspace.activePane.items).toEqual [editor1, editor2]
       expect(workspace.activePaneItem).toBe editor2
 
-      pane2.focused = true
+      pane2.focus()
       expect(workspace.activePane).toBe pane2
       editor3 = workspace.openSingletonSync()
       expect(editor3).not.toBe editor2
@@ -127,6 +127,6 @@ describe "Workspace", ->
     it "transfers focus to the active pane", ->
       expect(workspace.hasFocus).toBe false
       expect(workspace.activePane.hasFocus).toBe false
-      workspace.focused = true
+      workspace.focus()
       expect(workspace.hasFocus).toBe true
       expect(workspace.activePane.hasFocus).toBe true

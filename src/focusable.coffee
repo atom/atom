@@ -8,7 +8,12 @@ class Focusable extends Mixin
 
   @included: ->
     @properties
-      focused: false
+      focused:
+        default: false
+        set: (focused) ->
+          return false if focused and @forwardFocus?()
+          @forwardBlur?() if not focused and @hasFocus
+          @set('focused', focused)
       focusManager: -> new FocusManager
 
     @behavior 'focusedDocument', ->
@@ -29,4 +34,8 @@ class Focusable extends Mixin
 
   setFocusManager: (@focusManager) -> @focusManager
 
-  setFocused: (@focused) -> @focused
+  focus: ->
+    @focused = true
+
+  blur: ->
+    @focused = false

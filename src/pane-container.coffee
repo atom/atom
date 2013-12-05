@@ -38,12 +38,12 @@ class PaneContainer extends Model
 
   focusNextPane: ->
     nextIndex = (@getFocusedPaneIndex() + 1) % @panes.length
-    @panes.get(nextIndex).focused = true
+    @panes.get(nextIndex).focus()
 
   focusPreviousPane: ->
     previousIndex = (@getFocusedPaneIndex() - 1)
     previousIndex = @panes.length - 1 if previousIndex < 0
-    @panes.get(previousIndex).focused = true
+    @panes.get(previousIndex).focus()
 
   getFocusedPaneIndex: ->
     @panes.indexOf(@focusedPane)
