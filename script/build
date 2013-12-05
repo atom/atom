@@ -5,8 +5,7 @@ var path = require('path');
 process.chdir(path.dirname(__dirname));
 
 cp.safeExec('node script/bootstrap', function() {
-  // node node_modules/grunt-cli/bin/grunt "$@"
-  var gruntPath = path.join('node_modules', 'grunt-cli', 'bin', 'grunt');
-  var args = [gruntPath].concat(process.argv.slice(2));
-  cp.safeSpawn(process.execPath, args, process.exit);
+  // node_modules/.bin/grunt "$@"
+  var gruntPath = path.join('node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
+  cp.safeSpawn(gruntPath, process.argv.slice(2), process.exit);
 });
