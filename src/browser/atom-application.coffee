@@ -245,6 +245,14 @@ class AtomApplication
   #    + initialSize:
   #      Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, initialSize}={}) ->
+    if devMode and not fs.existsSync(global.devResourcePath)
+      dialog.showMessageBox
+        type: 'warning'
+        buttons: ['OK']
+        message: 'Atom source directory not found.'
+        detail: 'To run a window in dev mode you need to have the atom/atom repo cloned to ~/github/atom'
+      return
+
     if pathToOpen
       [basename, initialLine] = path.basename(pathToOpen).split(':')
       if initialLine
