@@ -23,7 +23,7 @@ The `observeConfig` method will call the given callback immediately with the
 current value for the specified key path, and it will also call it in the future
 whenever the value of that key path changes.
 
-Subscriptions made with `observeConfig` are automatically cancelled when the
+Subscriptions made with `observeConfig` are automatically canceled when the
 view is removed. You can cancel config subscriptions manually via the
 `unobserveConfig` method.
 

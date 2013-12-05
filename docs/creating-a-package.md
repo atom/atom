@@ -311,7 +311,7 @@ protocol URLs to load resources in the package.
 
 The URLs should be in the format of
 `atom://package-name/relative-path-to-package-of-resource`, for example, the
-`atom://image-view/images/transparent-background.gif` would be equivablent to
+`atom://image-view/images/transparent-background.gif` would be equivalent to
 `~/.atom/packages/image-view/images/transparent-background.gif`.
 
 You can also use the `atom` protocol URLs in themes.
