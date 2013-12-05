@@ -51,6 +51,12 @@ class TextBuffer extends telepath.Model
 
     @load() if @loadWhenAttached
 
+  destroyed: ->
+    @cancelStoppedChangingTimeout()
+    @file?.off()
+    @unsubscribe()
+    @emit 'destroyed', this
+
   # Private: Called by telepath.
   beforePersistence: ->
     @modifiedWhenLastPersisted = @isModified()
@@ -80,14 +86,6 @@ class TextBuffer extends telepath.Model
     bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
     @emit 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
-
-  destroy: ->
-    unless @destroyed
-      @cancelStoppedChangingTimeout()
-      @file?.off()
-      @unsubscribe()
-      @destroyed = true
-      @emit 'destroyed', this
 
   isRetained: -> @refcount > 0
 
