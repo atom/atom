@@ -12,8 +12,8 @@ Subscriber.includeInto(spacePen.View)
 class TelevisionView extends spacePen.View
   television.View.includeInto(this)
 
-  @buildElement: (model) ->
-    new this(model)[0]
+  @buildViewInstance: (model) ->
+    new this(model)
 
   constructor: (args...) ->
     super
@@ -22,7 +22,6 @@ class TelevisionView extends spacePen.View
       @model = args[0]
       @element = this[0]
       @factory = @constructor
-      @factory.cacheView(this)
 
       @childViews = []
       @bindings = []
