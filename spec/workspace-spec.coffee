@@ -130,3 +130,20 @@ describe "Workspace", ->
       workspace.focus()
       expect(workspace.hasFocus).toBe true
       expect(workspace.activePane.hasFocus).toBe true
+
+  describe "::increaseFontSize() / ::decreaseFontSize()", ->
+    it "adjusts font size in config", ->
+      fontSizeBefore = atom.config.get('editor.fontSize')
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 2
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore
+
+    it "does not allow the font size to be less than 1", ->
+      atom.config.set("editor.fontSize", 1)
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 1
