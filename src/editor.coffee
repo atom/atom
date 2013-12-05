@@ -111,8 +111,6 @@ class Editor extends Model
 
   # Private:
   destroyed: ->
-    return if @destroyed
-    @destroyed = true
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
