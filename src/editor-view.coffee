@@ -1611,7 +1611,6 @@ class EditorView extends View
           return @measureToColumn(lineElement, tokenizedLine, screenColumn)
 
         index++
-
     left
 
   # Private:
