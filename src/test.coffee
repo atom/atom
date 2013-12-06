@@ -29,7 +29,7 @@ class Test extends Command
     env = process.env
 
     atomCommand = args.argv.path ? 'atom'
-    @spawn atomCommand, ['-d', '-t', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
+    @spawn atomCommand, ['--dev', '--test', "--spec-directory=#{path.join(process.cwd(), 'spec')}"], {env, streaming: true}, (code) ->
       if code is 0
         process.stdout.write 'Tests passed\n'.green
         callback()
