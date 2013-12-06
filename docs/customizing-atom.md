@@ -19,11 +19,15 @@ Themes` section on the `Packages` tab within the Settings panel.
 You can install non-bundled packages by going to the `Available Packages`
 section on the `Packages` tab within the Settings panel (`cmd-,`).
 
-To manually install a package or theme...
+You can also install packages from the command line using the
+[apm](https://github.com/atom/apm) command:
 
-`apm install <package_name>`
+`apm install <package_name>` to install the latest version.
 
-`apm install <package_name>@<package_version>`. For example `apm install emmet@0.1.5` installs the `0.1.5` release of Emmet into Atom.
+`apm install <package_name>@<package_version>` to install a specific version.
+
+For example `apm install emmet@0.1.5`  installs the `0.1.5` release of the
+[Emmet](https://github.com/atom/emmet) package into `~/.atom/packages`.
 
 ## Customizing Key Bindings
 
