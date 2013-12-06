@@ -1158,7 +1158,8 @@ describe "EditorView", ->
         line0 = editorView.renderedLines.find('.line:first')
         span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
         expect(span0_0).toMatchSelector '.hard-tab'
-        expect(span0_0.text()).toBe ' '
+        expect(span0_0.text()).toBe '  '
+        expect(span0_0.text().length).toBe editor.getTabLength()
 
       it "wraps leading whitespace in a span", ->
         line1 = editorView.renderedLines.find('.line:eq(1)')
