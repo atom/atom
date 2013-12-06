@@ -1596,29 +1596,25 @@ class EditorView extends View
   positionLeftForLineAndColumn: (lineElement, screenRow, screenColumn) ->
     return 0 if screenColumn == 0
 
-    bufferRow = @bufferRowsForScreenRows(screenRow, screenRow)[0] ? screenRow
-    bufferColumn = @bufferPositionForScreenPosition([screenRow, screenColumn]).column
-    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLines[bufferRow]
+    tokenizedLine = @editor.displayBuffer.lineForRow(screenRow)
 
     left = 0
     index = 0
-    startIndex = @bufferPositionForScreenPosition([screenRow, 0]).column
     for token in tokenizedLine.tokens
       for char in token.value
-        return left if index >= bufferColumn
+        return left if index >= screenColumn
 
-        if index >= startIndex
-          val = @getCharacterWidthCache(token.scopes, char)
-          if val?
-            left += val
-          else
-            return @measureToColumn(lineElement, tokenizedLine, screenColumn, startIndex)
+        val = @getCharacterWidthCache(token.scopes, char)
+        if val?
+          left += val
+        else
+          return @measureToColumn(lineElement, tokenizedLine, screenColumn)
 
         index++
     left
 
   # Private:
-  measureToColumn: (lineElement, tokenizedLine, screenColumn, lineStartBufferColumn) ->
+  measureToColumn: (lineElement, tokenizedLine, screenColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
 
@@ -1638,7 +1634,7 @@ class EditorView extends View
         returnLeft = left if index == screenColumn
         oldLeft = left
 
-        scopes = tokenizedLine.tokenAtBufferColumn(lineStartBufferColumn + index)?.scopes
+        scopes = tokenizedLine.tokenAtBufferColumn(index)?.scopes
         cachedCharWidth = @getCharacterWidthCache(scopes, char)
 
         if cachedCharWidth?
@@ -1666,7 +1662,7 @@ class EditorView extends View
   # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
-    obj = EditorView.characterWidthCache
+    obj = @constructor.characterWidthCache
     for scope in scopes
       obj = obj[scope]
       return null unless obj?
@@ -1675,7 +1671,7 @@ class EditorView extends View
   # Private:
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
-    obj = EditorView.characterWidthCache
+    obj = @constructor.characterWidthCache
     for scope in scopes
       obj[scope] ?= {}
       obj = obj[scope]
@@ -1683,7 +1679,7 @@ class EditorView extends View
 
   # Private:
   clearCharacterWidthCache: ->
-    EditorView.characterWidthCache = {}
+    @constructor.characterWidthCache = {}
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
