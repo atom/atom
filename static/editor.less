@@ -11,6 +11,22 @@
   z-index: 0;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   line-height: 1.3;
+
+  .markup {
+    &.git-commit {
+      &.changed {
+        color: @text-color-warning;
+      }
+
+      &.deleted {
+        color: @text-color-error;
+      }
+
+      &.inserted {
+        color: @text-color-info;
+      }
+    }
+  }
 }
 
 .editor .gutter .line-number.cursor-line {
