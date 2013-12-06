@@ -352,6 +352,10 @@ class Atom
   getVersion: ->
     app.getVersion()
 
+  # Public: Get the name of the github token in the keychain
+  getGitHubTokenName: ->
+    'Atom GitHub API Token'
+
   # Public: Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to ~/.atom
