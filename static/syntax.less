@@ -1,0 +1,21 @@
+@import "syntax-variables";
+
+.editor {
+  .lines {
+    .markup {
+      &.git-commit {
+        &.changed {
+          color: @syntax-color-modified;
+        }
+
+        &.deleted {
+          color: @syntax-color-removed;
+        }
+
+        &.inserted {
+          color: @syntax-color-added;
+        }
+      }
+    }
+  }
+}
