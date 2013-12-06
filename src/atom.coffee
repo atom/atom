@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 ipc = require 'ipc'
+keytar = require 'keytar'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
@@ -352,9 +353,13 @@ class Atom
   getVersion: ->
     app.getVersion()
 
-  # Public: Get the name of the github token in the keychain
-  getGitHubTokenName: ->
-    'Atom GitHub API Token'
+  # Public: Set the the github token in the keychain
+  setGitHubAuthToken: (token) ->
+    keytar.replacePassword('Atom GitHub API Token', 'github', token)
+
+  # Public: Get the github token from the keychain
+  getGitHubAuthToken: ->
+    keytar.getPassword('Atom GitHub API Token', 'github')
 
   # Public: Get the directory path to Atom's configuration area.
   #
