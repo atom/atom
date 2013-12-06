@@ -19,7 +19,7 @@ class Test extends Command
       to the current working directory).
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('p', 'path').describe('path', 'Path to atom command')
+    options.alias('p', 'path').describe('path', 'Path to atom command').string('path')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
