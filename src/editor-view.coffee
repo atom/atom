@@ -1663,7 +1663,7 @@ class EditorView extends View
   # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
-    obj = EditorView.characterWidthCache
+    obj = @constsructor.characterWidthCache
     for scope in scopes
       obj = obj[scope]
       return null unless obj?
@@ -1672,7 +1672,7 @@ class EditorView extends View
   # Private:
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
-    obj = EditorView.characterWidthCache
+    obj = @constructor.characterWidthCache
     for scope in scopes
       obj[scope] ?= {}
       obj = obj[scope]
@@ -1680,7 +1680,7 @@ class EditorView extends View
 
   # Private:
   clearCharacterWidthCache: ->
-    EditorView.characterWidthCache = {}
+    @constructor.characterWidthCache = {}
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
