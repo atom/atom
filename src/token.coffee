@@ -136,7 +136,7 @@ class Token
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if invisibles.tab
       value = if invisible.tab then @value.replace(StartCharacterRegex, invisibles.tab) else @value
-    html = "<span class='#{classes}'>#{@escapeString(value)}</span>"
+      html = "<span class='#{classes}'>#{@escapeString(value)}</span>"
     else
       startIndex = 0
       endIndex = @value.length
