@@ -138,7 +138,7 @@ class AtomApplication
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
-    @on 'application:open-documentation', -> shell.openExternal('https://github-atom-io.herokuapp.com/docs/latest/?app=true')
+    @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
     @on 'application:show-settings', ->
       if @focusedWindow()
