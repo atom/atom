@@ -353,13 +353,16 @@ class Atom
   getVersion: ->
     app.getVersion()
 
+  getGitHubAuthTokenName: ->
+    'Atom GitHub API Token'
+
   # Public: Set the the github token in the keychain
   setGitHubAuthToken: (token) ->
-    keytar.replacePassword('Atom GitHub API Token', 'github', token)
+    keytar.replacePassword(@getGitHubAuthTokenName(), 'github', token)
 
   # Public: Get the github token from the keychain
   getGitHubAuthToken: ->
-    keytar.getPassword('Atom GitHub API Token', 'github')
+    keytar.getPassword(@getGitHubAuthTokenName(), 'github')
 
   # Public: Get the directory path to Atom's configuration area.
   #
