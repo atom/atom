@@ -699,11 +699,8 @@ describe "Pane", ->
 
     it "focuses the pane after attach only if had focus when serialized", ->
       reloadContainer = ->
-        projectReplica = atom.replicate().get('project')
         containerState = container.serialize()
         container.remove()
-        atom.project = projectReplica
-        atom.project.destroy()
         container = atom.deserializers.deserialize(containerState)
         pane = container.getRoot()
         container.attachToDom()
