@@ -1663,7 +1663,7 @@ class EditorView extends View
   # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
-    obj = @constsructor.characterWidthCache
+    obj = @constructor.characterWidthCache
     for scope in scopes
       obj = obj[scope]
       return null unless obj?
