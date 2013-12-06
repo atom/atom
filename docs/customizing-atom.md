@@ -26,7 +26,7 @@ You can also install packages from the command line using the
 
 `apm install <package_name>@<package_version>` to install a specific version.
 
-For example `apm install emmet@0.1.5`  installs the `0.1.5` release of the
+For example `apm install emmet@0.1.5` installs the `0.1.5` release of the
 [Emmet](https://github.com/atom/emmet) package into `~/.atom/packages`.
 
 ## Customizing Key Bindings
