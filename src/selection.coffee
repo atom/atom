@@ -21,7 +21,7 @@ class Selection
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeSelection(this)
-      @emit 'destroyed' unless @editor.destroyed
+      @emit 'destroyed' if @editor.isAlive()
 
   # Private:
   destroy: ->

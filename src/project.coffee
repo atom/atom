@@ -32,10 +32,7 @@ class Project extends telepath.Model
     path.join(atom.config.get('core.projectHome'), repoName)
 
   # Private: Called by telepath.
-  attached: ->
-    for buffer in @buffers.getValues()
-      buffer.once 'destroyed', (buffer) => @removeBuffer(buffer)
-
+  created: ->
     @openers = []
     @editors = []
     @setPath(@path)
@@ -62,9 +59,8 @@ class Project extends telepath.Model
   unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Private:
-  destroy: ->
-    editor.destroy() for editor in @getEditors()
-    buffer.release() for buffer in @getBuffers()
+  destroyed: ->
+    buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
   # Private:
@@ -159,21 +155,6 @@ class Project extends telepath.Model
 
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {Editor}s for all open files.
-  #
-  # Returns an {Array} of {Editor}s.
-  getEditors: ->
-    new Array(@editors...)
-
-  # Public: Add the given {Editor}.
-  addEditor: (editor) ->
-    @editors.push editor
-    @emit 'editor-created', editor
-
-  # Public: Return and removes the given {Editor}.
-  removeEditor: (editor) ->
-    _.remove(@editors, editor)
-
   # Private: Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
@@ -214,7 +195,7 @@ class Project extends telepath.Model
 
   # Private: DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -226,11 +207,12 @@ class Project extends telepath.Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer = new TextBuffer({project: this, filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)
-      .catch(=> @removeBuffer(buffer))
+      .catch(=> buffer.destroy())
+    buffer
 
   # Private:
   addBuffer: (buffer, options={}) ->
@@ -239,21 +221,8 @@ class Project extends telepath.Model
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     buffer = @buffers.insert(index, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
-
-  # Private: Removes a {TextBuffer} association from the project.
-  #
-  # Returns the removed {TextBuffer}.
-  removeBuffer: (buffer) ->
-    index = @buffers.indexOf(buffer)
-    @removeBufferAtIndex(index) unless index is -1
-
-  # Private:
-  removeBufferAtIndex: (index, options={}) ->
-    [buffer] = @buffers.splice(index, 1)
-    buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.
   #
@@ -334,14 +303,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new Editor(_.extend({buffer}, editorOptions))
-    @addEditor(editor)
-    editor
-
-  # Private:
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    @create(new Editor(_.extend({buffer}, editorOptions)))
 
   # Private:
   eachBuffer: (args...) ->

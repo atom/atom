@@ -140,13 +140,13 @@ class Atom
       @setWindowState('project', @project)
 
   # Private:
-  deserializeWorkspaceView: ->
+  appendWorkspaceView: ->
     WorkspaceView = require './workspace-view'
+    Workspace = require './workspace'
     state = @getWindowState()
-    @workspaceView = @deserializers.deserialize(state.get('workspaceView'))
-    unless @workspaceView?
-      @workspaceView = new WorkspaceView()
-      state.set('workspaceView', @workspaceView.getState())
+    unless @workspace = state.get('workspace')
+      @workspace = state.set('workspace', new Workspace({@project}))
+    @workspaceView = new WorkspaceView(@workspace)
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:
@@ -159,7 +159,7 @@ class Atom
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
-    @deserializeWorkspaceView()
+    @appendWorkspaceView()
 
   # Private: This method is only called when opening a real application window
   startEditorWindow: ->
@@ -319,7 +319,7 @@ class Atom
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @workspaceView.getState().get('fullScreen')
+      @setFullScreen(true) if @workspace.getState().get('fullScreen')
 
   # Public: Close the current window.
   close: ->
@@ -404,7 +404,13 @@ class Atom
 
     doc = Document.deserialize(documentState) if documentState?
     doc ?= Document.create()
-    doc.registerModelClasses(require('./text-buffer'), require('./project'))
+    doc.registerModelClasses(
+      require('./text-buffer'),
+      require('./project'),
+      require('./tokenized-buffer')
+      require('./display-buffer')
+      require('./editor')
+    )
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)

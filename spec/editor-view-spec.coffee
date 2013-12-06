@@ -37,7 +37,7 @@ describe "EditorView", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new EditorView(editor: atom.project.openSync('sample.js'))
+    editorForMeasurement = new EditorView(atom.project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth

@@ -46,7 +46,7 @@ class EditorView extends View
         @div class: 'overlayer', outlet: 'overlayer'
         @div class: 'lines', outlet: 'renderedLines'
         @div class: 'underlayer', outlet: 'underlayer', =>
-          @input class: 'hidden-input', outlet: 'hiddenInput'
+          @input class: 'hidden-input', outlet: 'hiddenInput', 'x-bind-focus': "focused"
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -1068,9 +1068,6 @@ class EditorView extends View
 
   # Private:
   beforeRemove: ->
-    @trigger 'editor:will-be-removed'
-    @removed = true
-    @editor?.destroy()
     $(window).off(".editor-#{@id}")
     $(document).off(".editor-#{@id}")
 
@@ -1221,7 +1218,7 @@ class EditorView extends View
 
   updateDisplay: (options={}) ->
     return unless @attached and @editor
-    return if @editor.destroyed
+    return unless @editor.isAlive()
     unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return

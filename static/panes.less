@@ -1,5 +1,36 @@
 @import "ui-variables";
 
+.panes {
+  display: -webkit-flex;
+  -webkit-flex: 1;
+
+  .axis {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+
+    &.vertical {
+      -webkit-flex-flow: column;
+    }
+  }
+
+  .pane {
+    -webkit-flex: 1;
+    display: -webkit-flex;
+    -webkit-flex-flow: column;
+
+    .active-item {
+      -webkit-flex: 1;
+      display: -webkit-flex;
+      min-height: 0;
+
+      > * {
+        -webkit-flex: 1;
+        min-width: 0;
+      }
+    }
+  }
+}
+
 // Pane-items are things that go inside a pane. Like the UI-Demo, the
 // settings-view, the archive-view, the image-view. Etc. Basically a non-
 // editor resource with a tab.

@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 TokenizedLine = require './tokenized-line'
-{Emitter, Subscriber} = require 'emissary'
 Token = require './token'
 telepath = require 'telepath'
 {Point, Range} = telepath
@@ -8,37 +7,19 @@ telepath = require 'telepath'
 ### Internal ###
 
 module.exports =
-class TokenizedBuffer
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class TokenizedBuffer extends telepath.Model
+  @properties
+    buffer: null
+    tabLength: -> atom.config.get('editor.tabLength') ? 2
 
   grammar: null
   currentGrammarScore: null
-  buffer: null
   tokenizedLines: null
   chunkSize: 50
   invalidRows: null
   visible: false
 
-  @acceptsDocuments: true
-  atom.deserializers.add(this)
-
-  @deserialize: (state) ->
-    new this(state)
-
-  constructor: (optionsOrState) ->
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-
-      # TODO: This needs to be made async, but should wait until the new Telepath changes land
-      @buffer = atom.project.bufferForPathSync(optionsOrState.get('bufferPath'))
-    else
-      { @buffer, tabLength } = optionsOrState
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        bufferPath: @buffer.getPath()
-        tabLength: tabLength ? atom.config.get('editor.tabLength') ? 2
-
+  created: ->
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
         @resetTokenizedLines() if @hasTokenForSelector(grammar.injectionSelector)
@@ -48,12 +29,13 @@ class TokenizedBuffer
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getPath())
+    @subscribe @$tabLength.changes(), "value", =>
+      lastRow = @buffer.getLastRow()
+      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+      @invalidateRow(0)
+      @emit "changed", {start: 0, end: lastRow, delta: 0}
 
     @reloadGrammar()
-
-  serialize: -> @state.clone()
-  getState: -> @state
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
@@ -83,21 +65,15 @@ class TokenizedBuffer
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  # Retrieves the current tab length.
+  # Deprecated: Retrieves the current tab length.
   #
   # Returns a {Number}.
-  getTabLength: ->
-    @state.get('tabLength')
+  getTabLength: -> @tabLength
 
-  # Specifies the tab length.
+  # Deprecated: Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (tabLength) ->
-    @state.set('tabLength', tabLength)
-    lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
-    @invalidateRow(0)
-    @emit "changed", { start: 0, end: lastRow, delta: 0 }
+  setTabLength: (@tabLength) ->
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or @destroyed
@@ -248,9 +224,8 @@ class TokenizedBuffer
     endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
     new Range([position.row, startColumn], [position.row, endColumn])
 
-  destroy: ->
+  destroyed: ->
     @unsubscribe()
-    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

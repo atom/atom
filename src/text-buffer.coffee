@@ -18,6 +18,7 @@ class TextBuffer extends telepath.Model
   Subscriber.includeInto(this)
 
   @properties
+    project: null
     text: -> new telepath.String('', replicated: false)
     filePath: null
     relativePath: null
@@ -38,7 +39,7 @@ class TextBuffer extends telepath.Model
     @loadWhenAttached = @getState()?
 
   # Private: Called by telepath.
-  attached: ->
+  created: ->
     @loaded = false
     @useSerializedText = @modifiedWhenLastPersisted != false
 
@@ -49,6 +50,12 @@ class TextBuffer extends telepath.Model
     @setPath(@filePath)
 
     @load() if @loadWhenAttached
+
+  destroyed: ->
+    @cancelStoppedChangingTimeout()
+    @file?.off()
+    @unsubscribe()
+    @emit 'destroyed', this
 
   # Private: Called by telepath.
   beforePersistence: ->
@@ -79,14 +86,6 @@ class TextBuffer extends telepath.Model
     bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
     @emit 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
-
-  destroy: ->
-    unless @destroyed
-      @cancelStoppedChangingTimeout()
-      @file?.off()
-      @unsubscribe()
-      @destroyed = true
-      @emit 'destroyed', this
 
   isRetained: -> @refcount > 0
 
@@ -162,7 +161,7 @@ class TextBuffer extends telepath.Model
     @file?.getPath()
 
   getUri: ->
-    atom.project.relativize(@getPath())
+    @project.relativize(@getPath())
 
   # Sets the path for the file.
   #
