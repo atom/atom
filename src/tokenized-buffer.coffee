@@ -50,6 +50,9 @@ class TokenizedBuffer
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
     @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getPath())
 
+    @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
+      @setTabLength(atom.config.getPositiveInt('editor.tabLength'))
+
     @reloadGrammar()
 
   serialize: -> @state.clone()
