@@ -2851,3 +2851,17 @@ describe "EditorView", ->
         editorView.pixelPositionForScreenPosition([0, 5])
         editorView.pixelPositionForScreenPosition([1, 5])
         expect(editorView.measureToColumn.callCount).toBe 0
+
+  describe "when the editor contains hard tabs", ->
+    it "correctly calculates the the position left for a column", ->
+      editorView.setText('\ttest')
+      editorView.attachToDom()
+
+      expect(editorView.pixelPositionForScreenPosition([0, editor.getTabLength()]).left).toEqual 20
+      expect(editorView.pixelPositionForScreenPosition([0, editor.getTabLength() + 1]).left).toEqual 30
+
+      # Check that widths are actually being cached
+      spyOn(editorView, 'measureToColumn').andCallThrough()
+      editorView.pixelPositionForScreenPosition([0, editor.getTabLength()])
+      editorView.pixelPositionForScreenPosition([0, editor.getTabLength() + 1])
+      expect(editorView.measureToColumn.callCount).toBe 0
