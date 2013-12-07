@@ -80,8 +80,9 @@ class Atom
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
-  # Public: Create a new telepath model. This won't be needed when Atom is itself
-  # a telepath model.
+  # Public: Create a new telepath model. We won't need to define this method when
+  # the atom global is a telepath model itself because all model subclasses inherit
+  # a create method.
   create: (model) ->
     @site.createDocument(model)
 
