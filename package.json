@@ -88,7 +88,7 @@
     "dev-live-reload": "0.18.0",
     "editor-stats": "0.8.0",
     "exception-reporting": "0.8.0",
-    "feedback": "0.14.0",
+    "feedback": "0.15.0",
     "find-and-replace": "0.55.0",
     "fuzzy-finder": "0.27.0",
     "gists": "0.12.0",
