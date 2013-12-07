@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
+{Model, Point, Range} = require 'telepath'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
-{Model, Point, Range} = require 'telepath'
 
 ### Internal ###
 
