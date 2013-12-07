@@ -32,7 +32,7 @@ class Project extends telepath.Model
     path.join(atom.config.get('core.projectHome'), repoName)
 
   # Private: Called by telepath.
-  attached: ->
+  created: ->
     for buffer in @buffers.getValues()
       buffer.once 'destroyed', (buffer) => @removeBuffer(buffer)
 
@@ -62,7 +62,7 @@ class Project extends telepath.Model
   unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Private:
-  destroy: ->
+  destroyed: ->
     editor.destroy() for editor in @getEditors()
     buffer.release() for buffer in @getBuffers()
     @destroyRepo()

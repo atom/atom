@@ -55,7 +55,10 @@ beforeEach ->
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
-  spyOn(atom, 'saveWindowState')
+
+  serializedWindowState = null
+  spyOn(atom, 'saveWindowState').andCallFake -> serializedWindowState = @getWindowState().serialize()
+  spyOn(atom, 'loadSerializedWindowState').andCallFake -> serializedWindowState
   atom.syntax.clearGrammarOverrides()
   atom.syntax.clearProperties()
 
