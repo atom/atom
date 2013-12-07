@@ -49,10 +49,10 @@ class DisplayBuffer extends Model
         @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @getSoftWrap() and atom.config.get('editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @getSoftWrap()
+      @updateWrappedScreenLines() if @softWrap
 
   copy: ->
     newDisplayBuffer = atom.create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
@@ -88,8 +88,10 @@ class DisplayBuffer extends Model
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
+  # Deprecated: Use the softWrap property directly
   setSoftWrap: (@softWrap) -> @softWrap
 
+  # Deprecated: Use the softWrap property directly
   getSoftWrap: -> @softWrap
 
   # Set the number of characters that fit horizontally in the editor.
@@ -98,7 +100,7 @@ class DisplayBuffer extends Model
   setEditorWidthInChars: (editorWidthInChars) ->
     previousWidthInChars = @editorWidthInChars
     @editorWidthInChars = editorWidthInChars
-    if editorWidthInChars isnt previousWidthInChars and @getSoftWrap()
+    if editorWidthInChars isnt previousWidthInChars and @softWrap
       @updateWrappedScreenLines()
 
   getSoftWrapColumn: ->
@@ -422,7 +424,7 @@ class DisplayBuffer extends Model
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @getSoftWrap()
+    return unless @softWrap
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
