@@ -27,7 +27,7 @@ class TokenizedBuffer extends Model
   created: ->
     if @deserializing
       @deserializing = false
-      return this
+      return
 
     if @buffer? and @buffer.isAlive()
       @bufferPath = @buffer.getPath()
