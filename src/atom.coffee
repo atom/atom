@@ -204,6 +204,7 @@ class Atom
     @workspaceView.remove()
     @project.destroy()
     @windowEventHandler?.unsubscribe()
+    @windowState = null
 
   # Set up the default event handlers and menus for a non-editor window.
   #
@@ -398,8 +399,8 @@ class Atom
     windowState.set(keyPath, value)
     windowState
 
-  # Private:
-  loadWindowState: ->
+  # Private
+  loadSerializedWindowState: ->
     if windowStatePath = @getWindowStatePath()
       if fs.existsSync(windowStatePath)
         try
@@ -414,7 +415,10 @@ class Atom
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    doc = Document.deserialize(documentState) if documentState?
+  # Private:
+  loadWindowState: ->
+    serializedWindowState = @loadSerializedWindowState()
+    doc = Document.deserialize(serializedWindowState) if serializedWindowState?
     doc ?= Document.create()
     doc.registerModelClasses(require('./text-buffer'), require('./project'))
     # TODO: Remove this when everything is using telepath models

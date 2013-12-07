@@ -18,15 +18,9 @@ describe "WorkspaceView", ->
   describe "@deserialize()", ->
     viewState = null
 
-    refreshWorkspaceViewAndProject = ->
-      workspaceViewState = atom.workspaceView.serialize()
-      atom.project.getState().serializeForPersistence()
-      project2 = atom.replicate().get('project')
-      atom.workspaceView.remove()
-      atom.project.destroy()
-      atom.project = project2
-      atom.workspaceView = atom.deserializers.deserialize(workspaceViewState)
-      atom.workspaceView.attachToDom()
+    simulateReload = ->
+      atom.unloadEditorWindow()
+      atom.deserializeEditorWindow()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
@@ -37,7 +31,7 @@ describe "WorkspaceView", ->
         editor1.splitRight()
         expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[2]
 
-        refreshWorkspaceViewAndProject()
+        simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 2
         expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[1]
@@ -57,7 +51,7 @@ describe "WorkspaceView", ->
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
-        refreshWorkspaceViewAndProject()
+        simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 4
         editor1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
@@ -90,7 +84,7 @@ describe "WorkspaceView", ->
       it "constructs the view with no open editors", ->
         atom.workspaceView.getActivePane().remove()
         expect(atom.workspaceView.getEditorViews().length).toBe 0
-        refreshWorkspaceViewAndProject()
+        simulateReload()
         expect(atom.workspaceView.getEditorViews().length).toBe 0
 
   describe "focus", ->
