@@ -102,11 +102,10 @@ class DisplayBuffer extends Model
       @updateWrappedScreenLines()
 
   getSoftWrapColumn: ->
-    editorWidthInChars = @editorWidthInChars
     if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
+      Math.min(@editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', @editorWidthInChars))
     else
-      editorWidthInChars
+      @editorWidthInChars
 
   # Gets the screen line for the given screen row.
   #
