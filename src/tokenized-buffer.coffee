@@ -51,6 +51,9 @@ class TokenizedBuffer extends Model
       @invalidateRow(0)
       @emit "changed", { start: 0, end: lastRow, delta: 0 }
 
+    @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
+      @setTabLength(atom.config.getPositiveInt('editor.tabLength'))
+
     @reloadGrammar()
 
   # TODO: Remove when everything is a telepath model

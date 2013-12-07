@@ -125,11 +125,11 @@ class Config
   #
   # keyPath - The {String} name of the key to retrieve
   # defaultValue - The integer {Number} to fall back to if the value isn't
-  #                positive
+  #                positive, defaults to 0.
   #
   # Returns the value from Atom's default settings, the user's configuration file,
   # or `defaultValue` if the key value isn't greater than zero.
-  getPositiveInt: (keyPath, defaultValue) ->
+  getPositiveInt: (keyPath, defaultValue=0) ->
     Math.max(@getInt(keyPath), 0) or defaultValue
 
   # Public: Sets the value for a configuration setting.

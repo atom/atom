@@ -426,3 +426,13 @@ describe "TokenizedBuffer", ->
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
         expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
+
+  describe "when the editor.tabLength config value changes", ->
+    it "updates the tab length of the tokenized lines", ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      buffer.setText('\ttest')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      atom.config.set('editor.tabLength', 6)
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '      '
