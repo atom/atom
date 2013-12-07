@@ -27,17 +27,18 @@ class DisplayBuffer
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
-      @tokenizedBuffer = atom.deserializers.deserialize(@state.get('tokenizedBuffer'))
+      @tokenizedBuffer = @state.get('tokenizedBuffer')
+      @tokenizedBuffer.created()
       @buffer = @tokenizedBuffer.buffer
     else
-      {@buffer, softWrap, editorWidthInChars} = optionsOrState
+      {@buffer, softWrap, editorWidthInChars, tabLength} = optionsOrState
       @id = guid.create().toString()
-      @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
+      @tokenizedBuffer = new TokenizedBuffer({tabLength, @buffer, project: atom.project})
       @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
-        tokenizedBuffer: @tokenizedBuffer.getState()
+        tokenizedBuffer: @tokenizedBuffer
         softWrap: softWrap ? atom.config.get('editor.softWrap') ? false
         editorWidthInChars: editorWidthInChars
 
@@ -62,6 +63,7 @@ class DisplayBuffer
       @updateWrappedScreenLines() if @getSoftWrap()
 
   serialize: -> @state.clone()
+
   getState: -> @state
 
   copy: ->
@@ -654,6 +656,7 @@ class DisplayBuffer
         softWraps = 0
         while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
           [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+
           newScreenLines.push(wrappedLine)
           softWraps++
         newScreenLines.push(tokenizedLine)

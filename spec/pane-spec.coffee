@@ -698,18 +698,16 @@ describe "Pane", ->
       expect(newPane.items.length).toBe pane.items.length - 1
 
     it "focuses the pane after attach only if had focus when serialized", ->
-      reloadContainer = ->
-        containerState = container.serialize()
-        container.remove()
-        container = atom.deserializers.deserialize(containerState)
-        pane = container.getRoot()
-        container.attachToDom()
-
       container.attachToDom()
       pane.focus()
-      reloadContainer()
-      expect(pane).toMatchSelector(':has(:focus)')
+
+      container2 = atom.deserializers.deserialize(container.serialize())
+      pane2 = container2.getRoot()
+      container2.attachToDom()
+      expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      reloadContainer()
-      expect(pane).not.toMatchSelector(':has(:focus)')
+      container3 = atom.deserializers.deserialize(container.serialize())
+      pane3 = container3.getRoot()
+      container3.attachToDom()
+      expect(pane3).not.toMatchSelector(':has(:focus)')
