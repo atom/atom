@@ -1,0 +1,2 @@
+language: objective-c
+script: './script/test'
