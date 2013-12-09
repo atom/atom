@@ -26,7 +26,7 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        
+
         failedPackages.push path.basename(packagePath) if error
         callback()
 
@@ -57,8 +57,13 @@ module.exports = (grunt) ->
     done = @async()
     startTime = Date.now()
 
-    async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
-      [coreSpecFailed, failedPackages] = results
+    tasks = [runCoreSpecs]
+    tasks.push(runPackageSpecs) if grunt.option('runAllSpecs')
+
+    async.parallel tasks, (error, results) ->
+      [coreSpecsFailed, failedPackages] = results
+      failedPackages ?= []
+
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
       failures = failedPackages
