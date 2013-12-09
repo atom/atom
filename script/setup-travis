@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -ex
+
+travis enable --pro
+travis encrypt --add env.global ATOM_ACCESS_TOKEN=1d049d05ea58d65d54ef00305e87b75358a19c40
+
+git add .
+git commit -am 'Add initial Travis CI configuration'
+git push origin HEAD
