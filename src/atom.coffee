@@ -41,6 +41,7 @@ class Atom
 
   # Private:
   constructor: ->
+    @loadTime = null
     @workspaceViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
 
@@ -443,6 +444,16 @@ class Atom
       @windowState.get(keyPath)
     else
       @windowState
+
+  # Public: Get the time taken to completely load the current window.
+  #
+  # This time include things like loading and activating packages, creating
+  # DOM elements for the editor, and reading the config.
+  #
+  # Returns the number of milliseconds taken to load the window or null
+  # if the window hasn't finished loading yet.
+  getWindowLoadTime: ->
+    @loadTime
 
   # Private: Returns a replicated copy of the current state.
   replicate: ->

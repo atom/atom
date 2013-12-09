@@ -10,4 +10,5 @@ Atom = require './atom'
 window.atom = new Atom()
 atom.setUpEnvironment('editor')
 atom.startEditorWindow()
-console.log "Window load time: #{Date.now() - startTime}ms"
+window.atom.loadTime = Date.now() - startTime
+console.log "Window load time: #{atom.getWindowLoadTime()}ms"
