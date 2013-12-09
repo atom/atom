@@ -26,6 +26,18 @@ describe "Project", ->
       expect(deserializedProject.getBuffers().length).toBe 0
       expect(atom.project.getBuffers().length).toBe 0
 
+    it "destroys non-existent non-modified buffers and does not include them in the serialized state", ->
+      nonExistentNonModified = atom.project.openSync("non-existent-non-modified.txt")
+      nonExistentModified = atom.project.openSync("non-existent-modified.txt")
+      nonExistentModified.setText("I am modified")
+      expect(atom.project.getBuffers().length).toBe 2
+
+      atom.project.getState().serializeForPersistence()
+      deserializedProject = atom.replicate().get('project')
+
+      expect(deserializedProject.getBuffers().length).toBe 1
+      expect(atom.project.getBuffers().length).toBe 1
+
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
       atom.project.openSync('a')
       expect(atom.project.getBuffers().length).toBe 1

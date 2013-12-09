@@ -43,6 +43,7 @@ class Project extends telepath.Model
   # Private: Called by telepath.
   beforePersistence: ->
     @destroyUnretainedBuffers()
+    @destroyNonExistentNonModified()
 
   # Public: Register an opener for project files.
   #
@@ -76,6 +77,9 @@ class Project extends telepath.Model
   # Private:
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+
+  destroyNonExistentNonModified: ->
+    buffer.destroy() for buffer in @getBuffers() when not buffer.isModified() and not buffer.file.exists()
 
   # Public: Returns the {Git} repository if available.
   getRepo: -> @repo
