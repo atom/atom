@@ -108,10 +108,10 @@ describe "Config", ->
       expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
 
   describe ".save()", ->
-    nodeFs = require 'fs'
+    CSON = require 'season'
 
     beforeEach ->
-      spyOn(nodeFs, 'writeFileSync')
+      spyOn(CSON, 'writeFileSync')
       jasmine.unspy atom.config, 'save'
 
     describe "when ~/.atom/config.json exists", ->
@@ -122,12 +122,12 @@ describe "Config", ->
         atom.config.set("x.y.z", 3)
         atom.config.setDefaults("a.b", e: 4, f: 5)
 
-        nodeFs.writeFileSync.reset()
+        CSON.writeFileSync.reset()
         atom.config.save()
 
-        expect(nodeFs.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.json"))
-        writtenConfig = JSON.parse(nodeFs.writeFileSync.argsForCall[0][1])
-        expect(writtenConfig).toEqual atom.config.settings
+        expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.json"))
+        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+        expect(writtenConfig).toBe atom.config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
       it "writes any non-default properties to ~/.atom/config.cson", ->
@@ -137,12 +137,12 @@ describe "Config", ->
         atom.config.set("x.y.z", 3)
         atom.config.setDefaults("a.b", e: 4, f: 5)
 
-        nodeFs.writeFileSync.reset()
+        CSON.writeFileSync.reset()
         atom.config.save()
 
-        expect(nodeFs.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.cson"))
+        expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.cson"))
         CoffeeScript = require 'coffee-script'
-        writtenConfig = CoffeeScript.eval(nodeFs.writeFileSync.argsForCall[0][1], bare: true)
+        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
         expect(writtenConfig).toEqual atom.config.settings
 
   describe ".setDefaults(keyPath, defaults)", ->

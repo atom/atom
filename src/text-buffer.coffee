@@ -38,7 +38,7 @@ class TextBuffer extends telepath.Model
     @loadWhenAttached = @getState()?
 
   # Private: Called by telepath.
-  attached: ->
+  created: ->
     @loaded = false
     @useSerializedText = @modifiedWhenLastPersisted != false
 
@@ -63,12 +63,13 @@ class TextBuffer extends telepath.Model
     @updateCachedDiskContents().then => @finishLoading()
 
   finishLoading: ->
-    @loaded = true
-    if @useSerializedText and @digestWhenLastPersisted is @file?.getDigest()
-      @emitModifiedStatusChanged(true)
-    else
-      @reload()
-    @text.clearUndoStack()
+    if @isAlive()
+      @loaded = true
+      if @useSerializedText and @digestWhenLastPersisted is @file?.getDigest()
+        @emitModifiedStatusChanged(true)
+      else
+        @reload()
+      @text.clearUndoStack()
     this
 
   ### Internal ###

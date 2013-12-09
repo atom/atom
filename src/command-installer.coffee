@@ -32,10 +32,10 @@ module.exports =
       callback = commandName
       commandName = path.basename(commandPath, path.extname(commandPath))
 
-    installCallback = (error) ->
+    installCallback = (error, sourcePath, destinationPath) ->
       if error?
         console.warn "Failed to install `#{commandName}` binary", error
-      callback?(error)
+      callback?(error, sourcePath, destinationPath)
 
     @findInstallDirectory (directory) ->
       if directory?
@@ -44,16 +44,25 @@ module.exports =
           if error?
             installCallback(error)
           else
-            symlinkCommand(commandPath, destinationPath, installCallback)
+            symlinkCommand commandPath, destinationPath, (error) ->
+              installCallback(error, commandPath, destinationPath)
       else
         installCallback(new Error("No destination directory exists to install"))
 
-  installAtomCommand: (callback) ->
-    {resourcePath} = atom.getLoadSettings()
+  installAtomCommand: (resourcePath, callback) ->
+    if _.isFunction(resourcePath)
+      callback = resourcePath
+      resourcePath = null
+
+    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
     @install(commandPath, callback)
 
-  installApmCommand: (callback) ->
-    {resourcePath} = atom.getLoadSettings()
+  installApmCommand: (resourcePath, callback) ->
+    if _.isFunction(resourcePath)
+      callback = resourcePath
+      resourcePath = null
+
+    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
     @install(commandPath, callback)

@@ -138,7 +138,7 @@ class AtomApplication
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
-    @on 'application:open-documentation', -> shell.openExternal('https://github-atom-io.herokuapp.com/docs/latest/?app=true')
+    @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
     @on 'application:show-settings', ->
       if @focusedWindow()
@@ -245,6 +245,14 @@ class AtomApplication
   #    + initialSize:
   #      Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, initialSize}={}) ->
+    if devMode and not fs.existsSync(global.devResourcePath)
+      dialog.showMessageBox
+        type: 'warning'
+        buttons: ['OK']
+        message: 'Atom source directory not found.'
+        detail: 'To run a window in dev mode you need to have the atom/atom repo cloned to ~/github/atom'
+      return
+
     if pathToOpen
       [basename, initialLine] = path.basename(pathToOpen).split(':')
       if initialLine

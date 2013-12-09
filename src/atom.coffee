@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 ipc = require 'ipc'
+keytar = require 'keytar'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
@@ -203,6 +204,7 @@ class Atom
     @workspaceView.remove()
     @project.destroy()
     @windowEventHandler?.unsubscribe()
+    @windowState = null
 
   # Set up the default event handlers and menus for a non-editor window.
   #
@@ -352,9 +354,16 @@ class Atom
   getVersion: ->
     app.getVersion()
 
-  # Public: Gets the user agent of the atom instance.
-  getUserAgent: ->
-    "GitHubAtom/#{app.getVersion()}"
+  getGitHubAuthTokenName: ->
+    'Atom GitHub API Token'
+
+  # Public: Set the the github token in the keychain
+  setGitHubAuthToken: (token) ->
+    keytar.replacePassword(@getGitHubAuthTokenName(), 'github', token)
+
+  # Public: Get the github token from the keychain
+  getGitHubAuthToken: ->
+    keytar.getPassword(@getGitHubAuthTokenName(), 'github')
 
   # Public: Get the directory path to Atom's configuration area.
   #
@@ -390,8 +399,8 @@ class Atom
     windowState.set(keyPath, value)
     windowState
 
-  # Private:
-  loadWindowState: ->
+  # Private
+  loadSerializedWindowState: ->
     if windowStatePath = @getWindowStatePath()
       if fs.existsSync(windowStatePath)
         try
@@ -406,7 +415,10 @@ class Atom
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    doc = Document.deserialize(documentState) if documentState?
+  # Private:
+  loadWindowState: ->
+    serializedWindowState = @loadSerializedWindowState()
+    doc = Document.deserialize(serializedWindowState) if serializedWindowState?
     doc ?= Document.create()
     doc.registerModelClasses(require('./text-buffer'), require('./project'))
     # TODO: Remove this when everything is using telepath models

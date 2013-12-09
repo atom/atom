@@ -32,7 +32,7 @@ describe "ThemeManager", ->
 
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
-      atom.config.set('core.themes', ['atom-dark-syntax', 'atom-dark-ui', 'atom-light-ui'])
+      atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui', 'atom-light-ui'])
 
       paths = themeManager.getImportPaths()
 
@@ -67,8 +67,8 @@ describe "ThemeManager", ->
       atom.config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
 
-      # atom-dark-ui has an directory path, the syntax ones dont.
-      atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
+      # atom-dark-ui has an directory path, the syntax one doesn't
+      atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
       importPaths = themeManager.getImportPaths()
       expect(importPaths.length).toBe 1
       expect(importPaths[0]).toContain 'atom-dark-ui'

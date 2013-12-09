@@ -53,10 +53,13 @@ class ThemeManager
       # the first/top theme to override later themes in the stack.
       themeNames = _.clone(themeNames).reverse()
 
+      @refreshLessCache() # Update cache for packages in core.themes config
       @packageManager.activatePackage(themeName) for themeName in themeNames
-      @refreshLessCache()
+
+      @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
       @loadUserStylesheet()
       @reloadBaseStylesheets()
+
       @emit('reloaded')
 
   # Internal-only:

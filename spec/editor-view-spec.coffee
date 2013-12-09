@@ -1158,7 +1158,8 @@ describe "EditorView", ->
         line0 = editorView.renderedLines.find('.line:first')
         span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
         expect(span0_0).toMatchSelector '.hard-tab'
-        expect(span0_0.text()).toBe ' '
+        expect(span0_0.text()).toBe '  '
+        expect(span0_0.text().length).toBe editor.getTabLength()
 
       it "wraps leading whitespace in a span", ->
         line1 = editorView.renderedLines.find('.line:eq(1)')
@@ -2851,3 +2852,17 @@ describe "EditorView", ->
         editorView.pixelPositionForScreenPosition([0, 5])
         editorView.pixelPositionForScreenPosition([1, 5])
         expect(editorView.measureToColumn.callCount).toBe 0
+
+  describe "when the editor contains hard tabs", ->
+    it "correctly calculates the the position left for a column", ->
+      editorView.setText('\ttest')
+      editorView.attachToDom()
+
+      expect(editorView.pixelPositionForScreenPosition([0, editor.getTabLength()]).left).toEqual 20
+      expect(editorView.pixelPositionForScreenPosition([0, editor.getTabLength() + 1]).left).toEqual 30
+
+      # Check that widths are actually being cached
+      spyOn(editorView, 'measureToColumn').andCallThrough()
+      editorView.pixelPositionForScreenPosition([0, editor.getTabLength()])
+      editorView.pixelPositionForScreenPosition([0, editor.getTabLength() + 1])
+      expect(editorView.measureToColumn.callCount).toBe 0

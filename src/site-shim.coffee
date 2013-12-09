@@ -6,7 +6,6 @@ class SiteShim
 
   setRootDocument: (@document) ->
     @id = @document.siteId
-    @document.set('looseDocuments', [])
 
   createDocument: (values) ->
-    @document.get('looseDocuments').push(values)
+    @document.create({values})
