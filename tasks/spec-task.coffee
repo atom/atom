@@ -67,8 +67,8 @@ module.exports = (grunt) ->
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
       failures = failedPackages
-      failures.push "atom core" if coreSpecFailed
+      failures.push "atom core" if coreSpecsFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
-      done(!coreSpecFailed and failedPackages.length == 0)
+      done(!coreSpecsFailed and failedPackages.length == 0)
