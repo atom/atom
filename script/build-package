@@ -1,0 +1,32 @@
+#!/bin/sh
+
+echo "Downloading node..."
+curl -s -O http://nodejs.org/dist/v0.10.22/node-v0.10.22-darwin-x64.tar.gz
+tar -zxf node-v0.10.22-darwin-x64.tar.gz
+export PATH=$PATH:node-v0.10.22-darwin-x64/bin/
+
+# Request Atom releases
+curl -s -O https://api.github.com/repos/atom/atom/releases -H "Authorization: token $ATOM_ACCESS_TOKEN"
+node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[1].assets_url);" > release_url
+
+# Request latest release
+curl -s -O `cat release_url` -H "Authorization: token $ATOM_ACCESS_TOKEN"
+node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('assets'))[0].url);" > asset_url
+
+# Request asset
+echo "Downloading Atom..."
+curl -s -L `cat asset_url` \
+  -u "$ATOM_ACCESS_TOKEN:x-oauth-basic"\
+  -H 'Accept: application/octet-stream' \
+  -o atom.zip
+
+mkdir atom
+unzip -q atom.zip -d atom
+
+echo "Downloading package dependencies"
+atom/Atom.app/Contents/Resources/app/node_modules/.bin/apm update
+
+echo "Running specs..."
+ATOM_PATH=./atom/Atom.app atom/Atom.app/Contents/Resources/app/node_modules/.bin/apm test --path atom/Atom.app/Contents/Resources/app/atom.sh
+
+exit
