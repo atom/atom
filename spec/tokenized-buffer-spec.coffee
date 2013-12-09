@@ -431,7 +431,7 @@ describe "TokenizedBuffer", ->
     it "updates the tab length of the tokenized lines", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
