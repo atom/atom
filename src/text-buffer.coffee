@@ -117,8 +117,8 @@ class TextBuffer extends telepath.Model
         @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents().done =>
-        @emitModifiedStatusChanged(@isModified())
+      @wasModifiedBeforeRemove = @getText() != @cachedDiskContents
+      @updateCachedDiskContents()
 
     @file.on "moved", =>
       @emit "path-changed", this
@@ -403,7 +403,7 @@ class TextBuffer extends telepath.Model
       if @file.exists()
         @getText() != @cachedDiskContents
       else
-        true
+        @wasModifiedBeforeRemove ? not @isEmpty()
     else
       not @isEmpty()
 
