@@ -50,7 +50,7 @@ module.exports = (grunt) ->
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     spawn options, (error, results, code) ->
-      packageSpecQueue.concurrency = 2
+      packageSpecQueue?.concurrency = 2
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
