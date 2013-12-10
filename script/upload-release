@@ -9,7 +9,7 @@ fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
 
-assetPath = '/tmp/atom-build/atom-mac-prerelease.zip'
+assetPath = '/tmp/atom-build/atom-mac.zip'
 token = process.env.ATOM_ACCESS_TOKEN
 
 zipApp = (callback) ->
