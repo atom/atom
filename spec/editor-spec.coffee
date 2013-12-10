@@ -2389,17 +2389,16 @@ describe "Editor", ->
 
     describe "when a better-matched grammar is added to syntax", ->
       it "switches to the better-matched grammar and re-tokenizes the buffer", ->
-        editor.destroy()
         jsGrammar = atom.syntax.selectGrammar('a.js')
         atom.syntax.removeGrammar(jsGrammar)
 
-        editor = atom.project.openSync('sample.js', autoIndent: false)
-        expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
-        expect(editor.lineForScreenRow(0).tokens.length).toBe 1
+        editor2 = atom.project.openSync('sample.js', autoIndent: false)
+        expect(editor2.getGrammar()).toBe atom.syntax.nullGrammar
+        expect(editor2.lineForScreenRow(0).tokens.length).toBe 1
 
         atom.syntax.addGrammar(jsGrammar)
-        expect(editor.getGrammar()).toBe jsGrammar
-        expect(editor.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
+        expect(editor2.getGrammar()).toBe jsGrammar
+        expect(editor2.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
     describe "auto-indent", ->
       copyText = (text, {startColumn}={}) ->

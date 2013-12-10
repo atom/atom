@@ -106,7 +106,7 @@ class EditorView extends View
       @edit(editor)
     else if @mini
       @edit(new Editor
-        buffer: TextBuffer.createAsRoot()
+        buffer: atom.create(new TextBuffer)
         softWrap: false
         tabLength: 2
         softTabs: true

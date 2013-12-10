@@ -1,8 +1,7 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
-telepath = require 'telepath'
-{Point, Range} = telepath
+{Model, Point, Range} = require 'telepath'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
@@ -12,34 +11,28 @@ ConfigObserver = require './config-observer'
 
 # Private:
 module.exports =
-class DisplayBuffer
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class DisplayBuffer extends Model
   _.extend @prototype, ConfigObserver
 
-  @acceptsDocuments: true
-  atom.deserializers.add(this)
-  @version: 2
+  @properties
+    tokenizedBuffer: null
+    softWrap: -> atom.config.get('editor.softWrap') ? false
+    editorWidthInChars: null
 
-  @deserialize: (state) -> new this(state)
+  constructor: ->
+    super
+    @deserializing = @state?
 
-  constructor: (optionsOrState) ->
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-      @id = @state.get('id')
-      @tokenizedBuffer = atom.deserializers.deserialize(@state.get('tokenizedBuffer'))
-      @buffer = @tokenizedBuffer.buffer
+  created: ->
+    if @deserializing
+      @deserializing = false
+      return
+
+    if @tokenizedBuffer?
+      @tokenizedBuffer?.created()
     else
-      {@buffer, softWrap, editorWidthInChars} = optionsOrState
-      @id = guid.create().toString()
-      @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        version: @constructor.version
-        id: @id
-        tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrap: softWrap ? atom.config.get('editor.softWrap') ? false
-        editorWidthInChars: editorWidthInChars
+      @tokenizedBuffer = new TokenizedBuffer({@tabLength, @buffer, project: atom.project})
+    @buffer = @tokenizedBuffer.buffer
 
     @markers = {}
     @foldsByMarkerId = {}
@@ -56,16 +49,13 @@ class DisplayBuffer
         @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @getSoftWrap() and atom.config.get('editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @getSoftWrap()
-
-  serialize: -> @state.clone()
-  getState: -> @state
+      @updateWrappedScreenLines() if @softWrap
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer = atom.create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -98,25 +88,26 @@ class DisplayBuffer
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  setSoftWrap: (softWrap) -> @state.set('softWrap', softWrap)
+  # Deprecated: Use the softWrap property directly
+  setSoftWrap: (@softWrap) -> @softWrap
 
-  getSoftWrap: -> @state.get('softWrap')
+  # Deprecated: Use the softWrap property directly
+  getSoftWrap: -> @softWrap
 
   # Set the number of characters that fit horizontally in the editor.
   #
   # editorWidthInChars - A {Number} of characters.
   setEditorWidthInChars: (editorWidthInChars) ->
-    previousWidthInChars = @state.get('editorWidthInChars')
-    @state.set('editorWidthInChars', editorWidthInChars)
-    if editorWidthInChars isnt previousWidthInChars and @getSoftWrap()
+    previousWidthInChars = @editorWidthInChars
+    @editorWidthInChars = editorWidthInChars
+    if editorWidthInChars isnt previousWidthInChars and @softWrap
       @updateWrappedScreenLines()
 
   getSoftWrapColumn: ->
-    editorWidthInChars = @state.get('editorWidthInChars')
     if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
+      Math.min(@editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', @editorWidthInChars))
     else
-      editorWidthInChars
+      @editorWidthInChars
 
   # Gets the screen line for the given screen row.
   #
@@ -433,7 +424,7 @@ class DisplayBuffer
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @getSoftWrap()
+    return unless @softWrap
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -654,6 +645,7 @@ class DisplayBuffer
         softWraps = 0
         while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
           [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+
           newScreenLines.push(wrappedLine)
           softWraps++
         newScreenLines.push(tokenizedLine)
