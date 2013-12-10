@@ -26,7 +26,7 @@ var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  {command: 'npm install --silent'), options: {cwd: path.resolve(__dirname, '..', 'vendor', 'apm'), ignoreStdout: true}},
+  {command: 'npm install --silent', options: {cwd: path.resolve(__dirname, '..', 'vendor', 'apm'), ignoreStdout: true}},
   {command: 'npm install --silent vendor/apm', options: {ignoreStdout: true}},
   echoNewLine,
   'node node_modules/atom-package-manager/bin/apm clean',
