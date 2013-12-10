@@ -1,11 +1,11 @@
 #!/usr/bin/env coffee
 
-return unless process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'ks-upload-release'
+# return unless process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'ks-upload-release'
 
 child_process = require 'child_process'
-fs = require 'fs'
 path = require 'path'
 
+fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
 
@@ -13,7 +13,7 @@ assetPath = '/tmp/atom-build/atom-mac-prerelease.zip'
 token = process.env.ATOM_ACCESS_TOKEN
 
 zipApp = (callback) ->
-  fs.unlinkSync(assetPath) if fs.existsSync(assetPath)
+  fs.removeSync(assetPath)
 
   options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
   child_process.exec "zip -r --symlinks #{path.basename(assetPath)} Atom.app", options, (error, stdout, stderr) ->
@@ -41,20 +41,42 @@ getDraftRelease = (callback) ->
     console.error('No draft release found in atom/atom repo')
     process.exit(1)
 
-uploadAsset = ->
-  getDraftRelease (release) ->
+deleteExistingAsset = (release, callback) ->
+  for asset in release.assets when asset.name is path.basename(assetPath)
     options =
-      uri: "https://uploads.github.com/repos/atom/atom/releases/#{release.id}/assets?name=#{path.basename(assetPath)}"
-      method: 'POST'
+      uri: asset.url
+      method: 'DELETE'
       headers:
         Authorization: "token #{token}"
-        'Content-Type': 'application/zip'
-        'Content-Length': fs.statSync(assetPath).size
-
-    assetRequest = request options, (error, response, body='') ->
+        'User-Agent': 'Atom'
+    request options, (error, response, body='') ->
       if error? or response.statusCode >= 400
-        console.error('Upload release asset failed', error, body)
+        console.error('Deleting existing release asset failed', error, body)
         process.exit(1)
-    fs.createReadStream(assetPath).pipe(assetRequest)
+      else
+        callback()
 
-zipApp(uploadAsset)
+    return
+
+  callback()
+
+uploadAsset = (release) ->
+  options =
+    uri: "https://uploads.github.com/repos/atom/atom/releases/#{release.id}/assets?name=#{path.basename(assetPath)}"
+    method: 'POST'
+    headers:
+      Authorization: "token #{token}"
+      'Content-Type': 'application/zip'
+      'Content-Length': fs.getSizeSync(assetPath)
+      'User-Agent': 'Atom'
+
+  assetRequest = request options, (error, response, body='') ->
+    if error? or response.statusCode >= 400
+      console.error('Upload release asset failed', error, body)
+      process.exit(1)
+  fs.createReadStream(assetPath).pipe(assetRequest)
+
+getDraftRelease (release) ->
+  zipApp ->
+    deleteExistingAsset release, ->
+      uploadAsset(release)
