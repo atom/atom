@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Don't upload releases except for master builds
-if (process.env.TRAVIS && process.env.TRAVIS_BRANCH !== 'master') {
+if (process.env.TRAVIS && process.env.TRAVIS_BRANCH === 'master') {
   return;
 }
 
