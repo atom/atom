@@ -45,7 +45,7 @@
     "space-pen": "2.0.1",
     "telepath": "0.65.0",
     "temp": "0.5.0",
-    "underscore-plus": "0.3.0"
+    "underscore-plus": "0.4.0"
   },
   "devDependencies": {
     "biscotto": "0.0.17",
