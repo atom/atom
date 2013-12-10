@@ -4,3 +4,6 @@ after_success: ./node-v0.10.22-darwin-x64/bin/node upload-release
 env:
   global:
     secure: rMUV69ZffzHEfPspt9meSsW+2I+CBohhlB7Lbh0AJXcWWgC7ZNmoHMNtTa/riQTzpuIUUlqbtz1MR5zTYL5o0pbcotpZlXn4VaDPamxzjI51lICsPfW1bvt3+4THJUcYzU2+6ANjJKpuDtpiZ8Tqg+00rIwKs8OTz3nt143BRFM=
+branches:
+  only:
+    - ks-travis
