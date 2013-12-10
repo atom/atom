@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+var child_process = require('child_process');
+var fs = require('fs');
+var path = require ('path');
+
+var GitHub = require('github-releases');
+var request = require('request');
+
+var assetPath = '/tmp/atom-build/atom-mac.zip';
+var token = process.env.ATOM_ACCESS_TOKEN;
+
+var zipApp = function(callback) {
+  if (fs.existsSync(assetPath))
+    fs.unlinkSync(assetPath)
+
+  var options = {
+    cwd: path.dirname(assetPath),
+    maxBuffer: Infinity
+  };
+  child_process.exec('zip -r --symlinks atom-mac.zip Atom.app', options, function(error, stdout, stderr) {
+    if (error) {
+      console.error('Zipping Atom.app failed', error, stderr);
+      process.exit(1);
+    } else
+      callback();
+  });
+};
+
+var getDraftRelease = function(callback) {
+  var github = new GitHub({repo: 'atom/atom', token: token});
+  github.getReleases(function(error, releases) {
+    if (error) {
+      console.error('Fetching releases failed', error.message, error.stack);
+      process.exit(1);
+    }
+
+    var release = null;
+    for (var i = 0; i < releases.length; i++) {
+      release = releases[i];
+      if (release.draft) {
+        callback(release);
+        return;
+      }
+    }
+
+    console.error('No draft release found');
+    process.exit(1);
+  })
+};
+
+var uploadAsset = function() {
+  getDraftRelease(function(release) {
+    var options = {
+      uri: "https://uploads.github.com/repos/atom/atom/releases/" + release.id + "/assets?name=" + path.basename(assetPath),
+      method: 'POST',
+      headers: {
+        Authorization: 'token ' + token,
+        'Content-Type': 'application/zip',
+        'Content-Length': fs.statSync(assetPath).size
+      }
+    };
+    var upload = request(options, function(error, response, body) {
+      if (error || response.statusCode >= 400)
+        console.error('Upload release asset failed', error, body);
+    });
+    fs.createReadStream(assetPath).pipe(upload);
+  });
+}
+
+zipApp(uploadAsset);

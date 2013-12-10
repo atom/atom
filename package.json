@@ -69,7 +69,8 @@
     "request": "~2.27.0",
     "unzip": "~0.1.9",
     "rcedit": "~0.1.2",
-    "rimraf": "~2.2.2"
+    "rimraf": "~2.2.2",
+    "github-releases": "~0.2.0"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.8.0",

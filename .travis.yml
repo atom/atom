@@ -1,2 +1,3 @@
 language: objective-c
 script: './script/travis'
+after_success: './node-v0.10.22-darwin-x64/bin/node upload-release'
