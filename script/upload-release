@@ -51,9 +51,9 @@ uploadAsset = ->
         'Content-Type': 'application/zip'
         'Content-Length': fs.statSync(assetPath).size
 
-    upload = request options, (error, response, body) ->
+    assetRequest = request options, (error, response, body) ->
       if error or response.statusCode >= 400
         console.error('Upload release asset failed', error, body)
-    fs.createReadStream(assetPath).pipe(upload)
+    fs.createReadStream(assetPath).pipe(assetRequest)
 
 zipApp(uploadAsset)
