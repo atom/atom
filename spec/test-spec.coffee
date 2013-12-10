@@ -24,8 +24,8 @@ describe "apm test", ->
 
     runs ->
       expect(atomSpawn.mostRecentCall.args[0]).toEqual 'atom'
-      expect(atomSpawn.mostRecentCall.args[1][0]).toEqual '-d'
-      expect(atomSpawn.mostRecentCall.args[1][1]).toEqual '-t'
+      expect(atomSpawn.mostRecentCall.args[1][0]).toEqual '--dev'
+      expect(atomSpawn.mostRecentCall.args[1][1]).toEqual '--test'
       expect(atomSpawn.mostRecentCall.args[1][2]).toEqual "--spec-directory=#{specPath}"
       expect(atomSpawn.mostRecentCall.args[2].streaming).toBeTruthy()
 
