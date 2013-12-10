@@ -1,7 +1,6 @@
 #!/usr/bin/env coffee
 
-if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'ks-upload-release'
-  return
+return unless process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'ks-upload-release'
 
 child_process = require 'child_process'
 fs = require 'fs'
