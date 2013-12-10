@@ -36,7 +36,6 @@ class Pane extends View
       @state = args[0]
       _.compact @state.get('items').each (item) =>
         @addItem(item, @items.length) if item = atom.deserializers.deserialize(item)
-
     else
       items = args
       @state = atom.site.createDocument
