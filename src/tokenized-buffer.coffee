@@ -1,16 +1,16 @@
 _ = require 'underscore-plus'
+{Model, Point, Range} = require 'telepath'
 TokenizedLine = require './tokenized-line'
-{Emitter, Subscriber} = require 'emissary'
 Token = require './token'
-telepath = require 'telepath'
-{Point, Range} = telepath
 
 ### Internal ###
 
 module.exports =
-class TokenizedBuffer
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class TokenizedBuffer extends Model
+  @properties
+    bufferPath: null
+    tabLength: -> atom.config.get('editor.tabLength') ? 2
+    project: null
 
   grammar: null
   currentGrammarScore: null
@@ -20,24 +20,19 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
-  @acceptsDocuments: true
-  atom.deserializers.add(this)
+  constructor: ->
+    super
+    @deserializing = @state?
 
-  @deserialize: (state) ->
-    new this(state)
+  created: ->
+    if @deserializing
+      @deserializing = false
+      return
 
-  constructor: (optionsOrState) ->
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-
-      # TODO: This needs to be made async, but should wait until the new Telepath changes land
-      @buffer = atom.project.bufferForPathSync(optionsOrState.get('bufferPath'))
+    if @buffer? and @buffer.isAlive()
+      @bufferPath = @buffer.getPath()
     else
-      { @buffer, tabLength } = optionsOrState
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        bufferPath: @buffer.getPath()
-        tabLength: tabLength ? atom.config.get('editor.tabLength') ? 2
+      @buffer = @project.bufferForPathSync(@bufferPath)
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
@@ -48,15 +43,25 @@ class TokenizedBuffer
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getPath())
+    @subscribe @buffer, "path-changed", => @bufferPath = @buffer.getPath()
+
+    @subscribe @$tabLength.changes.onValue (tabLength) =>
+      lastRow = @buffer.getLastRow()
+      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+      @invalidateRow(0)
+      @emit "changed", { start: 0, end: lastRow, delta: 0 }
 
     @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
       @setTabLength(atom.config.getPositiveInt('editor.tabLength'))
 
     @reloadGrammar()
 
-  serialize: -> @state.clone()
-  getState: -> @state
+  # TODO: Remove when everything is a telepath model
+  destroy: ->
+    @destroyed()
+
+  destroyed: ->
+    @unsubscribe()
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
@@ -90,24 +95,19 @@ class TokenizedBuffer
   #
   # Returns a {Number}.
   getTabLength: ->
-    @state.get('tabLength')
+    @tabLength
 
   # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (tabLength) ->
-    @state.set('tabLength', tabLength)
-    lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
-    @invalidateRow(0)
-    @emit "changed", { start: 0, end: lastRow, delta: 0 }
+  setTabLength: (@tabLength) ->
 
   tokenizeInBackground: ->
-    return if not @visible or @pendingChunk or @destroyed
+    return if not @visible or @pendingChunk or not @isAlive()
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
-      @tokenizeNextChunk() unless @destroyed
+      @tokenizeNextChunk() if @isAlive() and @buffer.isAlive()
 
   tokenizeNextChunk: ->
     rowsRemaining = @chunkSize
@@ -250,10 +250,6 @@ class TokenizedBuffer
     startColumn = tokenizedLine.bufferColumnForToken(firstToken)
     endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
     new Range([position.row, startColumn], [position.row, endColumn])
-
-  destroy: ->
-    @unsubscribe()
-    @destroyed = true
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

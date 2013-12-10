@@ -41,6 +41,7 @@ class Atom
 
   # Private:
   constructor: ->
+    @loadTime = null
     @workspaceViewParentSelector = 'body'
     @deserializers = new DeserializerManager()
 
@@ -79,6 +80,12 @@ class Atom
   # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
+
+  # Public: Create a new telepath model. We won't need to define this method when
+  # the atom global is a telepath model itself because all model subclasses inherit
+  # a create method.
+  create: (model) ->
+    @site.createDocument(model)
 
   # Public: Get the current window
   getCurrentWindow: ->
@@ -420,7 +427,7 @@ class Atom
     serializedWindowState = @loadSerializedWindowState()
     doc = Document.deserialize(serializedWindowState) if serializedWindowState?
     doc ?= Document.create()
-    doc.registerModelClasses(require('./text-buffer'), require('./project'))
+    doc.registerModelClasses(require('./text-buffer'), require('./project'), require('./tokenized-buffer'), require('./display-buffer'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)
@@ -443,6 +450,16 @@ class Atom
       @windowState.get(keyPath)
     else
       @windowState
+
+  # Public: Get the time taken to completely load the current window.
+  #
+  # This time include things like loading and activating packages, creating
+  # DOM elements for the editor, and reading the config.
+  #
+  # Returns the number of milliseconds taken to load the window or null
+  # if the window hasn't finished loading yet.
+  getWindowLoadTime: ->
+    @loadTime
 
   # Private: Returns a replicated copy of the current state.
   replicate: ->

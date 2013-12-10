@@ -66,7 +66,7 @@ directory, which contains CoffeeScript-style JSON:
 
 ```coffeescript
 core:
-  hideGitIgnoredFiles: true
+  excludeVcsIgnoredPaths: true
 editor:
   fontSize: 18
 ```
@@ -79,7 +79,6 @@ namespaces: `core` and `editor`.
 - `core`
   - `disabledPackages`: An array of package names to disable
   - `excludeVcsIgnoredPaths`: Don't search within files specified by _.gitignore_
-  - `hideGitIgnoredFiles`: Whether files in the _.gitignore_ should be hidden
   - `ignoredNames`: File names to ignore across all of Atom
   - `projectHome`: The directory where projects are assumed to be located
   - `themes`: An array of theme names to load, in cascading order
@@ -107,7 +106,7 @@ namespaces: `core` and `editor`.
 - `whitespace`
   - `ensureSingleTrailingNewline`: Whether to reduce multiple newlines to one at the end of files
   - `removeTrailingWhitespace`: Enable/disable striping of whitespace at the end of lines (defaults to `true`)
-- `wrapGuide`
+- `wrap-guide`
   - `columns`: Array of hashes with a `pattern` and `column` key to match the
              the path of the current editor to a column position.
 

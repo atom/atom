@@ -118,8 +118,6 @@ class WorkspaceView extends View
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       atom.config.toggle("editor.showInvisibles")
-    @command 'window:toggle-ignored-files', =>
-      atom.config.toggle("core.hideGitIgnoredFiles")
 
     @command 'window:toggle-auto-indent', =>
       atom.config.toggle("editor.autoIndent")

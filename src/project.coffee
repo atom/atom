@@ -34,7 +34,7 @@ class Project extends telepath.Model
   # Private: Called by telepath.
   created: ->
     for buffer in @buffers.getValues()
-      buffer.once 'destroyed', (buffer) => @removeBuffer(buffer)
+      buffer.once 'destroyed', (buffer) => @removeBuffer(buffer) if @isAlive()
 
     @openers = []
     @editors = []
@@ -64,7 +64,7 @@ class Project extends telepath.Model
   # Private:
   destroyed: ->
     editor.destroy() for editor in @getEditors()
-    buffer.release() for buffer in @getBuffers()
+    buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
   # Private:
@@ -239,7 +239,7 @@ class Project extends telepath.Model
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     buffer = @buffers.insert(index, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
+    buffer.once 'destroyed', => @removeBuffer(buffer) if @isAlive()
     @emit 'buffer-created', buffer
     buffer
 

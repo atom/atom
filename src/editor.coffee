@@ -44,7 +44,7 @@ class Editor
 
   atom.deserializers.add(this)
 
-  @version: 5
+  @version: 6
 
   @deserialize: (state) ->
     new Editor(state)
@@ -67,7 +67,8 @@ class Editor
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
-      displayBuffer = atom.deserializers.deserialize(@state.get('displayBuffer'))
+      displayBuffer = @state.get('displayBuffer')
+      displayBuffer.created()
       @setBuffer(displayBuffer.buffer)
       @setDisplayBuffer(displayBuffer)
       for marker in @findMarkers(@getSelectionMarkerAttributes())
@@ -79,12 +80,12 @@ class Editor
     else
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
       @id = guid.create().toString()
-      displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
+      displayBuffer ?= atom.create(new DisplayBuffer({buffer, tabLength, softWrap}))
       @state = atom.site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
-        displayBuffer: displayBuffer.getState()
+        displayBuffer: displayBuffer
         softTabs: buffer.usesSoftTabs() ? softTabs ? atom.config.get('editor.softTabs') ? true
         scrollTop: 0
         scrollLeft: 0
