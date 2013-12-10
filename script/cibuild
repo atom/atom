@@ -33,7 +33,7 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
     cp.safeExec.bind(global, 'node node_modules/grunt-cli/bin/grunt ci --stack --no-color'),
-    cp.safeExec.bind(global, 'node script/upload-release')
+    cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release')
   ], function(error) {
     process.exit(error ? 1 : 0);
   });
