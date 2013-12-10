@@ -9,7 +9,7 @@ package repos are made public.
 
 ## Configuring a package
 
-* Run `cd ~/github/my-package` to navigate to the package repo.
+* Run `cd ~/github/my-package` to navigate to the package repo locally
 * Run `apm test` to verify that the package currently builds via [apm][apm]
 * Add the package repo to the [Travis CI team][travis-ci-team]
 * Run `gem install travis` to install the [travis gem][travis-gem]
