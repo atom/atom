@@ -1,3 +1,3 @@
 [submodule "vendor/apm"]
 	path = vendor/apm
-	url = https://github.com/atom/apm.git
+	url = https://atom-bot:362295be4c5258d3f7b967bbabae662a455ca2a7@github.com/atom/apm.git
