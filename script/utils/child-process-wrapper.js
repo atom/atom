@@ -14,6 +14,7 @@ exports.safeExec = function(command, options, callback) {
   // The default is 200KB.
   options.maxBuffer = 1024 * 1024;
 
+  console.log('execing', command, process.env.PATH, options);
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
     if (error)
       process.exit(error.code || 1);
