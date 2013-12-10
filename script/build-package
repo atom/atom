@@ -7,6 +7,11 @@ export PATH=$PATH:$PWD/node-v0.10.22-darwin-x64/bin
 
 # Request Atom releases
 curl -s -O https://api.github.com/repos/atom/atom/releases -H "Authorization: token $ATOM_ACCESS_TOKEN"
+
+echo "Atom releases"
+cat releases
+echo "--------"
+
 node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[0].assets_url);" > release_url
 
 # Request latest release
