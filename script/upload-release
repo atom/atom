@@ -16,7 +16,7 @@ zipApp = (callback) ->
   fs.unlinkSync(assetPath) if fs.existsSync(assetPath)
 
   options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
-  child_process.exec 'zip -r --symlinks atom-mac.zip Atom.app', options, (error, stdout, stderr) ->
+  child_process.exec "zip -r --symlinks #{path.basename(assetPath)} Atom.app", options, (error, stdout, stderr) ->
     if error?
       console.error('Zipping Atom.app failed', error, stderr)
       process.exit(1)
