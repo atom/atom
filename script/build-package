@@ -6,11 +6,7 @@ tar -zxf node-v0.10.22-darwin-x64.tar.gz
 export PATH=$PATH:$PWD/node-v0.10.22-darwin-x64/bin
 
 # Request Atom releases
-curl -v -s -O https://api.github.com/repos/atom/atom/releases -H "Authorization: token $ATOM_ACCESS_TOKEN"
-
-echo "Atom releases"
-cat releases
-echo "--------"
+curl -s -O https://api.github.com/repos/atom/atom/releases -H "Authorization: token $ATOM_ACCESS_TOKEN"
 
 node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[0].assets_url);" > release_url
 
