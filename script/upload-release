@@ -2,6 +2,7 @@
 
 return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'ks-upload-release'
 
+
 child_process = require 'child_process'
 path = require 'path'
 
@@ -77,6 +78,7 @@ uploadAsset = (release) ->
   fs.createReadStream(assetPath).pipe(assetRequest)
 
 getDraftRelease (release) ->
+  console.log("Uploading #{path.basename(assetPath)} asset to #{release.name} release")
   zipApp ->
     deleteExistingAsset release, ->
       uploadAsset(release)
