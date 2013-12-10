@@ -107,7 +107,7 @@ namespaces: `core` and `editor`.
 - `whitespace`
   - `ensureSingleTrailingNewline`: Whether to reduce multiple newlines to one at the end of files
   - `removeTrailingWhitespace`: Enable/disable striping of whitespace at the end of lines (defaults to `true`)
-- `wrapGuide`
+- `wrap-guide`
   - `columns`: Array of hashes with a `pattern` and `column` key to match the
              the path of the current editor to a column position.
 
