@@ -24,7 +24,7 @@ zipApp = (callback) ->
       callback()
 
 getDraftRelease = (callback) ->
-  github = new GitHub({repo: 'atom/atom', token: token})
+  github = new GitHub({repo: 'atom/atom', token})
   github.getReleases (error, releases=[]) ->
     if error?
       console.error('Fetching releases failed', error.message, error.stack)
