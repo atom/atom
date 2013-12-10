@@ -22,17 +22,11 @@ function executeCommands(commands, done, index) {
     done(null);
 }
 
-// Join multiple commands into one line.
-function joinCommands() {
-  var commandSeparator = process.platform == 'win32' ? '&' : ';';
-  return Array.prototype.slice.call(arguments, 0).join(commandSeparator);
-}
-
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  {command: joinCommands('cd vendor/apm', 'npm install --silent .'), options: {ignoreStdout: true}},
+  {command: 'npm install --silent'), options: {cwd: path.resolve(__dirname, '..', 'vendor', 'apm'), ignoreStdout: true}},
   {command: 'npm install --silent vendor/apm', options: {ignoreStdout: true}},
   echoNewLine,
   'node node_modules/atom-package-manager/bin/apm clean',
