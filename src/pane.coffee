@@ -31,15 +31,18 @@ class Pane extends View
 
   # Private:
   initialize: (args...) ->
+    @items = []
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @items = _.compact @state.get('items').map (item) ->
-        atom.deserializers.deserialize(item)
+      _.compact @state.get('items').each (item) =>
+        @addItem(item, @items.length) if item = atom.deserializers.deserialize(item)
+
     else
-      @items = args
+      items = args
       @state = atom.site.createDocument
         deserializer: 'Pane'
-        items: @items.map (item) -> item.getState?() ? item.serialize()
+        items: items.map (item) -> item.getState?() ? item.serialize()
+      items.forEach (item) => @addItem(item, @items.length)
 
     @subscribe @state.get('items'), 'changed', ({index, removedValues, insertedValues, siteId}) =>
       return if siteId is @state.siteId
