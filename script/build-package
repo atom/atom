@@ -14,8 +14,9 @@ curl -s -O `cat release_url` -H "Authorization: token $ATOM_ACCESS_TOKEN"
 node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('assets'))[0].url);" > asset_url
 
 # Request asset
-atomRelease=`node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[0].name);"`
-echo "Downloading Atom $atomRelease release..."
+atomReleaseName=`node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[0].name);"`
+atomReleaseTag=`node -e "fs = require('fs');console.log(JSON.parse(fs.readFileSync('releases'))[0].tag_name);"`
+echo "Downloading Atom $atomReleaseTag ($atomReleaseName) release..."
 curl -s -L `cat asset_url` \
   -u "$ATOM_ACCESS_TOKEN:x-oauth-basic"\
   -H 'Accept: application/octet-stream' \
