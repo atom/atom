@@ -1,9 +1,9 @@
 #!/bin/sh
 
 echo "Downloading node v0.10.22..."
-# curl -s -O http://nodejs.org/dist/v0.10.22/node-v0.10.22-darwin-x64.tar.gz
-# tar -zxf node-v0.10.22-darwin-x64.tar.gz
-# export PATH=$PATH:$PWD/node-v0.10.22-darwin-x64/bin
+curl -s -O http://nodejs.org/dist/v0.10.22/node-v0.10.22-darwin-x64.tar.gz
+tar -zxf node-v0.10.22-darwin-x64.tar.gz
+export PATH=$PATH:$PWD/node-v0.10.22-darwin-x64/bin
 
 # Request Atom releases
 curl -s -O https://api.github.com/repos/atom/atom/releases -H "Authorization: token $ATOM_ACCESS_TOKEN"
