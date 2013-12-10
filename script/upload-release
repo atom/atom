@@ -40,6 +40,11 @@ var getDraftRelease = function(callback) {
       process.exit(1);
     }
 
+    if (!releases || releases.length === 0) {
+      console.error('No releases found in atom/atom repo');
+      process.exit(1);
+    }
+
     var release = null;
     for (var i = 0; i < releases.length; i++) {
       release = releases[i];
@@ -49,7 +54,7 @@ var getDraftRelease = function(callback) {
       }
     }
 
-    console.error('No draft release found');
+    console.error('No draft release found in atom/atom repo');
     process.exit(1);
   })
 };
