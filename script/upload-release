@@ -54,6 +54,7 @@ uploadAsset = ->
     assetRequest = request options, (error, response, body='') ->
       if error? or response.statusCode >= 400
         console.error('Upload release asset failed', error, body)
+        process.exit(1)
     fs.createReadStream(assetPath).pipe(assetRequest)
 
 zipApp(uploadAsset)
