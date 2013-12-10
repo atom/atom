@@ -44,7 +44,7 @@ class Editor
 
   atom.deserializers.add(this)
 
-  @version: 5
+  @version: 6
 
   @deserialize: (state) ->
     new Editor(state)
