@@ -77,7 +77,7 @@ uploadAsset = (release) ->
   fs.createReadStream(assetPath).pipe(assetRequest)
 
 getDraftRelease (release) ->
-  console.log("Uploading #{path.basename(assetPath)} asset to #{release.name} release")
+  console.log("Uploading #{path.basename(assetPath)} asset to #{release.tag_name} (#{release.name}) release")
   zipApp ->
     deleteExistingAsset release, ->
       uploadAsset(release)
