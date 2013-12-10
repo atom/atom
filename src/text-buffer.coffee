@@ -81,12 +81,12 @@ class TextBuffer extends telepath.Model
     @emit 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
 
-  destroy: ->
-    unless @destroyed
+  destroyed: ->
+    unless @alreadyDestroyed
       @cancelStoppedChangingTimeout()
       @file?.off()
       @unsubscribe()
-      @destroyed = true
+      @alreadyDestroyed = true
       @emit 'destroyed', this
 
   isRetained: -> @refcount > 0

@@ -81,6 +81,12 @@ class Atom
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
+  # Public: Create a new telepath model. We won't need to define this method when
+  # the atom global is a telepath model itself because all model subclasses inherit
+  # a create method.
+  create: (model) ->
+    @site.createDocument(model)
+
   # Public: Get the current window
   getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -421,7 +427,7 @@ class Atom
     serializedWindowState = @loadSerializedWindowState()
     doc = Document.deserialize(serializedWindowState) if serializedWindowState?
     doc ?= Document.create()
-    doc.registerModelClasses(require('./text-buffer'), require('./project'))
+    doc.registerModelClasses(require('./text-buffer'), require('./project'), require('./tokenized-buffer'), require('./display-buffer'))
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)
