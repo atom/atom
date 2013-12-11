@@ -53,15 +53,15 @@ describe "SpacePen extensions", ->
       expect(eventHandler).toHaveBeenCalled()
 
   describe "tooltips", ->
-    describe "replaceModifiers", ->
-      replaceModifiers = $.fn.setTooltip.replaceModifiers
+    describe "humanizeKeystrokes", ->
+      humanizeKeystrokes = $.fn.setTooltip.humanizeKeystrokes
 
       it "replaces single keystroke", ->
-        expect(replaceModifiers('cmd-O')).toEqual '⌘⇧O'
-        expect(replaceModifiers('cmd-shift-up')).toEqual '⌘⇧↑'
-        expect(replaceModifiers('cmd-option-down')).toEqual '⌘⌥↓'
-        expect(replaceModifiers('cmd-option-left')).toEqual '⌘⌥←'
-        expect(replaceModifiers('cmd-option-right')).toEqual '⌘⌥→'
+        expect(humanizeKeystrokes('cmd-O')).toEqual '⌘⇧O'
+        expect(humanizeKeystrokes('cmd-shift-up')).toEqual '⌘⇧↑'
+        expect(humanizeKeystrokes('cmd-option-down')).toEqual '⌘⌥↓'
+        expect(humanizeKeystrokes('cmd-option-left')).toEqual '⌘⌥←'
+        expect(humanizeKeystrokes('cmd-option-right')).toEqual '⌘⌥→'
 
       it "replaces multiple keystroke", ->
-        expect(replaceModifiers('cmd-o ctrl-2')).toEqual '⌘O ⌃2'
+        expect(humanizeKeystrokes('cmd-o ctrl-2')).toEqual '⌘O ⌃2'
