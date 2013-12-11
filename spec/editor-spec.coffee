@@ -21,6 +21,25 @@ describe "Editor", ->
       buffer = editor.buffer
       lineLengths = buffer.getLines().map (line) -> line.length
 
+    describe "when the editor is deserialized", ->
+      it "restores selections and folds based on markers in the buffer", ->
+        editor.setSelectedBufferRange([[1, 2], [3, 4]])
+        editor.addSelectionForBufferRange([[5, 6], [7, 5]], isReversed: true)
+        editor.foldBufferRow(4)
+        expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+
+        # Simulate serialization with replicate
+        editor2 = editor.replicate()
+        # FIXME: The created hook is called manually on deserialization because globals aren't ready otherwise
+        editor2.created()
+
+        expect(editor2.id).toBe editor.id
+        expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
+        expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
+        expect(editor2.getSelection(1).isReversed()).toBeTruthy()
+        expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
+        editor2.destroy()
+
     describe ".copy()", ->
       it "returns a different edit session with the same initial state", ->
         editor.setSelectedBufferRange([[1, 2], [3, 4]])
