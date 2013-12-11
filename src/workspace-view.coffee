@@ -79,6 +79,10 @@ class WorkspaceView extends View
 
     @panes.replaceWith(panes)
     @panes = panes
+
+    @destroyedItemUris = []
+    @subscribe @panes, 'item-destroyed', @onPaneItemDestroyed
+
     @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
@@ -122,8 +126,7 @@ class WorkspaceView extends View
     @command 'window:toggle-auto-indent', =>
       atom.config.toggle("editor.autoIndent")
 
-    @command 'pane:reopen-closed-item', =>
-      @panes.reopenItem()
+    @command 'pane:reopen-closed-item', => @reopenItemSync()
 
   # Private:
   serialize: ->
@@ -180,6 +183,7 @@ class WorkspaceView extends View
           activePane = new Pane(editor)
           @panes.setRoot(activePane)
 
+        @itemOpened(editor)
         activePane.showItem(editor)
         activePane.focus() if changeFocus
         @trigger "uri-opened"
@@ -213,6 +217,8 @@ class WorkspaceView extends View
       paneItem = atom.project.openSync(uri, {initialLine})
       pane = new Pane(paneItem)
       @panes.setRoot(pane)
+
+    @itemOpened(paneItem)
 
     pane.focus() if changeFocus
     paneItem
@@ -315,3 +321,15 @@ class WorkspaceView extends View
     editorView.remove() for editorView in @getEditorViews()
     atom.project?.destroy()
     super
+
+  onPaneItemDestroyed: (e, item) =>
+    if uri = item.getUri?()
+      @destroyedItemUris.push(uri)
+
+  reopenItemSync: ->
+    if uri = @destroyedItemUris.pop()
+      @openSync(uri)
+
+  itemOpened: (item) ->
+    if uri = item.getUri?()
+      _.remove(@destroyedItemUris, uri)

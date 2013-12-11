@@ -34,7 +34,9 @@ class Pane extends View
     if args[0] instanceof telepath.Document
       @state = args[0]
       @items = _.compact @state.get('items').map (item) ->
-        atom.deserializers.deserialize(item)
+        item = atom.deserializers.deserialize(item)
+        item?.created?()
+        item
     else
       @items = args
       @state = atom.site.createDocument
@@ -185,7 +187,6 @@ class Pane extends View
 
     @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
     @items.splice(index, 0, item)
-    @getContainer()?.itemAdded(item)
     @trigger 'pane:item-added', [item, index]
     item
 
