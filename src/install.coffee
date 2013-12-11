@@ -180,7 +180,15 @@ class Install extends Command
           callback("Unable to download #{packageUrl}: #{error.message}")
         writeStream.on 'close', -> callback(null, filePath)
       else
-        callback("Unable to download #{packageUrl}: #{response.statusCode}")
+        chunks = []
+        response.on 'data', (chunk) -> chunks.push(chunk)
+        response.on 'end', ->
+          try
+            error = JSON.parse(Buffer.concat(chunks))
+            message = error.message ? error.error ? error
+            callback("Unable to download #{packageUrl}: #{response.statusCode} #{message}")
+          catch
+            callback("Unable to download #{packageUrl}: #{response.statusCode}")
 
   # Get the path to the package from the local cache.
   #
