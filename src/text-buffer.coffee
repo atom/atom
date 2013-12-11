@@ -116,8 +116,12 @@ class TextBuffer extends telepath.Model
         @reload()
 
     @file.on "removed", =>
-      @wasModifiedBeforeRemove = @getText() != @cachedDiskContents
-      @updateCachedDiskContents()
+      modified = @getText() != @cachedDiskContents
+      @wasModifiedBeforeRemove = modified
+      if modified
+        @updateCachedDiskContents()
+      else
+        @destroy()
 
     @file.on "moved", =>
       @emit "path-changed", this

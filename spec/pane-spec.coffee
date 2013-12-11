@@ -1,6 +1,6 @@
 PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
-{$, View} = require 'atom'
+{fs, $, View} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 
@@ -347,14 +347,14 @@ describe "Pane", ->
 
       describe "when the current item has a saveAs method", ->
         it "opens a save dialog and saves the current item as the selected path", ->
-          spyOn(editor2, 'saveAs')
-          editor2.buffer.setPath(undefined)
-          pane.showItem(editor2)
+          newEditor = atom.project.openSync()
+          spyOn(newEditor, 'saveAs')
+          pane.showItem(newEditor)
 
           pane.trigger 'core:save'
 
           expect(atom.showSaveDialogSync).toHaveBeenCalled()
-          expect(editor2.saveAs).toHaveBeenCalledWith('/selected/path')
+          expect(newEditor.saveAs).toHaveBeenCalledWith('/selected/path')
 
       describe "when the current item has no saveAs method", ->
         it "does nothing", ->
@@ -420,6 +420,17 @@ describe "Pane", ->
       pane.showItem(view2)
       view2.trigger 'title-changed'
       expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
+  describe "when an unmodifed buffer's path is deleted its pane item is removed", ->
+    it "removes the pane item", ->
+      filePath = temp.openSync('atom').path
+      editor = atom.project.openSync(filePath)
+      pane.showItem(editor)
+      expect(pane.items).toHaveLength(5)
+
+      fs.removeSync(filePath)
+      waitsFor ->
+        pane.items.length == 4
 
   describe ".remove()", ->
     it "destroys all the pane's items", ->

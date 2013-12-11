@@ -189,6 +189,8 @@ class Pane extends View
     @items.splice(index, 0, item)
     @getContainer()?.itemAdded(item)
     @trigger 'pane:item-added', [item, index]
+    if item.on
+      @subscribe item, 'destroyed', => @destroyItem(item)
     item
 
   # Public: Remove the currently active item.
@@ -198,11 +200,11 @@ class Pane extends View
 
   # Public: Remove the specified item.
   destroyItem: (item) ->
+    @unsubscribe(item) if item.off
     @trigger 'pane:before-item-destroyed', [item]
-    container = @getContainer()
 
     if @promptToSaveItem(item)
-      container.itemDestroyed(item)
+      @getContainer()?.itemDestroyed(item)
       @removeItem(item)
       item.destroy?()
       true
