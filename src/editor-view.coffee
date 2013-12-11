@@ -1031,8 +1031,8 @@ class EditorView extends View
   # Enabling this will display the IME popup dialog when a character is held
   # down and also allow alt-e/i/n/u to be used to type accented characters in
   # two keystrokes.
-  setI18NSupport: (enabled) ->
-    type = if enabled then 'text' else 'password'
+  setI18NSupport: (i18nSupport) ->
+    type = if i18nSupport then 'text' else 'password'
     @hiddenInput.attr('type', type)
 
   # Gets the font family for the editor.
