@@ -89,13 +89,9 @@ class Editor extends Model
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @subscribe @state, 'changed', ({newValues}) =>
-      for key, newValue of newValues
-        switch key
-          when 'scrollTop'
-            @emit 'scroll-top-changed', newValue
-          when 'scrollLeft'
-            @emit 'scroll-left-changed', newValue
+
+    @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
+    @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
   # Deprecated: The goal is a world where we don't call serialize explicitly
   serialize: -> this
