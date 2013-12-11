@@ -34,7 +34,9 @@ class Pane extends View
     if args[0] instanceof telepath.Document
       @state = args[0]
       @items = _.compact @state.get('items').map (item) ->
-        atom.deserializers.deserialize(item)
+        item = atom.deserializers.deserialize(item)
+        item?.created?()
+        item
     else
       @items = args
       @state = atom.site.createDocument

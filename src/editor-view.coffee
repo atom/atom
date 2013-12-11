@@ -105,12 +105,12 @@ class EditorView extends View
     if editor?
       @edit(editor)
     else if @mini
-      @edit(new Editor
+      @edit(atom.create(new Editor
         buffer: atom.create(new TextBuffer)
         softWrap: false
         tabLength: 2
         softTabs: true
-      )
+      ))
     else
       throw new Error("Must supply an Editor or mini: true")
 

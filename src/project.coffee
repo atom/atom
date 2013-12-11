@@ -334,7 +334,7 @@ class Project extends telepath.Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new Editor(_.extend({buffer}, editorOptions))
+    editor = @create(new Editor(_.extend({buffer}, editorOptions)))
     @addEditor(editor)
     editor
 
