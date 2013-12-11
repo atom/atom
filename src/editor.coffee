@@ -191,17 +191,17 @@ class Editor extends Model
   # Public: Controls visiblity based on the given Boolean.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
-  # Public: FIXME: I don't understand this.
-  setScrollTop: (scrollTop) -> @state.set('scrollTop', scrollTop)
+  # Deprecated: Use the ::scrollTop property directly
+  setScrollTop: (@scrollTop) -> @scrollTop
 
-  # Public: Returns the current `scrollTop` value
-  getScrollTop: -> @state.get('scrollTop') ? 0
+  # Deprecated: Use the ::scrollTop property directly
+  getScrollTop: -> @scrollTop
 
-  # Public: FIXME: I don't understand this.
-  setScrollLeft: (scrollLeft) -> @state.set('scrollLeft', scrollLeft)
+  # Deprecated: Use the ::scrollLeft property directly
+  setScrollLeft: (@scrollLeft) -> @scrollLeft
 
-  # Public: Returns the current `scrollLeft` value
-  getScrollLeft: -> @state.get('scrollLeft')
+  # Deprecated: Use the ::scrollLeft property directly
+  getScrollLeft: -> @scrollLeft
 
   # Set the number of characters that can be displayed horizontally in the
   # editor that contains this edit session.
@@ -213,12 +213,11 @@ class Editor extends Model
   # Public: Sets the column at which columsn will soft wrap
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
-  # Public: Returns whether soft tabs are enabled or not.
-  getSoftTabs: -> @state.get('softTabs')
+  # Deprecated: Use the ::softTabs property directly. Indicates whether soft tabs are enabled.
+  getSoftTabs: -> @softTabs
 
-  # Public: Controls whether soft tabs are enabled or not.
-  setSoftTabs: (softTabs) ->
-    @state.set('softTabs', softTabs)
+  # Deprecated: Use the ::softTabs property directly. Indicates whether soft tabs are enabled.
+  setSoftTabs: (@softTabs) -> @softTabs
 
   # Public: Returns whether soft wrap is enabled or not.
   getSoftWrap: -> @displayBuffer.getSoftWrap()
