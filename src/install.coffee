@@ -187,7 +187,7 @@ class Install extends Command
             error = JSON.parse(Buffer.concat(chunks))
             message = error.message ? error.error ? error
             callback("Unable to download #{packageUrl}: #{response.statusCode} #{message}")
-          catch
+          catch parseError
             callback("Unable to download #{packageUrl}: #{response.statusCode}")
 
   # Get the path to the package from the local cache.
