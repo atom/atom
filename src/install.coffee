@@ -37,7 +37,8 @@ class Install extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('d', 'dev').describe('dev', 'Install dev dependencies of atom packages being installed')
-    options.alias('s', 'silent').boolean('silent').describe('silent', 'Minimize output')
+    options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
+    options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
@@ -63,6 +64,7 @@ class Install extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
+    installArgs.push('--quiet') if options.argv.quiet
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
@@ -120,6 +122,7 @@ class Install extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
+    installArgs.push('--quiet') if options.argv.quiet
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
