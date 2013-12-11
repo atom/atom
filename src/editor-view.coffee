@@ -32,6 +32,7 @@ class EditorView extends View
     softWrap: false
     softTabs: true
     softWrapAtPreferredLineLength: false
+    enableI18nSupport: false
 
   @nextEditorId: 1
 
@@ -651,6 +652,7 @@ class EditorView extends View
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
+    @observeConfig 'editor.enableI18nSupport', (enabled) => @setEnableI18NSupport(enabled)
 
   handleEvents: ->
     @on 'focus', =>
@@ -1023,6 +1025,15 @@ class EditorView extends View
     @clearCharacterWidthCache()
 
     @redraw()
+
+  # Set whether internationalization support is enabled on the editor view.
+  #
+  # Enabling this will display the IME popup dialog when a character is held
+  # down and also the ability to use alt-n/alt-e to type accented characters in
+  # two keystrokes.
+  setEnableI18NSupport: (enabled) ->
+    type = if enabled then 'text' else 'password'
+    @hiddenInput.attr('type', type)
 
   # Gets the font family for the editor.
   #
