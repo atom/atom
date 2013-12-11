@@ -9,7 +9,8 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 
 _ = require 'underscore-plus'
-{Document} = require 'telepath'
+telepath = require 'telepath'
+{Document} = telepath
 fs = require 'fs-plus'
 {Subscriber} = require 'emissary'
 
@@ -52,6 +53,8 @@ class Atom
 
     {devMode, resourcePath} = atom.getLoadSettings()
     configDirPath = @getConfigDirPath()
+
+    telepath.devMode = not @isReleasedVersion()
 
     Config = require './config'
     Keymap = require './keymap'
@@ -360,6 +363,10 @@ class Atom
   # Public: Get the version of the Atom application.
   getVersion: ->
     app.getVersion()
+
+  # Public: Determine whether the current version is an official release.
+  isReleasedVersion: ->
+    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
   getGitHubAuthTokenName: ->
     'Atom GitHub API Token'
