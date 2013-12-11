@@ -76,7 +76,7 @@ createRelease = (callback) ->
         tag_name: "v#{commitSha}"
         target_commitish: 'master'
         name: commitSha
-        body: "Build of [atom@#{commitSha.substring(0, 7)}](https://github.com/atom/atom/commit/#{process.env.commitSha})"
+        body: "Build of [atom@#{commitSha.substring(0, 7)}](https://github.com/atom/atom/commit/#{commitSha})"
         draft: true
     request options, (error, response, release={}) ->
       if error? or response.statusCode isnt 201
