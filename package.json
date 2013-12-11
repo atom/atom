@@ -45,7 +45,7 @@
     "space-pen": "2.0.1",
     "telepath": "0.65.0",
     "temp": "0.5.0",
-    "underscore-plus": "0.3.0"
+    "underscore-plus": "0.5.0"
   },
   "devDependencies": {
     "biscotto": "0.0.17",
@@ -69,13 +69,14 @@
     "request": "~2.27.0",
     "unzip": "~0.1.9",
     "rcedit": "~0.1.2",
-    "rimraf": "~2.2.2"
+    "rimraf": "~2.2.2",
+    "github-releases": "~0.2.0"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.8.0",
-    "atom-dark-ui": "0.13.0",
+    "atom-dark-ui": "0.15.0",
     "atom-light-syntax": "0.9.0",
-    "atom-light-ui": "0.13.0",
+    "atom-light-ui": "0.15.0",
     "base16-tomorrow-dark-theme": "0.7.0",
     "solarized-dark-syntax": "0.5.0",
     "archive-view": "0.16.0",
@@ -85,7 +86,7 @@
     "bookmarks": "0.15.0",
     "bracket-matcher": "0.15.0",
     "command-logger": "0.8.0",
-    "command-palette": "0.11.0",
+    "command-palette": "0.13.0",
     "dev-live-reload": "0.18.0",
     "editor-stats": "0.8.0",
     "exception-reporting": "0.8.0",
@@ -101,14 +102,14 @@
     "keybinding-resolver": "0.6.0",
     "link": "0.11.0",
     "markdown-preview": "0.22.0",
-    "metrics": "0.14.0",
+    "metrics": "0.15.0",
     "package-generator": "0.23.0",
     "release-notes": "0.15.0",
     "settings-view": "0.50.0",
     "snippets": "0.17.0",
     "spell-check": "0.17.0",
     "status-bar": "0.24.0",
-    "styleguide": "0.17.0",
+    "styleguide": "0.18.0",
     "symbols-view": "0.27.0",
     "tabs": "0.15.0",
     "terminal": "0.23.0",
@@ -129,7 +130,7 @@
     "language-html": "0.2.0",
     "language-hyperlink": "0.3.0",
     "language-java": "0.2.0",
-    "language-javascript": "0.3.0",
+    "language-javascript": "0.4.0",
     "language-json": "0.2.0",
     "language-less": "0.1.0",
     "language-make": "0.1.0",
@@ -152,7 +153,7 @@
     "language-toml": "0.7.0",
     "language-xml": "0.2.0",
     "language-yaml": "0.1.0",
-    "grunt-download-atom-shell": "0.1.3"
+    "grunt-download-atom-shell": "0.2.0"
   },
   "private": true,
   "scripts": {
