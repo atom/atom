@@ -1,5 +1,6 @@
 WorkspaceView = require '../src/workspace-view'
 EditorView = require '../src/editor-view'
+Pane = require '../src/pane'
 {$, $$} = require '../src/space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
@@ -2750,6 +2751,8 @@ describe "EditorView", ->
   describe "when the editor view is attached but invisible", ->
     describe "when the editor view's text is changed", ->
       it "redraws the editor view when it is next shown", ->
+        spyOn(Pane.prototype, "promptToSaveItem").andReturn false
+
         atom.workspaceView = new WorkspaceView
         atom.workspaceView.openSync('sample.js')
         atom.workspaceView.attachToDom()
