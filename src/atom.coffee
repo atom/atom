@@ -427,7 +427,13 @@ class Atom
     serializedWindowState = @loadSerializedWindowState()
     doc = Document.deserialize(serializedWindowState) if serializedWindowState?
     doc ?= Document.create()
-    doc.registerModelClasses(require('./text-buffer'), require('./project'), require('./tokenized-buffer'), require('./display-buffer'))
+    doc.registerModelClasses(
+      require('./text-buffer'),
+      require('./project'),
+      require('./tokenized-buffer'),
+      require('./display-buffer'),
+      require('./editor')
+    )
     # TODO: Remove this when everything is using telepath models
     if @site?
       @site.setRootDocument(doc)

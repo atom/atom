@@ -1,4 +1,4 @@
-{Document} = require 'telepath'
+{Document, Model} = require 'telepath'
 
 # Public: Manages the deserializers used for serialized state
 #
@@ -24,6 +24,8 @@ class DeserializerManager
   # Public: Deserialize the state and params.
   deserialize: (state, params) ->
     return unless state?
+
+    return state if state instanceof Model
 
     if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version
