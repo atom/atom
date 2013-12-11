@@ -322,14 +322,17 @@ class WorkspaceView extends View
     atom.project?.destroy()
     super
 
+  # Private: Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (e, item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 
+  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
 
+  # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
       _.remove(@destroyedItemUris, uri)
