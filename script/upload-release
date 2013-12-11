@@ -79,6 +79,7 @@ createRelease = (callback) ->
         name: commitSha
         body: "Build of [atom@#{commitSha.substring(0, 7)}](https://github.com/atom/atom/commit/#{commitSha})"
         draft: true
+        prerelease: true
     request options, (error, response, release={}) ->
       if error? or response.statusCode isnt 201
         console.error('Creating release failed', error, release)
