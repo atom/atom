@@ -421,7 +421,7 @@ describe "Pane", ->
       view2.trigger 'title-changed'
       expect(activeItemTitleChangedHandler).toHaveBeenCalled()
 
-  describe "when an unmodifed buffer's path is deleted its pane item is removed", ->
+  describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->
       filePath = temp.openSync('atom').path
       editor = atom.project.openSync(filePath)
