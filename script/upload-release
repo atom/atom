@@ -51,7 +51,7 @@ deleteExistingAsset = (release, callback) ->
       method: 'DELETE'
       headers: defaultHeaders
     request options, (error, response, body='') ->
-      if error? or response.statusCode >= 400
+      if error? or response.statusCode isnt 204
         console.error('Deleting existing release asset failed', error, body)
         process.exit(1)
       else
