@@ -1,6 +1,6 @@
 #!/usr/bin/env coffee
 
-return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'ks-builds-repo'
+return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
 child_process = require 'child_process'
 path = require 'path'
