@@ -19,8 +19,6 @@ class PaneContainer extends View
     @div class: 'panes'
 
   initialize: (state) ->
-    @destroyedItemStates = []
-
     if state instanceof telepath.Document
       @state = state
       @setRoot(atom.deserializers.deserialize(@state.get('root')))
@@ -86,25 +84,8 @@ class PaneContainer extends View
     nextIndex = (currentIndex + 1) % panes.length
     panes[nextIndex].makeActive()
 
-  reopenItem: ->
-    if lastItemState = @destroyedItemStates.pop()
-      if activePane = @getActivePane()
-        activePane.showItem(atom.deserializers.deserialize(lastItemState))
-        true
-      else
-        newPane = new Pane(atom.deserializers.deserialize(lastItemState))
-        @setRoot(newPane)
-        newPane.focus()
-
   itemDestroyed: (item) ->
-    if state = item.serialize?()
-      state.uri ?= item.getUri?()
-      @destroyedItemStates.push(state)
-
-  itemAdded: (item) ->
-    itemUri = item.getUri?()
-    @destroyedItemStates = @destroyedItemStates.filter (itemState) ->
-      itemState.uri isnt itemUri
+    @trigger 'item-destroyed', item
 
   getRoot: ->
     @children().first().view()
@@ -113,7 +94,6 @@ class PaneContainer extends View
     @empty()
     if root?
       @append(root)
-      @itemAdded(root.activeItem) if root.activeItem?
       root.makeActive?()
     @state.set(root: root?.getState())
 
