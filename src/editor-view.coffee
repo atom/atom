@@ -1029,7 +1029,7 @@ class EditorView extends View
   # Set whether internationalization support is enabled on the editor view.
   #
   # Enabling this will display the IME popup dialog when a character is held
-  # down and also the ability to use alt-n/alt-e to type accented characters in
+  # down and also allow alt-e/i/n/u to be used to type accented characters in
   # two keystrokes.
   setEnableI18NSupport: (enabled) ->
     type = if enabled then 'text' else 'password'
