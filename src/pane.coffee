@@ -185,7 +185,6 @@ class Pane extends View
 
     @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
     @items.splice(index, 0, item)
-    @getContainer()?.itemAdded(item)
     @trigger 'pane:item-added', [item, index]
     item
 
