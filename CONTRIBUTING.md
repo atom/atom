@@ -27,8 +27,9 @@ in the proper package's repository.
 
 ## Pull Requests
   * Include screenshots and animated GIFs whenever possible.
-  * Follow the [JavaScript](https://github.com/styleguide/javascript) and
-    [CSS](https://github.com/styleguide/css) styleguides
+  * Follow the [CoffeeScript](#coffeescript-styleguide),
+    [JavaScript](https://github.com/styleguide/javascript),
+    and [CSS](https://github.com/styleguide/css) styleguides
   * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
     specs
   * Avoid placing files in `vendor`. 3rd-party packages should be added as a
@@ -55,3 +56,8 @@ in the proper package's repository.
     * :racehorse: when improving performance
     * :non-potable_water: when plugging memory leaks
     * :memo: when writing docs
+
+## CoffeeScript Styleguide
+
+* Set parameter defaults without spaces around the equal sign
+  * `clear = (count=1) ->` instead of `clear = (count = 1) ->`
