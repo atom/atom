@@ -25,7 +25,7 @@ curl -s -L `cat asset_url` \
 mkdir atom
 unzip -q atom.zip -d atom
 
-echo "Downloading package dependencies"
+echo "Downloading package dependencies..."
 atom/Atom.app/Contents/Resources/app/node_modules/.bin/apm update
 
 echo "Running specs..."
