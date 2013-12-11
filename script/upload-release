@@ -107,9 +107,7 @@ publishRelease = (release) ->
   options =
     uri: release.url
     method: 'POST'
-    headers:
-      Authorization: "token #{token}"
-      'User-Agent': 'Atom'
+    headers: defaultHeaders
     json:
       draft: false
   request options, (error, response, body={}) ->
