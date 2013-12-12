@@ -438,3 +438,11 @@ describe "the `atom` global", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+
+  describe ".isReleasedVersion()", ->
+    it "returns false if the version is a SHA and true otherwise", ->
+      version = '0.1.0'
+      spyOn(atom, 'getVersion').andCallFake -> version
+      expect(atom.isReleasedVersion()).toBe true
+      version = '36b5518'
+      expect(atom.isReleasedVersion()).toBe false

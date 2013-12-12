@@ -59,22 +59,6 @@ describe "Project", ->
       editor.saveAs(tempFile)
       expect(atom.project.getPath()).toBe path.dirname(tempFile)
 
-  describe "when an edit session is deserialized", ->
-    it "emits an 'editor-created' event and stores the edit session", ->
-      handler = jasmine.createSpy('editorCreatedHandler')
-      atom.project.on 'editor-created', handler
-
-      editor1 = atom.project.openSync("a")
-      expect(handler.callCount).toBe 1
-      expect(atom.project.getEditors().length).toBe 1
-      expect(atom.project.getEditors()[0]).toBe editor1
-
-      editor2 = atom.deserializers.deserialize(editor1.serialize())
-      expect(handler.callCount).toBe 2
-      expect(atom.project.getEditors().length).toBe 2
-      expect(atom.project.getEditors()[0]).toBe editor1
-      expect(atom.project.getEditors()[1]).toBe editor2
-
   describe "when an edit session is copied", ->
     it "emits an 'editor-created' event and stores the edit session", ->
       handler = jasmine.createSpy('editorCreatedHandler')

@@ -1,13 +1,11 @@
 _ = require 'underscore-plus'
 path = require 'path'
-telepath = require 'telepath'
 guid = require 'guid'
-{Point, Range} = telepath
+{Model, Point, Range} = require 'telepath'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Selection = require './selection'
-{Emitter, Subscriber} = require 'emissary'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.
@@ -36,82 +34,70 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # FIXME: Describe how there are both local and remote cursors and selections and
 # why that is.
 module.exports =
-class Editor
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
+class Editor extends Model
 
-  @acceptsDocuments: true
+  @properties
+    displayBuffer: null
+    softTabs: null
+    scrollTop: 0
+    scrollLeft: 0
 
-  atom.deserializers.add(this)
-
-  @version: 6
-
-  @deserialize: (state) ->
-    new Editor(state)
-
-  id: null
+  deserializing: false
+  callDisplayBufferCreatedHook: false
+  buffer: null
   languageMode: null
-  displayBuffer: null
   cursors: null
   remoteCursors: null
   selections: null
   remoteSelections: null
   suppressSelectionMerging: false
 
-  # Private:
-  constructor: (optionsOrState) ->
+  constructor: ->
+    super
+    @deserializing = @state?
+
+  created: ->
+    if @deserializing
+      @deserializing = false
+      @callDisplayBufferCreatedHook = true
+      return
+
     @cursors = []
     @remoteCursors = []
     @selections = []
     @remoteSelections = []
-    if optionsOrState instanceof telepath.Document
-      @state = optionsOrState
-      @id = @state.get('id')
-      displayBuffer = @state.get('displayBuffer')
-      displayBuffer.created()
-      @setBuffer(displayBuffer.buffer)
-      @setDisplayBuffer(displayBuffer)
-      for marker in @findMarkers(@getSelectionMarkerAttributes())
-        marker.setAttributes(preserveFolds: true)
-        @addSelection(marker)
-      @setScrollTop(@state.get('scrollTop'))
-      @setScrollLeft(@state.get('scrollLeft'))
-      registerEditor = true
-    else
-      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
-      @id = guid.create().toString()
-      displayBuffer ?= atom.create(new DisplayBuffer({buffer, tabLength, softWrap}))
-      @state = atom.site.createDocument
-        deserializer: @constructor.name
-        version: @constructor.version
-        id: @id
-        displayBuffer: displayBuffer
-        softTabs: buffer.usesSoftTabs() ? softTabs ? atom.config.get('editor.softTabs') ? true
-        scrollTop: 0
-        scrollLeft: 0
-      @setBuffer(buffer)
-      @setDisplayBuffer(displayBuffer)
 
-    if @getCursors().length is 0 and not suppressCursorCreation
-      if initialLine
-        position = [initialLine, 0]
+    unless @displayBuffer?
+      @displayBuffer = new DisplayBuffer({@buffer, @tabLength, @softWrap})
+      @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+
+    @displayBuffer.created() if @callDisplayBufferCreatedHook
+    @buffer = @displayBuffer.buffer
+
+    for marker in @findMarkers(@getSelectionMarkerAttributes())
+      marker.setAttributes(preserveFolds: true)
+      @addSelection(marker)
+
+    @subscribeToBuffer()
+    @subscribeToDisplayBuffer()
+
+    if @getCursors().length is 0 and not @suppressCursorCreation
+      if @initialLine
+        position = [@initialLine, 0]
       else
         position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @subscribe @state, 'changed', ({newValues}) =>
-      for key, newValue of newValues
-        switch key
-          when 'scrollTop'
-            @emit 'scroll-top-changed', newValue
-          when 'scrollLeft'
-            @emit 'scroll-left-changed', newValue
 
-    atom.project.addEditor(this) if registerEditor
+    @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
+    @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+
+  # Deprecated: The goal is a world where we don't call serialize explicitly
+  serialize: -> this
 
   # Private:
-  setBuffer: (@buffer) ->
+  subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       unless atom.project.getPath()?
@@ -125,7 +111,7 @@ class Editor
     @preserveCursorPositionOnBufferReload()
 
   # Private:
-  setDisplayBuffer: (@displayBuffer) ->
+  subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
@@ -149,18 +135,12 @@ class Editor
     @emit 'destroyed'
     @off()
 
-  # Private:
-  serialize: -> @state.clone()
-
-  # Private:
-  getState: -> @state
-
   # Private: Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
+    newEditor = @create(new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true}))
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
@@ -212,17 +192,17 @@ class Editor
   # Public: Controls visiblity based on the given Boolean.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
-  # Public: FIXME: I don't understand this.
-  setScrollTop: (scrollTop) -> @state.set('scrollTop', scrollTop)
+  # Deprecated: Use the ::scrollTop property directly
+  setScrollTop: (@scrollTop) -> @scrollTop
 
-  # Public: Returns the current `scrollTop` value
-  getScrollTop: -> @state.get('scrollTop') ? 0
+  # Deprecated: Use the ::scrollTop property directly
+  getScrollTop: -> @scrollTop
 
-  # Public: FIXME: I don't understand this.
-  setScrollLeft: (scrollLeft) -> @state.set('scrollLeft', scrollLeft)
+  # Deprecated: Use the ::scrollLeft property directly
+  setScrollLeft: (@scrollLeft) -> @scrollLeft
 
-  # Public: Returns the current `scrollLeft` value
-  getScrollLeft: -> @state.get('scrollLeft')
+  # Deprecated: Use the ::scrollLeft property directly
+  getScrollLeft: -> @scrollLeft
 
   # Set the number of characters that can be displayed horizontally in the
   # editor that contains this edit session.
@@ -234,12 +214,11 @@ class Editor
   # Public: Sets the column at which columsn will soft wrap
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
-  # Public: Returns whether soft tabs are enabled or not.
-  getSoftTabs: -> @state.get('softTabs')
+  # Deprecated: Use the ::softTabs property directly. Indicates whether soft tabs are enabled.
+  getSoftTabs: -> @softTabs
 
-  # Public: Controls whether soft tabs are enabled or not.
-  setSoftTabs: (softTabs) ->
-    @state.set('softTabs', softTabs)
+  # Deprecated: Use the ::softTabs property directly. Indicates whether soft tabs are enabled.
+  setSoftTabs: (@softTabs) -> @softTabs
 
   # Public: Returns whether soft wrap is enabled or not.
   getSoftWrap: -> @displayBuffer.getSoftWrap()

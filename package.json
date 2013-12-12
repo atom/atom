@@ -25,7 +25,7 @@
     "coffeestack": "0.6.0",
     "emissary": "0.19.0",
     "first-mate": "0.5.0",
-    "fs-plus": "0.10.0",
+    "fs-plus": "0.11.0",
     "fuzzaldrin": "0.1.0",
     "git-utils": "0.29.0",
     "guid": "0.0.10",
@@ -43,9 +43,9 @@
     "season": "0.14.0",
     "semver": "1.1.4",
     "space-pen": "2.0.1",
-    "telepath": "0.65.0",
+    "telepath": "0.68.0",
     "temp": "0.5.0",
-    "underscore-plus": "0.4.0"
+    "underscore-plus": "0.5.0"
   },
   "devDependencies": {
     "biscotto": "0.0.17",
@@ -74,9 +74,9 @@
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.8.0",
-    "atom-dark-ui": "0.14.0",
+    "atom-dark-ui": "0.17.0",
     "atom-light-syntax": "0.9.0",
-    "atom-light-ui": "0.14.0",
+    "atom-light-ui": "0.16.0",
     "base16-tomorrow-dark-theme": "0.7.0",
     "solarized-dark-syntax": "0.5.0",
     "archive-view": "0.16.0",
@@ -102,7 +102,7 @@
     "keybinding-resolver": "0.6.0",
     "link": "0.11.0",
     "markdown-preview": "0.22.0",
-    "metrics": "0.14.0",
+    "metrics": "0.17.0",
     "package-generator": "0.23.0",
     "release-notes": "0.15.0",
     "settings-view": "0.50.0",
@@ -115,7 +115,7 @@
     "terminal": "0.23.0",
     "timecop": "0.11.0",
     "to-the-hubs": "0.15.0",
-    "tree-view": "0.43.0",
+    "tree-view": "0.44.0",
     "visual-bell": "0.6.0",
     "welcome": "0.3.0",
     "whitespace": "0.10.0",
@@ -130,7 +130,7 @@
     "language-html": "0.2.0",
     "language-hyperlink": "0.3.0",
     "language-java": "0.2.0",
-    "language-javascript": "0.3.0",
+    "language-javascript": "0.4.0",
     "language-json": "0.2.0",
     "language-less": "0.1.0",
     "language-make": "0.1.0",
@@ -153,7 +153,7 @@
     "language-toml": "0.7.0",
     "language-xml": "0.2.0",
     "language-yaml": "0.1.0",
-    "grunt-download-atom-shell": "0.1.3"
+    "grunt-download-atom-shell": "0.2.0"
   },
   "private": true,
   "scripts": {
