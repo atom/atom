@@ -162,6 +162,7 @@ class Atom extends Model
     Editor = require './editor'
     @registerModelClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
 
+    @windowEventHandler = new WindowEventHandler
 
   # Private: Call this method when establishing a real application window.
   startEditorWindow: ->
@@ -170,7 +171,6 @@ class Atom extends Model
       CommandInstaller.installAtomCommand()
       CommandInstaller.installApmCommand()
 
-    @windowEventHandler = new WindowEventHandler
     @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
