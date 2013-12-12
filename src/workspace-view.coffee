@@ -65,8 +65,6 @@ class WorkspaceView extends View
 
   # Private:
   initialize: (state={}) ->
-    @prepend($$ -> @div class: 'dev-mode') if atom.getLoadSettings().devMode
-
     if state instanceof telepath.Document
       @state = state
       panes = atom.deserializers.deserialize(state.get('panes'))
