@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 path = require 'path'
-guid = require 'guid'
 {Model, Point, Range} = require 'telepath'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
@@ -18,7 +17,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # if you type in either buffer it immediately appears in both but if you scroll
 # in one it doesn't scroll the other.
 #
-# Almost all extension will interact primiarily with this class as it provides
+# Almost all packages will interact primiarily with this class as it provides
 # access to objects you'll most commonly interact with. To access it you'll
 # want to register a callback on {WorkspaceView} which will be fired once for every
 # existing {Editor} as well as any future {Editor}s.
@@ -44,6 +43,7 @@ class Editor extends Model
 
   deserializing: false
   callDisplayBufferCreatedHook: false
+  registerEditor: false
   buffer: null
   languageMode: null
   cursors: null
@@ -60,6 +60,7 @@ class Editor extends Model
     if @deserializing
       @deserializing = false
       @callDisplayBufferCreatedHook = true
+      @registerEditor = true
       return
 
     @cursors = []
@@ -92,6 +93,8 @@ class Editor extends Model
 
     @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+
+    atom.project.addEditor(this) if @registerEditor
 
   # Deprecated: The goal is a world where we don't call serialize explicitly
   serialize: -> this

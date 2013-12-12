@@ -1,4 +1,4 @@
-{Document, Point, Range} = require 'telepath'
+{Document, Model, Point, Range} = require 'telepath'
 
 module.exports =
   _: require 'underscore-plus'
@@ -9,6 +9,7 @@ module.exports =
   File: require '../src/file'
   fs: require 'fs-plus'
   Git: require '../src/git'
+  Model: Model
   Point: Point
   Range: Range
 

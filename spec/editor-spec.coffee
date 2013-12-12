@@ -105,6 +105,16 @@ describe "Editor", ->
           lastCursor = editor.addCursorAtScreenPosition([2, 0])
           expect(editor.getCursor()).toBe lastCursor
 
+      describe "when the cursor moves", ->
+        it "clears a goal column established by vertical movement", ->
+          editor.setText('b')
+          editor.setCursorBufferPosition([0,0])
+          editor.insertNewline()
+          editor.moveCursorUp()
+          editor.insertText('a')
+          editor.moveCursorDown()
+          expect(editor.getCursorBufferPosition()).toEqual [1, 1]
+
       describe ".setCursorScreenPosition(screenPosition)", ->
         it "clears a goal column established by vertical movement", ->
           # set a goal column by moving down

@@ -278,7 +278,7 @@ class Pane extends View
     @activeItem.off? 'title-changed', @activeItemTitleChanged if item is @activeItem
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
-    @state.get('items').remove(index) if options.updateState ? true
+    @state.get('items').splice(index, 1) if options.updateState ? true
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
 
