@@ -6,7 +6,7 @@ AtomPackage = require '../src/atom-package'
 
 describe "ThemeManager", ->
   themeManager = null
-  resourcePath = atom.getLoadSettings().resourcePath
+  resourcePath = atom.loadSettings.resourcePath
   configDirPath = atom.getConfigDirPath()
 
   beforeEach ->

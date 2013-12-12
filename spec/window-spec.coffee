@@ -7,7 +7,6 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'hide')
-    atom.getLoadSettings() # Causes atom.loadSettings to be initialized
     atom.loadSettings.initialPath = atom.project.getPath()
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()

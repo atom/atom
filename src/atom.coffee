@@ -122,6 +122,7 @@ class Atom extends Model
   created: ->
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
+    @loadSettings = @constructor.getLoadSettings()
 
   # Public: Sets up the basic services that should be available in all modes
   # (both spec and application). Call after this instance has been assigned to
@@ -140,7 +141,7 @@ class Atom extends Model
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
-    {devMode, resourcePath} = @getLoadSettings()
+    {devMode, resourcePath} = @loadSettings
     configDirPath = @getConfigDirPath()
 
     @config = new Config({configDirPath, resourcePath})
@@ -202,16 +203,10 @@ class Atom extends Model
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
-  # Public: Get the load settings for the current window.
-  #
-  # Returns an object containing all the load setting key/value pairs.
-  getLoadSettings: ->
-    @constructor.getLoadSettings()
-
   # Private:
   deserializeProject: ->
     Project = require './project'
-    @project ?= new Project(path: @getLoadSettings().initialPath)
+    @project ?= new Project(path: @loadSettings.initialPath)
 
   # Private:
   deserializeWorkspaceView: ->
@@ -299,7 +294,7 @@ class Atom extends Model
   # Private:
   restoreWindowDimensions: ->
     windowDimensions = @state.getObject('windowDimensions') ? {}
-    {initialSize} = @getLoadSettings
+    {initialSize} = @loadSettings
     windowDimensions.height ?= initialSize?.height ? global.screen.availHeight
     windowDimensions.width ?= initialSize?.width ? Math.min(global.screen.availWidth, 1024)
     @setWindowDimensions(windowDimensions)
@@ -407,11 +402,11 @@ class Atom extends Model
 
   # Public: Is the current window in development mode?
   inDevMode: ->
-    @getLoadSettings().devMode
+    @loadSettings.devMode
 
   # Public: Is the current window running specs?
   inSpecMode: ->
-    @getLoadSettings().isSpec
+    @loadSettings.isSpec
 
   # Public: Toggle the full screen state of the current window.
   toggleFullScreen: ->

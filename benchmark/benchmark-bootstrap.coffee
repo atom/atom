@@ -1,7 +1,7 @@
 require '../src/window'
 Atom = require '../src/atom'
 atom = new Atom()
-atom.show() unless atom.getLoadSettings().exitWhenDone
+atom.show() unless atom.loadSettings.exitWhenDone
 window.atom = atom
 
 {runSpecSuite} = require '../spec/jasmine-helper'

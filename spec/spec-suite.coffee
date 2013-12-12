@@ -23,7 +23,7 @@ setSpecDirectory = (specDirectory) ->
   setSpecField('specDirectory', specDirectory)
 
 runAllSpecs = ->
-  {resourcePath} = atom.getLoadSettings()
+  {resourcePath} = atom.loadSettings
   # Only run core specs when resource path is the Atom repository
   if Git.exists(resourcePath)
     requireSpecs(path.join(resourcePath, 'spec'))
@@ -48,7 +48,7 @@ runAllSpecs = ->
   requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.user ? []
   setSpecType('user')
 
-if specDirectory = atom.getLoadSettings().specDirectory
+if specDirectory = atom.loadSettings.specDirectory
   requireSpecs(specDirectory)
   setSpecType('user')
 else
