@@ -31,6 +31,7 @@ class Pane extends View
 
   # Private:
   initialize: (args...) ->
+    @items = []
     if args[0] instanceof telepath.Document
       @state = args[0]
       @items = _.compact @state.get('items').map (item) ->
@@ -42,6 +43,8 @@ class Pane extends View
       @state = atom.site.createDocument
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
+
+    @handleItemEvents(item) for item in @items
 
     @subscribe @state.get('items'), 'changed', ({index, removedValues, insertedValues, siteId}) =>
       return if siteId is @state.siteId
@@ -188,7 +191,13 @@ class Pane extends View
     @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
     @items.splice(index, 0, item)
     @trigger 'pane:item-added', [item, index]
+    @handleItemEvents(item)
     item
+
+  handleItemEvents: (item) ->
+    if _.isFunction(item.on)
+      @subscribe item, 'destroyed', =>
+        @destroyItem(item) if @state.isAlive()
 
   # Public: Remove the currently active item.
   destroyActiveItem: =>
@@ -197,11 +206,11 @@ class Pane extends View
 
   # Public: Remove the specified item.
   destroyItem: (item) ->
+    @unsubscribe(item) if _.isFunction(item.off)
     @trigger 'pane:before-item-destroyed', [item]
-    container = @getContainer()
 
     if @promptToSaveItem(item)
-      container.itemDestroyed(item)
+      @getContainer()?.itemDestroyed(item)
       @removeItem(item)
       item.destroy?()
       true

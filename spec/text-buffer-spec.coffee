@@ -34,11 +34,11 @@ describe 'TextBuffer', ->
           expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
       describe "when no file exists for the path", ->
-        it "is modified and is initially empty", ->
+        it "is not modified and is initially empty", ->
           filePath = "does-not-exist.txt"
           expect(fs.existsSync(filePath)).toBeFalsy()
           buffer = atom.project.bufferForPathSync(filePath)
-          expect(buffer.isModified()).toBeTruthy()
+          expect(buffer.isModified()).not.toBeTruthy()
           expect(buffer.getText()).toBe ''
 
     describe "when no path is given", ->
@@ -167,20 +167,38 @@ describe 'TextBuffer', ->
       filePath = bufferToDelete.getPath() # symlinks may have been converted
 
       expect(bufferToDelete.getPath()).toBe filePath
-      expect(bufferToDelete.isModified()).toBeFalsy()
-
-      removeHandler = jasmine.createSpy('removeHandler')
-      bufferToDelete.file.on 'removed', removeHandler
-      fs.removeSync(filePath)
-      waitsFor "file to be removed", ->
-        removeHandler.callCount > 0
 
     afterEach ->
       bufferToDelete.destroy()
 
-    it "retains its path and reports the buffer as modified", ->
-      expect(bufferToDelete.getPath()).toBe filePath
-      expect(bufferToDelete.isModified()).toBeTruthy()
+    describe "when the file is modified", ->
+      beforeEach ->
+        bufferToDelete.setText("I WAS MODIFIED")
+        expect(bufferToDelete.isModified()).toBeTruthy()
+
+        removeHandler = jasmine.createSpy('removeHandler')
+        bufferToDelete.file.on 'removed', removeHandler
+        fs.removeSync(filePath)
+        waitsFor "file to be removed", ->
+          removeHandler.callCount > 0
+
+      it "retains its path and reports the buffer as modified", ->
+        expect(bufferToDelete.getPath()).toBe filePath
+        expect(bufferToDelete.isModified()).toBeTruthy()
+
+    describe "when the file is not modified", ->
+      beforeEach ->
+        expect(bufferToDelete.isModified()).toBeFalsy()
+
+        removeHandler = jasmine.createSpy('removeHandler')
+        bufferToDelete.file.on 'removed', removeHandler
+        fs.removeSync(filePath)
+        waitsFor "file to be removed", ->
+          removeHandler.callCount > 0
+
+      it "retains its path and reports the buffer as not modified", ->
+        expect(bufferToDelete.getPath()).toBe filePath
+        expect(bufferToDelete.isModified()).toBeFalsy()
 
     it "resumes watching of the file when it is re-saved", ->
       bufferToDelete.save()
@@ -216,19 +234,6 @@ describe 'TextBuffer', ->
       buffer.undo()
       advanceClock(buffer.stoppedChangingDelay)
       expect(modifiedHandler).toHaveBeenCalledWith(false)
-
-    it "reports the modified status changing to true after the underlying file is deleted", ->
-      buffer.release()
-      filePath = path.join(temp.dir, 'atom-tmp-file')
-      fs.writeFileSync(filePath, 'delete me')
-      buffer = atom.project.bufferForPathSync(filePath)
-      modifiedHandler = jasmine.createSpy("modifiedHandler")
-      buffer.on 'modified-status-changed', modifiedHandler
-
-      fs.removeSync(filePath)
-
-      waitsFor "modified status to change", -> modifiedHandler.callCount
-      runs -> expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is saved", ->
       filePath = path.join(temp.dir, 'atom-tmp-file')

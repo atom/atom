@@ -84,7 +84,6 @@ class TextBuffer extends telepath.Model
       @file?.off()
       @unsubscribe()
       @alreadyDestroyed = true
-      @emit 'destroyed', this
 
   isRetained: -> @refcount > 0
 
@@ -114,8 +113,12 @@ class TextBuffer extends telepath.Model
         @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents().done =>
-        @emitModifiedStatusChanged(@isModified())
+      modified = @getText() != @cachedDiskContents
+      @wasModifiedBeforeRemove = modified
+      if modified
+        @updateCachedDiskContents()
+      else
+        @destroy()
 
     @file.on "moved", =>
       @emit "path-changed", this
@@ -446,7 +449,7 @@ class TextBuffer extends telepath.Model
       if @file.exists()
         @getText() != @cachedDiskContents
       else
-        true
+        @wasModifiedBeforeRemove ? not @isEmpty()
     else
       not @isEmpty()
 
