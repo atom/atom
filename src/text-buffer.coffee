@@ -694,25 +694,25 @@ class TextBuffer extends telepath.Model
     @transact =>
       row = 0
       column = 0
-      startPosition = [0, 0]
+      currentPosition = [0, 0]
 
       lineDiff = diff.diffLines(currentText, newText)
       changeOptions = normalizeLineEndings: false
 
       for change in lineDiff
         lineCount = change.value.match(/\n/g)?.length ? 0
-        startPosition[0] = row
-        startPosition[1] = column
+        currentPosition[0] = row
+        currentPosition[1] = column
 
         if change.added
-          @change([startPosition, startPosition], change.value, changeOptions)
+          @change([currentPosition, currentPosition], change.value, changeOptions)
           row += lineCount
           column = computeBufferColumn(change.value)
 
         else if change.removed
-          endBufferRow = row + lineCount
-          endBufferColumn = column + computeBufferColumn(change.value)
-          @change([startPosition, [endBufferRow, endBufferColumn]], '', changeOptions)
+          endRow = row + lineCount
+          endColumn = column + computeBufferColumn(change.value)
+          @change([currentPosition, [endRow, endColumn]], '', changeOptions)
 
         else
           row += lineCount
