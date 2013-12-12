@@ -28,6 +28,7 @@ class Cursor
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
       @needsAutoscroll ?= @isLastCursor() and !textChanged
+      @goalColumn = null
 
       movedEvent =
         oldBufferPosition: oldHeadBufferPosition
@@ -50,7 +51,6 @@ class Cursor
 
   # Private:
   changePosition: (options, fn) ->
-    @goalColumn = null
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
