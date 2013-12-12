@@ -195,7 +195,8 @@ class Pane extends View
     item
 
   handleItemEvents: (item) ->
-    @subscribe item, 'destroyed', => @destroyItem(item) if _.isFunction(item.on)
+    if _.isFunction(item.on)
+      @subscribe item, 'destroyed', => @destroyItem(item)
 
   # Public: Remove the currently active item.
   destroyActiveItem: =>
@@ -204,7 +205,7 @@ class Pane extends View
 
   # Public: Remove the specified item.
   destroyItem: (item) ->
-    @unsubscribe(item) if item.off
+    @unsubscribe(item) if _.isFunction(item.off)
     @trigger 'pane:before-item-destroyed', [item]
 
     if @promptToSaveItem(item)
