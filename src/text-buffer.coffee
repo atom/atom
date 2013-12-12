@@ -203,7 +203,47 @@ class TextBuffer extends telepath.Model
   #
   # text - A {String} containing the new buffer contents.
   setTextViaDiff: (text) ->
-    @applyDifferences(text)
+    currentText = @getText()
+    return if currentText == text
+
+    endsWithNewline = (str) ->
+      /[\r\n]+$/g.test(str)
+
+    computeBufferColumn = (str) ->
+      newlineIndex = Math.max(str.lastIndexOf('\n'), str.lastIndexOf('\r'))
+      if endsWithNewline(str)
+        0
+      else if newlineIndex == -1
+        str.length
+      else
+        str.length - newlineIndex - 1
+
+    @transact =>
+      row = 0
+      column = 0
+      currentPosition = [0, 0]
+
+      lineDiff = diff.diffLines(currentText, text)
+      changeOptions = normalizeLineEndings: false
+
+      for change in lineDiff
+        lineCount = change.value.match(/\n/g)?.length ? 0
+        currentPosition[0] = row
+        currentPosition[1] = column
+
+        if change.added
+          @change([currentPosition, currentPosition], change.value, changeOptions)
+          row += lineCount
+          column = computeBufferColumn(change.value)
+
+        else if change.removed
+          endRow = row + lineCount
+          endColumn = column + computeBufferColumn(change.value)
+          @change([currentPosition, [endRow, endColumn]], '', changeOptions)
+
+        else
+          row += lineCount
+          column = computeBufferColumn(change.value)
 
   # Gets the range of the buffer contents.
   #
@@ -674,46 +714,3 @@ class TextBuffer extends telepath.Model
     for row in [start..end]
       line = @lineForRow(row)
       console.log row, line, line.length
-
-  applyDifferences: (newText) ->
-    currentText = @getText()
-    return if currentText == newText
-
-    endsWithNewline = (str) ->
-      /[\r\n]+$/g.test(str)
-
-    computeBufferColumn = (str) ->
-      newlineIndex = Math.max(str.lastIndexOf('\n'), str.lastIndexOf('\r'))
-      if endsWithNewline(str)
-        0
-      else if newlineIndex == -1
-        str.length
-      else
-        str.length - newlineIndex - 1
-
-    @transact =>
-      row = 0
-      column = 0
-      currentPosition = [0, 0]
-
-      lineDiff = diff.diffLines(currentText, newText)
-      changeOptions = normalizeLineEndings: false
-
-      for change in lineDiff
-        lineCount = change.value.match(/\n/g)?.length ? 0
-        currentPosition[0] = row
-        currentPosition[1] = column
-
-        if change.added
-          @change([currentPosition, currentPosition], change.value, changeOptions)
-          row += lineCount
-          column = computeBufferColumn(change.value)
-
-        else if change.removed
-          endRow = row + lineCount
-          endColumn = column + computeBufferColumn(change.value)
-          @change([currentPosition, [endRow, endColumn]], '', changeOptions)
-
-        else
-          row += lineCount
-          column = computeBufferColumn(change.value)
