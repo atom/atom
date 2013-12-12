@@ -147,6 +147,7 @@ describe "Pane", ->
 
     describe "if the item is modified", ->
       beforeEach ->
+        jasmine.unspy(editor2, 'shouldPromptToSave')
         spyOn(editor2, 'save')
         spyOn(editor2, 'saveAs')
 

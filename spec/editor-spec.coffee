@@ -2614,6 +2614,7 @@ describe "Editor", ->
 
     describe ".shouldPromptToSave()", ->
       it "returns false when an edit session's buffer is in use by more than one session", ->
+        jasmine.unspy(editor, 'shouldPromptToSave')
         expect(editor.shouldPromptToSave()).toBeFalsy()
         buffer.setText('changed')
         expect(editor.shouldPromptToSave()).toBeTruthy()
