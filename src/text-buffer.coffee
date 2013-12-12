@@ -199,7 +199,7 @@ class TextBuffer extends telepath.Model
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
 
-  # Replaces the current buffer contents. Only apply the differences.
+  # Private: Replaces the current buffer contents. Only apply the differences.
   #
   # text - A {String} containing the new buffer contents.
   setTextViaDiff: (text) ->
