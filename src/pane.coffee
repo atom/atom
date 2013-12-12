@@ -196,7 +196,8 @@ class Pane extends View
 
   handleItemEvents: (item) ->
     if _.isFunction(item.on)
-      @subscribe item, 'destroyed', => @destroyItem(item)
+      @subscribe item, 'destroyed', =>
+        @destroyItem(item) if @state.isAlive()
 
   # Public: Remove the currently active item.
   destroyActiveItem: =>
