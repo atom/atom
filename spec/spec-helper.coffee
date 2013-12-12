@@ -113,8 +113,7 @@ afterEach ->
   atom.project?.destroy?()
   atom.project = null
 
-  console.log atom.state.has('packageStates')
-
+  atom.state.remove('packageStates')
 
   $('#jasmine-content').empty() unless window.debugContent
 
