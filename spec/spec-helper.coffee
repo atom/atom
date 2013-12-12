@@ -116,6 +116,7 @@ afterEach ->
   atom.state.remove('packageStates')
 
   $('#jasmine-content').empty() unless window.debugContent
+  atom.destroyOrphans()
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
