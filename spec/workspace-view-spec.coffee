@@ -457,8 +457,6 @@ describe "WorkspaceView", ->
 
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
-      spyOn(Pane.prototype, "promptToSaveItem").andReturn 0
-
       atom.workspaceView.height(200)
       atom.workspaceView.attachToDom()
       rightEditor = atom.workspaceView.getActiveView()
