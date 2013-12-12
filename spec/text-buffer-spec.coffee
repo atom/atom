@@ -462,36 +462,37 @@ describe 'TextBuffer', ->
       expect(event.newRange).toEqual [[0, 0], [1, 14]]
 
   describe ".setTextViaDiff(text)", ->
-    it "changes the entire contents of the buffer with smaller content with no newline at the end", ->
-      newText = "I know you are.\nBut what am I?"
-      buffer.setTextViaDiff(newText)
-      expect(buffer.getText()).toBe newText
-
-    it "changes the entire contents of the buffer with smaller content with newline at the end", ->
-      newText = "I know you are.\nBut what am I?\n"
-      buffer.setTextViaDiff(newText)
-      expect(buffer.getText()).toBe newText
-
-    it "changes a few lines at the beginning in the buffer", ->
-      newText = buffer.getText().replace(/function/g, 'omgwow')
-      buffer.setTextViaDiff(newText)
-      expect(buffer.getText()).toBe newText
-
-    it "changes a few lines in the middle of the buffer", ->
-      newText = buffer.getText().replace(/shift/g, 'omgwow')
-      buffer.setTextViaDiff(newText)
-      expect(buffer.getText()).toBe newText
-
-    it "adds a newline at the end", ->
-      newText = buffer.getText() + '\n'
-      buffer.setTextViaDiff(newText)
-      expect(buffer.getText()).toBe newText
-
-    it "changes all with no newlines", ->
+    it "can change the entire contents of the buffer when there are no newlines", ->
       buffer.setText('BUFFER CHANGE')
       newText = 'DISK CHANGE'
       buffer.setTextViaDiff(newText)
       expect(buffer.getText()).toBe newText
+
+    describe "with standard newlines", ->
+      it "can change the entire contents of the buffer with no newline at the end", ->
+        newText = "I know you are.\nBut what am I?"
+        buffer.setTextViaDiff(newText)
+        expect(buffer.getText()).toBe newText
+
+      it "can change the entire contents of the buffer with a newline at the end", ->
+        newText = "I know you are.\nBut what am I?\n"
+        buffer.setTextViaDiff(newText)
+        expect(buffer.getText()).toBe newText
+
+      it "can change a few lines at the beginning in the buffer", ->
+        newText = buffer.getText().replace(/function/g, 'omgwow')
+        buffer.setTextViaDiff(newText)
+        expect(buffer.getText()).toBe newText
+
+      it "can change a few lines in the middle of the buffer", ->
+        newText = buffer.getText().replace(/shift/g, 'omgwow')
+        buffer.setTextViaDiff(newText)
+        expect(buffer.getText()).toBe newText
+
+      it "can adds a newline at the end", ->
+        newText = buffer.getText() + '\n'
+        buffer.setTextViaDiff(newText)
+        expect(buffer.getText()).toBe newText
 
     describe "with windows newlines", ->
       beforeEach ->
