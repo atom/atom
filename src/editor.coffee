@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 path = require 'path'
-guid = require 'guid'
 {Model, Point, Range} = require 'telepath'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
