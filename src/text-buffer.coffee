@@ -717,6 +717,3 @@ class TextBuffer extends telepath.Model
         else
           bufferRow += numberLines
           bufferColumn = computeBufferColumn(change.value)
-
-        # console.log 'after', bufferRow, bufferColumn, change
-        # console.log @getText()
