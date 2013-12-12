@@ -70,7 +70,7 @@ class WorkspaceView extends View
       panes = atom.deserializers.deserialize(state.get('panes'))
     else
       panes = new PaneContainer
-      @state = atom.site.createDocument
+      @state = atom.create
         deserializer: @constructor.name
         version: @constructor.version
         panes: panes.getState()

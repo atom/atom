@@ -1,6 +1,6 @@
 require '../src/window'
-atom.setUpEnvironment('spec')
-atom.restoreDimensions()
+atom.initialize()
+atom.restoreWindowDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
@@ -27,9 +27,8 @@ keyBindingsToRestore = atom.keymap.getKeyBindings()
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->
-  atom.windowMode = 'spec'
-  atom.getWindowState().set('dimensions', atom.getDimensions())
-  atom.saveWindowState()
+  atom.storeWindowDimensions()
+  atom.saveSync()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
@@ -50,15 +49,15 @@ if specDirectory
 beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
-  atom.project = atom.getWindowState().set('project', new Project(path: projectPath))
+  atom.project = atom.project = new Project(path: projectPath)
   atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
 
   serializedWindowState = null
-  spyOn(atom, 'saveWindowState').andCallFake -> serializedWindowState = @getWindowState().serialize()
-  spyOn(atom, 'loadSerializedWindowState').andCallFake -> serializedWindowState
+
+  spyOn(atom, 'saveSync')
   atom.syntax.clearGrammarOverrides()
   atom.syntax.clearProperties()
 
@@ -109,13 +108,17 @@ afterEach ->
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null
+  atom.state.remove('workspaceView')
 
   atom.project?.destroy?()
   atom.project = null
 
+  console.log atom.state.has('packageStates')
+
+
   $('#jasmine-content').empty() unless window.debugContent
-  delete atom.windowState
-  jasmine.unspy(atom, 'saveWindowState')
+
+  jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
@@ -134,7 +137,7 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
     emitObject.call(this, obj)
 
 jasmine.unspy = (object, methodName) ->
-  throw new Error("Not a spy") unless object[methodName].originalValue?
+  throw new Error("Not a spy") unless object[methodName].hasOwnProperty('originalValue')
   object[methodName] = object[methodName].originalValue
 
 addCustomMatchers = (spec) ->

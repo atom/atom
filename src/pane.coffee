@@ -39,7 +39,7 @@ class Pane extends View
         item
     else
       @items = args
-      @state = atom.site.createDocument
+      @state = atom.create
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
