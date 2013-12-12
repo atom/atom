@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
 Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
@@ -14,9 +13,6 @@ File = require './file'
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer extends telepath.Model
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
-
   @properties
     text: -> new telepath.String('', replicated: false)
     filePath: null
