@@ -238,6 +238,7 @@ class Atom extends Model
     @state.set('packageStates', @packages.packageStates)
     @saveSync()
     @workspaceView.remove()
+    @workspaceView = null
     @project.destroy()
     @windowEventHandler?.unsubscribe()
     @windowState = null
