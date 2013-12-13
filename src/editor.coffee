@@ -1400,7 +1400,7 @@ class Editor extends Model
 
   # Private:
   inspect: ->
-    JSON.stringify @state.toObject()
+    "<Editor #{@id}>"
 
   # Private:
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
