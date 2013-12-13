@@ -217,7 +217,7 @@ class Atom extends Model
   # Deprecated: Just access the loadSettings property directly. Eventually I want
   # both to go away and just store the relevant info on the atom global itself.
   getLoadSettings: ->
-    @loadSettings
+    _.deepClone(@loadSettings)
 
   # Private:
   deserializeProject: ->
