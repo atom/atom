@@ -780,6 +780,14 @@ class EditorView extends View
 
   afterAttach: (onDom) ->
     return unless onDom
+
+    # TODO: Remove this guard when we understand why this is happening
+    unless @editor.isAlive()
+      if atom.isReleasedVersion()
+        return
+      else
+        throw new Error("Assertion failure: EditorView is getting attached to a dead editor. Why?")
+
     @redraw() if @redrawOnReattach
     return if @attached
     @attached = true
