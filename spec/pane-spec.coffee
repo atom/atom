@@ -28,11 +28,11 @@ describe "Pane", ->
   afterEach ->
     atom.deserializers.remove(TestView)
 
-  describe ".initialize(items...)", ->
+  describe "::initialize(items...)", ->
     it "displays the first item in the pane", ->
       expect(pane.itemViews.find('#view-1')).toExist()
 
-  describe ".showItem(item)", ->
+  describe "::showItem(item)", ->
     it "hides all item views except the one being shown and sets the activeItem", ->
       expect(pane.activeItem).toBe view1
       pane.showItem(view2)
@@ -138,7 +138,7 @@ describe "Pane", ->
         expect(pane.itemViews.find('#view-2')).toExist()
         expect(pane.activeView).toBe view2
 
-  describe ".destroyItem(item)", ->
+  describe "::destroyItem(item)", ->
     describe "if the item is not modified", ->
       it "removes the item and tries to call destroy on it", ->
         pane.destroyItem(editor2)
@@ -196,7 +196,7 @@ describe "Pane", ->
           expect(pane.getItems().indexOf(editor2)).not.toBe -1
           expect(editor2.destroyed).toBeFalsy()
 
-  describe ".removeItem(item)", ->
+  describe "::removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
       pane.removeItem(view1)
       expect(pane.getItems()).toEqual [editor1, view2, editor2]
@@ -244,7 +244,7 @@ describe "Pane", ->
         pane.removeItem(editor1)
         expect(pane.itemViews.find('.editor')).not.toExist()
 
-  describe ".moveItem(item, index)", ->
+  describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits a 'pane:item-moved' event with the item and the new index", ->
       itemMovedHandler = jasmine.createSpy("itemMovedHandler")
       pane.on 'pane:item-moved', itemMovedHandler
@@ -267,7 +267,7 @@ describe "Pane", ->
       expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
       itemMovedHandler.reset()
 
-  describe ".moveItemToPane(item, pane, index)", ->
+  describe "::moveItemToPane(item, pane, index)", ->
     [pane2, view3] = []
 
     beforeEach ->
@@ -314,7 +314,7 @@ describe "Pane", ->
       expect(editor2.destroyed).toBeTruthy()
       expect(pane.getItems()).toEqual [editor1]
 
-  describe "saveActiveItem", ->
+  describe "::saveActiveItem()", ->
     describe "when the current item has a uri", ->
       describe "when the current item has a save method", ->
         it "saves the current item", ->
@@ -350,7 +350,7 @@ describe "Pane", ->
           pane.saveActiveItem()
           expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
-  describe "saveActiveItemAs", ->
+  describe "::saveActiveItemAs()", ->
     beforeEach ->
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
@@ -420,7 +420,7 @@ describe "Pane", ->
       waitsFor ->
         pane.items.length == 4
 
-  describe ".remove()", ->
+  describe "::remove()", ->
     it "destroys all the pane's items", ->
       pane.remove()
       expect(editor1.destroyed).toBeTruthy()
@@ -489,7 +489,7 @@ describe "Pane", ->
           pane.remove()
           expect(atom.workspaceView.focus).not.toHaveBeenCalled()
 
-  describe ".getNextPane()", ->
+  describe "::getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
       pane.showItem(editor1)
       expect(pane.getNextPane()).toBeUndefined
@@ -670,7 +670,7 @@ describe "Pane", ->
       expect(container.children('.pane').length).toBe 1
       expect(pane1.outerWidth()).toBe container.width()
 
-  describe ".itemForUri(uri)", ->
+  describe "::itemForUri(uri)", ->
     it "returns the item for which a call to .getUri() returns the given uri", ->
       expect(pane.itemForUri(editor1.getUri())).toBe editor1
       expect(pane.itemForUri(editor2.getUri())).toBe editor2
