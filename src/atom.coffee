@@ -165,100 +165,9 @@ class Atom extends Model
 
     @windowEventHandler = new WindowEventHandler
 
-  # Deprecated: Just access the loadSettings property directly. Eventually I want
-  # both to go away and just store the relevant info on the atom global itself.
-  getLoadSettings: ->
-    @loadSettings
-
-  # Private: Call this method when establishing a real application window.
-  startEditorWindow: ->
-    if process.platform is 'darwin'
-      CommandInstaller = require './command-installer'
-      CommandInstaller.installAtomCommand()
-      CommandInstaller.installApmCommand()
-
-    @restoreWindowDimensions()
-    @config.load()
-    @config.setDefaults('core', require('./workspace-view').configDefaults)
-    @config.setDefaults('editor', require('./editor-view').configDefaults)
-    @keymap.loadBundledKeymaps()
-    @themes.loadBaseStylesheets()
-    @packages.loadPackages()
-    @deserializeEditorWindow()
-    @packages.activate()
-    @keymap.loadUserKeymap()
-    @requireUserInitScript()
-    @menu.update()
-
-    $(window).on 'unload', =>
-      $(document.body).css('visibility', 'hidden')
-      @unloadEditorWindow()
-      false
-
-    @displayWindow()
-
-  # Private:
-  saveSync: ->
-    if statePath = @constructor.getStatePath(@mode)
-      super(statePath)
-    else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@serializeForPersistence())
-
   # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
-
-  # Private:
-  deserializeProject: ->
-    Project = require './project'
-    @project ?= new Project(path: @loadSettings.initialPath)
-
-  # Private:
-  deserializeWorkspaceView: ->
-    WorkspaceView = require './workspace-view'
-    @workspaceView = @deserializers.deserialize(@state.get('workspaceView'))
-    unless @workspaceView?
-      @workspaceView = new WorkspaceView()
-      @state.set('workspaceView', @workspaceView.getState())
-    $(@workspaceViewParentSelector).append(@workspaceView)
-
-  # Private:
-  deserializePackageStates: ->
-    @packages.packageStates = @state.getObject('packageStates') ? {}
-    @state.remove('packageStates')
-
-  # Private:
-  deserializeEditorWindow: ->
-    @deserializePackageStates()
-    @deserializeProject()
-    @deserializeWorkspaceView()
-
-  # Private:
-  unloadEditorWindow: ->
-    return if not @project and not @workspaceView
-
-    @state.set('syntax', @syntax.serialize())
-    @state.set('workspaceView', @workspaceView.serialize())
-    @packages.deactivatePackages()
-    @state.set('packageStates', @packages.packageStates)
-    @saveSync()
-    @workspaceView.remove()
-    @workspaceView = null
-    @project.destroy()
-    @windowEventHandler?.unsubscribe()
-    @windowState = null
-
-  # Private:
-  loadThemes: ->
-    @themes.load()
-
-  # Private:
-  watchThemes: ->
-    @themes.on 'reloaded', =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      null
 
   # Public:
   getCurrentWindow: ->
@@ -294,16 +203,100 @@ class Atom extends Model
       browserWindow.center()
 
   # Private:
-  storeWindowDimensions: ->
-    @state.set('windowDimensions', @getWindowDimensions())
-
-  # Private:
   restoreWindowDimensions: ->
     windowDimensions = @state.getObject('windowDimensions') ? {}
     {initialSize} = @loadSettings
     windowDimensions.height ?= initialSize?.height ? global.screen.availHeight
     windowDimensions.width ?= initialSize?.width ? Math.min(global.screen.availWidth, 1024)
     @setWindowDimensions(windowDimensions)
+
+  # Private:
+  storeWindowDimensions: ->
+    @state.set('windowDimensions', @getWindowDimensions())
+
+  # Deprecated: Just access the loadSettings property directly. Eventually I want
+  # both to go away and just store the relevant info on the atom global itself.
+  getLoadSettings: ->
+    @loadSettings
+
+  # Private:
+  deserializeProject: ->
+    Project = require './project'
+    @project ?= new Project(path: @loadSettings.initialPath)
+
+  # Private:
+  deserializeWorkspaceView: ->
+    WorkspaceView = require './workspace-view'
+    @workspaceView = @deserializers.deserialize(@state.get('workspaceView'))
+    unless @workspaceView?
+      @workspaceView = new WorkspaceView()
+      @state.set('workspaceView', @workspaceView.getState())
+    $(@workspaceViewParentSelector).append(@workspaceView)
+
+  # Private:
+  deserializePackageStates: ->
+    @packages.packageStates = @state.getObject('packageStates') ? {}
+    @state.remove('packageStates')
+
+  # Private:
+  deserializeEditorWindow: ->
+    @deserializePackageStates()
+    @deserializeProject()
+    @deserializeWorkspaceView()
+
+  # Private: Call this method when establishing a real application window.
+  startEditorWindow: ->
+    if process.platform is 'darwin'
+      CommandInstaller = require './command-installer'
+      CommandInstaller.installAtomCommand()
+      CommandInstaller.installApmCommand()
+
+    @restoreWindowDimensions()
+    @config.load()
+    @config.setDefaults('core', require('./workspace-view').configDefaults)
+    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @keymap.loadBundledKeymaps()
+    @themes.loadBaseStylesheets()
+    @packages.loadPackages()
+    @deserializeEditorWindow()
+    @packages.activate()
+    @keymap.loadUserKeymap()
+    @requireUserInitScript()
+    @menu.update()
+
+    $(window).on 'unload', =>
+      $(document.body).css('visibility', 'hidden')
+      @unloadEditorWindow()
+      false
+
+    @displayWindow()
+
+  # Private:
+  unloadEditorWindow: ->
+    return if not @project and not @workspaceView
+
+    @state.set('syntax', @syntax.serialize())
+    @state.set('workspaceView', @workspaceView.serialize())
+    @packages.deactivatePackages()
+    @state.set('packageStates', @packages.packageStates)
+    @saveSync()
+    @workspaceView.remove()
+    @workspaceView = null
+    @project.destroy()
+    @windowEventHandler?.unsubscribe()
+    @windowState = null
+
+  # Private:
+  loadThemes: ->
+    @themes.load()
+
+  # Private:
+  watchThemes: ->
+    @themes.on 'reloaded', =>
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
+      null
 
   # Public: Open a new Atom window using the given options.
   #
@@ -450,7 +443,14 @@ class Atom extends Model
   # Returns the absolute path to ~/.atom
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
-    @configDirPath ?= fs.absolute('~/.atom')
+
+  # Private:
+  saveSync: ->
+    if statePath = @constructor.getStatePath(@mode)
+      super(statePath)
+    else
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@serializeForPersistence())
+
 
   # Public: Get the time taken to completely load the current window.
   #
