@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+var cp = require('./utils/child-process-wrapper.js');
+var path = require('path');
+var os = require('os');
+var rimraf = require('rimraf');
+var productName = require('../package.json').productName;
+
+process.chdir(path.dirname(__dirname));
+var home = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
+var tmpdir = os.tmpdir();
+
+var command = process.platform === 'win32' ? 'taskkill /IM ' + productName + '.exe' : 'pkill -9 ' + productName;
+cp.safeExec(command, function() {
+  [
+    [__dirname, '..', 'node_modules'],
+    [__dirname, '..', 'atom-shell'],
+    [home, '.atom', '.node-type'],
+    [home, '.atom', 'storage'],
+    [tmpdir, 'atom-build'],
+    [tmpdir, 'atom-cached-atom-shells'],
+    [tmpdir, 'atom-compile-cache'],
+  ].forEach(function(filepath) {
+    rimraf(path.resolve.apply(path.resolve, filepath), function() {});
+  });
+});
