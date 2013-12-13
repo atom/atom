@@ -362,7 +362,7 @@ class Atom
 
   # Public: Get the version of the Atom application.
   getVersion: ->
-    app.getVersion()
+    @version ?= app.getVersion()
 
   # Public: Determine whether the current version is an official release.
   isReleasedVersion: ->
