@@ -317,7 +317,6 @@ class WorkspaceView extends View
   # Private: Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditorViews()
-    atom.project?.destroy()
     super
 
   # Private: Adds the destroyed item's uri to the list of items to reopen.
