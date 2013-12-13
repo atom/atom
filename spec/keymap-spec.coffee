@@ -6,7 +6,7 @@ Keymap = require '../src/keymap'
 describe "Keymap", ->
   fragment = null
   keymap = null
-  resourcePath = atom.loadSettings.resourcePath
+  resourcePath = atom.getLoadSettings().resourcePath
 
   beforeEach ->
     keymap = new Keymap({configDirPath: atom.getConfigDirPath(), resourcePath})

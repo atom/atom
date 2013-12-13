@@ -8,7 +8,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
-  if atom.loadSettings.exitWhenDone
+  if atom.getLoadSettings().exitWhenDone
     {jasmineNode} = require 'jasmine-node/lib/jasmine-node/reporter'
     reporter = new jasmineNode.TerminalReporter
       print: (args...) ->

@@ -8,7 +8,11 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'hide')
-    atom.loadSettings.initialPath = atom.project.getPath()
+    initialPath = atom.project.getPath()
+    spyOn(atom, 'getLoadSettings').andCallFake ->
+      loadSettings = atom.getLoadSettings.originalValue.call(atom)
+      loadSettings.initialPath = initialPath
+      loadSettings
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     atom.deserializeEditorWindow()

@@ -40,7 +40,7 @@ window.benchmark = (args...) ->
     report = "#{fullname}: #{total} / #{count} = #{avg}ms"
     console.log(report)
 
-    if atom.loadSettings.exitWhenDone
+    if atom.getLoadSettings().exitWhenDone
       url = "https://github.com/_stats"
       data = [type: 'timing', metric: "atom.#{fullname}", ms: avg]
       $.ajax url,

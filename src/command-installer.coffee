@@ -54,7 +54,7 @@ module.exports =
       callback = resourcePath
       resourcePath = null
 
-    resourcePath ?= atom.loadSettings.resourcePath
+    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
     @install(commandPath, callback)
 
@@ -63,6 +63,6 @@ module.exports =
       callback = resourcePath
       resourcePath = null
 
-    resourcePath ?= atom.loadSettings.resourcePath
+    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
     @install(commandPath, callback)

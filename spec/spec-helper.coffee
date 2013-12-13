@@ -39,7 +39,7 @@ specPackageName = null
 specPackagePath = null
 specProjectPath = null
 
-{specDirectory, resourcePath} = atom.loadSettings
+{specDirectory, resourcePath} = atom.getLoadSettings()
 
 if specDirectory
   specPackagePath = path.resolve(specDirectory, '..')
