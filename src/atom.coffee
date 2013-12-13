@@ -168,7 +168,7 @@ class Atom extends Model
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
-  # Public:
+  # Public: Get the current window
   getCurrentWindow: ->
     @constructor.getCurrentWindow()
 
