@@ -194,7 +194,7 @@ class Atom
     @menu.update()
 
     $(window).on 'unload', =>
-      $(document.body).hide()
+      $(document.body).css('visibility', 'hidden')
       @unloadEditorWindow()
       false
 
