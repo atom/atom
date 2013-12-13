@@ -125,6 +125,7 @@ class WorkspaceView extends View
       atom.config.toggle("editor.autoIndent")
 
     @command 'pane:reopen-closed-item', => @reopenItemSync()
+    @command 'core:close', => @destroyActivePaneItem()
 
   # Private:
   serialize: ->
@@ -279,6 +280,10 @@ class WorkspaceView extends View
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
+
+  # Public: destroy/close the active item.
+  destroyActivePaneItem: ->
+    @getActivePane()?.destroyActiveItem()
 
   # Public: Focuses the previous pane by id.
   focusPreviousPane: -> @panes.focusPreviousPane()

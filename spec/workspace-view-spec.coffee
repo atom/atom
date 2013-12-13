@@ -553,3 +553,12 @@ describe "WorkspaceView", ->
       expect(workspace.getActivePaneItem().getUri()).toBe 'b'
       workspace.reopenItemSync()
       expect(workspace.getActivePaneItem().getUri()).toBe 'a'
+
+  describe "core:close", ->
+    it "closes the active editor until there are none", ->
+      atom.project.openSync('../sample.txt')
+      expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 1
+      atom.workspaceView.trigger('core:close')
+      expect(atom.workspaceView.getActivePane()).not.toBeDefined()
+      atom.workspaceView.trigger('core:close')
+      expect(atom.workspaceView.getActivePane()).not.toBeDefined()

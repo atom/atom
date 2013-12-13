@@ -299,19 +299,6 @@ describe "Pane", ->
         pane2.showItemAtIndex(1)
         expect(pane2.activeView.data('preservative')).toBe 1234
 
-  describe "core:close", ->
-    it "destroys the active item and does not bubble the event", ->
-      containerCloseHandler = jasmine.createSpy("containerCloseHandler")
-      container.on 'core:close', containerCloseHandler
-
-      pane.showItem(editor1)
-      initialItemCount = pane.getItems().length
-      pane.trigger 'core:close'
-      expect(pane.getItems().length).toBe initialItemCount - 1
-      expect(editor1.destroyed).toBeTruthy()
-
-      expect(containerCloseHandler).not.toHaveBeenCalled()
-
   describe "pane:close", ->
     it "destroys all items and removes the pane", ->
       pane.showItem(editor1)

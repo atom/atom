@@ -63,7 +63,6 @@ class Pane extends View
     unless activeItemUri? and @showItemForUri(activeItemUri)
       @showItem(@items[0]) if @items.length > 0
 
-    @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
     @command 'core:save-as', @saveActiveItemAs
     @command 'pane:save-items', @saveItems
