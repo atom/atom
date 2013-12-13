@@ -165,6 +165,11 @@ class Atom extends Model
 
     @windowEventHandler = new WindowEventHandler
 
+  # Deprecated: Just access the loadSettings property directly. Eventually I want
+  # both to go away and just store the relevant info on the atom global itself.
+  getLoadSettings: ->
+    @loadSettings
+
   # Private: Call this method when establishing a real application window.
   startEditorWindow: ->
     if process.platform is 'darwin'
