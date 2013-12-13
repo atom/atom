@@ -19,8 +19,10 @@ describe "WorkspaceView", ->
     viewState = null
 
     simulateReload = ->
-      atom.unloadEditorWindow()
-      atom.deserializeEditorWindow()
+      state = atom.workspaceView.serialize().replicate()
+      atom.workspaceView.remove()
+      atom.workspaceView = WorkspaceView.deserialize(state)
+      atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
@@ -29,12 +31,12 @@ describe "WorkspaceView", ->
         editor1 = atom.workspaceView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[2]
+        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPanes()[1]
 
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 2
-        expect(atom.workspaceView.getActiveView()).toBe atom.workspaceView.getEditorViews()[1]
+        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPanes()[1]
         expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
