@@ -9,6 +9,7 @@ Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'telepath'
 Project = require '../src/project'
+Editor = require '../src/editor'
 EditorView = require '../src/editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
@@ -91,6 +92,7 @@ beforeEach ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
+  spyOn(Editor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous
   TokenizedBuffer.prototype.chunkSize = Infinity

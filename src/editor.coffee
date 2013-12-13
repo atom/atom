@@ -110,6 +110,7 @@ class Editor extends Model
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
+    @subscribe @buffer, "destroyed", => @destroy()
     @preserveCursorPositionOnBufferReload()
 
   # Private:

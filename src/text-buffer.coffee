@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+diff = require 'diff'
 Q = require 'q'
 {P} = require 'scandal'
 telepath = require 'telepath'
@@ -14,9 +14,6 @@ File = require './file'
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer extends telepath.Model
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
-
   @properties
     text: -> new telepath.String('', replicated: false)
     filePath: null
@@ -87,7 +84,6 @@ class TextBuffer extends telepath.Model
       @file?.off()
       @unsubscribe()
       @alreadyDestroyed = true
-      @emit 'destroyed', this
 
   isRetained: -> @refcount > 0
 
@@ -117,8 +113,12 @@ class TextBuffer extends telepath.Model
         @reload()
 
     @file.on "removed", =>
-      @updateCachedDiskContents().done =>
-        @emitModifiedStatusChanged(@isModified())
+      modified = @getText() != @cachedDiskContents
+      @wasModifiedBeforeRemove = modified
+      if modified
+        @updateCachedDiskContents()
+      else
+        @destroy()
 
     @file.on "moved", =>
       @emit "path-changed", this
@@ -137,7 +137,7 @@ class TextBuffer extends telepath.Model
   # Sets the buffer's content to the cached disk contents
   reload: ->
     @emit 'will-reload'
-    @setText(@cachedDiskContents)
+    @setTextViaDiff(@cachedDiskContents)
     @emitModifiedStatusChanged(false)
     @emit 'reloaded'
 
@@ -201,6 +201,52 @@ class TextBuffer extends telepath.Model
   # text - A {String} containing the new buffer contents.
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
+
+  # Private: Replaces the current buffer contents. Only apply the differences.
+  #
+  # text - A {String} containing the new buffer contents.
+  setTextViaDiff: (text) ->
+    currentText = @getText()
+    return if currentText == text
+
+    endsWithNewline = (str) ->
+      /[\r\n]+$/g.test(str)
+
+    computeBufferColumn = (str) ->
+      newlineIndex = Math.max(str.lastIndexOf('\n'), str.lastIndexOf('\r'))
+      if endsWithNewline(str)
+        0
+      else if newlineIndex == -1
+        str.length
+      else
+        str.length - newlineIndex - 1
+
+    @transact =>
+      row = 0
+      column = 0
+      currentPosition = [0, 0]
+
+      lineDiff = diff.diffLines(currentText, text)
+      changeOptions = normalizeLineEndings: false
+
+      for change in lineDiff
+        lineCount = change.value.match(/\n/g)?.length ? 0
+        currentPosition[0] = row
+        currentPosition[1] = column
+
+        if change.added
+          @change([currentPosition, currentPosition], change.value, changeOptions)
+          row += lineCount
+          column = computeBufferColumn(change.value)
+
+        else if change.removed
+          endRow = row + lineCount
+          endColumn = column + computeBufferColumn(change.value)
+          @change([currentPosition, [endRow, endColumn]], '', changeOptions)
+
+        else
+          row += lineCount
+          column = computeBufferColumn(change.value)
 
   # Gets the range of the buffer contents.
   #
@@ -403,7 +449,7 @@ class TextBuffer extends telepath.Model
       if @file.exists()
         @getText() != @cachedDiskContents
       else
-        true
+        @wasModifiedBeforeRemove ? not @isEmpty()
     else
       not @isEmpty()
 

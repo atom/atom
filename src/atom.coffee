@@ -191,7 +191,7 @@ class Atom extends Model
     @menu.update()
 
     $(window).on 'unload', =>
-      $(document.body).hide()
+      $(document.body).css('visibility', 'hidden')
       @unloadEditorWindow()
       false
 
