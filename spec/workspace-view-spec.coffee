@@ -562,3 +562,22 @@ describe "WorkspaceView", ->
       expect(atom.workspaceView.getActivePane()).not.toBeDefined()
       atom.workspaceView.trigger('core:close')
       expect(atom.workspaceView.getActivePane()).not.toBeDefined()
+
+  describe "core:save", ->
+    it "saves active editor until there are none", ->
+      editor = atom.project.openSync('../sample.txt')
+      spyOn(editor, 'save')
+      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.trigger('core:save')
+      expect(editor.save).toHaveBeenCalled()
+
+  describe "core:save-as", ->
+    beforeEach ->
+      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
+
+    it "saves active editor until there are none", ->
+      editor = atom.project.openSync('../sample.txt')
+      spyOn(editor, 'saveAs')
+      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.trigger('core:save-as')
+      expect(editor.saveAs).toHaveBeenCalled()

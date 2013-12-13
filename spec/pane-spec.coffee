@@ -314,20 +314,20 @@ describe "Pane", ->
       expect(editor2.destroyed).toBeTruthy()
       expect(pane.getItems()).toEqual [editor1]
 
-  describe "core:save", ->
+  describe "saveActiveItem", ->
     describe "when the current item has a uri", ->
       describe "when the current item has a save method", ->
         it "saves the current item", ->
           spyOn(editor2, 'save')
           pane.showItem(editor2)
-          pane.trigger 'core:save'
+          pane.saveActiveItem()
           expect(editor2.save).toHaveBeenCalled()
 
       describe "when the current item has no save method", ->
         it "does nothing", ->
           pane.activeItem.getUri = -> 'you are eye'
           expect(pane.activeItem.save).toBeUndefined()
-          pane.trigger 'core:save'
+          pane.saveActiveItem()
 
     describe "when the current item has no uri", ->
       beforeEach ->
@@ -339,7 +339,7 @@ describe "Pane", ->
           spyOn(newEditor, 'saveAs')
           pane.showItem(newEditor)
 
-          pane.trigger 'core:save'
+          pane.saveActiveItem()
 
           expect(atom.showSaveDialogSync).toHaveBeenCalled()
           expect(newEditor.saveAs).toHaveBeenCalledWith('/selected/path')
@@ -347,10 +347,10 @@ describe "Pane", ->
       describe "when the current item has no saveAs method", ->
         it "does nothing", ->
           expect(pane.activeItem.saveAs).toBeUndefined()
-          pane.trigger 'core:save'
+          pane.saveActiveItem()
           expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
-  describe "core:save-as", ->
+  describe "saveActiveItemAs", ->
     beforeEach ->
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
@@ -359,7 +359,7 @@ describe "Pane", ->
         spyOn(editor2, 'saveAs')
         pane.showItem(editor2)
 
-        pane.trigger 'core:save-as'
+        pane.saveActiveItemAs()
 
         expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editor2.getPath()))
         expect(editor2.saveAs).toHaveBeenCalledWith('/selected/path')
@@ -367,7 +367,7 @@ describe "Pane", ->
     describe "when the current item does not have a saveAs method", ->
       it "does nothing", ->
         expect(pane.activeItem.saveAs).toBeUndefined()
-        pane.trigger 'core:save-as'
+        pane.saveActiveItemAs()
         expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
   describe "pane:show-next-item and pane:show-previous-item", ->
