@@ -214,8 +214,8 @@ class Atom extends Model
   storeWindowDimensions: ->
     @state.set('windowDimensions', @getWindowDimensions())
 
-  # Deprecated: Just access the loadSettings property directly. Eventually I want
-  # both to go away and just store the relevant info on the atom global itself.
+  # Deprecated: Just access the loadSettings property directly. We should just pass
+  # these properties into the object itself when constructing it.
   getLoadSettings: ->
     _.deepClone(@loadSettings)
 
