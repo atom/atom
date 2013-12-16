@@ -63,8 +63,6 @@ class Clean extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   removeModule: (module, callback) ->
     process.stdout.write("Removing #{module} ")
     @fork @atomNpmPath, ['uninstall', module], (code, stderr='', stdout='') =>

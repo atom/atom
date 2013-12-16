@@ -37,8 +37,6 @@ class Develop extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   getRepositoryUrl: (packageName, callback) ->
     auth.getToken (error, token) ->
       if error?

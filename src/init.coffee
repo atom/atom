@@ -24,8 +24,6 @@ class Generator extends Command
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)

@@ -1,12 +1,14 @@
 path = require 'path'
 
-fs = require './fs'
 CSON = require 'season'
-config = require './config'
 optimist = require 'optimist'
 
+Command = require './command'
+config = require './config'
+fs = require './fs'
+
 module.exports =
-class Link
+class Link extends Command
   @commandNames: ['link', 'ln']
 
   parseOptions: (argv) ->
@@ -22,8 +24,6 @@ class Link
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('d', 'dev').boolean('dev').describe('dev', 'Link to ~/.atom/dev/packages')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
     {callback} = options

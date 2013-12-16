@@ -40,8 +40,6 @@ class Install extends Command
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   installNode: (callback) =>
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{config.getNodeVersion()}")

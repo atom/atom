@@ -4,11 +4,12 @@ request = require 'request'
 semver = require 'semver'
 
 auth = require './auth'
+Command = require './command'
 config = require './config'
 tree = require './tree'
 
 module.exports =
-class Available
+class Available extends Command
   @commandNames: ['available']
 
   parseOptions: (argv) ->
@@ -22,8 +23,6 @@ class Available
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').describe('themes', 'Only list themes')
     options.boolean('json').describe('json', 'Output available packages as JSON array')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getAvailablePackages: (atomVersion, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
