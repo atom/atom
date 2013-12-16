@@ -44,7 +44,7 @@ class Install extends Command
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{config.getNodeVersion()}")
     installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
-    installNodeArgs.push('--arch=ia32')
+    installNodeArgs.push("--arch=#{config.getNodeArch()}")
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
@@ -60,7 +60,7 @@ class Install extends Command
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
-    installArgs.push('--arch=ia32')
+    installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
 
@@ -118,7 +118,7 @@ class Install extends Command
   forkInstallCommand: (options, callback) ->
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{config.getNodeVersion()}")
-    installArgs.push('--arch=ia32')
+    installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
 
