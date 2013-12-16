@@ -17,7 +17,7 @@ var commands = [
   killatom,
   [__dirname, '..', 'node_modules'],
   [__dirname, '..', 'atom-shell'],
-  [home, '.atom', '.node-type'],
+  [home, '.atom', '.node-gyp'],
   [home, '.atom', 'storage'],
   [tmpdir, 'atom-build'],
   [tmpdir, 'atom-cached-atom-shells'],
