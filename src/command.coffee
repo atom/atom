@@ -31,3 +31,5 @@ class Command
   fork: (script, args, remaining...) ->
     args.unshift(script)
     @spawn(process.execPath, args, remaining...)
+
+  showHelp: (argv) -> @parseOptions?(argv)?.showHelp()

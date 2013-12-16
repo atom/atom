@@ -20,6 +20,7 @@ commandClasses = [
   require './travis'
   require './uninstall'
   require './unlink'
+  require './unpublish'
   require './update'
 ]
 
