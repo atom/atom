@@ -1,4 +1,3 @@
-fs = require 'fs'
 path = require 'path'
 readline = require 'readline'
 
@@ -7,6 +6,7 @@ request = require 'request'
 
 auth = require './auth'
 Command = require './command'
+fs = require './fs'
 
 module.exports =
 class Unpublish extends Command
