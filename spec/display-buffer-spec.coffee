@@ -92,7 +92,7 @@ describe "DisplayBuffer", ->
 
       describe "when there are hard tabs", ->
         beforeEach ->
-          buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '	'))
+          buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '\t'))
 
         it "correctly tokenizes the hard tabs", ->
           expect(displayBuffer.lineForRow(3).tokens[0].isHardTab).toBeTruthy()
