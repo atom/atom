@@ -73,6 +73,25 @@ class WindowEventHandler
       e.preventDefault()
       atom.contextMenu.showForEvent(e)
 
+    @handleNativeKeybindings()
+
+  # Private: Wire commands that should be handled by the native menu
+  # for elements with the `.native-key-bindings` class.
+  handleNativeKeybindings: ->
+    menu = null
+    bindCommandToAction = (command, action) =>
+      @subscribe $(document), command, (event) ->
+        if event.target.webkitMatchesSelector('.native-key-bindings')
+          menu ?= require('remote').require('menu')
+          menu.sendActionToFirstResponder(action)
+        true
+
+    bindCommandToAction('core:copy', 'copy:')
+    bindCommandToAction('core:paste', 'paste:')
+    bindCommandToAction('core:undo', 'undo:')
+    bindCommandToAction('core:redo', 'redo:')
+    bindCommandToAction('core:select-all', 'selectAll:')
+
   openLink: (event) =>
     location = $(event.target).attr('href')
     if location and location[0] isnt '#' and /^https?:\/\//.test(location)
