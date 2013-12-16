@@ -57,7 +57,7 @@ class Token
 
       outputTokens
     else
-      return [this] if this.isAtomic
+      return [this] if @isAtomic
 
       if breakOutLeadingWhitespace
         return [this] unless /^[ ]|\t/.test(@value)
