@@ -126,6 +126,10 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', => @reopenItemSync()
 
+    @command 'core:close', => @destroyActivePaneItem()
+    @command 'core:save', => @saveActivePaneItem()
+    @command 'core:save-as', => @saveActivePaneItemAs()
+
   # Private:
   serialize: ->
     state = @state.clone()
@@ -279,6 +283,18 @@ class WorkspaceView extends View
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
+
+  # Public: destroy/close the active item.
+  destroyActivePaneItem: ->
+    @getActivePane()?.destroyActiveItem()
+
+  # Public: save the active item.
+  saveActivePaneItem: ->
+    @getActivePane()?.saveActiveItem()
+
+  # Public: save the active item as.
+  saveActivePaneItemAs: ->
+    @getActivePane()?.saveActiveItemAs()
 
   # Public: Focuses the previous pane by id.
   focusPreviousPane: -> @panes.focusPreviousPane()
