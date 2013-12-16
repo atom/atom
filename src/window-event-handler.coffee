@@ -84,6 +84,7 @@ class WindowEventHandler
         if element.webkitMatchesSelector('.native-key-bindings')
           menu ?= require('remote').require('menu')
           menu.sendActionToFirstResponder(action)
+        true
 
     bindCommandToAction('core:copy', 'copy:')
     bindCommandToAction('core:paste', 'paste:')
