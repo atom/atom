@@ -79,14 +79,11 @@ class WindowEventHandler
   # for elements with the `.native-key-bindings` class.
   handleNativeKeybindings: ->
     menu = null
-    sendActionToFirstResponder = (element, action) ->
-      if element.webkitMatchesSelector('.native-key-bindings')
-        menu ?= require('remote').require('menu')
-        menu.sendActionToFirstResponder(action)
-
     bindCommandToAction = (command, action) =>
       @subscribe $(document), command, (event) ->
-        sendActionToFirstResponder(event.target, action)
+        if element.webkitMatchesSelector('.native-key-bindings')
+          menu ?= require('remote').require('menu')
+          menu.sendActionToFirstResponder(action)
 
     bindCommandToAction('core:copy', 'copy:')
     bindCommandToAction('core:paste', 'paste:')
