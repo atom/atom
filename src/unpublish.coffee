@@ -26,8 +26,11 @@ class Unpublish extends Command
     options.alias('f', 'force').describe('force', 'Do not prompt for confirmation.')
 
   unpublishPackage: (packageName, callback) ->
+    process.stdout.write "Unpublishing #{packageName} "
+
     auth.getToken (error, token) ->
       if error?
+        process.stdout.write '\u2717\n'.red
         callback(error)
         return
 
@@ -37,13 +40,17 @@ class Unpublish extends Command
           authorization: token
         method: 'DELETE'
         json: true
+
       request options, (error, response, body={}) ->
         if error?
+          process.stdout.write '\u2717\n'.red
           callback(error)
         else if response.statusCode isnt 204
+          process.stdout.write '\u2717\n'.red
           message = body.message ? body.error ? body
-          callback("Unpublishing package failed: #{message}")
+          callback("Unpublishing failed: #{message}")
         else
+          process.stdout.write '\u2713\n'.green
           callback()
 
   promptForConfirmation: (packageName, callback) ->
