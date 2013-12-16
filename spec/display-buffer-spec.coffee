@@ -90,6 +90,14 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(displayBuffer.lineForRow(4).text).toBe 'right = [];'
 
+      describe "when there are hard tabs", ->
+        beforeEach ->
+          buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '	'))
+
+        it "correctly tokenizes the hard tabs", ->
+          expect(displayBuffer.lineForRow(3).tokens[0].isHardTab).toBeTruthy()
+          expect(displayBuffer.lineForRow(3).tokens[1].isHardTab).toBeTruthy()
+
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
         describe "when whitespace is added after the max line length", ->
