@@ -81,7 +81,7 @@ class WindowEventHandler
     menu = null
     bindCommandToAction = (command, action) =>
       @subscribe $(document), command, (event) ->
-        if element.webkitMatchesSelector('.native-key-bindings')
+        if event.target.webkitMatchesSelector('.native-key-bindings')
           menu ?= require('remote').require('menu')
           menu.sendActionToFirstResponder(action)
         true
