@@ -124,7 +124,10 @@ class WindowEventHandler
         nextTabIndex = tabIndex
         nextElement = element
 
-    (nextElement ? lowestElement).focus()
+    if nextElement?
+      nextElement.focus()
+    else if lowestElement?
+      lowestElement.focus()
 
   focusPrevious: =>
     focusedTabIndex = parseInt($(':focus').attr('tabindex')) or Infinity
@@ -142,4 +145,7 @@ class WindowEventHandler
         previousTabIndex = tabIndex
         previousElement = element
 
-    (previousElement ? highestElement).focus()
+    if previousElement?
+      previousElement.focus()
+    else if highestElement?
+      highestElement.focus()
