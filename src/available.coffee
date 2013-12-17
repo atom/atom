@@ -42,6 +42,7 @@ class Available extends Command
           else if response.statusCode is 200
             packages = body.filter (pack) -> pack.releases?.latest?
             packages = packages.map ({readme, metadata}) -> _.extend({}, metadata, {readme})
+            packages = _.sortBy(packages, 'name')
             callback(null, packages)
           else
             message = body.message ? body.error ? body
