@@ -5,4 +5,4 @@ class SiteShim
     {@id} = @environment.state.siteId
 
   createDocument: (values) ->
-    @environment.create()
+    @environment.create(values)
