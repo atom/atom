@@ -6,5 +6,8 @@ __PackageName__ = require '../lib/__package-name__'
 # or `fdescribe`). Remove the `f` to unfocus the block.
 
 describe "__PackageName__", ->
+  beforeEach ->
+    atom.packages.activatePackage('__packageName__', immediate: true)
+
   it "has one valid test", ->
     expect("life").toBe "easy"
