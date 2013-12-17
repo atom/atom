@@ -7,8 +7,8 @@ require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 require './window'
 
 Atom = require './atom'
-window.atom = new Atom()
-atom.setUpEnvironment('editor')
+window.atom = Atom.loadOrCreate('editor')
+atom.initialize()
 atom.startEditorWindow()
 window.atom.loadTime = Date.now() - startTime
 console.log "Window load time: #{atom.getWindowLoadTime()}ms"

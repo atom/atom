@@ -1,5 +1,5 @@
 {$, View} = require './space-pen-extensions'
-telepath = require 'telepath'
+{TelepathicObject} = require 'telepath'
 
 ### Internal ###
 module.exports =
@@ -10,12 +10,12 @@ class PaneAxis extends View
     new this(state)
 
   initialize: (args...) ->
-    if args[0] instanceof telepath.Document
+    if args[0] instanceof TelepathicObject
       @state = args[0]
       @state.get('children').each (child, index) =>
         @addChild(atom.deserializers.deserialize(child), index, updateState: false)
     else
-      @state = atom.site.createDocument(deserializer: @className(), children: [])
+      @state = atom.create(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
     @state.get('children').on 'changed', ({index, insertedValues, removedValues, siteId}) =>

@@ -1,4 +1,4 @@
-{Document, Model} = require 'telepath'
+{TelepathicObject, Model} = require 'telepath'
 
 # Public: Manages the deserializers used for serialized state
 #
@@ -30,7 +30,7 @@ class DeserializerManager
     if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version
       return if deserializer.version? and deserializer.version isnt stateVersion
-      if (state instanceof Document) and not deserializer.acceptsDocuments
+      if (state instanceof TelepathicObject) and not deserializer.acceptsDocuments
         state = state.toObject()
       deserializer.deserialize(state, params)
     else
