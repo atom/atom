@@ -84,13 +84,13 @@ class Atom extends Model
     else
       null
 
-  # Public: Get the directory path to Atom's configuration area.
+  # Private: Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to ~/.atom
   @getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
 
-  # Public: Get the path to Atom's storage directory.
+  # Private: Get the path to Atom's storage directory.
   #
   # Returns the absolute path to ~/.atom/storage
   @getStorageDirPath: ->
@@ -100,15 +100,15 @@ class Atom extends Model
   @getLoadSettings: ->
     _.deepClone(@loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings))
 
-  # Public:
+  # Private:
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  # Public: Get the version of the Atom application.
+  # Private: Get the version of the Atom application.
   @getVersion: ->
     @version ?= app.getVersion()
 
-  # Public: Determine whether the current version is an official release.
+  # Private: Determine whether the current version is an official release.
   @isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
