@@ -1,5 +1,5 @@
 app = require 'app'
-fs = require 'fs'
+fs = require 'fs-plus'
 path = require 'path'
 protocol = require 'protocol'
 
@@ -11,8 +11,9 @@ module.exports =
 class AtomProtocolHandler
   constructor: (@resourcePath) ->
     @loadPaths = [
-      path.join(@resourcePath, 'node_modules')
+      path.join(app.getHomeDir(), '.atom', 'dev', 'packages')
       path.join(app.getHomeDir(), '.atom', 'packages')
+      path.join(@resourcePath, 'node_modules')
     ]
 
     @registerAtomProtocol()
@@ -23,5 +24,5 @@ class AtomProtocolHandler
       relativePath = path.normalize(request.url.substr(7))
       for loadPath in @loadPaths
         filePath = path.join(loadPath, relativePath)
-        break if fs.statSyncNoException(filePath)?
+        break if fs.isFileSync(filePath)
       return new protocol.RequestFileJob(filePath)
