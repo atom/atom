@@ -1,4 +1,4 @@
-child_process = require 'child_process'
+keytar = require 'keytar'
 
 module.exports =
   # Get the GitHub API token from the keychain
@@ -10,23 +10,12 @@ module.exports =
       callback(null, token)
       return
 
-    tokenNames = ['Atom GitHub API Token', 'GitHub API Token']
+    for tokenName in ['Atom GitHub API Token', 'GitHub API Token']
+      if token = keytar.findPassword(tokenName)
+        callback(null, token)
+        return
 
-    getNextToken = ->
-      unless tokenNames.length
-        return callback """
-          No GitHub API token in keychain
-          Set the `ATOM_ACCESS_TOKEN` environment variable or sign in to GitHub in Atom
-        """
-
-      tokenName = tokenNames.shift()
-      getTokenFromKeychain tokenName, (error, token) ->
-        if token then callback(null, token) else getNextToken()
-
-    getNextToken()
-
-getTokenFromKeychain = (tokenName, callback) ->
-  command = "security -q find-generic-password -ws '#{tokenName}'"
-  child_process.exec command, (error, stdout='') ->
-    token = stdout.trim()
-    callback(error, token)
+    callback """
+      No GitHub API token in keychain
+      Set the `ATOM_ACCESS_TOKEN` environment variable or sign in to GitHub in Atom
+    """
