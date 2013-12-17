@@ -11,6 +11,7 @@ _ = require 'underscore-plus'
 module.exports =
 class AtomWindow
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+  @includeShellLoadTime: true
 
   browserWindow: null
   loaded: null
@@ -30,6 +31,12 @@ class AtomWindow
 
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
+
+    # Only send to the first non-spec window created
+    if @constructor.includeShellLoadTime and not @isSpec
+      @constructor.includeShellLoadTime = false
+      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+
     loadSettings.initialPath = pathToOpen
     if fs.statSyncNoException(pathToOpen).isFile?()
       loadSettings.initialPath = path.dirname(pathToOpen)
