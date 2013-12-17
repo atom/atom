@@ -161,6 +161,7 @@ class Atom extends Model
     DisplayBuffer = require './display-buffer'
     Editor = require './editor'
     @registerRepresentationClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
+    @createRepresentations()
 
     @windowEventHandler = new WindowEventHandler
 
@@ -258,6 +259,7 @@ class Atom extends Model
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
+    @createRepresentations()
     @deserializeEditorWindow()
     @packages.activate()
     @keymap.loadUserKeymap()
