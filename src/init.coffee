@@ -6,7 +6,7 @@ Command = require './command'
 fs = require './fs'
 
 module.exports =
-class Generator extends Command
+class Init extends Command
   @commandNames: ['init']
 
   parseOptions: (argv) ->
