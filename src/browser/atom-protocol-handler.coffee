@@ -11,9 +11,9 @@ module.exports =
 class AtomProtocolHandler
   constructor: (@resourcePath) ->
     @loadPaths = [
-      path.join(@resourcePath, 'node_modules')
-      path.join(app.getHomeDir(), '.atom', 'packages')
       path.join(app.getHomeDir(), '.atom', 'dev', 'packages')
+      path.join(app.getHomeDir(), '.atom', 'packages')
+      path.join(@resourcePath, 'node_modules')
     ]
 
     @registerAtomProtocol()
