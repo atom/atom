@@ -7,7 +7,7 @@ set -ex
 
 cd "$(dirname "$0")/../.."
 rm -fr node_modules
-./script/bootstrap
+./script/bootstrap --no-color
 ./node_modules/.bin/grunt --no-color --build-dir="$BUILT_PRODUCTS_DIR" deploy
 
 echo "TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR"
