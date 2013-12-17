@@ -13,7 +13,23 @@ module.exports =
 class AtomPackage extends Package
   Emitter.includeInto(this)
 
+  @delayedActivationQueue: []
   @stylesheetsDir: 'stylesheets'
+
+  @delayedActivation: (pack) ->
+    @delayedActivationQueue.push(pack)
+    return unless @delayedActivationQueue.length == 1
+
+    console.time('Total delayed activation time')
+    timerId = setInterval =>
+      if @delayedActivationQueue.length == 0
+        clearInterval(timerId)
+        console.timeEnd('Total delayed activation time')
+      else
+        delayedPack = @delayedActivationQueue.pop()
+        delayedPack.unsubscribeFromActivationEvents()
+        delayedPack.activateNow()
+        console.log "Delayed activation of", delayedPack.name
 
   metadata: null
   keymaps: null
@@ -70,6 +86,7 @@ class AtomPackage extends Package
     @measure 'activateTime', =>
       @activateResources()
       if @metadata.activationEvents? and not immediate
+        AtomPackage.delayedActivation(this)
         @subscribeToActivationEvents()
       else
         @activateNow()
