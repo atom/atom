@@ -55,9 +55,10 @@ module.exports = (grunt) ->
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     else if process.platform is 'win32'
       options =
-        cmd: 'start'
-        args: ['/wait', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+        cmd: process.env.comspec
+        args: ['/c', 'start', '/wait', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
 
+    console.log(options)
     spawn options, (error, results, code) ->
       packageSpecQueue.concurrency = 2
       callback(null, error)
