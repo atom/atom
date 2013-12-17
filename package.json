@@ -37,7 +37,7 @@
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",
     "runas": "~0.2.0",
-    "fs-plus": "~0.10.0"
+    "fs-plus": "~0.11.0"
   },
   "devDependencies": {
     "jasmine-focused": "~0.15.0",
