@@ -49,10 +49,15 @@ module.exports = (grunt) ->
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
-    options =
-      cmd: appPath
-      args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
-    console.log options
+    if process.platform is 'darwin'
+      options =
+        cmd: appPath
+        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+    else if process.platform is 'win32'
+      options =
+        cmd: 'start'
+        args: ['/wait', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+
     spawn options, (error, results, code) ->
       packageSpecQueue.concurrency = 2
       callback(null, error)
