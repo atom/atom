@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
+var fs = require('fs');
 var path = require('path');
 
 // OAuth token for atom-bot
@@ -22,13 +23,20 @@ function executeCommands(commands, done, index) {
     done(null);
 }
 
+var apmVendorPath = path.resolve(__dirname, '..', 'vendor', 'apm');
+var apmInstallPath = path.resolve(__dirname, '..', 'apm');
+if (!fs.existsSync(apmInstallPath))
+  fs.mkdirSync(apmInstallPath);
+if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
+  fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
+
 var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  {command: 'npm install --quiet .', options: {cwd: path.resolve(__dirname, '..', 'vendor', 'apm'), ignoreStdout: true}},
-  {command: 'npm install --quiet vendor/apm', options: {ignoreStdout: true}},
+  {command: 'npm install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
+  {command: 'npm install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
   'node node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
   'node node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
