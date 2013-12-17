@@ -21,7 +21,7 @@ describe "Project", ->
       expect(atom.project.getBuffers().length).toBe 1
 
       atom.project.getState().serializeForPersistence()
-      deserializedProject = atom.replicate().get('project')
+      deserializedProject = atom.project.testPersistence()
 
       expect(deserializedProject.getBuffers().length).toBe 0
       expect(atom.project.getBuffers().length).toBe 0
@@ -30,7 +30,7 @@ describe "Project", ->
       atom.project.openSync('a')
       expect(atom.project.getBuffers().length).toBe 1
       atom.project.getState().serializeForPersistence()
-      deserializedProject = atom.replicate().get('project')
+      deserializedProject = atom.project.testPersistence()
 
       expect(deserializedProject.getBuffers().length).toBe 1
       deserializedProject.getBuffers()[0].destroy()

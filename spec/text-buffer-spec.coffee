@@ -978,7 +978,7 @@ describe 'TextBuffer', ->
 
       filePath = temp.openSync('atom').path
       fs.writeFileSync(filePath, "words")
-      buffer = atom.project.bufferForPathSync(filePath)
+      buffer = atom.project.bufferForPathSync(filePath).retain()
 
     afterEach ->
       buffer2?.release()
@@ -987,9 +987,7 @@ describe 'TextBuffer', ->
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
-
-        project2 = atom.replicate().get('project')
-        buffer2 = project2.getBuffers()[0]
+        buffer2 = buffer.testPersistence()
 
         waitsForPromise ->
           buffer2.load()
@@ -1005,7 +1003,7 @@ describe 'TextBuffer', ->
           buffer.setText("BUFFER CHANGE")
           fs.writeFileSync(filePath, "DISK CHANGE")
 
-          project2 = atom.replicate().get('project')
+          project2 = atom.project.testPersistence()
           buffer2 = project2.getBuffers()[0]
 
           waitsFor ->
@@ -1023,7 +1021,7 @@ describe 'TextBuffer', ->
           buffer.retain()
 
           buffer.getState().serializeForPersistence()
-          project2 = atom.replicate().get('project')
+          project2 = atom.project.testPersistence()
           buffer2 = project2.getBuffers()[0]
 
           waitsForPromise ->
