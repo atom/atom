@@ -13,6 +13,7 @@ class AtomProtocolHandler
     @loadPaths = [
       path.join(@resourcePath, 'node_modules')
       path.join(app.getHomeDir(), '.atom', 'packages')
+      path.join(app.getHomeDir(), '.atom', 'dev', 'packages')
     ]
 
     @registerAtomProtocol()
