@@ -3,12 +3,12 @@ var cp = require('./utils/child-process-wrapper.js');
 var path = require('path');
 var os = require('os');
 
-var rimraf = process.platform === 'win32' ? 'del /F /Q /S ' : 'rm -rf ';
+var removeCommand = process.platform === 'win32' ? 'del /F /Q /S ' : 'rm -rf ';
 var productName = require('../package.json').productName;
 
 process.chdir(path.dirname(__dirname));
 var home = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-var tmpdir = os.tmpdir();
+var tmpdir = process.platform === 'win32' ? os.tmpdir() : '/tmp';
 
 // Windows: Use START as a way to ignore error if Atom.exe isnt running
 var killatom = process.platform === 'win32' ? 'START taskkill /F /IM ' + productName + '.exe' : 'pkill -9 ' + productName + ' || true';
@@ -28,7 +28,7 @@ var run = function() {
   if (!next)
     process.exit(0);
   if (Array.isArray(next))
-    next = rimraf + path.resolve.apply(path.resolve, next);
+    next = removeCommand + path.resolve.apply(path.resolve, next);
   cp.safeExec(next, run);
 };
 run();
