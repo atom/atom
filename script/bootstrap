@@ -38,8 +38,8 @@ var commands = [
   {command: 'npm install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
   {command: 'npm install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
-  'node node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
-  'node node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
+  'node apm/node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
+  'node apm/node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
 ];
 
 process.chdir(path.dirname(__dirname));
