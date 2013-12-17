@@ -4,7 +4,7 @@ Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-telepath = require 'telepath'
+{TelepathicObject} = require 'telepath'
 EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
@@ -65,7 +65,7 @@ class WorkspaceView extends View
 
   # Private:
   initialize: (state={}) ->
-    if state instanceof telepath.Document
+    if state instanceof TelepathicObject
       @state = state
       panes = atom.deserializers.deserialize(state.get('panes'))
     else

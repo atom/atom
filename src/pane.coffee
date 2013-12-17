@@ -1,7 +1,7 @@
 {dirname} = require 'path'
 {$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-telepath = require 'telepath'
+{TelepathicObject} = require 'telepath'
 PaneRow = require './pane-row'
 PaneColumn = require './pane-column'
 
@@ -32,7 +32,7 @@ class Pane extends View
   # Private:
   initialize: (args...) ->
     @items = []
-    if args[0] instanceof telepath.Document
+    if args[0] instanceof TelepathicObject
       @state = args[0]
       @items = _.compact @state.get('items').map (item) ->
         item = atom.deserializers.deserialize(item)

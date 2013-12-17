@@ -48,7 +48,7 @@ class TextBuffer extends telepath.Model
     @load() if @loadWhenAttached
 
   # Private: Called by telepath.
-  beforePersistence: ->
+  willBePersisted: ->
     @modifiedWhenLastPersisted = @isModified()
     @digestWhenLastPersisted = @file?.getDigest()
 

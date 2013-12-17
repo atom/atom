@@ -39,7 +39,7 @@ class Project extends Model
     @setPath(@path)
 
   # Private: Called by telepath.
-  beforePersistence: ->
+  willBePersisted: ->
     @destroyUnretainedBuffers()
 
   # Public: Register an opener for project files.

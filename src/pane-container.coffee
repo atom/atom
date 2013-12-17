@@ -1,6 +1,6 @@
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
-telepath = require 'telepath'
+{TelepathicObject} = require 'telepath'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
@@ -19,7 +19,7 @@ class PaneContainer extends View
     @div class: 'panes'
 
   initialize: (state) ->
-    if state instanceof telepath.Document
+    if state instanceof TelepathicObject
       @state = state
       @setRoot(atom.deserializers.deserialize(@state.get('root')))
     else

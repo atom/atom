@@ -10,7 +10,7 @@ app = remote.require 'app'
 
 _ = require 'underscore-plus'
 telepath = require 'telepath'
-{Document, Model} = telepath
+{Model} = telepath
 fs = require 'fs-plus'
 
 {$} = require './space-pen-extensions'
@@ -160,7 +160,7 @@ class Atom extends Model
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
     Editor = require './editor'
-    @registerModelClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
+    @registerRepresentationClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
 
     @windowEventHandler = new WindowEventHandler
 
