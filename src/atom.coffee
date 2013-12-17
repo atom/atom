@@ -121,7 +121,7 @@ class Atom extends Model
   # Private: Called by telepath. I'd like this to be merged with initialize eventually.
   created: ->
     DeserializerManager = require './deserializer-manager'
-    @deserializers = new DeserializerManager()
+    @deserializers = new DeserializerManager(this)
 
   # Public: Sets up the basic services that should be available in all modes
   # (both spec and application). Call after this instance has been assigned to
