@@ -26,7 +26,7 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        
+
         failedPackages.push path.basename(packagePath) if error
         callback()
 
@@ -52,6 +52,7 @@ module.exports = (grunt) ->
     options =
       cmd: appPath
       args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+    console.log options
     spawn options, (error, results, code) ->
       packageSpecQueue.concurrency = 2
       callback(null, error)
