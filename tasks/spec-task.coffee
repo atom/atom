@@ -32,6 +32,7 @@ module.exports = (grunt) ->
 
     modulesDirectory = path.resolve('node_modules')
     for packageDirectory in fs.readdirSync(modulesDirectory)
+      break
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
@@ -58,7 +59,6 @@ module.exports = (grunt) ->
         cmd: process.env.comspec
         args: ['/c', 'start', '/wait', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
 
-    console.log(options)
     spawn options, (error, results, code) ->
       packageSpecQueue.concurrency = 2
       callback(null, error)
