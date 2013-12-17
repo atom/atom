@@ -114,23 +114,6 @@
   }
 
   {
-    label: 'Movement'
-    submenu: [
-      { label: 'Move to Top', command: 'core:move-to-top' }
-      { label: 'Move to Bottom', command: 'core:move-to-bottom' }
-      { type: 'separator' }
-      { label: 'Move to Beginning of Line', command: 'editor:move-to-beginning-of-line' }
-      { label: 'Move to First Character of Line', command: 'editor:move-to-first-character-of-line' }
-      { label: 'Move to End of Line', command: 'editor:move-to-end-of-line' }
-      { type: 'separator' }
-      { label: 'Move to Beginning of Word', command: 'editor:move-to-beginning-of-word' }
-      { label: 'Move to End of Word', command: 'editor:move-to-end-of-word' }
-      { label: 'Move to Next Word', command: 'editor:move-to-next-word-boundary' }
-      { label: 'Move to Previous Word', command: 'editor:move-to-previous-word-boundary' }
-    ]
-  }
-
-  {
     label: 'Find'
     submenu: []
   }
