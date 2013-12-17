@@ -42,7 +42,10 @@ module.exports = (grunt) ->
 
   runCoreSpecs = (callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
-    appPath = path.join(contentsDir, 'MacOS', 'Atom')
+    if process.platform is 'darwin'
+      appPath = path.join(contentsDir, 'MacOS', 'Atom')
+    else if process.platform is 'win32'
+      appPath = path.join(contentsDir, 'atom.exe')
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
