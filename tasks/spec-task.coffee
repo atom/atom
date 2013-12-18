@@ -13,26 +13,40 @@ module.exports = (grunt) ->
   runPackageSpecs = (callback) ->
     failedPackages = []
     rootDir = grunt.config.get('atom.shellAppDir')
-    appDir = grunt.config.get('atom.appDir')
-    atomPath = path.join(appDir, 'atom.sh')
-    apmPath = path.join(appDir, 'node_modules/.bin/apm')
+    contentsDir = grunt.config.get('atom.contentsDir')
+    resourcePath = process.cwd()
+    if process.platform is 'darwin'
+      appPath = path.join(contentsDir, 'MacOS', 'Atom')
+    else if process.platform is 'win32'
+      appPath = path.join(contentsDir, 'atom.exe')
 
     packageSpecQueue = async.queue (packagePath, callback) ->
-      options =
-        cmd: apmPath
-        args: ['test', '--path', atomPath]
-        opts:
-          cwd: packagePath
-          env: _.extend({}, process.env, ATOM_PATH: rootDir)
+      if process.platform is 'darwin'
+        options =
+          cmd: appPath
+          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
+          opts:
+            cwd: packagePath
+            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+      else if process.platform is 'win32'
+        options =
+          cmd: process.env.comspec
+          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
+          opts:
+            cwd: packagePath
+            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
+        if process.platform is 'win32'
+          process.stdout.write(fs.readFileSync('ci.log'))
+          fs.unlinkSync('ci.log')
 
         failedPackages.push path.basename(packagePath) if error
         callback()
 
     modulesDirectory = path.resolve('node_modules')
     for packageDirectory in fs.readdirSync(modulesDirectory)
-      return callback(null, [])
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
@@ -57,11 +71,12 @@ module.exports = (grunt) ->
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=core.log"]
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
 
     spawn options, (error, results, code) ->
-      process.stdout.write(fs.readFileSync('core.log'))
-      fs.unlinkSync('core.log')
+      if process.platform is 'win32'
+        process.stdout.write(fs.readFileSync('ci.log'))
+        fs.unlinkSync('ci.log')
       packageSpecQueue.concurrency = 2
       callback(null, error)
 
