@@ -31,12 +31,12 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   var async = require('async');
   var gruntPath = path.join('node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
   async.series([
-    console.log.bind(global, 'a'),
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
     cp.safeExec.bind(global, gruntPath + ' ci --stack --no-color'),
     cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release')
   ], function(error) {
+    console.log(error);
     process.exit(error ? 1 : 0);
   });
 })();
