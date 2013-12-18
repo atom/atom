@@ -37,6 +37,7 @@ class Pane extends View
       @items = _.compact @state.get('items').map (item) ->
         item = atom.deserializers.deserialize(item)
         item?.created?()
+        return if item?.state?.isDestroyed?()
         item
     else
       @items = args
