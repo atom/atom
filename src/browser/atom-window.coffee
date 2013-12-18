@@ -82,6 +82,8 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.on 'crashed', =>
+      atom.exit(100) if @isSpec
+
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']

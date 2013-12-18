@@ -71,9 +71,9 @@ class AtomApplication
     @openWithOptions(options)
 
   # Private: Opens a new window based on the options provided.
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory}) ->
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
     else if urlsToOpen.length > 0
@@ -326,7 +326,7 @@ class AtomApplication
   #      The path to include specs from.
   #    + specPath:
   #      The directory to load specs from.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -337,7 +337,7 @@ class AtomApplication
 
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile})
 
   runBenchmarks: ->
     try

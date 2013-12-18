@@ -65,7 +65,7 @@ class Atom extends Model
     try
       JSON.parse(documentStateString) if documentStateString?
     catch error
-      console.warn "Error parsing window state: #{statePath}", error.stack, error
+      console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
   # Private: Returns the path where the state for the current window will be
   # located if it exists.
