@@ -32,7 +32,7 @@ module.exports = (grunt) ->
 
     modulesDirectory = path.resolve('node_modules')
     for packageDirectory in fs.readdirSync(modulesDirectory)
-      break
+      return callback(null, [])
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
@@ -57,9 +57,11 @@ module.exports = (grunt) ->
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', 'start', '/wait', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=core.log"]
 
     spawn options, (error, results, code) ->
+      process.stdout.write(fs.readFileSync('core.log'))
+      fs.unlinkSync('core.log')
       packageSpecQueue.concurrency = 2
       callback(null, error)
 
