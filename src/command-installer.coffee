@@ -64,5 +64,5 @@ module.exports =
       resourcePath = null
 
     resourcePath ?= atom.getLoadSettings().resourcePath
-    commandPath = path.join(resourcePath, 'node_modules', '.bin', 'apm')
+    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
     @install(commandPath, callback)

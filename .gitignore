@@ -10,3 +10,4 @@ debug.log
 /atom-shell/
 docs/output
 spec/fixtures/evil-files/
+/apm
