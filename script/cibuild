@@ -30,12 +30,15 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     process.exit(1);
   var async = require('async');
   var gruntPath = path.join('node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-  async.series([
+  var tasks = [
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
     cp.safeExec.bind(global, gruntPath + ' ci --stack --no-color'),
-    cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release')
-  ], function(error) {
+  ]
+  if (process.platform === 'darwin') {
+    tasks.push(cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release'))
+  }
+  async.series(tasks, function(error) {
     process.exit(error ? 1 : 0);
   });
 })();
