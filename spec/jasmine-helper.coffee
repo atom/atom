@@ -25,7 +25,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         timeReporter.logLongestSuites 10, (line) -> process.stdout.write("#{line}\n")
         process.stdout.write('\n')
         timeReporter.logLongestSpecs 10, (line) -> process.stdout.write("#{line}\n")
-        fs.closeSync(logStream)
+        fs.closeSync(logStream) if logStream?
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
     AtomReporter = require './atom-reporter'
