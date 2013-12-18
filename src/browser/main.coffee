@@ -83,6 +83,7 @@ parseCommandLine = ->
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
+  options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which specs are loaded (default: Atom\'s spec directory).')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
@@ -106,6 +107,7 @@ parseCommandLine = ->
   specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
+  logFile = args['log-file']
 
   if args['resource-path']
     devMode = true
@@ -119,4 +121,4 @@ parseCommandLine = ->
     devMode = false
     resourcePath = path.dirname(path.dirname(__dirname))
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}

@@ -9,7 +9,7 @@ try
   {runSpecSuite} = require './jasmine-helper'
 
   document.title = "Spec Suite"
-  runSpecSuite './spec-suite'
+  runSpecSuite './spec-suite', atom.getLoadSettings().logFile
 catch error
   if atom?.getLoadSettings().exitWhenDone
     console.error(error.stack ? error)
