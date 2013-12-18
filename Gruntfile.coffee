@@ -23,6 +23,7 @@ module.exports = (grunt) ->
     installRoot = process.env.ProgramFiles
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     shellAppDir = path.join(buildDir, appName)
+    contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
   else
