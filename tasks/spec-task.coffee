@@ -52,7 +52,6 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    packageSpecQueue.concurrency = 1
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
@@ -77,14 +76,13 @@ module.exports = (grunt) ->
       if process.platform is 'win32'
         process.stdout.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
-      packageSpecQueue.concurrency = 2
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
     startTime = Date.now()
 
-    async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
+    async.series [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
