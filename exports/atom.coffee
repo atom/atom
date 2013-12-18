@@ -1,11 +1,12 @@
-{Document, Model, Point, Range} = require 'telepath'
+{TelepathicObject, Model, Point, Range} = require 'telepath'
 
 module.exports =
   _: require 'underscore-plus'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
-  Document: Document
+  TelepathicObject: TelepathicObject
+  Document: TelepathicObject # Deprecated Shim
   File: require '../src/file'
   fs: require 'fs-plus'
   Git: require '../src/git'

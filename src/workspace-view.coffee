@@ -4,7 +4,7 @@ Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-telepath = require 'telepath'
+{TelepathicObject} = require 'telepath'
 EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
@@ -65,12 +65,12 @@ class WorkspaceView extends View
 
   # Private:
   initialize: (state={}) ->
-    if state instanceof telepath.Document
+    if state instanceof TelepathicObject
       @state = state
       panes = atom.deserializers.deserialize(state.get('panes'))
     else
       panes = new PaneContainer
-      @state = atom.site.createDocument
+      @state = atom.create
         deserializer: @constructor.name
         version: @constructor.version
         panes: panes.getState()
@@ -333,7 +333,6 @@ class WorkspaceView extends View
   # Private: Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditorViews()
-    atom.project?.destroy()
     super
 
   # Private: Adds the destroyed item's uri to the list of items to reopen.

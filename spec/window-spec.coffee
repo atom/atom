@@ -8,8 +8,11 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'hide')
-    atom.getLoadSettings() # Causes atom.loadSettings to be initialized
-    atom.loadSettings.initialPath = atom.project.getPath()
+    initialPath = atom.project.getPath()
+    spyOn(atom, 'getLoadSettings').andCallFake ->
+      loadSettings = atom.getLoadSettings.originalValue.call(atom)
+      loadSettings.initialPath = initialPath
+      loadSettings
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     atom.deserializeEditorWindow()
@@ -90,9 +93,9 @@ describe "Window", ->
 
       atom.unloadEditorWindow()
 
-      expect(atom.getWindowState().getObject('workspaceView')).toEqual workspaceViewState.toObject()
-      expect(atom.getWindowState().getObject('syntax')).toEqual syntaxState
-      expect(atom.saveWindowState).toHaveBeenCalled()
+      expect(atom.state.getObject('workspaceView')).toEqual workspaceViewState.toObject()
+      expect(atom.state.getObject('syntax')).toEqual syntaxState
+      expect(atom.saveSync).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
       atom.workspaceView.openSync('sample.js')

@@ -442,7 +442,7 @@ describe "the `atom` global", ->
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->
       version = '0.1.0'
-      spyOn(atom, 'getVersion').andCallFake -> version
+      spyOn(atom.constructor, 'getVersion').andCallFake -> version
       expect(atom.isReleasedVersion()).toBe true
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false

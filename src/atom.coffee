@@ -10,13 +10,10 @@ app = remote.require 'app'
 
 _ = require 'underscore-plus'
 telepath = require 'telepath'
-{Document} = telepath
+{Model} = telepath
 fs = require 'fs-plus'
-{Subscriber} = require 'emissary'
 
 {$} = require './space-pen-extensions'
-DeserializerManager = require './deserializer-manager'
-Package = require './package'
 SiteShim = require './site-shim'
 WindowEventHandler = require './window-event-handler'
 
@@ -37,24 +34,103 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.syntax`      - A {Syntax} instance
 #  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
-class Atom
-  Subscriber.includeInto(this)
+class Atom extends Model
+  # Public: Load or create the Atom environment in the given mode
+  #
+  # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
+  #         want to build.
+  #
+  # Returns an Atom instance, fully initialized
+  @loadOrCreate: (mode) ->
+    telepath.devMode = not @isReleasedVersion()
+
+    if documentState = @loadDocumentState(mode)
+      environment = @deserialize(documentState)
+
+    environment ? @createAsRoot({mode})
+
+  # Private: Loads and returns the serialized state corresponding to this window
+  # if it exists; otherwise returns undefined.
+  @loadDocumentState: (mode) ->
+    statePath = @getStatePath(mode)
+
+    if fs.existsSync(statePath)
+      try
+        documentStateString = fs.readFileSync(statePath, 'utf8')
+      catch error
+        console.warn "Error reading window state: #{statePath}", error.stack, error
+    else
+      documentStateString = @getLoadSettings().windowState
+
+    try
+      JSON.parse(documentStateString) if documentStateString?
+    catch error
+      console.warn "Error parsing window state: #{statePath}", error.stack, error
+
+  # Private: Returns the path where the state for the current window will be
+  # located if it exists.
+  @getStatePath: (mode) ->
+    switch mode
+      when 'spec'
+        filename = 'spec'
+      when 'editor'
+        {initialPath} = @getLoadSettings()
+        if initialPath
+          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
+          filename = "editor-#{sha1}"
+
+    if filename
+      path.join(@getStorageDirPath(), filename)
+    else
+      null
+
+  # Private: Get the directory path to Atom's configuration area.
+  #
+  # Returns the absolute path to ~/.atom
+  @getConfigDirPath: ->
+    @configDirPath ?= fs.absolute('~/.atom')
+
+  # Private: Get the path to Atom's storage directory.
+  #
+  # Returns the absolute path to ~/.atom/storage
+  @getStorageDirPath: ->
+    @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
+
+  # Private: Returns the load settings hash associated with the current window.
+  @getLoadSettings: ->
+    _.deepClone(@loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings))
 
   # Private:
-  constructor: ->
-    @loadTime = null
-    @workspaceViewParentSelector = 'body'
+  @getCurrentWindow: ->
+    remote.getCurrentWindow()
+
+  # Private: Get the version of the Atom application.
+  @getVersion: ->
+    @version ?= app.getVersion()
+
+  # Private: Determine whether the current version is an official release.
+  @isReleasedVersion: ->
+    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
+
+  @properties
+    mode: null
+    project: null
+
+  workspaceViewParentSelector: 'body'
+
+  # Private: Called by telepath. I'd like this to be merged with initialize eventually.
+  created: ->
+    DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
 
-  # Private: Initialize all the properties in this object.
+  # Public: Sets up the basic services that should be available in all modes
+  # (both spec and application). Call after this instance has been assigned to
+  # the `atom` global.
   initialize: ->
     @unsubscribe()
     @setBodyPlatformClass()
 
-    {devMode, resourcePath} = atom.getLoadSettings()
-    configDirPath = @getConfigDirPath()
-
-    telepath.devMode = not @isReleasedVersion()
+    @loadTime = null
 
     Config = require './config'
     Keymap = require './keymap'
@@ -64,40 +140,42 @@ class Atom
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
+    {devMode, resourcePath} = @getLoadSettings()
+    configDirPath = @getConfigDirPath()
 
     @config = new Config({configDirPath, resourcePath})
     @keymap = new Keymap({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
-
-    @subscribe @packages, 'activated', => @watchThemes()
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
-    @syntax = @deserializers.deserialize(@getWindowState('syntax')) ? new Syntax()
+    @syntax = @deserializers.deserialize(@state.get('syntax')) ? new Syntax()
+    @site = new SiteShim(this)
 
-  # Private: This method is called in any window needing a general environment, including specs
-  setUpEnvironment: (@windowMode) ->
-    @initialize()
+    @subscribe @packages, 'activated', => @watchThemes()
+
+    Project = require './project'
+    TextBuffer = require './text-buffer'
+    TokenizedBuffer = require './tokenized-buffer'
+    DisplayBuffer = require './display-buffer'
+    Editor = require './editor'
+    @registerRepresentationClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
+
+    @windowEventHandler = new WindowEventHandler
 
   # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
-  # Public: Create a new telepath model. We won't need to define this method when
-  # the atom global is a telepath model itself because all model subclasses inherit
-  # a create method.
-  create: (model) ->
-    @site.createDocument(model)
-
   # Public: Get the current window
   getCurrentWindow: ->
-    remote.getCurrentWindow()
+    @constructor.getCurrentWindow()
 
   # Public: Get the dimensions of this window.
   #
   # Returns an object with x, y, width, and height keys.
-  getDimensions: ->
+  getWindowDimensions: ->
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
     [width, height] = browserWindow.getSize()
@@ -106,65 +184,59 @@ class Atom
   # Public: Set the dimensions of the window.
   #
   # The window will be centered if either the x or y coordinate is not set
-  # in the dimensions parameter.
+  # in the dimensions parameter. If x or y are omitted the window will be
+  # centered. If height or width are omitted only the position will be changed.
   #
   # * dimensions:
-  #    + x:
-  #      The new x coordinate.
-  #    + y:
-  #      The new y coordinate.
-  #    + width:
-  #      The new width.
-  #    + height:
-  #      The new height.
-  setDimensions: ({x, y, width, height}) ->
+  #    + x: The new x coordinate.
+  #    + y: The new y coordinate.
+  #    + width: The new width.
+  #    + height: The new height.
+  setWindowDimensions: ({x, y, width, height}) ->
     browserWindow = @getCurrentWindow()
-    browserWindow.setSize(width, height)
+    if width? and height?
+      browserWindow.setSize(width, height)
     if x? and y?
       browserWindow.setPosition(x, y)
     else
       browserWindow.center()
 
   # Private:
-  restoreDimensions: ->
-    dimensions = @getWindowState().getObject('dimensions')
-    unless dimensions?.width and dimensions?.height
-      {height, width} = @getLoadSettings().initialSize ? {}
-      height ?= screen.availHeight
-      width ?= Math.min(screen.availWidth, 1024)
-      dimensions = {width, height}
-    @setDimensions(dimensions)
+  restoreWindowDimensions: ->
+    windowDimensions = @state.getObject('windowDimensions') ? {}
+    {initialSize} = @getLoadSettings()
+    windowDimensions.height ?= initialSize?.height ? global.screen.availHeight
+    windowDimensions.width ?= initialSize?.width ? Math.min(global.screen.availWidth, 1024)
+    @setWindowDimensions(windowDimensions)
+
+  # Private:
+  storeWindowDimensions: ->
+    @state.set('windowDimensions', @getWindowDimensions())
 
   # Public: Get the load settings for the current window.
   #
   # Returns an object containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings)
-    _.deepClone(@loadSettings)
+    @constructor.getLoadSettings()
 
   # Private:
   deserializeProject: ->
     Project = require './project'
-    @project = @getWindowState('project')
-    unless @project instanceof Project
-      @project = new Project(path: @getLoadSettings().initialPath)
-      @setWindowState('project', @project)
+    @project ?= new Project(path: @getLoadSettings().initialPath)
 
   # Private:
   deserializeWorkspaceView: ->
     WorkspaceView = require './workspace-view'
-    state = @getWindowState()
-    @workspaceView = @deserializers.deserialize(state.get('workspaceView'))
+    @workspaceView = @deserializers.deserialize(@state.get('workspaceView'))
     unless @workspaceView?
       @workspaceView = new WorkspaceView()
-      state.set('workspaceView', @workspaceView.getState())
+      @state.set('workspaceView', @workspaceView.getState())
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:
   deserializePackageStates: ->
-    state = @getWindowState()
-    @packages.packageStates = state.getObject('packageStates') ? {}
-    state.remove('packageStates')
+    @packages.packageStates = @state.getObject('packageStates') ? {}
+    @state.remove('packageStates')
 
   # Private:
   deserializeEditorWindow: ->
@@ -172,15 +244,14 @@ class Atom
     @deserializeProject()
     @deserializeWorkspaceView()
 
-  # Private: This method is only called when opening a real application window
+  # Private: Call this method when establishing a real application window.
   startEditorWindow: ->
     if process.platform is 'darwin'
       CommandInstaller = require './command-installer'
       CommandInstaller.installAtomCommand()
       CommandInstaller.installApmCommand()
 
-    @windowEventHandler = new WindowEventHandler
-    @restoreDimensions()
+    @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
@@ -204,28 +275,16 @@ class Atom
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
-    windowState = @getWindowState()
-    windowState.set('project', @project)
-    windowState.set('syntax', @syntax.serialize())
-    windowState.set('workspaceView', @workspaceView.serialize())
+    @state.set('syntax', @syntax.serialize())
+    @state.set('workspaceView', @workspaceView.serialize())
     @packages.deactivatePackages()
-    windowState.set('packageStates', @packages.packageStates)
-    @saveWindowState()
+    @state.set('packageStates', @packages.packageStates)
+    @saveSync()
     @workspaceView.remove()
+    @workspaceView = null
     @project.destroy()
     @windowEventHandler?.unsubscribe()
     @windowState = null
-
-  # Set up the default event handlers and menus for a non-editor window.
-  #
-  # This can be used by packages to have a minimum level of keybindings and
-  # menus available when not using the standard editor window.
-  #
-  # This should only be called after setUpEnvironment() has been called.
-  setUpDefaultEvents: ->
-    @windowEventHandler = new WindowEventHandler
-    @keymap.loadBundledKeymaps()
-    @menu.update()
 
   # Private:
   loadThemes: ->
@@ -362,11 +421,11 @@ class Atom
 
   # Public: Get the version of the Atom application.
   getVersion: ->
-    @version ?= app.getVersion()
+    @constructor.getVersion()
 
   # Public: Determine whether the current version is an official release.
   isReleasedVersion: ->
-    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
+    @constructor.isReleasedVersion()
 
   getGitHubAuthTokenName: ->
     'Atom GitHub API Token'
@@ -383,86 +442,15 @@ class Atom
   #
   # Returns the absolute path to ~/.atom
   getConfigDirPath: ->
-    @configDirPath ?= fs.absolute('~/.atom')
-
-  # Public: Get the directory path to Atom's storage area.
-  #
-  # Returns the absoluste path to ~/.atom/storage
-  getStorageDirPath: ->
-    @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
+    @constructor.getConfigDirPath()
 
   # Private:
-  getWindowStatePath: ->
-    switch @windowMode
-      when 'spec'
-        filename = @windowMode
-      when 'editor'
-        {initialPath} = @getLoadSettings()
-        if initialPath
-          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
-          filename = "editor-#{sha1}"
-
-    if filename
-      path.join(@getStorageDirPath(), filename)
+  saveSync: ->
+    if statePath = @constructor.getStatePath(@mode)
+      super(statePath)
     else
-      null
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@serializeForPersistence())
 
-  # Public: Set the window state of the given keypath to the value.
-  setWindowState: (keyPath, value) ->
-    windowState = @getWindowState()
-    windowState.set(keyPath, value)
-    windowState
-
-  # Private
-  loadSerializedWindowState: ->
-    if windowStatePath = @getWindowStatePath()
-      if fs.existsSync(windowStatePath)
-        try
-          documentStateJson  = fs.readFileSync(windowStatePath, 'utf8')
-        catch error
-          console.warn "Error reading window state: #{windowStatePath}", error.stack, error
-    else
-      documentStateJson = @getLoadSettings().windowState
-
-    try
-      documentState = JSON.parse(documentStateJson) if documentStateJson
-    catch error
-      console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
-
-  # Private:
-  loadWindowState: ->
-    serializedWindowState = @loadSerializedWindowState()
-    doc = Document.deserialize(serializedWindowState) if serializedWindowState?
-    doc ?= Document.create()
-    doc.registerModelClasses(
-      require('./text-buffer'),
-      require('./project'),
-      require('./tokenized-buffer'),
-      require('./display-buffer'),
-      require('./editor')
-    )
-    # TODO: Remove this when everything is using telepath models
-    if @site?
-      @site.setRootDocument(doc)
-    else
-      @site = new SiteShim(doc)
-    doc
-
-  # Private:
-  saveWindowState: ->
-    windowState = @getWindowState()
-    if windowStatePath = @getWindowStatePath()
-      windowState.saveSync(windowStatePath)
-    else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(windowState.serializeForPersistence())
-
-  # Public: Get the window state for the key path.
-  getWindowState: (keyPath) ->
-    @windowState ?= @loadWindowState()
-    if keyPath
-      @windowState.get(keyPath)
-    else
-      @windowState
 
   # Public: Get the time taken to completely load the current window.
   #
@@ -473,10 +461,6 @@ class Atom
   # if the window hasn't finished loading yet.
   getWindowLoadTime: ->
     @loadTime
-
-  # Private: Returns a replicated copy of the current state.
-  replicate: ->
-    @getWindowState().replicate()
 
   # Private:
   crashMainProcess: ->

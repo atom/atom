@@ -4,7 +4,7 @@ require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 try
   require '../src/window'
   Atom = require '../src/atom'
-  window.atom = new Atom()
+  window.atom = Atom.loadOrCreate('spec')
   window.atom.show() unless atom.getLoadSettings().exitWhenDone
   {runSpecSuite} = require './jasmine-helper'
 
