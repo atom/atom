@@ -1,18 +1,4 @@
 #!/usr/bin/env node
 
 var path = require('path');
-
-var apmCliPath = null;
-try {
-  apmCliPath = require.resolve(path.join(__dirname, '../lib/apm-cli'))
-} catch (libError) {
-  // TODO Remove once apm is public and no longer used as an atom package
-  try {
-    require('coffee-script');
-    apmCliPath = require.resolve(path.join(__dirname, '../src/apm-cli'))
-  } catch(srcError) {
-    throw libError;
-  }
-}
-
-require(apmCliPath).run(process.argv.slice(2));
+require(path.join(__dirname, '../lib/apm-cli')).run(process.argv.slice(2));
