@@ -39,8 +39,8 @@ module.exports = (grunt) ->
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
         if process.platform is 'win32'
-          process.stdout.write(fs.readFileSync('ci.log'))
-          fs.unlinkSync('ci.log')
+          process.stdout.write(fs.readFileSync(path.join(packagePath, 'ci.log')))
+          fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
         callback()
