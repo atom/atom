@@ -52,6 +52,9 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
+    # TODO: Restore concurrency on Windows
+    packageSpecQueue.concurrency = 1 unless process.platform is 'win32'
+
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
@@ -76,13 +79,24 @@ module.exports = (grunt) ->
       if process.platform is 'win32'
         process.stdout.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
+      else
+        # TODO: Restore concurrency on Windows
+        packageSpecQueue.concurrency = 2
+
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
     startTime = Date.now()
 
-    async.series [runCoreSpecs, runPackageSpecs], (error, results) ->
+    # TODO: This should really be parallel on both platforms, however our
+    # fixtures step on each others toes currently.
+    if process.platform is 'darwin'
+      method = async.series
+    else if process.platform is 'win32'
+      method = async.parallel
+
+    method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
@@ -91,6 +105,7 @@ module.exports = (grunt) ->
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
+      # TODO: Mark the build as green on Windows until specs pass.
       if process.platform is 'darwin'
         done(!coreSpecFailed and failedPackages.length == 0)
       else if process.platform is 'win32'
