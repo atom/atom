@@ -10,9 +10,10 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
-  logStream = fs.createWriteStream(logFile, flags: 'w')
-  process.__defineGetter__ 'stdout', -> logStream
-  process.__defineGetter__ 'stderr', -> logStream
+  if logFile?
+    logStream = fs.createWriteStream(logFile, flags: 'w')
+    process.__defineGetter__ 'stdout', -> logStream
+    process.__defineGetter__ 'stderr', -> logStream
 
   if atom.getLoadSettings().exitWhenDone
     {jasmineNode} = require 'jasmine-node/lib/jasmine-node/reporter'
