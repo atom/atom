@@ -33,13 +33,13 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   console.log('0')
   async.series([
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
-    console.log('a'),
+    console.log.bind(global,'a'),
     cp.safeExec.bind(global, 'git clean -dff'),
-    console.log('b', gruntPath),
+    console.log.bind(global, 'b', gruntPath),
     cp.safeExec.bind(global, gruntPath + ' ci --stack --no-color'),
-    console.log('c'),
+    console.log.bind(global, 'c'),
     cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release')
-    console.log('d'),
+    console.log.bind(global, 'd'),
   ], function(error) {
     process.exit(error ? 1 : 0);
   });
