@@ -37,6 +37,8 @@ var commands = [
   'git submodule --quiet update --recursive --init',
   {command: 'npm install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
   {command: 'npm install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
+  {command: 'npm install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},
+  {command: 'node ../../apm/node_modules/atom-package-manager/bin/apm rebuild', options: {cwd: path.resolve('node_modules', 'atom-package-manager'), ignoreStdout: true}},
   echoNewLine,
   'node apm/node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
   'node apm/node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
