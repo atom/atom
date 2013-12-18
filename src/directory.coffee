@@ -88,11 +88,9 @@ class Directory
     directories = []
     files = []
     for entryPath in fs.listSync(@path)
-      try
-        stat = fs.lstatSync(entryPath)
-        symlink = stat.isSymbolicLink()
-        stat = fs.statSync(entryPath) if symlink
-      catch e
+      if stat = fs.statSyncNoException(entryPath)
+        symlink = fs.isSymbolicLinkSync(entryPath)
+      else
         continue
       if stat.isDirectory()
         directories.push(new Directory(entryPath, symlink))

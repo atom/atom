@@ -15,7 +15,7 @@ module.exports = (grunt) ->
     rootDir = grunt.config.get('atom.shellAppDir')
     appDir = grunt.config.get('atom.appDir')
     atomPath = path.join(appDir, 'atom.sh')
-    apmPath = path.join(appDir, 'node_modules/.bin/apm')
+    apmPath = path.join(appDir, 'apm/node_modules/.bin/apm')
 
     packageSpecQueue = async.queue (packagePath, callback) ->
       options =
@@ -26,7 +26,7 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env, ATOM_PATH: rootDir)
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        
+
         failedPackages.push path.basename(packagePath) if error
         callback()
 
