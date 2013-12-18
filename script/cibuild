@@ -33,7 +33,7 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   var tasks = [
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
-    cp.safeExec.bind(global, gruntPath + ' ci --stack --no-color'),
+    cp.safeExec.bind(global, gruntPath + ' ci --stack --no-color --verbose'),
   ]
   if (process.platform === 'darwin') {
     tasks.push(cp.safeExec.bind(global, 'node_modules/.bin/coffee script/upload-release'))
