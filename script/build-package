@@ -26,7 +26,7 @@ mkdir atom
 unzip -q atom.zip -d atom
 
 echo "Downloading package dependencies..."
-atom/Atom.app/Contents/Resources/app/node_modules/.bin/apm update
+atom/Atom.app/Contents/Resources/app/apm/node_modules/.bin/apm update
 
 echo "Running specs..."
 ATOM_PATH=./atom/Atom.app atom/Atom.app/Contents/Resources/app/apm/node_modules/.bin/apm test --path atom/Atom.app/Contents/Resources/app/atom.sh
