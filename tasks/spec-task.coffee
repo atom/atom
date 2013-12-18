@@ -92,9 +92,9 @@ module.exports = (grunt) ->
     # TODO: This should really be parallel on both platforms, however our
     # fixtures step on each others toes currently.
     if process.platform is 'darwin'
-      method = async.series
-    else if process.platform is 'win32'
       method = async.parallel
+    else if process.platform is 'win32'
+      method = async.series
 
     method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
