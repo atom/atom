@@ -85,7 +85,14 @@ module.exports = (grunt) ->
     done = @async()
     startTime = Date.now()
 
-    async.parallel [runCoreSpecs, runPackageSpecs], (error, results) ->
+    # TODO: This should really be parallel on both platforms, however our
+    # fixtures step on each others toes currently.
+    if process.platform is 'darwin'
+      method = async.parallel
+    else if process.platform is 'win32'
+      method = async.series
+
+    method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
