@@ -126,9 +126,7 @@ class Editor extends Model
     require './editor-view'
 
   # Private:
-  destroy: ->
-    return if @destroyed
-    @destroyed = true
+  destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
