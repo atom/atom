@@ -5,17 +5,19 @@
 # Should be accessed via `atom.deserializers`
 module.exports =
 class DeserializerManager
-  constructor: ->
+  constructor: (@environment) ->
     @deserializers = {}
     @deferredDeserializers = {}
 
   # Public: Register the given class(es) as deserializers.
   add: (klasses...) ->
     @deserializers[klass.name] = klass for klass in klasses
+    @environment?.registerRepresentationClasses(klasses...)
 
   # Public: Add a deferred deserializer for the given class name.
   addDeferred: (name, fn) ->
     @deferredDeserializers[name] = fn
+    @environment?.registerDeferredRepresentationClass(name, fn)
 
   # Public: Remove the given class(es) as deserializers.
   remove: (klasses...) ->
@@ -24,8 +26,7 @@ class DeserializerManager
   # Public: Deserialize the state and params.
   deserialize: (state, params) ->
     return unless state?
-
-    return state if state instanceof Model
+    return state unless state.constructor is Object or state instanceof TelepathicObject
 
     if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version

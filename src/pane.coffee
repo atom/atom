@@ -34,25 +34,22 @@ class Pane extends View
     @items = []
     if args[0] instanceof TelepathicObject
       @state = args[0]
-      @items = _.compact @state.get('items').map (item) ->
-        item = atom.deserializers.deserialize(item)
-        item?.created?()
-        return if item?.state?.isDestroyed?()
-        item
+      @items = _.compact(@state.get('items').getValues())
+      item?.created?() for item in @getItems()
     else
       @items = args
       @state = atom.create
         deserializer: 'Pane'
-        items: @items.map (item) -> item.getState?() ? item.serialize()
+        items: @items
 
     @handleItemEvents(item) for item in @items
 
     @subscribe @state.get('items'), 'changed', ({index, removedValues, insertedValues, siteId}) =>
       return if siteId is @state.siteId
-      for itemState in removedValues
+      for item in removedValues
         @removeItemAtIndex(index, updateState: false)
-      for itemState, i in insertedValues
-        @addItem(atom.deserializers.deserialize(itemState), index + i, updateState: false)
+      for item, i in insertedValues
+        @addItem(itemState, index + i, updateState: false)
 
     @subscribe @state, 'changed', ({newValues, siteId}) =>
       return if siteId is @state.siteId
@@ -186,7 +183,7 @@ class Pane extends View
   addItem: (item, index=@getActiveItemIndex()+1, options={}) ->
     return if _.include(@items, item)
 
-    @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
+    @state.get('items').splice(index, 0, item) if options.updateState ? true
     @items.splice(index, 0, item)
     @trigger 'pane:item-added', [item, index]
     @handleItemEvents(item)
@@ -290,7 +287,7 @@ class Pane extends View
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
-    @state.get('items').insert(newIndex, item.getState?() ? item.serialize())
+    @state.get('items').insert(newIndex, item)
     @trigger 'pane:item-moved', [item, newIndex]
 
   # Public: Moves the given item to another pane.
@@ -354,7 +351,7 @@ class Pane extends View
   # Private:
   serialize: ->
     state = @state.clone()
-    state.set('items', item.serialize() for item, index in @items)
+    state.set('items', @items)
     state.set('focused', @is(':has(:focus)'))
     state
 
