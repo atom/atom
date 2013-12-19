@@ -275,14 +275,19 @@ class Project extends Model
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
 
-    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
+    if @scanTask?
+      console.log 'terminating!'
+      @scanTask.terminate()
+
+    @scanTask = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, =>
+      @scanTask = null
       deferred.resolve()
 
-    task.on 'scan:result-found', (result) =>
+    @scanTask.on 'scan:result-found', (result) =>
       iterator(result) unless @isPathModified(result.filePath)
 
     if _.isFunction(options.onPathsSearched)
-      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+      @scanTask.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
     for buffer in @buffers.getValues() when buffer.isModified()
