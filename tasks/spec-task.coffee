@@ -78,7 +78,7 @@ module.exports = (grunt) ->
         process.stderr.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
 
-      packageSpecQueue.concurrency = 2 if packageSpecQueue?
+      packageSpecQueue.concurrency = 2
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
