@@ -47,7 +47,6 @@ module.exports = (grunt) ->
 
     modulesDirectory = path.resolve('node_modules')
     for packageDirectory in fs.readdirSync(modulesDirectory)
-      return callback(null, [])
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
