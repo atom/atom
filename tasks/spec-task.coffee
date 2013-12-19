@@ -52,9 +52,7 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    # TODO: Restore concurrency on Windows
-    packageSpecQueue.concurrency = 1 unless process.platform is 'win32'
-
+    packageSpecQueue.concurrency = 1
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
@@ -79,10 +77,8 @@ module.exports = (grunt) ->
       if process.platform is 'win32'
         process.stderr.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
-      else
-        # TODO: Restore concurrency on Windows
-        packageSpecQueue.concurrency = 2
 
+      packageSpecQueue.concurrency = 2
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
