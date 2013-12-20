@@ -39,6 +39,10 @@ class Link extends Command
     else
       targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
 
+    unless fs.existsSync(linkPath)
+      callback("Package directory does not exist: #{linkPath}")
+      return
+
     try
       fs.unlinkSync(targetPath) if fs.isSymbolicLinkSync(targetPath)
       fs.makeTreeSync path.dirname(targetPath)
