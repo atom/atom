@@ -275,17 +275,14 @@ class Project extends Model
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
 
-    @cancelScan()
-
-    @scanTask = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, =>
-      @scanTask = null
+    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, =>
       deferred.resolve()
 
-    @scanTask.on 'scan:result-found', (result) =>
+    task.on 'scan:result-found', (result) =>
       iterator(result) unless @isPathModified(result.filePath)
 
     if _.isFunction(options.onPathsSearched)
-      @scanTask.on 'scan:paths-searched', (numberOfPathsSearched) ->
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
     for buffer in @buffers.getValues() when buffer.isModified()
@@ -294,13 +291,11 @@ class Project extends Model
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
 
-    deferred.promise
-
-  # Public: Cancels the current scan task if there is one running.
-  cancelScan: ->
-    if @scanTask?
-      @scanTask.terminate()
-      @scanTask = null
+    promise = deferred.promise
+    promise.cancel = ->
+      task.terminate()
+      deferred.reject('cancelled')
+    promise
 
   # Public: Performs a replace across all the specified files in the project.
   #
