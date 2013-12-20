@@ -276,7 +276,6 @@ class Project extends Model
       exclusions: atom.config.get('core.ignoredNames')
 
     if @scanTask?
-      console.log 'terminating!'
       @scanTask.terminate()
 
     @scanTask = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, =>
