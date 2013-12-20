@@ -257,8 +257,7 @@ describe "Git", ->
 
     it "subscribes to all the serialized buffers in the project", ->
       atom.project.openSync('sample.js')
-      #TODO Replace with atom.replicate().project when Atom is a telepath model
-      project2 = atom.replicate().get('project')
+      project2 = atom.project.testPersistence()
       buffer = project2.getBuffers()[0]
 
       waitsFor ->

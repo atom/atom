@@ -19,7 +19,7 @@ describe "WorkspaceView", ->
     viewState = null
 
     simulateReload = ->
-      state = atom.workspaceView.serialize().replicate()
+      state = atom.workspaceView.serialize().testPersistence()
       atom.workspaceView.remove()
       atom.workspaceView = WorkspaceView.deserialize(state)
       atom.workspaceView.attachToDom()

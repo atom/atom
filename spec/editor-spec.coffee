@@ -29,7 +29,7 @@ describe "Editor", ->
         expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
         # Simulate serialization with replicate
-        editor2 = editor.replicate()
+        editor2 = editor.testPersistence()
         # FIXME: The created hook is called manually on deserialization because globals aren't ready otherwise
         editor2.created()
 

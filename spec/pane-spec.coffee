@@ -677,22 +677,24 @@ describe "Pane", ->
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = atom.deserializers.deserialize(pane.serialize())
+      newPane = atom.deserializers.deserialize(pane.serialize().testPersistence())
       expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
       pane.showItem(editor2)
-      newPane = atom.deserializers.deserialize(pane.serialize())
+      newPane = atom.deserializers.deserialize(pane.serialize().testPersistence())
       expect(newPane.activeItem).toEqual editor2
 
     it "does not show items that cannot be deserialized", ->
       spyOn(console, 'warn')
 
-      pane.showItem(view2)
-      paneState = pane.serialize()
-      paneState.get('items').set(pane.items.indexOf(view2), {deserializer: 'Bogus'}) # nuke serialized state of active item
+      class Unserializable
+        getViewClass: -> TestView
 
-      newPane = atom.deserializers.deserialize(paneState)
+      pane.showItem(new Unserializable)
+
+      state = pane.serialize().testPersistence()
+      newPane = atom.deserializers.deserialize(state)
       expect(newPane.activeItem).toEqual pane.items[0]
       expect(newPane.items.length).toBe pane.items.length - 1
 
@@ -700,13 +702,13 @@ describe "Pane", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = atom.deserializers.deserialize(container.serialize())
+      container2 = atom.deserializers.deserialize(container.serialize().testPersistence())
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = atom.deserializers.deserialize(container.serialize())
+      container3 = atom.deserializers.deserialize(container.serialize().testPersistence())
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

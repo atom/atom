@@ -65,7 +65,7 @@ class Atom extends Model
     try
       JSON.parse(documentStateString) if documentStateString?
     catch error
-      console.warn "Error parsing window state: #{statePath}", error.stack, error
+      console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
   # Private: Returns the path where the state for the current window will be
   # located if it exists.
@@ -121,7 +121,7 @@ class Atom extends Model
   # Private: Called by telepath. I'd like this to be merged with initialize eventually.
   created: ->
     DeserializerManager = require './deserializer-manager'
-    @deserializers = new DeserializerManager()
+    @deserializers = new DeserializerManager(this)
 
   # Public: Sets up the basic services that should be available in all modes
   # (both spec and application). Call after this instance has been assigned to
@@ -161,6 +161,7 @@ class Atom extends Model
     DisplayBuffer = require './display-buffer'
     Editor = require './editor'
     @registerRepresentationClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
+    @createRepresentations()
 
     @windowEventHandler = new WindowEventHandler
 
@@ -258,6 +259,7 @@ class Atom extends Model
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
+    @createRepresentations()
     @deserializeEditorWindow()
     @packages.activate()
     @keymap.loadUserKeymap()
