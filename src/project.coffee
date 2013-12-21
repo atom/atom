@@ -291,7 +291,11 @@ class Project extends Model
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
 
-    deferred.promise
+    promise = deferred.promise
+    promise.cancel = ->
+      task.terminate()
+      deferred.reject('cancelled')
+    promise
 
   # Public: Performs a replace across all the specified files in the project.
   #
