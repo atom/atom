@@ -261,9 +261,7 @@ class Cursor
     screenline = @editor.lineForScreenRow(row)
 
     goalColumn = screenline.text.search(/\S/)
-    return if goalColumn == -1
-
-    goalColumn = 0 if goalColumn == column
+    goalColumn = 0 if goalColumn == column or goalColumn == -1
     @setScreenPosition([row, goalColumn])
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all

@@ -432,6 +432,13 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [0,0]
             expect(cursor2.getBufferPosition()).toEqual [1,0]
 
+          it "moves to the beginning of the line if it only contains whitespace ", ->
+            editor.setText("first\n    \nthird")
+            editor.setCursorScreenPosition [1,2]
+            editor.moveCursorToFirstCharacterOfLine()
+            cursor = editor.getCursor()
+            expect(cursor.getBufferPosition()).toEqual [1,0]
+
       describe ".moveCursorToBeginningOfWord()", ->
         it "moves the cursor to the beginning of the word", ->
           editor.setCursorBufferPosition [0, 8]
