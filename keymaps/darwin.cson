@@ -26,7 +26,7 @@
   'down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
-  'ctrl-alt-cmd-r': 'window:reload'
+  'ctrl-alt-cmd-l': 'window:reload'
   'alt-cmd-i': 'window:toggle-dev-tools'
   'cmd-alt-ctrl-p': 'window:run-package-specs'
 
