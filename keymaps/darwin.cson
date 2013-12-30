@@ -2,7 +2,7 @@
   # Apple specific
   'cmd-q': 'application:quit'
   'cmd-h': 'application:hide'
-  'cmd-H': 'application:hide-other-applications'
+  'cmd-alt-h': 'application:hide-other-applications'
   'cmd-m': 'application:minimize'
   'alt-cmd-ctrl-m': 'application:zoom'
 
