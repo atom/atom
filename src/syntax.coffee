@@ -7,7 +7,7 @@ TextMateGrammarRegistry = FirstMate.GrammarRegistry
 
 {$, $$} = require './space-pen-extensions'
 
-### Internal ###
+### Public ###
 module.exports =
 class Syntax
   Emitter.includeInto(this)
