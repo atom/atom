@@ -361,13 +361,13 @@ describe "Editor", ->
           expect(editor.getCursors().length).toBe 1
           expect(editor.getCursorBufferPosition()).toEqual [12,2]
 
-      describe ".moveCursorToBeginningOfLine()", ->
+      describe ".moveCursorToBeginningOfScreenLine()", ->
         describe "when soft wrap is on", ->
           it "moves cursor to the beginning of the screen line", ->
             editor.setSoftWrap(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([1, 2])
-            editor.moveCursorToBeginningOfLine()
+            editor.moveCursorToBeginningOfScreenLine()
             cursor = editor.getCursor()
             expect(cursor.getScreenPosition()).toEqual [1, 0]
 
@@ -375,19 +375,19 @@ describe "Editor", ->
           it "moves cursor to the beginning of then line", ->
             editor.setCursorScreenPosition [0,5]
             editor.addCursorAtScreenPosition [1,7]
-            editor.moveCursorToBeginningOfLine()
+            editor.moveCursorToBeginningOfScreenLine()
             expect(editor.getCursors().length).toBe 2
             [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [0,0]
             expect(cursor2.getBufferPosition()).toEqual [1,0]
 
-      describe ".moveCursorToEndOfLine()", ->
+      describe ".moveCursorToEndOfScreenLine()", ->
         describe "when soft wrap is on", ->
           it "moves cursor to the beginning of the screen line", ->
             editor.setSoftWrap(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([1, 2])
-            editor.moveCursorToEndOfLine()
+            editor.moveCursorToEndOfScreenLine()
             cursor = editor.getCursor()
             expect(cursor.getScreenPosition()).toEqual [1, 9]
 
@@ -395,11 +395,29 @@ describe "Editor", ->
           it "moves cursor to the end of line", ->
             editor.setCursorScreenPosition [0,0]
             editor.addCursorAtScreenPosition [1,0]
-            editor.moveCursorToEndOfLine()
+            editor.moveCursorToEndOfScreenLine()
             expect(editor.getCursors().length).toBe 2
             [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [0,29]
             expect(cursor2.getBufferPosition()).toEqual [1,30]
+
+      describe ".moveCursorToBeginningOfLine()", ->
+        it "moves cursor to the beginning of the buffer line", ->
+          editor.setSoftWrap(true)
+          editor.setEditorWidthInChars(10)
+          editor.setCursorScreenPosition([1, 2])
+          editor.moveCursorToBeginningOfLine()
+          cursor = editor.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [0, 0]
+
+      describe ".moveCursorToEndOfLine()", ->
+        it "moves cursor to the end of the buffer line", ->
+          editor.setSoftWrap(true)
+          editor.setEditorWidthInChars(10)
+          editor.setCursorScreenPosition([0, 2])
+          editor.moveCursorToEndOfLine()
+          cursor = editor.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [3, 4]
 
       describe ".moveCursorToFirstCharacterOfLine()", ->
         describe "when soft wrap is on", ->

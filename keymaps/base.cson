@@ -5,7 +5,7 @@
   'alt-shift-left': 'editor:select-to-beginning-of-word'
   'alt-shift-right': 'editor:select-to-end-of-word'
   'home': 'editor:move-to-first-character-of-line'
-  'end': 'editor:move-to-end-of-line'
+  'end': 'editor:move-to-end-of-screen-line'
   'shift-home': 'editor:select-to-first-character-of-line'
   'shift-end': 'editor:select-to-end-of-line'
 

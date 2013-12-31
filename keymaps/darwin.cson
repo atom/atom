@@ -94,7 +94,7 @@
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-E': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
-  'cmd-right': 'editor:move-to-end-of-line'
+  'cmd-right': 'editor:move-to-end-of-screen-line'
   'cmd-shift-left': 'editor:select-to-first-character-of-line'
   'cmd-shift-right': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:backspace-to-beginning-of-word'

@@ -250,9 +250,13 @@ class Cursor
   moveToBottom: ->
     @setBufferPosition(@editor.getEofBufferPosition())
 
-  # Public: Moves the cursor to the beginning of the screen line.
-  moveToBeginningOfLine: ->
+  # Public: Moves the cursor to the beginning of the line.
+  moveToBeginningOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), 0])
+
+  # Public: Moves the cursor to the beginning of the buffer line.
+  moveToBeginningOfLine: ->
+    @setBufferPosition([@getBufferRow(), 0])
 
   # Public: Moves the cursor to the beginning of the first character in the
   # line.
@@ -275,9 +279,13 @@ class Cursor
 
     @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
 
+  # Public: Moves the cursor to the end of the line.
+  moveToEndOfScreenLine: ->
+    @setScreenPosition([@getScreenRow(), Infinity])
+
   # Public: Moves the cursor to the end of the buffer line.
   moveToEndOfLine: ->
-    @setScreenPosition([@getScreenRow(), Infinity])
+    @setBufferPosition([@getBufferRow(), Infinity])
 
   # Public: Moves the cursor to the beginning of the word.
   moveToBeginningOfWord: ->
