@@ -151,7 +151,7 @@ class AtomPackage extends Package
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
     for grammarPath in fs.listSync(grammarsDirPath, ['.json', '.cson'])
-      @grammars.push(atom.syntax.registry.loadGrammarSync(grammarPath))
+      @grammars.push(atom.syntax.loadGrammarSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []

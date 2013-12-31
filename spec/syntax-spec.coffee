@@ -15,7 +15,7 @@ describe "the `syntax` global", ->
       expect(atom.syntax.selectGrammar(filePath).name).not.toBe 'Ruby'
       atom.syntax.setGrammarOverrideForPath(filePath, 'source.ruby')
       syntax2 = atom.deserializers.deserialize(atom.syntax.serialize())
-      syntax2.addGrammar(grammar) for grammar in atom.syntax.registry.grammars when grammar isnt atom.syntax.registry.nullGrammar
+      syntax2.addGrammar(grammar) for grammar in atom.syntax.grammars when grammar isnt atom.syntax.nullGrammar
       expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
@@ -67,7 +67,7 @@ describe "the `syntax` global", ->
           scopeName: 'source1'
           fileTypes: ['test']
         )
-        grammar1 = atom.syntax.registry.loadGrammarSync(grammarPath1)
+        grammar1 = atom.syntax.loadGrammarSync(grammarPath1)
         expect(atom.syntax.selectGrammar('more.test', '')).toBe grammar1
 
         grammarPath2 = temp.path(suffix: '.json')
@@ -76,7 +76,7 @@ describe "the `syntax` global", ->
           scopeName: 'source2'
           fileTypes: ['test', 'more.test']
         )
-        grammar2 = atom.syntax.registry.loadGrammarSync(grammarPath2)
+        grammar2 = atom.syntax.loadGrammarSync(grammarPath2)
         expect(atom.syntax.selectGrammar('more.test', '')).toBe grammar2
 
     describe "when there is no file path", ->

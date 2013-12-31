@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
 FirstMate = require 'first-mate'
 TextMateScopeSelector = FirstMate.ScopeSelector
 TextMateGrammarRegistry = FirstMate.GrammarRegistry
@@ -9,58 +9,24 @@ TextMateGrammarRegistry = FirstMate.GrammarRegistry
 
 ### Public ###
 module.exports =
-class Syntax
-  Emitter.includeInto(this)
+class Syntax extends TextMateGrammarRegistry
   Subscriber.includeInto(this)
 
   atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
     syntax = new Syntax()
-    syntax.registry.grammarOverridesByPath = grammarOverridesByPath
+    syntax.grammarOverridesByPath = grammarOverridesByPath
     syntax
 
   constructor: ->
-    @registry = new TextMateGrammarRegistry()
-
-    #TODO Remove once packages have been updated
-    @subscribe @registry, 'grammar-added', (grammar) =>
-      @emit 'grammar-added', grammar
-    @subscribe @registry, 'grammar-updated', (grammar) =>
-      @emit 'grammar-updated', grammar
-    @__defineGetter__ 'grammars', -> @registry.grammars
-    @nullGrammar = @registry.nullGrammar
+    super
 
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
   serialize: ->
-    deserializer: @constructor.name
-    grammarOverridesByPath: @registry.grammarOverridesByPath
-
-  addGrammar: (grammar) ->
-    @registry.addGrammar(grammar)
-
-  removeGrammar: (grammar) ->
-    @registry.removeGrammar(grammar)
-
-  setGrammarOverrideForPath: (path, scopeName) ->
-    @registry.setGrammarOverrideForPath(path, scopeName)
-
-  clearGrammarOverrideForPath: (path) ->
-    @registry.clearGrammarOverrideForPath(path)
-
-  clearGrammarOverrides: ->
-    @registry.clearGrammarOverrides()
-
-  selectGrammar: (filePath, fileContents) ->
-    @registry.selectGrammar(filePath, fileContents)
-
-  grammarOverrideForPath: (path) ->
-    @grammarOverridesByPath[path]
-
-  grammarForScopeName: (scopeName) ->
-    @registry.grammarForScopeName(scopeName)
+    {deserializer: @constructor.name, @grammarOverridesByPath}
 
   addProperties: (args...) ->
     name = args.shift() if args.length > 2
