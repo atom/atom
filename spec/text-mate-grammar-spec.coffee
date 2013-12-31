@@ -433,60 +433,6 @@ describe "TextMateGrammar", ->
         {tokens} = grammar.tokenizeLine("https://github.com")
         expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]
 
-    describe "when the grammar has an injection selector", ->
-      it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
-        atom.packages.activatePackage('language-hyperlink', sync: true)
-        grammar = atom.syntax.selectGrammar("text.js")
-        {tokens} = grammar.tokenizeLine("var i; // http://github.com")
-
-        expect(tokens[0].value).toBe "var"
-        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
-
-        expect(tokens[6].value).toBe "http://github.com"
-        expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
-
-      describe "when the grammar is added", ->
-        it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editor = atom.project.openSync('sample.js')
-          editor.setText("// http://github.com")
-
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[1].value).toBe " http://github.com"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
-
-          atom.packages.activatePackage('language-hyperlink', sync: true)
-
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[2].value).toBe "http://github.com"
-          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
-
-      describe "when the grammar is updated", ->
-        it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editor = atom.project.openSync('sample.js')
-          editor.setText("// SELECT * FROM OCTOCATS")
-
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
-
-          atom.syntax.addGrammar(new TextMateGrammar(
-            name: "test"
-            scopeName: "source.test"
-            repository: {}
-            injectionSelector: "comment"
-            patterns: [ { include: "source.sql" } ]
-          ))
-
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
-
-          atom.packages.activatePackage('language-sql', sync: true)
-
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[2].value).toBe "SELECT"
-          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
-
     describe "when the position doesn't advance and rule includes $self and matches itself", ->
       it "tokenizes the entire line using the rule", ->
         grammar = new TextMateGrammar
