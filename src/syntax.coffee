@@ -23,15 +23,15 @@ class Syntax
 
   constructor: ->
     @registry = new TextMateGrammarRegistry()
+
+    #TODO Remove once packages have been updated
     @subscribe @registry, 'grammar-added', (grammar) =>
       @emit 'grammar-added', grammar
     @subscribe @registry, 'grammar-updated', (grammar) =>
       @emit 'grammar-updated', grammar
-
-    #TODO Remove once packages have been updated
     @__defineGetter__ 'grammars', -> @registry.grammars
-
     @nullGrammar = @registry.nullGrammar
+
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
