@@ -65,10 +65,13 @@ class TextMatePackage extends Package
         done()
 
   loadGrammarAtPath: (grammarPath, done) =>
-    atom.syntax.registry.readGrammar (error, grammar) =>
-      return console.log("Error loading grammar at path '#{grammarPath}':", err.stack ? err) if err
-      @addGrammar(grammar)
-      done()
+    atom.syntax.registry.readGrammar grammarPath, (error, grammar) =>
+      console.log error, grammar
+      if error?
+        console.log("Error loading grammar at path '#{grammarPath}':", error.stack ? error)
+      else
+        @addGrammar(grammar)
+        done?()
 
   loadGrammarsSync: ->
     for grammarPath in fs.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
@@ -76,6 +79,7 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
+    grammar.activate() if @isActive()
 
   getGrammars: -> @grammars
 
