@@ -1,4 +1,3 @@
-TextMateGrammar = require './text-mate-grammar'
 Package = require './package'
 fs = require 'fs-plus'
 path = require 'path'
@@ -152,7 +151,7 @@ class AtomPackage extends Package
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
     for grammarPath in fs.listSync(grammarsDirPath, ['.json', '.cson'])
-      @grammars.push(TextMateGrammar.loadSync(grammarPath))
+      @grammars.push(atom.syntax.registry.loadGrammarSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []

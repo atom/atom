@@ -1,10 +1,12 @@
 _ = require 'underscore-plus'
+Token = require './token'
 
 ### Internal ###
 
 module.exports =
 class TokenizedLine
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->
+    tokens = (new Token(token) for token in tokens)
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')

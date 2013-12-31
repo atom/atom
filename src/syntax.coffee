@@ -1,71 +1,64 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
 {$, $$} = require './space-pen-extensions'
-{Emitter} = require 'emissary'
-NullGrammar = require './null-grammar'
-TextMateScopeSelector = require('first-mate').ScopeSelector
+{Emitter, Subscriber} = require 'emissary'
+
+FirstMate = require 'first-mate'
+TextMateScopeSelector = FirstMate.ScopeSelector
+TextMateGrammarRegistry = FirstMate.GrammarRegistry
 
 ### Internal ###
 
 module.exports =
 class Syntax
   Emitter.includeInto(this)
+  Subscriber.includeInto(this)
 
   atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
     syntax = new Syntax()
-    syntax.grammarOverridesByPath = grammarOverridesByPath
+    syntax.registry.grammarOverridesByPath = grammarOverridesByPath
     syntax
 
   constructor: ->
-    @nullGrammar = new NullGrammar
-    @grammars = [@nullGrammar]
-    @grammarsByScopeName = {}
-    @injectionGrammars = []
-    @grammarOverridesByPath = {}
+    @registry = new TextMateGrammarRegistry()
+    @subscribe @registry, 'grammar-added', (grammar) =>
+      @emit 'grammar-added', grammar
+    @subscribe @registry, 'grammar-updated', (grammar) =>
+      @emit 'grammar-updated', grammar
+
+    @nullGrammar = @registry.nullGrammar
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
   serialize: ->
-    { deserializer: @constructor.name, @grammarOverridesByPath }
+    deserializer: @constructor.name
+    grammarOverridesByPath: @registry.grammarOverridesByPath
 
   addGrammar: (grammar) ->
-    previousGrammars = new Array(@grammars...)
-    @grammars.push(grammar)
-    @grammarsByScopeName[grammar.scopeName] = grammar
-    @injectionGrammars.push(grammar) if grammar.injectionSelector?
-    @grammarUpdated(grammar.scopeName)
-    @emit 'grammar-added', grammar
+    @registry.addGrammar(grammar)
 
   removeGrammar: (grammar) ->
-    _.remove(@grammars, grammar)
-    delete @grammarsByScopeName[grammar.scopeName]
-    _.remove(@injectionGrammars, grammar)
-    @grammarUpdated(grammar.scopeName)
-
-  grammarUpdated: (scopeName) ->
-    for grammar in @grammars when grammar.scopeName isnt scopeName
-      @emit 'grammar-updated', grammar if grammar.grammarUpdated(scopeName)
+    @registry.removeGrammar(grammar)
 
   setGrammarOverrideForPath: (path, scopeName) ->
-    @grammarOverridesByPath[path] = scopeName
+    @registry.setGrammarOverrideForPath(path, scopeName)
 
   clearGrammarOverrideForPath: (path) ->
-    delete @grammarOverridesByPath[path]
+    @registry.clearGrammarOverrideForPath(path)
 
   clearGrammarOverrides: ->
-    @grammarOverridesByPath = {}
+    @registry.clearGrammarOverrides()
 
   selectGrammar: (filePath, fileContents) ->
-    grammar = _.max @grammars, (grammar) -> grammar.getScore(filePath, fileContents)
-    grammar
+    @registry.selectGrammar(filePath, fileContents)
 
   grammarOverrideForPath: (path) ->
     @grammarOverridesByPath[path]
 
   grammarForScopeName: (scopeName) ->
-    @grammarsByScopeName[scopeName]
+    @registry.grammarForScopeName(scopeName)
 
   addProperties: (args...) ->
     name = args.shift() if args.length > 2

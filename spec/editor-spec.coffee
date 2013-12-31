@@ -1,5 +1,4 @@
 clipboard = require 'clipboard'
-TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "Editor", ->
   [buffer, editor, lineLengths] = []
@@ -2702,6 +2701,7 @@ describe "Editor", ->
 
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
+      atom.packages.activatePackage('language-text', sync: true)
       atom.packages.activatePackage('language-javascript', sync: true)
 
     it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
@@ -2739,13 +2739,7 @@ describe "Editor", ->
         expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
         expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-        atom.syntax.addGrammar(new TextMateGrammar(
-          name: "test"
-          scopeName: "source.test"
-          repository: {}
-          injectionSelector: "comment"
-          patterns: [ { include: "source.sql" } ]
-        ))
+        atom.packages.activatePackage('package-with-injection-selector', sync: true)
 
         {tokens} = editor.lineForScreenRow(0)
         expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
