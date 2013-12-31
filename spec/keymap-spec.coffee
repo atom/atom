@@ -8,9 +8,11 @@ describe "Keymap", ->
   fragment = null
   keymap = null
   resourcePath = atom.getLoadSettings().resourcePath
+  configDirPath = null
 
   beforeEach ->
-    keymap = new Keymap({configDirPath: atom.getConfigDirPath(), resourcePath})
+    configDirPath = temp.mkdirSync('atom')
+    keymap = new Keymap({configDirPath, resourcePath})
     fragment = $ """
       <div class="command-mode">
         <div class="child-node">
@@ -18,6 +20,9 @@ describe "Keymap", ->
         </div>
       </div>
     """
+
+  afterEach ->
+    keymap.destroy()
 
   describe ".handleKeyEvent(event)", ->
     deleteCharHandler = null
@@ -348,3 +353,19 @@ describe "Keymap", ->
       el = $$ -> @div class: 'brown'
       bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
       expect(bindings).toHaveLength 0
+
+  describe "when the user keymap file is changed", ->
+    it "is reloaded", ->
+      keymapFilePath = path.join(configDirPath, "keymap.cson")
+      fs.writeFileSync(keymapFilePath, '"body": "ctrl-l": "core:move-left"')
+      keymap.loadUserKeymap()
+
+      spyOn(keymap, 'loadUserKeymap').andCallThrough()
+      fs.writeFileSync(keymapFilePath, "'body': 'ctrl-l': 'core:move-right'")
+
+      waitsFor ->
+        keymap.loadUserKeymap.callCount > 0
+
+      runs ->
+        keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
+        expect(keyBinding.command).toBe 'core:move-right'
