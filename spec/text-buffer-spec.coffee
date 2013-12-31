@@ -971,7 +971,7 @@ describe 'TextBuffer', ->
             expect(buffer.getText()).toBe "\ninitialtexthello\n1\n2\n"
 
   describe "serialization", ->
-    [buffer2, project2] = []
+    buffer2 = null
 
     beforeEach ->
       buffer.destroy()
@@ -981,13 +981,12 @@ describe 'TextBuffer', ->
       buffer = atom.project.bufferForPathSync(filePath).retain()
 
     afterEach ->
-      buffer2?.release()
-      project2?.destroy()
+      buffer2?.destroy()
 
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
         expect(buffer.isModified()).toBeFalsy()
-        buffer2 = buffer.testPersistence()
+        buffer2 = buffer.testSerialization()
 
         waitsForPromise ->
           buffer2.load()
@@ -1003,8 +1002,7 @@ describe 'TextBuffer', ->
           buffer.setText("BUFFER CHANGE")
           fs.writeFileSync(filePath, "DISK CHANGE")
 
-          project2 = atom.project.testPersistence()
-          buffer2 = project2.getBuffers()[0]
+          buffer2 = buffer.testSerialization()
 
           waitsFor ->
             buffer2.cachedDiskContents
@@ -1020,9 +1018,7 @@ describe 'TextBuffer', ->
           buffer.setText("abc")
           buffer.retain()
 
-          buffer.getState().serializeForPersistence()
-          project2 = atom.project.testPersistence()
-          buffer2 = project2.getBuffers()[0]
+          buffer2 = buffer.testSerialization()
 
           waitsForPromise ->
             buffer2.load()
@@ -1036,15 +1032,11 @@ describe 'TextBuffer', ->
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
-        buffer.release()
+        buffer.destroy()
 
         buffer = atom.project.bufferForPathSync()
         buffer.setText("abc")
 
-        state = buffer.getState().clone()
-        expect(state.get('path')).toBeUndefined()
-        expect(state.getObject('text')).toBe 'abc'
-
-        buffer2 = atom.project.addBuffer(new TextBuffer(state))
+        buffer2 = buffer.testSerialization()
         expect(buffer2.getPath()).toBeUndefined()
         expect(buffer2.getText()).toBe("abc")

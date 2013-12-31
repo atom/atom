@@ -601,14 +601,6 @@ class Selection
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  # Public: Returns true if it was locally created.
-  isLocal: ->
-    @marker.isLocal()
-
-  # Public: Returns true if it was created remotely.
-  isRemote: ->
-    @marker.isRemote()
-
   # Private:
   screenRangeChanged: ->
     screenRange = @getScreenRange()

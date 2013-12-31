@@ -27,11 +27,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #   atom.workspaceView.eachEditorView (editorView) ->
 #     editorView.insertText('Hello World')
 # ```
-#
-# ## Collaboration builtin
-#
-# FIXME: Describe how there are both local and remote cursors and selections and
-# why that is.
 module.exports =
 class Editor extends Model
 
@@ -47,9 +42,7 @@ class Editor extends Model
   buffer: null
   languageMode: null
   cursors: null
-  remoteCursors: null
   selections: null
-  remoteSelections: null
   suppressSelectionMerging: false
 
   constructor: ->
@@ -64,9 +57,7 @@ class Editor extends Model
       return
 
     @cursors = []
-    @remoteCursors = []
     @selections = []
-    @remoteSelections = []
 
     unless @displayBuffer?
       @displayBuffer = new DisplayBuffer({@buffer, @tabLength, @softWrap})
@@ -86,7 +77,7 @@ class Editor extends Model
       if @initialLine
         position = [@initialLine, 0]
       else
-        position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
+        position = [0, 0]
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -825,20 +816,12 @@ class Editor extends Model
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Public: Returns an Array of all {Cursor}s, including cursors representing
-  # remote users.
-  getAllCursors: ->
-    @getCursors().concat(@getRemoteCursors())
-
   # Public: Returns an Array of all local {Cursor}s.
   getCursors: -> new Array(@cursors...)
 
   # Public: Returns the most recently added {Cursor}.
   getCursor: ->
     _.last(@cursors)
-
-  # Public: Returns an Array of all remove {Cursor}s.
-  getRemoteCursors: -> new Array(@remoteCursors...)
 
   # Public: Adds and returns a cursor at the given screen position.
   addCursorAtScreenPosition: (screenPosition) ->
@@ -854,10 +837,7 @@ class Editor extends Model
   # position.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
-    if marker.isLocal()
-      @cursors.push(cursor)
-    else
-      @remoteCursors.push(cursor)
+    @cursors.push(cursor)
     @emit 'cursor-added', cursor
     cursor
 
@@ -878,12 +858,7 @@ class Editor extends Model
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
-
-    if marker.isLocal()
-      @selections.push(selection)
-    else
-      @remoteSelections.push(selection)
-
+    @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
     if selection.destroyed
@@ -941,10 +916,7 @@ class Editor extends Model
   #
   # * selection - The {Selection} to remove.
   removeSelection: (selection) ->
-    if selection.isLocal()
-      _.remove(@selections, selection)
-    else
-      _.remove(@remoteSelections, selection)
+    _.remove(@selections, selection)
 
   # Public: Clears every selection.
   #
@@ -964,10 +936,6 @@ class Editor extends Model
     else
       false
 
-  # Public: Returns all selections, including remote selections.
-  getAllSelections: ->
-    @getSelections().concat(@getRemoteSelections())
-
   # Public: Gets all local selections.
   #
   # Returns an {Array} of {Selection}s.
@@ -982,20 +950,11 @@ class Editor extends Model
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Returns all remote selections.
-  getRemoteSelections: -> new Array(@remoteSelections...)
-
   # Public: Gets all local selections, ordered by their position in the buffer.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
     @getSelections().sort (a, b) -> a.compare(b)
-
-  # Public: Gets all remote selections, ordered by their position in the buffer.
-  #
-  # Returns an {Array} of {Selection}s.
-  getRemoteSelectionsOrderedByBufferPosition: ->
-    @getRemoteSelections().sort (a, b) -> a.compare(b)
 
   # Public: Gets the very last local selection in the buffer.
   #
@@ -1065,12 +1024,6 @@ class Editor extends Model
   # Sorted by their position in the file itself.
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
-
-  # Public: Gets an Array of buffer {Range}s of all the remote {Selection}s.
-  #
-  # Sorted by their position in the file itself.
-  getRemoteSelectedBufferRanges: ->
-    selection.getBufferRange() for selection in @getRemoteSelectionsOrderedByBufferPosition()
 
   # Public: Returns the selected text of the most recently added local {Selection}.
   getSelectedText: ->

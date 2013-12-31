@@ -2,24 +2,24 @@ _ = require 'underscore-plus'
 diff = require 'diff'
 Q = require 'q'
 {P} = require 'scandal'
-telepath = require 'telepath'
+Serializable = require 'nostalgia'
+TextBufferCore = require 'text-buffer'
+{Point, Range} = TextBufferCore
+{Subscriber, Emitter} = require 'emissary'
 
 File = require './file'
-
-{Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
 # The `TextBuffer` is often associated with a {File}. However, this is not always
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer extends telepath.Model
-  @properties
-    text: -> new telepath.String('', replicated: false)
-    filePath: null
-    relativePath: null
-    modifiedWhenLastPersisted: false
-    digestWhenLastPersisted: null
+class TextBuffer
+  atom.deserializers.add(this)
+
+  Serializable.includeInto(this)
+  Subscriber.includeInto(this)
+  Emitter.includeInto(this)
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -29,28 +29,33 @@ class TextBuffer extends telepath.Model
   file: null
   refcount: 0
 
-  constructor: ->
-    super
-
-    @loadWhenAttached = @getState()?
-
-  # Private: Called by telepath.
-  created: ->
+  constructor: ({@core, text, filePath, @modifiedWhenLastPersisted, @digestWhenLastPersisted, loadWhenAttached}={}) ->
+    @core ?= new TextBufferCore(text: text ? '')
     @loaded = false
+    @modifiedWhenLastPersisted ?= false
+
     @useSerializedText = @modifiedWhenLastPersisted != false
 
-    @subscribe @text, 'changed', @handleTextChange
-    @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
-    @subscribe @text, 'markers-updated', => @emit 'markers-updated'
+    @subscribe @core, 'changed', @handleTextChange
+    @subscribe @core, 'marker-created', (marker) => @emit 'marker-created', marker
+    @subscribe @core, 'markers-updated', => @emit 'markers-updated'
 
-    @setPath(@filePath)
+    @setPath(filePath)
 
-    @load() if @loadWhenAttached
+    @load() if loadWhenAttached
 
-  # Private: Called by telepath.
-  willBePersisted: ->
-    @modifiedWhenLastPersisted = @isModified()
-    @digestWhenLastPersisted = @file?.getDigest()
+  # Private:
+  serializeParams: ->
+    core: @core.serialize()
+    filePath: @getPath()
+    modifiedWhenLastPersisted: @isModified()
+    digestWhenLastPersisted: @file?.getDigest()
+
+  # Private:
+  deserializeParams: (params) ->
+    params.loadWhenAttached = true
+    params.core = TextBufferCore.deserialize(params.core)
+    params
 
   loadSync: ->
     @updateCachedDiskContentsSync()
@@ -66,7 +71,7 @@ class TextBuffer extends telepath.Model
         @emitModifiedStatusChanged(true)
       else
         @reload()
-      @text.clearUndoStack()
+      @core.clearUndoStack()
     this
 
   ### Internal ###
@@ -74,16 +79,20 @@ class TextBuffer extends telepath.Model
   handleTextChange: (event) =>
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
-    bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
-    @emit 'changed', bufferChangeEvent
+    @emit 'changed', event
     @scheduleModifiedEvents()
 
-  destroyed: ->
-    unless @alreadyDestroyed
+  destroy: ->
+    unless @destroyed
       @cancelStoppedChangingTimeout()
       @file?.off()
       @unsubscribe()
-      @alreadyDestroyed = true
+      @destroyed = true
+      @emit 'destroyed'
+
+  isAlive: -> not @destroyed
+
+  isDestroyed: -> @destroyed
 
   isRetained: -> @refcount > 0
 
@@ -261,13 +270,13 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {String} of the combined lines.
   getTextInRange: (range) ->
-    @text.getTextInRange(@clipRange(range))
+    @core.getTextInRange(@clipRange(range))
 
   # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
   getLines: ->
-    @text.getLines()
+    @core.getLines()
 
   # Given a row, returns the line of text.
   #
@@ -275,7 +284,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {String}.
   lineForRow: (row) ->
-    @text.lineForRow(row)
+    @core.lineForRow(row)
 
   # Given a row, returns its line ending.
   #
@@ -283,7 +292,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {String}, or `undefined` if `row` is the final row.
   lineEndingForRow: (row) ->
-    @text.lineEndingForRow(row)
+    @core.lineEndingForRow(row)
 
   suggestedLineEndingForRow: (row) ->
     if row is @getLastRow()
@@ -297,7 +306,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {Number}.
   lineLengthForRow: (row) ->
-    @text.lineLengthForRow(row)
+    @core.lineLengthForRow(row)
 
   # Given a row, returns the length of the line ending
   #
@@ -324,13 +333,13 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {Number}.
   getLineCount: ->
-    @text.getLineCount()
+    @core.getLineCount()
 
   # Gets the row number of the last line.
   #
   # Returns a {Number}.
   getLastRow: ->
-    @getLineCount() - 1
+    @core.getLastRow()
 
   # Finds the last line in the current buffer.
   #
@@ -346,10 +355,10 @@ class TextBuffer extends telepath.Model
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    @text.indexForPoint(@clipPosition(position))
+    @core.offsetForPosition(@clipPosition(position))
 
   positionForCharacterIndex: (index) ->
-    @text.pointForIndex(index)
+    @core.positionForOffset(index)
 
   # Given a row, this deletes it from the buffer.
   #
@@ -402,7 +411,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipPosition: (position) ->
-    @text.clipPosition(position)
+    @core.clipPosition(position)
 
   # Given a range, this clips it to a real range.
   #
@@ -418,10 +427,10 @@ class TextBuffer extends telepath.Model
     new Range(@clipPosition(range.start), @clipPosition(range.end))
 
   undo: ->
-    @text.undo()
+    @core.undo()
 
   redo: ->
-    @text.redo()
+    @core.redo()
 
   # Saves the buffer.
   save: ->
@@ -461,15 +470,15 @@ class TextBuffer extends telepath.Model
   # Identifies if a buffer is empty.
   #
   # Returns a {Boolean}.
-  isEmpty: -> @text.isEmpty()
+  isEmpty: -> @core.isEmpty()
 
   # Returns all valid {StringMarker}s on the buffer.
   getMarkers: ->
-    @text.getMarkers()
+    @core.getMarkers()
 
   # Returns the {StringMarker} with the given id.
   getMarker: (id) ->
-    @text.getMarker(id)
+    @core.getMarker(id)
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
@@ -478,7 +487,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {String} marker-identifier
   findMarker: (attributes) ->
-    @text.findMarker(attributes)
+    @core.findMarker(attributes)
 
   # Public: Finds all markers satisfying the given attributes
   #
@@ -489,13 +498,13 @@ class TextBuffer extends telepath.Model
   #
   # Returns an {Array} of {StringMarker}s
   findMarkers: (attributes) ->
-    @text.findMarkers(attributes)
+    @core.findMarkers(attributes)
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @text.getMarkers().length
+    @core.getMarkers().length
 
   # Constructs a new marker at a given range.
   #
@@ -509,7 +518,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {Number} representing the new marker's ID.
   markRange: (range, options={}) ->
-    @text.markRange(range, options)
+    @core.markRange(range, options)
 
   # Constructs a new marker at a given position.
   #
@@ -518,7 +527,7 @@ class TextBuffer extends telepath.Model
   #
   # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->
-    @text.markPosition(position, options)
+    @core.markPosition(position, options)
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -677,18 +686,18 @@ class TextBuffer extends telepath.Model
 
   ### Internal ###
 
-  transact: (fn) -> @text.transact fn
+  transact: (fn) -> @core.transact fn
 
-  beginTransaction: -> @text.beginTransaction()
+  beginTransaction: -> @core.beginTransaction()
 
-  commitTransaction: -> @text.commitTransaction()
+  commitTransaction: -> @core.commitTransaction()
 
-  abortTransaction: -> @text.abortTransaction()
+  abortTransaction: -> @core.abortTransaction()
 
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    @text.setTextInRange(oldRange, newText, options)
+    @core.setTextInRange(oldRange, newText, options)
 
   normalizeLineEndings: (startRow, text) ->
     if lineEnding = @suggestedLineEndingForRow(startRow)

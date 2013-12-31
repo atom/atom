@@ -38,6 +38,7 @@ class Fold
   getBufferRange: ({includeNewline}={}) ->
     range = @marker.getRange()
     if includeNewline
+      range = range.copy()
       range.end.row++
       range.end.column = 0
     range

@@ -30,9 +30,6 @@ class CursorView extends View
     @cursor.on 'destroyed.cursor-view', =>
       @needsRemoval = true
 
-    if @cursor.marker.isRemote()
-      @addClass("site-#{@cursor.marker.getOriginSiteId()}")
-
   beforeRemove: ->
     @editorView.removeCursorView(this)
     @cursor.off('.cursor-view')

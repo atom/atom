@@ -34,6 +34,7 @@
     "mkdirp": "0.3.5",
     "keytar": "0.13.0",
     "less-cache": "0.10.0",
+    "nostalgia": "0.2.0",
     "nslog": "0.1.0",
     "oniguruma": "0.24.0",
     "optimist": "0.4.0",
@@ -46,6 +47,7 @@
     "space-pen": "2.0.2",
     "telepath": "0.80.0",
     "temp": "0.5.0",
+    "text-buffer": "0.2.0",
     "underscore-plus": "0.6.1"
   },
   "devDependencies": {

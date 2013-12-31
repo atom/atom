@@ -1215,8 +1215,8 @@ class EditorView extends View
     @scrollTop(editorScrollTop)
     @scrollLeft(editorScrollLeft)
     @setSoftWrap(@editor.getSoftWrap())
-    @newCursors = @editor.getAllCursors()
-    @newSelections = @editor.getAllSelections()
+    @newCursors = @editor.getCursors()
+    @newSelections = @editor.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
   requestDisplayUpdate: ->
