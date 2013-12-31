@@ -203,6 +203,7 @@ class TokenizedBuffer extends Model
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
+    tokens = (new Token(token) for token in tokens)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding})
 
   # FIXME: benogle says: These are actually buffer rows as all buffer rows are
