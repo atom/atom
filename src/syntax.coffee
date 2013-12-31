@@ -1,14 +1,13 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
-{$, $$} = require './space-pen-extensions'
 {Emitter, Subscriber} = require 'emissary'
-
 FirstMate = require 'first-mate'
 TextMateScopeSelector = FirstMate.ScopeSelector
 TextMateGrammarRegistry = FirstMate.GrammarRegistry
 
-### Internal ###
+{$, $$} = require './space-pen-extensions'
 
+### Internal ###
 module.exports =
 class Syntax
   Emitter.includeInto(this)
