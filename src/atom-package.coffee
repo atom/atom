@@ -104,7 +104,7 @@ class AtomPackage extends Package
     atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
-    atom.syntax.addGrammar(grammar) for grammar in @grammars
+    grammar.activate() for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       atom.syntax.addProperties(scopedPropertiesPath, selector, properties)
 
@@ -151,7 +151,7 @@ class AtomPackage extends Package
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
     for grammarPath in fs.listSync(grammarsDirPath, ['.json', '.cson'])
-      @grammars.push(atom.syntax.loadGrammarSync(grammarPath))
+      @grammars.push(atom.syntax.readGrammarSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []
@@ -179,7 +179,7 @@ class AtomPackage extends Package
     @configActivated = false
 
   deactivateResources: ->
-    atom.syntax.removeGrammar(grammar) for grammar in @grammars
+    grammar.deactivate() for grammar in @grammars
     atom.syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
