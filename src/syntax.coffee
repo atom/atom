@@ -1,15 +1,13 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
 {Subscriber} = require 'emissary'
-FirstMate = require 'first-mate'
-TextMateScopeSelector = FirstMate.ScopeSelector
-TextMateGrammarRegistry = FirstMate.GrammarRegistry
+{GrammarRegistry, ScopeSelector} = require 'first-mate'
 
 {$, $$} = require './space-pen-extensions'
 
 ### Public ###
 module.exports =
-class Syntax extends TextMateGrammarRegistry
+class Syntax extends GrammarRegistry
   Subscriber.includeInto(this)
 
   atom.deserializers.add(this)
@@ -93,4 +91,4 @@ class Syntax extends TextMateGrammarRegistry
       element[0]
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
-    new TextMateScopeSelector(scopeSelector).toCssSelector()
+    new ScopeSelector(scopeSelector).toCssSelector()
