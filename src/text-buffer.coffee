@@ -14,7 +14,7 @@ File = require './file'
 # The `TextBuffer` is often associated with a {File}. However, this is not always
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer
+class TextBuffer extends TextBufferCore
   atom.deserializers.add(this)
 
   Serializable.includeInto(this)
@@ -29,16 +29,14 @@ class TextBuffer
   file: null
   refcount: 0
 
-  constructor: ({@core, text, filePath, @modifiedWhenLastPersisted, @digestWhenLastPersisted, loadWhenAttached}={}) ->
-    @core ?= new TextBufferCore(text: text ? '')
+  constructor: ({filePath, @modifiedWhenLastPersisted, @digestWhenLastPersisted, loadWhenAttached}={}) ->
+    super
     @loaded = false
     @modifiedWhenLastPersisted ?= false
 
     @useSerializedText = @modifiedWhenLastPersisted != false
 
-    @subscribe @core, 'changed', @handleTextChange
-    @subscribe @core, 'marker-created', (marker) => @emit 'marker-created', marker
-    @subscribe @core, 'markers-updated', => @emit 'markers-updated'
+    @subscribe this, 'changed', @handleTextChange
 
     @setPath(filePath)
 
@@ -46,15 +44,16 @@ class TextBuffer
 
   # Private:
   serializeParams: ->
-    core: @core.serialize()
-    filePath: @getPath()
-    modifiedWhenLastPersisted: @isModified()
-    digestWhenLastPersisted: @file?.getDigest()
+    params = super
+    _.extend params,
+      filePath: @getPath()
+      modifiedWhenLastPersisted: @isModified()
+      digestWhenLastPersisted: @file?.getDigest()
 
   # Private:
   deserializeParams: (params) ->
+    params = super(params)
     params.loadWhenAttached = true
-    params.core = TextBufferCore.deserialize(params.core)
     params
 
   loadSync: ->
@@ -71,7 +70,7 @@ class TextBuffer
         @emitModifiedStatusChanged(true)
       else
         @reload()
-      @core.clearUndoStack()
+      @clearUndoStack()
     this
 
   ### Internal ###
@@ -79,7 +78,6 @@ class TextBuffer
   handleTextChange: (event) =>
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
-    @emit 'changed', event
     @scheduleModifiedEvents()
 
   destroy: ->
@@ -269,30 +267,26 @@ class TextBuffer
   # range - A {Range} object specifying your points of interest
   #
   # Returns a {String} of the combined lines.
-  getTextInRange: (range) ->
-    @core.getTextInRange(@clipRange(range))
+  getTextInRange: (range) -> super
 
   # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
-  getLines: ->
-    @core.getLines()
+  getLines: -> super
 
   # Given a row, returns the line of text.
   #
   # row - A {Number} indicating the row.
   #
   # Returns a {String}.
-  lineForRow: (row) ->
-    @core.lineForRow(row)
+  lineForRow: (row) -> super
 
   # Given a row, returns its line ending.
   #
   # row - A {Number} indicating the row.
   #
   # Returns a {String}, or `undefined` if `row` is the final row.
-  lineEndingForRow: (row) ->
-    @core.lineEndingForRow(row)
+  lineEndingForRow: (row) -> super
 
   suggestedLineEndingForRow: (row) ->
     if row is @getLastRow()
@@ -305,8 +299,7 @@ class TextBuffer
   # row - A {Number} indicating the row.
   #
   # Returns a {Number}.
-  lineLengthForRow: (row) ->
-    @core.lineLengthForRow(row)
+  lineLengthForRow: (row) -> super
 
   # Given a row, returns the length of the line ending
   #
@@ -332,14 +325,12 @@ class TextBuffer
   # Gets the number of lines in a file.
   #
   # Returns a {Number}.
-  getLineCount: ->
-    @core.getLineCount()
+  getLineCount: -> super
 
   # Gets the row number of the last line.
   #
   # Returns a {Number}.
-  getLastRow: ->
-    @core.getLastRow()
+  getLastRow: -> super
 
   # Finds the last line in the current buffer.
   #
@@ -354,11 +345,9 @@ class TextBuffer
     lastRow = @getLastRow()
     new Point(lastRow, @lineLengthForRow(lastRow))
 
-  characterIndexForPosition: (position) ->
-    @core.offsetForPosition(@clipPosition(position))
+  characterIndexForPosition: (position) -> super
 
-  positionForCharacterIndex: (index) ->
-    @core.positionForOffset(index)
+  positionForCharacterIndex: (index) -> super
 
   # Given a row, this deletes it from the buffer.
   #
@@ -410,8 +399,7 @@ class TextBuffer
   # to a real position.
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
-  clipPosition: (position) ->
-    @core.clipPosition(position)
+  clipPosition: (position) -> super
 
   # Given a range, this clips it to a real range.
   #
@@ -426,11 +414,9 @@ class TextBuffer
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
 
-  undo: ->
-    @core.undo()
+  undo: -> super
 
-  redo: ->
-    @core.redo()
+  redo: -> super
 
   # Saves the buffer.
   save: ->
@@ -470,15 +456,13 @@ class TextBuffer
   # Identifies if a buffer is empty.
   #
   # Returns a {Boolean}.
-  isEmpty: -> @core.isEmpty()
+  isEmpty: -> super
 
   # Returns all valid {StringMarker}s on the buffer.
-  getMarkers: ->
-    @core.getMarkers()
+  getMarkers: -> super
 
   # Returns the {StringMarker} with the given id.
-  getMarker: (id) ->
-    @core.getMarker(id)
+  getMarker: (id) -> super
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
@@ -486,8 +470,7 @@ class TextBuffer
   # Public: Finds the first marker satisfying the given attributes
   #
   # Returns a {String} marker-identifier
-  findMarker: (attributes) ->
-    @core.findMarker(attributes)
+  findMarker: (attributes) -> super
 
   # Public: Finds all markers satisfying the given attributes
   #
@@ -497,14 +480,13 @@ class TextBuffer
   #   endRow - The row at which the marker ends
   #
   # Returns an {Array} of {StringMarker}s
-  findMarkers: (attributes) ->
-    @core.findMarkers(attributes)
+  findMarkers: (attributes) -> super
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @core.getMarkers().length
+    @getMarkers().length
 
   # Constructs a new marker at a given range.
   #
@@ -517,8 +499,7 @@ class TextBuffer
   #   hasTail - if `false`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
-  markRange: (range, options={}) ->
-    @core.markRange(range, options)
+  markRange: (range, options={}) -> super
 
   # Constructs a new marker at a given position.
   #
@@ -526,8 +507,7 @@ class TextBuffer
   # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markPosition: (position, options) ->
-    @core.markPosition(position, options)
+  markPosition: (position, options) -> super
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -686,18 +666,10 @@ class TextBuffer
 
   ### Internal ###
 
-  transact: (fn) -> @core.transact fn
-
-  beginTransaction: -> @core.beginTransaction()
-
-  commitTransaction: -> @core.commitTransaction()
-
-  abortTransaction: -> @core.abortTransaction()
-
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    @core.setTextInRange(oldRange, newText, options)
+    @setTextInRange(oldRange, newText, options)
 
   normalizeLineEndings: (startRow, text) ->
     if lineEnding = @suggestedLineEndingForRow(startRow)
