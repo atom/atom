@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 {GrammarRegistry, ScopeSelector} = require 'first-mate'
 
 {$, $$} = require './space-pen-extensions'
+Token = require './token'
 
 ### Public ###
 module.exports =
@@ -25,6 +26,8 @@ class Syntax extends GrammarRegistry
 
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
+
+  createToken: (value, scopes) -> new Token({value, scopes})
 
   addProperties: (args...) ->
     name = args.shift() if args.length > 2
