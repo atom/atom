@@ -1,5 +1,6 @@
+fs = require 'fs-plus'
 path = require 'path'
-
+temp = require 'temp'
 Keymap = require '../src/keymap'
 {$, $$, WorkspaceView} = require 'atom'
 
