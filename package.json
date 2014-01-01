@@ -71,7 +71,8 @@
     "unzip": "~0.1.9",
     "rcedit": "~0.1.2",
     "rimraf": "~2.2.2",
-    "github-releases": "~0.2.0"
+    "github-releases": "~0.2.0",
+    "harmony-collections": "~0.3.8"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.10.0",
