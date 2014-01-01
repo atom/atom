@@ -1,0 +1,4 @@
+'name': 'test'
+'scopeName': 'source.test'
+'injectionSelector': 'comment'
+'patterns': [{'include': 'source.sql'}]
