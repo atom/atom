@@ -25,7 +25,7 @@ describe "TokenizedBuffer", ->
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
-      tokenizedBuffer.state.destroy()
+      tokenizedBuffer.destroy()
       spyOn(tokenizedBuffer, 'tokenizeNextChunk')
       advanceClock()
       expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()

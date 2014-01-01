@@ -1,7 +1,9 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
-{Model, Point, Range} = require 'telepath'
+Serializable = require 'nostalgia'
+{Model} = require 'reactionary'
+{Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
@@ -12,28 +14,18 @@ ConfigObserver = require './config-observer'
 # Private:
 module.exports =
 class DisplayBuffer extends Model
+  Serializable.includeInto(this)
   _.extend @prototype, ConfigObserver
 
   @properties
-    tokenizedBuffer: null
-    softWrap: -> atom.config.get('editor.softWrap') ? false
+    softWrap: null
     editorWidthInChars: null
 
-  constructor: ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
-    @deserializing = @state?
-
-  created: ->
-    if @deserializing
-      @deserializing = false
-      return
-
-    if @tokenizedBuffer?
-      @tokenizedBuffer?.created()
-    else
-      @tokenizedBuffer = new TokenizedBuffer({@tabLength, @buffer, project: atom.project})
+    @softWrap ?= atom.config.get('editor.softWrap') ? false
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
     @buffer = @tokenizedBuffer.buffer
-
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
@@ -43,16 +35,25 @@ class DisplayBuffer extends Model
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @state, 'changed', ({newValues}) =>
-      if newValues.softWrap?
-        @emit 'soft-wrap-changed', newValues.softWrap
-        @updateWrappedScreenLines()
+    @subscribe @$softWrap, 'value', (softWrap) =>
+      @emit 'soft-wrap-changed', softWrap
+      @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap
+
+  serializeParams: ->
+    id: @id
+    softWrap: @softWrap
+    editorWidthInChars: @editorWidthInChars
+    tokenizedBuffer: @tokenizedBuffer.serialize()
+
+  deserializeParams: (params) ->
+    params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
+    params
 
   copy: ->
     newDisplayBuffer = atom.create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))

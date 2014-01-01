@@ -1,5 +1,7 @@
 _ = require 'underscore-plus'
-{Model, Point, Range} = require 'telepath'
+{Model} = require 'reactionary'
+{Point, Range} = require 'text-buffer'
+Serializable = require 'nostalgia'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
 
@@ -7,10 +9,9 @@ Token = require './token'
 
 module.exports =
 class TokenizedBuffer extends Model
-  @properties
-    bufferPath: null
-    tabLength: -> atom.config.get('editor.tabLength') ? 2
-    project: null
+  Serializable.includeInto(this)
+
+  @property 'tabLength'
 
   grammar: null
   currentGrammarScore: null
@@ -20,19 +21,8 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
 
-  constructor: ->
-    super
-    @deserializing = @state?
-
-  created: ->
-    if @deserializing
-      @deserializing = false
-      return
-
-    if @buffer? and @buffer.isAlive()
-      @bufferPath = @buffer.getPath()
-    else
-      @buffer = @project.bufferForPathSync(@bufferPath)
+  constructor: ({@buffer, @tabLength}) ->
+    @tabLength ?= atom.config.get('editor.tabLength') ? 2
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
@@ -56,12 +46,13 @@ class TokenizedBuffer extends Model
 
     @reloadGrammar()
 
-  # TODO: Remove when everything is a telepath model
-  destroy: ->
-    @destroyed()
+  serializeParams: ->
+    bufferPath: @buffer.getPath()
+    tabLength: @tabLength
 
-  destroyed: ->
-    @unsubscribe()
+  deserializeParams: (params) ->
+    params.buffer = atom.project.bufferForPathSync(params.bufferPath)
+    params
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar

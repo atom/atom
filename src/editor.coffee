@@ -1,6 +1,8 @@
 _ = require 'underscore-plus'
 path = require 'path'
-{Model, Point, Range} = require 'telepath'
+Serializable = require 'nostalgia'
+{Model} = require 'reactionary'
+{Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
@@ -29,10 +31,9 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # ```
 module.exports =
 class Editor extends Model
+  Serializable.includeInto(this)
 
   @properties
-    displayBuffer: null
-    softTabs: null
     scrollTop: 0
     scrollLeft: 0
 
@@ -45,26 +46,15 @@ class Editor extends Model
   selections: null
   suppressSelectionMerging: false
 
-  constructor: ->
+  constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
-    @deserializing = @state?
-
-  created: ->
-    if @deserializing
-      @deserializing = false
-      @callDisplayBufferCreatedHook = true
-      @registerEditor = true
-      return
 
     @cursors = []
     @selections = []
 
-    unless @displayBuffer?
-      @displayBuffer = new DisplayBuffer({@buffer, @tabLength, @softWrap})
-      @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-
-    @displayBuffer.created() if @callDisplayBufferCreatedHook
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
+    @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -73,9 +63,9 @@ class Editor extends Model
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
-    if @getCursors().length is 0 and not @suppressCursorCreation
-      if @initialLine
-        position = [@initialLine, 0]
+    if @getCursors().length is 0 and not suppressCursorCreation
+      if initialLine
+        position = [initialLine, 0]
       else
         position = [0, 0]
       @addCursorAtBufferPosition(position)
@@ -85,10 +75,19 @@ class Editor extends Model
     @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
-    atom.project.addEditor(this) if @registerEditor
+    atom.project.addEditor(this) if registerEditor
 
-  # Deprecated: The goal is a world where we don't call serialize explicitly
-  serialize: -> this
+  serializeParams: ->
+    id: @id
+    softTabs: @softTabs
+    scrollTop: @scrollTop
+    scrollLeft: @scrollLeft
+    displayBuffer: @displayBuffer.serialize()
+
+  deserializeParams: (params) ->
+    params.displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    params.registerEditor = true
+    params
 
   # Private:
   subscribeToBuffer: ->
@@ -134,7 +133,7 @@ class Editor extends Model
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = @create(new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true}))
+    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
