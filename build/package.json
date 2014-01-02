@@ -12,6 +12,7 @@
     "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.8.0",
+    "grunt-download-atom-shell": "git+https://atom-bot:362295be4c5258d3f7b967bbabae662a455ca2a7@github.com/atom/grunt-download-atom-shell#v0.4.0",
     "walkdir": "0.0.7",
     "js-yaml": "~2.1.0",
     "grunt-markdown": "~0.4.0",
