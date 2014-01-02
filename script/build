@@ -6,7 +6,7 @@ process.chdir(path.dirname(__dirname));
 
 cp.safeExec('node script/bootstrap', function() {
   // node build/node_modules/grunt-cli/bin/grunt "$@"
-  var gruntPath = path.join('build', 'node_modules', 'grunt-cli', 'bin', 'grunt');
+  var gruntPath = path.join('build', 'node_modules', 'grunt-cli', 'bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
   var args = [gruntPath, '--gruntfile', path.resolve('build', 'Gruntfile.coffee')];
   args = args.concat(process.argv.slice(2));
   cp.safeSpawn(process.execPath, args, process.exit);
