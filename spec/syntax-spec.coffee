@@ -1,7 +1,6 @@
 {fs} = require 'atom'
 path = require 'path'
 temp = require 'temp'
-TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->
   beforeEach ->
@@ -62,20 +61,23 @@ describe "the `syntax` global", ->
 
     describe "when multiple grammars have matching fileTypes", ->
       it "selects the grammar with the longest fileType match", ->
-        grammar1 = new TextMateGrammar
+        grammarPath1 = temp.path(suffix: '.json')
+        fs.writeFileSync grammarPath1, JSON.stringify(
           name: 'test1'
           scopeName: 'source1'
-          fileTypes: ['test', 'more.test']
+          fileTypes: ['test']
+        )
+        grammar1 = atom.syntax.loadGrammarSync(grammarPath1)
+        expect(atom.syntax.selectGrammar('more.test', '')).toBe grammar1
 
-        grammar2 = new TextMateGrammar
+        grammarPath2 = temp.path(suffix: '.json')
+        fs.writeFileSync grammarPath2, JSON.stringify(
           name: 'test2'
           scopeName: 'source2'
-          fileTypes: ['test']
-
-        atom.syntax.addGrammar(grammar1)
-        atom.syntax.addGrammar(grammar2)
-
-        expect(atom.syntax.selectGrammar('more.test', '')).toBe grammar1
+          fileTypes: ['test', 'more.test']
+        )
+        grammar2 = atom.syntax.loadGrammarSync(grammarPath2)
+        expect(atom.syntax.selectGrammar('more.test', '')).toBe grammar2
 
     describe "when there is no file path", ->
       it "does not throw an exception (regression)", ->
