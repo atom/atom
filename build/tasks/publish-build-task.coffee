@@ -54,7 +54,7 @@ getRelease = (callback) ->
   request options, (error, response, releases=[]) ->
     if error? or response.statusCode isnt 200
       logError('Fetching releases failed', error, releases)
-      callback(error ? response.statusCode)
+      callback(error ? new Error(response.statusCode))
     else
       if releases.length > maxReleases
         deleteRelease(release) for release in releases[maxReleases..]
@@ -83,7 +83,7 @@ deleteExistingAsset = (release, callback) ->
     request options, (error, response, body='') ->
       if error? or response.statusCode isnt 204
         logError('Deleting existing release asset failed', error, body)
-        callback(error ? response.statusCode)
+        callback(error ? new Error(response.statusCode))
       else
         callback()
 
@@ -116,7 +116,7 @@ createRelease = (callback) ->
     request options, (error, response, release={}) ->
       if error? or response.statusCode isnt 201
         logError('Creating release failed', error, release)
-        callback(error ? response.statusCode)
+        callback(error ? new Error(response.statusCode))
       else
         callback(null, release)
 
@@ -132,7 +132,7 @@ uploadAsset = (release, callback) ->
   assetRequest = request options, (error, response, body='') ->
     if error? or response.statusCode >= 400
       logError('Upload release asset failed', error, body)
-      callback(error ? response.statusCode)
+      callback(error ? new Error(response.statusCode))
     else
       callback(null, release)
 
@@ -148,6 +148,6 @@ publishRelease = (release) ->
   request options, (error, response, body={}) ->
     if error? or response.statusCode isnt 200
       logError('Creating release failed', error, body)
-      callback(error ? response.statusCode)
+      callback(error ? new Error(response.statusCode))
     else
       callback()
