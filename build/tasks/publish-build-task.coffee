@@ -29,7 +29,7 @@ module.exports = (grunt) ->
         uploadAsset release, (error) ->
           return done(error) if error?
           publishRelease release (error) ->
-          done(error)
+            done(error)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
