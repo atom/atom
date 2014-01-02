@@ -126,16 +126,17 @@ class Keymap
     CSON.resolve(path.join(@configDirPath, 'keymap'))
 
   unwatchUserKeymap: ->
-    return unless keymapPath = @userKeymapPath()
-    @remove(keymapPath)
+    keymapPath = @userKeymapPath()
     @userKeymapFile?.off()
+    @remove(keymapPath) if keymapPath
 
   loadUserKeymap: ->
-    return unless keymapPath = @userKeymapPath()
+    keymapPath = @userKeymapPath()
     @unwatchUserKeymap()
-    @load(keymapPath)
-    @userKeymapFile = new File(keymapPath)
-    @userKeymapFile.on 'contents-changed', => @loadUserKeymap()
+    if keymapPath
+      @load(keymapPath)
+      @userKeymapFile = new File(keymapPath)
+      @userKeymapFile.on 'contents-changed', => @loadUserKeymap()
 
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
