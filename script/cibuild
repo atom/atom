@@ -29,7 +29,7 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   if (error)
     process.exit(1);
   var async = require('async');
-  var gruntPath = path.join('build' 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
+  var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
   var tasks = [
     require('rimraf').bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
