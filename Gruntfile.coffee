@@ -11,6 +11,10 @@ packageJson = require './package.json'
 # TODO Remove once all repositories are public
 process.env.ATOM_ACCESS_TOKEN ?= '362295be4c5258d3f7b967bbabae662a455ca2a7'
 
+# Shim harmony collections in case grunt was invoked without harmony
+# collections enabled
+_.extend(global, require('harmony-collections')) unless global.WeakMap?
+
 module.exports = (grunt) ->
   if not grunt.option('verbose')
     grunt.log.writeln = (args...) -> grunt.log

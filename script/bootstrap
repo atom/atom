@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --harmony_collections
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
