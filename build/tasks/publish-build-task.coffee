@@ -15,7 +15,7 @@ defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
 
-module.exports = ->
+module.exports = (grunt) ->
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return unless process.platform is 'darwin'
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
