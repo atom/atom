@@ -22,6 +22,7 @@
     "rcedit": "~0.1.2",
     "rimraf": "~2.2.2",
     "github-releases": "~0.2.0",
-    "harmony-collections": "~0.3.8"
+    "harmony-collections": "~0.3.8",
+    "first-mate": "~0.10.0"
   }
 }
