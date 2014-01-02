@@ -35,9 +35,6 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     cp.safeExec.bind(global, 'git clean -dff'),
     cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
   ]
-  if (process.platform === 'darwin') {
-    tasks.push(cp.safeExec.bind(global, 'build/node_modules/.bin/coffee script/upload-release'))
-  }
   async.series(tasks, function(error) {
     process.exit(error ? 1 : 0);
   });

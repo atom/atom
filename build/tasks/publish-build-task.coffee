@@ -1,7 +1,3 @@
-#!/usr/bin/env coffee
-
-return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
-
 child_process = require 'child_process'
 path = require 'path'
 
@@ -19,16 +15,35 @@ defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
 
+module.exports = ->
+  grunt.registerTask 'publish-build', 'Publish the built app', ->
+    return unless process.platform is 'darwin'
+    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+
+    done = @async()
+
+    createRelease (error, release) ->
+      return done(error) if error?
+      zipApp (error) ->
+        return done(error) if error?
+        uploadAsset release, (error) ->
+          return done(error) if error?
+          publishRelease release (error) ->
+          done(error)
+
+logError = (message, error, details) ->
+  grunt.log.error(message)
+  grunt.log.error(error.message ? error) if error?
+  grunt.log.error(details) if details
+
 zipApp = (callback) ->
   fs.removeSync(assetPath)
 
   options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
   child_process.exec "zip -r --symlinks #{assetName} Atom.app", options, (error, stdout, stderr) ->
     if error?
-      console.error('Zipping Atom.app failed', error, stderr)
-      process.exit(1)
-    else
-      callback()
+      logError('Zipping Atom.app failed', error, stderr)
+    callback(error)
 
 getRelease = (callback) ->
   options =
@@ -38,14 +53,14 @@ getRelease = (callback) ->
     json: true
   request options, (error, response, releases=[]) ->
     if error? or response.statusCode isnt 200
-      console.error('Fetching releases failed', error, releases)
-      process.exit(1)
+      logError('Fetching releases failed', error, releases)
+      callback(error ? response.statusCode)
     else
       if releases.length > maxReleases
         deleteRelease(release) for release in releases[maxReleases..]
 
       for release in releases when release.name is commitSha
-        callback(release)
+        callback(null, release)
         return
       callback()
 
@@ -57,7 +72,7 @@ deleteRelease = (release) ->
     json: true
   request options, (error, response, body='') ->
     if error? or response.statusCode isnt 204
-      console.error('Deleting release failed', error, body)
+      logError('Deleting release failed', error, body)
 
 deleteExistingAsset = (release, callback) ->
   for asset in release.assets when asset.name is assetName
@@ -67,8 +82,8 @@ deleteExistingAsset = (release, callback) ->
       headers: defaultHeaders
     request options, (error, response, body='') ->
       if error? or response.statusCode isnt 204
-        console.error('Deleting existing release asset failed', error, body)
-        process.exit(1)
+        logError('Deleting existing release asset failed', error, body)
+        callback(error ? response.statusCode)
       else
         callback()
 
@@ -77,7 +92,11 @@ deleteExistingAsset = (release, callback) ->
   callback()
 
 createRelease = (callback) ->
-  getRelease (release) ->
+  getRelease (error, release) ->
+    if error?
+      callback(error)
+      return
+
     if release?
       deleteExistingAsset release, ->
         callback(release)
@@ -96,10 +115,10 @@ createRelease = (callback) ->
         prerelease: true
     request options, (error, response, release={}) ->
       if error? or response.statusCode isnt 201
-        console.error('Creating release failed', error, release)
-        process.exit(1)
+        logError('Creating release failed', error, release)
+        callback(error ? response.statusCode)
       else
-        callback(release)
+        callback(null, release)
 
 uploadAsset = (release, callback) ->
   options =
@@ -112,10 +131,10 @@ uploadAsset = (release, callback) ->
 
   assetRequest = request options, (error, response, body='') ->
     if error? or response.statusCode >= 400
-      console.error('Upload release asset failed', error, body)
-      process.exit(1)
+      logError('Upload release asset failed', error, body)
+      callback(error ? response.statusCode)
     else
-      callback(release)
+      callback(null, release)
 
   fs.createReadStream(assetPath).pipe(assetRequest)
 
@@ -128,10 +147,7 @@ publishRelease = (release) ->
       draft: false
   request options, (error, response, body={}) ->
     if error? or response.statusCode isnt 200
-      console.error('Creating release failed', error, body)
-      process.exit(1)
-
-createRelease (release) ->
-  zipApp ->
-    uploadAsset release, ->
-      publishRelease release
+      logError('Creating release failed', error, body)
+      callback(error ? response.statusCode)
+    else
+      callback()
