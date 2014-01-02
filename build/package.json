@@ -1,4 +1,5 @@
 {
+  "name": "atom-build",
   "dependencies": {
     "biscotto": "0.0.17",
     "formidable": "~1.0.14",
