@@ -28,10 +28,10 @@ readEnvironmentVariables();
 cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   if (error)
     process.exit(1);
+  require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom'))
   var async = require('async');
   var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
   var tasks = [
-    require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom')),
     cp.safeExec.bind(global, 'git clean -dff'),
     cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
   ]
