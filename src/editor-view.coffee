@@ -1,7 +1,7 @@
 {View, $, $$$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
 Gutter = require './gutter'
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 Editor = require './editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'

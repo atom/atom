@@ -1,7 +1,6 @@
 Serializable = require 'nostalgia'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
-{TelepathicObject} = require 'telepath'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =

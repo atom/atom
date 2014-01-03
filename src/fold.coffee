@@ -1,4 +1,4 @@
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 
 # Private: Represents a fold that collapses multiple buffer lines into a single
 # line on the screen.

@@ -1,5 +1,5 @@
 {View, $, $$, $$$} = require './space-pen-extensions'
-{Range} = require 'telepath'
+{Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
 # Private: Represents the portion of the {EditorView} containing row numbers.
