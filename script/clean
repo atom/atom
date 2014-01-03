@@ -16,6 +16,7 @@ var killatom = process.platform === 'win32' ? 'START taskkill /F /IM ' + product
 var commands = [
   killatom,
   [__dirname, '..', 'node_modules'],
+  [__dirname, '..', 'build', 'node_modules'],
   [__dirname, '..', 'atom-shell'],
   [home, '.atom', '.node-gyp'],
   [home, '.atom', 'storage'],

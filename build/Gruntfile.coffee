@@ -5,7 +5,7 @@ os = require 'os'
 fm = require 'json-front-matter'
 _ = require 'underscore-plus'
 
-packageJson = require './package.json'
+packageJson = require '../package.json'
 
 # OAuth token for atom-bot
 # TODO Remove once all repositories are public
@@ -16,6 +16,20 @@ process.env.ATOM_ACCESS_TOKEN ?= '362295be4c5258d3f7b967bbabae662a455ca2a7'
 _.extend(global, require('harmony-collections')) unless global.WeakMap?
 
 module.exports = (grunt) ->
+  grunt.loadNpmTasks('grunt-coffeelint')
+  grunt.loadNpmTasks('grunt-lesslint')
+  grunt.loadNpmTasks('grunt-cson')
+  grunt.loadNpmTasks('grunt-contrib-csslint')
+  grunt.loadNpmTasks('grunt-contrib-coffee')
+  grunt.loadNpmTasks('grunt-contrib-less')
+  grunt.loadNpmTasks('grunt-markdown')
+  grunt.loadNpmTasks('grunt-shell')
+  grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadTasks('tasks')
+
+  # This allows all subsequent paths to the relative to the root of the repo
+  grunt.file.setBase(path.resolve('..'))
+
   if not grunt.option('verbose')
     grunt.log.writeln = (args...) -> grunt.log
     grunt.log.write = (args...) -> grunt.log
@@ -193,21 +207,10 @@ module.exports = (grunt) ->
           stderr: false
           failOnError: false
 
-  grunt.loadNpmTasks('grunt-coffeelint')
-  grunt.loadNpmTasks('grunt-lesslint')
-  grunt.loadNpmTasks('grunt-cson')
-  grunt.loadNpmTasks('grunt-contrib-csslint')
-  grunt.loadNpmTasks('grunt-contrib-coffee')
-  grunt.loadNpmTasks('grunt-contrib-less')
-  grunt.loadNpmTasks('grunt-markdown')
-  grunt.loadNpmTasks('grunt-download-atom-shell')
-  grunt.loadNpmTasks('grunt-shell')
-  grunt.loadTasks('tasks')
-
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['download-atom-shell', 'build', 'set-development-version', 'lint', 'test'])
+  grunt.registerTask('ci', ['download-atom-shell', 'build', 'set-development-version', 'lint', 'test', 'publish-build'])
   grunt.registerTask('deploy', ['partial-clean', 'download-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
   grunt.registerTask('default', ['download-atom-shell', 'build', 'set-development-version', 'install'])

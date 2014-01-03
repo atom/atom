@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 rm -fr node_modules
 rm -fr vendor/apm/node_modules
 ./script/bootstrap --no-color
-./node_modules/.bin/grunt --no-color --build-dir="$BUILT_PRODUCTS_DIR" deploy
+./build/node_modules/.bin/grunt --no-color --build-dir="$BUILT_PRODUCTS_DIR" deploy
 
 echo "TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR"
 echo "FULL_PRODUCT_NAME=Atom.app"
