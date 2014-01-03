@@ -1,5 +1,5 @@
 {View} = require './space-pen-extensions'
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
 ### Internal ###

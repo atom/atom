@@ -223,7 +223,7 @@ class Atom extends Model
   # Private:
   deserializeProject: ->
     Project = require './project'
-    @project ?= new Project(path: @getLoadSettings().initialPath)
+    @project ?= @deserializers.deserialize(@project) ? new Project(path: @getLoadSettings().initialPath)
 
   # Private:
   deserializeWorkspaceView: ->
@@ -231,7 +231,7 @@ class Atom extends Model
     @workspaceView = @deserializers.deserialize(@state.get('workspaceView'))
     unless @workspaceView?
       @workspaceView = new WorkspaceView()
-      @state.set('workspaceView', @workspaceView.getState())
+      @state.set('workspaceView', @workspaceView.serialize())
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:

@@ -1,3 +1,4 @@
+Serializable = require 'nostalgia'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
 {TelepathicObject} = require 'telepath'
@@ -5,33 +6,14 @@ Pane = require './pane'
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainer extends View
+  Serializable.includeInto(this)
   atom.deserializers.add(this)
-
-  ### Internal ###
-  @acceptsDocuments: true
-
-  @deserialize: (state) ->
-    container = new PaneContainer(state)
-    container.removeEmptyPanes()
-    container
 
   @content: ->
     @div class: 'panes'
 
-  initialize: (state) ->
-    if state instanceof TelepathicObject
-      @state = state
-      @setRoot(atom.deserializers.deserialize(@state.get('root')))
-    else
-      @state = atom.create(deserializer: 'PaneContainer')
-
-    @subscribe @state, 'changed', ({newValues, siteId}) =>
-      return if siteId is @state.siteId
-      if newValues.hasOwnProperty('root')
-        if rootState = newValues.root
-          @setRoot(deserialize(rootState))
-        else
-          @setRoot(null)
+  initialize: ({root}={}) ->
+    @setRoot(root)
 
     @subscribe this, 'pane:attached', (event, pane) =>
       @triggerActiveItemChange() if @getActivePane() is pane
@@ -48,12 +30,12 @@ class PaneContainer extends View
   triggerActiveItemChange: ->
     @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
 
-  serialize: ->
-    state = @state.clone()
-    state.set('root', @getRoot()?.serialize())
-    state
+  serializeParams: ->
+    root: @getRoot()?.serialize()
 
-  getState: -> @state
+  deserializeParams: (params) ->
+    params.root = atom.deserializers.deserialize(params.root)
+    params
 
   ### Public ###
 
@@ -95,7 +77,6 @@ class PaneContainer extends View
     if root?
       @append(root)
       root.makeActive?()
-    @state.set(root: root?.getState())
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child

@@ -1,4 +1,4 @@
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 {Emitter} = require 'emissary'
 _ = require 'underscore-plus'
 

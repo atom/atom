@@ -4,7 +4,9 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{Model} = require 'telepath'
+{Model} = require 'reactionary'
+{Emitter, Subscriber} = require 'emissary'
+Serializable = require 'nostalgia'
 
 TextBuffer = require './text-buffer'
 Editor = require './editor'
@@ -18,9 +20,8 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project extends Model
-
-  @properties
-    path: null
+  atom.deserializers.add(this)
+  Serializable.includeInto(this)
 
   # Public: Find the local path for the given repository URL.
   @pathForRepositoryUrl: (repoUrl) ->
@@ -28,27 +29,23 @@ class Project extends Model
     repoName = repoName.replace(/\.git$/, '')
     path.join(atom.config.get('core.projectHome'), repoName)
 
-  constructor: ->
-    super
-    if @state?
-      @buffers = @state.get('buffers').map (state) -> atom.deserializers.deserialize(state)
-
-  # Private: Called by telepath.
-  created: ->
+  constructor: ({path, @buffers}={}) ->
     @buffers ?= []
-
     for buffer in @buffers
       do (buffer) =>
-        buffer.once 'destroyed', => @removeBuffer(buffer) if @isAlive()
+        buffer.once 'destroyed', => @removeBuffer(buffer)
 
     @openers = []
     @editors = []
-    @setPath(@path)
+    @setPath(path)
 
-  # Private: Called by telepath.
-  willBePersisted: ->
-    @state.set('buffers', @buffers.map (buffer) -> buffer.serialize())
-    @destroyUnretainedBuffers()
+  serializeParams: ->
+    path: @path
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+
+  deserializeParams: (params) ->
+    params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
+    params
 
   # Public: Register an opener for project files.
   #
@@ -246,7 +243,7 @@ class Project extends Model
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer) if @isAlive()
+    buffer.once 'destroyed', => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 
@@ -345,7 +342,7 @@ class Project extends Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = @create(new Editor(_.extend({buffer}, editorOptions)))
+    editor = new Editor(_.extend({buffer}, editorOptions))
     @addEditor(editor)
     editor
 

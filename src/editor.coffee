@@ -32,6 +32,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
+  atom.deserializers.add(this)
 
   @properties
     scrollTop: 0

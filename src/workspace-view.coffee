@@ -4,7 +4,7 @@ Q = require 'q'
 {$, $$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-{TelepathicObject} = require 'telepath'
+Serializable = require 'nostalgia'
 EditorView = require './editor-view'
 Pane = require './pane'
 PaneColumn = require './pane-column'
@@ -38,9 +38,10 @@ Editor = require './editor'
 #
 module.exports =
 class WorkspaceView extends View
+  Serializable.includeInto(this)
   atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
 
-  @version: 1
+  @version: 2
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -50,31 +51,16 @@ class WorkspaceView extends View
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
 
-  @acceptsDocuments: true
-
   # Private:
-  @content: (state) ->
+  @content: ->
     @div class: 'workspace', tabindex: -1, =>
       @div class: 'horizontal', outlet: 'horizontal', =>
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
   # Private:
-  @deserialize: (state) ->
-    new WorkspaceView(state)
-
-  # Private:
-  initialize: (state={}) ->
-    if state instanceof TelepathicObject
-      @state = state
-      panes = atom.deserializers.deserialize(state.get('panes'))
-    else
-      panes = new PaneContainer
-      @state = atom.create
-        deserializer: @constructor.name
-        version: @constructor.version
-        panes: panes.getState()
-
+  initialize: ({panes}={}) ->
+    panes ?= new PaneContainer
     @panes.replaceWith(panes)
     @panes = panes
 
@@ -131,14 +117,14 @@ class WorkspaceView extends View
     @command 'core:save-as', => @saveActivePaneItemAs()
 
   # Private:
-  serialize: ->
-    state = @state.clone()
-    state.set('panes', @panes.serialize())
-    state.set('fullScreen', atom.isFullScreen())
-    state
+  deserializeParams: (params) ->
+    params.panes = atom.deserializers.deserialize(params.panes)
+    params
 
   # Private:
-  getState: -> @state
+  serializeParams: ->
+    panes: @panes.serialize()
+    fullScreen: atom.isFullScreen()
 
   # Private:
   handleFocus: (e) ->

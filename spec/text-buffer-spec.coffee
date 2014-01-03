@@ -1,7 +1,6 @@
 {_, fs} = require 'atom'
 path = require 'path'
 temp = require 'temp'
-{Site} = require 'telepath'
 TextBuffer = require '../src/text-buffer'
 
 describe 'TextBuffer', ->
