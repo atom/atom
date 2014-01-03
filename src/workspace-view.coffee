@@ -272,6 +272,12 @@ class WorkspaceView extends View
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@getEditorViews().map (editorView) -> editorView.getOpenBufferPaths()))
 
+  prependToBottom: (element)->
+    @panes.after(element)
+
+  appendToBottom: (element)->
+    @vertical.append(element)
+
   # Public: Returns the currently focused {Pane}.
   getActivePane: ->
     @panes.getActivePane()
