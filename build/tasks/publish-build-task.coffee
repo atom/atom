@@ -30,7 +30,7 @@ module.exports = (gruntObject) ->
         return done(error) if error?
         uploadAsset release, (error) ->
           return done(error) if error?
-          publishRelease release (error) ->
+          publishRelease release, (error) ->
             done(error)
 
 logError = (message, error, details) ->
