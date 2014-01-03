@@ -7,7 +7,7 @@ __PackageName__ = require '../lib/__package-name__'
 
 describe "__PackageName__", ->
   beforeEach ->
-    atom.packages.activatePackage('__packageName__', immediate: true)
+    atom.packages.activatePackage('__package-name__', immediate: true)
 
   it "has one valid test", ->
     expect("life").toBe "easy"

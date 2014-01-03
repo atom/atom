@@ -6,7 +6,7 @@ describe "__PackageName__View", ->
 
   beforeEach ->
     atom.workspaceView = new WorkspaceView
-    __packageName__ = atom.packages.activatePackage('__packageName__', immediate: true)
+    __packageName__ = atom.packages.activatePackage('__package-name__', immediate: true)
 
   describe "when the __package-name__:toggle event is triggered", ->
     it "attaches and then detaches the view", ->
