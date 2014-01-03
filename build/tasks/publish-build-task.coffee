@@ -98,8 +98,8 @@ createRelease = (callback) ->
       return
 
     if release?
-      deleteExistingAsset release, ->
-        callback(release)
+      deleteExistingAsset release, (error) ->
+        callback(error, release)
       return
 
     options =
