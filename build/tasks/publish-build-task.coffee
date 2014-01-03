@@ -30,8 +30,7 @@ module.exports = (gruntObject) ->
         return done(error) if error?
         uploadAsset release, (error) ->
           return done(error) if error?
-          publishRelease release, (error) ->
-            done(error)
+          publishRelease(release, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -140,7 +139,7 @@ uploadAsset = (release, callback) ->
 
   fs.createReadStream(assetPath).pipe(assetRequest)
 
-publishRelease = (release) ->
+publishRelease = (release, callback) ->
   options =
     uri: release.url
     method: 'POST'
