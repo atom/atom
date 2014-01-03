@@ -1,5 +1,10 @@
 {
   "name": "atom-build",
+  "description": "Atom build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/atom.git"
+  },
   "dependencies": {
     "biscotto": "0.0.17",
     "first-mate": "~0.10.0",
