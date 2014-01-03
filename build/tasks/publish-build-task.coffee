@@ -6,6 +6,7 @@ fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
 
+grunt = null
 maxReleases = 10
 assetName = 'atom-mac.zip'
 assetPath = "/tmp/atom-build/#{assetName}"
@@ -15,7 +16,8 @@ defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
 
-module.exports = (grunt) ->
+module.exports = (gruntObject) ->
+  grunt = gruntObject
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return unless process.platform is 'darwin'
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
