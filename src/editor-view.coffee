@@ -139,7 +139,9 @@ class EditorView extends View
       'editor:delete-to-end-of-word': @deleteToEndOfWord
       'editor:delete-line': @deleteLine
       'editor:cut-to-end-of-line': @cutToEndOfLine
+      'editor:move-to-beginning-of-screen-line': => @editor.moveCursorToBeginningOfScreenLine()
       'editor:move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'editor:move-to-end-of-screen-line': => @editor.moveCursorToEndOfScreenLine()
       'editor:move-to-end-of-line': @moveCursorToEndOfLine
       'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord

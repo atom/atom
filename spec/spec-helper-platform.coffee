@@ -1,8 +1,6 @@
 path = require 'path'
 fs = require 'fs-plus'
 
-{_} = require 'atom'
-
 ## Platform specific helpers
 module.exports =
   # Public: Returns true if being run from within Windows
@@ -18,20 +16,20 @@ module.exports =
     fs.removeSync(evilFilesPath) if fs.existsSync(evilFilesPath)
     fs.mkdirSync(evilFilesPath)
 
-    if (@isWindows())
+    if @isWindows()
       filenames = [
-        "a_file_with_utf8.txt",
-        "file with spaces.txt",
+        "a_file_with_utf8.txt"
+        "file with spaces.txt"
         "utfa\u0306.md"
       ]
     else
       filenames = [
-        "a_file_with_utf8.txt",
-        "file with spaces.txt",
-        "goddam\nnewlines",
-        "quote\".txt",
+        "a_file_with_utf8.txt"
+        "file with spaces.txt"
+        "goddam\nnewlines"
+        "quote\".txt"
         "utfa\u0306.md"
       ]
 
     for filename in filenames
-      fd = fs.writeFileSync(path.join(evilFilesPath, filename), 'evil file!', flag: 'w')
+      fs.writeFileSync(path.join(evilFilesPath, filename), 'evil file!', flag: 'w')
