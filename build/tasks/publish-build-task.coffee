@@ -112,7 +112,7 @@ createRelease = (callback) ->
         tag_name: "v#{commitSha}"
         target_commitish: 'master'
         name: commitSha
-        body: "Build of [atom@#{commitSha.substring(0, 7)}](https://github.com/atom/atom/commit/#{commitSha})"
+        body: "Build of [atom@#{commitSha.substring(0, 7)}](https://github.com/atom/atom/commits/#{commitSha})"
         draft: true
         prerelease: true
     request options, (error, response, release={}) ->
