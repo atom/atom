@@ -3,7 +3,7 @@ fs = require 'fs'
 
 module.exports = (grunt) ->
   cmd = path.join('node_modules', '.bin', 'coffee')
-  commonArgs = [path.join('node_modules', '.bin', 'biscotto'), '--']
+  commonArgs = [path.join('build', 'node_modules', '.bin', 'biscotto'), '--']
   opts =
     stdio: 'inherit'
 

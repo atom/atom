@@ -6,7 +6,7 @@ module.exports = (grunt) ->
 
     shellAppDir = grunt.config.get('atom.shellAppDir')
     shellExePath = path.join(shellAppDir, 'atom.exe')
-    iconPath = path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
+    iconPath = path.resolve('resources', 'win', 'atom.ico')
 
     rcedit = require('rcedit')
     rcedit(shellExePath, {'icon': iconPath}, done)
