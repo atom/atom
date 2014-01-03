@@ -177,32 +177,33 @@ ul.modified-files-list {
 }
 ```
 
-We'll add one more line to the end of the `magic` method to make this pane appear:
+We'll add one more line to the end of the `magic` method to make this pane
+appear:
 
 ```coffeescript
-atom.workspaceView.vertical.append(this)
+atom.workspaceView.prependToBottom(this)
 ```
 
-If you refresh Atom and hit the key command, you'll see a box appear right underneath
-the editor:
+If you refresh Atom and hit the key command, you'll see a box appear right
+underneath the editor:
 
 ![Changer_Panel_Append]
 
-As you might have guessed, `atom.workspaceView.vertical.append` tells Atom to append `this`
-item (_i.e._, whatever is defined by`@content`) _vertically_ to the editor. If
-we had called `atom.workspaceView.horizontal.append`, the pane would be attached to the
-right-hand side of the editor.
+As you might have guessed, `atom.workspaceView.prependToBottom` tells Atom to
+prepend `this` item (_i.e._, whatever is defined by`@content`). If we had called
+`atom.workspaceView.appendToBottom`, the pane would be attached below the status
+bar.
 
-Before we populate this panel for real, let's apply some logic to toggle the pane
-off and on, just like we did with the tree view. Replace the `atom.workspaceView.vertical.append`
-call with this code:
+Before we populate this panel for real, let's apply some logic to toggle the
+pane off and on, just like we did with the tree view. Replace the
+`atom.workspaceView.prependToBottom` call with this code:
 
 ```coffeescript
 # toggles the pane
 if @hasParent()
-  atom.workspaceView.vertical.children().last().remove()
+  @remove()
 else
-  atom.workspaceView.vertical.append(this)
+  atom.workspaceView.prependToBottom(this)
 ```
 
 There are about a hundred different ways to toggle a pane on and off, and this
@@ -261,13 +262,13 @@ appending it to `modifiedFilesList`:
 ```coffeescript
 # toggles the pane
 if @hasParent()
-  atom.workspaceView.vertical.children().last().remove()
+  @remove()
 else
   for file in modifiedFiles
     stat = fs.lstatSync(file)
     mtime = stat.mtime
     @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  atom.workspaceView.vertical.append(this)
+  atom.workspaceView.prependToBottom(this)
 ```
 
 When you toggle the modified files list, your pane is now populated with the
@@ -283,13 +284,13 @@ this demonstration, we'll just clear the `modifiedFilesList` each time it's clos
 # toggles the pane
 if @hasParent()
   @modifiedFilesList.empty() # added this to clear the list on close
-  atom.workspaceView.vertical.children().last().remove()
+  @remove()
 else
   for file in modifiedFiles
     stat = fs.lstatSync(file)
     mtime = stat.mtime
     @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  atom.workspaceView.vertical.append(this)
+  atom.workspaceView.prependToBottom(this)
 ```
 
 ## Coloring UI Elements
