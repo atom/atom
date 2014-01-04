@@ -51,7 +51,7 @@
     "temp": "0.5.0",
     "text-buffer": "0.3.0",
     "underscore-plus": "0.6.1",
-    "reactionary": "~0.1.0"
+    "reactionary": "~0.2.0"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.10.0",
