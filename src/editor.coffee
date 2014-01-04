@@ -124,7 +124,6 @@ class Editor extends Model
     @displayBuffer.destroy()
     @languageMode.destroy()
     atom.project?.removeEditor(this)
-    @emit 'destroyed'
     @off()
 
   # Private: Creates an {Editor} with the same initial state
