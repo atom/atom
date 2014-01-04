@@ -111,7 +111,7 @@ describe "WorkspaceView", ->
         it "passes focus to the first focusable element", ->
           focusable1 = $$ -> @div "One", id: 'one', tabindex: -1
           focusable2 = $$ -> @div "Two", id: 'two', tabindex: -1
-          atom.workspaceView.horizontal.append(focusable1, focusable2)
+          atom.workspaceView.appendToLeft(focusable1, focusable2)
           expect(document.activeElement).toBe document.body
 
           atom.workspaceView.focus()
@@ -120,7 +120,7 @@ describe "WorkspaceView", ->
       describe "when there are no visible focusable elements", ->
         it "surrenders focus to the body", ->
           focusable = $$ -> @div "One", id: 'one', tabindex: -1
-          atom.workspaceView.horizontal.append(focusable)
+          atom.workspaceView.appendToLeft(focusable)
           focusable.hide()
           expect(document.activeElement).toBe document.body
 
