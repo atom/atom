@@ -693,8 +693,7 @@ describe "Pane", ->
 
       pane.showItem(new Unserializable)
 
-      state = pane.testSerialization()
-      newPane = atom.deserializers.deserialize(state)
+      newPane = pane.testSerialization()
       expect(newPane.activeItem).toEqual pane.items[0]
       expect(newPane.items.length).toBe pane.items.length - 1
 
