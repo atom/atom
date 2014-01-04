@@ -4,7 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{Model} = require 'reactionary'
+{Model} = require 'theorist'
 {Emitter, Subscriber} = require 'emissary'
 Serializable = require 'serializable'
 

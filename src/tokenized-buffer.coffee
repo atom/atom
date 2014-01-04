@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Model} = require 'reactionary'
+{Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'

@@ -9,7 +9,7 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 
 _ = require 'underscore-plus'
-{Model} = require 'reactionary'
+{Model} = require 'theorist'
 fs = require 'fs-plus'
 
 {$} = require './space-pen-extensions'

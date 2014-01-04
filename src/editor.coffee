@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 path = require 'path'
 Serializable = require 'serializable'
-{Model} = require 'reactionary'
+{Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'

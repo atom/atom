@@ -1,4 +1,4 @@
-{Model} = require 'reactionary'
+{Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 
 module.exports =
