@@ -62,7 +62,7 @@ class Atom extends Model
       stateString = @getLoadSettings().windowState
 
     try
-      JSON.parse(stateString) if documentStateString?
+      JSON.parse(stateString) if stateString?
     catch error
       console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
