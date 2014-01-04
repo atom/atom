@@ -26,7 +26,7 @@ class Publish extends Command
 
       Publish a new version of the package in the current working directory.
 
-      If a new version or version increment is specified than a new Git tag is
+      If a new version or version increment is specified, then a new Git tag is
       created and the package.json file is updated with that new version before
       it is published to the apm registry. The HEAD branch and the new tag are
       pushed up to the remote repository automatically using this option.
