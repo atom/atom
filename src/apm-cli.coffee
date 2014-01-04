@@ -14,6 +14,7 @@ commandClasses = [
   require './links'
   require './link'
   require './list'
+  require './login'
   require './publish'
   require './rebuild'
   require './test'
@@ -67,9 +68,10 @@ module.exports =
       if error?
         callback?(error)
         if _.isString(error)
-          console.error(error.red)
+          message = error
         else
-          console.error(error.stack ? error)
+          message = error.message ? error
+        console.error(message.red) if message
         process.exit(1)
       else
         callback?()
