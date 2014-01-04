@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 {Model} = require 'reactionary'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'

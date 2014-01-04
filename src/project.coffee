@@ -6,7 +6,7 @@ fs = require 'fs-plus'
 Q = require 'q'
 {Model} = require 'reactionary'
 {Emitter, Subscriber} = require 'emissary'
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 
 TextBuffer = require './text-buffer'
 Editor = require './editor'

@@ -1,7 +1,7 @@
 {dirname} = require 'path'
 {$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 
 PaneRow = require './pane-row'
 PaneColumn = require './pane-column'

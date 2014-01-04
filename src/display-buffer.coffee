@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 {Model} = require 'reactionary'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'

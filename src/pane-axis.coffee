@@ -1,4 +1,4 @@
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
 
 ### Internal ###

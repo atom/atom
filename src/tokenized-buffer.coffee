@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {Model} = require 'reactionary'
 {Point, Range} = require 'text-buffer'
-Serializable = require 'nostalgia'
+Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
 
