@@ -110,15 +110,14 @@ afterEach ->
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null
-  atom.state.remove('workspaceView')
+  delete atom.state.workspaceView
 
   atom.project?.destroy?()
   atom.project = null
 
-  atom.state.remove('packageStates')
+  delete atom.state.packageStates
 
   $('#jasmine-content').empty() unless window.debugContent
-  atom.destroyOrphans()
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()

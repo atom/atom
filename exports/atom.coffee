@@ -1,12 +1,11 @@
-{TelepathicObject, Model, Point, Range} = require 'telepath'
+{Model} = require 'reactionary'
+{Point, Range} = require 'text-buffer'
 
 module.exports =
   _: require 'underscore-plus'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   Directory: require '../src/directory'
-  TelepathicObject: TelepathicObject
-  Document: TelepathicObject # Deprecated Shim
   File: require '../src/file'
   fs: require 'fs-plus'
   Git: require '../src/git'

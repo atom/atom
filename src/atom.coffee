@@ -9,12 +9,10 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 
 _ = require 'underscore-plus'
-telepath = require 'telepath'
-{Model} = telepath
+{Model} = require 'reactionary'
 fs = require 'fs-plus'
 
 {$} = require './space-pen-extensions'
-SiteShim = require './site-shim'
 WindowEventHandler = require './window-event-handler'
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
@@ -35,6 +33,8 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
 class Atom extends Model
+  @version: 1
+
   # Public: Load or create the Atom environment in the given mode
   #
   # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
@@ -42,28 +42,27 @@ class Atom extends Model
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    telepath.devMode = not @isReleasedVersion()
+    @deserialize(@loadState(mode)) ? new this({mode, @version})
 
-    if documentState = @loadDocumentState(mode)
-      environment = @deserialize(documentState)
-
-    environment ? @createAsRoot({mode})
+  # Private: Deserializes the Atom environment from a state object
+  @deserialize: (state) ->
+    new this(state) if state?.version is @version
 
   # Private: Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
-  @loadDocumentState: (mode) ->
+  @loadState: (mode) ->
     statePath = @getStatePath(mode)
 
     if fs.existsSync(statePath)
       try
-        documentStateString = fs.readFileSync(statePath, 'utf8')
+        stateString = fs.readFileSync(statePath, 'utf8')
       catch error
         console.warn "Error reading window state: #{statePath}", error.stack, error
     else
-      documentStateString = @getLoadSettings().windowState
+      stateString = @getLoadSettings().windowState
 
     try
-      JSON.parse(documentStateString) if documentStateString?
+      JSON.parse(stateString) if documentStateString?
     catch error
       console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
@@ -112,14 +111,11 @@ class Atom extends Model
   @isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
-  @properties
-    mode: null
-    project: null
-
   workspaceViewParentSelector: 'body'
 
-  # Private: Called by telepath. I'd like this to be merged with initialize eventually.
-  created: ->
+  # Private: Call .loadOrCreate instead
+  constructor: (@state) ->
+    {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager(this)
 
@@ -150,8 +146,7 @@ class Atom extends Model
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @pasteboard = new Pasteboard()
-    @syntax = @deserializers.deserialize(@state.get('syntax')) ? new Syntax()
-    @site = new SiteShim(this)
+    @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
 
     @subscribe @packages, 'activated', => @watchThemes()
 
@@ -160,10 +155,14 @@ class Atom extends Model
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
     Editor = require './editor'
-    @registerRepresentationClasses(Project, TextBuffer, TokenizedBuffer, DisplayBuffer, Editor)
-    @createRepresentations()
 
     @windowEventHandler = new WindowEventHandler
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClass: ->
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClasses: ->
 
   # Private:
   setBodyPlatformClass: ->
@@ -204,7 +203,7 @@ class Atom extends Model
 
   # Private:
   restoreWindowDimensions: ->
-    windowDimensions = @state.getObject('windowDimensions') ? {}
+    windowDimensions = @state.windowDimensions ? {}
     {initialSize} = @getLoadSettings()
     windowDimensions.height ?= initialSize?.height ? global.screen.availHeight
     windowDimensions.width ?= initialSize?.width ? Math.min(global.screen.availWidth, 1024)
@@ -212,7 +211,7 @@ class Atom extends Model
 
   # Private:
   storeWindowDimensions: ->
-    @state.set('windowDimensions', @getWindowDimensions())
+    @state.windowDimensions = @getWindowDimensions()
 
   # Public: Get the load settings for the current window.
   #
@@ -228,16 +227,13 @@ class Atom extends Model
   # Private:
   deserializeWorkspaceView: ->
     WorkspaceView = require './workspace-view'
-    @workspaceView = @deserializers.deserialize(@state.get('workspaceView'))
-    unless @workspaceView?
-      @workspaceView = new WorkspaceView()
-      @state.set('workspaceView', @workspaceView.serialize())
+    @workspaceView = @deserializers.deserialize(@state.workspaceView) ? new WorkspaceView
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:
   deserializePackageStates: ->
-    @packages.packageStates = @state.getObject('packageStates') ? {}
-    @state.remove('packageStates')
+    @packages.packageStates = @state.packageStates ? {}
+    delete @state.packageStates
 
   # Private:
   deserializeEditorWindow: ->
@@ -259,7 +255,6 @@ class Atom extends Model
     @keymap.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
-    @createRepresentations()
     @deserializeEditorWindow()
     @packages.activate()
     @keymap.loadUserKeymap()
@@ -277,10 +272,10 @@ class Atom extends Model
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
-    @state.set('syntax', @syntax.serialize())
-    @state.set('workspaceView', @workspaceView.serialize())
+    @state.syntax = @syntax.serialize()
+    @state.workspaceView = @workspaceView.serialize()
     @packages.deactivatePackages()
-    @state.set('packageStates', @packages.packageStates)
+    @state.packageStates = @packages.packageStates
     @saveSync()
     @workspaceView.remove()
     @workspaceView = null
@@ -392,7 +387,7 @@ class Atom extends Model
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @workspaceView.getState().get('fullScreen')
+      @setFullScreen(true) if @workspaceView.fullScreen
 
   # Public: Close the current window.
   close: ->
@@ -448,11 +443,11 @@ class Atom extends Model
 
   # Private:
   saveSync: ->
+    stateString = JSON.stringify(@state)
     if statePath = @constructor.getStatePath(@mode)
-      super(statePath)
+      fs.writeFileSync(statePath, stateString, 'utf8')
     else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@serializeForPersistence())
-
+      @getCurrentWindow().loadSettings.windowState = stateString
 
   # Public: Get the time taken to completely load the current window.
   #

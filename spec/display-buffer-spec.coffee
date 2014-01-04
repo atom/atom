@@ -7,7 +7,7 @@ describe "DisplayBuffer", ->
     tabLength = 2
     atom.packages.activatePackage('language-javascript', sync: true)
     buffer = atom.project.bufferForPathSync('sample.js')
-    displayBuffer = atom.create(new DisplayBuffer({buffer, tabLength}))
+    displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
 
@@ -150,7 +150,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = atom.create(new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true}))
+          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -202,7 +202,7 @@ describe "DisplayBuffer", ->
       displayBuffer.destroy()
       buffer.release()
       buffer = atom.project.bufferForPathSync('two-hundred.txt')
-      displayBuffer = atom.create(new DisplayBuffer({buffer, tabLength}))
+      displayBuffer = new DisplayBuffer({buffer, tabLength})
       displayBuffer.on 'changed', changeHandler
 
     describe "when folds are created and destroyed", ->
@@ -308,7 +308,7 @@ describe "DisplayBuffer", ->
 
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not create folds in the other display buffer", ->
-          otherDisplayBuffer = atom.create(new DisplayBuffer({buffer, tabLength}))
+          otherDisplayBuffer = new DisplayBuffer({buffer, tabLength})
           displayBuffer.createFold(2, 4)
           expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
 

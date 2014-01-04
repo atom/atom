@@ -1,4 +1,4 @@
-{Range} = require 'telepath'
+{Range} = require 'text-buffer'
 {Emitter} = require 'emissary'
 {pick} = require 'underscore-plus'
 

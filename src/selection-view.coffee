@@ -1,4 +1,4 @@
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 {View, $$} = require './space-pen-extensions'
 
 # Internal:

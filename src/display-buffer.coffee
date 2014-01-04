@@ -56,7 +56,7 @@ class DisplayBuffer extends Model
     params
 
   copy: ->
-    newDisplayBuffer = atom.create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer

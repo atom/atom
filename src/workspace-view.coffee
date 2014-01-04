@@ -59,7 +59,7 @@ class WorkspaceView extends View
           @div class: 'panes', outlet: 'panes'
 
   # Private:
-  initialize: ({panes}={}) ->
+  initialize: ({panes, @fullScreen}={}) ->
     panes ?= new PaneContainer
     @panes.replaceWith(panes)
     @panes = panes

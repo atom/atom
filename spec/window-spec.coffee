@@ -93,8 +93,8 @@ describe "Window", ->
 
       atom.unloadEditorWindow()
 
-      expect(atom.state.getObject('workspaceView')).toEqual workspaceViewState
-      expect(atom.state.getObject('syntax')).toEqual syntaxState
+      expect(atom.state.workspaceView).toEqual workspaceViewState
+      expect(atom.state.syntax).toEqual syntaxState
       expect(atom.saveSync).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
