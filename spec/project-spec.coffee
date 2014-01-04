@@ -399,6 +399,7 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
+        platform.generateEvilFiles()
         atom.project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
         paths = []
         matches = []

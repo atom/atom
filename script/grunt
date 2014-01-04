@@ -1,0 +1,9 @@
+#!/usr/bin/env node --harmony_collections
+var cp = require('./utils/child-process-wrapper.js');
+var path = require('path');
+
+// node build/node_modules/grunt-cli/bin/grunt "$@"
+var gruntPath = path.resolve(__dirname, '..', 'build', 'node_modules', 'grunt-cli', 'bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
+var args = [gruntPath, '--gruntfile', path.resolve('build', 'Gruntfile.coffee')];
+args = args.concat(process.argv.slice(2));
+cp.safeSpawn(process.execPath, args, process.exit);

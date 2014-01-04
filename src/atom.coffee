@@ -281,6 +281,7 @@ class Atom extends Model
     @workspaceView = null
     @project.destroy()
     @windowEventHandler?.unsubscribe()
+    @keymap.destroy()
     @windowState = null
 
   # Private:

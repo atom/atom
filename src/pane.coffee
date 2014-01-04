@@ -186,13 +186,13 @@ class Pane extends View
     false
 
   # Public: Remove the specified item.
-  destroyItem: (item) ->
+  destroyItem: (item, options) ->
     @unsubscribe(item) if _.isFunction(item.off)
     @trigger 'pane:before-item-destroyed', [item]
 
     if @promptToSaveItem(item)
       @getContainer()?.itemDestroyed(item)
-      @removeItem(item)
+      @removeItem(item, options)
       item.destroy?()
       true
     else

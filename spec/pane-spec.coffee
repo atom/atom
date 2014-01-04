@@ -143,7 +143,7 @@ describe "Pane", ->
       it "removes the item and tries to call destroy on it", ->
         pane.destroyItem(editor2)
         expect(pane.getItems().indexOf(editor2)).toBe -1
-        expect(editor2.destroyed).toBeTruthy()
+        expect(editor2.isDestroyed()).toBe true
 
     describe "if the item is modified", ->
       beforeEach ->
@@ -162,7 +162,7 @@ describe "Pane", ->
 
             expect(editor2.save).toHaveBeenCalled()
             expect(pane.getItems().indexOf(editor2)).toBe -1
-            expect(editor2.destroyed).toBeTruthy()
+            expect(editor2.isDestroyed()).toBe true
 
         describe "when the item has no uri", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
@@ -176,7 +176,7 @@ describe "Pane", ->
 
             expect(editor2.saveAs).toHaveBeenCalledWith("/selected/path")
             expect(pane.getItems().indexOf(editor2)).toBe -1
-            expect(editor2.destroyed).toBeTruthy()
+            expect(editor2.isDestroyed()).toBe true
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
@@ -185,7 +185,7 @@ describe "Pane", ->
 
           expect(editor2.save).not.toHaveBeenCalled()
           expect(pane.getItems().indexOf(editor2)).toBe -1
-          expect(editor2.destroyed).toBeTruthy()
+          expect(editor2.isDestroyed()).toBe true
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
@@ -194,7 +194,7 @@ describe "Pane", ->
 
           expect(editor2.save).not.toHaveBeenCalled()
           expect(pane.getItems().indexOf(editor2)).not.toBe -1
-          expect(editor2.destroyed).toBeFalsy()
+          expect(editor2.isDestroyed()).toBe false
 
   describe "::removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
@@ -290,7 +290,7 @@ describe "Pane", ->
 
         expect(pane.hasParent()).toBeFalsy()
         expect(pane2.getItems()).toEqual [view3, editor1]
-        expect(editor1.destroyed).toBeFalsy()
+        expect(editor1.isDestroyed()).toBe false
 
     describe "when the item is a jQuery object", ->
       it "preserves data by detaching instead of removing", ->
@@ -304,14 +304,14 @@ describe "Pane", ->
       pane.showItem(editor1)
       pane.trigger 'pane:close'
       expect(pane.hasParent()).toBeFalsy()
-      expect(editor2.destroyed).toBeTruthy()
-      expect(editor1.destroyed).toBeTruthy()
+      expect(editor2.isDestroyed()).toBe true
+      expect(editor1.isDestroyed()).toBe true
 
   describe "pane:close-other-items", ->
     it "destroys all items except the current", ->
       pane.showItem(editor1)
       pane.trigger 'pane:close-other-items'
-      expect(editor2.destroyed).toBeTruthy()
+      expect(editor2.isDestroyed()).toBe true
       expect(pane.getItems()).toEqual [editor1]
 
   describe "::saveActiveItem()", ->
@@ -423,8 +423,8 @@ describe "Pane", ->
   describe "::remove()", ->
     it "destroys all the pane's items", ->
       pane.remove()
-      expect(editor1.destroyed).toBeTruthy()
-      expect(editor2.destroyed).toBeTruthy()
+      expect(editor1.isDestroyed()).toBe true
+      expect(editor2.isDestroyed()).toBe true
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")

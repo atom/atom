@@ -40,25 +40,18 @@ window, and contains every other view. If you open Atom's inspector with
 
 #### Panes
 
-The `WorkspaceView` contains a `#horizontal` and a `#vertical` axis surrounding
-`#panes`. Elements in the horizontal axis will tile across the window
-horizontally, appearing to have a vertical orientation. Items in the vertical
-axis will tile across the window vertically, appearing to have a horizontal
-orientation. You would typically attach tool panels to the root view's primary
-axes. Tool panels are elements which take up some screen real estate that isn't
-devoted to direct editing. In the example above, the `TreeView` is present in
-the `#horizontal` axis to the left of the `#panes`, and the `CommandPanel` is
-present in the `#vertical` axis below the `#panes`.
-
-You can attach a tool panel to an axis using the `horizontal` or `vertical`
-outlets as follows:
+The `WorkspaceView` contains `prependToBottom/Top/Left/Right` and
+`appendToBottom/Top/Left/Right` methods, which are used to add Tool Panels. Tool
+panels are elements that take up screen real estate not devoted to text editing.
+In the example above, the `TreeView` is appended to the left, and the
+`CommandPanel` is appended to the top.
 
 ```coffeescript
-# place a view to the left of the panes (or use .append() to place it to the right)
-atom.workspaceView.horizontal.prepend(new MyView)
+# place a view to the left of the panes
+atom.workspaceView.appendToLeft(new MyView)
 
-# place a view below the panes (or use .prepend() to place it above)
-atom.workspaceView.vertical.append(new MyOtherView)
+# place a view below the panes
+atom.workspaceView.appendToBottom(new MyOtherView)
 ```
 
 [spacepen]: http://github.com/nathansobo/space-pen

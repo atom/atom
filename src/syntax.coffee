@@ -1,15 +1,15 @@
 _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
+{Subscriber} = require 'emissary'
+{GrammarRegistry, ScopeSelector} = require 'first-mate'
+
 {$, $$} = require './space-pen-extensions'
-{Emitter} = require 'emissary'
-NullGrammar = require './null-grammar'
-TextMateScopeSelector = require('first-mate').ScopeSelector
+Token = require './token'
 
-### Internal ###
-
+### Public ###
 module.exports =
-class Syntax
-  Emitter.includeInto(this)
+class Syntax extends GrammarRegistry
+  Subscriber.includeInto(this)
 
   atom.deserializers.add(this)
 
@@ -19,53 +19,15 @@ class Syntax
     syntax
 
   constructor: ->
-    @nullGrammar = new NullGrammar
-    @grammars = [@nullGrammar]
-    @grammarsByScopeName = {}
-    @injectionGrammars = []
-    @grammarOverridesByPath = {}
+    super
+
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
   serialize: ->
-    { deserializer: @constructor.name, @grammarOverridesByPath }
+    {deserializer: @constructor.name, @grammarOverridesByPath}
 
-  addGrammar: (grammar) ->
-    previousGrammars = new Array(@grammars...)
-    @grammars.push(grammar)
-    @grammarsByScopeName[grammar.scopeName] = grammar
-    @injectionGrammars.push(grammar) if grammar.injectionSelector?
-    @grammarUpdated(grammar.scopeName)
-    @emit 'grammar-added', grammar
-
-  removeGrammar: (grammar) ->
-    _.remove(@grammars, grammar)
-    delete @grammarsByScopeName[grammar.scopeName]
-    _.remove(@injectionGrammars, grammar)
-    @grammarUpdated(grammar.scopeName)
-
-  grammarUpdated: (scopeName) ->
-    for grammar in @grammars when grammar.scopeName isnt scopeName
-      @emit 'grammar-updated', grammar if grammar.grammarUpdated(scopeName)
-
-  setGrammarOverrideForPath: (path, scopeName) ->
-    @grammarOverridesByPath[path] = scopeName
-
-  clearGrammarOverrideForPath: (path) ->
-    delete @grammarOverridesByPath[path]
-
-  clearGrammarOverrides: ->
-    @grammarOverridesByPath = {}
-
-  selectGrammar: (filePath, fileContents) ->
-    grammar = _.max @grammars, (grammar) -> grammar.getScore(filePath, fileContents)
-    grammar
-
-  grammarOverrideForPath: (path) ->
-    @grammarOverridesByPath[path]
-
-  grammarForScopeName: (scopeName) ->
-    @grammarsByScopeName[scopeName]
+  createToken: (value, scopes) -> new Token({value, scopes})
 
   addProperties: (args...) ->
     name = args.shift() if args.length > 2
@@ -132,4 +94,4 @@ class Syntax
       element[0]
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
-    new TextMateScopeSelector(scopeSelector).toCssSelector()
+    new ScopeSelector(scopeSelector).toCssSelector()

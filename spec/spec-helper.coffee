@@ -13,10 +13,7 @@ Editor = require '../src/editor'
 EditorView = require '../src/editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
-platform = require './spec-helper-platform'
 clipboard = require 'clipboard'
-
-platform.generateEvilFiles()
 
 atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'

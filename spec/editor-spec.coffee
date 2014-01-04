@@ -358,13 +358,13 @@ describe "Editor", ->
           expect(editor.getCursors().length).toBe 1
           expect(editor.getCursorBufferPosition()).toEqual [12,2]
 
-      describe ".moveCursorToBeginningOfLine()", ->
+      describe ".moveCursorToBeginningOfScreenLine()", ->
         describe "when soft wrap is on", ->
           it "moves cursor to the beginning of the screen line", ->
             editor.setSoftWrap(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([1, 2])
-            editor.moveCursorToBeginningOfLine()
+            editor.moveCursorToBeginningOfScreenLine()
             cursor = editor.getCursor()
             expect(cursor.getScreenPosition()).toEqual [1, 0]
 
@@ -372,19 +372,19 @@ describe "Editor", ->
           it "moves cursor to the beginning of then line", ->
             editor.setCursorScreenPosition [0,5]
             editor.addCursorAtScreenPosition [1,7]
-            editor.moveCursorToBeginningOfLine()
+            editor.moveCursorToBeginningOfScreenLine()
             expect(editor.getCursors().length).toBe 2
             [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [0,0]
             expect(cursor2.getBufferPosition()).toEqual [1,0]
 
-      describe ".moveCursorToEndOfLine()", ->
+      describe ".moveCursorToEndOfScreenLine()", ->
         describe "when soft wrap is on", ->
           it "moves cursor to the beginning of the screen line", ->
             editor.setSoftWrap(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([1, 2])
-            editor.moveCursorToEndOfLine()
+            editor.moveCursorToEndOfScreenLine()
             cursor = editor.getCursor()
             expect(cursor.getScreenPosition()).toEqual [1, 9]
 
@@ -392,11 +392,29 @@ describe "Editor", ->
           it "moves cursor to the end of line", ->
             editor.setCursorScreenPosition [0,0]
             editor.addCursorAtScreenPosition [1,0]
-            editor.moveCursorToEndOfLine()
+            editor.moveCursorToEndOfScreenLine()
             expect(editor.getCursors().length).toBe 2
             [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [0,29]
             expect(cursor2.getBufferPosition()).toEqual [1,30]
+
+      describe ".moveCursorToBeginningOfLine()", ->
+        it "moves cursor to the beginning of the buffer line", ->
+          editor.setSoftWrap(true)
+          editor.setEditorWidthInChars(10)
+          editor.setCursorScreenPosition([1, 2])
+          editor.moveCursorToBeginningOfLine()
+          cursor = editor.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [0, 0]
+
+      describe ".moveCursorToEndOfLine()", ->
+        it "moves cursor to the end of the buffer line", ->
+          editor.setSoftWrap(true)
+          editor.setEditorWidthInChars(10)
+          editor.setCursorScreenPosition([0, 2])
+          editor.moveCursorToEndOfLine()
+          cursor = editor.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [3, 4]
 
       describe ".moveCursorToFirstCharacterOfLine()", ->
         describe "when soft wrap is on", ->
@@ -428,6 +446,13 @@ describe "Editor", ->
             editor.moveCursorToFirstCharacterOfLine()
             expect(cursor1.getBufferPosition()).toEqual [0,0]
             expect(cursor2.getBufferPosition()).toEqual [1,0]
+
+          it "moves to the beginning of the line if it only contains whitespace ", ->
+            editor.setText("first\n    \nthird")
+            editor.setCursorScreenPosition [1,2]
+            editor.moveCursorToFirstCharacterOfLine()
+            cursor = editor.getCursor()
+            expect(cursor.getBufferPosition()).toEqual [1,0]
 
       describe ".moveCursorToBeginningOfWord()", ->
         it "moves the cursor to the beginning of the word", ->
@@ -2670,3 +2695,55 @@ describe "Editor", ->
         expect(editor.getCursorBufferPosition()).toEqual [0, 2]
         editor.moveCursorLeft()
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+  describe "when the editor's grammar has an injection selector", ->
+    beforeEach ->
+      atom.packages.activatePackage('language-text', sync: true)
+      atom.packages.activatePackage('language-javascript', sync: true)
+
+    it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
+      atom.packages.activatePackage('language-hyperlink', sync: true)
+      grammar = atom.syntax.selectGrammar("text.js")
+      {tokens} = grammar.tokenizeLine("var i; // http://github.com")
+
+      expect(tokens[0].value).toBe "var"
+      expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+
+      expect(tokens[6].value).toBe "http://github.com"
+      expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+
+    describe "when the grammar is added", ->
+      it "retokenizes existing buffers that contain tokens that match the injection selector", ->
+        editor = atom.project.openSync('sample.js')
+        editor.setText("// http://github.com")
+
+        {tokens} = editor.lineForScreenRow(0)
+        expect(tokens[1].value).toBe " http://github.com"
+        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+        atom.packages.activatePackage('language-hyperlink', sync: true)
+
+        {tokens} = editor.lineForScreenRow(0)
+        expect(tokens[2].value).toBe "http://github.com"
+        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+
+    describe "when the grammar is updated", ->
+      it "retokenizes existing buffers that contain tokens that match the injection selector", ->
+        editor = atom.project.openSync('sample.js')
+        editor.setText("// SELECT * FROM OCTOCATS")
+
+        {tokens} = editor.lineForScreenRow(0)
+        expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+        atom.packages.activatePackage('package-with-injection-selector', sync: true)
+
+        {tokens} = editor.lineForScreenRow(0)
+        expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+        atom.packages.activatePackage('language-sql', sync: true)
+
+        {tokens} = editor.lineForScreenRow(0)
+        expect(tokens[2].value).toBe "SELECT"
+        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]

@@ -123,7 +123,7 @@ describe "EditorView", ->
   describe ".remove()", ->
     it "destroys the edit session", ->
       editorView.remove()
-      expect(editorView.editor.destroyed).toBeTruthy()
+      expect(editorView.editor.isDestroyed()).toBe true
 
   describe ".edit(editor)", ->
     [newEditor, newBuffer] = []

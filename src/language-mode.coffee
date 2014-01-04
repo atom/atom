@@ -289,9 +289,6 @@ class LanguageMode
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  tokenizeLine: (line, stack, firstLine) ->
-    {tokens, stack} = @grammar.tokenizeLine(line, stack, firstLine)
-
   getRegexForProperty: (scopes, property) ->
     if pattern = atom.syntax.getProperty(scopes, property)
       new OnigRegExp(pattern)

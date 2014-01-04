@@ -359,7 +359,7 @@ class DisplayBuffer extends Model
 
   # Get the grammar for this buffer.
   #
-  # Returns the current {TextMateGrammar} or the {NullGrammar}.
+  # Returns the current {Grammar} or the {NullGrammar}.
   getGrammar: ->
     @tokenizedBuffer.grammar
 
