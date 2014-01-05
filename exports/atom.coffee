@@ -1,4 +1,3 @@
-{Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 
 module.exports =
@@ -9,7 +8,6 @@ module.exports =
   File: require '../src/file'
   fs: require 'fs-plus'
   Git: require '../src/git'
-  Model: Model
   Point: Point
   Range: Range
 
