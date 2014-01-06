@@ -122,7 +122,7 @@ class Directory
             callback()
 
       async.eachLimit entries, 1, statEntry, ->
-        callback(directories.concat(files))
+        callback(null, directories.concat(files))
 
   # Private:
   subscribeToNativeChangeEvents: ->

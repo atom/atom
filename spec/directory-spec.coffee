@@ -82,7 +82,7 @@ describe "Directory", ->
       waitsFor -> callback.callCount is 1
 
       runs ->
-        entries = callback.mostRecentCall.args[0]
+        entries = callback.mostRecentCall.args[1]
         for entry in entries
           name = entry.getBaseName()
           if name is 'symlink-to-dir' or name is 'symlink-to-file'
