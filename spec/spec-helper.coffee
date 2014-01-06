@@ -7,7 +7,7 @@ path = require 'path'
 {_, $, File, WorkspaceView, fs} = require 'atom'
 Keymap = require '../src/keymap'
 Config = require '../src/config'
-{Point} = require 'telepath'
+{Point} = require 'text-buffer'
 Project = require '../src/project'
 Editor = require '../src/editor'
 EditorView = require '../src/editor-view'
@@ -107,15 +107,14 @@ afterEach ->
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null
-  atom.state.remove('workspaceView')
+  delete atom.state.workspaceView
 
   atom.project?.destroy?()
   atom.project = null
 
-  atom.state.remove('packageStates')
+  delete atom.state.packageStates
 
   $('#jasmine-content').empty() unless window.debugContent
-  atom.destroyOrphans()
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()

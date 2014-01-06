@@ -2,24 +2,24 @@ _ = require 'underscore-plus'
 diff = require 'diff'
 Q = require 'q'
 {P} = require 'scandal'
-telepath = require 'telepath'
+Serializable = require 'serializable'
+TextBufferCore = require 'text-buffer'
+{Point, Range} = TextBufferCore
+{Subscriber, Emitter} = require 'emissary'
 
 File = require './file'
-
-{Point, Range} = telepath
 
 # Private: Represents the contents of a file.
 #
 # The `TextBuffer` is often associated with a {File}. However, this is not always
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
 module.exports =
-class TextBuffer extends telepath.Model
-  @properties
-    text: -> new telepath.String('', replicated: false)
-    filePath: null
-    relativePath: null
-    modifiedWhenLastPersisted: false
-    digestWhenLastPersisted: null
+class TextBuffer extends TextBufferCore
+  atom.deserializers.add(this)
+
+  Serializable.includeInto(this)
+  Subscriber.includeInto(this)
+  Emitter.includeInto(this)
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -29,28 +29,32 @@ class TextBuffer extends telepath.Model
   file: null
   refcount: 0
 
-  constructor: ->
+  constructor: ({filePath, @modifiedWhenLastPersisted, @digestWhenLastPersisted, loadWhenAttached}={}) ->
     super
-
-    @loadWhenAttached = @getState()?
-
-  # Private: Called by telepath.
-  created: ->
     @loaded = false
+    @modifiedWhenLastPersisted ?= false
+
     @useSerializedText = @modifiedWhenLastPersisted != false
 
-    @subscribe @text, 'changed', @handleTextChange
-    @subscribe @text, 'marker-created', (marker) => @emit 'marker-created', marker
-    @subscribe @text, 'markers-updated', => @emit 'markers-updated'
+    @subscribe this, 'changed', @handleTextChange
 
-    @setPath(@filePath)
+    @setPath(filePath)
 
-    @load() if @loadWhenAttached
+    @load() if loadWhenAttached
 
-  # Private: Called by telepath.
-  willBePersisted: ->
-    @modifiedWhenLastPersisted = @isModified()
-    @digestWhenLastPersisted = @file?.getDigest()
+  # Private:
+  serializeParams: ->
+    params = super
+    _.extend params,
+      filePath: @getPath()
+      modifiedWhenLastPersisted: @isModified()
+      digestWhenLastPersisted: @file?.getDigest()
+
+  # Private:
+  deserializeParams: (params) ->
+    params = super(params)
+    params.loadWhenAttached = true
+    params
 
   loadSync: ->
     @updateCachedDiskContentsSync()
@@ -66,7 +70,7 @@ class TextBuffer extends telepath.Model
         @emitModifiedStatusChanged(true)
       else
         @reload()
-      @text.clearUndoStack()
+      @clearUndoStack()
     this
 
   ### Internal ###
@@ -74,16 +78,19 @@ class TextBuffer extends telepath.Model
   handleTextChange: (event) =>
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
-    bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
-    @emit 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
 
-  destroyed: ->
-    unless @alreadyDestroyed
+  destroy: ->
+    unless @destroyed
       @cancelStoppedChangingTimeout()
       @file?.off()
       @unsubscribe()
-      @alreadyDestroyed = true
+      @destroyed = true
+      @emit 'destroyed'
+
+  isAlive: -> not @destroyed
+
+  isDestroyed: -> @destroyed
 
   isRetained: -> @refcount > 0
 
@@ -255,49 +262,11 @@ class TextBuffer extends telepath.Model
     lastRow = @getLastRow()
     new Range([0, 0], [lastRow, @lineLengthForRow(lastRow)])
 
-  # Given a range, returns the lines of text within it.
-  #
-  # range - A {Range} object specifying your points of interest
-  #
-  # Returns a {String} of the combined lines.
-  getTextInRange: (range) ->
-    @text.getTextInRange(@clipRange(range))
-
-  # Gets all the lines in a file.
-  #
-  # Returns an {Array} of {String}s.
-  getLines: ->
-    @text.getLines()
-
-  # Given a row, returns the line of text.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {String}.
-  lineForRow: (row) ->
-    @text.lineForRow(row)
-
-  # Given a row, returns its line ending.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {String}, or `undefined` if `row` is the final row.
-  lineEndingForRow: (row) ->
-    @text.lineEndingForRow(row)
-
   suggestedLineEndingForRow: (row) ->
     if row is @getLastRow()
       @lineEndingForRow(row - 1)
     else
       @lineEndingForRow(row)
-
-  # Given a row, returns the length of the line of text.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {Number}.
-  lineLengthForRow: (row) ->
-    @text.lineLengthForRow(row)
 
   # Given a row, returns the length of the line ending
   #
@@ -320,18 +289,6 @@ class TextBuffer extends telepath.Model
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
-  # Gets the number of lines in a file.
-  #
-  # Returns a {Number}.
-  getLineCount: ->
-    @text.getLineCount()
-
-  # Gets the row number of the last line.
-  #
-  # Returns a {Number}.
-  getLastRow: ->
-    @getLineCount() - 1
-
   # Finds the last line in the current buffer.
   #
   # Returns a {String}.
@@ -344,12 +301,6 @@ class TextBuffer extends telepath.Model
   getEofPosition: ->
     lastRow = @getLastRow()
     new Point(lastRow, @lineLengthForRow(lastRow))
-
-  characterIndexForPosition: (position) ->
-    @text.indexForPoint(@clipPosition(position))
-
-  positionForCharacterIndex: (index) ->
-    @text.pointForIndex(index)
 
   # Given a row, this deletes it from the buffer.
   #
@@ -394,35 +345,6 @@ class TextBuffer extends telepath.Model
   delete: (range) ->
     @change(range, '')
 
-  # Given a position, this clips it to a real position.
-  #
-  # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real position.
-  #
-  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
-  clipPosition: (position) ->
-    @text.clipPosition(position)
-
-  # Given a range, this clips it to a real range.
-  #
-  # For example, if `range`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real range.
-  #
-  # range - The {Range} to clip
-  #
-  # Returns the new, clipped {Range}. Note that this could be the same as `range` if no clipping was performed.
-  clipRange: (range) ->
-    range = Range.fromObject(range)
-    new Range(@clipPosition(range.start), @clipPosition(range.end))
-
-  undo: ->
-    @text.undo()
-
-  redo: ->
-    @text.redo()
-
   # Saves the buffer.
   save: ->
     @saveAs(@getPath()) if @isModified()
@@ -458,67 +380,14 @@ class TextBuffer extends telepath.Model
   # Returns a {Boolean}.
   isInConflict: -> @conflict
 
-  # Identifies if a buffer is empty.
-  #
-  # Returns a {Boolean}.
-  isEmpty: -> @text.isEmpty()
-
-  # Returns all valid {StringMarker}s on the buffer.
-  getMarkers: ->
-    @text.getMarkers()
-
-  # Returns the {StringMarker} with the given id.
-  getMarker: (id) ->
-    @text.getMarker(id)
-
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
-
-  # Public: Finds the first marker satisfying the given attributes
-  #
-  # Returns a {String} marker-identifier
-  findMarker: (attributes) ->
-    @text.findMarker(attributes)
-
-  # Public: Finds all markers satisfying the given attributes
-  #
-  # attributes - The attributes against which to compare the markers' attributes
-  #   There are some reserved keys that match against derived marker properties:
-  #   startRow - The row at which the marker starts
-  #   endRow - The row at which the marker ends
-  #
-  # Returns an {Array} of {StringMarker}s
-  findMarkers: (attributes) ->
-    @text.findMarkers(attributes)
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @text.getMarkers().length
-
-  # Constructs a new marker at a given range.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # attributes - An optional hash of serializable attributes
-  #   Any attributes you pass will be associated with the marker and can be retrieved
-  #   or used in marker queries.
-  #   The following attribute keys reserved, and control the marker's initial range
-  #   isReversed - if `true`, the marker is reversed; that is, its head precedes the tail
-  #   hasTail - if `false`, the marker is created without a tail
-  #
-  # Returns a {Number} representing the new marker's ID.
-  markRange: (range, options={}) ->
-    @text.markRange(range, options)
-
-  # Constructs a new marker at a given position.
-  #
-  # position - The marker {Point}; there won't be a tail
-  # options - Options to pass to the {StringMarker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
-  markPosition: (position, options) ->
-    @text.markPosition(position, options)
+    @getMarkers().length
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -677,18 +546,10 @@ class TextBuffer extends telepath.Model
 
   ### Internal ###
 
-  transact: (fn) -> @text.transact fn
-
-  beginTransaction: -> @text.beginTransaction()
-
-  commitTransaction: -> @text.commitTransaction()
-
-  abortTransaction: -> @text.abortTransaction()
-
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    @text.setTextInRange(oldRange, newText, options)
+    @setTextInRange(oldRange, newText, options)
 
   normalizeLineEndings: (startRow, text) ->
     if lineEnding = @suggestedLineEndingForRow(startRow)

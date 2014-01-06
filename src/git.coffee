@@ -71,7 +71,7 @@ class Git
         @refreshStatus()
 
     if @project?
-      @subscribe @project.buffers.onEach (buffer) => @subscribeToBuffer(buffer)
+      @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Private: Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->

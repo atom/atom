@@ -257,7 +257,7 @@ describe "Git", ->
 
     it "subscribes to all the serialized buffers in the project", ->
       atom.project.openSync('sample.js')
-      project2 = atom.project.testPersistence()
+      project2 = atom.project.testSerialization()
       buffer = project2.getBuffers()[0]
 
       waitsFor ->

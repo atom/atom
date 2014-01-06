@@ -677,12 +677,12 @@ describe "Pane", ->
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = atom.deserializers.deserialize(pane.serialize().testPersistence())
+      newPane = pane.testSerialization()
       expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
       pane.showItem(editor2)
-      newPane = atom.deserializers.deserialize(pane.serialize().testPersistence())
+      newPane = pane.testSerialization()
       expect(newPane.activeItem).toEqual editor2
 
     it "does not show items that cannot be deserialized", ->
@@ -693,8 +693,7 @@ describe "Pane", ->
 
       pane.showItem(new Unserializable)
 
-      state = pane.serialize().testPersistence()
-      newPane = atom.deserializers.deserialize(state)
+      newPane = pane.testSerialization()
       expect(newPane.activeItem).toEqual pane.items[0]
       expect(newPane.items.length).toBe pane.items.length - 1
 
@@ -702,13 +701,13 @@ describe "Pane", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = atom.deserializers.deserialize(container.serialize().testPersistence())
+      container2 = container.testSerialization()
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = atom.deserializers.deserialize(container.serialize().testPersistence())
+      container3 = container.testSerialization()
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

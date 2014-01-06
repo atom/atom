@@ -1,4 +1,4 @@
-{Range} = require 'telepath'
+{Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'

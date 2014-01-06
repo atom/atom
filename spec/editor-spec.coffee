@@ -28,10 +28,7 @@ describe "Editor", ->
         editor.foldBufferRow(4)
         expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-        # Simulate serialization with replicate
-        editor2 = editor.testPersistence()
-        # FIXME: The created hook is called manually on deserialization because globals aren't ready otherwise
-        editor2.created()
+        editor2 = editor.testSerialization()
 
         expect(editor2.id).toBe editor.id
         expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
