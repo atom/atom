@@ -2,6 +2,10 @@ fs = require 'fs'
 path = require 'path'
 os = require 'os'
 
+# Add support for obselete APIs of vm module so we can make some third-party
+# modules work under node v0.11.x.
+require 'vm-compatibility-layer'
+
 fm = require 'json-front-matter'
 _ = require 'underscore-plus'
 
