@@ -5,10 +5,11 @@
 
   <script>
     window.onload = function() {
+      var path = require('path');
       var currentWindow = require('remote').getCurrentWindow();
       try {
         require('coffee-script');
-        require('../src/coffee-cache').register();
+        require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
         require(currentWindow.loadSettings.bootstrapScript);
         currentWindow.emit('window:loaded');
       }
