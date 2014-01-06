@@ -1,8 +1,11 @@
 path = require 'path'
+
+async = require 'async'
+{Emitter} = require 'emissary'
 fs = require 'fs-plus'
 pathWatcher = require 'pathwatcher'
+
 File = require './file'
-{Emitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =
@@ -81,8 +84,6 @@ class Directory
 
   # Public: Reads file entries in this directory from disk synchronously.
   #
-  # Note: It follows symlinks.
-  #
   # Returns an Array of {File} and {Directory} objects.
   getEntriesSync: ->
     directories = []
@@ -98,6 +99,30 @@ class Directory
         files.push(new File(entryPath, symlink))
 
     directories.concat(files)
+
+  # Public: Reads file entries in this directory from disk asynchronously.
+  #
+  # * callback: A function to call with an Error as the first argument and
+  #   an Array of {File} and {Directory} objects as the second argument.
+  getEntries: (callback) ->
+    fs.list @path, (error, entries) ->
+      return callback(error) if error?
+
+      directories = []
+      files = []
+      statEntry = (entryPath, callback) ->
+        fs.stat entryPath, (error, stat) ->
+          return callback() if error?
+
+          fs.isSymbolicLink entryPath, (symlink) ->
+            if stat.isDirectory()
+              directories.push(new Directory(entryPath, symlink))
+            else if stat.isFile()
+              files.push(new File(entryPath, symlink))
+            callback()
+
+      async.eachLimit entries, 1, statEntry, ->
+        callback(directories.concat(files))
 
   # Private:
   subscribeToNativeChangeEvents: ->
