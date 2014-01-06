@@ -262,44 +262,11 @@ class TextBuffer extends TextBufferCore
     lastRow = @getLastRow()
     new Range([0, 0], [lastRow, @lineLengthForRow(lastRow)])
 
-  # Given a range, returns the lines of text within it.
-  #
-  # range - A {Range} object specifying your points of interest
-  #
-  # Returns a {String} of the combined lines.
-  getTextInRange: (range) -> super
-
-  # Gets all the lines in a file.
-  #
-  # Returns an {Array} of {String}s.
-  getLines: -> super
-
-  # Given a row, returns the line of text.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {String}.
-  lineForRow: (row) -> super
-
-  # Given a row, returns its line ending.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {String}, or `undefined` if `row` is the final row.
-  lineEndingForRow: (row) -> super
-
   suggestedLineEndingForRow: (row) ->
     if row is @getLastRow()
       @lineEndingForRow(row - 1)
     else
       @lineEndingForRow(row)
-
-  # Given a row, returns the length of the line of text.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {Number}.
-  lineLengthForRow: (row) -> super
 
   # Given a row, returns the length of the line ending
   #
@@ -322,16 +289,6 @@ class TextBuffer extends TextBufferCore
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
-  # Gets the number of lines in a file.
-  #
-  # Returns a {Number}.
-  getLineCount: -> super
-
-  # Gets the row number of the last line.
-  #
-  # Returns a {Number}.
-  getLastRow: -> super
-
   # Finds the last line in the current buffer.
   #
   # Returns a {String}.
@@ -344,10 +301,6 @@ class TextBuffer extends TextBufferCore
   getEofPosition: ->
     lastRow = @getLastRow()
     new Point(lastRow, @lineLengthForRow(lastRow))
-
-  characterIndexForPosition: (position) -> super
-
-  positionForCharacterIndex: (index) -> super
 
   # Given a row, this deletes it from the buffer.
   #
@@ -392,32 +345,6 @@ class TextBuffer extends TextBufferCore
   delete: (range) ->
     @change(range, '')
 
-  # Given a position, this clips it to a real position.
-  #
-  # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real position.
-  #
-  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
-  clipPosition: (position) -> super
-
-  # Given a range, this clips it to a real range.
-  #
-  # For example, if `range`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real range.
-  #
-  # range - The {Range} to clip
-  #
-  # Returns the new, clipped {Range}. Note that this could be the same as `range` if no clipping was performed.
-  clipRange: (range) ->
-    range = Range.fromObject(range)
-    new Range(@clipPosition(range.start), @clipPosition(range.end))
-
-  undo: -> super
-
-  redo: -> super
-
   # Saves the buffer.
   save: ->
     @saveAs(@getPath()) if @isModified()
@@ -453,61 +380,14 @@ class TextBuffer extends TextBufferCore
   # Returns a {Boolean}.
   isInConflict: -> @conflict
 
-  # Identifies if a buffer is empty.
-  #
-  # Returns a {Boolean}.
-  isEmpty: -> super
-
-  # Returns all valid {Marker}s on the buffer.
-  getMarkers: -> super
-
-  # Returns the {Marker} with the given id.
-  getMarker: (id) -> super
-
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
-
-  # Public: Finds the first marker satisfying the given attributes
-  #
-  # Returns a {String} marker-identifier
-  findMarker: (attributes) -> super
-
-  # Public: Finds all markers satisfying the given attributes
-  #
-  # attributes - The attributes against which to compare the markers' attributes
-  #   There are some reserved keys that match against derived marker properties:
-  #   startRow - The row at which the marker starts
-  #   endRow - The row at which the marker ends
-  #
-  # Returns an {Array} of {Marker}s
-  findMarkers: (attributes) -> super
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
     @getMarkers().length
-
-  # Constructs a new marker at a given range.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # attributes - An optional hash of serializable attributes
-  #   Any attributes you pass will be associated with the marker and can be retrieved
-  #   or used in marker queries.
-  #   The following attribute keys reserved, and control the marker's initial range
-  #   isReversed - if `true`, the marker is reversed; that is, its head precedes the tail
-  #   hasTail - if `false`, the marker is created without a tail
-  #
-  # Returns a {Number} representing the new marker's ID.
-  markRange: (range, options={}) -> super
-
-  # Constructs a new marker at a given position.
-  #
-  # position - The marker {Point}; there won't be a tail
-  # options - Options to pass to the {Marker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
-  markPosition: (position, options) -> super
 
   # Identifies if a character sequence is within a certain range.
   #
