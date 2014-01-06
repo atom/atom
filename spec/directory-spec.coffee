@@ -68,7 +68,7 @@ describe "Directory", ->
 
   describe "on #darwin or #linux", ->
     it "includes symlink information about entries", ->
-      entries = directory.getEntries()
+      entries = directory.getEntriesSync()
       for entry in entries
         name = entry.getBaseName()
         if name is 'symlink-to-dir' or name is 'symlink-to-file'

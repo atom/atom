@@ -79,12 +79,12 @@ class Directory
     else
       fullPath
 
-  # Public: Reads file entries in this directory from disk.
+  # Public: Reads file entries in this directory from disk synchronously.
   #
   # Note: It follows symlinks.
   #
-  # Returns an Array of {Files}.
-  getEntries: ->
+  # Returns an Array of {File} and {Directory} objects.
+  getEntriesSync: ->
     directories = []
     files = []
     for entryPath in fs.listSync(@path)
