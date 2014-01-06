@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --harmony_collections
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
@@ -35,6 +35,7 @@ var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
+  {command: 'npm install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: 'npm install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
   {command: 'npm install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
   {command: 'npm install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},

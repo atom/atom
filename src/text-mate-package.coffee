@@ -2,7 +2,6 @@ Package = require './package'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-TextMateGrammar = require './text-mate-grammar'
 async = require 'async'
 
 ### Internal ###
@@ -41,14 +40,14 @@ class TextMatePackage extends Package
 
   activate: ->
     @measure 'activateTime', =>
-      atom.syntax.addGrammar(grammar) for grammar in @grammars
+      grammar.activate() for grammar in @grammars
       for { selector, properties } in @scopedProperties
         atom.syntax.addProperties(@path, selector, properties)
 
   activateConfig: -> # noop
 
   deactivate: ->
-    atom.syntax.removeGrammar(grammar) for grammar in @grammars
+    grammar.deactivate() for grammar in @grammars
     atom.syntax.removeProperties(@path)
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json', 'cson']
@@ -66,18 +65,20 @@ class TextMatePackage extends Package
         done()
 
   loadGrammarAtPath: (grammarPath, done) =>
-    TextMateGrammar.load grammarPath, (err, grammar) =>
-      return console.log("Error loading grammar at path '#{grammarPath}':", err.stack ? err) if err
-      @addGrammar(grammar)
-      done()
+    atom.syntax.readGrammar grammarPath, (error, grammar) =>
+      if error?
+        console.log("Error loading grammar at path '#{grammarPath}':", error.stack ? error)
+      else
+        @addGrammar(grammar)
+        done?()
 
   loadGrammarsSync: ->
     for grammarPath in fs.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
-      @addGrammar(TextMateGrammar.loadSync(grammarPath))
+      @addGrammar(atom.syntax.readGrammarSync(grammarPath))
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    atom.syntax.addGrammar(grammar) if @isActive()
+    grammar.activate() if @isActive()
 
   getGrammars: -> @grammars
 

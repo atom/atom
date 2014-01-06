@@ -1,11 +1,13 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --harmony_collections
 var cp = require('./utils/child-process-wrapper.js');
 var path = require('path');
 
 process.chdir(path.dirname(__dirname));
 
 cp.safeExec('node script/bootstrap', function() {
-  // node_modules/.bin/grunt "$@"
-  var gruntPath = path.join('node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-  cp.safeSpawn(gruntPath, process.argv.slice(2), process.exit);
+  // build/node_modules/.bin/grunt "$@"
+  var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
+  var args = ['--gruntfile', path.resolve('build', 'Gruntfile.coffee')];
+  args = args.concat(process.argv.slice(2));
+  cp.safeSpawn(gruntPath, args, process.exit);
 });

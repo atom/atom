@@ -21,7 +21,7 @@ class Selection
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeSelection(this)
-      @emit 'destroyed' unless @editor.destroyed
+      @emit 'destroyed' unless @editor.isDestroyed()
 
   # Private:
   destroy: ->
@@ -216,7 +216,7 @@ class Selection
   # Public: Selects all the text from the current cursor position to the end of
   # the line.
   selectToEndOfLine: ->
-    @modifySelection => @cursor.moveToEndOfLine()
+    @modifySelection => @cursor.moveToEndOfScreenLine()
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.

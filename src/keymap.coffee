@@ -4,6 +4,7 @@ fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
 KeyBinding = require './key-binding'
+File = require './file'
 {Emitter} = require 'emissary'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']
@@ -27,6 +28,9 @@ class Keymap
 
   constructor: ({@resourcePath, @configDirPath})->
     @keyBindings = []
+
+  destroy: ->
+    @unwatchUserKeymap()
 
   # Public: Returns an array of all {KeyBinding}s.
   getKeyBindings: ->
@@ -118,9 +122,21 @@ class Keymap
     @loadDirectory(path.join(@resourcePath, 'keymaps'))
     @emit('bundled-keymaps-loaded')
 
+  userKeymapPath: ->
+    CSON.resolve(path.join(@configDirPath, 'keymap'))
+
+  unwatchUserKeymap: ->
+    keymapPath = @userKeymapPath()
+    @userKeymapFile?.off()
+    @remove(keymapPath) if keymapPath
+
   loadUserKeymap: ->
-    userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))
-    @load(userKeymapPath) if userKeymapPath
+    keymapPath = @userKeymapPath()
+    @unwatchUserKeymap()
+    if keymapPath
+      @load(keymapPath)
+      @userKeymapFile = new File(keymapPath)
+      @userKeymapFile.on 'contents-changed', => @loadUserKeymap()
 
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])

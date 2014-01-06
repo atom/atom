@@ -126,9 +126,7 @@ class Editor extends Model
     require './editor-view'
 
   # Private:
-  destroy: ->
-    return if @destroyed
-    @destroyed = true
+  destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
@@ -1120,6 +1118,10 @@ class Editor extends Model
     @moveCursors (cursor) -> cursor.moveToBottom()
 
   # Public: Moves every local cursor to the beginning of the line.
+  moveCursorToBeginningOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
+
+  # Public: Moves every local cursor to the beginning of the buffer line.
   moveCursorToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
@@ -1128,6 +1130,10 @@ class Editor extends Model
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
 
   # Public: Moves every local cursor to the end of the line.
+  moveCursorToEndOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
+
+  # Public: Moves every local cursor to the end of the buffer line.
   moveCursorToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
