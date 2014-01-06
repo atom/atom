@@ -89,10 +89,10 @@ class Directory
     directories = []
     files = []
     for entryPath in fs.listSync(@path)
-      if stat = fs.statSyncNoException(entryPath)
-        symlink = fs.isSymbolicLinkSync(entryPath)
-      else
-        continue
+      if stat = fs.lstatSyncNoException(entryPath)
+        symlink = stat.isSymbolicLink()
+        stat = fs.statSyncNoException(entryPath) if symlink
+      continue unless stat
       if stat.isDirectory()
         directories.push(new Directory(entryPath, symlink))
       else if stat.isFile()
@@ -110,16 +110,20 @@ class Directory
 
       directories = []
       files = []
-      statEntry = (entryPath, callback) ->
-        fs.stat entryPath, (error, stat) ->
-          return callback() if error?
+      addEntry = (entryPath, stat, symlink, callback) ->
+        if stat?.isDirectory()
+          directories.push(new Directory(entryPath, symlink))
+        else if stat?.isFile()
+          files.push(new File(entryPath, symlink))
+        callback()
 
-          fs.isSymbolicLink entryPath, (symlink) ->
-            if stat.isDirectory()
-              directories.push(new Directory(entryPath, symlink))
-            else if stat.isFile()
-              files.push(new File(entryPath, symlink))
-            callback()
+      statEntry = (entryPath, callback) ->
+        fs.lstat entryPath, (error, stat) ->
+          if stat?.isSymbolicLink()
+            fs.stat entryPath, (error, stat) ->
+              addEntry(entryPath, stat, true, callback)
+          else
+            addEntry(entryPath, stat, false, callback)
 
       async.eachLimit entries, 1, statEntry, ->
         callback(null, directories.concat(files))
