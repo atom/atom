@@ -458,10 +458,10 @@ class TextBuffer extends TextBufferCore
   # Returns a {Boolean}.
   isEmpty: -> super
 
-  # Returns all valid {StringMarker}s on the buffer.
+  # Returns all valid {Marker}s on the buffer.
   getMarkers: -> super
 
-  # Returns the {StringMarker} with the given id.
+  # Returns the {Marker} with the given id.
   getMarker: (id) -> super
 
   destroyMarker: (id) ->
@@ -479,7 +479,7 @@ class TextBuffer extends TextBufferCore
   #   startRow - The row at which the marker starts
   #   endRow - The row at which the marker ends
   #
-  # Returns an {Array} of {StringMarker}s
+  # Returns an {Array} of {Marker}s
   findMarkers: (attributes) -> super
 
   # Retrieves the quantity of markers in a buffer.
@@ -504,7 +504,7 @@ class TextBuffer extends TextBufferCore
   # Constructs a new marker at a given position.
   #
   # position - The marker {Point}; there won't be a tail
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) -> super

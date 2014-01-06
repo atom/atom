@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 # where text can be inserted.
 #
 # Cursors belong to {Editor}s and have some metadata attached in the form
-# of a {StringMarker}.
+# of a {Marker}.
 module.exports =
 class Cursor
   Emitter.includeInto(this)

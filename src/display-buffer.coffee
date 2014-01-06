@@ -469,7 +469,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenRange: (args...) ->
@@ -479,7 +479,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
@@ -488,7 +488,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
@@ -497,7 +497,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
@@ -527,10 +527,10 @@ class DisplayBuffer extends Model
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    attributes = @translateToStringMarkerAttributes(attributes)
+    attributes = @translateToBufferMarkerAttributes(attributes)
     @buffer.findMarkers(attributes).map (stringMarker) => @getMarker(stringMarker.id)
 
-  translateToStringMarkerAttributes: (attributes) ->
+  translateToBufferMarkerAttributes: (attributes) ->
     stringMarkerAttributes = {}
     for key, value of attributes
       switch key
