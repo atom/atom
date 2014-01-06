@@ -8,6 +8,7 @@
       var path = require('path');
       var currentWindow = require('remote').getCurrentWindow();
       try {
+        require('vm-compatibility-layer');
         require('coffee-script');
         require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
         require(currentWindow.loadSettings.bootstrapScript);
