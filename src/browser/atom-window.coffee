@@ -30,7 +30,7 @@ class AtomWindow
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
-    loadSettings.windowState ?= ''
+    loadSettings.windowState ?= '{}'
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
