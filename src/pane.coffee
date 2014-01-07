@@ -2,7 +2,9 @@
 {$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 Serializable = require 'serializable'
+Delegator = require 'delegato'
 
+PaneModel = require './pane-model'
 PaneRow = require './pane-row'
 PaneColumn = require './pane-column'
 
@@ -15,6 +17,7 @@ PaneColumn = require './pane-column'
 module.exports =
 class Pane extends View
   Serializable.includeInto(this)
+  Delegator.includeInto(this)
 
   @version: 1
 
@@ -22,18 +25,17 @@ class Pane extends View
     @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
 
+  @delegatesProperty 'items', toProperty: 'model'
+
   activeItem: null
-  items: null
-  viewsByItem: null      # Views without a setModel() method are stored here
 
   # Private:
   initialize: (args...) ->
     if args[0]?.items # deserializing
-      {@items, activeItemUri, @focusOnAttach} = args[0]
+      {items, activeItemUri, @focusOnAttach} = args[0]
+      @model = new PaneModel({items})
     else
-      @items = args
-
-    @items ?= []
+      @model = new PaneModel(items: args)
 
     @handleItemEvents(item) for item in @items
 
