@@ -44,7 +44,7 @@ class Directory
   #
   # All relative directory entries are removed and symlinks are resolved to
   # their final destination.
-  getRealPath: ->
+  getRealPathSync: ->
     unless @realPath?
       try
         @realPath = fs.realpathSync(@path)
@@ -59,7 +59,7 @@ class Directory
 
     if pathToCheck.indexOf(path.join(@getPath(), path.sep)) is 0
       true
-    else if pathToCheck.indexOf(path.join(@getRealPath(), path.sep)) is 0
+    else if pathToCheck.indexOf(path.join(@getRealPathSync(), path.sep)) is 0
       true
     else
       false
@@ -75,10 +75,10 @@ class Directory
       ''
     else if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
       fullPath.substring(@getPath().length + 1)
-    else if fullPath is @getRealPath()
+    else if fullPath is @getRealPathSync()
       ''
-    else if fullPath.indexOf(path.join(@getRealPath(), path.sep)) is 0
-      fullPath.substring(@getRealPath().length + 1)
+    else if fullPath.indexOf(path.join(@getRealPathSync(), path.sep)) is 0
+      fullPath.substring(@getRealPathSync().length + 1)
     else
       fullPath
 
