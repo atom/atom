@@ -10,21 +10,24 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
-  if logFile?
-    logStream = fs.createWriteStream(logFile, flags: 'w')
-    process.__defineGetter__ 'stdout', -> logStream
-    process.__defineGetter__ 'stderr', -> logStream
+  logStream = fs.openSync(logFile, 'w') if logFile?
+  log = (str) ->
+    if logStream?
+      fs.writeSync(logStream, str)
+    else
+      process.stderr.write(str)
 
   if atom.getLoadSettings().exitWhenDone
     {jasmineNode} = require 'jasmine-node/lib/jasmine-node/reporter'
     reporter = new jasmineNode.TerminalReporter
-      print: (args...) ->
-        process.stderr.write(args...)
+      print: (str) ->
+        log(str)
       onComplete: (runner) ->
-        process.stdout.write('\n')
-        timeReporter.logLongestSuites 10, (line) -> process.stdout.write("#{line}\n")
-        process.stdout.write('\n')
-        timeReporter.logLongestSpecs 10, (line) -> process.stdout.write("#{line}\n")
+        log('\n')
+        timeReporter.logLongestSuites 10, (line) -> log("#{line}\n")
+        log('\n')
+        timeReporter.logLongestSpecs 10, (line) -> log("#{line}\n")
+        fs.closeSync(logStream) if logStream?
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
     AtomReporter = require './atom-reporter'
