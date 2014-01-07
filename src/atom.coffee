@@ -127,6 +127,10 @@ class Atom extends Model
   # (both spec and application). Call after this instance has been assigned to
   # the `atom` global.
   initialize: ->
+    window.onerror = =>
+      @openDevTools()
+      @emit 'error', arguments
+
     @unsubscribe()
     @setBodyPlatformClass()
 

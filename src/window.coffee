@@ -1,6 +1,3 @@
-window.onerror = ->
-  atom.openDevTools()
-
 # Public: Measure how long a function takes to run.
 #
 # * description:
