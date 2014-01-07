@@ -107,7 +107,7 @@ class AtomApplication
 
   # Private: Configures required javascript environment flags.
   setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
+    app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
 
   # Private: Enable updates unless running from a local build of Atom.
   checkForUpdates: ->
