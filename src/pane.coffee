@@ -25,9 +25,7 @@ class Pane extends View
     @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
 
-  @delegatesProperty 'items', toProperty: 'model'
-
-  activeItem: null
+  @delegatesProperties 'items', 'activeItem', toProperty: 'model'
 
   # Private:
   initialize: (args...) ->
