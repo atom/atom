@@ -1,8 +1,11 @@
 path = require 'path'
+
+async = require 'async'
+{Emitter} = require 'emissary'
 fs = require 'fs-plus'
 pathWatcher = require 'pathwatcher'
+
 File = require './file'
-{Emitter} = require 'emissary'
 
 # Public: Represents a directory using {File}s
 module.exports =
@@ -41,7 +44,7 @@ class Directory
   #
   # All relative directory entries are removed and symlinks are resolved to
   # their final destination.
-  getRealPath: ->
+  getRealPathSync: ->
     unless @realPath?
       try
         @realPath = fs.realpathSync(@path)
@@ -56,7 +59,7 @@ class Directory
 
     if pathToCheck.indexOf(path.join(@getPath(), path.sep)) is 0
       true
-    else if pathToCheck.indexOf(path.join(@getRealPath(), path.sep)) is 0
+    else if pathToCheck.indexOf(path.join(@getRealPathSync(), path.sep)) is 0
       true
     else
       false
@@ -72,32 +75,58 @@ class Directory
       ''
     else if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
       fullPath.substring(@getPath().length + 1)
-    else if fullPath is @getRealPath()
+    else if fullPath is @getRealPathSync()
       ''
-    else if fullPath.indexOf(path.join(@getRealPath(), path.sep)) is 0
-      fullPath.substring(@getRealPath().length + 1)
+    else if fullPath.indexOf(path.join(@getRealPathSync(), path.sep)) is 0
+      fullPath.substring(@getRealPathSync().length + 1)
     else
       fullPath
 
-  # Public: Reads file entries in this directory from disk.
+  # Public: Reads file entries in this directory from disk synchronously.
   #
-  # Note: It follows symlinks.
-  #
-  # Returns an Array of {Files}.
-  getEntries: ->
+  # Returns an Array of {File} and {Directory} objects.
+  getEntriesSync: ->
     directories = []
     files = []
     for entryPath in fs.listSync(@path)
-      if stat = fs.statSyncNoException(entryPath)
-        symlink = fs.isSymbolicLinkSync(entryPath)
-      else
-        continue
+      if stat = fs.lstatSyncNoException(entryPath)
+        symlink = stat.isSymbolicLink()
+        stat = fs.statSyncNoException(entryPath) if symlink
+      continue unless stat
       if stat.isDirectory()
         directories.push(new Directory(entryPath, symlink))
       else if stat.isFile()
         files.push(new File(entryPath, symlink))
 
     directories.concat(files)
+
+  # Public: Reads file entries in this directory from disk asynchronously.
+  #
+  # * callback: A function to call with an Error as the first argument and
+  #   an Array of {File} and {Directory} objects as the second argument.
+  getEntries: (callback) ->
+    fs.list @path, (error, entries) ->
+      return callback(error) if error?
+
+      directories = []
+      files = []
+      addEntry = (entryPath, stat, symlink, callback) ->
+        if stat?.isDirectory()
+          directories.push(new Directory(entryPath, symlink))
+        else if stat?.isFile()
+          files.push(new File(entryPath, symlink))
+        callback()
+
+      statEntry = (entryPath, callback) ->
+        fs.lstat entryPath, (error, stat) ->
+          if stat?.isSymbolicLink()
+            fs.stat entryPath, (error, stat) ->
+              addEntry(entryPath, stat, true, callback)
+          else
+            addEntry(entryPath, stat, false, callback)
+
+      async.eachLimit entries, 1, statEntry, ->
+        callback(null, directories.concat(files))
 
   # Private:
   subscribeToNativeChangeEvents: ->
