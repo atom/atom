@@ -129,7 +129,7 @@ class Atom extends Model
   initialize: ->
     window.onerror = =>
       @openDevTools()
-      @emit 'error', arguments
+      @emit 'uncaught-error', arguments
 
     @unsubscribe()
     @setBodyPlatformClass()
