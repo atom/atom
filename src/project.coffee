@@ -4,7 +4,9 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{Model} = require 'telepath'
+{Model} = require 'theorist'
+{Emitter, Subscriber} = require 'emissary'
+Serializable = require 'serializable'
 
 TextBuffer = require './text-buffer'
 Editor = require './editor'
@@ -18,10 +20,8 @@ Git = require './git'
 # of directories and files that you can operate on.
 module.exports =
 class Project extends Model
-
-  @properties
-    buffers: []
-    path: null
+  atom.deserializers.add(this)
+  Serializable.includeInto(this)
 
   # Public: Find the local path for the given repository URL.
   @pathForRepositoryUrl: (repoUrl) ->
@@ -29,18 +29,23 @@ class Project extends Model
     repoName = repoName.replace(/\.git$/, '')
     path.join(atom.config.get('core.projectHome'), repoName)
 
-  # Private: Called by telepath.
-  created: ->
-    for buffer in @buffers.getValues()
-      buffer.once 'destroyed', (buffer) => @removeBuffer(buffer) if @isAlive()
+  constructor: ({path, @buffers}={}) ->
+    @buffers ?= []
+    for buffer in @buffers
+      do (buffer) =>
+        buffer.once 'destroyed', => @removeBuffer(buffer)
 
     @openers = []
     @editors = []
-    @setPath(@path)
+    @setPath(path)
 
-  # Private: Called by telepath.
-  willBePersisted: ->
-    @destroyUnretainedBuffers()
+  serializeParams: ->
+    path: @path
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+
+  deserializeParams: (params) ->
+    params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
+    params
 
   # Public: Register an opener for project files.
   #
@@ -177,7 +182,7 @@ class Project extends Model
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
-    new Array(@buffers.getValues()...)
+    @buffers.slice()
 
   # Private: Is the buffer for the given path modified?
   isPathModified: (filePath) ->
@@ -185,7 +190,7 @@ class Project extends Model
 
   # Private:
   findBufferForPath: (filePath) ->
-   _.find @buffers.getValues(), (buffer) -> buffer.getPath() == filePath
+   _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
   # Private: Only to be used in specs
   bufferForPathSync: (filePath) ->
@@ -233,11 +238,12 @@ class Project extends Model
   # Private:
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
+    buffer.once 'destroyed', => @removeBuffer(buffer)
 
   # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
-    buffer = @buffers.insert(index, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer) if @isAlive()
+    @buffers.splice(index, 0, buffer)
+    buffer.once 'destroyed', => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 
@@ -285,7 +291,7 @@ class Project extends Model
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
 
-    for buffer in @buffers.getValues() when buffer.isModified()
+    for buffer in @getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
       matches = []
       buffer.scan regex, (match) -> matches.push match
@@ -306,7 +312,7 @@ class Project extends Model
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 
-    openPaths = (buffer.getPath() for buffer in @buffers.getValues())
+    openPaths = (buffer.getPath() for buffer in @getBuffers())
     outOfProcessPaths = _.difference(filePaths, openPaths)
 
     inProcessFinished = !openPaths.length
@@ -324,7 +330,7 @@ class Project extends Model
 
       task.on 'replace:path-replaced', iterator
 
-    for buffer in @buffers.getValues()
+    for buffer in @getBuffers()
       continue unless buffer.getPath() in filePaths
       replacements = buffer.replace(regex, replacementText, iterator)
       iterator({filePath: buffer.getPath(), replacements}) if replacements
@@ -336,7 +342,7 @@ class Project extends Model
 
   # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = @create(new Editor(_.extend({buffer}, editorOptions)))
+    editor = new Editor(_.extend({buffer}, editorOptions))
     @addEditor(editor)
     editor
 

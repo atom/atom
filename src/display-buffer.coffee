@@ -1,7 +1,9 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 guid = require 'guid'
-{Model, Point, Range} = require 'telepath'
+Serializable = require 'serializable'
+{Model} = require 'theorist'
+{Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
@@ -12,28 +14,18 @@ ConfigObserver = require './config-observer'
 # Private:
 module.exports =
 class DisplayBuffer extends Model
+  Serializable.includeInto(this)
   _.extend @prototype, ConfigObserver
 
   @properties
-    tokenizedBuffer: null
-    softWrap: -> atom.config.get('editor.softWrap') ? false
+    softWrap: null
     editorWidthInChars: null
 
-  constructor: ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
-    @deserializing = @state?
-
-  created: ->
-    if @deserializing
-      @deserializing = false
-      return
-
-    if @tokenizedBuffer?
-      @tokenizedBuffer?.created()
-    else
-      @tokenizedBuffer = new TokenizedBuffer({@tabLength, @buffer, project: atom.project})
+    @softWrap ?= atom.config.get('editor.softWrap') ? false
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
     @buffer = @tokenizedBuffer.buffer
-
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
@@ -43,10 +35,9 @@ class DisplayBuffer extends Model
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @state, 'changed', ({newValues}) =>
-      if newValues.softWrap?
-        @emit 'soft-wrap-changed', newValues.softWrap
-        @updateWrappedScreenLines()
+    @subscribe @$softWrap, 'value', (softWrap) =>
+      @emit 'soft-wrap-changed', softWrap
+      @updateWrappedScreenLines()
 
     @observeConfig 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
@@ -54,8 +45,18 @@ class DisplayBuffer extends Model
     @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap
 
+  serializeParams: ->
+    id: @id
+    softWrap: @softWrap
+    editorWidthInChars: @editorWidthInChars
+    tokenizedBuffer: @tokenizedBuffer.serialize()
+
+  deserializeParams: (params) ->
+    params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
+    params
+
   copy: ->
-    newDisplayBuffer = atom.create(new DisplayBuffer({@buffer, tabLength: @getTabLength()}))
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -468,7 +469,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenRange: (args...) ->
@@ -478,7 +479,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
@@ -487,7 +488,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
@@ -496,7 +497,7 @@ class DisplayBuffer extends Model
   # Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {StringMarker} constructor
+  # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
@@ -526,10 +527,10 @@ class DisplayBuffer extends Model
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    attributes = @translateToStringMarkerAttributes(attributes)
+    attributes = @translateToBufferMarkerAttributes(attributes)
     @buffer.findMarkers(attributes).map (stringMarker) => @getMarker(stringMarker.id)
 
-  translateToStringMarkerAttributes: (attributes) ->
+  translateToBufferMarkerAttributes: (attributes) ->
     stringMarkerAttributes = {}
     for key, value of attributes
       switch key

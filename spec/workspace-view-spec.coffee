@@ -19,9 +19,11 @@ describe "WorkspaceView", ->
     viewState = null
 
     simulateReload = ->
-      state = atom.workspaceView.serialize().testPersistence()
+      workspaceState = atom.workspaceView.serialize()
+      projectState = atom.project.serialize()
       atom.workspaceView.remove()
-      atom.workspaceView = WorkspaceView.deserialize(state)
+      atom.project = atom.deserializers.deserialize(projectState)
+      atom.workspaceView = WorkspaceView.deserialize(workspaceState)
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->

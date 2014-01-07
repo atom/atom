@@ -21,11 +21,11 @@ describe "TokenizedBuffer", ->
   describe "when the buffer is destroyed", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
-      tokenizedBuffer.state.destroy()
+      tokenizedBuffer.destroy()
       spyOn(tokenizedBuffer, 'tokenizeNextChunk')
       advanceClock()
       expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
@@ -33,7 +33,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
       tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
 
@@ -313,7 +313,7 @@ describe "TokenizedBuffer", ->
     beforeEach ->
       atom.packages.activatePackage('language-coffee-script', sync: true)
       buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -347,7 +347,7 @@ describe "TokenizedBuffer", ->
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
       """
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
     afterEach ->
@@ -384,7 +384,7 @@ describe "TokenizedBuffer", ->
 
       buffer = atom.project.bufferForPathSync()
       buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(atom.syntax.selectGrammar('test.erb'))
       fullyTokenize(tokenizedBuffer)
 
@@ -403,7 +403,7 @@ describe "TokenizedBuffer", ->
 
     it "returns the correct token (regression)", ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
@@ -412,7 +412,7 @@ describe "TokenizedBuffer", ->
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
@@ -431,7 +431,7 @@ describe "TokenizedBuffer", ->
     it "updates the tab length of the tokenized lines", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = atom.create(new TokenizedBuffer({buffer}))
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)

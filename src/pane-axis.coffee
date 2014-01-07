@@ -1,39 +1,26 @@
+Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
-{TelepathicObject} = require 'telepath'
 
 ### Internal ###
 module.exports =
 class PaneAxis extends View
-  @acceptsDocuments: true
+  Serializable.includeInto(this)
 
-  @deserialize: (state) ->
-    new this(state)
+  initialize: ({children}={}) ->
+    @addChild(child) for child in children ? []
 
-  initialize: (args...) ->
-    if args[0] instanceof TelepathicObject
-      @state = args[0]
-      @state.get('children').each (child, index) =>
-        @addChild(atom.deserializers.deserialize(child), index, updateState: false)
-    else
-      @state = atom.create(deserializer: @className(), children: [])
-      @addChild(child) for child in args
+  serializeParams: ->
+    children: @children().views().map (child) -> child.serialize()
 
-    @state.get('children').on 'changed', ({index, insertedValues, removedValues, siteId}) =>
-      return if siteId is @state.siteId
-      for childState in removedValues
-        @removeChild(@children(":eq(#{index})").view(), updateState: false)
-      for childState, i in insertedValues
-        @addChild(atom.deserializers.deserialize(childState), index + i, updateState: false)
+  deserializeParams: (params) ->
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
+    params
 
-  addChild: (child, index=@children().length, options={}) ->
+  addChild: (child, index=@children().length) ->
     @insertAt(index, child)
-    state = child.getState()
-    @state.get('children').insert(index, state) if options.updateState ? true
     @getContainer()?.adjustPaneDimensions()
 
-  removeChild: (child, options={}) ->
-    options.updateState ?= true
-
+  removeChild: (child) ->
     parent = @parent().view()
     container = @getContainer()
     childWasInactive = not child.isActive?()
@@ -54,11 +41,10 @@ class PaneAxis extends View
       if parent.setRoot?
         parent.setRoot(sibling, suppressPaneItemChangeEvents: childWasInactive)
       else
-        parent.insertChildBefore(this, sibling, options)
-        parent.removeChild(this, options)
+        parent.insertChildBefore(this, sibling)
+        parent.removeChild(this)
       sibling.focus() if siblingFocused
     else
-      @state.get('children').remove(@indexOf(child)) if options.updateState
       primitiveRemove(child)
 
     container.adjustPaneDimensions()
@@ -66,7 +52,6 @@ class PaneAxis extends View
     container.trigger 'pane:removed', [child] if child instanceof Pane
 
   detachChild: (child) ->
-    @state.get('children').remove(@indexOf(child))
     child.detach()
 
   getContainer: ->
@@ -78,25 +63,11 @@ class PaneAxis extends View
   getActivePane: ->
     @find('.pane.active').view() ? @find('.pane:first').view()
 
-  insertChildBefore: (child, newChild, options={}) ->
+  insertChildBefore: (child, newChild) ->
     newChild.insertBefore(child)
-    if options.updateState ? true
-      children = @state.get('children')
-      childIndex = children.indexOf(child.getState())
-      children.insert(childIndex, newChild.getState())
 
   insertChildAfter: (child, newChild) ->
     newChild.insertAfter(child)
-    children = @state.get('children')
-    childIndex = children.indexOf(child.getState())
-    children.insert(childIndex + 1, newChild.getState())
-
-  serialize: ->
-    state = @state.clone()
-    state.set('children', child.serialize() for child in @children().views())
-    state
-
-  getState: -> @state
 
   horizontalChildUnits: ->
     $(child).view().horizontalGridUnits() for child in @children()

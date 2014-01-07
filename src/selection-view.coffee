@@ -1,4 +1,4 @@
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 {View, $$} = require './space-pen-extensions'
 
 # Internal:
@@ -17,9 +17,6 @@ class SelectionView extends View
     @selection.on 'destroyed', =>
       @needsRemoval = true
       @editorView.requestDisplayUpdate()
-
-    if @selection.marker.isRemote()
-      @addClass("site-#{@selection.marker.getOriginSiteId()}")
 
   updateDisplay: ->
     @clearRegions()

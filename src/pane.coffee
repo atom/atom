@@ -1,7 +1,8 @@
 {dirname} = require 'path'
 {$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-{TelepathicObject} = require 'telepath'
+Serializable = require 'serializable'
+
 PaneRow = require './pane-row'
 PaneColumn = require './pane-column'
 
@@ -13,17 +14,13 @@ PaneColumn = require './pane-column'
 # building a package that deals with switching between panes or tiems.
 module.exports =
 class Pane extends View
+  Serializable.includeInto(this)
 
-  @acceptsDocuments: true
+  @version: 1
 
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
       @div class: 'item-views', outlet: 'itemViews'
-
-  @deserialize: (state) ->
-    pane = new Pane(state)
-    pane.focusOnAttach = true if state.get('focused')
-    pane
 
   activeItem: null
   items: null
@@ -31,33 +28,17 @@ class Pane extends View
 
   # Private:
   initialize: (args...) ->
-    @items = []
-    if args[0] instanceof TelepathicObject
-      @state = args[0]
-      @items = _.compact(@state.get('items').getValues())
-      item?.created?() for item in @getItems()
+    if args[0]?.items # deserializing
+      {@items, activeItemUri, @focusOnAttach} = args[0]
     else
       @items = args
-      @state = atom.create
-        deserializer: 'Pane'
-        items: @items
+
+    @items ?= []
 
     @handleItemEvents(item) for item in @items
 
-    @subscribe @state.get('items'), 'changed', ({index, removedValues, insertedValues, siteId}) =>
-      return if siteId is @state.siteId
-      for item in removedValues
-        @removeItemAtIndex(index, updateState: false)
-      for item, i in insertedValues
-        @addItem(itemState, index + i, updateState: false)
-
-    @subscribe @state, 'changed', ({newValues, siteId}) =>
-      return if siteId is @state.siteId
-      if newValues.activeItemUri
-        @showItemForUri(newValues.activeItemUri)
-
     @viewsByItem = new WeakMap()
-    activeItemUri = @state.get('activeItemUri')
+
     unless activeItemUri? and @showItemForUri(activeItemUri)
       @showItem(@items[0]) if @items.length > 0
 
@@ -83,6 +64,15 @@ class Pane extends View
     @command 'pane:close-other-items', => @destroyInactiveItems()
     @on 'focus', => @activeView?.focus(); false
     @on 'focusin', => @makeActive()
+
+  deserializeParams: (params) ->
+    params.items = _.compact(params.items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    params
+
+  serializeParams: ->
+    items: _.compact(@items.map (item) -> item.serialize?())
+    focusOnAttach: @is(':has(:focus)')
+    activeItemUri: @getActivePaneItem()?.getUri?()
 
   # Private:
   afterAttach: (onDom) ->
@@ -173,17 +163,14 @@ class Pane extends View
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
-    @state.set('activeItemUri', item.getUri?())
-
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
 
   # Public: Add an additional item at the specified index.
-  addItem: (item, index=@getActiveItemIndex()+1, options={}) ->
+  addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if _.include(@items, item)
 
-    @state.get('items').splice(index, 0, item) if options.updateState ? true
     @items.splice(index, 0, item)
     @trigger 'pane:item-added', [item, index]
     @handleItemEvents(item)
@@ -191,8 +178,7 @@ class Pane extends View
 
   handleItemEvents: (item) ->
     if _.isFunction(item.on)
-      @subscribe item, 'destroyed', =>
-        @destroyItem(item, updateState: false) if @state.isAlive()
+      @subscribe item, 'destroyed', => @destroyItem(item)
 
   # Public: Remove the currently active item.
   destroyActiveItem: =>
@@ -268,17 +254,16 @@ class Pane extends View
     @saveItem(item) for item in @getItems()
 
   # Public:
-  removeItem: (item, options) ->
+  removeItem: (item) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index, options) if index >= 0
+    @removeItemAtIndex(index) if index >= 0
 
   # Public: Just remove the item at the given index.
-  removeItemAtIndex: (index, options={}) ->
+  removeItemAtIndex: (index) ->
     item = @items[index]
     @activeItem.off? 'title-changed', @activeItemTitleChanged if item is @activeItem
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
-    @state.get('items').splice(index, 1) if options.updateState ? true
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
 
@@ -287,14 +272,13 @@ class Pane extends View
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
-    @state.get('items').insert(newIndex, item)
     @trigger 'pane:item-moved', [item, newIndex]
 
   # Public: Moves the given item to another pane.
   moveItemToPane: (item, pane, index) ->
     @isMovingItem = true
     pane.addItem(item, index)
-    @removeItem(item, updateState: false)
+    @removeItem(item)
     @isMovingItem = false
 
   # Public: Finds the first item that matches the given uri.
@@ -330,7 +314,7 @@ class Pane extends View
       else if @isMovingItem and viewToRemove?.setModel
         viewToRemove.setModel(null) # dont want to destroy the model, so set to null
 
-      @parent().view().removeChild(this, updateState: false)
+      @parent().view().removeChild(this)
 
   # Private:
   viewForItem: (item) ->
@@ -347,16 +331,6 @@ class Pane extends View
   # Private:
   viewForActiveItem: ->
     @viewForItem(@activeItem)
-
-  # Private:
-  serialize: ->
-    state = @state.clone()
-    state.set('items', @items)
-    state.set('focused', @is(':has(:focus)'))
-    state
-
-  # Private:
-  getState: -> @state
 
   # Private:
   adjustDimensions: -> # do nothing

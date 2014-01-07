@@ -1,4 +1,4 @@
-{Range} = require 'telepath'
+{Range} = require 'text-buffer'
 {Emitter} = require 'emissary'
 {pick} = require 'underscore-plus'
 
@@ -600,14 +600,6 @@ class Selection
   #   A {Selection} to compare with.
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
-
-  # Public: Returns true if it was locally created.
-  isLocal: ->
-    @marker.isLocal()
-
-  # Public: Returns true if it was created remotely.
-  isRemote: ->
-    @marker.isRemote()
 
   # Private:
   screenRangeChanged: ->

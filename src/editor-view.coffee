@@ -1,7 +1,7 @@
 {View, $, $$$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
 Gutter = require './gutter'
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 Editor = require './editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
@@ -105,12 +105,12 @@ class EditorView extends View
     if editor?
       @edit(editor)
     else if @mini
-      @edit(atom.create(new Editor
-        buffer: atom.create(new TextBuffer)
+      @edit(new Editor
+        buffer: new TextBuffer
         softWrap: false
         tabLength: 2
         softTabs: true
-      ))
+      )
     else
       throw new Error("Must supply an Editor or mini: true")
 
@@ -1217,8 +1217,8 @@ class EditorView extends View
     @scrollTop(editorScrollTop)
     @scrollLeft(editorScrollLeft)
     @setSoftWrap(@editor.getSoftWrap())
-    @newCursors = @editor.getAllCursors()
-    @newSelections = @editor.getAllSelections()
+    @newCursors = @editor.getCursors()
+    @newSelections = @editor.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
   requestDisplayUpdate: ->
