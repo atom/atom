@@ -194,78 +194,17 @@ class TextBuffer extends TextBufferCore
     else
       null
 
-  # Given a row, returns the length of the line ending
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {Number}.
-  lineEndingLengthForRow: (row) ->
-    (@lineEndingForRow(row) ? '').length
-
-  # Given a buffer row, this retrieves the range for that line.
-  #
-  # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you
-  #           want to include the trailing newline
-  #
-  # Returns a {Range}.
-  rangeForRow: (row, { includeNewline } = {}) ->
-    if includeNewline and row < @getLastRow()
-      new Range([row, 0], [row + 1, 0])
-    else
-      new Range([row, 0], [row, @lineLengthForRow(row)])
-
-  # Finds the last line in the current buffer.
-  #
-  # Returns a {String}.
-  getLastLine: ->
-    @lineForRow(@getLastRow())
-
   # Deprecated: Use ::getLastPosition instead
   getEofPosition: -> @getLastPosition()
 
-  # Given a row, this deletes it from the buffer.
-  #
-  # row - A {Number} representing the row to delete
-  deleteRow: (row) ->
-    @deleteRows(row, row)
+  # Deprecated: Use appendText instead
+  append: -> @appendText(arguments...)
 
-  # Deletes a range of rows from the buffer.
-  #
-  # start - A {Number} representing the starting row
-  # end - A {Number} representing the ending row
-  deleteRows: (start, end) ->
-    startPoint = null
-    endPoint = null
-    if end == @getLastRow()
-      if start > 0
-        startPoint = [start - 1, @lineLengthForRow(start - 1)]
-      else
-        startPoint = [start, 0]
-      endPoint = [end, @lineLengthForRow(end)]
-    else
-      startPoint = [start, 0]
-      endPoint = [end + 1, 0]
-    @delete(new Range(startPoint, endPoint))
+  # Deprecated: Use insertText instead
+  insert: -> @insertText(arguments...)
 
-  # Adds text to the end of the buffer.
-  #
-  # text - A {String} of text to add
-  append: (text) ->
-    @insert(@getEofPosition(), text)
-
-  # Adds text to a specific point in the buffer
-  #
-  # position - A {Point} in the buffer to insert into
-  # text - A {String} of text to add
-  insert: (position, text) ->
-    @change(new Range(position, position), text)
-
-  # Deletes text from the buffer
-  #
-  # range - A {Range} whose text to delete
-  delete: (range) ->
-    @change(range, '')
+  # Deprecated: Use deleteText instead
+  delete: -> @deleteText(arguments...)
 
   # Saves the buffer.
   save: ->
