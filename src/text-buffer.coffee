@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-diff = require 'diff'
 Q = require 'q'
 {P} = require 'scandal'
 Serializable = require 'serializable'
@@ -24,7 +23,6 @@ class TextBuffer extends TextBufferCore
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   cachedDiskContents: null
-  cachedMemoryContents: null
   conflict: false
   file: null
   refcount: 0
@@ -76,7 +74,6 @@ class TextBuffer extends TextBufferCore
   ### Internal ###
 
   handleTextChange: (event) =>
-    @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
     @scheduleModifiedEvents()
 
@@ -197,77 +194,6 @@ class TextBuffer extends TextBufferCore
     else
       null
 
-  # Retrieves the cached buffer contents.
-  #
-  # Returns a {String}.
-  getText: ->
-    @cachedMemoryContents ?= @getTextInRange(@getRange())
-
-  # Replaces the current buffer contents.
-  #
-  # text - A {String} containing the new buffer contents.
-  setText: (text) ->
-    @change(@getRange(), text, normalizeLineEndings: false)
-
-  # Private: Replaces the current buffer contents. Only apply the differences.
-  #
-  # text - A {String} containing the new buffer contents.
-  setTextViaDiff: (text) ->
-    currentText = @getText()
-    return if currentText == text
-
-    endsWithNewline = (str) ->
-      /[\r\n]+$/g.test(str)
-
-    computeBufferColumn = (str) ->
-      newlineIndex = Math.max(str.lastIndexOf('\n'), str.lastIndexOf('\r'))
-      if endsWithNewline(str)
-        0
-      else if newlineIndex == -1
-        str.length
-      else
-        str.length - newlineIndex - 1
-
-    @transact =>
-      row = 0
-      column = 0
-      currentPosition = [0, 0]
-
-      lineDiff = diff.diffLines(currentText, text)
-      changeOptions = normalizeLineEndings: false
-
-      for change in lineDiff
-        lineCount = change.value.match(/\n/g)?.length ? 0
-        currentPosition[0] = row
-        currentPosition[1] = column
-
-        if change.added
-          @change([currentPosition, currentPosition], change.value, changeOptions)
-          row += lineCount
-          column = computeBufferColumn(change.value)
-
-        else if change.removed
-          endRow = row + lineCount
-          endColumn = column + computeBufferColumn(change.value)
-          @change([currentPosition, [endRow, endColumn]], '', changeOptions)
-
-        else
-          row += lineCount
-          column = computeBufferColumn(change.value)
-
-  # Gets the range of the buffer contents.
-  #
-  # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
-  getRange: ->
-    lastRow = @getLastRow()
-    new Range([0, 0], [lastRow, @lineLengthForRow(lastRow)])
-
-  suggestedLineEndingForRow: (row) ->
-    if row is @getLastRow()
-      @lineEndingForRow(row - 1)
-    else
-      @lineEndingForRow(row)
-
   # Given a row, returns the length of the line ending
   #
   # row - A {Number} indicating the row.
@@ -295,12 +221,8 @@ class TextBuffer extends TextBufferCore
   getLastLine: ->
     @lineForRow(@getLastRow())
 
-  # Finds the last point in the current buffer.
-  #
-  # Returns a {Point} representing the last position.
-  getEofPosition: ->
-    lastRow = @getLastRow()
-    new Point(lastRow, @lineLengthForRow(lastRow))
+  # Deprecated: Use ::getLastPosition instead
+  getEofPosition: -> @getLastPosition()
 
   # Given a row, this deletes it from the buffer.
   #
@@ -382,12 +304,6 @@ class TextBuffer extends TextBufferCore
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
-
-  # Retrieves the quantity of markers in a buffer.
-  #
-  # Returns a {Number}.
-  getMarkerCount: ->
-    @getMarkers().length
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -547,15 +463,7 @@ class TextBuffer extends TextBufferCore
   ### Internal ###
 
   change: (oldRange, newText, options={}) ->
-    oldRange = @clipRange(oldRange)
-    newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    @setTextInRange(oldRange, newText, options)
-
-  normalizeLineEndings: (startRow, text) ->
-    if lineEnding = @suggestedLineEndingForRow(startRow)
-      text.replace(/\r?\n/g, lineEnding)
-    else
-      text
+    @setTextInRange(oldRange, newText, options.normalizeLineEndings)
 
   cancelStoppedChangingTimeout: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
