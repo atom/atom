@@ -2,6 +2,7 @@
 {dirname} = require 'path'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
+PaneAxisModel = require './pane-axis-model'
 
 module.exports =
 class PaneModel extends Model
@@ -189,3 +190,25 @@ class PaneModel extends Model
   # Private:
   copyActiveItem: ->
     @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+
+  splitLeft: (params) ->
+    @split('horizontal', 'before', params)
+
+  splitRight: (params) ->
+    @split('horizontal', 'after', params)
+
+  splitUp: (params) ->
+    @split('vertical', 'before', params)
+
+  splitDown: (params) ->
+    @split('vertical', 'after', params)
+
+  split: (orientation, side, params) ->
+    if @parent.orientation isnt orientation
+      @parent.replaceChild(this, new PaneAxisModel({orientation, children: [this]}))
+
+    newPane = new @constructor(params)
+    switch side
+      when 'before' then @parent.insertChildBefore(this, newPane)
+      when 'after' then @parent.insertChildAfter(this, newPane)
+    newPane

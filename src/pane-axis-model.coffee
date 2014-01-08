@@ -2,15 +2,22 @@
 
 module.exports =
 class PaneAxisModel extends Model
-  constructor: (params) ->
-    @children = Sequence.fromArray(params?.children ? [])
+  constructor: ({@orientation, children}) ->
+    @children = Sequence.fromArray(children ? [])
+    @children.onEach (child) => child.parent = this
 
   addChild: (child, index=@children.length) ->
     @children.splice(index, 0, child)
 
   removeChild: (child) ->
     index = @children.indexOf(child)
-    @children.splice(index, 1) unless index is -1
+    throw new Error("Removing non-existent child") if index is -1
+    @children.splice(index, 1)
+
+  replaceChild: (oldChild, newChild) ->
+    index = @children.indexOf(oldChild)
+    throw new Error("Replacing non-existent child") if index is -1
+    @children.splice(index, 1, newChild)
 
   insertChildBefore: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
