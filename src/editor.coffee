@@ -1194,8 +1194,6 @@ class Editor extends Model
   #
   # This methods break apart all multi-line selections to create multiple
   # single-line selections that cumulatively cover the same original area.
-  #
-  # This method will not affect any single line selections.
   splitSelectionIntoLines: ->
     for selection in @getSelections()
       range = selection.getBufferRange()
