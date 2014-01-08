@@ -1,4 +1,5 @@
 {find, compact, clone} = require 'underscore-plus'
+{dirname} = require 'path'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 
@@ -92,3 +93,86 @@ class PaneModel extends Model
   moveItemToPane: (item, pane, index) ->
     pane.addItem(item, index)
     @removeItem(item, true)
+
+  # Public: Remove the currently active item.
+  destroyActiveItem: ->
+    @destroyItem(@activeItem)
+    false
+
+  # Public: Remove the specified item.
+  destroyItem: (item, options) ->
+    @emit 'before-item-destroyed', item
+    if @promptToSaveItem(item)
+      @emit 'item-destroyed', item
+      @removeItem(item, options)
+      item.destroy?()
+      true
+    else
+      false
+
+  # Public: Remove and delete all items.
+  destroyItems: ->
+    @destroyItem(item) for item in @getItems()
+
+  # Public: Remove and delete all but the currently focused item.
+  destroyInactiveItems: ->
+    @destroyItem(item) for item in @getItems() when item isnt @activeItem
+
+  # Public: Prompt the user to save the given item.
+  promptToSaveItem: (item) ->
+    return true unless item.shouldPromptToSave?()
+
+    uri = item.getUri()
+    chosen = atom.confirm
+      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
+      detailedMessage: "Your changes will be lost if you close this item without saving."
+      buttons: ["Save", "Cancel", "Don't Save"]
+
+    switch chosen
+      when 0 then @saveItem(item, -> true)
+      when 1 then false
+      when 2 then true
+
+  # Public: Saves the currently focused item.
+  saveActiveItem: =>
+    @saveItem(@activeItem)
+
+  # Public: Save and prompt for path for the currently focused item.
+  saveActiveItemAs: =>
+    @saveItemAs(@activeItem)
+
+  # Public: Saves the specified item and call the next action when complete.
+  saveItem: (item, nextAction) ->
+    if item.getUri?()
+      item.save?()
+      nextAction?()
+    else
+      @saveItemAs(item, nextAction)
+
+  # Public: Prompts for path and then saves the specified item. Upon completion
+  # it also calls the next action.
+  saveItemAs: (item, nextAction) ->
+    return unless item.saveAs?
+
+    itemPath = item.getPath?()
+    itemPath = dirname(itemPath) if itemPath
+    path = atom.showSaveDialogSync(itemPath)
+    if path
+      item.saveAs(path)
+      nextAction?()
+
+  # Public: Saves all items in this pane.
+  saveItems: =>
+    @saveItem(item) for item in @getItems()
+
+  # Public: Finds the first item that matches the given uri.
+  itemForUri: (uri) ->
+    find @items, (item) -> item.getUri?() is uri
+
+  # Public: Focuses the first item that matches the given uri.
+  showItemForUri: (uri) ->
+    if item = @itemForUri(uri)
+      @showItem(item)
+      true
+    else
+      false

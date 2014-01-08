@@ -1,6 +1,4 @@
-{dirname} = require 'path'
 {$, View} = require './space-pen-extensions'
-_ = require 'underscore-plus'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 
@@ -28,7 +26,9 @@ class Pane extends View
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
     'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex',  'removeItem', 'removeItemAtIndex',
-    'moveItem', 'moveItemToPane', toProperty: 'model'
+    'moveItem', 'moveItemToPane', 'destroyItem', 'destroyItems', 'destroyActiveItem',
+    'destroyInactiveItems', 'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs',
+    'saveItems', 'itemForUri', 'showItemForUri', 'promptToSaveItem', toProperty: 'model'
 
   previousActiveItem: null
 
@@ -48,6 +48,8 @@ class Pane extends View
     @subscribe @model, 'item-added', @onItemAdded
     @subscribe @model, 'item-removed', @onItemRemoved
     @subscribe @model, 'item-moved', @onItemMoved
+    @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
+    @subscribe @model, 'item-destroyed', @onItemDestroyed
 
     @subscribe this, 'focus', => @activeView?.focus(); false
     @subscribe this, 'focusin', => @makeActive()
@@ -147,94 +149,16 @@ class Pane extends View
   onItemMoved: (item, newIndex) =>
     @trigger 'pane:item-moved', [item, newIndex]
 
+  onBeforeItemDestroyed: (item) =>
+    @unsubscribe(item) if typeof item.off is 'function'
+    @trigger 'pane:before-item-destroyed', [item]
+
+  onItemDestroyed: (item) =>
+    @getContainer()?.itemDestroyed(item)
+
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
-
-  # Public: Remove the currently active item.
-  destroyActiveItem: =>
-    @destroyItem(@activeItem)
-    false
-
-  # Public: Remove the specified item.
-  destroyItem: (item, options) ->
-    @unsubscribe(item) if _.isFunction(item.off)
-    @trigger 'pane:before-item-destroyed', [item]
-
-    if @promptToSaveItem(item)
-      @getContainer()?.itemDestroyed(item)
-      @removeItem(item, options)
-      item.destroy?()
-      true
-    else
-      false
-
-  # Public: Remove and delete all items.
-  destroyItems: ->
-    @destroyItem(item) for item in @getItems()
-
-  # Public: Remove and delete all but the currently focused item.
-  destroyInactiveItems: ->
-    @destroyItem(item) for item in @getItems() when item isnt @activeItem
-
-  # Public: Prompt the user to save the given item.
-  promptToSaveItem: (item) ->
-    return true unless item.shouldPromptToSave?()
-
-    uri = item.getUri()
-    chosen = atom.confirm
-      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
-      detailedMessage: "Your changes will be lost if you close this item without saving."
-      buttons: ["Save", "Cancel", "Don't Save"]
-
-    switch chosen
-      when 0 then @saveItem(item, -> true)
-      when 1 then false
-      when 2 then true
-
-  # Public: Saves the currently focused item.
-  saveActiveItem: =>
-    @saveItem(@activeItem)
-
-  # Public: Save and prompt for path for the currently focused item.
-  saveActiveItemAs: =>
-    @saveItemAs(@activeItem)
-
-  # Public: Saves the specified item and call the next action when complete.
-  saveItem: (item, nextAction) ->
-    if item.getUri?()
-      item.save?()
-      nextAction?()
-    else
-      @saveItemAs(item, nextAction)
-
-  # Public: Prompts for path and then saves the specified item. Upon completion
-  # it also calls the next action.
-  saveItemAs: (item, nextAction) ->
-    return unless item.saveAs?
-
-    itemPath = item.getPath?()
-    itemPath = dirname(itemPath) if itemPath
-    path = atom.showSaveDialogSync(itemPath)
-    if path
-      item.saveAs(path)
-      nextAction?()
-
-  # Public: Saves all items in this pane.
-  saveItems: =>
-    @saveItem(item) for item in @getItems()
-
-  # Public: Finds the first item that matches the given uri.
-  itemForUri: (uri) ->
-    _.detect @items, (item) -> item.getUri?() is uri
-
-  # Public: Focuses the first item that matches the given uri.
-  showItemForUri: (uri) ->
-    if item = @itemForUri(uri)
-      @showItem(item)
-      true
-    else
-      false
 
   # Private:
   cleanupItemView: (item, detach) ->
