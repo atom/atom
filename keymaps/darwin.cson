@@ -129,6 +129,7 @@
   'cmd-/': 'editor:toggle-line-comments'
   'cmd-j': 'editor:join-line'
   'cmd-D': 'editor:duplicate-line'
+  'cmd-L': 'editor:split-selection-into-lines'
 
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
