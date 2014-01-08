@@ -76,7 +76,7 @@ class Syntax extends GrammarRegistry
     _.pluck matchingScopedProperties, 'properties'
 
   buildScopeElement: (scope) ->
-    scope = new Array(scope...)
+    scope = scope.slice()
     element = $$ ->
       elementsForRemainingScopes = =>
         classString = scope.shift()
