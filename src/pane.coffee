@@ -26,6 +26,8 @@ class Pane extends View
       @div class: 'item-views', outlet: 'itemViews'
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
+  @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
+    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex', toProperty: 'model'
 
   previousActiveItem: null
 
@@ -36,20 +38,20 @@ class Pane extends View
     else
       @model = new PaneModel(items: args)
 
-    @handleItemEvents(item) for item in @items
-
+    @onItemAdded(item) for item in @items
     @viewsByItem = new WeakMap()
-
     @handleEvents()
 
   handleEvents: ->
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
+    @subscribe @model, 'item-added', @onItemAdded
+
     @subscribe this, 'focus', => @activeView?.focus(); false
     @subscribe this, 'focusin', => @makeActive()
 
-    @command 'pane:save-items', @saveItems
-    @command 'pane:show-next-item', @showNextItem
-    @command 'pane:show-previous-item', @showPreviousItem
+    @command 'pane:save-items', => @saveItems()
+    @command 'pane:show-next-item', => @showNextItem()
+    @command 'pane:show-previous-item', => @showPreviousItem()
 
     @command 'pane:show-item-1', => @showItemAtIndex(0)
     @command 'pane:show-item-2', => @showItemAtIndex(1)
@@ -111,46 +113,8 @@ class Pane extends View
     nextIndex = (panes.indexOf(this) + 1) % panes.length
     panes[nextIndex]
 
-  # Public: Returns all contained views.
-  getItems: ->
-    new Array(@items...)
-
-  # Public: Switches to the next contained item.
-  showNextItem: =>
-    index = @getActiveItemIndex()
-    if index < @items.length - 1
-      @showItemAtIndex(index + 1)
-    else
-      @showItemAtIndex(0)
-
-  # Public: Switches to the previous contained item.
-  showPreviousItem: =>
-    index = @getActiveItemIndex()
-    if index > 0
-      @showItemAtIndex(index - 1)
-    else
-      @showItemAtIndex(@items.length - 1)
-
   getActivePaneItem: ->
     @activeItem
-
-  # Public: Returns the index of the currently active item.
-  getActiveItemIndex: ->
-    @items.indexOf(@activeItem)
-
-  # Public: Switch to the item associated with the given index.
-  showItemAtIndex: (index) ->
-    @showItem(@itemAtIndex(index))
-
-  # Public: Returns the item at the specified index.
-  itemAtIndex: (index) ->
-    @items[index]
-
-  # Public: Focuses the given item.
-  showItem: (item) ->
-    if item?
-      @addItem(item)
-      @model.activeItem = item
 
   onActiveItemChanged: (item) =>
     @previousActiveItem?.off? 'title-changed', @activeItemTitleChanged
@@ -168,22 +132,14 @@ class Pane extends View
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
+  onItemAdded: (item, index) =>
+    if typeof item.on is 'function'
+      @subscribe item, 'destroyed', => @destroyItem(item)
+    @trigger 'pane:item-added', [item, index]
+
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
-
-  # Public: Add an additional item at the specified index.
-  addItem: (item, index=@getActiveItemIndex() + 1) ->
-    return if _.include(@items, item)
-
-    @items.splice(index, 0, item)
-    @trigger 'pane:item-added', [item, index]
-    @handleItemEvents(item)
-    item
-
-  handleItemEvents: (item) ->
-    if _.isFunction(item.on)
-      @subscribe item, 'destroyed', => @destroyItem(item)
 
   # Public: Remove the currently active item.
   destroyActiveItem: =>
