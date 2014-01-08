@@ -202,15 +202,6 @@ class Pane extends View
   viewForActiveItem: ->
     @viewForItem(@activeItem)
 
-  # Private:
-  adjustDimensions: -> # do nothing
-
-  # Private:
-  horizontalGridUnits: -> 1
-
-  # Private:
-  verticalGridUnits: -> 1
-
   # Public: Creates a new pane above with a copy of the currently focused item.
   splitUp: (items...) ->
     @split(items, 'column', 'before')
@@ -248,7 +239,6 @@ class Pane extends View
     switch side
       when 'before' then parent.insertChildBefore(this, newPane)
       when 'after' then parent.insertChildAfter(this, newPane)
-    @getContainer().adjustPaneDimensions()
     newPane.makeActive()
     newPane.focus()
     newPane
