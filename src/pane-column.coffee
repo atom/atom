@@ -7,7 +7,7 @@ module.exports =
 class PaneColumn extends PaneAxis
 
   @content: ->
-    @div class: 'column'
+    @div class: 'pane-column'
 
   className: ->
     "PaneColumn"

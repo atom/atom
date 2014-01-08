@@ -7,7 +7,7 @@ PaneAxis = require './pane-axis'
 module.exports =
 class PaneRow extends PaneAxis
   @content: ->
-    @div class: 'row'
+    @div class: 'pane-row'
 
   className: ->
     "PaneRow"
