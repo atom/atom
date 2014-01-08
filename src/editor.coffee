@@ -174,7 +174,8 @@ class Editor extends Model
   # Returns a {Boolean}.
   isEqual: (other) ->
     return false unless other instanceof Editor
-    @buffer.getPath() == other.buffer.getPath() and
+    @isAlive() == other.isAlive() and
+      @buffer.getPath() == other.buffer.getPath() and
       @getScrollTop() == other.getScrollTop() and
       @getScrollLeft() == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
