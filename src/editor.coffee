@@ -1192,9 +1192,8 @@ class Editor extends Model
 
   # Public: Split any multi-line selections into one selection per line.
   #
-  # This method breaks apart multi-line selections by adding new selections
-  # that select the entire line for all completely selected lines and leaves
-  # any partially selected lines at the start and end of the selection as-is.
+  # This methods break apart all multi-line selections to create multiple
+  # single-line selections that cumulatively cover the same original area.
   #
   # This method will not affect any single line selections.
   splitSelectionIntoLines: ->
