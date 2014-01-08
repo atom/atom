@@ -27,6 +27,10 @@ class PaneModel extends Model
   getItems: ->
     clone(@items)
 
+  # Public: Returns the item at the specified index.
+  itemAtIndex: (index) ->
+    @items[index]
+
   # Public: Switches to the next contained item.
   showNextItem: =>
     index = @getActiveItemIndex()
@@ -66,17 +70,25 @@ class PaneModel extends Model
     item
 
   # Public:
-  removeItem: (item) ->
+  removeItem: (item, detach) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index) if index >= 0
+    @removeItemAtIndex(index, detach) if index >= 0
 
   # Public: Just remove the item at the given index.
-  removeItemAtIndex: (index) ->
+  removeItemAtIndex: (index, detach) ->
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
-    @emit 'item-removed', item, index
+    @emit 'item-removed', item, index, detach
 
-  # Public: Returns the item at the specified index.
-  itemAtIndex: (index) ->
-    @items[index]
+  # Public: Moves the given item to a the new index.
+  moveItem: (item, newIndex) ->
+    oldIndex = @items.indexOf(item)
+    @items.splice(oldIndex, 1)
+    @items.splice(newIndex, 0, item)
+    @emit 'item-moved', item, newIndex
+
+  # Public: Moves the given item to another pane.
+  moveItemToPane: (item, pane, index) ->
+    pane.addItem(item, index)
+    @removeItem(item, true)

@@ -28,7 +28,7 @@ class Pane extends View
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
     'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex',  'removeItem', 'removeItemAtIndex',
-    toProperty: 'model'
+    'moveItem', 'moveItemToPane', toProperty: 'model'
 
   previousActiveItem: null
 
@@ -47,6 +47,7 @@ class Pane extends View
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
     @subscribe @model, 'item-added', @onItemAdded
     @subscribe @model, 'item-removed', @onItemRemoved
+    @subscribe @model, 'item-moved', @onItemMoved
 
     @subscribe this, 'focus', => @activeView?.focus(); false
     @subscribe this, 'focusin', => @makeActive()
@@ -139,9 +140,12 @@ class Pane extends View
       @subscribe item, 'destroyed', => @destroyItem(item)
     @trigger 'pane:item-added', [item, index]
 
-  onItemRemoved: (item, index) =>
-    @cleanupItemView(item)
+  onItemRemoved: (item, index, detach) =>
+    @cleanupItemView(item, detach)
     @trigger 'pane:item-removed', [item, index]
+
+  onItemMoved: (item, newIndex) =>
+    @trigger 'pane:item-moved', [item, newIndex]
 
   # Private:
   activeItemTitleChanged: =>
@@ -220,20 +224,6 @@ class Pane extends View
   saveItems: =>
     @saveItem(item) for item in @getItems()
 
-  # Public: Moves the given item to a the new index.
-  moveItem: (item, newIndex) ->
-    oldIndex = @items.indexOf(item)
-    @items.splice(oldIndex, 1)
-    @items.splice(newIndex, 0, item)
-    @trigger 'pane:item-moved', [item, newIndex]
-
-  # Public: Moves the given item to another pane.
-  moveItemToPane: (item, pane, index) ->
-    @isMovingItem = true
-    pane.addItem(item, index)
-    @removeItem(item)
-    @isMovingItem = false
-
   # Public: Finds the first item that matches the given uri.
   itemForUri: (uri) ->
     _.detect @items, (item) -> item.getUri?() is uri
@@ -247,24 +237,24 @@ class Pane extends View
       false
 
   # Private:
-  cleanupItemView: (item) ->
+  cleanupItemView: (item, detach) ->
     if item instanceof $
       viewToRemove = item
     else if viewToRemove = @viewsByItem.get(item)
       @viewsByItem.delete(item)
 
     if @items.length > 0
-      if @isMovingItem and item is viewToRemove
+      if detach and item is viewToRemove
         viewToRemove?.detach()
-      else if @isMovingItem and viewToRemove?.setModel
+      else if detach and viewToRemove?.setModel
         viewToRemove.setModel(null) # dont want to destroy the model, so set to null
         viewToRemove.remove()
       else
         viewToRemove?.remove()
     else
-      if @isMovingItem and item is viewToRemove
+      if detach and item is viewToRemove
         viewToRemove?.detach()
-      else if @isMovingItem and viewToRemove?.setModel
+      else if detach and viewToRemove?.setModel
         viewToRemove.setModel(null) # dont want to destroy the model, so set to null
 
       @parent().view().removeChild(this)
