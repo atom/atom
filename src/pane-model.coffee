@@ -8,10 +8,11 @@ class PaneModel extends Model
   Serializable.includeInto(this)
 
   @properties
+    items: -> []
     activeItem: null
 
-  constructor: ({@items, @activeItem}) ->
-    @items ?= []
+  constructor: ->
+    super
     @activeItem ?= @items[0]
 
   serializeParams: ->
