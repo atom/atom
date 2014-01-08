@@ -1181,6 +1181,27 @@ describe "Editor", ->
               [[10, 0], [10, 0]]
             ]
 
+      describe ".splitSelectionIntoLines()", ->
+        it "splits all multi-line selections into one selection per line", ->
+          editor.setSelectedBufferRange([[0, 3], [2, 4]])
+          editor.splitSelectionIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            [[0, 3], [0, 29]]
+            [[1, 0], [1, 30]]
+            [[2, 0], [2, 4]]
+          ]
+
+          editor.setSelectedBufferRange([[0, 3], [1, 10]])
+          editor.splitSelectionIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            [[0, 3], [0, 29]]
+            [[1, 0], [1, 10]]
+          ]
+
+          editor.setSelectedBufferRange([[0, 0], [0, 3]])
+          editor.splitSelectionIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
+
       describe ".consolidateSelections()", ->
         it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
           editor.setSelectedBufferRange([[3, 16], [3, 21]])

@@ -183,6 +183,7 @@ class EditorView extends View
         'editor:newline-above': @insertNewlineAbove
         'editor:add-selection-below': @addSelectionBelow
         'editor:add-selection-above': @addSelectionAbove
+        'editor:split-selection-into-lines': @splitSelectionIntoLines
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
@@ -374,6 +375,9 @@ class EditorView extends View
 
   # {Delegates to: Editor.addSelectionAbove}
   addSelectionAbove: -> @editor.addSelectionAbove()
+
+  # {Delegates to: Editor.splitSelectionIntoLines}
+  splitSelectionIntoLines: -> @editor.splitSelectionIntoLines()
 
   # {Delegates to: Editor.selectToBeginningOfWord}
   selectToBeginningOfWord: -> @editor.selectToBeginningOfWord()

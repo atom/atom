@@ -1190,6 +1190,26 @@ class Editor extends Model
   addSelectionAbove: ->
     @expandSelectionsBackward (selection) => selection.addSelectionAbove()
 
+  # Public: Split any multi-line selections into one selection per line.
+  #
+  # This method breaks apart multi-line selections by adding new selections
+  # that select the entire line for all completely selected lines and leaves
+  # any partially selected lines at the start and end of the selection as-is.
+  #
+  # This method will not affect any single line selections.
+  splitSelectionIntoLines: ->
+    for selection in @getSelections()
+      range = selection.getBufferRange()
+      continue if range.isSingleLine()
+
+      selection.destroy()
+      {start, end} = range
+      @addSelectionForBufferRange([start, [start.row, Infinity]])
+      {row} = start
+      while ++row < end.row
+        @addSelectionForBufferRange([[row, 0], [row, Infinity]])
+      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]])
+
   # Public: Transposes the current text selections.
   #
   # The text in each selection is reversed so `abcd` would become `dcba`. The
