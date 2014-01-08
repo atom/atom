@@ -10,6 +10,7 @@ class PaneModel extends Model
   @properties
     items: -> []
     activeItem: null
+    focused: false
 
   constructor: ->
     super
@@ -18,12 +19,19 @@ class PaneModel extends Model
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
+    focused: @focused
 
   deserializeParams: (params) ->
     {items, activeItemUri} = params
     params.items = items.map (itemState) -> atom.deserializers.deserialize(itemState)
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
+
+  focus: ->
+    @focused = true
+
+  blur: ->
+    @focused = false
 
   # Public: Returns all contained views.
   getItems: ->

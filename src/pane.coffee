@@ -32,11 +32,13 @@ class Pane extends View
     toProperty: 'model'
 
   previousActiveItem: null
+  focusOnAttach: false
 
   # Private:
   initialize: (args...) ->
     if args[0]?.model?
-      {@model, @focusOnAttach} = args[0]
+      {@model} = args[0]
+      @focusOnAttach = @model.focused
     else
       @model = new PaneModel(items: args)
 
@@ -53,7 +55,8 @@ class Pane extends View
     @subscribe @model, 'item-destroyed', @onItemDestroyed
 
     @subscribe this, 'focus', => @activeView?.focus(); false
-    @subscribe this, 'focusin', => @makeActive()
+    @subscribe this, 'focusin', => @makeActive(); @model.focus()
+    @subscribe this, 'focusout', => @model.blur()
 
     @command 'pane:save-items', => @saveItems()
     @command 'pane:show-next-item', => @showNextItem()
@@ -82,7 +85,6 @@ class Pane extends View
 
   serializeParams: ->
     model: @model.serialize()
-    focusOnAttach: @is(':has(:focus)')
 
   # Private:
   afterAttach: (onDom) ->
