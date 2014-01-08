@@ -28,7 +28,8 @@ class Pane extends View
     'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex',  'removeItem', 'removeItemAtIndex',
     'moveItem', 'moveItemToPane', 'destroyItem', 'destroyItems', 'destroyActiveItem',
     'destroyInactiveItems', 'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs',
-    'saveItems', 'itemForUri', 'showItemForUri', 'promptToSaveItem', toProperty: 'model'
+    'saveItems', 'itemForUri', 'showItemForUri', 'promptToSaveItem', 'copyActiveItem',
+    toProperty: 'model'
 
   previousActiveItem: null
 
@@ -259,10 +260,6 @@ class Pane extends View
   # Private:
   getContainer: ->
     @closest('.panes').view()
-
-  # Private:
-  copyActiveItem: ->
-    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Private:
   remove: (selector, keepData) ->

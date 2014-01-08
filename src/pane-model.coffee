@@ -176,3 +176,7 @@ class PaneModel extends Model
       true
     else
       false
+
+  # Private:
+  copyActiveItem: ->
+    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
