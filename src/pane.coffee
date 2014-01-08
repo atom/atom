@@ -27,7 +27,8 @@ class Pane extends View
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
-    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex', toProperty: 'model'
+    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex',  'removeItem', 'removeItemAtIndex',
+    toProperty: 'model'
 
   previousActiveItem: null
 
@@ -45,6 +46,7 @@ class Pane extends View
   handleEvents: ->
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
     @subscribe @model, 'item-added', @onItemAdded
+    @subscribe @model, 'item-removed', @onItemRemoved
 
     @subscribe this, 'focus', => @activeView?.focus(); false
     @subscribe this, 'focusin', => @makeActive()
@@ -137,6 +139,10 @@ class Pane extends View
       @subscribe item, 'destroyed', => @destroyItem(item)
     @trigger 'pane:item-added', [item, index]
 
+  onItemRemoved: (item, index) =>
+    @cleanupItemView(item)
+    @trigger 'pane:item-removed', [item, index]
+
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
@@ -213,20 +219,6 @@ class Pane extends View
   # Public: Saves all items in this pane.
   saveItems: =>
     @saveItem(item) for item in @getItems()
-
-  # Public:
-  removeItem: (item) ->
-    index = @items.indexOf(item)
-    @removeItemAtIndex(index) if index >= 0
-
-  # Public: Just remove the item at the given index.
-  removeItemAtIndex: (index) ->
-    item = @items[index]
-    @activeItem.off? 'title-changed', @activeItemTitleChanged if item is @activeItem
-    @showNextItem() if item is @activeItem and @items.length > 1
-    _.remove(@items, item)
-    @cleanupItemView(item)
-    @trigger 'pane:item-removed', [item, index]
 
   # Public: Moves the given item to a the new index.
   moveItem: (item, newIndex) ->

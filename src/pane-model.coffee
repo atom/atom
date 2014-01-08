@@ -65,6 +65,18 @@ class PaneModel extends Model
     @emit 'item-added', item, index
     item
 
+  # Public:
+  removeItem: (item) ->
+    index = @items.indexOf(item)
+    @removeItemAtIndex(index) if index >= 0
+
+  # Public: Just remove the item at the given index.
+  removeItemAtIndex: (index) ->
+    item = @items[index]
+    @showNextItem() if item is @activeItem and @items.length > 1
+    @items.splice(index, 1)
+    @emit 'item-removed', item, index
+
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
     @items[index]
