@@ -111,6 +111,7 @@
   'cmd-alt-p': 'editor:log-cursor-scope'
   'cmd-k cmd-u': 'editor:upper-case'
   'cmd-k cmd-l': 'editor:lower-case'
+  'cmd-l': 'editor:select-line'
 
 'body.platform-darwin .editor:not(.mini)':
   # Atom specific
