@@ -194,17 +194,8 @@ class TextBuffer extends TextBufferCore
     else
       null
 
-  # Deprecated: Use ::getLastPosition instead
-  getEofPosition: -> @getLastPosition()
-
-  # Deprecated: Use appendText instead
-  append: -> @appendText(arguments...)
-
-  # Deprecated: Use insertText instead
-  insert: -> @insertText(arguments...)
-
-  # Deprecated: Use deleteText instead
-  delete: -> @deleteText(arguments...)
+  # Deprecated: Use ::getEndPosition instead
+  getEofPosition: -> @getEndPosition()
 
   # Saves the buffer.
   save: ->
