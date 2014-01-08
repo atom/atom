@@ -40,7 +40,12 @@ class Pane extends View
 
     @viewsByItem = new WeakMap()
 
+    @handleEvents()
+
+  handleEvents: ->
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
+    @subscribe this, 'focus', => @activeView?.focus(); false
+    @subscribe this, 'focusin', => @makeActive()
 
     @command 'pane:save-items', @saveItems
     @command 'pane:show-next-item', @showNextItem
@@ -62,8 +67,6 @@ class Pane extends View
     @command 'pane:split-down', => @splitDown(@copyActiveItem())
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
-    @on 'focus', => @activeView?.focus(); false
-    @on 'focusin', => @makeActive()
 
   deserializeParams: (params) ->
     params.model = PaneModel.deserialize(params.model)
