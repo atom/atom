@@ -223,7 +223,7 @@ class Pane extends View
   split: (items, axis, side) ->
     PaneContainer = require './pane-container'
 
-    parent = @parent().view()
+    parent = @parentModel ? @parent().view()
     unless parent.hasClass(axis)
       axis = @buildPaneAxis(axis)
       if parent instanceof PaneContainer

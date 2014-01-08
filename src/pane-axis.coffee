@@ -1,5 +1,6 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
+PaneAxisModel = require './pane-axis-model'
 
 ### Internal ###
 module.exports =
@@ -7,6 +8,11 @@ class PaneAxis extends View
   Serializable.includeInto(this)
 
   initialize: ({children}={}) ->
+    @model = new PaneAxisModel
+    @model.children.on 'changed', ({index, removedValues, insertedValues}) =>
+      @onChildRemoved(child, index) for child in removedValues
+      @onChildAdded(child, index) for child in insertedValues
+
     @addChild(child) for child in children ? []
 
   serializeParams: ->
@@ -16,10 +22,16 @@ class PaneAxis extends View
     params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
     params
 
-  addChild: (child, index=@children().length) ->
-    @insertAt(index, child)
+  addChild: (child, index) ->
+    @model.addChild(child, index)
 
   removeChild: (child) ->
+    @model.removeChild(child)
+
+  onChildAdded: (child, index) =>
+    @insertAt(index, child)
+
+  onChildRemoved: (child) =>
     parent = @parent().view()
     container = @getContainer()
     childWasInactive = not child.isActive?()
@@ -61,8 +73,8 @@ class PaneAxis extends View
   getActivePane: ->
     @find('.pane.active').view() ? @find('.pane:first').view()
 
-  insertChildBefore: (child, newChild) ->
-    newChild.insertBefore(child)
+  insertChildBefore: (currentChild, newChild) ->
+    @model.insertChildBefore(currentChild, newChild)
 
-  insertChildAfter: (child, newChild) ->
-    newChild.insertAfter(child)
+  insertChildAfter: (currentChild, newChild) ->
+    @model.insertChildAfter(currentChild, newChild)
