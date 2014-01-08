@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "biscotto": "0.0.17",
-    "first-mate": "~0.10.0",
+    "first-mate": "~0.13.0",
     "formidable": "~1.0.14",
     "github-releases": "~0.2.0",
     "grunt": "~0.4.1",
