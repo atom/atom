@@ -68,13 +68,27 @@ describe "Directory", ->
 
   describe "on #darwin or #linux", ->
     it "includes symlink information about entries", ->
-      entries = directory.getEntries()
+      entries = directory.getEntriesSync()
       for entry in entries
         name = entry.getBaseName()
         if name is 'symlink-to-dir' or name is 'symlink-to-file'
           expect(entry.symlink).toBeTruthy()
         else
           expect(entry.symlink).toBeFalsy()
+
+      callback = jasmine.createSpy('getEntries')
+      directory.getEntries(callback)
+
+      waitsFor -> callback.callCount is 1
+
+      runs ->
+        entries = callback.mostRecentCall.args[1]
+        for entry in entries
+          name = entry.getBaseName()
+          if name is 'symlink-to-dir' or name is 'symlink-to-file'
+            expect(entry.symlink).toBeTruthy()
+          else
+            expect(entry.symlink).toBeFalsy()
 
   describe ".relativize(path)", ->
     describe "on #darwin or #linux", ->

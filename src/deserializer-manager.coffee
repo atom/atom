@@ -1,5 +1,3 @@
-{TelepathicObject, Model} = require 'telepath'
-
 # Public: Manages the deserializers used for serialized state
 #
 # Should be accessed via `atom.deserializers`
@@ -12,12 +10,10 @@ class DeserializerManager
   # Public: Register the given class(es) as deserializers.
   add: (klasses...) ->
     @deserializers[klass.name] = klass for klass in klasses
-    @environment?.registerRepresentationClasses(klasses...)
 
   # Public: Add a deferred deserializer for the given class name.
   addDeferred: (name, fn) ->
     @deferredDeserializers[name] = fn
-    @environment?.registerDeferredRepresentationClass(name, fn)
 
   # Public: Remove the given class(es) as deserializers.
   remove: (klasses...) ->
@@ -26,13 +22,10 @@ class DeserializerManager
   # Public: Deserialize the state and params.
   deserialize: (state, params) ->
     return unless state?
-    return state unless state.constructor is Object or state instanceof TelepathicObject
 
     if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version
       return if deserializer.version? and deserializer.version isnt stateVersion
-      if (state instanceof TelepathicObject) and not deserializer.acceptsDocuments
-        state = state.toObject()
       deserializer.deserialize(state, params)
     else
       console.warn "No deserializer found for", state

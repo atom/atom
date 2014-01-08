@@ -1,4 +1,4 @@
-{Point, Range} = require 'telepath'
+{Point, Range} = require 'text-buffer'
 
 # Private: Represents a fold that collapses multiple buffer lines into a single
 # line on the screen.
@@ -38,6 +38,7 @@ class Fold
   getBufferRange: ({includeNewline}={}) ->
     range = @marker.getRange()
     if includeNewline
+      range = range.copy()
       range.end.row++
       range.end.column = 0
     range

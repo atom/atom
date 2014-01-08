@@ -16,21 +16,17 @@ describe "Project", ->
     afterEach ->
       deserializedProject?.destroy()
 
-    it "destroys unretained buffers and does not include them in the serialized state", ->
+    it "does not include unretained buffers in the serialized state", ->
       atom.project.bufferForPathSync('a')
       expect(atom.project.getBuffers().length).toBe 1
 
-      atom.project.getState().serializeForPersistence()
-      deserializedProject = atom.project.testPersistence()
-
+      deserializedProject = atom.project.testSerialization()
       expect(deserializedProject.getBuffers().length).toBe 0
-      expect(atom.project.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
       atom.project.openSync('a')
       expect(atom.project.getBuffers().length).toBe 1
-      atom.project.getState().serializeForPersistence()
-      deserializedProject = atom.project.testPersistence()
+      deserializedProject = atom.project.testSerialization()
 
       expect(deserializedProject.getBuffers().length).toBe 1
       deserializedProject.getBuffers()[0].destroy()

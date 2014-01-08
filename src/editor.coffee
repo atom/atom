@@ -1,6 +1,8 @@
 _ = require 'underscore-plus'
 path = require 'path'
-{Model, Point, Range} = require 'telepath'
+Serializable = require 'serializable'
+{Model} = require 'theorist'
+{Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
@@ -27,17 +29,12 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #   atom.workspaceView.eachEditorView (editorView) ->
 #     editorView.insertText('Hello World')
 # ```
-#
-# ## Collaboration builtin
-#
-# FIXME: Describe how there are both local and remote cursors and selections and
-# why that is.
 module.exports =
 class Editor extends Model
+  Serializable.includeInto(this)
+  atom.deserializers.add(this)
 
   @properties
-    displayBuffer: null
-    softTabs: null
     scrollTop: 0
     scrollLeft: 0
 
@@ -47,33 +44,18 @@ class Editor extends Model
   buffer: null
   languageMode: null
   cursors: null
-  remoteCursors: null
   selections: null
-  remoteSelections: null
   suppressSelectionMerging: false
 
-  constructor: ->
+  constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
-    @deserializing = @state?
-
-  created: ->
-    if @deserializing
-      @deserializing = false
-      @callDisplayBufferCreatedHook = true
-      @registerEditor = true
-      return
 
     @cursors = []
-    @remoteCursors = []
     @selections = []
-    @remoteSelections = []
 
-    unless @displayBuffer?
-      @displayBuffer = new DisplayBuffer({@buffer, @tabLength, @softWrap})
-      @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-
-    @displayBuffer.created() if @callDisplayBufferCreatedHook
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
+    @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -82,11 +64,11 @@ class Editor extends Model
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
-    if @getCursors().length is 0 and not @suppressCursorCreation
-      if @initialLine
-        position = [@initialLine, 0]
+    if @getCursors().length is 0 and not suppressCursorCreation
+      if initialLine
+        position = [initialLine, 0]
       else
-        position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
+        position = [0, 0]
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -94,10 +76,19 @@ class Editor extends Model
     @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
-    atom.project.addEditor(this) if @registerEditor
+    atom.project.addEditor(this) if registerEditor
 
-  # Deprecated: The goal is a world where we don't call serialize explicitly
-  serialize: -> this
+  serializeParams: ->
+    id: @id
+    softTabs: @softTabs
+    scrollTop: @scrollTop
+    scrollLeft: @scrollLeft
+    displayBuffer: @displayBuffer.serialize()
+
+  deserializeParams: (params) ->
+    params.displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    params.registerEditor = true
+    params
 
   # Private:
   subscribeToBuffer: ->
@@ -133,15 +124,13 @@ class Editor extends Model
     @displayBuffer.destroy()
     @languageMode.destroy()
     atom.project?.removeEditor(this)
-    @emit 'destroyed'
-    @off()
 
   # Private: Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = @create(new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true}))
+    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
@@ -823,20 +812,12 @@ class Editor extends Model
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Public: Returns an Array of all {Cursor}s, including cursors representing
-  # remote users.
-  getAllCursors: ->
-    @getCursors().concat(@getRemoteCursors())
-
   # Public: Returns an Array of all local {Cursor}s.
   getCursors: -> new Array(@cursors...)
 
   # Public: Returns the most recently added {Cursor}.
   getCursor: ->
     _.last(@cursors)
-
-  # Public: Returns an Array of all remove {Cursor}s.
-  getRemoteCursors: -> new Array(@remoteCursors...)
 
   # Public: Adds and returns a cursor at the given screen position.
   addCursorAtScreenPosition: (screenPosition) ->
@@ -852,10 +833,7 @@ class Editor extends Model
   # position.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
-    if marker.isLocal()
-      @cursors.push(cursor)
-    else
-      @remoteCursors.push(cursor)
+    @cursors.push(cursor)
     @emit 'cursor-added', cursor
     cursor
 
@@ -876,12 +854,7 @@ class Editor extends Model
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
-
-    if marker.isLocal()
-      @selections.push(selection)
-    else
-      @remoteSelections.push(selection)
-
+    @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
     if selection.destroyed
@@ -939,10 +912,7 @@ class Editor extends Model
   #
   # * selection - The {Selection} to remove.
   removeSelection: (selection) ->
-    if selection.isLocal()
-      _.remove(@selections, selection)
-    else
-      _.remove(@remoteSelections, selection)
+    _.remove(@selections, selection)
 
   # Public: Clears every selection.
   #
@@ -962,10 +932,6 @@ class Editor extends Model
     else
       false
 
-  # Public: Returns all selections, including remote selections.
-  getAllSelections: ->
-    @getSelections().concat(@getRemoteSelections())
-
   # Public: Gets all local selections.
   #
   # Returns an {Array} of {Selection}s.
@@ -980,20 +946,11 @@ class Editor extends Model
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Returns all remote selections.
-  getRemoteSelections: -> new Array(@remoteSelections...)
-
   # Public: Gets all local selections, ordered by their position in the buffer.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
     @getSelections().sort (a, b) -> a.compare(b)
-
-  # Public: Gets all remote selections, ordered by their position in the buffer.
-  #
-  # Returns an {Array} of {Selection}s.
-  getRemoteSelectionsOrderedByBufferPosition: ->
-    @getRemoteSelections().sort (a, b) -> a.compare(b)
 
   # Public: Gets the very last local selection in the buffer.
   #
@@ -1063,12 +1020,6 @@ class Editor extends Model
   # Sorted by their position in the file itself.
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
-
-  # Public: Gets an Array of buffer {Range}s of all the remote {Selection}s.
-  #
-  # Sorted by their position in the file itself.
-  getRemoteSelectedBufferRanges: ->
-    selection.getBufferRange() for selection in @getRemoteSelectionsOrderedByBufferPosition()
 
   # Public: Returns the selected text of the most recently added local {Selection}.
   getSelectedText: ->
