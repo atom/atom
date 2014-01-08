@@ -13,7 +13,7 @@ describe "Pane", ->
     initialize: ({@id, @text}) ->
     serialize: -> { deserializer: 'TestView', @id, @text }
     getUri: -> @id
-    isEqual: (other) -> @id == other.id and @text == other.text
+    isEqual: (other) -> other? and @id == other.id and @text == other.text
 
   beforeEach ->
     atom.deserializers.add(TestView)
@@ -558,12 +558,12 @@ describe "Pane", ->
         pane2 = pane1.splitRight()
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual []
-        expect(pane2.activeItem).toBe null
+        expect(pane2.activeItem).toBeUndefined()
 
         pane3 = pane2.splitRight()
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
         expect(pane3.items).toEqual []
-        expect(pane3.activeItem).toBe null
+        expect(pane3.activeItem).toBeUndefined()
 
     describe "splitLeft(items...)", ->
       it "builds a row if needed, then appends a new pane before itself", ->

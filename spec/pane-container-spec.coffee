@@ -16,7 +16,7 @@ describe "PaneContainer", ->
       serialize: -> { deserializer: 'TestView', @name }
       getUri: -> path.join(temp.dir, @name)
       save: -> @saved = true
-      isEqual: (other) -> @name is other.name
+      isEqual: (other) -> @name is other?.name
 
     container = new PaneContainer
     pane1 = new Pane(new TestView('1'))

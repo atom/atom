@@ -27,11 +27,12 @@ class Pane extends View
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
 
+  previousActiveItem: null
+
   # Private:
   initialize: (args...) ->
-    if args[0]?.items # deserializing
-      {items, activeItemUri, @focusOnAttach} = args[0]
-      @model = new PaneModel({items})
+    if args[0]?.model?
+      {@model, @focusOnAttach} = args[0]
     else
       @model = new PaneModel(items: args)
 
@@ -39,8 +40,7 @@ class Pane extends View
 
     @viewsByItem = new WeakMap()
 
-    unless activeItemUri? and @showItemForUri(activeItemUri)
-      @showItem(@items[0]) if @items.length > 0
+    @subscribe @model.$activeItem, 'value', @onActiveItemChanged
 
     @command 'pane:save-items', @saveItems
     @command 'pane:show-next-item', @showNextItem
@@ -66,13 +66,12 @@ class Pane extends View
     @on 'focusin', => @makeActive()
 
   deserializeParams: (params) ->
-    params.items = _.compact(params.items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    params.model = PaneModel.deserialize(params.model)
     params
 
   serializeParams: ->
-    items: _.compact(@items.map (item) -> item.serialize?())
+    model: @model.serialize()
     focusOnAttach: @is(':has(:focus)')
-    activeItemUri: @getActivePaneItem()?.getUri?()
 
   # Private:
   afterAttach: (onDom) ->
@@ -146,20 +145,23 @@ class Pane extends View
 
   # Public: Focuses the given item.
   showItem: (item) ->
-    return if !item? or item is @activeItem
+    if item?
+      @addItem(item)
+      @model.activeItem = item
 
-    if @activeItem
-      @activeItem.off? 'title-changed', @activeItemTitleChanged
+  onActiveItemChanged: (item) =>
+    @previousActiveItem?.off? 'title-changed', @activeItemTitleChanged
+    @previousActiveItem = item
+
+    return unless item?
 
     isFocused = @is(':has(:focus)')
-    @addItem(item)
     item.on? 'title-changed', @activeItemTitleChanged
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
     view.focus() if isFocused
-    @activeItem = item
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
