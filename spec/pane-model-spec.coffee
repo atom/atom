@@ -77,3 +77,31 @@ describe "PaneModel", ->
           column = container.root.children[0]
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane1, pane3, pane2]
+
+  describe "::destroy()", ->
+    [pane1, container] = []
+
+    beforeEach ->
+      pane1 = new PaneModel(items: ["A"])
+      container = new PaneContainerModel(root: pane1)
+
+    describe "if the pane's parent has more than two children", ->
+      it "removes the pane from its parent", ->
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitRight()
+
+        expect(container.root.children).toEqual [pane1, pane2, pane3]
+        pane2.destroy()
+        expect(container.root.children).toEqual [pane1, pane3]
+
+    describe "if the pane's parent has two children", ->
+      it "replaces the parent with its last remaining child", ->
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitDown()
+
+        expect(container.root.children[0]).toBe pane1
+        expect(container.root.children[1].children).toEqual [pane2, pane3]
+        pane3.destroy()
+        expect(container.root.children).toEqual [pane1, pane2]
+        pane2.destroy()
+        expect(container.root).toBe pane1

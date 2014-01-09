@@ -4,7 +4,15 @@ module.exports =
 class PaneAxisModel extends Model
   constructor: ({@orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
-    @children.onEach (child) => child.parent = this
+
+    @children.onEach (child) =>
+      child.parent = this
+      @subscribe child, 'destroyed', => @removeChild(child)
+
+    @children.onRemoval (child) => @unsubscribe(child)
+
+    @when @children.$length.becomesLessThan(2), 'reparentLastChild'
+    @when @children.$length.becomesLessThan(1), 'destroy'
 
   addChild: (child, index=@children.length) ->
     @children.splice(index, 0, child)
@@ -26,3 +34,6 @@ class PaneAxisModel extends Model
   insertChildAfter: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
     @children.splice(index + 1, 0, newChild)
+
+  reparentLastChild: ->
+    @parent.replaceChild(this, @children[0])
