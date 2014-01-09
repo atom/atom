@@ -1,68 +1,36 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
 PaneAxisModel = require './pane-axis-model'
+Pane = null
 
 ### Internal ###
 module.exports =
 class PaneAxis extends View
-  Serializable.includeInto(this)
+  initialize: (@model) ->
+    @subscribe @model.children.onRemoval @onChildRemoved
+    @subscribe @model.children.onEach @onChildAdded
 
-  initialize: ({children}={}) ->
-    @model = new PaneAxisModel
-    @model.children.on 'changed', ({index, removedValues, insertedValues}) =>
-      @onChildRemoved(child, index) for child in removedValues
-      @onChildAdded(child, index) for child in insertedValues
+    @onChildAdded(child) for child in children ? []
 
-    @addChild(child) for child in children ? []
-
-  serializeParams: ->
-    children: @children().views().map (child) -> child.serialize()
-
-  deserializeParams: (params) ->
-    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
-    params
+  viewForModel: (model) ->
+    viewClass = model.getViewClass()
+    model._view ?= new viewClass(model)
 
   addChild: (child, index) ->
-    @model.addChild(child, index)
+    @model.addChild(child.model, index)
 
   removeChild: (child) ->
-    @model.removeChild(child)
+    @model.removeChild(child.model)
 
   onChildAdded: (child, index) =>
-    @insertAt(index, child)
+    view = @viewForModel(child)
+    @insertAt(index, view)
 
   onChildRemoved: (child) =>
-    parent = @parent().view()
-    container = @getContainer()
-    childWasInactive = not child.isActive?()
-
-    primitiveRemove = (child) =>
-      node = child[0]
-      $.cleanData(node.getElementsByTagName('*'))
-      $.cleanData([node])
-      this[0].removeChild(node)
-
-    # use primitive .removeChild() dom method instead of .remove() to avoid recursive loop
-    if @children().length == 2
-      primitiveRemove(child)
-      sibling = @children().view()
-      siblingFocused = sibling.is(':has(:focus)')
-      sibling.detach()
-
-      if parent.setRoot?
-        parent.setRoot(sibling, suppressPaneItemChangeEvents: childWasInactive)
-      else
-        parent.insertChildBefore(this, sibling)
-        parent.removeChild(this)
-      sibling.focus() if siblingFocused
-    else
-      primitiveRemove(child)
-
-    Pane = require './pane'
-    container.trigger 'pane:removed', [child] if child instanceof Pane
-
-  detachChild: (child) ->
-    child.detach()
+    view = @viewForModel(child)
+    view.detach()
+    Pane ?= require './pane'
+    @getContainer()?.trigger 'pane:removed', [view] if view instanceof Pane
 
   getContainer: ->
     @closest('.panes').view()

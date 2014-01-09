@@ -1,18 +1,26 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
+PaneContainerModel = require './pane-container-model'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainer extends View
   Serializable.includeInto(this)
-  atom.deserializers.add(this)
+
+  @deserialize: (state) ->
+    new this(PaneContainerModel.deserialize(state.model))
 
   @content: ->
     @div class: 'panes'
 
-  initialize: ({root}={}) ->
-    @setRoot(root)
+  initialize: (params) ->
+    if params instanceof PaneContainerModel
+      @model = params
+    else
+      @model = new PaneContainerModel({root: params?.root?.model})
+
+    @subscribe @model.$root, 'value', @onRootChanged
 
     @subscribe this, 'pane:attached', (event, pane) =>
       @triggerActiveItemChange() if @getActivePane() is pane
@@ -26,15 +34,15 @@ class PaneContainer extends View
     @subscribe this, 'pane:active-item-changed', (event, item) =>
       @triggerActiveItemChange() if @getActivePaneItem() is item
 
+  viewForModel: (model) ->
+    viewClass = model.getViewClass()
+    model._view ?= new viewClass(model)
+
   triggerActiveItemChange: ->
     @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
 
   serializeParams: ->
-    root: @getRoot()?.serialize()
-
-  deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root)
-    params
+    model: @model.serialize()
 
   ### Public ###
 
@@ -71,11 +79,15 @@ class PaneContainer extends View
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root, {suppressPaneItemChangeEvents}={}) ->
-    @empty()
+  setRoot: (root) ->
+    @model.root = root?.model
+
+  onRootChanged: (root) =>
+    @children().detach()
     if root?
-      @append(root)
-      root.makeActive?()
+      view = @viewForModel(root)
+      @append(view)
+      view.makeActive?()
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child

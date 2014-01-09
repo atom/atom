@@ -1,7 +1,14 @@
 {Model, Sequence} = require 'theorist'
+Serializable = require 'serializable'
+
+PaneRow = null
+PaneColumn = null
 
 module.exports =
 class PaneAxisModel extends Model
+  atom.deserializers.add(this)
+  Serializable.includeInto(this)
+
   constructor: ({@orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
@@ -13,6 +20,19 @@ class PaneAxisModel extends Model
 
     @when @children.$length.becomesLessThan(2), 'reparentLastChild'
     @when @children.$length.becomesLessThan(1), 'destroy'
+
+  deserializeParams: (params) ->
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
+    params
+
+  serializeParams: ->
+    children: @children.map (child) -> child.serialize()
+
+  getViewClass: ->
+    if @orientation is 'vertical'
+      PaneColumn ?= require './pane-column'
+    else
+      PaneRow ?= require './pane-row'
 
   addChild: (child, index=@children.length) ->
     @children.splice(index, 0, child)

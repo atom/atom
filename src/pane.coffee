@@ -19,6 +19,9 @@ class Pane extends View
 
   @version: 1
 
+  @deserialize: (state) ->
+    new this(PaneModel.deserialize(state.model))
+
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
       @div class: 'flexbox-repaint-hack', =>
@@ -37,11 +40,12 @@ class Pane extends View
 
   # Private:
   initialize: (args...) ->
-    if args[0]?.model?
-      {@model} = args[0]
+    if args[0] instanceof PaneModel
+      @model = args[0]
       @focusOnAttach = @model.focused
     else
       @model = new PaneModel(items: args)
+      @model._view = this
 
     @onItemAdded(item) for item in @items
     @viewsByItem = new WeakMap()
@@ -203,52 +207,13 @@ class Pane extends View
   viewForActiveItem: ->
     @viewForItem(@activeItem)
 
-  # Public: Creates a new pane above with a copy of the currently focused item.
-  splitUp: (items...) ->
-    @split(items, 'column', 'before')
+  splitLeft: (items...) -> @model.splitLeft({items})._view
 
-  # Public: Creates a new pane below with a copy of the currently focused item.
-  splitDown: (items...) ->
-    @split(items, 'column', 'after')
+  splitRight: (items...) -> @model.splitRight({items})._view
 
-  # Public: Creates a new pane left with a copy of the currently focused item.
-  splitLeft: (items...) ->
-    @split(items, 'row', 'before')
+  splitUp: (items...) -> @model.splitUp({items})._view
 
-  # Public: Creates a new pane right with a copy of the currently focused item.
-  splitRight: (items...) ->
-    @split(items, 'row', 'after')
-
-  # Private:
-  split: (items, axis, side) ->
-    PaneContainer = require './pane-container'
-
-    parent = @parentModel ? @parent().view()
-    unless parent.hasClass(axis)
-      axis = @buildPaneAxis(axis)
-      if parent instanceof PaneContainer
-        @detach()
-        axis.addChild(this)
-        parent.setRoot(axis)
-      else
-        parent.insertChildBefore(this, axis)
-        axis.addChild(this)
-      parent = axis
-
-    newPane = new Pane(items...)
-
-    switch side
-      when 'before' then parent.insertChildBefore(this, newPane)
-      when 'after' then parent.insertChildAfter(this, newPane)
-    newPane.makeActive()
-    newPane.focus()
-    newPane
-
-  # Private:
-  buildPaneAxis: (axis) ->
-    switch axis
-      when 'row' then new PaneRow()
-      when 'column' then new PaneColumn()
+  splitDown: (items...) -> @model.splitDown({items})._view
 
   # Private:
   getContainer: ->
@@ -257,13 +222,13 @@ class Pane extends View
   # Private:
   remove: (selector, keepData) ->
     return super if keepData
-    @parent().view().removeChild(this)
 
-  # Private:
-  beforeRemove: ->
     if @is(':has(:focus)')
       @getContainer().focusNextPane() or atom.workspaceView?.focus()
     else if @isActive()
       @getContainer().makeNextPaneActive()
 
+    @parent().view().removeChild(this) unless keepData
     item.destroy?() for item in @getItems()
+
+    super

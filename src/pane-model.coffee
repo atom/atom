@@ -3,9 +3,11 @@
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
+Pane = null
 
 module.exports =
 class PaneModel extends Model
+  atom.deserializers.add(this)
   Serializable.includeInto(this)
 
   @properties
@@ -27,6 +29,8 @@ class PaneModel extends Model
     params.items = items.map (itemState) -> atom.deserializers.deserialize(itemState)
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
+
+  getViewClass: -> Pane ?= require './pane'
 
   focus: ->
     @focused = true
