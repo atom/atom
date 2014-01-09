@@ -20,6 +20,6 @@ module.exports = (grunt) ->
         if capacity > 90
           grunt.log.error("#{filesystem} is at #{capacity}% capacity!")
         else if capacity > 80
-          grunt.log.error("#{filesystem} is at #{capacity}% capacity.")
+          grunt.log.ok("#{filesystem} is at #{capacity}% capacity.")
 
       done()
