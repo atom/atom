@@ -4,7 +4,7 @@ Pane = require '../src/pane'
 path = require 'path'
 temp = require 'temp'
 
-describe "Pane", ->
+fdescribe "Pane", ->
   [container, view1, view2, editor1, editor2, pane] = []
 
   class TestView extends View
@@ -545,23 +545,23 @@ describe "Pane", ->
       it "builds a row if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane1.splitRight(pane1.copyActiveItem())
-        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual [editor1]
         expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitRight(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
 
       it "builds a row if needed, then appends a new pane after itself ", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane1.splitRight()
-        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual []
         expect(pane2.activeItem).toBeUndefined()
 
         pane3 = pane2.splitRight()
-        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
         expect(pane3.items).toEqual []
         expect(pane3.activeItem).toBeUndefined()
 
@@ -569,37 +569,37 @@ describe "Pane", ->
       it "builds a row if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitLeft(pane1.copyActiveItem())
-        expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editor1]
         expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitLeft(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.row .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
+        expect(container.find('.pane-row .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
 
     describe "splitDown(items...)", ->
       it "builds a column if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitDown(pane1.copyActiveItem())
-        expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
+        expect(container.find('.pane-column .pane').toArray()).toEqual [pane[0], pane2[0]]
         expect(pane2.items).toEqual [editor1]
         expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitDown(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
+        expect(container.find('.pane-column .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
 
     describe "splitUp(items...)", ->
       it "builds a column if needed, then appends a new pane before itself", ->
         # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitUp(pane1.copyActiveItem())
-        expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
+        expect(container.find('.pane-column .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editor1]
         expect(pane2.activeItem).not.toBe editor1 # it's a copy
 
         pane3 = pane2.splitUp(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.column .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
+        expect(container.find('.pane-column .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
 
     it "lays out nested panes by equally dividing their containing row / column", ->
       container.width(520).height(240).attachToDom()
