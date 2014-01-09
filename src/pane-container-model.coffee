@@ -14,9 +14,10 @@ class PaneContainerModel extends Model
 
   constructor: ->
     super
-    @subscribe @$root.filterDefined(), (root) =>
-      root.parent = this
-      root.focusContext = @focusContext
+    @subscribe @$root, (root) =>
+      if root?
+        root.parent = this
+        root.focusContext = @focusContext
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root)
