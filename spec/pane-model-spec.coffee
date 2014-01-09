@@ -1,3 +1,4 @@
+{Model} = require 'theorist'
 PaneModel = require '../src/pane-model'
 PaneAxisModel = require '../src/pane-axis-model'
 PaneContainerModel = require '../src/pane-container-model'
@@ -103,6 +104,14 @@ describe "PaneModel", ->
         pane.removeItemAtIndex(0)
         pane.removeItemAtIndex(0)
         expect(pane.isDestroyed()).toBe true
+
+  describe "when an item emits a destroyed event", ->
+    it "removes it from the list of items", ->
+      pane = new PaneModel(items: [new Model, new Model, new Model])
+      [item1, item2, item3] = pane.items
+      pane.items[1].destroy()
+      expect(pane.items).toEqual [item1, item3]
+
   describe "::destroy()", ->
     [pane1, container] = []
 
