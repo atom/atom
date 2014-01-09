@@ -132,7 +132,7 @@ class Selection
   #   The line Number to select (default: the row of the cursor)
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(range)
+    @setBufferRange(@getBufferRange().union(range))
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()

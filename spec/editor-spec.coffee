@@ -819,6 +819,11 @@ describe "Editor", ->
           editor.selectLine()
           expect(editor.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
 
+          editor.setCursorBufferPosition([0, 2])
+          editor.selectLine()
+          editor.selectLine()
+          expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
+
       describe ".selectToBeginningOfWord()", ->
         it "selects text from cusor position to beginning of word", ->
           editor.setCursorScreenPosition [0,13]
