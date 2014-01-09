@@ -70,4 +70,5 @@ class PaneAxisModel extends Model
     @children.splice(index + 1, 0, newChild)
 
   reparentLastChild: ->
-    @parent.replaceChild(this, @children[0])
+    @focusContext.suppressBlur =>
+      @parent.replaceChild(this, @children[0])
