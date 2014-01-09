@@ -36,13 +36,11 @@ class Pane extends View
     toProperty: 'model'
 
   previousActiveItem: null
-  focusOnAttach: false
 
   # Private:
   initialize: (args...) ->
     if args[0] instanceof PaneModel
       @model = args[0]
-      @focusOnAttach = @model.focused
     else
       @model = new PaneModel(items: args)
       @model._view = this
@@ -50,6 +48,9 @@ class Pane extends View
     @onItemAdded(item) for item in @items
     @viewsByItem = new WeakMap()
     @handleEvents()
+
+  hasFocus: ->
+    @is(':focus') or @is(':has(:focus)')
 
   handleEvents: ->
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
@@ -59,9 +60,21 @@ class Pane extends View
     @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
     @subscribe @model, 'item-destroyed', @onItemDestroyed
 
-    @subscribe this, 'focus', => @activeView?.focus(); false
-    @subscribe this, 'focusin', => @makeActive(); @model.focus()
-    @subscribe this, 'focusout', => @model.blur()
+    @subscribe @model.$focused, 'value', (focused) =>
+      if focused
+        @focus() unless @hasFocus()
+      else
+        @blur() if @hasFocus()
+
+    @subscribe this, 'focus', =>
+      @model.suppressBlur => @activeView?.focus()
+      false
+
+    @subscribe this, 'focusin', =>
+      @makeActive()
+      @model.focus()
+
+    @subscribe this, 'focusout', (e) => @model.blur()
 
     @command 'pane:save-items', => @saveItems()
     @command 'pane:show-next-item', => @showNextItem()
@@ -93,9 +106,7 @@ class Pane extends View
 
   # Private:
   afterAttach: (onDom) ->
-    if @focusOnAttach and onDom
-      @focusOnAttach = null
-      @focus()
+    @focus() if @model.focused and onDom
 
     return if @attached
     @attached = true
@@ -141,7 +152,8 @@ class Pane extends View
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
-    view.focus() if isFocused
+    if isFocused
+      @model.suppressBlur -> view.focus()
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
@@ -223,12 +235,10 @@ class Pane extends View
   remove: (selector, keepData) ->
     return super if keepData
 
-    if @is(':has(:focus)')
-      @getContainer().focusNextPane() or atom.workspaceView?.focus()
-    else if @isActive()
-      @getContainer().makeNextPaneActive()
+    @unsubscribe()
+    @model.destroy() unless @model.isDestroyed()
 
-    @parent().view().removeChild(this) unless keepData
-    item.destroy?() for item in @getItems()
+    if @isActive()
+      @getContainer().makeNextPaneActive()
 
     super
