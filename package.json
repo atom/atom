@@ -51,7 +51,8 @@
     "text-buffer": "0.12.0",
     "underscore-plus": "0.6.1",
     "theorist": "~0.7.0",
-    "delegato": "~0.4.0"
+    "delegato": "~0.4.0",
+    "mixto": "~0.4.0"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.10.0",
