@@ -18,7 +18,6 @@ class PaneAxis extends View
 
   addChild: (child, index=@children().length) ->
     @insertAt(index, child)
-    @getContainer()?.adjustPaneDimensions()
 
   removeChild: (child) ->
     parent = @parent().view()
@@ -47,7 +46,6 @@ class PaneAxis extends View
     else
       primitiveRemove(child)
 
-    container.adjustPaneDimensions()
     Pane = require './pane'
     container.trigger 'pane:removed', [child] if child instanceof Pane
 
@@ -68,9 +66,3 @@ class PaneAxis extends View
 
   insertChildAfter: (child, newChild) ->
     newChild.insertAfter(child)
-
-  horizontalChildUnits: ->
-    $(child).view().horizontalGridUnits() for child in @children()
-
-  verticalChildUnits: ->
-    $(child).view().verticalGridUnits() for child in @children()

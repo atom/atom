@@ -124,19 +124,19 @@ describe "PaneContainer", ->
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
       newContainer = atom.deserializers.deserialize(container.serialize())
-      expect(newContainer.find('.row > :contains(1)')).toExist()
-      expect(newContainer.find('.row > .column > :contains(2)')).toExist()
-      expect(newContainer.find('.row > .column > :contains(3)')).toExist()
+      expect(newContainer.find('.pane-row > :contains(1)')).toExist()
+      expect(newContainer.find('.pane-row > .pane-column > :contains(2)')).toExist()
+      expect(newContainer.find('.pane-row > .pane-column > :contains(3)')).toExist()
 
       newContainer.height(200).width(300).attachToDom()
-      expect(newContainer.find('.row > :contains(1)').width()).toBe 150
-      expect(newContainer.find('.row > .column > :contains(2)').height()).toBe 100
+      expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
+      expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
 
     xit "removes empty panes on deserialization", ->
       # only deserialize pane 1's view successfully
       TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
       newContainer = atom.deserializers.deserialize(container.serialize())
-      expect(newContainer.find('.row, .column')).not.toExist()
+      expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
 
   describe "pane-container:active-pane-item-changed", ->
