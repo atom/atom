@@ -80,7 +80,7 @@ describe "PaneModel", ->
 
     it "focuses the new pane, even if the current pane isn't focused", ->
       expect(pane1.focused).toBe false
-      pane2 = pane1.split()
+      pane2 = pane1.splitRight()
       expect(pane2.focused).toBe true
 
   describe "::destroy()", ->
@@ -110,3 +110,13 @@ describe "PaneModel", ->
         expect(container.root.children).toEqual [pane1, pane2]
         pane2.destroy()
         expect(container.root).toBe pane1
+
+    describe "if the pane is focused", ->
+      it "shifts focus to the next pane", ->
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitRight()
+        pane2.focus()
+        expect(pane2.focused).toBe true
+        expect(pane3.focused).toBe false
+        pane2.destroy()
+        expect(pane3.focused).toBe true

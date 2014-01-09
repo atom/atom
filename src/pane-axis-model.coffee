@@ -1,4 +1,6 @@
 {Model, Sequence} = require 'theorist'
+{flatten} = require 'underscore-plus'
+Delegator = require 'delegato'
 Serializable = require 'serializable'
 
 PaneRow = null
@@ -8,15 +10,24 @@ module.exports =
 class PaneAxisModel extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
+  Delegator.includeInto(this)
+
+  @delegatesMethod 'focusNextPane', toProperty: 'parent'
+
+  @property 'focusContext'
 
   constructor: ({@orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
-    @children.onEach (child) =>
+    @subscribe @$focusContext, (focusContext) =>
+      child.focusContext = focusContext for child in @children
+
+    @subscribe @children.onEach (child) =>
       child.parent = this
+      child.focusContext = @focusContext
       @subscribe child, 'destroyed', => @removeChild(child)
 
-    @children.onRemoval (child) => @unsubscribe(child)
+    @subscribe @children.onRemoval (child) => @unsubscribe(child)
 
     @when @children.$length.becomesLessThan(2), 'reparentLastChild'
     @when @children.$length.becomesLessThan(1), 'destroy'
@@ -33,6 +44,9 @@ class PaneAxisModel extends Model
       PaneColumn ?= require './pane-column'
     else
       PaneRow ?= require './pane-row'
+
+  getPanes: ->
+    flatten(@children.map (child) -> child.getPanes())
 
   addChild: (child, index=@children.length) ->
     @children.splice(index, 0, child)

@@ -3,17 +3,18 @@
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
+Focusable = require './focusable'
 Pane = null
 
 module.exports =
 class PaneModel extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
+  Focusable.includeInto(this)
 
   @properties
     items: -> []
     activeItem: null
-    focused: false
 
   constructor: ->
     super
@@ -32,11 +33,7 @@ class PaneModel extends Model
 
   getViewClass: -> Pane ?= require './pane'
 
-  focus: ->
-    @focused = true
-
-  blur: ->
-    @focused = false
+  getPanes: -> [this]
 
   # Public: Returns all contained views.
   getItems: ->
@@ -132,6 +129,10 @@ class PaneModel extends Model
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
+  # Private: Called by model superclass
+  destroyed: ->
+    @parent.focusNextPane() if @focused
+
   # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
     return true unless item.shouldPromptToSave?()
@@ -211,8 +212,10 @@ class PaneModel extends Model
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxisModel({orientation, children: [this]}))
 
-    newPane = new @constructor(extend({focused: true}, params))
+    newPane = new @constructor(params)
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
+
+    newPane.focus()
     newPane
