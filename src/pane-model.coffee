@@ -13,11 +13,12 @@ class PaneModel extends Model
   Focusable.includeInto(this)
 
   @properties
-    items: -> []
     activeItem: null
 
   constructor: (params) ->
     super
+
+    @focus() if params?.focused
 
     @items = Sequence.fromArray(params?.items ? [])
     @activeItem ?= @items[0]

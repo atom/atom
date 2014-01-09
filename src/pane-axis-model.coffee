@@ -16,7 +16,7 @@ class PaneAxisModel extends Model
 
   @property 'focusContext'
 
-  constructor: ({@orientation, children}) ->
+  constructor: ({@focusContext, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
     @subscribe @$focusContext, (focusContext) =>
@@ -33,7 +33,8 @@ class PaneAxisModel extends Model
     @when @children.$length.becomesLessThan(1), 'destroy'
 
   deserializeParams: (params) ->
-    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
+    {focusContext} = params
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {focusContext})
     params
 
   serializeParams: ->

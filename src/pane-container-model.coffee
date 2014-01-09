@@ -20,7 +20,8 @@ class PaneContainerModel extends Model
         root.focusContext = @focusContext
 
   deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root)
+    params.focusContext ?= new FocusContext
+    params.root = atom.deserializers.deserialize(params.root, focusContext: params.focusContext)
     params
 
   serializeParams: (params) ->
