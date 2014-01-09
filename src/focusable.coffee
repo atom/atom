@@ -8,6 +8,7 @@ class Focusable extends Mixin
       @$focusContext
         .flatMapLatest((context) -> context?.$focusedObject)
         .map((focusedObject) => focusedObject is this)
+        .distinctUntilChanged()
 
   focus: ->
     throw new Error("Object must be assigned a focusContext to be focus") unless @focusContext
