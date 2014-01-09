@@ -1,6 +1,7 @@
 PaneModel = require '../src/pane-model'
 PaneAxisModel = require '../src/pane-axis-model'
 PaneContainerModel = require '../src/pane-container-model'
+FocusContext = require '../src/focus-context'
 
 describe "PaneModel", ->
   describe "split methods", ->
@@ -83,6 +84,25 @@ describe "PaneModel", ->
       pane2 = pane1.splitRight()
       expect(pane2.focused).toBe true
 
+  describe "::removeItemAtIndex(index)", ->
+    describe "when the removal of the item causes blur to be called on the pane model", ->
+      it "remains focused if it was before the item was removed", ->
+        pane = new PaneModel(items: ["A", "B", "C"], focusContext: new FocusContext)
+        pane.on 'item-removed', -> pane.blur()
+        pane.focus()
+        pane.removeItemAtIndex(0)
+        expect(pane.focused).toBe true
+
+        pane.blur()
+        pane.removeItemAtIndex(0)
+        expect(pane.focused).toBe false
+
+    describe "when the last item is removed", ->
+      it "destroys the pane", ->
+        pane = new PaneModel(items: ["A", "B"])
+        pane.removeItemAtIndex(0)
+        pane.removeItemAtIndex(0)
+        expect(pane.isDestroyed()).toBe true
   describe "::destroy()", ->
     [pane1, container] = []
 

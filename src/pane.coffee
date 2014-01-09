@@ -53,6 +53,8 @@ class Pane extends View
     @is(':focus') or @is(':has(:focus)')
 
   handleEvents: ->
+    @subscribe @model, 'destroyed', => @remove()
+
     @subscribe @model.$activeItem, 'value', @onActiveItemChanged
     @subscribe @model, 'item-added', @onItemAdded
     @subscribe @model, 'item-removed', @onItemRemoved
@@ -158,12 +160,10 @@ class Pane extends View
     @trigger 'pane:active-item-changed', [item]
 
   onItemAdded: (item, index) =>
-    if typeof item.on is 'function'
-      @subscribe item, 'destroyed', => @destroyItem(item)
     @trigger 'pane:item-added', [item, index]
 
-  onItemRemoved: (item, index, detach) =>
-    @cleanupItemView(item, detach)
+  onItemRemoved: (item, index) =>
+    @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
 
   onItemMoved: (item, newIndex) =>
@@ -181,27 +181,15 @@ class Pane extends View
     @trigger 'pane:active-item-title-changed'
 
   # Private:
-  cleanupItemView: (item, detach) ->
+  cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
     else if viewToRemove = @viewsByItem.get(item)
       @viewsByItem.delete(item)
 
-    if @items.length > 0
-      if detach and item is viewToRemove
-        viewToRemove?.detach()
-      else if detach and viewToRemove?.setModel
-        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
-        viewToRemove.remove()
-      else
-        viewToRemove?.remove()
-    else
-      if detach and item is viewToRemove
-        viewToRemove?.detach()
-      else if detach and viewToRemove?.setModel
-        viewToRemove.setModel(null) # dont want to destroy the model, so set to null
-
-      @parent().view().removeChild(this)
+    if viewToRemove?
+      viewToRemove.setModel?(null)
+      viewToRemove.detach()
 
   # Private:
   viewForItem: (item) ->
@@ -230,6 +218,9 @@ class Pane extends View
   # Private:
   getContainer: ->
     @closest('.panes').view()
+
+  beforeRemove: ->
+    @trigger 'pane:removed', [this]
 
   # Private:
   remove: (selector, keepData) ->

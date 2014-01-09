@@ -94,16 +94,15 @@ class PaneModel extends Model
     item
 
   # Public:
-  removeItem: (item, detach) ->
+  removeItem: (item) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index, detach) if index >= 0
+    @removeItemAtIndex(index) if index >= 0
 
   # Public: Just remove the item at the given index.
-  removeItemAtIndex: (index, detach) ->
+  removeItemAtIndex: (index) ->
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
-    @items.splice(index, 1)
-    @emit 'item-removed', item, index, detach
+    @suppressBlur => @items.splice(index, 1)
 
   # Public: Moves the given item to a the new index.
   moveItem: (item, newIndex) ->
@@ -115,7 +114,7 @@ class PaneModel extends Model
   # Public: Moves the given item to another pane.
   moveItemToPane: (item, pane, index) ->
     pane.addItem(item, index)
-    @removeItem(item, true)
+    @removeItem(item)
 
   # Public: Remove the currently active item.
   destroyActiveItem: ->
