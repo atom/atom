@@ -1,4 +1,4 @@
-{find, compact, clone} = require 'underscore-plus'
+{find, compact, clone, extend} = require 'underscore-plus'
 {dirname} = require 'path'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
@@ -211,7 +211,7 @@ class PaneModel extends Model
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxisModel({orientation, children: [this]}))
 
-    newPane = new @constructor(params)
+    newPane = new @constructor(extend({focused: true}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)

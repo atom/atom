@@ -78,6 +78,11 @@ describe "PaneModel", ->
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane1, pane3, pane2]
 
+    it "focuses the new pane, even if the current pane isn't focused", ->
+      expect(pane1.focused).toBe false
+      pane2 = pane1.split()
+      expect(pane2.focused).toBe true
+
   describe "::destroy()", ->
     [pane1, container] = []
 
