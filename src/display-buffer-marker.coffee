@@ -185,13 +185,11 @@ class DisplayBufferMarker
     newTailScreenPosition = @getTailScreenPosition()
     isValid = @isValid()
 
-    changed = false
-    changed = true unless _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition)
-    changed = true unless _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition)
-    changed = true unless _.isEqual(newTailBufferPosition, @oldTailBufferPosition)
-    changed = true unless _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
-    changed = true unless _.isEqual(isValid, @wasValid)
-    return unless changed
+    return if _.isEqual(isValid, @wasValid) and
+      _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition) and
+      _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition) and
+      _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
+      _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
 
     @emit 'changed', {
       @oldHeadScreenPosition, newHeadScreenPosition,

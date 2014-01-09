@@ -819,6 +819,11 @@ describe "Editor", ->
           editor.selectLine()
           expect(editor.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
 
+          editor.setCursorBufferPosition([0, 2])
+          editor.selectLine()
+          editor.selectLine()
+          expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
+
       describe ".selectToBeginningOfWord()", ->
         it "selects text from cusor position to beginning of word", ->
           editor.setCursorScreenPosition [0,13]
@@ -1180,6 +1185,27 @@ describe "Editor", ->
               [[9, 0], [9, 0]]
               [[10, 0], [10, 0]]
             ]
+
+      describe ".splitSelectionsIntoLines()", ->
+        it "splits all multi-line selections into one selection per line", ->
+          editor.setSelectedBufferRange([[0, 3], [2, 4]])
+          editor.splitSelectionsIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            [[0, 3], [0, 29]]
+            [[1, 0], [1, 30]]
+            [[2, 0], [2, 4]]
+          ]
+
+          editor.setSelectedBufferRange([[0, 3], [1, 10]])
+          editor.splitSelectionsIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            [[0, 3], [0, 29]]
+            [[1, 0], [1, 10]]
+          ]
+
+          editor.setSelectedBufferRange([[0, 0], [0, 3]])
+          editor.splitSelectionsIntoLines()
+          expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
       describe ".consolidateSelections()", ->
         it "destroys all selections but the most recent, returning true if any selections were destroyed", ->

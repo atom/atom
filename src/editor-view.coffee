@@ -183,6 +183,7 @@ class EditorView extends View
         'editor:newline-above': @insertNewlineAbove
         'editor:add-selection-below': @addSelectionBelow
         'editor:add-selection-above': @addSelectionAbove
+        'editor:split-selections-into-lines': => @editor.splitSelectionsIntoLines()
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
