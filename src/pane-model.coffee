@@ -1,6 +1,6 @@
 {find, compact, clone, extend} = require 'underscore-plus'
 {dirname} = require 'path'
-{Model} = require 'theorist'
+{Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
 Focusable = require './focusable'
@@ -16,9 +16,21 @@ class PaneModel extends Model
     items: -> []
     activeItem: null
 
-  constructor: ->
+  constructor: (params) ->
     super
+
+    @items = Sequence.fromArray(params?.items ? [])
     @activeItem ?= @items[0]
+
+    @subscribe @items.onEach (item) =>
+      if typeof item.on is 'function'
+        @subscribe item, 'destroyed', => @removeItem(item)
+
+    @subscribe @items.onRemoval (item, index) =>
+      @unsubscribe item
+      @emit 'item-removed', item, index
+
+    @when @items.$length.becomesLessThan(1), 'destroy'
 
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
@@ -37,7 +49,7 @@ class PaneModel extends Model
 
   # Public: Returns all contained views.
   getItems: ->
-    clone(@items)
+    @items.slice()
 
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
