@@ -142,6 +142,7 @@ class PaneModel extends Model
 
   # Private: Called by model superclass
   destroyed: ->
+    item.destroy?() for item in @items.slice()
     @parent.focusNextPane() if @focused
 
   # Public: Prompt the user to save the given item.

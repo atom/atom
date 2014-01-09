@@ -107,8 +107,14 @@ describe "PaneModel", ->
     [pane1, container] = []
 
     beforeEach ->
-      pane1 = new PaneModel(items: ["A"])
+      pane1 = new PaneModel(items: [new Model, new Model])
       container = new PaneContainerModel(root: pane1)
+
+    it "destroys the pane's destroyable items", ->
+      [item1, item2] = pane1.items
+      pane1.destroy()
+      expect(item1.isDestroyed()).toBe true
+      expect(item2.isDestroyed()).toBe true
 
     describe "if the pane's parent has more than two children", ->
       it "removes the pane from its parent", ->
