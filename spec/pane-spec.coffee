@@ -4,7 +4,7 @@ Pane = require '../src/pane'
 path = require 'path'
 temp = require 'temp'
 
-fdescribe "Pane", ->
+describe "Pane", ->
   [container, view1, view2, editor1, editor2, pane] = []
 
   class TestView extends View
