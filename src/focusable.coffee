@@ -12,8 +12,17 @@ class Focusable extends Mixin
 
   focus: ->
     throw new Error("Object must be assigned a focusContext to be focus") unless @focusContext
-    @focusContext.focusedObject = this
+    unless @focused
+      @suppressBlur =>
+        @focusContext.focusedObject = this
 
   blur: ->
     throw new Error("Object must be assigned a focusContext to be blurred") unless @focusContext
-    @focusContext.focusedObject = null if @focused
+    if @focused and not @focusContext.isBlurSuppressed()
+      @focusContext.focusedObject = null
+
+  suppressBlur: (fn) ->
+    if @focusContext?
+      @focusContext.suppressBlur(fn)
+    else
+      fn()
