@@ -99,7 +99,7 @@ class PaneContainer extends View
     @find('.pane.active').view() ? @find('.pane:first').view()
 
   getActivePaneItem: ->
-    @getActivePane()?.activeItem
+    @model.activePaneItem
 
   getActiveView: ->
     @getActivePane()?.activeView
