@@ -196,6 +196,11 @@ describe "Pane", ->
           expect(pane.getItems().indexOf(editor2)).not.toBe -1
           expect(editor2.isDestroyed()).toBe false
 
+    it "removes the item's associated view", ->
+      view1.remove = (selector, keepData) -> @wasRemoved = not keepData
+      pane.destroyItem(view1)
+      expect(view1.wasRemoved).toBe true
+
   describe "::removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
       pane.removeItem(view1)

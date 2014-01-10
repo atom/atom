@@ -149,8 +149,8 @@ class Pane extends View
   onItemAdded: (item, index) =>
     @trigger 'pane:item-added', [item, index]
 
-  onItemRemoved: (item, index) =>
-    @cleanupItemView(item)
+  onItemRemoved: (item, index, destroyed) =>
+    @cleanupItemView(item, destroyed)
     @trigger 'pane:item-removed', [item, index]
 
   onItemMoved: (item, newIndex) =>
@@ -168,7 +168,7 @@ class Pane extends View
     @trigger 'pane:active-item-title-changed'
 
   # Private:
-  cleanupItemView: (item) ->
+  cleanupItemView: (item, destroyed) ->
     if item instanceof $
       viewToRemove = item
     else if viewToRemove = @viewsByItem.get(item)
@@ -176,7 +176,10 @@ class Pane extends View
 
     if viewToRemove?
       viewToRemove.setModel?(null)
-      viewToRemove.detach()
+      if destroyed
+        viewToRemove.remove()
+      else
+        viewToRemove.detach()
 
   # Private:
   viewForItem: (item) ->

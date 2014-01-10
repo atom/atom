@@ -22,6 +22,8 @@ class PaneModel extends Model
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 
+  destroyingItem: false
+
   constructor: (params) ->
     super
 
@@ -37,7 +39,7 @@ class PaneModel extends Model
 
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
-      @emit 'item-removed', item, index
+      @emit 'item-removed', item, index, @destroyingItem
 
     @when @items.$length.becomesLessThan(1), 'destroy'
 
@@ -145,7 +147,9 @@ class PaneModel extends Model
     @emit 'before-item-destroyed', item
     if @promptToSaveItem(item)
       @emit 'item-destroyed', item
-      @removeItem(item, options)
+      @destroyingItem = true
+      @removeItem(item)
+      @destroyingItem = false
       item.destroy?()
       true
     else
