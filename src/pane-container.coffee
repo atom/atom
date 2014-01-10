@@ -30,8 +30,9 @@ class PaneContainer extends View
     @subscribe @model, 'surrendered-focus', @onSurrenderedFocus
 
   viewForModel: (model) ->
-    viewClass = model.getViewClass()
-    model._view ?= new viewClass(model)
+    if model?
+      viewClass = model.getViewClass()
+      model._view ?= new viewClass(model)
 
   serializeParams: ->
     model: @model.serialize()
@@ -98,7 +99,7 @@ class PaneContainer extends View
     @find('.pane:has(:focus)').view()
 
   getActivePane: ->
-    @find('.pane.active').view() ? @find('.pane:first').view()
+    @viewForModel(@model.activePane)
 
   getActivePaneItem: ->
     @model.activePaneItem
