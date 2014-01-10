@@ -72,7 +72,7 @@ class PaneModel extends Model
     @items[index]
 
   # Public: Switches to the next contained item.
-  showNextItem: =>
+  showNextItem: ->
     index = @getActiveItemIndex()
     if index < @items.length - 1
       @showItemAtIndex(index + 1)
@@ -80,7 +80,7 @@ class PaneModel extends Model
       @showItemAtIndex(0)
 
   # Public: Switches to the previous contained item.
-  showPreviousItem: =>
+  showPreviousItem: ->
     index = @getActiveItemIndex()
     if index > 0
       @showItemAtIndex(index - 1)
@@ -182,11 +182,11 @@ class PaneModel extends Model
       when 2 then true
 
   # Public: Saves the currently focused item.
-  saveActiveItem: =>
+  saveActiveItem: ->
     @saveItem(@activeItem)
 
   # Public: Save and prompt for path for the currently focused item.
-  saveActiveItemAs: =>
+  saveActiveItemAs: ->
     @saveItemAs(@activeItem)
 
   # Public: Saves the specified item and call the next action when complete.
@@ -210,7 +210,7 @@ class PaneModel extends Model
       nextAction?()
 
   # Public: Saves all items in this pane.
-  saveItems: =>
+  saveItems: ->
     @saveItem(item) for item in @getItems()
 
   # Public: Finds the first item that matches the given uri.
