@@ -44,11 +44,13 @@ class PaneModel extends Model
     @when @$focused, => @makeActive()
 
     @focus() if params?.focused
+    @makeActive() if params?.active
 
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
     focused: @focused
+    active: @active
 
   deserializeParams: (params) ->
     {items, activeItemUri} = params

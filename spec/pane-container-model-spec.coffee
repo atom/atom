@@ -3,17 +3,29 @@ PaneModel = require '../src/pane-model'
 
 describe "PaneContainerModel", ->
   describe "serialization", ->
-    it "preserves the focused pane across serialization", ->
+    [containerA, pane1A, pane2A, pane3A] = []
+
+    beforeEach ->
       pane1A = new PaneModel
       containerA = new PaneContainerModel(root: pane1A)
       pane2A = pane1A.splitRight()
       pane3A = pane2A.splitDown()
+
+    it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true
 
       containerB = containerA.testSerialization()
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(pane3B.focusContext).toBe containerB.focusContext
       expect(pane3B.focused).toBe true
+
+    it "preserves the active pane across serialization, independent of focus", ->
+      pane3A.blur()
+      expect(containerA.activePane).toBe pane3A
+
+      containerB = containerA.testSerialization()
+      [pane1B, pane2B, pane3B] = containerB.getPanes()
+      expect(containerB.activePane).toBe pane3B
 
   describe "::activePane", ->
     [container, pane1, pane2] = []
