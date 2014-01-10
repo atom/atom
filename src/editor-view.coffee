@@ -827,6 +827,9 @@ class EditorView extends View
 
     @editor.setVisible(true)
 
+    @editor.on "destroyed", =>
+      @remove()
+
     @editor.on "contents-conflicted.editor", =>
       @showBufferConflictAlert(@editor)
 

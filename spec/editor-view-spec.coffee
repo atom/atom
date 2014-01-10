@@ -2809,7 +2809,7 @@ describe "EditorView", ->
       atom.workspaceView.attachToDom()
       editorView = atom.workspaceView.getActiveView()
 
-      willBeRemovedHandler = jasmine.createSpy('fileChange')
+      willBeRemovedHandler = jasmine.createSpy('willBeRemovedHandler')
       editorView.on 'editor:will-be-removed', willBeRemovedHandler
       editorView.getPane().destroyActiveItem()
       expect(willBeRemovedHandler).toHaveBeenCalled()
