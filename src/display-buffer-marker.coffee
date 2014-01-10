@@ -168,7 +168,7 @@ class DisplayBufferMarker
 
   # Returns a {String} representation of the marker
   inspect: ->
-    "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange().inspect()})"
+    "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange()})"
 
   ### Internal ###
 
