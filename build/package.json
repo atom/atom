@@ -28,6 +28,7 @@
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "unzip": "~0.1.9",
-    "walkdir": "0.0.7"
+    "walkdir": "0.0.7",
+    "grunt-peg": "~1.1.0"
   }
 }
