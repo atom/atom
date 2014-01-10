@@ -34,6 +34,7 @@ class PaneAxisModel extends Model
 
   serializeParams: ->
     children: @children.map (child) -> child.serialize()
+    orientation: @orientation
 
   getViewClass: ->
     if @orientation is 'vertical'
