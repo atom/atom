@@ -1,4 +1,3 @@
-{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
