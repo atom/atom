@@ -21,6 +21,7 @@ class PaneContainer extends View
       @model = new PaneContainerModel({root: params?.root?.model})
 
     @subscribe @model.$root, 'value', @onRootChanged
+    @subscribe @model, 'surrendered-focus', @onSurrenderedFocus
 
     @subscribe this, 'pane:attached', (event, pane) =>
       @triggerActiveItemChange() if @getActivePane() is pane
@@ -88,6 +89,9 @@ class PaneContainer extends View
       view = @viewForModel(root)
       @append(view)
       view.makeActive?()
+
+  onSurrenderedFocus: =>
+    atom?.workspaceView?.focus()
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child

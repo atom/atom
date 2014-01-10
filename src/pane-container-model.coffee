@@ -51,6 +51,7 @@ class PaneContainerModel extends Model
       panes[nextIndex].focus()
       true
     else
+      @emit 'surrendered-focus'
       false
 
   focusPreviousPane: ->

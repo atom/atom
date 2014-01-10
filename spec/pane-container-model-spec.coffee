@@ -44,3 +44,23 @@ describe "PaneContainerModel", ->
       expect(pane1.active).toBe true
       pane1.destroy()
       expect(container.activePane).toBe null
+
+  # TODO: Remove this behavior when we have a proper workspace model we can explicitly focus
+  describe "when the last pane is removed", ->
+    [container, pane, surrenderedFocusHandler] = []
+
+    beforeEach ->
+      pane = new PaneModel
+      container = new PaneContainerModel(root: pane)
+      container.on 'surrendered-focus', surrenderedFocusHandler = jasmine.createSpy("surrenderedFocusHandler")
+
+    describe "if the pane is focused", ->
+      it "emits a 'surrendered-focus' event", ->
+        pane.focus()
+        pane.destroy()
+        expect(surrenderedFocusHandler).toHaveBeenCalled()
+
+    describe "if the pane is not focused", ->
+      it "does not emit an event", ->
+        expect(pane.focused).toBe false
+        expect(surrenderedFocusHandler).not.toHaveBeenCalled()
