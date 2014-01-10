@@ -73,11 +73,11 @@ class Directory
 
     if fullPath is @getPath()
       ''
-    else if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
+    else if @isPathPrefixOf(@getPath(), fullPath)
       fullPath.substring(@getPath().length + 1)
     else if fullPath is @getRealPathSync()
       ''
-    else if fullPath.indexOf(path.join(@getRealPathSync(), path.sep)) is 0
+    else if @isPathPrefixOf(@getRealPathSync(), fullPath)
       fullPath.substring(@getRealPathSync().length + 1)
     else
       fullPath
@@ -139,3 +139,7 @@ class Directory
     if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null
+
+  # Private: Does given full path start with the given prefix?
+  isPathPrefixOf: (prefix, fullPath) ->
+    fullPath.indexOf(prefix) is 0 and fullPath[prefix.length] is path.sep

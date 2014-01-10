@@ -39,7 +39,7 @@ class PaneContainer extends View
   ### Public ###
 
   itemDestroyed: (item) ->
-    @trigger 'item-destroyed', item
+    @trigger 'item-destroyed', [item]
 
   getRoot: ->
     @children().first().view()

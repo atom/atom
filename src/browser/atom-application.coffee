@@ -52,6 +52,8 @@ class AtomApplication
   resourcePath: null
   version: null
 
+  exit: (status) -> app.exit(status)
+
   constructor: (options) ->
     {@resourcePath, @version, @devMode} = options
     global.atomApplication = this

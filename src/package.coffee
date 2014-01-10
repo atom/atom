@@ -47,6 +47,12 @@ class Package
   isActive: ->
     atom.packages.isPackageActive(@name)
 
+  enable: ->
+    atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
+
+  disable: ->
+    atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
+
   isTheme: ->
     !!@metadata?.theme
 
