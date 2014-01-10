@@ -8,6 +8,15 @@ module.exports =
 class KeyBinding
   @parser: null
   @currentIndex: 1
+  @specificities: null
+
+  @calculateSpecificity: (selector) ->
+    @specificities ?= {}
+    value = @specificities[selector]
+    unless value?
+      value = specificity(selector)
+      @specificities[selector] = value
+    value
 
   @normalizeKeystroke: (keystroke) ->
     normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
@@ -33,7 +42,7 @@ class KeyBinding
     @command = command
     @keystroke = KeyBinding.normalizeKeystroke(keystroke)
     @selector = selector.replace(/!important/g, '')
-    @specificity = specificity(selector)
+    @specificity = KeyBinding.calculateSpecificity(selector)
     @index = KeyBinding.currentIndex++
 
   matches: (keystroke) ->
