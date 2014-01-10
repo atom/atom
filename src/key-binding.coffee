@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
-PEG = require 'pegjs'
 
 ### Internal ###
 
@@ -19,11 +18,15 @@ class KeyBinding
     normalizedKeystroke.join(' ')
 
   @parseKeystroke: (keystroke) ->
-    unless KeyBinding.parser?
-      keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
-      KeyBinding.parser = PEG.buildParser(keystrokePattern)
+    unless @parser?
+      try
+        @parser = require './keystroke-pattern'
+      catch
+        keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
+        PEG = require 'pegjs'
+        @parser = PEG.buildParser(keystrokePattern)
 
-    KeyBinding.parser.parse(keystroke)
+    @parser.parse(keystroke)
 
   constructor: (source, command, keystroke, selector) ->
     @source = source
