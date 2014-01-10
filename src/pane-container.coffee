@@ -1,4 +1,5 @@
 Serializable = require 'serializable'
+Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
 PaneContainerModel = require './pane-container-model'
@@ -7,12 +8,15 @@ PaneContainerModel = require './pane-container-model'
 module.exports =
 class PaneContainer extends View
   Serializable.includeInto(this)
+  Delegator.includeInto(this)
 
   @deserialize: (state) ->
     new this(PaneContainerModel.deserialize(state.model))
 
   @content: ->
     @div class: 'panes'
+
+  @delegatesMethods 'focusNextPane', 'focusPreviousPane', toProperty: 'model'
 
   initialize: (params) ->
     if params instanceof PaneContainerModel
@@ -46,33 +50,6 @@ class PaneContainer extends View
     model: @model.serialize()
 
   ### Public ###
-
-  focusNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
-    else
-      false
-
-  focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
-
-  makeNextPaneActive: ->
-    panes = @getPanes()
-    currentIndex = panes.indexOf(@getActivePane())
-    nextIndex = (currentIndex + 1) % panes.length
-    panes[nextIndex].makeActive()
 
   itemDestroyed: (item) ->
     @trigger 'item-destroyed', item

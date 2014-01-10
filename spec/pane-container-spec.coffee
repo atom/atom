@@ -42,6 +42,8 @@ describe "PaneContainer", ->
   describe ".focusPreviousPane()", ->
     it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
       container.attachToDom()
+      pane3.focusout()
+
       container.focusPreviousPane()
       expect(pane3.activeItem).toMatchSelector ':focus'
       container.focusPreviousPane()
