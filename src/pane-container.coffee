@@ -26,26 +26,12 @@ class PaneContainer extends View
       @model = new PaneContainerModel({root: params?.root?.model})
 
     @subscribe @model.$root, 'value', @onRootChanged
+    @subscribe @model.$activePaneItem.changes, 'value', @onActivePaneItemChanged
     @subscribe @model, 'surrendered-focus', @onSurrenderedFocus
-
-    @subscribe this, 'pane:attached', (event, pane) =>
-      @triggerActiveItemChange() if @getActivePane() is pane
-
-    @subscribe this, 'pane:removed', (event, pane) =>
-      @triggerActiveItemChange() unless @getActivePane()?
-
-    @subscribe this, 'pane:became-active', =>
-      @triggerActiveItemChange()
-
-    @subscribe this, 'pane:active-item-changed', (event, item) =>
-      @triggerActiveItemChange() if @getActivePaneItem() is item
 
   viewForModel: (model) ->
     viewClass = model.getViewClass()
     model._view ?= new viewClass(model)
-
-  triggerActiveItemChange: ->
-    @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
 
   serializeParams: ->
     model: @model.serialize()
@@ -67,6 +53,9 @@ class PaneContainer extends View
       view = @viewForModel(root)
       @append(view)
       view.makeActive?()
+
+  onActivePaneItemChanged: (activeItem) =>
+    @trigger 'pane-container:active-pane-item-changed', [activeItem]
 
   onSurrenderedFocus: =>
     atom?.workspaceView?.focus()

@@ -14,6 +14,9 @@ class PaneContainerModel extends Model
     focusContext: null
     activePane: null
 
+  @behavior 'activePaneItem', ->
+    @$activePane.flatMapLatest (activePane) -> activePane?.$activeItem
+
   constructor: ->
     super
 
