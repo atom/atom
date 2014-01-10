@@ -206,9 +206,11 @@ class Pane extends View
   getContainer: ->
     @closest('.panes').view()
 
+  beforeRemove: ->
+    @model.destroy() unless @model.isDestroyed()
+
   # Private:
   remove: (selector, keepData) ->
     return super if keepData
     @unsubscribe()
-    @model.destroy() unless @model.isDestroyed()
     super
