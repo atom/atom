@@ -33,7 +33,7 @@ class Pane extends View
     'moveItem', 'moveItemToPane', 'destroyItem', 'destroyItems', 'destroyActiveItem',
     'destroyInactiveItems', 'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs',
     'saveItems', 'itemForUri', 'showItemForUri', 'promptToSaveItem', 'copyActiveItem',
-    toProperty: 'model'
+    'isActive', 'makeActive', toProperty: 'model'
 
   previousActiveItem: null
 
@@ -61,6 +61,7 @@ class Pane extends View
     @subscribe @model, 'item-moved', @onItemMoved
     @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
     @subscribe @model, 'item-destroyed', @onItemDestroyed
+    @subscribe @model.$active, 'value', @onActiveStatusChanged
 
     @subscribe @model.$focused, 'value', (focused) =>
       if focused
@@ -68,15 +69,11 @@ class Pane extends View
       else
         @blur() if @hasFocus()
 
+    @subscribe this, 'focusin', => @model.focus()
+    @subscribe this, 'focusout', => @model.blur()
     @subscribe this, 'focus', =>
       @model.suppressBlur => @activeView?.focus()
       false
-
-    @subscribe this, 'focusin', =>
-      @makeActive()
-      @model.focus()
-
-    @subscribe this, 'focusout', (e) => @model.blur()
 
     @command 'pane:save-items', => @saveItems()
     @command 'pane:show-next-item', => @showNextItem()
@@ -114,23 +111,13 @@ class Pane extends View
     @attached = true
     @trigger 'pane:attached', [this]
 
-  # Public: Focus this pane.
-  makeActive: ->
-    wasActive = @isActive()
-    for pane in @getContainer().getPanes() when pane isnt this
-      pane.makeInactive()
-    @addClass('active')
-    @trigger 'pane:became-active' unless wasActive
-
-  # Public: Unfocus this pane.
-  makeInactive: ->
-    wasActive = @isActive()
-    @removeClass('active')
-    @trigger 'pane:became-inactive' if wasActive
-
-  # Public: Returns whether this pane is currently focused.
-  isActive: ->
-    @getContainer()?.getActivePane() == this
+  onActiveStatusChanged: (active) =>
+    if active
+      @addClass('active')
+      @trigger 'pane:became-active'
+    else
+      @removeClass('active')
+      @trigger 'pane:became-inactive'
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
@@ -225,11 +212,6 @@ class Pane extends View
   # Private:
   remove: (selector, keepData) ->
     return super if keepData
-
     @unsubscribe()
     @model.destroy() unless @model.isDestroyed()
-
-    if @isActive()
-      @getContainer().makeNextPaneActive()
-
     super
