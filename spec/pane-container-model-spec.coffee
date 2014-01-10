@@ -66,6 +66,11 @@ describe "PaneContainerModel", ->
       container = new PaneContainerModel(root: pane)
       container.on 'surrendered-focus', surrenderedFocusHandler = jasmine.createSpy("surrenderedFocusHandler")
 
+    it "assigns null to the root and the activePane", ->
+      pane.destroy()
+      expect(container.root).toBe null
+      expect(container.activePane).toBe null
+
     describe "if the pane is focused", ->
       it "emits a 'surrendered-focus' event", ->
         pane.focus()

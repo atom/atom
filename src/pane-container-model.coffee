@@ -14,6 +14,8 @@ class PaneContainerModel extends Model
     focusContext: null
     activePane: null
 
+  previousRoot: null
+
   @behavior 'activePaneItem', ->
     @$activePane.flatMapLatest (activePane) -> activePane?.$activeItem
 
@@ -22,11 +24,7 @@ class PaneContainerModel extends Model
 
     @focusContext ?= new FocusContext
 
-    @subscribe @$root, (root) =>
-      if root?
-        root.parent = this
-        root.container = this
-        @activePane ?= root if root instanceof PaneModel
+    @subscribe @$root, @onRootChanged
 
   deserializeParams: (params) ->
     @focusContext ?= params.focusContext ? new FocusContext
@@ -76,3 +74,17 @@ class PaneContainerModel extends Model
       @activePane = panes[nextIndex]
     else
       @activePane = null
+
+  onRootChanged: (root) =>
+    @unsubscribe(@previousRoot) if @previousRoot?
+    @previousRoot = root
+    return unless root?
+
+    root.parent = this
+    root.container = this
+
+    if root instanceof PaneModel
+      @activePane ?= root
+      @subscribe root, 'destroyed', =>
+        @activePane = null
+        @root = null
