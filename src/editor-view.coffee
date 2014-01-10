@@ -1070,7 +1070,7 @@ class EditorView extends View
   #
   # Returns a {Pane}.
   getPane: ->
-    @parent('.item-views').parent('.pane').view()
+    @parents('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
