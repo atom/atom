@@ -2,6 +2,7 @@
 Serializable = require 'serializable'
 {find} = require 'underscore-plus'
 FocusContext = require './focus-context'
+PaneModel = require './pane-model'
 
 module.exports =
 class PaneContainerModel extends Model
@@ -10,18 +11,23 @@ class PaneContainerModel extends Model
 
   @properties
     root: null
-    focusContext: -> new FocusContext
+    focusContext: null
+    activePane: null
 
   constructor: ->
     super
+
+    @focusContext ?= new FocusContext
+
     @subscribe @$root, (root) =>
       if root?
         root.parent = this
-        root.focusContext = @focusContext
+        root.container = this
+        @activePane ?= root if root instanceof PaneModel
 
   deserializeParams: (params) ->
-    params.focusContext ?= new FocusContext
-    params.root = atom.deserializers.deserialize(params.root, focusContext: params.focusContext)
+    @focusContext ?= params.focusContext ? new FocusContext
+    params.root = atom.deserializers.deserialize(params.root, container: this)
     params
 
   serializeParams: (params) ->
@@ -57,3 +63,12 @@ class PaneContainerModel extends Model
       true
     else
       false
+
+  makeNextPaneActive: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@activePane)
+      nextIndex = (currentIndex + 1) % panes.length
+      @activePane = panes[nextIndex]
+    else
+      @activePane = null

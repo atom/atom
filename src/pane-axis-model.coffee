@@ -12,19 +12,14 @@ class PaneAxisModel extends Model
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 
-  @delegatesMethod 'focusNextPane', toProperty: 'parent'
+  @delegatesProperty 'focusContext', toProperty: 'container'
 
-  @property 'focusContext'
-
-  constructor: ({@focusContext, @orientation, children}) ->
+  constructor: ({@container, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
-
-    @subscribe @$focusContext, (focusContext) =>
-      child.focusContext = focusContext for child in @children
 
     @subscribe @children.onEach (child) =>
       child.parent = this
-      child.focusContext = @focusContext
+      child.container = @container
       @subscribe child, 'destroyed', => @removeChild(child)
 
     @subscribe @children.onRemoval (child) => @unsubscribe(child)
@@ -33,8 +28,8 @@ class PaneAxisModel extends Model
     @when @children.$length.becomesLessThan(1), 'destroy'
 
   deserializeParams: (params) ->
-    {focusContext} = params
-    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {focusContext})
+    {container} = params
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
     params
 
   serializeParams: ->

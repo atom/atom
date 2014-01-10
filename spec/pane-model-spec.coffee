@@ -88,7 +88,8 @@ describe "PaneModel", ->
   describe "::removeItemAtIndex(index)", ->
     describe "when the removal of the item causes blur to be called on the pane model", ->
       it "remains focused if it was before the item was removed", ->
-        pane = new PaneModel(items: ["A", "B", "C"], focusContext: new FocusContext)
+        pane = new PaneModel(items: ["A", "B", "C"])
+        container = new PaneContainerModel(root: pane)
         pane.on 'item-removed', -> pane.blur()
         pane.focus()
         pane.removeItemAtIndex(0)

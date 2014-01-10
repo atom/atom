@@ -13,25 +13,37 @@ class PaneModel extends Model
   Focusable.includeInto(this)
 
   @properties
+    container: null
     activeItem: null
+
+  @behavior 'active', ->
+    @$container
+      .flatMapLatest((container) -> container?.$activePane)
+      .map((activePane) => activePane is this)
+      .distinctUntilChanged()
 
   constructor: (params) ->
     super
 
-    @focus() if params?.focused
-
     @items = Sequence.fromArray(params?.items ? [])
     @activeItem ?= @items[0]
+
+    @subscribe @$container, (container) =>
+      @focusContext = container?.focusContext
 
     @subscribe @items.onEach (item) =>
       if typeof item.on is 'function'
         @subscribe item, 'destroyed', => @removeItem(item)
 
     @subscribe @items.onRemoval (item, index) =>
-      @unsubscribe item
+      @unsubscribe item if typeof item.on is 'function'
       @emit 'item-removed', item, index
 
     @when @items.$length.becomesLessThan(1), 'destroy'
+
+    @when @$focused, => @makeActive()
+
+    @focus() if params?.focused
 
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
@@ -45,6 +57,10 @@ class PaneModel extends Model
     params
 
   getViewClass: -> Pane ?= require './pane'
+
+  isActive: -> @active
+
+  makeActive: -> @container.activePane = this
 
   getPanes: -> [this]
 
@@ -144,7 +160,10 @@ class PaneModel extends Model
   # Private: Called by model superclass
   destroyed: ->
     item.destroy?() for item in @items.slice()
-    @parent.focusNextPane() if @focused
+    if @focused
+      @container.focusNextPane()
+    else if @isActive()
+      @container.makeNextPaneActive()
 
   # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
@@ -223,7 +242,7 @@ class PaneModel extends Model
 
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxisModel({orientation, children: [this]}))
+      @parent.replaceChild(this, new PaneAxisModel({@container, orientation, children: [this]}))
 
     newPane = new @constructor(params)
     switch side
