@@ -22,8 +22,6 @@ class PaneModel extends Model
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 
-  destroyingItem: false
-
   constructor: (params) ->
     super
 
@@ -39,9 +37,6 @@ class PaneModel extends Model
 
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
-      @emit 'item-removed', item, index, @destroyingItem
-
-    @when @items.$length.becomesLessThan(1), 'destroy'
 
     @when @$focused, => @makeActive()
 
@@ -115,15 +110,17 @@ class PaneModel extends Model
     item
 
   # Public:
-  removeItem: (item) ->
+  removeItem: (item, destroying) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index) if index >= 0
+    @removeItemAtIndex(index, destroying) if index >= 0
 
   # Public: Just remove the item at the given index.
-  removeItemAtIndex: (index) ->
+  removeItemAtIndex: (index, destroying) ->
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
-    @suppressBlur => @items.splice(index, 1)
+    @items.splice(index, 1)
+    @suppressBlur => @emit 'item-removed', item, index, destroying
+    @destroy() if @items.length is 0
 
   # Public: Moves the given item to a the new index.
   moveItem: (item, newIndex) ->
@@ -147,9 +144,7 @@ class PaneModel extends Model
     @emit 'before-item-destroyed', item
     if @promptToSaveItem(item)
       @emit 'item-destroyed', item
-      @destroyingItem = true
-      @removeItem(item)
-      @destroyingItem = false
+      @removeItem(item, true)
       item.destroy?()
       true
     else
