@@ -34,21 +34,22 @@ class Gutter extends View
 
   handleMouseEvents: (e) ->
     editorView = @getEditorView()
+    editor = @getEditor()
     startRow = editorView.screenPositionFromMouseEvent(e).row
     if e.shiftKey
-      editorView.selectToScreenPosition([startRow + 1, 0])
+      editor.selectToScreenPosition([startRow + 1, 0])
       return
     else
-      editorView.getSelection().setScreenRange([[startRow, 0], [startRow, 0]])
+      editor.getSelection().setScreenRange([[startRow, 0], [startRow, 0]])
 
     moveHandler = (e) =>
       start = startRow
       end = editorView.screenPositionFromMouseEvent(e).row
       if end > start then end++ else start++
-      editorView.getSelection().setScreenRange([[start, 0], [end, 0]])
+      editor.getSelection().setScreenRange([[start, 0], [end, 0]])
 
-    $(document).on "mousemove.gutter-#{@getEditorView().id}", moveHandler
-    $(document).one "mouseup.gutter-#{@getEditorView().id}", => $(document).off 'mousemove', moveHandler
+    $(document).on "mousemove.gutter-#{editorView.id}", moveHandler
+    $(document).one "mouseup.gutter-#{editorView.id}", => $(document).off 'mousemove', moveHandler
 
   ### Public ###
 
@@ -57,6 +58,9 @@ class Gutter extends View
   # Returns an {EditorView}.
   getEditorView: ->
     @parentView
+
+  getEditor: ->
+    @getEditorView().getEditor()
 
   # Defines whether to show the gutter or not.
   #
@@ -192,9 +196,9 @@ class Gutter extends View
     @elementBuilder.children
 
   buildLineElementsHtml: (startScreenRow, endScreenRow) =>
-    editorView = @getEditorView()
-    maxDigits = editorView.getLineCount().toString().length
-    rows = editorView.bufferRowsForScreenRows(startScreenRow, endScreenRow)
+    editor = @getEditor()
+    maxDigits = editor.getLineCount().toString().length
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
     html = ''
     for row in rows
@@ -204,7 +208,7 @@ class Gutter extends View
         rowValue = (row + 1).toString()
 
       classes = "line-number line-number-#{row}"
-      classes += ' fold' if editorView.isFoldedAtBufferRow(row)
+      classes += ' fold' if editor.isFoldedAtBufferRow(row)
 
       rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
 
@@ -230,8 +234,9 @@ class Gutter extends View
       @highlightedLineNumbers.push(highlightedLineNumber)
 
   highlightLines: ->
-    if @getEditorView().getSelection().isEmpty()
-      row = @getEditorView().getCursorScreenPosition().row
+    editor = @getEditor()
+    if editor.getSelection().isEmpty()
+      row = editor.getCursorScreenPosition().row
       rowRange = new Range([row, 0], [row, 0])
       return if @selectionEmpty and @highlightedRows?.isEqual(rowRange)
 
@@ -240,7 +245,7 @@ class Gutter extends View
       @highlightedRows = rowRange
       @selectionEmpty = true
     else
-      selectedRows = @getEditorView().getSelection().getScreenRange()
+      selectedRows = editor.getSelection().getScreenRange()
       endRow = selectedRows.end.row
       endRow-- if selectedRows.end.column is 0
       selectedRows = new Range([selectedRows.start.row, 0], [endRow, 0])

@@ -313,6 +313,12 @@ class Editor extends Model
   # {Delegates to: TextBuffer.setText}
   setText: (text) -> @buffer.setText(text)
 
+  # {Delegates to: TextBuffer.getTextInRange}
+  getTextInRange: (range) -> @getBuffer().getTextInRange(range)
+
+  # {Delegates to: TextBuffer.getLineCount}
+  getLineCount: -> @getBuffer().getLineCount()
+
   # Private: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -923,7 +929,7 @@ class Editor extends Model
 
   # Public:
   #
-  # FIXME: What does this do?
+  # Removes all but one cursor (if there are multiple cursors)
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1
