@@ -19,7 +19,7 @@ class KeyBinding
     normalizedKeystroke.join(' ')
 
   @getParser: ->
-    if not KeyBinding.parser
+    unless KeyBinding.parser?
       keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
       KeyBinding.parser = PEG.buildParser(keystrokePattern)
 
