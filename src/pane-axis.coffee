@@ -30,7 +30,9 @@ class PaneAxis extends View
     view = @viewForModel(child)
     view.detach()
     Pane ?= require './pane'
-    @getContainer()?.trigger 'pane:removed', [view] if view instanceof Pane
+
+    if view instanceof Pane and view.model.isDestroyed()
+      @getContainer()?.trigger 'pane:removed', [view]
 
   getContainer: ->
     @closest('.panes').view()

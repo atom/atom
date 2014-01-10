@@ -50,7 +50,8 @@ class PaneContainer extends View
 
   onRootChanged: (root) =>
     oldRoot = @getRoot()
-    @trigger 'pane:removed', [oldRoot] if @getRoot() instanceof Pane
+    if oldRoot instanceof Pane and oldRoot.model.isDestroyed()
+      @trigger 'pane:removed', [oldRoot]
     oldRoot?.detach()
     if root?
       view = @viewForModel(root)
