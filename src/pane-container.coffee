@@ -7,6 +7,7 @@ PaneContainerModel = require './pane-container-model'
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainer extends View
+  atom.deserializers.add(this)
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 
