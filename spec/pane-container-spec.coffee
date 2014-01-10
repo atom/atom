@@ -71,10 +71,6 @@ describe "PaneContainer", ->
       expect(container.getFocusedPane()).toBe pane3
       expect(container.getActivePane()).toBe pane3
 
-      # returns the first pane if none have been set to active
-      container.find('.pane.active').removeClass('active')
-      expect(container.getActivePane()).toBe pane1
-
   describe ".eachPane(callback)", ->
     it "runs the callback with all current and future panes until the subscription is cancelled", ->
       panes = []
