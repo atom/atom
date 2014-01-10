@@ -58,10 +58,10 @@ describe "WorkspaceView", ->
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 4
-        editor1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
-        editor3 = atom.workspaceView.panes.find('.row > .pane .editor:eq(1)').view()
-        editor2 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-        editor4 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+        editor1 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(0)').view()
+        editor3 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(1)').view()
+        editor2 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(0)').view()
+        editor4 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(1)').view()
 
         expect(editor1.getPath()).toBe atom.project.resolve('a')
         expect(editor2.getPath()).toBe atom.project.resolve('b')
@@ -298,14 +298,14 @@ describe "WorkspaceView", ->
           expect(pane2[0]).not.toBe pane1[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
-          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
           editor = atom.workspaceView.openSync('file1', split: 'right')
           pane3 = atom.workspaceView.getActivePane()
           expect(pane3[0]).toBe pane2[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
 
-          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
   describe ".openSingletonSync(filePath, options)", ->
     describe "when there is an active pane", ->
@@ -320,7 +320,7 @@ describe "WorkspaceView", ->
         expect(pane2[0]).not.toBe pane1[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane1.focus()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
@@ -330,7 +330,7 @@ describe "WorkspaceView", ->
         expect(pane3[0]).toBe pane2[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "handles split: left by opening to the left pane when necessary", ->
         atom.workspaceView.openSingletonSync('b', split: 'right')
@@ -344,7 +344,7 @@ describe "WorkspaceView", ->
 
         expect(pane1.itemForUri('file1')).toBeTruthy()
         expect(pane2.itemForUri('file1')).toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
         pane2.focus()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
@@ -352,7 +352,7 @@ describe "WorkspaceView", ->
         atom.workspaceView.openSingletonSync('file1', split: 'left')
         activePane = atom.workspaceView.getActivePane()
         expect(activePane[0]).toBe pane1[0]
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "reuses the file when already open", ->
         atom.workspaceView.openSync('b')
