@@ -12,18 +12,18 @@ class KeyBinding
 
   @normalizeKeystroke: (keystroke) ->
     normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
-      keys = @getParser().parse(keystroke)
+      keys = @parseKeystroke(keystroke)
       modifiers = keys[0...-1]
       modifiers.sort()
       [modifiers..., _.last(keys)].join('-')
     normalizedKeystroke.join(' ')
 
-  @getParser: ->
+  @parseKeystroke: (keystroke) ->
     unless KeyBinding.parser?
       keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
       KeyBinding.parser = PEG.buildParser(keystrokePattern)
 
-    KeyBinding.parser
+    KeyBinding.parser.parse(keystroke)
 
   constructor: (source, command, keystroke, selector) ->
     @source = source
