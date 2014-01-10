@@ -62,7 +62,7 @@ class PaneModel extends Model
 
   isActive: -> @active
 
-  makeActive: -> @container.activePane = this
+  makeActive: -> @container?.activePane = this
 
   getPanes: -> [this]
 
