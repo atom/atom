@@ -24,7 +24,7 @@ module.exports =
     process.env.ATOM_PACKAGES_URL ? 'https://www.atom.io/api/packages'
 
   getNodeVersion: ->
-    process.env.ATOM_NODE_VERSION ? '0.11.9'
+    process.env.ATOM_NODE_VERSION ? '0.11.10'
 
   getNodeArch: ->
     if process.platform is 'darwin' then 'x64' else 'ia32'
