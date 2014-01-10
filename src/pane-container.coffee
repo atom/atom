@@ -48,7 +48,9 @@ class PaneContainer extends View
     @model.root = root?.model
 
   onRootChanged: (root) =>
-    @children().detach()
+    oldRoot = @getRoot()
+    @trigger 'pane:removed', [oldRoot] if @getRoot() instanceof Pane
+    oldRoot?.detach()
     if root?
       view = @viewForModel(root)
       @append(view)

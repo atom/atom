@@ -206,9 +206,6 @@ class Pane extends View
   getContainer: ->
     @closest('.panes').view()
 
-  beforeRemove: ->
-    @trigger 'pane:removed', [this]
-
   # Private:
   remove: (selector, keepData) ->
     return super if keepData
