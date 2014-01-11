@@ -1,6 +1,5 @@
 {Model} = require 'theorist'
 Serializable = require 'serializable'
-{find} = require 'underscore-plus'
 PaneModel = require './pane-model'
 
 module.exports =
