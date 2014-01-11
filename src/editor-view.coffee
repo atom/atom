@@ -220,6 +220,18 @@ class EditorView extends View
   getEditor: ->
     @editor
 
+  # {Delegates to: Editor.getText}
+  getText: ->
+    @editor.getText()
+
+  # {Delegates to: Editor.setText}
+  setText: (text) ->
+    @editor.setText(text)
+
+  # {Delegates to: Editor.insertText}
+  insertText: (text, options) ->
+    @editor.insertText(text, options)
+
   # Private:
   setHeightInLines: (heightInLines)->
     heightInLines ?= @calculateHeightInLines()
