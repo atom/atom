@@ -73,8 +73,8 @@ class Editor extends Model
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
 
-    @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
-    @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+    @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
+    @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
     atom.project.addEditor(this) if registerEditor
 

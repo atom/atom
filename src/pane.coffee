@@ -50,13 +50,13 @@ class Pane extends View
   handleEvents: ->
     @subscribe @model, 'destroyed', => @remove()
 
-    @subscribe @model.$activeItem, 'value', @onActiveItemChanged
+    @subscribe @model.$activeItem, @onActiveItemChanged
     @subscribe @model, 'item-added', @onItemAdded
     @subscribe @model, 'item-removed', @onItemRemoved
     @subscribe @model, 'item-moved', @onItemMoved
     @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
     @subscribe @model, 'item-destroyed', @onItemDestroyed
-    @subscribe @model.$active, 'value', @onActiveStatusChanged
+    @subscribe @model.$active, @onActiveStatusChanged
 
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()

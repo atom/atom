@@ -21,8 +21,8 @@ class PaneContainer extends View
     else
       @model = new PaneContainerModel({root: params?.root?.model})
 
-    @subscribe @model.$root, 'value', @onRootChanged
-    @subscribe @model.$activePaneItem.changes, 'value', @onActivePaneItemChanged
+    @subscribe @model.$root, @onRootChanged
+    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
 
   viewForModel: (model) ->
     if model?

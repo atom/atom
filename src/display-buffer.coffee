@@ -35,7 +35,7 @@ class DisplayBuffer extends Model
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @$softWrap, 'value', (softWrap) =>
+    @subscribe @$softWrap, (softWrap) =>
       @emit 'soft-wrap-changed', softWrap
       @updateWrappedScreenLines()
 
