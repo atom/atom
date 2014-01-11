@@ -3,18 +3,17 @@
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
-Focusable = require './focusable'
 Pane = null
 
 module.exports =
 class PaneModel extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
-  Focusable.includeInto(this)
 
   @properties
     container: null
     activeItem: null
+    focused: false
 
   @behavior 'active', ->
     @$container
@@ -28,9 +27,6 @@ class PaneModel extends Model
     @items = Sequence.fromArray(params?.items ? [])
     @activeItem ?= @items[0]
 
-    @subscribe @$container, (container) =>
-      @focusContext = container?.focusContext
-
     @subscribe @items.onEach (item) =>
       if typeof item.on is 'function'
         @subscribe item, 'destroyed', => @removeItem(item)
@@ -38,9 +34,6 @@ class PaneModel extends Model
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
 
-    @when @$focused, => @makeActive()
-
-    @focus() if params?.focused
     @makeActive() if params?.active
 
   serializeParams: ->
@@ -58,6 +51,13 @@ class PaneModel extends Model
   getViewClass: -> Pane ?= require './pane'
 
   isActive: -> @active
+
+  focus: ->
+    @focused = true
+    @makeActive()
+
+  blur: ->
+    @focused = false
 
   makeActive: -> @container?.activePane = this
 
@@ -119,7 +119,7 @@ class PaneModel extends Model
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
-    @suppressBlur => @emit 'item-removed', item, index, destroying
+    @emit 'item-removed', item, index, destroying
     @destroy() if @items.length is 0
 
   # Public: Moves the given item to a the new index.
@@ -160,11 +160,8 @@ class PaneModel extends Model
 
   # Private: Called by model superclass
   destroyed: ->
+    @container.makeNextPaneActive() if @isActive()
     item.destroy?() for item in @items.slice()
-    if @focused
-      @container.focusNextPane()
-    else if @isActive()
-      @container.makeNextPaneActive()
 
   # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
@@ -245,10 +242,10 @@ class PaneModel extends Model
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxisModel({@container, orientation, children: [this]}))
 
-    newPane = new @constructor(params)
+    newPane = new @constructor(extend({focused: true}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
 
-    newPane.focus()
+    newPane.makeActive()
     newPane

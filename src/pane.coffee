@@ -49,9 +49,6 @@ class Pane extends View
     @viewsByItem = new WeakMap()
     @handleEvents()
 
-  hasFocus: ->
-    @is(':focus') or @is(':has(:focus)')
-
   handleEvents: ->
     @subscribe @model, 'destroyed', => @remove()
 
@@ -63,16 +60,10 @@ class Pane extends View
     @subscribe @model, 'item-destroyed', @onItemDestroyed
     @subscribe @model.$active, 'value', @onActiveStatusChanged
 
-    @subscribe @model.$focused, 'value', (focused) =>
-      if focused
-        @focus() unless @hasFocus()
-      else
-        @blur() if @hasFocus()
-
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()
     @subscribe this, 'focus', =>
-      @model.suppressBlur => @activeView?.focus()
+      @activeView?.focus()
       false
 
     @command 'pane:save-items', => @saveItems()
@@ -141,8 +132,8 @@ class Pane extends View
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
-    if isFocused
-      @model.suppressBlur -> view.focus()
+    view.focus() if isFocused
+
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
@@ -150,7 +141,25 @@ class Pane extends View
     @trigger 'pane:item-added', [item, index]
 
   onItemRemoved: (item, index, destroyed) =>
-    @cleanupItemView(item, destroyed)
+    if item instanceof $
+      viewToRemove = item
+    else if viewToRemove = @viewsByItem.get(item)
+      @viewsByItem.delete(item)
+
+    removingLastItem = @model.items.length is 0
+    hasFocus = @hasFocus()
+
+    @getContainer().focusNextPane() if hasFocus and removingLastItem
+
+    if viewToRemove?
+      viewToRemove.setModel?(null)
+      if destroyed
+        viewToRemove.remove()
+      else
+        viewToRemove.detach()
+
+    # @focus() if hasFocus and not removingLastItem
+
     @trigger 'pane:item-removed', [item, index]
 
   onItemMoved: (item, newIndex) =>
@@ -166,20 +175,6 @@ class Pane extends View
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
-
-  # Private:
-  cleanupItemView: (item, destroyed) ->
-    if item instanceof $
-      viewToRemove = item
-    else if viewToRemove = @viewsByItem.get(item)
-      @viewsByItem.delete(item)
-
-    if viewToRemove?
-      viewToRemove.setModel?(null)
-      if destroyed
-        viewToRemove.remove()
-      else
-        viewToRemove.detach()
 
   # Private:
   viewForItem: (item) ->
@@ -210,6 +205,7 @@ class Pane extends View
     @closest('.panes').view()
 
   beforeRemove: ->
+    @getContainer()?.focusNextPane() if @hasFocus()
     @model.destroy() unless @model.isDestroyed()
 
   # Private:

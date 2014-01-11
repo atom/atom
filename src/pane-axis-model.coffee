@@ -12,8 +12,6 @@ class PaneAxisModel extends Model
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 
-  @delegatesProperty 'focusContext', toProperty: 'container'
-
   constructor: ({@container, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
@@ -67,5 +65,4 @@ class PaneAxisModel extends Model
     @children.splice(index + 1, 0, newChild)
 
   reparentLastChild: ->
-    @focusContext.suppressBlur =>
-      @parent.replaceChild(this, @children[0])
+    @parent.replaceChild(this, @children[0])

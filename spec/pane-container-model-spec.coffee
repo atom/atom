@@ -16,11 +16,10 @@ describe "PaneContainerModel", ->
 
       containerB = containerA.testSerialization()
       [pane1B, pane2B, pane3B] = containerB.getPanes()
-      expect(pane3B.focusContext).toBe containerB.focusContext
       expect(pane3B.focused).toBe true
 
     it "preserves the active pane across serialization, independent of focus", ->
-      pane3A.blur()
+      pane3A.makeActive()
       expect(containerA.activePane).toBe pane3A
 
       containerB = containerA.testSerialization()
@@ -34,30 +33,30 @@ describe "PaneContainerModel", ->
       pane1 = new PaneModel
       container = new PaneContainerModel(root: pane1)
 
-    it "references the first pane if no pane has been focused", ->
+    it "references the first pane if no pane has been made active", ->
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
 
-    it "references the most recently focused pane", ->
+    it "references the most pane on which ::makeActive was most recently called", ->
       pane2 = pane1.splitRight()
+      pane2.makeActive()
       expect(container.activePane).toBe pane2
       expect(pane1.active).toBe false
       expect(pane2.active).toBe true
-      pane1.focus()
+      pane1.makeActive()
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
       expect(pane2.active).toBe false
 
-    it "is reassigned to the next pane if the current active pane is unfocused and destroyed", ->
+    it "is reassigned to the next pane if the current active pane is destroyed", ->
       pane2 = pane1.splitRight()
-      pane2.blur()
+      pane2.makeActive()
       pane2.destroy()
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
       pane1.destroy()
       expect(container.activePane).toBe null
 
-  # TODO: Remove this behavior when we have a proper workspace model we can explicitly focus
   describe "when the last pane is removed", ->
     [container, pane, surrenderedFocusHandler] = []
 
@@ -70,14 +69,3 @@ describe "PaneContainerModel", ->
       pane.destroy()
       expect(container.root).toBe null
       expect(container.activePane).toBe null
-
-    describe "if the pane is focused", ->
-      it "emits a 'surrendered-focus' event", ->
-        pane.focus()
-        pane.destroy()
-        expect(surrenderedFocusHandler).toHaveBeenCalled()
-
-    describe "if the pane is not focused", ->
-      it "does not emit an event", ->
-        expect(pane.focused).toBe false
-        expect(surrenderedFocusHandler).not.toHaveBeenCalled()

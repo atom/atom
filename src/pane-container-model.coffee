@@ -1,7 +1,6 @@
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 {find} = require 'underscore-plus'
-FocusContext = require './focus-context'
 PaneModel = require './pane-model'
 
 module.exports =
@@ -11,7 +10,6 @@ class PaneContainerModel extends Model
 
   @properties
     root: null
-    focusContext: null
     activePane: null
 
   previousRoot: null
@@ -21,13 +19,9 @@ class PaneContainerModel extends Model
 
   constructor: ->
     super
-
-    @focusContext ?= new FocusContext
-
     @subscribe @$root, @onRootChanged
 
   deserializeParams: (params) ->
-    @focusContext ?= params.focusContext ? new FocusContext
     params.root = atom.deserializers.deserialize(params.root, container: this)
     params
 
@@ -41,31 +35,6 @@ class PaneContainerModel extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
-  getFocusedPane: ->
-    find @getPanes(), (pane) -> pane.focused
-
-  focusNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
-    else
-      @emit 'surrendered-focus'
-      false
-
-  focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
-
   makeNextPaneActive: ->
     panes = @getPanes()
     if panes.length > 1
@@ -78,7 +47,10 @@ class PaneContainerModel extends Model
   onRootChanged: (root) =>
     @unsubscribe(@previousRoot) if @previousRoot?
     @previousRoot = root
-    return unless root?
+
+    unless root?
+      @activePane = null
+      return
 
     root.parent = this
     root.container = this

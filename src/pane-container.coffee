@@ -17,8 +17,6 @@ class PaneContainer extends View
   @content: ->
     @div class: 'panes'
 
-  @delegatesMethods 'focusNextPane', 'focusPreviousPane', toProperty: 'model'
-
   initialize: (params) ->
     if params instanceof PaneContainerModel
       @model = params
@@ -27,7 +25,6 @@ class PaneContainer extends View
 
     @subscribe @model.$root, 'value', @onRootChanged
     @subscribe @model.$activePaneItem.changes, 'value', @onActivePaneItemChanged
-    @subscribe @model, 'surrendered-focus', @onSurrenderedFocus
 
   viewForModel: (model) ->
     if model?
@@ -49,6 +46,8 @@ class PaneContainer extends View
     @model.root = root?.model
 
   onRootChanged: (root) =>
+    focusedElement = document.activeElement if @hasFocus()
+
     oldRoot = @getRoot()
     if oldRoot instanceof Pane and oldRoot.model.isDestroyed()
       @trigger 'pane:removed', [oldRoot]
@@ -56,13 +55,10 @@ class PaneContainer extends View
     if root?
       view = @viewForModel(root)
       @append(view)
-      view.makeActive?()
+      focusedElement?.focus()
 
   onActivePaneItemChanged: (activeItem) =>
     @trigger 'pane-container:active-pane-item-changed', [activeItem]
-
-  onSurrenderedFocus: =>
-    atom?.workspaceView?.focus()
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child
@@ -117,3 +113,25 @@ class PaneContainer extends View
   removeEmptyPanes: ->
     for pane in @getPanes() when pane.getItems().length == 0
       pane.remove()
+
+  focusNextPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      nextIndex = (currentIndex + 1) % panes.length
+      panes[nextIndex].focus()
+      true
+    else
+      atom.workspaceView?.focus()
+      false
+
+  focusPreviousPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      previousIndex = currentIndex - 1
+      previousIndex = panes.length - 1 if previousIndex < 0
+      panes[previousIndex].focus()
+      true
+    else
+      false

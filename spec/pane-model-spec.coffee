@@ -2,7 +2,6 @@
 PaneModel = require '../src/pane-model'
 PaneAxisModel = require '../src/pane-axis-model'
 PaneContainerModel = require '../src/pane-container-model'
-FocusContext = require '../src/focus-context'
 
 describe "PaneModel", ->
   describe "split methods", ->
@@ -80,25 +79,12 @@ describe "PaneModel", ->
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane1, pane3, pane2]
 
-    it "focuses the new pane, even if the current pane isn't focused", ->
+    it "sets up the new pane to be focused", ->
       expect(pane1.focused).toBe false
       pane2 = pane1.splitRight()
       expect(pane2.focused).toBe true
 
   describe "::removeItemAtIndex(index)", ->
-    describe "when the removal of the item causes blur to be called on the pane model", ->
-      it "remains focused if it was before the item was removed", ->
-        pane = new PaneModel(items: ["A", "B", "C"])
-        container = new PaneContainerModel(root: pane)
-        pane.on 'item-removed', -> pane.blur()
-        pane.focus()
-        pane.removeItemAtIndex(0)
-        expect(pane.focused).toBe true
-
-        pane.blur()
-        pane.removeItemAtIndex(0)
-        expect(pane.focused).toBe false
-
     describe "when the last item is removed", ->
       it "destroys the pane", ->
         pane = new PaneModel(items: ["A", "B"])
@@ -146,13 +132,3 @@ describe "PaneModel", ->
         expect(container.root.children).toEqual [pane1, pane2]
         pane2.destroy()
         expect(container.root).toBe pane1
-
-    describe "if the pane is focused", ->
-      it "shifts focus to the next pane", ->
-        pane2 = pane1.splitRight()
-        pane3 = pane2.splitRight()
-        pane2.focus()
-        expect(pane2.focused).toBe true
-        expect(pane3.focused).toBe false
-        pane2.destroy()
-        expect(pane3.focused).toBe true

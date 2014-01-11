@@ -7,10 +7,8 @@ Pane = null
 module.exports =
 class PaneAxis extends View
   initialize: (@model) ->
-    @subscribe @model.children.onRemoval @onChildRemoved
-    @subscribe @model.children.onEach @onChildAdded
-
-    @onChildAdded(child) for child in children ? []
+    @onChildAdded(child) for child in @model.children
+    @subscribe @model.children, 'changed', @onChildrenChanged
 
   viewForModel: (model) ->
     viewClass = model.getViewClass()
@@ -21,6 +19,12 @@ class PaneAxis extends View
 
   removeChild: (child) ->
     @model.removeChild(child.model)
+
+  onChildrenChanged:  ({index, removedValues, insertedValues}) =>
+    focusedElement = document.activeElement if @hasFocus()
+    @onChildRemoved(child, index) for child in removedValues
+    @onChildAdded(child, index + i) for child, i in insertedValues
+    focusedElement?.focus() if document.activeElement is document.body
 
   onChildAdded: (child, index) =>
     view = @viewForModel(child)
