@@ -21,18 +21,9 @@
 
   .pane {
     position: relative;
+    display: -webkit-flex;
     -webkit-flex: 1;
-
-    .flexbox-repaint-hack {
-      display: -webkit-flex;
-      -webkit-flex-flow: column;
-
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-    }
+    -webkit-flex-direction: column;
 
     .pane-item {
       color: @text-color;
@@ -43,11 +34,19 @@
       -webkit-flex: 1;
       display: -webkit-flex;
       min-height: 0;
-    }
+      position: relative;
 
-    .item-views > * {
-      -webkit-flex: 1;
-      min-width: 0;
+      .flexbox-repaint-hack {
+        display: -webkit-flex;
+        -webkit-flex-flow: column;
+
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        min-width: 0;
+      }
     }
   }
 }

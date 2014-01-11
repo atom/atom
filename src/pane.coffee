@@ -24,8 +24,8 @@ class Pane extends View
 
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
-      @div class: 'flexbox-repaint-hack', =>
-        @div class: 'item-views', outlet: 'itemViews'
+      @div class: 'item-views', =>
+        @div class: 'flexbox-repaint-hack', outlet: 'itemViews'
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',

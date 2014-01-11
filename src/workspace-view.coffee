@@ -240,7 +240,7 @@ class WorkspaceView extends View
 
   # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
-    @panes.find('.pane > .flexbox-repaint-hack > .item-views > .editor').map(-> $(this).view()).toArray()
+    @panes.find('.pane > .item-views > .flexbox-repaint-hack > .editor').map(-> $(this).view()).toArray()
 
   # Private: Retrieves all of the modified buffers that are open and unsaved.
   #
