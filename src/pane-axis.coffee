@@ -12,12 +12,6 @@ class PaneAxis extends View
     viewClass = model.getViewClass()
     model._view ?= new viewClass(model)
 
-  addChild: (child, index) ->
-    @model.addChild(child.model, index)
-
-  removeChild: (child) ->
-    @model.removeChild(child.model)
-
   onChildrenChanged:  ({index, removedValues, insertedValues}) =>
     focusedElement = document.activeElement if @hasFocus()
     @onChildRemoved(child, index) for child in removedValues
@@ -38,15 +32,3 @@ class PaneAxis extends View
 
   getContainer: ->
     @closest('.panes').view()
-
-  getActivePaneItem: ->
-    @getActivePane()?.activeItem
-
-  getActivePane: ->
-    @find('.pane.active').view() ? @find('.pane:first').view()
-
-  insertChildBefore: (currentChild, newChild) ->
-    @model.insertChildBefore(currentChild, newChild)
-
-  insertChildAfter: (currentChild, newChild) ->
-    @model.insertChildAfter(currentChild, newChild)
