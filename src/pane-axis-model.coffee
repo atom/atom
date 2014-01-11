@@ -1,6 +1,5 @@
 {Model, Sequence} = require 'theorist'
 {flatten} = require 'underscore-plus'
-Delegator = require 'delegato'
 Serializable = require 'serializable'
 
 PaneRow = null
@@ -10,7 +9,6 @@ module.exports =
 class PaneAxisModel extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
-  Delegator.includeInto(this)
 
   constructor: ({@container, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])

@@ -1,4 +1,4 @@
-{find, compact, clone, extend} = require 'underscore-plus'
+{find, compact, extend} = require 'underscore-plus'
 {dirname} = require 'path'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'

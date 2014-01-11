@@ -3,8 +3,6 @@ Serializable = require 'serializable'
 Delegator = require 'delegato'
 
 PaneModel = require './pane-model'
-PaneRow = require './pane-row'
-PaneColumn = require './pane-column'
 
 # Public: A container which can contains multiple items to be switched between.
 #

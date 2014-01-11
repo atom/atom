@@ -1,5 +1,4 @@
 Serializable = require 'serializable'
-Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
 PaneContainerModel = require './pane-container-model'
@@ -9,7 +8,6 @@ module.exports =
 class PaneContainer extends View
   atom.deserializers.add(this)
   Serializable.includeInto(this)
-  Delegator.includeInto(this)
 
   @deserialize: (state) ->
     new this(PaneContainerModel.deserialize(state.model))

@@ -1,6 +1,4 @@
-Serializable = require 'serializable'
-{$, View} = require './space-pen-extensions'
-PaneAxisModel = require './pane-axis-model'
+{View} = require './space-pen-extensions'
 Pane = null
 
 ### Internal ###
