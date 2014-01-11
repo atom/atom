@@ -17,7 +17,7 @@ class PaneModel extends Model
 
   @behavior 'active', ->
     @$container
-      .flatMapLatest((container) -> container?.$activePane)
+      .switch((container) -> container?.$activePane)
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 

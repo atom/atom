@@ -14,7 +14,7 @@ class PaneContainerModel extends Model
   previousRoot: null
 
   @behavior 'activePaneItem', ->
-    @$activePane.flatMapLatest (activePane) -> activePane?.$activeItem
+    @$activePane.switch (activePane) -> activePane?.$activeItem
 
   constructor: ->
     super
