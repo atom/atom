@@ -217,8 +217,6 @@ class EditorView extends View
       do (name, method) =>
         @command name, (e) => method.call(this, e); false
 
-  isAlive: -> @editor?.isAlive()
-
   # {Delegates to: Editor.getCursor}
   getCursor: -> @editor.getCursor()
 
