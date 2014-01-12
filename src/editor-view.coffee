@@ -1073,7 +1073,7 @@ class EditorView extends View
   #
   # Returns a {Pane}.
   getPane: ->
-    @parent('.flexbox-repaint-hack').parents('.pane').view()
+    @parent('.item-views').parents('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
