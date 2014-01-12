@@ -249,7 +249,7 @@ describe "PaneContainer", ->
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
       it "is triggered when the active pane is changed", ->
-        pane1.makeActive()
+        pane1.activate()
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 

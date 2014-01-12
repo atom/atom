@@ -34,7 +34,7 @@ class PaneModel extends Model
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
 
-    @makeActive() if params?.active
+    @activate() if params?.active
 
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
@@ -54,13 +54,15 @@ class PaneModel extends Model
 
   focus: ->
     @focused = true
-    @makeActive()
+    @activate() unless @isActive()
 
   blur: ->
     @focused = false
     true # if this is called from an event handler, don't cancel it
 
-  makeActive: -> @container?.activePane = this
+  activate: ->
+    @container?.activePane = this
+    @emit 'activated'
 
   getPanes: -> [this]
 
@@ -161,7 +163,7 @@ class PaneModel extends Model
 
   # Private: Called by model superclass
   destroyed: ->
-    @container.makeNextPaneActive() if @isActive()
+    @container.activateNextPane() if @isActive()
     item.destroy?() for item in @items.slice()
 
   # Public: Prompt the user to save the given item.
@@ -248,5 +250,5 @@ class PaneModel extends Model
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
 
-    newPane.makeActive()
+    newPane.activate()
     newPane

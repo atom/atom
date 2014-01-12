@@ -173,7 +173,7 @@ class WorkspaceView extends View
 
         @itemOpened(editor)
         activePane.showItem(editor)
-        activePane.focus() if changeFocus
+        activePane.activate() if changeFocus
         @trigger "uri-opened"
         editor
       .catch (error) ->
@@ -208,7 +208,7 @@ class WorkspaceView extends View
 
     @itemOpened(paneItem)
 
-    pane.focus() if changeFocus
+    pane.activate() if changeFocus
     paneItem
 
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
@@ -219,7 +219,7 @@ class WorkspaceView extends View
     if pane
       paneItem = pane.itemForUri(uri)
       pane.showItem(paneItem)
-      pane.focus() if changeFocus
+      pane.activate() if changeFocus
       paneItem
     else
       @openSync(uri, {changeFocus, initialLine, split})

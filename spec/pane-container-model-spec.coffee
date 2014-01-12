@@ -19,7 +19,7 @@ describe "PaneContainerModel", ->
       expect(pane3B.focused).toBe true
 
     it "preserves the active pane across serialization, independent of focus", ->
-      pane3A.makeActive()
+      pane3A.activate()
       expect(containerA.activePane).toBe pane3A
 
       containerB = containerA.testSerialization()
@@ -37,20 +37,20 @@ describe "PaneContainerModel", ->
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
 
-    it "references the most pane on which ::makeActive was most recently called", ->
+    it "references the most pane on which ::activate was most recently called", ->
       pane2 = pane1.splitRight()
-      pane2.makeActive()
+      pane2.activate()
       expect(container.activePane).toBe pane2
       expect(pane1.active).toBe false
       expect(pane2.active).toBe true
-      pane1.makeActive()
+      pane1.activate()
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
       expect(pane2.active).toBe false
 
     it "is reassigned to the next pane if the current active pane is destroyed", ->
       pane2 = pane1.splitRight()
-      pane2.makeActive()
+      pane2.activate()
       pane2.destroy()
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true

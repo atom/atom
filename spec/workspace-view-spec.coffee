@@ -311,7 +311,6 @@ describe "WorkspaceView", ->
     describe "when there is an active pane", ->
       [pane1] = []
       beforeEach ->
-        spyOn(Pane.prototype, 'focus').andCallFake -> @makeActive()
         pane1 = atom.workspaceView.getActivePane()
 
       it "creates a new pane and reuses the file when already open", ->
@@ -322,7 +321,7 @@ describe "WorkspaceView", ->
         expect(pane2.itemForUri('b')).not.toBeFalsy()
         expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
-        pane1.focus()
+        pane1.activate()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
 
         atom.workspaceView.openSingletonSync('b', split: 'right')
@@ -346,7 +345,7 @@ describe "WorkspaceView", ->
         expect(pane2.itemForUri('file1')).toBeFalsy()
         expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
-        pane2.focus()
+        pane2.activate()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
 
         atom.workspaceView.openSingletonSync('file1', split: 'left')

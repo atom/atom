@@ -54,6 +54,8 @@ class PaneContainer extends View
       view = @viewForModel(root)
       @append(view)
       focusedElement?.focus()
+    else
+      atom.workspaceView?.focus() if focusedElement?
 
   onActivePaneItemChanged: (activeItem) =>
     @trigger 'pane-container:active-pane-item-changed', [activeItem]
@@ -120,7 +122,6 @@ class PaneContainer extends View
       panes[nextIndex].focus()
       true
     else
-      atom.workspaceView?.focus()
       false
 
   focusPreviousPane: ->

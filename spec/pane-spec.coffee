@@ -41,7 +41,7 @@ describe "Pane", ->
       expect(pane.activeItem).toBe view2
 
     it "triggers 'pane:active-item-changed' if the item isn't already the activeItem", ->
-      pane.makeActive()
+      pane.activate()
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
@@ -447,23 +447,13 @@ describe "Pane", ->
         paneToRight = pane.splitRight(pane.copyActiveItem())
         container.attachToDom()
 
-      describe "when the removed pane is focused", ->
-        it "activates and focuses the next pane", ->
-          pane.focus()
+      describe "when the removed pane is active", ->
+        it "makes the next the next pane active and focuses it", ->
+          pane.activate()
           pane.remove()
           expect(paneToLeft.isActive()).toBeFalsy()
           expect(paneToRight.isActive()).toBeTruthy()
           expect(paneToRight).toMatchSelector ':has(:focus)'
-
-      describe "when the removed pane is active but not focused", ->
-        it "activates the next pane, but does not focus it", ->
-          $(document.activeElement).blur()
-          expect(pane).not.toMatchSelector ':has(:focus)'
-          pane.makeActive()
-          pane.remove()
-          expect(paneToLeft.isActive()).toBeFalsy()
-          expect(paneToRight.isActive()).toBeTruthy()
-          expect(paneToRight).not.toMatchSelector ':has(:focus)'
 
       describe "when the removed pane is not active", ->
         it "does not affect the active pane or the focus", ->

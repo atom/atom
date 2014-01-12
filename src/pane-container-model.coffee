@@ -34,12 +34,12 @@ class PaneContainerModel extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
-  makeNextPaneActive: ->
+  activateNextPane: ->
     panes = @getPanes()
     if panes.length > 1
       currentIndex = panes.indexOf(@activePane)
       nextIndex = (currentIndex + 1) % panes.length
-      @activePane = panes[nextIndex]
+      panes[nextIndex].activate()
     else
       @activePane = null
 
