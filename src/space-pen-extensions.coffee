@@ -59,9 +59,6 @@ jQuery.fn.destroyTooltip = ->
   @hideTooltip()
   @tooltip('destroy')
 
-jQuery.fn.hasFocus = ->
-  @is(':focus') or @is(':has(:focus)')
-
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.humanizeKeystrokes = humanizeKeystrokes
 
