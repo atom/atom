@@ -5,6 +5,9 @@ Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
 Pane = null
 
+# Public: A container for multiple items, one of which is *active* at a given
+# time. With the default packages, a tab is displayed for each item and the
+# active item's view is displayed.
 module.exports =
 class PaneModel extends Model
   atom.deserializers.add(this)
@@ -15,12 +18,16 @@ class PaneModel extends Model
     activeItem: null
     focused: false
 
+  # Public: Only one pane is considered *active* at a time. A pane is activated
+  # when it is focused, and when focus returns to the pane container after
+  # moving to another element such as a panel, it returns to the active pane.
   @behavior 'active', ->
     @$container
       .switch((container) -> container?.$activePane)
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 
+  # Private:
   constructor: (params) ->
     super
 
@@ -36,37 +43,45 @@ class PaneModel extends Model
 
     @activate() if params?.active
 
+  # Private: Called by the Serializable mixin during serialization.
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
     focused: @focused
     active: @active
 
+  # Private: Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
     {items, activeItemUri} = params
     params.items = items.map (itemState) -> atom.deserializers.deserialize(itemState)
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
+  # Private: Called by the view layer to construct a view for this model.
   getViewClass: -> Pane ?= require './pane'
 
   isActive: -> @active
 
+  # Private: Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
     @activate() unless @isActive()
 
+  # Private: Called by the view layer to indicate that the pane has lost focus.
   blur: ->
     @focused = false
     true # if this is called from an event handler, don't cancel it
 
+  # Public: Makes this pane the *active* pane, causing it to gain focus
+  # immediately.
   activate: ->
     @container?.activePane = this
     @emit 'activated'
 
+  # Private:
   getPanes: -> [this]
 
-  # Public: Returns all contained views.
+  # Public:
   getItems: ->
     @items.slice()
 
@@ -74,7 +89,7 @@ class PaneModel extends Model
   itemAtIndex: (index) ->
     @items[index]
 
-  # Public: Switches to the next contained item.
+  # Public: Makes the next item active.
   showNextItem: ->
     index = @getActiveItemIndex()
     if index < @items.length - 1
@@ -82,7 +97,7 @@ class PaneModel extends Model
     else
       @showItemAtIndex(0)
 
-  # Public: Switches to the previous contained item.
+  # Public: Makes the previous item active.
   showPreviousItem: ->
     index = @getActiveItemIndex()
     if index > 0
@@ -90,21 +105,29 @@ class PaneModel extends Model
     else
       @showItemAtIndex(@items.length - 1)
 
-  # Public: Returns the index of the currently active item.
+  # Public: Returns the index of the current active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
-  # Public: Switch to the item associated with the given index.
+  # Public: Makes the item at the given index active.
   showItemAtIndex: (index) ->
     @showItem(@itemAtIndex(index))
 
-  # Public: Focuses the given item.
+  # Public: Makes the given item active, adding the item if necessary.
   showItem: (item) ->
     if item?
       @addItem(item)
       @activeItem = item
 
-  # Public: Add an additional item at the specified index.
+  # Public: Adds the item to the pane.
+  #
+  # * item:
+  #     The item to add. It can be a model with an associated view or a view.
+  # * index:
+  #     An optional index at which to add the item. If omitted, the item is
+  #     added to the end.
+  #
+  # Returns the added item
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
@@ -112,12 +135,10 @@ class PaneModel extends Model
     @emit 'item-added', item, index
     item
 
-  # Public:
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     @removeItemAtIndex(index, destroying) if index >= 0
 
-  # Public: Just remove the item at the given index.
   removeItemAtIndex: (index, destroying) ->
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
@@ -125,25 +146,26 @@ class PaneModel extends Model
     @emit 'item-removed', item, index, destroying
     @destroy() if @items.length is 0
 
-  # Public: Moves the given item to a the new index.
+  # Public: Moves the given item to the specified index.
   moveItem: (item, newIndex) ->
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
     @emit 'item-moved', item, newIndex
 
-  # Public: Moves the given item to another pane.
+  # Public: Moves the given item to the given index at another pane.
   moveItemToPane: (item, pane, index) ->
     pane.addItem(item, index)
     @removeItem(item)
 
-  # Public: Remove the currently active item.
+  # Public: Destroys the currently active item and make the next item active.
   destroyActiveItem: ->
     @destroyItem(@activeItem)
     false
 
-  # Public: Remove the specified item.
-  destroyItem: (item, options) ->
+  # Public: Destroys the given item. If it is the active item, activate the next
+  # one. If this is the last item, also destroys the pane.
+  destroyItem: (item) ->
     @emit 'before-item-destroyed', item
     if @promptToSaveItem(item)
       @emit 'item-destroyed', item
@@ -153,20 +175,21 @@ class PaneModel extends Model
     else
       false
 
-  # Public: Remove and delete all items.
+  # Public: Destroys all items and destroys the pane.
   destroyItems: ->
     @destroyItem(item) for item in @getItems()
 
-  # Public: Remove and delete all but the currently focused item.
+  # Public: Destroys all items but the active one.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
-  # Private: Called by model superclass
+  # Private: Called by model superclass.
   destroyed: ->
     @container.activateNextPane() if @isActive()
     item.destroy?() for item in @items.slice()
 
-  # Public: Prompt the user to save the given item.
+  # Public: Prompts the user to save the given item if it can be saved and is
+  # currently unsaved.
   promptToSaveItem: (item) ->
     return true unless item.shouldPromptToSave?()
 
@@ -181,15 +204,18 @@ class PaneModel extends Model
       when 1 then false
       when 2 then true
 
-  # Public: Saves the currently focused item.
+  # Public: Saves the active item.
   saveActiveItem: ->
     @saveItem(@activeItem)
 
-  # Public: Save and prompt for path for the currently focused item.
+  # Public: Saves the active item at a prompted-for location.
   saveActiveItemAs: ->
     @saveItemAs(@activeItem)
 
-  # Public: Saves the specified item and call the next action when complete.
+  # Public: Saves the specified item.
+  #
+  # * item: The item to save.
+  # * nextAction: An optional function which will be called after the item is saved.
   saveItem: (item, nextAction) ->
     if item.getUri?()
       item.save?()
@@ -197,8 +223,10 @@ class PaneModel extends Model
     else
       @saveItemAs(item, nextAction)
 
-  # Public: Prompts for path and then saves the specified item. Upon completion
-  # it also calls the next action.
+  # Public: Saves the given item at a prompted-for location.
+  #
+  # * item: The item to save.
+  # * nextAction: An optional function which will be called after the item is saved.
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
 
@@ -209,15 +237,17 @@ class PaneModel extends Model
       item.saveAs(path)
       nextAction?()
 
-  # Public: Saves all items in this pane.
+  # Public: Saves all items.
   saveItems: ->
     @saveItem(item) for item in @getItems()
 
-  # Public: Finds the first item that matches the given uri.
+  # Public: Returns the first item that matches the given URI or undefined if
+  # none exists.
   itemForUri: (uri) ->
     find @items, (item) -> item.getUri?() is uri
 
-  # Public: Focuses the first item that matches the given uri.
+  # Public: Activates the first item that matches the given URI. Returns a
+  # boolean indicating whether a matching item was found.
   showItemForUri: (uri) ->
     if item = @itemForUri(uri)
       @showItem(item)
@@ -229,18 +259,43 @@ class PaneModel extends Model
   copyActiveItem: ->
     @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
+  # Public: Creates a new pane to the left of the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {PaneModel}.
   splitLeft: (params) ->
     @split('horizontal', 'before', params)
 
+  # Public: Creates a new pane to the right of the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {PaneModel}.
   splitRight: (params) ->
     @split('horizontal', 'after', params)
 
+  # Public: Creates a new pane above the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {PaneModel}.
   splitUp: (params) ->
     @split('vertical', 'before', params)
 
+  # Public: Creates a new pane below the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {PaneModel}.
   splitDown: (params) ->
     @split('vertical', 'after', params)
 
+  # Private:
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxisModel({@container, orientation, children: [this]}))
