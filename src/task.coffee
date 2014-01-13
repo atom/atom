@@ -91,6 +91,7 @@ class Task
   # * message:
   #   The message to send
   send: (message) ->
+    throw new Error("Cannot send message to terminated process") unless @childProcess?
     @childProcess.send(message)
 
   # Public: Forcefully stop the running task.
