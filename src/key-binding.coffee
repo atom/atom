@@ -1,8 +1,6 @@
-{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
-PEG = require 'pegjs'
 
 ### Internal ###
 
@@ -10,28 +8,41 @@ module.exports =
 class KeyBinding
   @parser: null
   @currentIndex: 1
+  @specificities: null
+
+  @calculateSpecificity: (selector) ->
+    @specificities ?= {}
+    value = @specificities[selector]
+    unless value?
+      value = specificity(selector)
+      @specificities[selector] = value
+    value
 
   @normalizeKeystroke: (keystroke) ->
     normalizedKeystroke = keystroke.split(/\s+/).map (keystroke) =>
-      keys = @getParser().parse(keystroke)
+      keys = @parseKeystroke(keystroke)
       modifiers = keys[0...-1]
       modifiers.sort()
       [modifiers..., _.last(keys)].join('-')
     normalizedKeystroke.join(' ')
 
-  @getParser: ->
-    if not KeyBinding.parser
-      keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
-      KeyBinding.parser = PEG.buildParser(keystrokePattern)
+  @parseKeystroke: (keystroke) ->
+    unless @parser?
+      try
+        @parser = require './keystroke-pattern'
+      catch
+        keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
+        PEG = require 'pegjs'
+        @parser = PEG.buildParser(keystrokePattern)
 
-    KeyBinding.parser
+    @parser.parse(keystroke)
 
   constructor: (source, command, keystroke, selector) ->
     @source = source
     @command = command
     @keystroke = KeyBinding.normalizeKeystroke(keystroke)
     @selector = selector.replace(/!important/g, '')
-    @specificity = specificity(selector)
+    @specificity = KeyBinding.calculateSpecificity(selector)
     @index = KeyBinding.currentIndex++
 
   matches: (keystroke) ->

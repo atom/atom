@@ -2762,7 +2762,7 @@ describe "EditorView", ->
         editorView = atom.workspaceView.getActiveView()
 
         view = $$ -> @div id: 'view', tabindex: -1, 'View'
-        editorView.getPane().showItem(view)
+        editorView.getPane().activateItem(view)
         expect(editorView.isVisible()).toBeFalsy()
 
         editor.setText('hidden changes')
@@ -2770,7 +2770,7 @@ describe "EditorView", ->
 
         displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
         editorView.on 'editor:display-updated', displayUpdatedHandler
-        editorView.getPane().showItem(editorView.getModel())
+        editorView.getPane().activateItem(editorView.getModel())
         expect(editorView.isVisible()).toBeTruthy()
 
         waitsFor ->
@@ -2815,7 +2815,7 @@ describe "EditorView", ->
       atom.workspaceView.attachToDom()
       editorView = atom.workspaceView.getActiveView()
 
-      willBeRemovedHandler = jasmine.createSpy('fileChange')
+      willBeRemovedHandler = jasmine.createSpy('willBeRemovedHandler')
       editorView.on 'editor:will-be-removed', willBeRemovedHandler
       editorView.getPane().destroyActiveItem()
       expect(willBeRemovedHandler).toHaveBeenCalled()

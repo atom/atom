@@ -1,140 +1,66 @@
+{Model} = require 'theorist'
 Serializable = require 'serializable'
-{$, View} = require './space-pen-extensions'
 Pane = require './pane'
 
-# Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
-class PaneContainer extends View
-  Serializable.includeInto(this)
+class PaneContainer extends Model
   atom.deserializers.add(this)
+  Serializable.includeInto(this)
 
-  @content: ->
-    @div class: 'panes'
+  @properties
+    root: null
+    activePane: null
 
-  initialize: ({root}={}) ->
-    @setRoot(root)
+  previousRoot: null
 
-    @subscribe this, 'pane:attached', (event, pane) =>
-      @triggerActiveItemChange() if @getActivePane() is pane
+  @behavior 'activePaneItem', ->
+    @$activePane.switch (activePane) -> activePane?.$activeItem
 
-    @subscribe this, 'pane:removed', (event, pane) =>
-      @triggerActiveItemChange() unless @getActivePane()?
-
-    @subscribe this, 'pane:became-active', =>
-      @triggerActiveItemChange()
-
-    @subscribe this, 'pane:active-item-changed', (event, item) =>
-      @triggerActiveItemChange() if @getActivePaneItem() is item
-
-  triggerActiveItemChange: ->
-    @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
-
-  serializeParams: ->
-    root: @getRoot()?.serialize()
+  constructor: (params) ->
+    super
+    @subscribe @$root, @onRootChanged
+    @destroyEmptyPanes() if params?.destroyEmptyPanes
 
   deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root)
+    params.root = atom.deserializers.deserialize(params.root, container: this)
+    params.destroyEmptyPanes = true
     params
 
-  ### Public ###
+  serializeParams: (params) ->
+    root: @root?.serialize()
 
-  focusNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
-    else
-      false
-
-  focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
-
-  makeNextPaneActive: ->
-    panes = @getPanes()
-    currentIndex = panes.indexOf(@getActivePane())
-    nextIndex = (currentIndex + 1) % panes.length
-    panes[nextIndex].makeActive()
-
-  itemDestroyed: (item) ->
-    @trigger 'item-destroyed', [item]
-
-  getRoot: ->
-    @children().first().view()
-
-  setRoot: (root, {suppressPaneItemChangeEvents}={}) ->
-    @empty()
-    if root?
-      @append(root)
-      root.makeActive?()
-
-  removeChild: (child) ->
-    throw new Error("Removing non-existant child") unless @getRoot() is child
-    @setRoot(null)
-    @trigger 'pane:removed', [child] if child instanceof Pane
-
-  saveAll: ->
-    pane.saveItems() for pane in @getPanes()
-
-  confirmClose: ->
-    saved = true
-    for pane in @getPanes()
-      for item in pane.getItems()
-        if not pane.promptToSaveItem(item)
-          saved = false
-          break
-    saved
+  replaceChild: (oldChild, newChild) ->
+    throw new Error("Replacing non-existent child") if oldChild isnt @root
+    @root = newChild
 
   getPanes: ->
-    @find('.pane').views()
+    @root?.getPanes() ? []
 
-  indexOfPane: (pane) ->
-    @getPanes().indexOf(pane.view())
+  activateNextPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@activePane)
+      nextIndex = (currentIndex + 1) % panes.length
+      panes[nextIndex].activate()
+    else
+      @activePane = null
 
-  paneAtIndex: (index) ->
-    @getPanes()[index]
+  onRootChanged: (root) =>
+    @unsubscribe(@previousRoot) if @previousRoot?
+    @previousRoot = root
 
-  eachPane: (callback) ->
-    callback(pane) for pane in @getPanes()
-    paneAttached = (e) -> callback($(e.target).view())
-    @on 'pane:attached', paneAttached
-    off: => @off 'pane:attached', paneAttached
+    unless root?
+      @activePane = null
+      return
 
-  getFocusedPane: ->
-    @find('.pane:has(:focus)').view()
+    root.parent = this
+    root.container = this
 
-  getActivePane: ->
-    @find('.pane.active').view() ? @find('.pane:first').view()
+    if root instanceof Pane
+      @activePane ?= root
+      @subscribe root, 'destroyed', =>
+        @activePane = null
+        @root = null
 
-  getActivePaneItem: ->
-    @getActivePane()?.activeItem
-
-  getActiveView: ->
-    @getActivePane()?.activeView
-
-  paneForUri: (uri) ->
-    for pane in @getPanes()
-      view = pane.itemForUri(uri)
-      return pane if view?
-    null
-
-  adjustPaneDimensions: ->
-    if root = @getRoot()
-      root.css(width: '100%', height: '100%', top: 0, left: 0)
-      root.adjustDimensions()
-
-  removeEmptyPanes: ->
-    for pane in @getPanes() when pane.getItems().length == 0
-      pane.remove()
-
-  afterAttach: ->
-    @adjustPaneDimensions()
+  destroyEmptyPanes: ->
+    pane.destroy() for pane in @getPanes() when pane.items.length is 0

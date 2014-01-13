@@ -235,6 +235,8 @@ class Gutter extends View
 
   highlightLines: ->
     editor = @getEditor()
+    return unless editor?.isAlive()
+
     if editor.getSelection().isEmpty()
       row = editor.getCursorScreenPosition().row
       rowRange = new Range([row, 0], [row, 0])

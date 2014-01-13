@@ -35,7 +35,7 @@ class TokenizedBuffer extends Model
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
     @subscribe @buffer, "path-changed", => @bufferPath = @buffer.getPath()
 
-    @subscribe @$tabLength.changes.onValue (tabLength) =>
+    @subscribe @$tabLength.changes, (tabLength) =>
       lastRow = @buffer.getLastRow()
       @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
       @invalidateRow(0)

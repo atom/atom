@@ -25,6 +25,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-markdown')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
 
   # This allows all subsequent paths to the relative to the root of the repo
@@ -102,6 +103,13 @@ module.exports = (grunt) ->
       dest: appDir
       ext: '.json'
 
+  pegConfig =
+    glob_to_multiple:
+      expand: true
+      src: ['src/**/*.pegjs']
+      dest: appDir
+      ext: '.js'
+
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
     {engines, theme} = grunt.file.readJSON(path.join(directory, 'package.json'))
@@ -110,6 +118,7 @@ module.exports = (grunt) ->
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
       prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
+      pegConfig.glob_to_multiple.src.push("#{directory}/**/*.pegjs")
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
@@ -123,6 +132,8 @@ module.exports = (grunt) ->
     'prebuild-less': prebuildLessConfig
 
     cson: csonConfig
+
+    peg: pegConfig
 
     coffeelint:
       options:
@@ -207,7 +218,7 @@ module.exports = (grunt) ->
           stderr: false
           failOnError: false
 
-  grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
+  grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
   grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'set-development-version', 'lint', 'test', 'publish-build'])

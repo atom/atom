@@ -2,7 +2,7 @@
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
-Pane = require '../src/pane'
+PaneView = require '../src/pane-view'
 
 describe "WorkspaceView", ->
   pathToOpen = null
@@ -48,20 +48,20 @@ describe "WorkspaceView", ->
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
         pane4 = pane2.splitDown()
-        pane2.showItem(atom.project.openSync('b'))
-        pane3.showItem(atom.project.openSync('../sample.js'))
+        pane2.activateItem(atom.project.openSync('b'))
+        pane3.activateItem(atom.project.openSync('../sample.js'))
         pane3.activeItem.setCursorScreenPosition([2, 4])
-        pane4.showItem(atom.project.openSync('../sample.txt'))
+        pane4.activateItem(atom.project.openSync('../sample.txt'))
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 4
-        editorView1 = atom.workspaceView.panes.find('.row > .pane .editor:eq(0)').view()
-        editorView3 = atom.workspaceView.panes.find('.row > .pane .editor:eq(1)').view()
-        editorView2 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-        editorView4 = atom.workspaceView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+        editorView1 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(0)').view()
+        editorView3 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(1)').view()
+        editorView2 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(0)').view()
+        editorView4 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(1)').view()
 
         expect(editorView1.getEditor().getPath()).toBe atom.project.resolve('a')
         expect(editorView2.getEditor().getPath()).toBe atom.project.resolve('b')
@@ -212,7 +212,7 @@ describe "WorkspaceView", ->
   describe ".openSync(filePath, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
-        spyOn(Pane.prototype, 'focus')
+        spyOn(PaneView.prototype, 'focus')
         atom.workspaceView.getActivePane().remove()
         expect(atom.workspaceView.getActivePane()).toBeUndefined()
 
@@ -298,20 +298,19 @@ describe "WorkspaceView", ->
           expect(pane2[0]).not.toBe pane1[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
 
-          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
           editor = atom.workspaceView.openSync('file1', split: 'right')
           pane3 = atom.workspaceView.getActivePane()
           expect(pane3[0]).toBe pane2[0]
           expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
 
-          expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
   describe ".openSingletonSync(filePath, options)", ->
     describe "when there is an active pane", ->
       [pane1] = []
       beforeEach ->
-        spyOn(Pane.prototype, 'focus').andCallFake -> @makeActive()
         pane1 = atom.workspaceView.getActivePane()
 
       it "creates a new pane and reuses the file when already open", ->
@@ -320,9 +319,9 @@ describe "WorkspaceView", ->
         expect(pane2[0]).not.toBe pane1[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
-        pane1.focus()
+        pane1.activate()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
 
         atom.workspaceView.openSingletonSync('b', split: 'right')
@@ -330,7 +329,7 @@ describe "WorkspaceView", ->
         expect(pane3[0]).toBe pane2[0]
         expect(pane1.itemForUri('b')).toBeFalsy()
         expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "handles split: left by opening to the left pane when necessary", ->
         atom.workspaceView.openSingletonSync('b', split: 'right')
@@ -344,15 +343,15 @@ describe "WorkspaceView", ->
 
         expect(pane1.itemForUri('file1')).toBeTruthy()
         expect(pane2.itemForUri('file1')).toBeFalsy()
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
-        pane2.focus()
+        pane2.activate()
         expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
 
         atom.workspaceView.openSingletonSync('file1', split: 'left')
         activePane = atom.workspaceView.getActivePane()
         expect(activePane[0]).toBe pane1[0]
-        expect(atom.workspaceView.panes.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
 
       it "reuses the file when already open", ->
         atom.workspaceView.openSync('b')
@@ -361,7 +360,7 @@ describe "WorkspaceView", ->
 
   describe ".open(filePath)", ->
     beforeEach ->
-      spyOn(Pane.prototype, 'focus')
+      spyOn(PaneView.prototype, 'focus')
 
     describe "when there is no active pane", ->
       beforeEach ->
@@ -571,7 +570,7 @@ describe "WorkspaceView", ->
     it "saves active editor until there are none", ->
       editor = atom.project.openSync('../sample.txt')
       spyOn(editor, 'save')
-      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.getActivePane().activateItem(editor)
       atom.workspaceView.trigger('core:save')
       expect(editor.save).toHaveBeenCalled()
 
@@ -582,6 +581,6 @@ describe "WorkspaceView", ->
     it "saves active editor until there are none", ->
       editor = atom.project.openSync('../sample.txt')
       spyOn(editor, 'saveAs')
-      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.getActivePane().activateItem(editor)
       atom.workspaceView.trigger('core:save-as')
       expect(editor.saveAs).toHaveBeenCalled()
