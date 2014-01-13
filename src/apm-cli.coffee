@@ -8,6 +8,7 @@ wordwrap = require 'wordwrap'
 commandClasses = [
   require './available'
   require './clean'
+  require './dedupe'
   require './develop'
   require './init'
   require './install'
