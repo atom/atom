@@ -105,10 +105,7 @@ class PaneContainerView extends View
     @getActivePane()?.activeView
 
   paneForUri: (uri) ->
-    for pane in @getPanes()
-      view = pane.itemForUri(uri)
-      return pane if view?
-    null
+    @viewForModel(@model.paneForUri(uri))
 
   focusNextPane: ->
     panes = @getPanes()

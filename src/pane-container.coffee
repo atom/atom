@@ -1,3 +1,4 @@
+{find} = require 'underscore-plus'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 Pane = require './pane'
@@ -35,6 +36,9 @@ class PaneContainer extends Model
 
   getPanes: ->
     @root?.getPanes() ? []
+
+  paneForUri: (uri) ->
+    find @getPanes(), (pane) -> pane.itemForUri(uri)?
 
   activateNextPane: ->
     panes = @getPanes()
