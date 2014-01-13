@@ -90,31 +90,31 @@ class PaneModel extends Model
     @items[index]
 
   # Public: Makes the next item active.
-  showNextItem: ->
+  activateNextItem: ->
     index = @getActiveItemIndex()
     if index < @items.length - 1
-      @showItemAtIndex(index + 1)
+      @activateItemAtIndex(index + 1)
     else
-      @showItemAtIndex(0)
+      @activateItemAtIndex(0)
 
   # Public: Makes the previous item active.
-  showPreviousItem: ->
+  activatePreviousItem: ->
     index = @getActiveItemIndex()
     if index > 0
-      @showItemAtIndex(index - 1)
+      @activateItemAtIndex(index - 1)
     else
-      @showItemAtIndex(@items.length - 1)
+      @activateItemAtIndex(@items.length - 1)
 
   # Public: Returns the index of the current active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
   # Public: Makes the item at the given index active.
-  showItemAtIndex: (index) ->
-    @showItem(@itemAtIndex(index))
+  activateItemAtIndex: (index) ->
+    @activateItem(@itemAtIndex(index))
 
   # Public: Makes the given item active, adding the item if necessary.
-  showItem: (item) ->
+  activateItem: (item) ->
     if item?
       @addItem(item)
       @activeItem = item
@@ -139,7 +139,7 @@ class PaneModel extends Model
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     return if index is -1
-    @showNextItem() if item is @activeItem and @items.length > 1
+    @activateNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
     @destroy() if @items.length is 0
@@ -246,9 +246,9 @@ class PaneModel extends Model
 
   # Public: Activates the first item that matches the given URI. Returns a
   # boolean indicating whether a matching item was found.
-  showItemForUri: (uri) ->
+  activateItemForUri: (uri) ->
     if item = @itemForUri(uri)
-      @showItem(item)
+      @activateItem(item)
       true
     else
       false

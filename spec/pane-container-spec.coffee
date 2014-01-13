@@ -88,7 +88,7 @@ describe "PaneContainer", ->
 
   describe ".saveAll()", ->
     it "saves all open pane items", ->
-      pane1.showItem(new TestView('4'))
+      pane1.activateItem(new TestView('4'))
 
       container.saveAll()
 
@@ -167,24 +167,24 @@ describe "PaneContainer", ->
 
     describe "when there is one pane", ->
       it "is triggered when a new pane item is added", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1b
 
       it "is not triggered when the active pane item is shown again", ->
-        pane1.showItem(item1a)
+        pane1.activateItem(item1a)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
       it "is triggered when switching to an existing pane item", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
-        pane1.showItem(item1a)
+        pane1.activateItem(item1a)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
       it "is triggered when the active pane item is destroyed", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
         pane1.destroyItem(item1b)
@@ -192,7 +192,7 @@ describe "PaneContainer", ->
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
       it "is not triggered when an inactive pane item is destroyed", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
         pane1.destroyItem(item1a)
@@ -216,16 +216,16 @@ describe "PaneContainer", ->
         activeItemChangedHandler.reset()
 
       it "is triggered when a new pane item is added to the active pane", ->
-        pane2.showItem(item2b)
+        pane2.activateItem(item2b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2b
 
       it "is not triggered when a new pane item is added to an inactive pane", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
       it "is triggered when the active pane's active item is destroyed", ->
-        pane2.showItem(item2b)
+        pane2.activateItem(item2b)
         activeItemChangedHandler.reset()
 
         pane2.destroyItem(item2b)
@@ -233,7 +233,7 @@ describe "PaneContainer", ->
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2a
 
       it "is not triggered when an inactive pane's active item is destroyed", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
         pane1.destroyItem(item1b)

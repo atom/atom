@@ -48,10 +48,10 @@ describe "WorkspaceView", ->
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
         pane4 = pane2.splitDown()
-        pane2.showItem(atom.project.openSync('b'))
-        pane3.showItem(atom.project.openSync('../sample.js'))
+        pane2.activateItem(atom.project.openSync('b'))
+        pane3.activateItem(atom.project.openSync('../sample.js'))
         pane3.activeItem.setCursorScreenPosition([2, 4])
-        pane4.showItem(atom.project.openSync('../sample.txt'))
+        pane4.activateItem(atom.project.openSync('../sample.txt'))
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
@@ -570,7 +570,7 @@ describe "WorkspaceView", ->
     it "saves active editor until there are none", ->
       editor = atom.project.openSync('../sample.txt')
       spyOn(editor, 'save')
-      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.getActivePane().activateItem(editor)
       atom.workspaceView.trigger('core:save')
       expect(editor.save).toHaveBeenCalled()
 
@@ -581,6 +581,6 @@ describe "WorkspaceView", ->
     it "saves active editor until there are none", ->
       editor = atom.project.openSync('../sample.txt')
       spyOn(editor, 'saveAs')
-      atom.workspaceView.getActivePane().showItem(editor)
+      atom.workspaceView.getActivePane().activateItem(editor)
       atom.workspaceView.trigger('core:save-as')
       expect(editor.saveAs).toHaveBeenCalled()

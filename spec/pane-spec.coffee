@@ -32,10 +32,10 @@ describe "Pane", ->
     it "displays the first item in the pane", ->
       expect(pane.itemViews.find('#view-1')).toExist()
 
-  describe "::showItem(item)", ->
+  describe "::activateItem(item)", ->
     it "hides all item views except the one being shown and sets the activeItem", ->
       expect(pane.activeItem).toBe view1
-      pane.showItem(view2)
+      pane.activateItem(view2)
       expect(view1.css('display')).toBe 'none'
       expect(view2.css('display')).not.toBe 'none'
       expect(pane.activeItem).toBe view2
@@ -46,35 +46,35 @@ describe "Pane", ->
       container.on 'pane:active-item-changed', itemChangedHandler
 
       expect(pane.activeItem).toBe view1
-      pane.showItem(view2)
-      pane.showItem(view2)
+      pane.activateItem(view2)
+      pane.activateItem(view2)
       expect(itemChangedHandler.callCount).toBe 1
       expect(itemChangedHandler.argsForCall[0][1]).toBe view2
       itemChangedHandler.reset()
 
-      pane.showItem(editor1)
+      pane.activateItem(editor1)
       expect(itemChangedHandler).toHaveBeenCalled()
       expect(itemChangedHandler.argsForCall[0][1]).toBe editor1
       itemChangedHandler.reset()
 
-    describe "if the pane's active view is focused before calling showItem", ->
+    describe "if the pane's active view is focused before calling activateItem", ->
       it "focuses the new active view", ->
         container.attachToDom()
         pane.focus()
         expect(pane.activeView).not.toBe view2
         expect(pane.activeView).toMatchSelector ':focus'
-        pane.showItem(view2)
+        pane.activateItem(view2)
         expect(view2).toMatchSelector ':focus'
 
     describe "when the given item isn't yet in the items list on the pane", ->
       view3 = null
       beforeEach ->
         view3 = new TestView(id: 'view-3', text: "View 3")
-        pane.showItem(editor1)
+        pane.activateItem(editor1)
         expect(pane.getActiveItemIndex()).toBe 1
 
       it "adds it to the items list after the active item", ->
-        pane.showItem(view3)
+        pane.activateItem(view3)
         expect(pane.getItems()).toEqual [view1, editor1, view3, view2, editor2]
         expect(pane.activeItem).toBe view3
         expect(pane.getActiveItemIndex()).toBe 2
@@ -83,21 +83,21 @@ describe "Pane", ->
         events = []
         container.on 'pane:item-added', (e, item, index) -> events.push(['pane:item-added', item, index])
         container.on 'pane:active-item-changed', (e, item) -> events.push(['pane:active-item-changed', item])
-        pane.showItem(view3)
+        pane.activateItem(view3)
         expect(events).toEqual [['pane:item-added', view3, 2], ['pane:active-item-changed', view3]]
 
     describe "when showing a model item", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
-          pane.showItem(editor1)
+          pane.activateItem(editor1)
           editorView = pane.activeView
           expect(editorView.css('display')).not.toBe 'none'
           expect(editorView.editor).toBe editor1
 
       describe "when a valid view has already been appended for another item", ->
         it "multiple views are created for multiple items", ->
-          pane.showItem(editor1)
-          pane.showItem(editor2)
+          pane.activateItem(editor1)
+          pane.activateItem(editor2)
           expect(pane.itemViews.find('.editor').length).toBe 2
           editorView = pane.activeView
           expect(editorView.css('display')).not.toBe 'none'
@@ -118,11 +118,11 @@ describe "Pane", ->
             serialize: -> {@id, @text}
             getViewClass: -> TestView
 
-          pane.showItem(model1)
-          pane.showItem(model2)
+          pane.activateItem(model1)
+          pane.activateItem(model2)
           expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-          pane.showPreviousItem()
+          pane.activatePreviousItem()
           expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
           pane.destroyItem(model2)
@@ -134,7 +134,7 @@ describe "Pane", ->
     describe "when showing a view item", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
-        pane.showItem(view2)
+        pane.activateItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
         expect(pane.activeView).toBe view2
 
@@ -206,7 +206,7 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [editor1, view2, editor2]
       expect(pane.activeItem).toBe editor1
 
-      pane.showItem(editor2)
+      pane.activateItem(editor2)
       pane.destroyItem(editor2)
       expect(pane.getItems()).toEqual [editor1, view2]
       expect(pane.activeItem).toBe editor1
@@ -241,8 +241,8 @@ describe "Pane", ->
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
-        pane.showItem(editor1)
-        pane.showItem(editor2)
+        pane.activateItem(editor1)
+        pane.activateItem(editor2)
         pane.destroyItem(editor2)
         expect(pane.itemViews.find('.editor')).toExist()
         pane.destroyItem(editor1)
@@ -300,12 +300,12 @@ describe "Pane", ->
       it "preserves data by detaching instead of removing", ->
         view1.data('preservative', 1234)
         pane.moveItemToPane(view1, pane2, 1)
-        pane2.showItemAtIndex(1)
+        pane2.activateItemAtIndex(1)
         expect(pane2.activeView.data('preservative')).toBe 1234
 
   describe "pane:close", ->
     it "destroys all items and removes the pane", ->
-      pane.showItem(editor1)
+      pane.activateItem(editor1)
       pane.trigger 'pane:close'
       expect(pane.hasParent()).toBeFalsy()
       expect(editor2.isDestroyed()).toBe true
@@ -313,7 +313,7 @@ describe "Pane", ->
 
   describe "pane:close-other-items", ->
     it "destroys all items except the current", ->
-      pane.showItem(editor1)
+      pane.activateItem(editor1)
       pane.trigger 'pane:close-other-items'
       expect(editor2.isDestroyed()).toBe true
       expect(pane.getItems()).toEqual [editor1]
@@ -323,7 +323,7 @@ describe "Pane", ->
       describe "when the current item has a save method", ->
         it "saves the current item", ->
           spyOn(editor2, 'save')
-          pane.showItem(editor2)
+          pane.activateItem(editor2)
           pane.saveActiveItem()
           expect(editor2.save).toHaveBeenCalled()
 
@@ -341,7 +341,7 @@ describe "Pane", ->
         it "opens a save dialog and saves the current item as the selected path", ->
           newEditor = atom.project.openSync()
           spyOn(newEditor, 'saveAs')
-          pane.showItem(newEditor)
+          pane.activateItem(newEditor)
 
           pane.saveActiveItem()
 
@@ -361,7 +361,7 @@ describe "Pane", ->
     describe "when the current item has a saveAs method", ->
       it "opens the save dialog and calls saveAs on the item with the selected path", ->
         spyOn(editor2, 'saveAs')
-        pane.showItem(editor2)
+        pane.activateItem(editor2)
 
         pane.saveActiveItemAs()
 
@@ -409,7 +409,7 @@ describe "Pane", ->
       expect(activeItemTitleChangedHandler).toHaveBeenCalled()
       activeItemTitleChangedHandler.reset()
 
-      pane.showItem(view2)
+      pane.activateItem(view2)
       view2.trigger 'title-changed'
       expect(activeItemTitleChangedHandler).toHaveBeenCalled()
 
@@ -417,7 +417,7 @@ describe "Pane", ->
     it "removes the pane item", ->
       filePath = temp.openSync('atom').path
       editor = atom.project.openSync(filePath)
-      pane.showItem(editor)
+      pane.activateItem(editor)
       expect(pane.items).toHaveLength(5)
 
       fs.removeSync(filePath)
@@ -441,7 +441,7 @@ describe "Pane", ->
       [paneToLeft, paneToRight] = []
 
       beforeEach ->
-        pane.showItem(editor1)
+        pane.activateItem(editor1)
         paneToLeft = pane.splitLeft(pane.copyActiveItem())
         paneToRight = pane.splitRight(pane.copyActiveItem())
         container.attachToDom()
@@ -485,7 +485,7 @@ describe "Pane", ->
 
   describe "::getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
-      pane.showItem(editor1)
+      pane.activateItem(editor1)
       expect(pane.getNextPane()).toBeUndefined
       pane2 = pane.splitRight(pane.copyActiveItem())
       expect(pane.getNextPane()).toBe pane2
@@ -531,7 +531,7 @@ describe "Pane", ->
     [pane1, view3, view4] = []
     beforeEach ->
       pane1 = pane
-      pane.showItem(editor1)
+      pane.activateItem(editor1)
       view3 = new TestView(id: 'view-3', text: 'View 3')
       view4 = new TestView(id: 'view-4', text: 'View 4')
 
@@ -606,7 +606,7 @@ describe "Pane", ->
       expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
-      pane.showItem(editor2)
+      pane.activateItem(editor2)
       newPane = pane.testSerialization()
       expect(newPane.activeItem).toEqual editor2
 
@@ -616,7 +616,7 @@ describe "Pane", ->
       class Unserializable
         getViewClass: -> TestView
 
-      pane.showItem(new Unserializable)
+      pane.activateItem(new Unserializable)
 
       newPane = pane.testSerialization()
       expect(newPane.activeItem).toEqual pane.items[0]

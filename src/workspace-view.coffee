@@ -172,7 +172,7 @@ class WorkspaceView extends View
           @panes.setRoot(activePane)
 
         @itemOpened(editor)
-        activePane.showItem(editor)
+        activePane.activateItem(editor)
         activePane.activate() if changeFocus
         @trigger "uri-opened"
         editor
@@ -200,7 +200,7 @@ class WorkspaceView extends View
       else if split == 'left'
         pane = @getPanes()[0]
 
-      pane.showItem(paneItem)
+      pane.activateItem(paneItem)
     else
       paneItem = atom.project.openSync(uri, {initialLine})
       pane = new Pane(paneItem)
@@ -218,7 +218,7 @@ class WorkspaceView extends View
 
     if pane
       paneItem = pane.itemForUri(uri)
-      pane.showItem(paneItem)
+      pane.activateItem(paneItem)
       pane.activate() if changeFocus
       paneItem
     else

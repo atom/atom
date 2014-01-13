@@ -25,11 +25,11 @@ class Pane extends View
       @div class: 'item-views', outlet: 'itemViews'
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
-  @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
-    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex', 'moveItem', 'moveItemToPane',
+  @delegatesMethods 'getItems', 'activateNextItem', 'activatePreviousItem', 'getActiveItemIndex',
+    'activateItemAtIndex', 'activateItem', 'addItem', 'itemAtIndex', 'moveItem', 'moveItemToPane',
     'destroyItem', 'destroyItems', 'destroyActiveItem', 'destroyInactiveItems',
     'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs', 'saveItems',
-    'itemForUri', 'showItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
+    'itemForUri', 'activateItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
     'activate', toProperty: 'model'
 
   previousActiveItem: null
@@ -65,18 +65,18 @@ class Pane extends View
       false
 
     @command 'pane:save-items', => @saveItems()
-    @command 'pane:show-next-item', => @showNextItem()
-    @command 'pane:show-previous-item', => @showPreviousItem()
+    @command 'pane:show-next-item', => @activateNextItem()
+    @command 'pane:show-previous-item', => @activatePreviousItem()
 
-    @command 'pane:show-item-1', => @showItemAtIndex(0)
-    @command 'pane:show-item-2', => @showItemAtIndex(1)
-    @command 'pane:show-item-3', => @showItemAtIndex(2)
-    @command 'pane:show-item-4', => @showItemAtIndex(3)
-    @command 'pane:show-item-5', => @showItemAtIndex(4)
-    @command 'pane:show-item-6', => @showItemAtIndex(5)
-    @command 'pane:show-item-7', => @showItemAtIndex(6)
-    @command 'pane:show-item-8', => @showItemAtIndex(7)
-    @command 'pane:show-item-9', => @showItemAtIndex(8)
+    @command 'pane:show-item-1', => @activateItemAtIndex(0)
+    @command 'pane:show-item-2', => @activateItemAtIndex(1)
+    @command 'pane:show-item-3', => @activateItemAtIndex(2)
+    @command 'pane:show-item-4', => @activateItemAtIndex(3)
+    @command 'pane:show-item-5', => @activateItemAtIndex(4)
+    @command 'pane:show-item-6', => @activateItemAtIndex(5)
+    @command 'pane:show-item-7', => @activateItemAtIndex(6)
+    @command 'pane:show-item-8', => @activateItemAtIndex(7)
+    @command 'pane:show-item-9', => @activateItemAtIndex(8)
 
     @command 'pane:split-left', => @splitLeft(@copyActiveItem())
     @command 'pane:split-right', => @splitRight(@copyActiveItem())
@@ -91,6 +91,21 @@ class Pane extends View
 
   serializeParams: ->
     model: @model.serialize()
+
+  # Deprecated: Use ::activateItem
+  showItem: (item) -> @activateItem(item)
+
+  # Deprecated: Use ::activateItemForUri
+  showItemForUri: (item) -> @activateItemForUri(item)
+
+  # Deprecated: Use ::activateItemAtIndex
+  showItemAtIndex: (index) -> @activateItemAtIndex(index)
+
+  # Deprecated: Use ::activateNextItem
+  showNextItem: -> @activateNextItem()
+
+  # Deprecated: Use ::activatePreviousItem
+  showPreviousItem: -> @activatePreviousItem()
 
   # Private:
   afterAttach: (onDom) ->

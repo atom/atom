@@ -2756,7 +2756,7 @@ describe "EditorView", ->
         editorView = atom.workspaceView.getActiveView()
 
         view = $$ -> @div id: 'view', tabindex: -1, 'View'
-        editorView.getPane().showItem(view)
+        editorView.getPane().activateItem(view)
         expect(editorView.isVisible()).toBeFalsy()
 
         editorView.setText('hidden changes')
@@ -2764,7 +2764,7 @@ describe "EditorView", ->
 
         displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
         editorView.on 'editor:display-updated', displayUpdatedHandler
-        editorView.getPane().showItem(editorView.getModel())
+        editorView.getPane().activateItem(editorView.getModel())
         expect(editorView.isVisible()).toBeTruthy()
 
         waitsFor ->
