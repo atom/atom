@@ -41,7 +41,7 @@ class WorkspaceView extends View
   Serializable.includeInto(this)
   atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
 
-  @version: 2
+  @version: 3
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
