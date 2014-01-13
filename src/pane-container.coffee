@@ -3,7 +3,7 @@ Serializable = require 'serializable'
 Pane = require './pane'
 
 module.exports =
-class PaneContainerModel extends Model
+class PaneContainer extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 

@@ -1,7 +1,7 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
-PaneContainerModel = require './pane-container-model'
+PaneContainer = require './pane-container'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
@@ -10,16 +10,16 @@ class PaneContainerView extends View
   Serializable.includeInto(this)
 
   @deserialize: (state) ->
-    new this(PaneContainerModel.deserialize(state.model))
+    new this(PaneContainer.deserialize(state.model))
 
   @content: ->
     @div class: 'panes'
 
   initialize: (params) ->
-    if params instanceof PaneContainerModel
+    if params instanceof PaneContainer
       @model = params
     else
-      @model = new PaneContainerModel({root: params?.root?.model})
+      @model = new PaneContainer({root: params?.root?.model})
 
     @subscribe @model.$root, @onRootChanged
     @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged

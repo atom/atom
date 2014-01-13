@@ -1,7 +1,7 @@
 {Model} = require 'theorist'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
-PaneContainerModel = require '../src/pane-container-model'
+PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
   describe "split methods", ->
@@ -9,7 +9,7 @@ describe "Pane", ->
 
     beforeEach ->
       pane1 = new Pane(items: ["A"])
-      container = new PaneContainerModel(root: pane1)
+      container = new PaneContainer(root: pane1)
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
@@ -104,7 +104,7 @@ describe "Pane", ->
 
     beforeEach ->
       pane1 = new Pane(items: [new Model, new Model])
-      container = new PaneContainerModel(root: pane1)
+      container = new PaneContainer(root: pane1)
 
     it "destroys the pane's destroyable items", ->
       [item1, item2] = pane1.items
