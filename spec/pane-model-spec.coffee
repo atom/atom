@@ -1,15 +1,15 @@
 {Model} = require 'theorist'
-PaneModel = require '../src/pane-model'
-PaneAxisModel = require '../src/pane-axis-model'
-PaneContainerModel = require '../src/pane-container-model'
+Pane = require '../src/pane'
+PaneAxis = require '../src/pane-axis'
+PaneContainer = require '../src/pane-container'
 
-describe "PaneModel", ->
+describe "Pane", ->
   describe "split methods", ->
     [pane1, container] = []
 
     beforeEach ->
-      pane1 = new PaneModel(items: ["A"])
-      container = new PaneContainerModel(root: pane1)
+      pane1 = new Pane(items: ["A"])
+      container = new PaneContainer(root: pane1)
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
@@ -87,14 +87,14 @@ describe "PaneModel", ->
   describe "::destroyItem(item)", ->
     describe "when the last item is destroyed", ->
       it "destroys the pane", ->
-        pane = new PaneModel(items: ["A", "B"])
+        pane = new Pane(items: ["A", "B"])
         pane.destroyItem("A")
         pane.destroyItem("B")
         expect(pane.isDestroyed()).toBe true
 
   describe "when an item emits a destroyed event", ->
     it "removes it from the list of items", ->
-      pane = new PaneModel(items: [new Model, new Model, new Model])
+      pane = new Pane(items: [new Model, new Model, new Model])
       [item1, item2, item3] = pane.items
       pane.items[1].destroy()
       expect(pane.items).toEqual [item1, item3]
@@ -103,8 +103,8 @@ describe "PaneModel", ->
     [pane1, container] = []
 
     beforeEach ->
-      pane1 = new PaneModel(items: [new Model, new Model])
-      container = new PaneContainerModel(root: pane1)
+      pane1 = new Pane(items: [new Model, new Model])
+      container = new PaneContainer(root: pane1)
 
     it "destroys the pane's destroyable items", ->
       [item1, item2] = pane1.items

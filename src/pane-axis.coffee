@@ -1,34 +1,66 @@
-{View} = require './space-pen-extensions'
-Pane = null
+{Model, Sequence} = require 'theorist'
+{flatten} = require 'underscore-plus'
+Serializable = require 'serializable'
 
-### Internal ###
+PaneRowView = null
+PaneColumnView = null
+
 module.exports =
-class PaneAxis extends View
-  initialize: (@model) ->
-    @onChildAdded(child) for child in @model.children
-    @subscribe @model.children, 'changed', @onChildrenChanged
+class PaneAxis extends Model
+  atom.deserializers.add(this)
+  Serializable.includeInto(this)
 
-  viewForModel: (model) ->
-    viewClass = model.getViewClass()
-    model._view ?= new viewClass(model)
+  constructor: ({@container, @orientation, children}) ->
+    @children = Sequence.fromArray(children ? [])
 
-  onChildrenChanged:  ({index, removedValues, insertedValues}) =>
-    focusedElement = document.activeElement if @hasFocus()
-    @onChildRemoved(child, index) for child in removedValues
-    @onChildAdded(child, index + i) for child, i in insertedValues
-    focusedElement?.focus() if document.activeElement is document.body
+    @subscribe @children.onEach (child) =>
+      child.parent = this
+      child.container = @container
+      @subscribe child, 'destroyed', => @removeChild(child)
 
-  onChildAdded: (child, index) =>
-    view = @viewForModel(child)
-    @insertAt(index, view)
+    @subscribe @children.onRemoval (child) => @unsubscribe(child)
 
-  onChildRemoved: (child) =>
-    view = @viewForModel(child)
-    view.detach()
-    Pane ?= require './pane'
+    @when @children.$length.becomesLessThan(2), 'reparentLastChild'
+    @when @children.$length.becomesLessThan(1), 'destroy'
 
-    if view instanceof Pane and view.model.isDestroyed()
-      @getContainer()?.trigger 'pane:removed', [view]
+  deserializeParams: (params) ->
+    {container} = params
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
+    params
 
-  getContainer: ->
-    @closest('.panes').view()
+  serializeParams: ->
+    children: @children.map (child) -> child.serialize()
+    orientation: @orientation
+
+  getViewClass: ->
+    if @orientation is 'vertical'
+      PaneColumnView ?= require './pane-column-view'
+    else
+      PaneRowView ?= require './pane-row-view'
+
+  getPanes: ->
+    flatten(@children.map (child) -> child.getPanes())
+
+  addChild: (child, index=@children.length) ->
+    @children.splice(index, 0, child)
+
+  removeChild: (child) ->
+    index = @children.indexOf(child)
+    throw new Error("Removing non-existent child") if index is -1
+    @children.splice(index, 1)
+
+  replaceChild: (oldChild, newChild) ->
+    index = @children.indexOf(oldChild)
+    throw new Error("Replacing non-existent child") if index is -1
+    @children.splice(index, 1, newChild)
+
+  insertChildBefore: (currentChild, newChild) ->
+    index = @children.indexOf(currentChild)
+    @children.splice(index, 0, newChild)
+
+  insertChildAfter: (currentChild, newChild) ->
+    index = @children.indexOf(currentChild)
+    @children.splice(index + 1, 0, newChild)
+
+  reparentLastChild: ->
+    @parent.replaceChild(this, @children[0])

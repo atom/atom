@@ -2,8 +2,8 @@
 {dirname} = require 'path'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
-PaneAxisModel = require './pane-axis-model'
-Pane = null
+PaneAxis = require './pane-axis'
+PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
 # time. With the default packages, a tab is displayed for each item and the
@@ -58,7 +58,7 @@ class PaneModel extends Model
     params
 
   # Private: Called by the view layer to construct a view for this model.
-  getViewClass: -> Pane ?= require './pane'
+  getViewClass: -> PaneView ?= require './pane-view'
 
   isActive: -> @active
 
@@ -296,7 +296,7 @@ class PaneModel extends Model
   # Private:
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxisModel({@container, orientation, children: [this]}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
 
     newPane = new @constructor(extend({focused: true}, params))
     switch side

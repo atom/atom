@@ -1,226 +1,307 @@
-{$, View} = require './space-pen-extensions'
+{find, compact, extend} = require 'underscore-plus'
+{dirname} = require 'path'
+{Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
-Delegator = require 'delegato'
+PaneAxis = require './pane-axis'
+PaneView = null
 
-PaneModel = require './pane-model'
-
-# Public: A container which can contains multiple items to be switched between.
-#
-# Items can be almost anything however most commonly they're {EditorView}s.
-#
-# Most packages won't need to use this class, unless you're interested in
-# building a package that deals with switching between panes or tiems.
+# Public: A container for multiple items, one of which is *active* at a given
+# time. With the default packages, a tab is displayed for each item and the
+# active item's view is displayed.
 module.exports =
-class Pane extends View
+class Pane extends Model
+  atom.deserializers.add(this)
   Serializable.includeInto(this)
-  Delegator.includeInto(this)
 
-  @version: 1
+  @properties
+    container: null
+    activeItem: null
+    focused: false
 
-  @deserialize: (state) ->
-    new this(PaneModel.deserialize(state.model))
-
-  @content: (wrappedView) ->
-    @div class: 'pane', tabindex: -1, =>
-      @div class: 'item-views', outlet: 'itemViews'
-
-  @delegatesProperties 'items', 'activeItem', toProperty: 'model'
-  @delegatesMethods 'getItems', 'activateNextItem', 'activatePreviousItem', 'getActiveItemIndex',
-    'activateItemAtIndex', 'activateItem', 'addItem', 'itemAtIndex', 'moveItem', 'moveItemToPane',
-    'destroyItem', 'destroyItems', 'destroyActiveItem', 'destroyInactiveItems',
-    'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs', 'saveItems',
-    'itemForUri', 'activateItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
-    'activate', toProperty: 'model'
-
-  previousActiveItem: null
+  # Public: Only one pane is considered *active* at a time. A pane is activated
+  # when it is focused, and when focus returns to the pane container after
+  # moving to another element such as a panel, it returns to the active pane.
+  @behavior 'active', ->
+    @$container
+      .switch((container) -> container?.$activePane)
+      .map((activePane) => activePane is this)
+      .distinctUntilChanged()
 
   # Private:
-  initialize: (args...) ->
-    if args[0] instanceof PaneModel
-      @model = args[0]
-    else
-      @model = new PaneModel(items: args)
-      @model._view = this
+  constructor: (params) ->
+    super
 
-    @onItemAdded(item) for item in @items
-    @viewsByItem = new WeakMap()
-    @handleEvents()
+    @items = Sequence.fromArray(params?.items ? [])
+    @activeItem ?= @items[0]
 
-  handleEvents: ->
-    @subscribe @model, 'destroyed', => @remove()
+    @subscribe @items.onEach (item) =>
+      if typeof item.on is 'function'
+        @subscribe item, 'destroyed', => @removeItem(item)
 
-    @subscribe @model.$activeItem, @onActiveItemChanged
-    @subscribe @model, 'item-added', @onItemAdded
-    @subscribe @model, 'item-removed', @onItemRemoved
-    @subscribe @model, 'item-moved', @onItemMoved
-    @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
-    @subscribe @model, 'item-destroyed', @onItemDestroyed
-    @subscribe @model, 'activated', @onActivated
-    @subscribe @model.$active, @onActiveStatusChanged
+    @subscribe @items.onRemoval (item, index) =>
+      @unsubscribe item if typeof item.on is 'function'
 
-    @subscribe this, 'focusin', => @model.focus()
-    @subscribe this, 'focusout', => @model.blur()
-    @subscribe this, 'focus', =>
-      @activeView?.focus()
-      false
+    @activate() if params?.active
 
-    @command 'pane:save-items', => @saveItems()
-    @command 'pane:show-next-item', => @activateNextItem()
-    @command 'pane:show-previous-item', => @activatePreviousItem()
+  # Private: Called by the Serializable mixin during serialization.
+  serializeParams: ->
+    items: compact(@items.map((item) -> item.serialize?()))
+    activeItemUri: @activeItem?.getUri?()
+    focused: @focused
+    active: @active
 
-    @command 'pane:show-item-1', => @activateItemAtIndex(0)
-    @command 'pane:show-item-2', => @activateItemAtIndex(1)
-    @command 'pane:show-item-3', => @activateItemAtIndex(2)
-    @command 'pane:show-item-4', => @activateItemAtIndex(3)
-    @command 'pane:show-item-5', => @activateItemAtIndex(4)
-    @command 'pane:show-item-6', => @activateItemAtIndex(5)
-    @command 'pane:show-item-7', => @activateItemAtIndex(6)
-    @command 'pane:show-item-8', => @activateItemAtIndex(7)
-    @command 'pane:show-item-9', => @activateItemAtIndex(8)
-
-    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
-    @command 'pane:split-right', => @splitRight(@copyActiveItem())
-    @command 'pane:split-up', => @splitUp(@copyActiveItem())
-    @command 'pane:split-down', => @splitDown(@copyActiveItem())
-    @command 'pane:close', => @destroyItems()
-    @command 'pane:close-other-items', => @destroyInactiveItems()
-
+  # Private: Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
-    params.model = PaneModel.deserialize(params.model)
+    {items, activeItemUri} = params
+    params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  serializeParams: ->
-    model: @model.serialize()
+  # Private: Called by the view layer to construct a view for this model.
+  getViewClass: -> PaneView ?= require './pane-view'
 
-  # Deprecated: Use ::destroyItem
-  removeItem: (item) -> @destroyItem(item)
+  isActive: -> @active
 
-  # Deprecated: Use ::activateItem
-  showItem: (item) -> @activateItem(item)
+  # Private: Called by the view layer to indicate that the pane has gained focus.
+  focus: ->
+    @focused = true
+    @activate() unless @isActive()
 
-  # Deprecated: Use ::activateItemForUri
-  showItemForUri: (item) -> @activateItemForUri(item)
+  # Private: Called by the view layer to indicate that the pane has lost focus.
+  blur: ->
+    @focused = false
+    true # if this is called from an event handler, don't cancel it
 
-  # Deprecated: Use ::activateItemAtIndex
-  showItemAtIndex: (index) -> @activateItemAtIndex(index)
-
-  # Deprecated: Use ::activateNextItem
-  showNextItem: -> @activateNextItem()
-
-  # Deprecated: Use ::activatePreviousItem
-  showPreviousItem: -> @activatePreviousItem()
+  # Public: Makes this pane the *active* pane, causing it to gain focus
+  # immediately.
+  activate: ->
+    @container?.activePane = this
+    @emit 'activated'
 
   # Private:
-  afterAttach: (onDom) ->
-    @focus() if @model.focused and onDom
+  getPanes: -> [this]
 
-    return if @attached
-    @attached = true
-    @trigger 'pane:attached', [this]
+  # Public:
+  getItems: ->
+    @items.slice()
 
-  onActivated: =>
-    @focus() unless @hasFocus()
+  # Public: Returns the item at the specified index.
+  itemAtIndex: (index) ->
+    @items[index]
 
-  onActiveStatusChanged: (active) =>
-    if active
-      @addClass('active')
-      @trigger 'pane:became-active'
+  # Public: Makes the next item active.
+  activateNextItem: ->
+    index = @getActiveItemIndex()
+    if index < @items.length - 1
+      @activateItemAtIndex(index + 1)
     else
-      @removeClass('active')
-      @trigger 'pane:became-inactive'
+      @activateItemAtIndex(0)
 
-  # Public: Returns the next pane, ordered by creation.
-  getNextPane: ->
-    panes = @getContainer()?.getPanes()
-    return unless panes.length > 1
-    nextIndex = (panes.indexOf(this) + 1) % panes.length
-    panes[nextIndex]
-
-  getActivePaneItem: ->
-    @activeItem
-
-  onActiveItemChanged: (item) =>
-    @previousActiveItem?.off? 'title-changed', @activeItemTitleChanged
-    @previousActiveItem = item
-
-    return unless item?
-
-    hasFocus = @hasFocus()
-    item.on? 'title-changed', @activeItemTitleChanged
-    view = @viewForItem(item)
-    @itemViews.children().not(view).hide()
-    @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show() if @attached
-    view.focus() if hasFocus
-
-    @activeView = view
-    @trigger 'pane:active-item-changed', [item]
-
-  onItemAdded: (item, index) =>
-    @trigger 'pane:item-added', [item, index]
-
-  onItemRemoved: (item, index, destroyed) =>
-    if item instanceof $
-      viewToRemove = item
-    else if viewToRemove = @viewsByItem.get(item)
-      @viewsByItem.delete(item)
-
-    if viewToRemove?
-      viewToRemove.setModel?(null)
-      if destroyed
-        viewToRemove.remove()
-      else
-        viewToRemove.detach()
-
-    @trigger 'pane:item-removed', [item, index]
-
-  onItemMoved: (item, newIndex) =>
-    @trigger 'pane:item-moved', [item, newIndex]
-
-  onBeforeItemDestroyed: (item) =>
-    @unsubscribe(item) if typeof item.off is 'function'
-    @trigger 'pane:before-item-destroyed', [item]
-
-  onItemDestroyed: (item) =>
-    @getContainer()?.itemDestroyed(item)
-
-  # Private:
-  activeItemTitleChanged: =>
-    @trigger 'pane:active-item-title-changed'
-
-  # Private:
-  viewForItem: (item) ->
-    if item instanceof $
-      item
-    else if view = @viewsByItem.get(item)
-      view
+  # Public: Makes the previous item active.
+  activatePreviousItem: ->
+    index = @getActiveItemIndex()
+    if index > 0
+      @activateItemAtIndex(index - 1)
     else
-      viewClass = item.getViewClass()
-      view = new viewClass(item)
-      @viewsByItem.set(item, view)
-      view
+      @activateItemAtIndex(@items.length - 1)
+
+  # Public: Returns the index of the current active item.
+  getActiveItemIndex: ->
+    @items.indexOf(@activeItem)
+
+  # Public: Makes the item at the given index active.
+  activateItemAtIndex: (index) ->
+    @activateItem(@itemAtIndex(index))
+
+  # Public: Makes the given item active, adding the item if necessary.
+  activateItem: (item) ->
+    if item?
+      @addItem(item)
+      @activeItem = item
+
+  # Public: Adds the item to the pane.
+  #
+  # * item:
+  #     The item to add. It can be a model with an associated view or a view.
+  # * index:
+  #     An optional index at which to add the item. If omitted, the item is
+  #     added to the end.
+  #
+  # Returns the added item
+  addItem: (item, index=@getActiveItemIndex() + 1) ->
+    return if item in @items
+
+    @items.splice(index, 0, item)
+    @emit 'item-added', item, index
+    item
 
   # Private:
-  viewForActiveItem: ->
-    @viewForItem(@activeItem)
+  removeItem: (item, destroying) ->
+    index = @items.indexOf(item)
+    return if index is -1
+    @activateNextItem() if item is @activeItem and @items.length > 1
+    @items.splice(index, 1)
+    @emit 'item-removed', item, index, destroying
+    @destroy() if @items.length is 0
 
-  splitLeft: (items...) -> @model.splitLeft({items})._view
+  # Public: Moves the given item to the specified index.
+  moveItem: (item, newIndex) ->
+    oldIndex = @items.indexOf(item)
+    @items.splice(oldIndex, 1)
+    @items.splice(newIndex, 0, item)
+    @emit 'item-moved', item, newIndex
 
-  splitRight: (items...) -> @model.splitRight({items})._view
+  # Public: Moves the given item to the given index at another pane.
+  moveItemToPane: (item, pane, index) ->
+    pane.addItem(item, index)
+    @removeItem(item)
 
-  splitUp: (items...) -> @model.splitUp({items})._view
+  # Public: Destroys the currently active item and make the next item active.
+  destroyActiveItem: ->
+    @destroyItem(@activeItem)
+    false
 
-  splitDown: (items...) -> @model.splitDown({items})._view
+  # Public: Destroys the given item. If it is the active item, activate the next
+  # one. If this is the last item, also destroys the pane.
+  destroyItem: (item) ->
+    @emit 'before-item-destroyed', item
+    if @promptToSaveItem(item)
+      @emit 'item-destroyed', item
+      @removeItem(item, true)
+      item.destroy?()
+      true
+    else
+      false
+
+  # Public: Destroys all items and destroys the pane.
+  destroyItems: ->
+    @destroyItem(item) for item in @getItems()
+
+  # Public: Destroys all items but the active one.
+  destroyInactiveItems: ->
+    @destroyItem(item) for item in @getItems() when item isnt @activeItem
+
+  # Private: Called by model superclass.
+  destroyed: ->
+    @container.activateNextPane() if @isActive()
+    item.destroy?() for item in @items.slice()
+
+  # Public: Prompts the user to save the given item if it can be saved and is
+  # currently unsaved.
+  promptToSaveItem: (item) ->
+    return true unless item.shouldPromptToSave?()
+
+    uri = item.getUri()
+    chosen = atom.confirm
+      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
+      detailedMessage: "Your changes will be lost if you close this item without saving."
+      buttons: ["Save", "Cancel", "Don't Save"]
+
+    switch chosen
+      when 0 then @saveItem(item, -> true)
+      when 1 then false
+      when 2 then true
+
+  # Public: Saves the active item.
+  saveActiveItem: ->
+    @saveItem(@activeItem)
+
+  # Public: Saves the active item at a prompted-for location.
+  saveActiveItemAs: ->
+    @saveItemAs(@activeItem)
+
+  # Public: Saves the specified item.
+  #
+  # * item: The item to save.
+  # * nextAction: An optional function which will be called after the item is saved.
+  saveItem: (item, nextAction) ->
+    if item.getUri?()
+      item.save?()
+      nextAction?()
+    else
+      @saveItemAs(item, nextAction)
+
+  # Public: Saves the given item at a prompted-for location.
+  #
+  # * item: The item to save.
+  # * nextAction: An optional function which will be called after the item is saved.
+  saveItemAs: (item, nextAction) ->
+    return unless item.saveAs?
+
+    itemPath = item.getPath?()
+    itemPath = dirname(itemPath) if itemPath
+    path = atom.showSaveDialogSync(itemPath)
+    if path
+      item.saveAs(path)
+      nextAction?()
+
+  # Public: Saves all items.
+  saveItems: ->
+    @saveItem(item) for item in @getItems()
+
+  # Public: Returns the first item that matches the given URI or undefined if
+  # none exists.
+  itemForUri: (uri) ->
+    find @items, (item) -> item.getUri?() is uri
+
+  # Public: Activates the first item that matches the given URI. Returns a
+  # boolean indicating whether a matching item was found.
+  activateItemForUri: (uri) ->
+    if item = @itemForUri(uri)
+      @activateItem(item)
+      true
+    else
+      false
 
   # Private:
-  getContainer: ->
-    @closest('.panes').view()
+  copyActiveItem: ->
+    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
-  beforeRemove: ->
-    @model.destroy() unless @model.isDestroyed()
+  # Public: Creates a new pane to the left of the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {Pane}.
+  splitLeft: (params) ->
+    @split('horizontal', 'before', params)
+
+  # Public: Creates a new pane to the right of the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {Pane}.
+  splitRight: (params) ->
+    @split('horizontal', 'after', params)
+
+  # Public: Creates a new pane above the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {Pane}.
+  splitUp: (params) ->
+    @split('vertical', 'before', params)
+
+  # Public: Creates a new pane below the receiver.
+  #
+  # * params:
+  #   + items: An optional array of items with which to construct the new pane.
+  #
+  # Returns the new {Pane}.
+  splitDown: (params) ->
+    @split('vertical', 'after', params)
 
   # Private:
-  remove: (selector, keepData) ->
-    return super if keepData
-    @unsubscribe()
-    super
+  split: (orientation, side, params) ->
+    if @parent.orientation isnt orientation
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
+
+    newPane = new @constructor(extend({focused: true}, params))
+    switch side
+      when 'before' then @parent.insertChildBefore(this, newPane)
+      when 'after' then @parent.insertChildAfter(this, newPane)
+
+    newPane.activate()
+    newPane

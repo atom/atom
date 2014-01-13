@@ -1,132 +1,66 @@
+{Model} = require 'theorist'
 Serializable = require 'serializable'
-{$, View} = require './space-pen-extensions'
 Pane = require './pane'
-PaneContainerModel = require './pane-container-model'
 
-# Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
-class PaneContainer extends View
+class PaneContainer extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @deserialize: (state) ->
-    new this(PaneContainerModel.deserialize(state.model))
+  @properties
+    root: null
+    activePane: null
 
-  @content: ->
-    @div class: 'panes'
+  previousRoot: null
 
-  initialize: (params) ->
-    if params instanceof PaneContainerModel
-      @model = params
-    else
-      @model = new PaneContainerModel({root: params?.root?.model})
+  @behavior 'activePaneItem', ->
+    @$activePane.switch (activePane) -> activePane?.$activeItem
 
-    @subscribe @model.$root, @onRootChanged
-    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
+  constructor: (params) ->
+    super
+    @subscribe @$root, @onRootChanged
+    @destroyEmptyPanes() if params?.destroyEmptyPanes
 
-  viewForModel: (model) ->
-    if model?
-      viewClass = model.getViewClass()
-      model._view ?= new viewClass(model)
+  deserializeParams: (params) ->
+    params.root = atom.deserializers.deserialize(params.root, container: this)
+    params.destroyEmptyPanes = true
+    params
 
-  serializeParams: ->
-    model: @model.serialize()
+  serializeParams: (params) ->
+    root: @root?.serialize()
 
-  ### Public ###
-
-  itemDestroyed: (item) ->
-    @trigger 'item-destroyed', [item]
-
-  getRoot: ->
-    @children().first().view()
-
-  setRoot: (root) ->
-    @model.root = root?.model
-
-  onRootChanged: (root) =>
-    focusedElement = document.activeElement if @hasFocus()
-
-    oldRoot = @getRoot()
-    if oldRoot instanceof Pane and oldRoot.model.isDestroyed()
-      @trigger 'pane:removed', [oldRoot]
-    oldRoot?.detach()
-    if root?
-      view = @viewForModel(root)
-      @append(view)
-      focusedElement?.focus()
-    else
-      atom.workspaceView?.focus() if focusedElement?
-
-  onActivePaneItemChanged: (activeItem) =>
-    @trigger 'pane-container:active-pane-item-changed', [activeItem]
-
-  removeChild: (child) ->
-    throw new Error("Removing non-existant child") unless @getRoot() is child
-    @setRoot(null)
-    @trigger 'pane:removed', [child] if child instanceof Pane
-
-  saveAll: ->
-    pane.saveItems() for pane in @getPanes()
-
-  confirmClose: ->
-    saved = true
-    for pane in @getPanes()
-      for item in pane.getItems()
-        if not pane.promptToSaveItem(item)
-          saved = false
-          break
-    saved
+  replaceChild: (oldChild, newChild) ->
+    throw new Error("Replacing non-existent child") if oldChild isnt @root
+    @root = newChild
 
   getPanes: ->
-    @find('.pane').views()
+    @root?.getPanes() ? []
 
-  indexOfPane: (pane) ->
-    @getPanes().indexOf(pane.view())
-
-  paneAtIndex: (index) ->
-    @getPanes()[index]
-
-  eachPane: (callback) ->
-    callback(pane) for pane in @getPanes()
-    paneAttached = (e) -> callback($(e.target).view())
-    @on 'pane:attached', paneAttached
-    off: => @off 'pane:attached', paneAttached
-
-  getFocusedPane: ->
-    @find('.pane:has(:focus)').view()
-
-  getActivePane: ->
-    @viewForModel(@model.activePane)
-
-  getActivePaneItem: ->
-    @model.activePaneItem
-
-  getActiveView: ->
-    @getActivePane()?.activeView
-
-  paneForUri: (uri) ->
-    for pane in @getPanes()
-      view = pane.itemForUri(uri)
-      return pane if view?
-    null
-
-  focusNextPane: ->
+  activateNextPane: ->
     panes = @getPanes()
     if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
+      currentIndex = panes.indexOf(@activePane)
       nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
+      panes[nextIndex].activate()
     else
-      false
+      @activePane = null
 
-  focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
+  onRootChanged: (root) =>
+    @unsubscribe(@previousRoot) if @previousRoot?
+    @previousRoot = root
+
+    unless root?
+      @activePane = null
+      return
+
+    root.parent = this
+    root.container = this
+
+    if root instanceof Pane
+      @activePane ?= root
+      @subscribe root, 'destroyed', =>
+        @activePane = null
+        @root = null
+
+  destroyEmptyPanes: ->
+    pane.destroy() for pane in @getPanes() when pane.items.length is 0

@@ -6,10 +6,10 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Serializable = require 'serializable'
 EditorView = require './editor-view'
-Pane = require './pane'
-PaneColumn = require './pane-column'
-PaneRow = require './pane-row'
-PaneContainer = require './pane-container'
+PaneView = require './pane-view'
+PaneColumnView = require './pane-column-view'
+PaneRowView = require './pane-row-view'
+PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
 # Public: The container for the entire Atom application.
@@ -39,7 +39,7 @@ Editor = require './editor'
 module.exports =
 class WorkspaceView extends View
   Serializable.includeInto(this)
-  atom.deserializers.add(this, Pane, PaneRow, PaneColumn, EditorView)
+  atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
 
   @version: 2
 
@@ -60,7 +60,7 @@ class WorkspaceView extends View
 
   # Private:
   initialize: ({panes, @fullScreen}={}) ->
-    panes ?= new PaneContainer
+    panes ?= new PaneContainerView
     @panes.replaceWith(panes)
     @panes = panes
 
@@ -168,7 +168,7 @@ class WorkspaceView extends View
     Q(editor ? promise)
       .then (editor) =>
         if not activePane
-          activePane = new Pane(editor)
+          activePane = new PaneView(editor)
           @panes.setRoot(activePane)
 
         @itemOpened(editor)
@@ -203,7 +203,7 @@ class WorkspaceView extends View
       pane.activateItem(paneItem)
     else
       paneItem = atom.project.openSync(uri, {initialLine})
-      pane = new Pane(paneItem)
+      pane = new PaneView(paneItem)
       @panes.setRoot(pane)
 
     @itemOpened(paneItem)
@@ -290,11 +290,11 @@ class WorkspaceView extends View
   appendToRight: (element) ->
     @horizontal.append(element)
 
-  # Public: Returns the currently focused {Pane}.
+  # Public: Returns the currently focused {PaneView}.
   getActivePane: ->
     @panes.getActivePane()
 
-  # Public: Returns the currently focused item from within the focused {Pane}
+  # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
     @panes.getActivePaneItem()
 
@@ -329,15 +329,15 @@ class WorkspaceView extends View
   saveAll: ->
     @panes.saveAll()
 
-  # Public: Fires a callback on each open {Pane}.
+  # Public: Fires a callback on each open {PaneView}.
   eachPane: (callback) ->
     @panes.eachPane(callback)
 
-  # Public: Returns an Array of all open {Pane}s.
+  # Public: Returns an Array of all open {PaneView}s.
   getPanes: ->
     @panes.getPanes()
 
-  # Public: Return the id of the given a {Pane}
+  # Public: Return the id of the given a {PaneView}
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
