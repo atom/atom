@@ -1,10 +1,12 @@
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
-{$, $$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
+Delegator = require 'delegato'
+{$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Serializable = require 'serializable'
+Workspace = require './workspace'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
@@ -38,10 +40,16 @@ Editor = require './editor'
 #
 module.exports =
 class WorkspaceView extends View
-  Serializable.includeInto(this)
   atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
+  Serializable.includeInto(this)
+  Delegator.includeInto(this)
 
-  @version: 3
+  @delegatesProperty 'fullScreen', toProperty: 'model'
+
+  @version: 4
+
+  @deserialize: (state) ->
+    new this(Workspace.deserialize(state.model))
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -59,8 +67,10 @@ class WorkspaceView extends View
           @div class: 'panes', outlet: 'panes'
 
   # Private:
-  initialize: ({panes, @fullScreen}={}) ->
-    panes ?= new PaneContainerView
+  initialize: (@model) ->
+    @model ?= new Workspace
+
+    panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
     @panes = panes
 
@@ -117,14 +127,8 @@ class WorkspaceView extends View
     @command 'core:save-as', => @saveActivePaneItemAs()
 
   # Private:
-  deserializeParams: (params) ->
-    params.panes = atom.deserializers.deserialize(params.panes)
-    params
-
-  # Private:
   serializeParams: ->
-    panes: @panes.serialize()
-    fullScreen: atom.isFullScreen()
+    model: @model.serialize()
 
   # Private:
   handleFocus: (e) ->
