@@ -135,12 +135,10 @@ class PaneModel extends Model
     @emit 'item-added', item, index
     item
 
+  # Private:
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
-    @removeItemAtIndex(index, destroying) if index >= 0
-
-  removeItemAtIndex: (index, destroying) ->
-    item = @items[index]
+    return if index is -1
     @showNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying

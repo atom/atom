@@ -84,12 +84,12 @@ describe "PaneModel", ->
       pane2 = pane1.splitRight()
       expect(pane2.focused).toBe true
 
-  describe "::removeItemAtIndex(index)", ->
-    describe "when the last item is removed", ->
+  describe "::destroyItem(item)", ->
+    describe "when the last item is destroyed", ->
       it "destroys the pane", ->
         pane = new PaneModel(items: ["A", "B"])
-        pane.removeItemAtIndex(0)
-        pane.removeItemAtIndex(0)
+        pane.destroyItem("A")
+        pane.destroyItem("B")
         expect(pane.isDestroyed()).toBe true
 
   describe "when an item emits a destroyed event", ->

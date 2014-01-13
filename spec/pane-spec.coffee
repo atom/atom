@@ -125,10 +125,10 @@ describe "Pane", ->
           pane.showPreviousItem()
           expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-          pane.removeItem(model2)
+          pane.destroyItem(model2)
           expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
 
-          pane.removeItem(model1)
+          pane.destroyItem(model1)
           expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
 
     describe "when showing a view item", ->
@@ -201,27 +201,26 @@ describe "Pane", ->
       pane.destroyItem(view1)
       expect(view1.wasRemoved).toBe true
 
-  describe "::removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
-      pane.removeItem(view1)
+      pane.destroyItem(view1)
       expect(pane.getItems()).toEqual [editor1, view2, editor2]
       expect(pane.activeItem).toBe editor1
 
       pane.showItem(editor2)
-      pane.removeItem(editor2)
+      pane.destroyItem(editor2)
       expect(pane.getItems()).toEqual [editor1, view2]
       expect(pane.activeItem).toBe editor1
 
     it "triggers 'pane:item-removed' with the item and its former index", ->
       itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
       pane.on 'pane:item-removed', itemRemovedHandler
-      pane.removeItem(editor1)
+      pane.destroyItem(editor1)
       expect(itemRemovedHandler).toHaveBeenCalled()
       expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
 
     describe "when removing the last item", ->
       it "removes the pane", ->
-        pane.removeItem(item) for item in pane.getItems()
+        pane.destroyItem(item) for item in pane.getItems()
         expect(pane.hasParent()).toBeFalsy()
 
       describe "when the pane is focused", ->
@@ -231,22 +230,22 @@ describe "Pane", ->
           pane2 = pane.splitRight(new TestView(id: 'view-3', text: 'View 3'))
           pane.focus()
           expect(pane).toMatchSelector(':has(:focus)')
-          pane.removeItem(item) for item in pane.getItems()
+          pane.destroyItem(item) for item in pane.getItems()
           expect(pane2).toMatchSelector ':has(:focus)'
 
     describe "when the item is a view", ->
       it "removes the item from the 'item-views' div", ->
         expect(view1.parent()).toMatchSelector pane.itemViews
-        pane.removeItem(view1)
+        pane.destroyItem(view1)
         expect(view1.parent()).not.toMatchSelector pane.itemViews
 
     describe "when the item is a model", ->
       it "removes the associated view only when all items that require it have been removed", ->
         pane.showItem(editor1)
         pane.showItem(editor2)
-        pane.removeItem(editor2)
+        pane.destroyItem(editor2)
         expect(pane.itemViews.find('.editor')).toExist()
-        pane.removeItem(editor1)
+        pane.destroyItem(editor1)
         expect(pane.itemViews.find('.editor')).not.toExist()
 
   describe "::moveItem(item, index)", ->
@@ -286,9 +285,9 @@ describe "Pane", ->
 
     describe "when it is the last item on the source pane", ->
       it "removes the source pane, but does not destroy the item", ->
-        pane.removeItem(view1)
-        pane.removeItem(view2)
-        pane.removeItem(editor2)
+        pane.destroyItem(view1)
+        pane.destroyItem(view2)
+        pane.destroyItem(editor2)
 
         expect(pane.getItems()).toEqual [editor1]
         pane.moveItemToPane(editor1, pane2, 1)

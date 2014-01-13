@@ -26,11 +26,11 @@ class Pane extends View
 
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'showNextItem', 'showPreviousItem', 'getActiveItemIndex',
-    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex',  'removeItem', 'removeItemAtIndex',
-    'moveItem', 'moveItemToPane', 'destroyItem', 'destroyItems', 'destroyActiveItem',
-    'destroyInactiveItems', 'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs',
-    'saveItems', 'itemForUri', 'showItemForUri', 'promptToSaveItem', 'copyActiveItem',
-    'isActive', 'activate', toProperty: 'model'
+    'showItemAtIndex', 'showItem', 'addItem', 'itemAtIndex', 'moveItem', 'moveItemToPane',
+    'destroyItem', 'destroyItems', 'destroyActiveItem', 'destroyInactiveItems',
+    'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs', 'saveItems',
+    'itemForUri', 'showItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
+    'activate', toProperty: 'model'
 
   previousActiveItem: null
 
