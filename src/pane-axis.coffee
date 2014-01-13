@@ -1,76 +1,66 @@
+{Model, Sequence} = require 'theorist'
+{flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
-{$, View} = require './space-pen-extensions'
 
-### Internal ###
+PaneRowView = null
+PaneColumnView = null
+
 module.exports =
-class PaneAxis extends View
+class PaneAxis extends Model
+  atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  initialize: ({children}={}) ->
-    @addChild(child) for child in children ? []
+  constructor: ({@container, @orientation, children}) ->
+    @children = Sequence.fromArray(children ? [])
 
-  serializeParams: ->
-    children: @children().views().map (child) -> child.serialize()
+    @subscribe @children.onEach (child) =>
+      child.parent = this
+      child.container = @container
+      @subscribe child, 'destroyed', => @removeChild(child)
+
+    @subscribe @children.onRemoval (child) => @unsubscribe(child)
+
+    @when @children.$length.becomesLessThan(2), 'reparentLastChild'
+    @when @children.$length.becomesLessThan(1), 'destroy'
 
   deserializeParams: (params) ->
-    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState)
+    {container} = params
+    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
     params
 
-  addChild: (child, index=@children().length) ->
-    @insertAt(index, child)
-    @getContainer()?.adjustPaneDimensions()
+  serializeParams: ->
+    children: @children.map (child) -> child.serialize()
+    orientation: @orientation
+
+  getViewClass: ->
+    if @orientation is 'vertical'
+      PaneColumnView ?= require './pane-column-view'
+    else
+      PaneRowView ?= require './pane-row-view'
+
+  getPanes: ->
+    flatten(@children.map (child) -> child.getPanes())
+
+  addChild: (child, index=@children.length) ->
+    @children.splice(index, 0, child)
 
   removeChild: (child) ->
-    parent = @parent().view()
-    container = @getContainer()
-    childWasInactive = not child.isActive?()
+    index = @children.indexOf(child)
+    throw new Error("Removing non-existent child") if index is -1
+    @children.splice(index, 1)
 
-    primitiveRemove = (child) =>
-      node = child[0]
-      $.cleanData(node.getElementsByTagName('*'))
-      $.cleanData([node])
-      this[0].removeChild(node)
+  replaceChild: (oldChild, newChild) ->
+    index = @children.indexOf(oldChild)
+    throw new Error("Replacing non-existent child") if index is -1
+    @children.splice(index, 1, newChild)
 
-    # use primitive .removeChild() dom method instead of .remove() to avoid recursive loop
-    if @children().length == 2
-      primitiveRemove(child)
-      sibling = @children().view()
-      siblingFocused = sibling.is(':has(:focus)')
-      sibling.detach()
+  insertChildBefore: (currentChild, newChild) ->
+    index = @children.indexOf(currentChild)
+    @children.splice(index, 0, newChild)
 
-      if parent.setRoot?
-        parent.setRoot(sibling, suppressPaneItemChangeEvents: childWasInactive)
-      else
-        parent.insertChildBefore(this, sibling)
-        parent.removeChild(this)
-      sibling.focus() if siblingFocused
-    else
-      primitiveRemove(child)
+  insertChildAfter: (currentChild, newChild) ->
+    index = @children.indexOf(currentChild)
+    @children.splice(index + 1, 0, newChild)
 
-    container.adjustPaneDimensions()
-    Pane = require './pane'
-    container.trigger 'pane:removed', [child] if child instanceof Pane
-
-  detachChild: (child) ->
-    child.detach()
-
-  getContainer: ->
-    @closest('.panes').view()
-
-  getActivePaneItem: ->
-    @getActivePane()?.activeItem
-
-  getActivePane: ->
-    @find('.pane.active').view() ? @find('.pane:first').view()
-
-  insertChildBefore: (child, newChild) ->
-    newChild.insertBefore(child)
-
-  insertChildAfter: (child, newChild) ->
-    newChild.insertAfter(child)
-
-  horizontalChildUnits: ->
-    $(child).view().horizontalGridUnits() for child in @children()
-
-  verticalChildUnits: ->
-    $(child).view().verticalGridUnits() for child in @children()
+  reparentLastChild: ->
+    @parent.replaceChild(this, @children[0])

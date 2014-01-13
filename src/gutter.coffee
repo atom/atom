@@ -230,6 +230,8 @@ class Gutter extends View
       @highlightedLineNumbers.push(highlightedLineNumber)
 
   highlightLines: ->
+    return unless @getEditorView().editor?.isAlive()
+
     if @getEditorView().getSelection().isEmpty()
       row = @getEditorView().getCursorScreenPosition().row
       rowRange = new Range([row, 0], [row, 0])

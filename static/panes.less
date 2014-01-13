@@ -3,8 +3,47 @@
 // Pane-items are things that go inside a pane. Like the UI-Demo, the
 // settings-view, the archive-view, the image-view. Etc. Basically a non-
 // editor resource with a tab.
-.pane-item {
-  overflow: auto;
-  color: @text-color;
-  background-color: @pane-item-background-color;
+.panes {
+  display: -webkit-flex;
+  -webkit-flex: 1;
+
+  .pane-column {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-direction: column;
+  }
+
+  .pane-row {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-direction: row;
+  }
+
+  .pane {
+    position: relative;
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-direction: column;
+
+    .item-views {
+      -webkit-flex: 1;
+      display: -webkit-flex;
+      min-height: 0;
+      min-width: 0;
+      position: relative;
+
+      .pane-item {
+        color: @text-color;
+        background-color: @pane-item-background-color;
+      }
+
+      > * {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+    }
+  }
 }

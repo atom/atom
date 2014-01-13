@@ -9,7 +9,7 @@ PaneView = null
 # time. With the default packages, a tab is displayed for each item and the
 # active item's view is displayed.
 module.exports =
-class Pane extends Model
+class PaneModel extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
@@ -262,7 +262,7 @@ class Pane extends Model
   # * params:
   #   + items: An optional array of items with which to construct the new pane.
   #
-  # Returns the new {Pane}.
+  # Returns the new {PaneModel}.
   splitLeft: (params) ->
     @split('horizontal', 'before', params)
 
@@ -271,7 +271,7 @@ class Pane extends Model
   # * params:
   #   + items: An optional array of items with which to construct the new pane.
   #
-  # Returns the new {Pane}.
+  # Returns the new {PaneModel}.
   splitRight: (params) ->
     @split('horizontal', 'after', params)
 
@@ -280,7 +280,7 @@ class Pane extends Model
   # * params:
   #   + items: An optional array of items with which to construct the new pane.
   #
-  # Returns the new {Pane}.
+  # Returns the new {PaneModel}.
   splitUp: (params) ->
     @split('vertical', 'before', params)
 
@@ -289,7 +289,7 @@ class Pane extends Model
   # * params:
   #   + items: An optional array of items with which to construct the new pane.
   #
-  # Returns the new {Pane}.
+  # Returns the new {PaneModel}.
   splitDown: (params) ->
     @split('vertical', 'after', params)
 

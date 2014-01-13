@@ -73,8 +73,8 @@ class Editor extends Model
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
 
-    @subscribe @$scrollTop, 'value', (scrollTop) => @emit 'scroll-top-changed', scrollTop
-    @subscribe @$scrollLeft, 'value', (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+    @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
+    @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
     atom.project.addEditor(this) if registerEditor
 
@@ -174,7 +174,8 @@ class Editor extends Model
   # Returns a {Boolean}.
   isEqual: (other) ->
     return false unless other instanceof Editor
-    @buffer.getPath() == other.buffer.getPath() and
+    @isAlive() == other.isAlive() and
+      @buffer.getPath() == other.buffer.getPath() and
       @getScrollTop() == other.getScrollTop() and
       @getScrollLeft() == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
@@ -312,6 +313,12 @@ class Editor extends Model
 
   # {Delegates to: TextBuffer.setText}
   setText: (text) -> @buffer.setText(text)
+
+   # {Delegates to: TextBuffer.getTextInRange}
+  getTextInRange: (range) -> @buffer.getTextInRange(range)
+
+  # {Delegates to: TextBuffer.getLineCount}
+  getLineCount: -> @buffer.getLineCount()
 
   # Private: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
