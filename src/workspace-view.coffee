@@ -9,7 +9,7 @@ EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
 PaneRowView = require './pane-row-view'
-PaneContainer = require './pane-container'
+PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
 # Public: The container for the entire Atom application.
@@ -60,7 +60,7 @@ class WorkspaceView extends View
 
   # Private:
   initialize: ({panes, @fullScreen}={}) ->
-    panes ?= new PaneContainer
+    panes ?= new PaneContainerView
     @panes.replaceWith(panes)
     @panes = panes
 

@@ -1,4 +1,4 @@
-PaneContainer = require '../src/pane-container'
+PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
 {fs, $, View} = require 'atom'
 path = require 'path'
@@ -17,7 +17,7 @@ describe "PaneView", ->
 
   beforeEach ->
     atom.deserializers.add(TestView)
-    container = new PaneContainer
+    container = new PaneContainerView
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
     editor1 = atom.project.openSync('sample.js')

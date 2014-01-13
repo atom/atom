@@ -1,10 +1,10 @@
 path = require 'path'
 temp = require 'temp'
-PaneContainer = require '../src/pane-container'
+PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
 {_, $, View, $$} = require 'atom'
 
-describe "PaneContainer", ->
+describe "PaneContainerView", ->
   [TestView, container, pane1, pane2, pane3] = []
 
   beforeEach ->
@@ -18,7 +18,7 @@ describe "PaneContainer", ->
       save: -> @saved = true
       isEqual: (other) -> @name is other?.name
 
-    container = new PaneContainer
+    container = new PaneContainerView
     pane1 = new PaneView(new TestView('1'))
     container.setRoot(pane1)
     pane2 = pane1.splitRight(new TestView('2'))
@@ -146,7 +146,7 @@ describe "PaneContainer", ->
       item2b = new TestView('2b')
       item3a = new TestView('3a')
 
-      container = new PaneContainer
+      container = new PaneContainerView
       container.attachToDom()
       pane1 = new PaneView(item1a)
       container.setRoot(pane1)
