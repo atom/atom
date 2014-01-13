@@ -354,6 +354,7 @@ class WorkspaceView extends View
 
   # Private: Destroys everything.
   remove: ->
+    @model.destroy()
     editorView.remove() for editorView in @getEditorViews()
     super
 
