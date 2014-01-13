@@ -92,6 +92,9 @@ class Pane extends View
   serializeParams: ->
     model: @model.serialize()
 
+  # Deprecated: Use ::destroyItem
+  removeItem: (item) -> @destroyItem(item)
+
   # Deprecated: Use ::activateItem
   showItem: (item) -> @activateItem(item)
 
