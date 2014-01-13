@@ -1,69 +1,38 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
 Pane = require './pane'
+PaneContainerModel = require './pane-container-model'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainer extends View
-  Serializable.includeInto(this)
   atom.deserializers.add(this)
+  Serializable.includeInto(this)
+
+  @deserialize: (state) ->
+    new this(PaneContainerModel.deserialize(state.model))
 
   @content: ->
     @div class: 'panes'
 
-  initialize: ({root}={}) ->
-    @setRoot(root)
+  initialize: (params) ->
+    if params instanceof PaneContainerModel
+      @model = params
+    else
+      @model = new PaneContainerModel({root: params?.root?.model})
 
-    @subscribe this, 'pane:attached', (event, pane) =>
-      @triggerActiveItemChange() if @getActivePane() is pane
+    @subscribe @model.$root, @onRootChanged
+    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
 
-    @subscribe this, 'pane:removed', (event, pane) =>
-      @triggerActiveItemChange() unless @getActivePane()?
-
-    @subscribe this, 'pane:became-active', =>
-      @triggerActiveItemChange()
-
-    @subscribe this, 'pane:active-item-changed', (event, item) =>
-      @triggerActiveItemChange() if @getActivePaneItem() is item
-
-  triggerActiveItemChange: ->
-    @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
+  viewForModel: (model) ->
+    if model?
+      viewClass = model.getViewClass()
+      model._view ?= new viewClass(model)
 
   serializeParams: ->
-    root: @getRoot()?.serialize()
-
-  deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root)
-    params
+    model: @model.serialize()
 
   ### Public ###
-
-  focusNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
-    else
-      false
-
-  focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
-
-  makeNextPaneActive: ->
-    panes = @getPanes()
-    currentIndex = panes.indexOf(@getActivePane())
-    nextIndex = (currentIndex + 1) % panes.length
-    panes[nextIndex].makeActive()
 
   itemDestroyed: (item) ->
     @trigger 'item-destroyed', [item]
@@ -71,11 +40,25 @@ class PaneContainer extends View
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root, {suppressPaneItemChangeEvents}={}) ->
-    @empty()
+  setRoot: (root) ->
+    @model.root = root?.model
+
+  onRootChanged: (root) =>
+    focusedElement = document.activeElement if @hasFocus()
+
+    oldRoot = @getRoot()
+    if oldRoot instanceof Pane and oldRoot.model.isDestroyed()
+      @trigger 'pane:removed', [oldRoot]
+    oldRoot?.detach()
     if root?
-      @append(root)
-      root.makeActive?()
+      view = @viewForModel(root)
+      @append(view)
+      focusedElement?.focus()
+    else
+      atom.workspaceView?.focus() if focusedElement?
+
+  onActivePaneItemChanged: (activeItem) =>
+    @trigger 'pane-container:active-pane-item-changed', [activeItem]
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child
@@ -113,10 +96,10 @@ class PaneContainer extends View
     @find('.pane:has(:focus)').view()
 
   getActivePane: ->
-    @find('.pane.active').view() ? @find('.pane:first').view()
+    @viewForModel(@model.activePane)
 
   getActivePaneItem: ->
-    @getActivePane()?.activeItem
+    @model.activePaneItem
 
   getActiveView: ->
     @getActivePane()?.activeView
@@ -127,14 +110,23 @@ class PaneContainer extends View
       return pane if view?
     null
 
-  adjustPaneDimensions: ->
-    if root = @getRoot()
-      root.css(width: '100%', height: '100%', top: 0, left: 0)
-      root.adjustDimensions()
+  focusNextPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      nextIndex = (currentIndex + 1) % panes.length
+      panes[nextIndex].focus()
+      true
+    else
+      false
 
-  removeEmptyPanes: ->
-    for pane in @getPanes() when pane.getItems().length == 0
-      pane.remove()
-
-  afterAttach: ->
-    @adjustPaneDimensions()
+  focusPreviousPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      previousIndex = currentIndex - 1
+      previousIndex = panes.length - 1 if previousIndex < 0
+      panes[previousIndex].focus()
+      true
+    else
+      false

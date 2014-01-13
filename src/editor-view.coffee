@@ -827,6 +827,9 @@ class EditorView extends View
 
     @editor.setVisible(true)
 
+    @editor.on "destroyed", =>
+      @remove()
+
     @editor.on "contents-conflicted.editor", =>
       @showBufferConflictAlert(@editor)
 
@@ -1070,7 +1073,7 @@ class EditorView extends View
   #
   # Returns a {Pane}.
   getPane: ->
-    @parent('.item-views').parent('.pane').view()
+    @parent('.item-views').parents('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed

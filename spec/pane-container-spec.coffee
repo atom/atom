@@ -16,7 +16,7 @@ describe "PaneContainer", ->
       serialize: -> { deserializer: 'TestView', @name }
       getUri: -> path.join(temp.dir, @name)
       save: -> @saved = true
-      isEqual: (other) -> @name is other.name
+      isEqual: (other) -> @name is other?.name
 
     container = new PaneContainer
     pane1 = new Pane(new TestView('1'))
@@ -42,6 +42,8 @@ describe "PaneContainer", ->
   describe ".focusPreviousPane()", ->
     it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
       container.attachToDom()
+      $(document.body).focus() # clear focus
+
       container.focusPreviousPane()
       expect(pane3.activeItem).toMatchSelector ':focus'
       container.focusPreviousPane()
@@ -69,10 +71,6 @@ describe "PaneContainer", ->
       expect(container.getFocusedPane()).toBe pane3
       expect(container.getActivePane()).toBe pane3
 
-      # returns the first pane if none have been set to active
-      container.find('.pane.active').removeClass('active')
-      expect(container.getActivePane()).toBe pane1
-
   describe ".eachPane(callback)", ->
     it "runs the callback with all current and future panes until the subscription is cancelled", ->
       panes = []
@@ -90,7 +88,7 @@ describe "PaneContainer", ->
 
   describe ".saveAll()", ->
     it "saves all open pane items", ->
-      pane1.showItem(new TestView('4'))
+      pane1.activateItem(new TestView('4'))
 
       container.saveAll()
 
@@ -124,19 +122,19 @@ describe "PaneContainer", ->
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
       newContainer = atom.deserializers.deserialize(container.serialize())
-      expect(newContainer.find('.row > :contains(1)')).toExist()
-      expect(newContainer.find('.row > .column > :contains(2)')).toExist()
-      expect(newContainer.find('.row > .column > :contains(3)')).toExist()
+      expect(newContainer.find('.pane-row > :contains(1)')).toExist()
+      expect(newContainer.find('.pane-row > .pane-column > :contains(2)')).toExist()
+      expect(newContainer.find('.pane-row > .pane-column > :contains(3)')).toExist()
 
       newContainer.height(200).width(300).attachToDom()
-      expect(newContainer.find('.row > :contains(1)').width()).toBe 150
-      expect(newContainer.find('.row > .column > :contains(2)').height()).toBe 100
+      expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
+      expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
 
-    xit "removes empty panes on deserialization", ->
+    it "removes empty panes on deserialization", ->
       # only deserialize pane 1's view successfully
       TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
       newContainer = atom.deserializers.deserialize(container.serialize())
-      expect(newContainer.find('.row, .column')).not.toExist()
+      expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
 
   describe "pane-container:active-pane-item-changed", ->
@@ -169,43 +167,43 @@ describe "PaneContainer", ->
 
     describe "when there is one pane", ->
       it "is triggered when a new pane item is added", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1b
 
       it "is not triggered when the active pane item is shown again", ->
-        pane1.showItem(item1a)
+        pane1.activateItem(item1a)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
       it "is triggered when switching to an existing pane item", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
-        pane1.showItem(item1a)
+        pane1.activateItem(item1a)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
-      it "is triggered when the active pane item is removed", ->
-        pane1.showItem(item1b)
+      it "is triggered when the active pane item is destroyed", ->
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
-        pane1.removeItem(item1b)
+        pane1.destroyItem(item1b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
-      it "is not triggered when an inactive pane item is removed", ->
-        pane1.showItem(item1b)
+      it "is not triggered when an inactive pane item is destroyed", ->
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
-        pane1.removeItem(item1a)
+        pane1.destroyItem(item1a)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
-      it "is triggered when all pane items are removed", ->
-        pane1.removeItem(item1a)
+      it "is triggered when all pane items are destroyed", ->
+        pane1.destroyItem(item1a)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
 
-      it "is triggered when the pane is removed", ->
+      it "is triggered when the pane is destroyed", ->
         pane1.remove()
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
@@ -218,40 +216,40 @@ describe "PaneContainer", ->
         activeItemChangedHandler.reset()
 
       it "is triggered when a new pane item is added to the active pane", ->
-        pane2.showItem(item2b)
+        pane2.activateItem(item2b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2b
 
       it "is not triggered when a new pane item is added to an inactive pane", ->
-        pane1.showItem(item1b)
+        pane1.activateItem(item1b)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
-      it "is triggered when the active pane item removed from the active pane", ->
-        pane2.showItem(item2b)
+      it "is triggered when the active pane's active item is destroyed", ->
+        pane2.activateItem(item2b)
         activeItemChangedHandler.reset()
 
-        pane2.removeItem(item2b)
+        pane2.destroyItem(item2b)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2a
 
-      it "is not triggered when the active pane item removed from an inactive pane", ->
-        pane1.showItem(item1b)
+      it "is not triggered when an inactive pane's active item is destroyed", ->
+        pane1.activateItem(item1b)
         activeItemChangedHandler.reset()
 
-        pane1.removeItem(item1b)
+        pane1.destroyItem(item1b)
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
-      it "is triggered when the active pane is removed", ->
+      it "is triggered when the active pane is destroyed", ->
         pane2.remove()
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
-      it "is not triggered when an inactive pane is removed", ->
+      it "is not triggered when an inactive pane is destroyed", ->
         pane1.remove()
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
       it "is triggered when the active pane is changed", ->
-        pane1.makeActive()
+        pane1.activate()
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
@@ -265,7 +263,7 @@ describe "PaneContainer", ->
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item3a
 
-      it "is not triggered when the non active pane is removed", ->
+      it "is not triggered when an inactive pane is destroyed", ->
         pane3 = pane2.splitDown(item3a)
         activeItemChangedHandler.reset()
 
