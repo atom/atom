@@ -7,8 +7,8 @@ fs = require 'fs-plus'
 Serializable = require 'serializable'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
-PaneColumn = require './pane-column'
-PaneRow = require './pane-row'
+PaneColumnView = require './pane-column-view'
+PaneRowView = require './pane-row-view'
 PaneContainer = require './pane-container'
 Editor = require './editor'
 
@@ -39,7 +39,7 @@ Editor = require './editor'
 module.exports =
 class WorkspaceView extends View
   Serializable.includeInto(this)
-  atom.deserializers.add(this, PaneView, PaneRow, PaneColumn, EditorView)
+  atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
 
   @version: 2
 

@@ -1,10 +1,10 @@
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-PaneAxis = require './pane-axis'
+PaneAxisView = require './pane-axis-view'
 
 # Internal:
 module.exports =
-class PaneColumn extends PaneAxis
+class PaneColumnView extends PaneAxisView
 
   @content: ->
     @div class: 'pane-column'

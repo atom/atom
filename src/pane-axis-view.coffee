@@ -3,7 +3,7 @@ PaneView = null
 
 ### Internal ###
 module.exports =
-class PaneAxis extends View
+class PaneAxisView extends View
   initialize: (@model) ->
     @onChildAdded(child) for child in @model.children
     @subscribe @model.children, 'changed', @onChildrenChanged

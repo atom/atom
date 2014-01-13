@@ -2,8 +2,8 @@
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
-PaneRow = null
-PaneColumn = null
+PaneRowView = null
+PaneColumnView = null
 
 module.exports =
 class PaneAxisModel extends Model
@@ -34,9 +34,9 @@ class PaneAxisModel extends Model
 
   getViewClass: ->
     if @orientation is 'vertical'
-      PaneColumn ?= require './pane-column'
+      PaneColumnView ?= require './pane-column-view'
     else
-      PaneRow ?= require './pane-row'
+      PaneRowView ?= require './pane-row-view'
 
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
