@@ -1,5 +1,5 @@
 PaneContainerModel = require '../src/pane-container-model'
-PaneModel = require '../src/pane-model'
+Pane = require '../src/pane'
 
 describe "PaneContainerModel", ->
   describe "serialization", ->
@@ -12,7 +12,7 @@ describe "PaneContainerModel", ->
         @deserialize: -> new this
         serialize: -> deserializer: 'Item'
 
-      pane1A = new PaneModel(items: [new Item])
+      pane1A = new Pane(items: [new Item])
       containerA = new PaneContainerModel(root: pane1A)
       pane2A = pane1A.splitRight(items: [new Item])
       pane3A = pane2A.splitDown(items: [new Item])
@@ -36,7 +36,7 @@ describe "PaneContainerModel", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      pane1 = new PaneModel
+      pane1 = new Pane
       container = new PaneContainerModel(root: pane1)
 
     it "references the first pane if no pane has been made active", ->
@@ -67,7 +67,7 @@ describe "PaneContainerModel", ->
     [container, pane, surrenderedFocusHandler] = []
 
     beforeEach ->
-      pane = new PaneModel
+      pane = new Pane
       container = new PaneContainerModel(root: pane)
       container.on 'surrendered-focus', surrenderedFocusHandler = jasmine.createSpy("surrenderedFocusHandler")
 

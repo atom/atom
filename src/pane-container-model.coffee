@@ -1,6 +1,6 @@
 {Model} = require 'theorist'
 Serializable = require 'serializable'
-PaneModel = require './pane-model'
+Pane = require './pane'
 
 module.exports =
 class PaneContainerModel extends Model
@@ -56,7 +56,7 @@ class PaneContainerModel extends Model
     root.parent = this
     root.container = this
 
-    if root instanceof PaneModel
+    if root instanceof Pane
       @activePane ?= root
       @subscribe root, 'destroyed', =>
         @activePane = null

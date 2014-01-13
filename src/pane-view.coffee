@@ -2,7 +2,7 @@
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 
-PaneModel = require './pane-model'
+Pane = require './pane'
 
 # Public: A container which can contains multiple items to be switched between.
 #
@@ -18,7 +18,7 @@ class PaneView extends View
   @version: 1
 
   @deserialize: (state) ->
-    new this(PaneModel.deserialize(state.model))
+    new this(Pane.deserialize(state.model))
 
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
@@ -36,10 +36,10 @@ class PaneView extends View
 
   # Private:
   initialize: (args...) ->
-    if args[0] instanceof PaneModel
+    if args[0] instanceof Pane
       @model = args[0]
     else
-      @model = new PaneModel(items: args)
+      @model = new Pane(items: args)
       @model._view = this
 
     @onItemAdded(item) for item in @items
@@ -86,7 +86,7 @@ class PaneView extends View
     @command 'pane:close-other-items', => @destroyInactiveItems()
 
   deserializeParams: (params) ->
-    params.model = PaneModel.deserialize(params.model)
+    params.model = Pane.deserialize(params.model)
     params
 
   serializeParams: ->
