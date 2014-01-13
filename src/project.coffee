@@ -300,7 +300,7 @@ class Project extends Model
     promise = deferred.promise
     promise.cancel = ->
       task.terminate()
-      deferred.reject('cancelled')
+      deferred.resolve('cancelled')
     promise
 
   # Public: Performs a replace across all the specified files in the project.

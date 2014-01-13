@@ -52,12 +52,6 @@ class AtomPackage extends Package
         console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
-  enable: ->
-    atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
-
-  disable: ->
-    atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
-
   reset: ->
     @stylesheets = []
     @keymaps = []
