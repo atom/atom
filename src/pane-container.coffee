@@ -110,10 +110,6 @@ class PaneContainer extends View
       return pane if view?
     null
 
-  removeEmptyPanes: ->
-    for pane in @getPanes() when pane.getItems().length == 0
-      pane.remove()
-
   focusNextPane: ->
     panes = @getPanes()
     if panes.length > 1

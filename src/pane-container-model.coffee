@@ -16,12 +16,14 @@ class PaneContainerModel extends Model
   @behavior 'activePaneItem', ->
     @$activePane.switch (activePane) -> activePane?.$activeItem
 
-  constructor: ->
+  constructor: (params) ->
     super
     @subscribe @$root, @onRootChanged
+    @destroyEmptyPanes() if params?.destroyEmptyPanes
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
+    params.destroyEmptyPanes = true
     params
 
   serializeParams: (params) ->
@@ -59,3 +61,6 @@ class PaneContainerModel extends Model
       @subscribe root, 'destroyed', =>
         @activePane = null
         @root = null
+
+  destroyEmptyPanes: ->
+    pane.destroy() for pane in @getPanes() when pane.items.length is 0

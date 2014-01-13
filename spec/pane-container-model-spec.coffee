@@ -6,10 +6,16 @@ describe "PaneContainerModel", ->
     [containerA, pane1A, pane2A, pane3A] = []
 
     beforeEach ->
-      pane1A = new PaneModel
+      # This is a dummy item to prevent panes from being empty on deserialization
+      class Item
+        atom.deserializers.add(this)
+        @deserialize: -> new this
+        serialize: -> deserializer: 'Item'
+
+      pane1A = new PaneModel(items: [new Item])
       containerA = new PaneContainerModel(root: pane1A)
-      pane2A = pane1A.splitRight()
-      pane3A = pane2A.splitDown()
+      pane2A = pane1A.splitRight(items: [new Item])
+      pane3A = pane2A.splitDown(items: [new Item])
 
     it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true

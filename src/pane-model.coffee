@@ -53,7 +53,7 @@ class PaneModel extends Model
   # Private: Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
     {items, activeItemUri} = params
-    params.items = items.map (itemState) -> atom.deserializers.deserialize(itemState)
+    params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 

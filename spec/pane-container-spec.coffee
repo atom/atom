@@ -130,7 +130,7 @@ describe "PaneContainer", ->
       expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
       expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
 
-    xit "removes empty panes on deserialization", ->
+    it "removes empty panes on deserialization", ->
       # only deserialize pane 1's view successfully
       TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
       newContainer = atom.deserializers.deserialize(container.serialize())
