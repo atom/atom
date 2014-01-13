@@ -314,6 +314,12 @@ class Editor extends Model
   # {Delegates to: TextBuffer.setText}
   setText: (text) -> @buffer.setText(text)
 
+   # {Delegates to: TextBuffer.getTextInRange}
+  getTextInRange: (range) -> @buffer.getTextInRange(range)
+
+  # {Delegates to: TextBuffer.getLineCount}
+  getLineCount: -> @buffer.getLineCount()
+
   # Private: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
