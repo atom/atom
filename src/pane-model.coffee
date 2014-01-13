@@ -3,7 +3,7 @@
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxisModel = require './pane-axis-model'
-Pane = null
+PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
 # time. With the default packages, a tab is displayed for each item and the
@@ -58,7 +58,7 @@ class PaneModel extends Model
     params
 
   # Private: Called by the view layer to construct a view for this model.
-  getViewClass: -> Pane ?= require './pane'
+  getViewClass: -> PaneView ?= require './pane-view'
 
   isActive: -> @active
 

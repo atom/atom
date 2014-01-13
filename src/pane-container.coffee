@@ -1,6 +1,6 @@
 Serializable = require 'serializable'
 {$, View} = require './space-pen-extensions'
-Pane = require './pane'
+PaneView = require './pane-view'
 PaneContainerModel = require './pane-container-model'
 
 # Private: Manages the list of panes within a {WorkspaceView}
@@ -47,7 +47,7 @@ class PaneContainer extends View
     focusedElement = document.activeElement if @hasFocus()
 
     oldRoot = @getRoot()
-    if oldRoot instanceof Pane and oldRoot.model.isDestroyed()
+    if oldRoot instanceof PaneView and oldRoot.model.isDestroyed()
       @trigger 'pane:removed', [oldRoot]
     oldRoot?.detach()
     if root?
@@ -63,7 +63,7 @@ class PaneContainer extends View
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child
     @setRoot(null)
-    @trigger 'pane:removed', [child] if child instanceof Pane
+    @trigger 'pane:removed', [child] if child instanceof PaneView
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()

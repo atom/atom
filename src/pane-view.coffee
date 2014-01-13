@@ -11,7 +11,7 @@ PaneModel = require './pane-model'
 # Most packages won't need to use this class, unless you're interested in
 # building a package that deals with switching between panes or tiems.
 module.exports =
-class Pane extends View
+class PaneView extends View
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 

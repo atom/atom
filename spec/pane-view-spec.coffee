@@ -1,10 +1,10 @@
 PaneContainer = require '../src/pane-container'
-Pane = require '../src/pane'
+PaneView = require '../src/pane-view'
 {fs, $, View} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 
-describe "Pane", ->
+describe "PaneView", ->
   [container, view1, view2, editor1, editor2, pane] = []
 
   class TestView extends View
@@ -22,7 +22,7 @@ describe "Pane", ->
     view2 = new TestView(id: 'view-2', text: 'View 2')
     editor1 = atom.project.openSync('sample.js')
     editor2 = atom.project.openSync('sample.txt')
-    pane = new Pane(view1, editor1, view2, editor2)
+    pane = new PaneView(view1, editor1, view2, editor2)
     container.setRoot(pane)
 
   afterEach ->

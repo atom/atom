@@ -1,7 +1,7 @@
 path = require 'path'
 temp = require 'temp'
 PaneContainer = require '../src/pane-container'
-Pane = require '../src/pane'
+PaneView = require '../src/pane-view'
 {_, $, View, $$} = require 'atom'
 
 describe "PaneContainer", ->
@@ -19,7 +19,7 @@ describe "PaneContainer", ->
       isEqual: (other) -> @name is other?.name
 
     container = new PaneContainer
-    pane1 = new Pane(new TestView('1'))
+    pane1 = new PaneView(new TestView('1'))
     container.setRoot(pane1)
     pane2 = pane1.splitRight(new TestView('2'))
     pane3 = pane2.splitDown(new TestView('3'))
@@ -148,7 +148,7 @@ describe "PaneContainer", ->
 
       container = new PaneContainer
       container.attachToDom()
-      pane1 = new Pane(item1a)
+      pane1 = new PaneView(item1a)
       container.setRoot(pane1)
 
       activeItemChangedHandler = jasmine.createSpy("activeItemChangedHandler")
@@ -160,7 +160,7 @@ describe "PaneContainer", ->
         expect(container.getPanes().length).toBe 0
         activeItemChangedHandler.reset()
 
-        pane = new Pane(item1a)
+        pane = new PaneView(item1a)
         container.setRoot(pane)
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a

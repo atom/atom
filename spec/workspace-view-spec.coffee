@@ -2,7 +2,7 @@
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
-Pane = require '../src/pane'
+PaneView = require '../src/pane-view'
 
 describe "WorkspaceView", ->
   pathToOpen = null
@@ -212,7 +212,7 @@ describe "WorkspaceView", ->
   describe ".openSync(filePath, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
-        spyOn(Pane.prototype, 'focus')
+        spyOn(PaneView.prototype, 'focus')
         atom.workspaceView.getActivePane().remove()
         expect(atom.workspaceView.getActivePane()).toBeUndefined()
 
@@ -360,7 +360,7 @@ describe "WorkspaceView", ->
 
   describe ".open(filePath)", ->
     beforeEach ->
-      spyOn(Pane.prototype, 'focus')
+      spyOn(PaneView.prototype, 'focus')
 
     describe "when there is no active pane", ->
       beforeEach ->

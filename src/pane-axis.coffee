@@ -1,5 +1,5 @@
 {View} = require './space-pen-extensions'
-Pane = null
+PaneView = null
 
 ### Internal ###
 module.exports =
@@ -25,9 +25,9 @@ class PaneAxis extends View
   onChildRemoved: (child) =>
     view = @viewForModel(child)
     view.detach()
-    Pane ?= require './pane'
+    PaneView ?= require './pane-view'
 
-    if view instanceof Pane and view.model.isDestroyed()
+    if view instanceof PaneView and view.model.isDestroyed()
       @getContainer()?.trigger 'pane:removed', [view]
 
   getContainer: ->
