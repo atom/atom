@@ -1,6 +1,6 @@
 {Model} = require 'theorist'
 Pane = require '../src/pane'
-PaneAxisModel = require '../src/pane-axis-model'
+PaneAxis = require '../src/pane-axis'
 PaneContainerModel = require '../src/pane-container-model'
 
 describe "Pane", ->

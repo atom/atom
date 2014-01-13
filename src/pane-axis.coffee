@@ -6,7 +6,7 @@ PaneRowView = null
 PaneColumnView = null
 
 module.exports =
-class PaneAxisModel extends Model
+class PaneAxis extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 

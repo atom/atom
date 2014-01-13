@@ -2,7 +2,7 @@
 {dirname} = require 'path'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
-PaneAxisModel = require './pane-axis-model'
+PaneAxis = require './pane-axis'
 PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
@@ -296,7 +296,7 @@ class Pane extends Model
   # Private:
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxisModel({@container, orientation, children: [this]}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
 
     newPane = new @constructor(extend({focused: true}, params))
     switch side
