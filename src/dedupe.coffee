@@ -26,6 +26,8 @@ class Dedupe extends Command
       Usage: apm dedupe
 
       Reduce duplication in the node_modules folder in the current directory.
+
+      This command is experimental.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
