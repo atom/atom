@@ -32,7 +32,7 @@ class Install extends Command
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
       If no package name is given then all the dependencies in the package.json
-      file are installed into the node_modules folder for the current working
+      file are installed to the node_modules folder in the current working
       directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
