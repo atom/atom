@@ -45,7 +45,7 @@ class WorkspaceView extends View
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
-  @delegatesMethods 'open', 'openSync', 'itemOpened', toProperty: 'model'
+  @delegatesMethods 'open', 'openSync', 'openSingletonSync', toProperty: 'model'
 
   @version: 4
 
@@ -152,19 +152,6 @@ class WorkspaceView extends View
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
     @panes.confirmClose()
-
-  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
-    changeFocus ?= true
-    uri = atom.project.relativize(uri)
-    pane = @panes.paneForUri(uri)
-
-    if pane
-      paneItem = pane.itemForUri(uri)
-      pane.activateItem(paneItem)
-      pane.activate() if changeFocus
-      paneItem
-    else
-      @openSync(uri, {changeFocus, initialLine, split})
 
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->

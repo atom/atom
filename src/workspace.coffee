@@ -93,6 +93,19 @@ class Workspace extends Model
     pane.activate() if changeFocus
     paneItem
 
+  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
+    changeFocus ?= true
+    uri = atom.project.relativize(uri)
+    pane = @paneContainer.paneForUri(uri)
+
+    if pane
+      paneItem = pane.itemForUri(uri)
+      pane.activateItem(paneItem)
+      pane.activate() if changeFocus
+      paneItem
+    else
+      @openSync(uri, {changeFocus, initialLine, split})
+
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
