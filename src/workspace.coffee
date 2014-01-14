@@ -11,7 +11,7 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @delegatesProperty 'activePane', toProperty: 'paneContainer'
+  @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
   @delegatesMethod 'getPanes', toProperty: 'paneContainer'
 
   @properties
@@ -110,6 +110,14 @@ class Workspace extends Model
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
+
+  # Public: save the active item.
+  saveActivePaneItem: ->
+    @activePane?.saveActiveItem()
+
+  # Public: save the active item as.
+  saveActivePaneItemAs: ->
+    @activePane?.saveActiveItemAs()
 
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
