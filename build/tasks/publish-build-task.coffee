@@ -3,7 +3,6 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-GitHub = require 'github-releases'
 request = require 'request'
 
 grunt = null
