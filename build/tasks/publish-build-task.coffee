@@ -24,7 +24,7 @@ module.exports = (gruntObject) ->
 
     done = @async()
 
-    createRelease (error, release) ->
+    createBuildRelease (error, release) ->
       return done(error) if error?
       zipApp (error) ->
         return done(error) if error?
@@ -110,7 +110,7 @@ deleteExistingAsset = (release, callback) ->
 
   callback()
 
-createRelease = (callback) ->
+createBuildRelease = (callback) ->
   getRelease (error, release) ->
     if error?
       callback(error)
