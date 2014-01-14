@@ -207,7 +207,7 @@ class WorkspaceView extends View
 
   # Public: Returns the currently focused {PaneView}.
   getActivePane: ->
-    @model.activePane
+    @panes.getActivePane()
 
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
