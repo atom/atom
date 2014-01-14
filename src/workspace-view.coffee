@@ -172,22 +172,6 @@ class WorkspaceView extends View
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
-  # Private: Retrieves all of the modified buffers that are open and unsaved.
-  #
-  # Returns an {Array} of {TextBuffer}s.
-  getModifiedBuffers: ->
-    modifiedBuffers = []
-    for pane in @getPanes()
-      for item in pane.getItems() when item instanceof Editor
-        modifiedBuffers.push item.buffer if item.buffer.isModified()
-    modifiedBuffers
-
-  # Private: Retrieves all of the paths to open files.
-  #
-  # Returns an {Array} of {String}s.
-  getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditorViews().map (editorView) -> editorView.getOpenBufferPaths()))
-
   # Public: Prepends the element to the top of the window.
   prependToTop: (element) ->
     @vertical.prepend(element)
