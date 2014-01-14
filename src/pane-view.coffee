@@ -54,7 +54,6 @@ class PaneView extends View
     @subscribe @model, 'item-removed', @onItemRemoved
     @subscribe @model, 'item-moved', @onItemMoved
     @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
-    @subscribe @model, 'item-destroyed', @onItemDestroyed
     @subscribe @model, 'activated', @onActivated
     @subscribe @model.$active, @onActiveStatusChanged
 
@@ -180,9 +179,6 @@ class PaneView extends View
   onBeforeItemDestroyed: (item) =>
     @unsubscribe(item) if typeof item.off is 'function'
     @trigger 'pane:before-item-destroyed', [item]
-
-  onItemDestroyed: (item) =>
-    @getContainer()?.itemDestroyed(item)
 
   # Private:
   activeItemTitleChanged: =>

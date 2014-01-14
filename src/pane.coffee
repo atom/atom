@@ -142,7 +142,7 @@ class Pane extends Model
     @activateNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
-    @emit 'item-destroyed', item if destroying
+    @container?.itemDestroyed(item) if destroying
     @destroy() if @items.length is 0
 
   # Public: Moves the given item to the specified index.

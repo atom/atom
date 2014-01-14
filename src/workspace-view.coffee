@@ -75,7 +75,7 @@ class WorkspaceView extends View
     @panes = panes
 
     @destroyedItemUris = []
-    @subscribe @panes, 'item-destroyed', @onPaneItemDestroyed
+    @subscribe @model, 'pane-item-destroyed', @onPaneItemDestroyed
 
     @updateTitle()
 
@@ -359,7 +359,7 @@ class WorkspaceView extends View
     super
 
   # Private: Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (e, item) =>
+  onPaneItemDestroyed: (item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 

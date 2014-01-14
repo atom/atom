@@ -68,3 +68,6 @@ class PaneContainer extends Model
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
+
+  itemDestroyed: (item) ->
+    @emit 'item-destroyed', item

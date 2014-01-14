@@ -11,6 +11,10 @@ class Workspace extends Model
     paneContainer: -> new PaneContainer
     fullScreen: false
 
+  constructor: ->
+    super
+    @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
+
   deserializeParams: (params) ->
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
@@ -18,3 +22,6 @@ class Workspace extends Model
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
+
+  onPaneItemDestroyed: (item) =>
+    @emit 'pane-item-destroyed', item
