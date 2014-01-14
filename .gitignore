@@ -12,3 +12,4 @@ docs/output
 spec/fixtures/evil-files/
 /apm
 atom.xcodeproj
+/build/atom.build
