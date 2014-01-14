@@ -10,11 +10,9 @@ if (process.platform == 'linux')
 
 var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
-function readEnvironmentVariables() {
-  var credentialsPath = '/var/lib/jenkins/config/atomcredentials';
+function loadEnvironmentVariables(filePath) {
   try {
-    var credentials = fs.readFileSync(credentialsPath, 'utf8');
-    var lines = credentials.trim().split('\n');
+    var lines = fs.readFileSync(filePath, 'utf8').trim().split('\n');
     for (i in lines) {
       var parts = lines[i].split('=');
       var key = parts[0].trim();
@@ -22,6 +20,11 @@ function readEnvironmentVariables() {
       process.env[key] = value;
     }
   } catch(error) { }
+}
+
+function readEnvironmentVariables() {
+  loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials')
+  loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain')
 }
 
 readEnvironmentVariables();
