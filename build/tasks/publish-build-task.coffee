@@ -34,7 +34,9 @@ module.exports = (gruntObject) ->
             return done(error) if error?
             getAtomDraftRelease (error, release) ->
               return done(error) if error?
-              uploadAsset(release, done)
+              deleteExistingAsset release, (error) ->
+                return done(error) if error?
+                uploadAsset(release, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
