@@ -147,8 +147,10 @@ module.exports = (grunt) ->
         'dot-atom/**/*.coffee'
         'exports/**/*.coffee'
         'src/**/*.coffee'
-        'tasks/**/*.coffee'
-        'Gruntfile.coffee'
+      ]
+      build: [
+        'build/tasks/**/*.coffee'
+        'build/Gruntfile.coffee'
       ]
       test: [
         'spec/*.coffee'
