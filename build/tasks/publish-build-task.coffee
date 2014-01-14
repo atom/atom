@@ -3,6 +3,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+GitHub = require 'github-releases'
 request = require 'request'
 
 grunt = null
@@ -29,7 +30,11 @@ module.exports = (gruntObject) ->
         return done(error) if error?
         uploadAsset release, (error) ->
           return done(error) if error?
-          publishRelease(release, done)
+          publishRelease release, (error) ->
+            return done(error) if error?
+            getAtomDraftRelease (error, release) ->
+              return done(error) if error?
+              uploadAsset(release, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -63,6 +68,18 @@ getRelease = (callback) ->
         callback(null, release)
         return
       callback()
+
+getAtomDraftRelease = (callback) ->
+  atomRepo = new GitHub({repo: 'atom/atom', token})
+  atomRepo.getReleases (error, releases=[]) ->
+    if error?
+      logError('Fetching atom/atom releases failed', error, releases)
+      callback(error)
+    else
+      for release in releases when release.draft
+        callback(null, release)
+        return
+      callback(new Error('No draft release in atom/atom repo'))
 
 deleteRelease = (release) ->
   options =
@@ -122,7 +139,7 @@ createRelease = (callback) ->
 
 uploadAsset = (release, callback) ->
   options =
-    uri: "https://uploads.github.com/repos/atom/atom-master-builds/releases/#{release.id}/assets?name=#{assetName}"
+    uri: "#{release.assetsUrl}?assets?name=#{assetName}"
     method: 'POST'
     headers: _.extend({
       'Content-Type': 'application/zip'
