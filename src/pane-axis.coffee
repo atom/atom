@@ -32,12 +32,6 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
 
-  getViewClass: ->
-    if @orientation is 'vertical'
-      PaneColumnView ?= require './pane-column-view'
-    else
-      PaneRowView ?= require './pane-row-view'
-
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
 

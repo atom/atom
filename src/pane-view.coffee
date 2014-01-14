@@ -183,13 +183,13 @@ class PaneView extends View
   # Private:
   @::accessor 'activeView', -> @viewForItem(@activeItem)
 
-  splitLeft: (items...) -> @model.splitLeft({items})._view
+  splitLeft: (items...) -> atom.views.findOrCreate(@model.splitLeft({items}))
 
-  splitRight: (items...) -> @model.splitRight({items})._view
+  splitRight: (items...) -> atom.views.findOrCreate(@model.splitRight({items}))
 
-  splitUp: (items...) -> @model.splitUp({items})._view
+  splitUp: (items...) -> atom.views.findOrCreate(@model.splitUp({items}))
 
-  splitDown: (items...) -> @model.splitDown({items})._view
+  splitDown: (items...) -> atom.views.findOrCreate(@model.splitDown({items}))
 
   # Private:
   getContainer: ->

@@ -7,6 +7,8 @@ PaneContainer = require './pane-container'
 module.exports =
 class PaneContainerView extends View
   Delegator.includeInto(this)
+  atom.views.register(require './pane-axis-view')
+  atom.views.register(require './pane-view')
 
   @delegatesMethod 'saveAll', toProperty: 'model'
 
@@ -22,17 +24,13 @@ class PaneContainerView extends View
     @subscribe @model.$root, @onRootChanged
     @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
 
-  viewForModel: (model) ->
-    if model?
-      viewClass = model.getViewClass()
-      model._view ?= new viewClass(model)
-
   ### Public ###
 
   getRoot: ->
     @children().first().view()
 
   setRoot: (root) ->
+    atom.views.associate(root.model, root) if root?
     @model.root = root?.model
 
   onRootChanged: (root) =>
@@ -43,7 +41,7 @@ class PaneContainerView extends View
       @trigger 'pane:removed', [oldRoot]
     oldRoot?.detach()
     if root?
-      view = @viewForModel(root)
+      view = atom.views.findOrCreate(root)
       @append(view)
       focusedElement?.focus()
     else
@@ -85,7 +83,7 @@ class PaneContainerView extends View
     @find('.pane:has(:focus)').view()
 
   getActivePane: ->
-    @viewForModel(@model.activePane)
+    atom.views.findOrCreate(@model.activePane)
 
   getActivePaneItem: ->
     @model.activePaneItem
@@ -94,7 +92,7 @@ class PaneContainerView extends View
     @getActivePane()?.activeView
 
   paneForUri: (uri) ->
-    @viewForModel(@model.paneForUri(uri))
+    atom.views.findOrCreate(@model.paneForUri(uri))
 
   focusNextPane: ->
     @model.activateNextPane()
