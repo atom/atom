@@ -46,7 +46,7 @@ class WorkspaceView extends View
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
   @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
-    'saveActivePaneItem', 'saveActivePaneItemAs', toProperty: 'model'
+    'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', toProperty: 'model'
 
   @version: 4
 
@@ -230,10 +230,6 @@ class WorkspaceView extends View
   #
   # FIXME: Difference between active and focused pane?
   getFocusedPane: -> @panes.getFocusedPane()
-
-  # Public: Saves all of the open items within panes.
-  saveAll: ->
-    @panes.saveAll()
 
   # Public: Fires a callback on each open {PaneView}.
   eachPane: (callback) ->

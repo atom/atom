@@ -12,7 +12,7 @@ class Workspace extends Model
   Serializable.includeInto(this)
 
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
-  @delegatesMethod 'getPanes', toProperty: 'paneContainer'
+  @delegatesMethod 'getPanes', 'saveAll', toProperty: 'paneContainer'
 
   @properties
     paneContainer: -> new PaneContainer

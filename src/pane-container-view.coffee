@@ -1,4 +1,5 @@
 Serializable = require 'serializable'
+Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
@@ -8,6 +9,7 @@ module.exports =
 class PaneContainerView extends View
   atom.deserializers.add(this)
   Serializable.includeInto(this)
+  Delegator.includeInto(this)
 
   @deserialize: (state) ->
     new this(PaneContainer.deserialize(state.model))
@@ -61,9 +63,6 @@ class PaneContainerView extends View
     throw new Error("Removing non-existant child") unless @getRoot() is child
     @setRoot(null)
     @trigger 'pane:removed', [child] if child instanceof PaneView
-
-  saveAll: ->
-    pane.saveItems() for pane in @getPanes()
 
   confirmClose: ->
     saved = true
