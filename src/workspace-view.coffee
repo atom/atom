@@ -46,7 +46,8 @@ class WorkspaceView extends View
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
   @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
-    'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', toProperty: 'model'
+    'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
+    toProperty: 'model'
 
   @version: 4
 
@@ -215,10 +216,6 @@ class WorkspaceView extends View
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
-
-  # Public: destroy/close the active item.
-  destroyActivePaneItem: ->
-    @getActivePane()?.destroyActiveItem()
 
   # Public: Focuses the previous pane by id.
   focusPreviousPane: -> @panes.focusPreviousPane()

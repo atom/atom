@@ -119,6 +119,10 @@ class Workspace extends Model
   saveActivePaneItemAs: ->
     @activePane?.saveActiveItemAs()
 
+  # Public: destroy/close the active item.
+  destroyActivePaneItem: ->
+    @activePane?.destroyActiveItem()
+
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
