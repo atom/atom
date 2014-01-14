@@ -11,6 +11,8 @@ class PaneContainerView extends View
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 
+  @delegatesMethod 'saveAll', toProperty: 'model'
+
   @deserialize: (state) ->
     new this(PaneContainer.deserialize(state.model))
 
