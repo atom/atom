@@ -4,13 +4,18 @@ PaneView = null
 ### Internal ###
 module.exports =
 class PaneAxisView extends View
+  @content: (model) ->
+    orientationClass =
+      if model.orientation is 'horizontal'
+        'pane-row'
+      else
+        'pane-column'
+
+    @div class: orientationClass
+
   initialize: (@model) ->
     @onChildAdded(child) for child in @model.children
     @subscribe @model.children, 'changed', @onChildrenChanged
-
-  viewForModel: (model) ->
-    viewClass = model.getViewClass()
-    model._view ?= new viewClass(model)
 
   onChildrenChanged:  ({index, removedValues, insertedValues}) =>
     focusedElement = document.activeElement if @hasFocus()
@@ -19,11 +24,11 @@ class PaneAxisView extends View
     focusedElement?.focus() if document.activeElement is document.body
 
   onChildAdded: (child, index) =>
-    view = @viewForModel(child)
+    view = atom.views.findOrCreate(child)
     @insertAt(index, view)
 
   onChildRemoved: (child) =>
-    view = @viewForModel(child)
+    view = atom.views.find(child)
     view.detach()
     PaneView ?= require './pane-view'
 
