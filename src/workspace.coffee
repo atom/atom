@@ -6,6 +6,9 @@ Delegator = require 'delegato'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
+# Public: Represents the view state of the entire window, including the panes at
+# the center and panels around the periphery. You can access the singleton
+# instance via `atom.workspace`.
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
@@ -20,14 +23,17 @@ class Workspace extends Model
     fullScreen: false
     destroyedItemUris: -> []
 
+  # Private:
   constructor: ->
     super
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
 
+  # Private: Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
+  # Private: Called by the Serializable mixin during serialization.
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
@@ -94,6 +100,8 @@ class Workspace extends Model
     pane.activate() if changeFocus
     paneItem
 
+  # Public: Synchronously open an editor for the given URI or activate an existing
+  # editor in any pane if one already exists.
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
     changeFocus ?= true
     uri = atom.project.relativize(uri)
