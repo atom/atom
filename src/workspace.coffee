@@ -1,4 +1,4 @@
-{remove} = require 'underscore-plus'
+{remove, last} = require 'underscore-plus'
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
@@ -12,6 +12,7 @@ class Workspace extends Model
   Serializable.includeInto(this)
 
   @delegatesProperty 'activePane', toProperty: 'paneContainer'
+  @delegatesMethod 'getPanes', toProperty: 'paneContainer'
 
   @properties
     paneContainer: -> new PaneContainer
@@ -59,6 +60,38 @@ class Workspace extends Model
         editor
       .catch (error) ->
         console.error(error.stack ? error)
+
+  # Private: Only used in specs
+  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
+    changeFocus ?= true
+    pane ?= @activePane
+    uri = atom.project.relativize(uri)
+
+    if pane
+      if uri
+        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
+      else
+        paneItem = atom.project.openSync()
+
+      if split == 'right'
+        panes = @getPanes()
+        if panes.length == 1
+          pane = panes[0].splitRight()
+        else
+          pane = last(panes)
+      else if split == 'left'
+        pane = @getPanes()[0]
+
+      pane.activateItem(paneItem)
+    else
+      paneItem = atom.project.openSync(uri, {initialLine})
+      pane = new Pane(items: [paneItem])
+      @paneContainer.root = pane
+
+    @itemOpened(paneItem)
+
+    pane.activate() if changeFocus
+    paneItem
 
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
