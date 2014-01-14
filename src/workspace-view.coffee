@@ -45,7 +45,7 @@ class WorkspaceView extends View
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
-  @delegatesMethods 'itemOpened', toProperty: 'model'
+  @delegatesMethods 'open', 'itemOpened', toProperty: 'model'
 
   @version: 4
 
@@ -74,6 +74,8 @@ class WorkspaceView extends View
     panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
     @panes = panes
+
+    @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
 
     @updateTitle()
 
@@ -150,36 +152,6 @@ class WorkspaceView extends View
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
     @panes.confirmClose()
-
-  # Public: Asynchronously opens a given a filepath in Atom.
-  #
-  # * filePath: A file path
-  # * options
-  #   + initialLine: The buffer line number to open to.
-  #
-  # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (filePath, options={}) ->
-    changeFocus = options.changeFocus ? true
-    filePath = atom.project.resolve(filePath)
-    initialLine = options.initialLine
-    activePane = @getActivePane()
-
-    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
-    promise = atom.project.open(filePath, {initialLine}) if not editor
-
-    Q(editor ? promise)
-      .then (editor) =>
-        if not activePane
-          activePane = new PaneView(editor)
-          @panes.setRoot(activePane)
-
-        @itemOpened(editor)
-        activePane.activateItem(editor)
-        activePane.activate() if changeFocus
-        @trigger "uri-opened"
-        editor
-      .catch (error) ->
-        console.error(error.stack ? error)
 
   # Private: Only used in specs
   openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
