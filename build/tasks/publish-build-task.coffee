@@ -139,7 +139,7 @@ createRelease = (callback) ->
 
 uploadAsset = (release, callback) ->
   options =
-    uri: "#{release.assetsUrl}?assets?name=#{assetName}"
+    uri: "#{release.assetsUrl}?name=#{assetName}"
     method: 'POST'
     headers: _.extend({
       'Content-Type': 'application/zip'
