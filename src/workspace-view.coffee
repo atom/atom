@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 Delegator = require 'delegato'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
-Serializable = require 'serializable'
 Workspace = require './workspace'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
@@ -40,8 +39,6 @@ Editor = require './editor'
 #
 module.exports =
 class WorkspaceView extends View
-  atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
-  Serializable.includeInto(this)
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
@@ -50,9 +47,6 @@ class WorkspaceView extends View
     toProperty: 'model'
 
   @version: 4
-
-  @deserialize: (state) ->
-    new this(Workspace.deserialize(state.model))
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -127,10 +121,6 @@ class WorkspaceView extends View
     @command 'core:close', => @destroyActivePaneItem()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
-
-  # Private:
-  serializeParams: ->
-    model: @model.serialize()
 
   # Private:
   handleFocus: (e) ->

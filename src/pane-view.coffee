@@ -1,5 +1,4 @@
 {$, View} = require './space-pen-extensions'
-Serializable = require 'serializable'
 Delegator = require 'delegato'
 PropertyAccessors = require 'property-accessors'
 
@@ -13,14 +12,10 @@ Pane = require './pane'
 # building a package that deals with switching between panes or tiems.
 module.exports =
 class PaneView extends View
-  Serializable.includeInto(this)
   Delegator.includeInto(this)
   PropertyAccessors.includeInto(this)
 
   @version: 1
-
-  @deserialize: (state) ->
-    new this(Pane.deserialize(state.model))
 
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
@@ -85,13 +80,6 @@ class PaneView extends View
     @command 'pane:split-down', => @splitDown(@copyActiveItem())
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
-
-  deserializeParams: (params) ->
-    params.model = Pane.deserialize(params.model)
-    params
-
-  serializeParams: ->
-    model: @model.serialize()
 
   # Deprecated: Use ::destroyItem
   removeItem: (item) -> @destroyItem(item)

@@ -1,4 +1,3 @@
-Serializable = require 'serializable'
 Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
@@ -7,14 +6,9 @@ PaneContainer = require './pane-container'
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainerView extends View
-  atom.deserializers.add(this)
-  Serializable.includeInto(this)
   Delegator.includeInto(this)
 
   @delegatesMethod 'saveAll', toProperty: 'model'
-
-  @deserialize: (state) ->
-    new this(PaneContainer.deserialize(state.model))
 
   @content: ->
     @div class: 'panes'
@@ -32,9 +26,6 @@ class PaneContainerView extends View
     if model?
       viewClass = model.getViewClass()
       model._view ?= new viewClass(model)
-
-  serializeParams: ->
-    model: @model.serialize()
 
   ### Public ###
 

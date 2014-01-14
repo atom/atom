@@ -121,7 +121,7 @@ describe "PaneContainerView", ->
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
-      newContainer = atom.deserializers.deserialize(container.serialize())
+      newContainer = new PaneContainerView(container.model.testSerialization())
       expect(newContainer.find('.pane-row > :contains(1)')).toExist()
       expect(newContainer.find('.pane-row > .pane-column > :contains(2)')).toExist()
       expect(newContainer.find('.pane-row > .pane-column > :contains(3)')).toExist()
@@ -133,7 +133,7 @@ describe "PaneContainerView", ->
     it "removes empty panes on deserialization", ->
       # only deserialize pane 1's view successfully
       TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
-      newContainer = atom.deserializers.deserialize(container.serialize())
+      newContainer = new PaneContainerView(container.model.testSerialization())
       expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
 

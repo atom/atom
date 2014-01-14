@@ -230,8 +230,10 @@ class Atom extends Model
 
   # Private:
   deserializeWorkspaceView: ->
+    Workspace = require './workspace'
     WorkspaceView = require './workspace-view'
-    @workspaceView = @deserializers.deserialize(@state.workspaceView) ? new WorkspaceView
+    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
+    @workspaceView = new WorkspaceView(@workspace)
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   # Private:
@@ -277,7 +279,7 @@ class Atom extends Model
     return if not @project and not @workspaceView
 
     @state.syntax = @syntax.serialize()
-    @state.workspaceView = @workspaceView.serialize()
+    @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
     @saveSync()
