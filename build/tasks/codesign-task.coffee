@@ -22,4 +22,4 @@ module.exports = (grunt) ->
   signApp = (callback) ->
     cmd = 'codesign'
     args = ['-f', '-v', '-s', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
-    spawn {cmd, args}, (error) -> done(error)
+    spawn {cmd, args}, (error) -> callback(error)
