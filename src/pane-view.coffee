@@ -1,6 +1,7 @@
 {$, View} = require './space-pen-extensions'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
+PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
 
@@ -14,6 +15,7 @@ module.exports =
 class PaneView extends View
   Serializable.includeInto(this)
   Delegator.includeInto(this)
+  PropertyAccessors.includeInto(this)
 
   @version: 1
 
@@ -152,7 +154,6 @@ class PaneView extends View
     view.show() if @attached
     view.focus() if hasFocus
 
-    @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
   onItemAdded: (item, index) =>
@@ -186,6 +187,7 @@ class PaneView extends View
 
   # Private:
   viewForItem: (item) ->
+    return unless item?
     if item instanceof $
       item
     else if view = @viewsByItem.get(item)
@@ -197,8 +199,7 @@ class PaneView extends View
       view
 
   # Private:
-  viewForActiveItem: ->
-    @viewForItem(@activeItem)
+  @::accessor 'activeView', -> @viewForItem(@activeItem)
 
   splitLeft: (items...) -> @model.splitLeft({items})._view
 
