@@ -106,6 +106,11 @@ class Workspace extends Model
     else
       @openSync(uri, {changeFocus, initialLine, split})
 
+  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
+  reopenItemSync: ->
+    if uri = @destroyedItemUris.pop()
+      @openSync(uri)
+
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()

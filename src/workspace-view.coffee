@@ -45,7 +45,8 @@ class WorkspaceView extends View
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
-  @delegatesMethods 'open', 'openSync', 'openSingletonSync', toProperty: 'model'
+  @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
+    toProperty: 'model'
 
   @version: 4
 
@@ -282,8 +283,3 @@ class WorkspaceView extends View
     @model.destroy()
     editorView.remove() for editorView in @getEditorViews()
     super
-
-  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
-  reopenItemSync: ->
-    if uri = @destroyedItemUris.pop()
-      @openSync(uri)
