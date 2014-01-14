@@ -15,7 +15,8 @@ module.exports = (grunt) ->
 
   unlockKeychain = (callback) ->
     cmd = 'security'
-    args = ['-p', process.env.XCODE_KEYCHAIN_PASSWORD, process.env.XCODE_KEYCHAIN]
+    {XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN} = process.env
+    args = ['unlock-keychain', '-p', XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN]
     spawn {cmd, args}, (error) -> callback(error)
 
   signApp = (callback) ->
