@@ -49,8 +49,20 @@ class PaneContainer extends Model
       currentIndex = panes.indexOf(@activePane)
       nextIndex = (currentIndex + 1) % panes.length
       panes[nextIndex].activate()
+      true
     else
-      @activePane = null
+      false
+
+  activatePreviousPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@activePane)
+      previousIndex = currentIndex - 1
+      previousIndex = panes.length - 1 if previousIndex < 0
+      panes[previousIndex].activate()
+      true
+    else
+      false
 
   onRootChanged: (root) =>
     @unsubscribe(@previousRoot) if @previousRoot?

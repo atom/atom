@@ -42,7 +42,7 @@ describe "PaneContainerView", ->
   describe ".focusPreviousPane()", ->
     it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
       container.attachToDom()
-      $(document.body).focus() # clear focus
+      container.getPanes()[0].focus() # activate first pane
 
       container.focusPreviousPane()
       expect(pane3.activeItem).toMatchSelector ':focus'

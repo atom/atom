@@ -218,10 +218,10 @@ class WorkspaceView extends View
     @panes.getActiveView()
 
   # Public: Focuses the previous pane by id.
-  focusPreviousPane: -> @panes.focusPreviousPane()
+  focusPreviousPane: -> @model.activatePreviousPane()
 
   # Public: Focuses the next pane by id.
-  focusNextPane: -> @panes.focusNextPane()
+  focusNextPane: -> @model.activateNextPane()
 
   # Public:
   #
