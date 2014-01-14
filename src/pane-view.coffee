@@ -40,7 +40,6 @@ class PaneView extends View
       @model._view = this
 
     @onItemAdded(item) for item in @items
-    @viewsByItem = new WeakMap()
     @handleEvents()
 
   handleEvents: ->
@@ -150,8 +149,8 @@ class PaneView extends View
   onItemRemoved: (item, index, destroyed) =>
     if item instanceof $
       viewToRemove = item
-    else if viewToRemove = @viewsByItem.get(item)
-      @viewsByItem.delete(item)
+    else if viewToRemove = atom.views.find(item)
+      atom.views.remove(item, viewToRemove) if destroyed
 
     if viewToRemove?
       viewToRemove.setModel?(null)
@@ -178,13 +177,8 @@ class PaneView extends View
     return unless item?
     if item instanceof $
       item
-    else if view = @viewsByItem.get(item)
-      view
     else
-      viewClass = item.getViewClass()
-      view = new viewClass(item)
-      @viewsByItem.set(item, view)
-      view
+      atom.views.findOrCreate(item)
 
   # Private:
   @::accessor 'activeView', -> @viewForItem(@activeItem)
