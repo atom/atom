@@ -44,7 +44,8 @@ class WorkspaceView extends View
   Serializable.includeInto(this)
   Delegator.includeInto(this)
 
-  @delegatesProperty 'fullScreen', toProperty: 'model'
+  @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
+  @delegatesMethods 'itemOpened', toProperty: 'model'
 
   @version: 4
 
@@ -73,9 +74,6 @@ class WorkspaceView extends View
     panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
     @panes = panes
-
-    @destroyedItemUris = []
-    @subscribe @model, 'pane-item-destroyed', @onPaneItemDestroyed
 
     @updateTitle()
 
@@ -358,17 +356,7 @@ class WorkspaceView extends View
     editorView.remove() for editorView in @getEditorViews()
     super
 
-  # Private: Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (item) =>
-    if uri = item.getUri?()
-      @destroyedItemUris.push(uri)
-
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
-
-  # Private: Removes the item's uri from the list of potential items to reopen.
-  itemOpened: (item) ->
-    if uri = item.getUri?()
-      _.remove(@destroyedItemUris, uri)

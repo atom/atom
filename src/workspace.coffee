@@ -1,3 +1,4 @@
+{remove} = require 'underscore-plus'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 PaneContainer = require './pane-container'
@@ -10,6 +11,7 @@ class Workspace extends Model
   @properties
     paneContainer: -> new PaneContainer
     fullScreen: false
+    destroyedItemUris: -> []
 
   constructor: ->
     super
@@ -23,5 +25,12 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
+  # Private: Removes the item's uri from the list of potential items to reopen.
+  itemOpened: (item) ->
+    if uri = item.getUri?()
+      remove(@destroyedItemUris, uri)
+
+  # Private: Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>
-    @emit 'pane-item-destroyed', item
+    if uri = item.getUri?()
+      @destroyedItemUris.push(uri)
