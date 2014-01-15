@@ -138,18 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "pane:show-next-item and pane:show-previous-item", ->
-    it "advances forward/backward through the pane's items, looping around at either end", ->
-      expect(pane.activeItem).toBe view1
-      pane.trigger 'pane:show-previous-item'
-      expect(pane.activeItem).toBe editor2
-      pane.trigger 'pane:show-previous-item'
-      expect(pane.activeItem).toBe view2
-      pane.trigger 'pane:show-next-item'
-      expect(pane.activeItem).toBe editor2
-      pane.trigger 'pane:show-next-item'
-      expect(pane.activeItem).toBe view1
-
   describe "pane:show-item-N events", ->
     it "shows the (n-1)th item if it exists", ->
       pane.trigger 'pane:show-item-2'

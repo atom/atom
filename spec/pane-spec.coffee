@@ -29,6 +29,21 @@ describe "Pane", ->
       expect(item in pane.items).toBe true
       expect(pane.activeItem).toBe item
 
+  describe "::activateNextItem() and ::activatePreviousItem()", ->
+    it "sets the active item to the next/previous item, looping around at either end", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.items
+
+      expect(pane.activeItem).toBe item1
+      pane.activatePreviousItem()
+      expect(pane.activeItem).toBe item3
+      pane.activatePreviousItem()
+      expect(pane.activeItem).toBe item2
+      pane.activateNextItem()
+      expect(pane.activeItem).toBe item3
+      pane.activateNextItem()
+      expect(pane.activeItem).toBe item1
+
   describe "::destroyItem(item)", ->
     [pane, item1, item2, item3] = []
 
