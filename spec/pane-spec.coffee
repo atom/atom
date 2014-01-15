@@ -6,6 +6,8 @@ PaneContainer = require '../src/pane-container'
 describe "Pane", ->
   class Item extends Model
     constructor: (@name) ->
+    getUri: -> @uri
+    getPath: -> @path
 
   describe "construction", ->
     it "sets the active item to the first item", ->
@@ -166,16 +168,15 @@ describe "Pane", ->
       expect(pane.items).toEqual [item2]
 
   describe "::saveActiveItem()", ->
-    [pane, activeItemUri] = []
+    pane = null
 
     beforeEach ->
       pane = new Pane(items: [new Item("A")])
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
-      pane.activeItem.getUri = -> activeItemUri
 
     describe "when the active item has a uri", ->
       beforeEach ->
-        activeItemUri = "test"
+        pane.activeItem.uri = "test"
 
       describe "when the active item has a save method", ->
         it "saves the current item", ->
@@ -189,9 +190,6 @@ describe "Pane", ->
           pane.saveActiveItem()
 
     describe "when the current item has no uri", ->
-      beforeEach ->
-        activeItemUri = null
-
       describe "when the current item has a saveAs method", ->
         it "opens a save dialog and saves the current item as the selected path", ->
           pane.activeItem.saveAs = jasmine.createSpy("saveAs")
@@ -206,18 +204,18 @@ describe "Pane", ->
           expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
   describe "::saveActiveItemAs()", ->
-    [pane, activeItemUri] = []
+    pane = null
 
     beforeEach ->
       pane = new Pane(items: [new Item("A")])
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
-      pane.activeItem.getUri = -> "test"
 
     describe "when the current item has a saveAs method", ->
       it "opens the save dialog and calls saveAs on the item with the selected path", ->
+        pane.activeItem.path = __filename
         pane.activeItem.saveAs = jasmine.createSpy("saveAs")
         pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(activeItemUri)
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(__dirname)
         expect(pane.activeItem.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
