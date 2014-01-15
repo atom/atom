@@ -145,3 +145,7 @@ class Workspace extends Model
   onPaneItemDestroyed: (item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
+
+  # Private: Called by Model superclass when destroyed
+  destroyed: ->
+    @paneContainer.destroy()

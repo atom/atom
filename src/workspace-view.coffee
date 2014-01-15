@@ -238,8 +238,11 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
+  # Private: Called by SpacePen
+  beforeRemove: ->
+    @model.destroy()
+
   # Private: Destroys everything.
   remove: ->
-    @model.destroy()
     editorView.remove() for editorView in @getEditorViews()
     super

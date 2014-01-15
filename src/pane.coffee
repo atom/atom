@@ -203,7 +203,7 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
   destroy: ->
-    super unless @container?.getPanes().length is 1
+    super unless @container?.isAlive() and @container?.getPanes().length is 1
 
   # Private: Called by model superclass.
   destroyed: ->
