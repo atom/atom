@@ -68,7 +68,7 @@
     "autosave": "0.10.0",
     "background-tips": "0.4.0",
     "bookmarks": "0.15.0",
-    "bracket-matcher": "0.16.0",
+    "bracket-matcher": "0.18.0",
     "command-logger": "0.8.0",
     "command-palette": "0.14.0",
     "dev-live-reload": "0.22.0",
