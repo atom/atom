@@ -11,8 +11,8 @@ module.exports = (grunt) ->
     else
       cmd = 'git'
       args = ['rev-parse', '--short', 'HEAD']
-      spawn {cmd, args}, (error, result='', code) ->
-        callback(error, result.trim?() ? result)
+      spawn {cmd, args}, (error, {stdout}={}, code) ->
+        callback(error, stdout?.trim?())
 
   grunt.registerTask 'set-version', 'Set the version in the plist and package.json', ->
     done = @async()
