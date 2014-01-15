@@ -164,6 +164,18 @@ describe "Pane", ->
           pane.destroyItem(item) for item in pane.getItems()
           expect(pane.isDestroyed()).toBe true
 
+  describe "::destroyActiveItem()", ->
+    it "destroys the active item", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      activeItem = pane.activeItem
+      pane.destroyActiveItem()
+      expect(activeItem.isDestroyed()).toBe true
+      expect(activeItem in pane.items).toBe false
+
+    it "does not throw an exception if there are no more items", ->
+      pane = new Pane
+      pane.destroyActiveItem()
+
   describe "::destroyItems()", ->
     it "destroys all items", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])

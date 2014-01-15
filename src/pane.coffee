@@ -169,13 +169,14 @@ class Pane extends Model
   # Public: Destroys the given item. If it is the active item, activate the next
   # one. If this is the last item, also destroys the pane.
   destroyItem: (item) ->
-    @emit 'before-item-destroyed', item
-    if @promptToSaveItem(item)
-      @removeItem(item, true)
-      item.destroy?()
-      true
-    else
-      false
+    if item?
+      @emit 'before-item-destroyed', item
+      if @promptToSaveItem(item)
+        @removeItem(item, true)
+        item.destroy?()
+        true
+      else
+        false
 
   # Public: Destroys all items and destroys the pane.
   destroyItems: ->
