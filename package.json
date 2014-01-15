@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "0.45.0",
+  "version": "0.46.0",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
     "semver": "1.1.4",
     "space-pen": "3.1.0",
     "temp": "0.5.0",
-    "text-buffer": "0.12.0",
+    "text-buffer": "0.13.0",
     "underscore-plus": "0.6.1",
     "theorist": "~0.13.0",
     "delegato": "~0.4.0",
@@ -69,7 +69,7 @@
     "autosave": "0.10.0",
     "background-tips": "0.4.0",
     "bookmarks": "0.15.0",
-    "bracket-matcher": "0.16.0",
+    "bracket-matcher": "0.18.0",
     "command-logger": "0.8.0",
     "command-palette": "0.14.0",
     "dev-live-reload": "0.22.0",
