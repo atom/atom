@@ -14,8 +14,8 @@ class Pane extends Model
   Serializable.includeInto(this)
 
   @properties
-    container: null
-    activeItem: null
+    container: undefined
+    activeItem: undefined
     focused: false
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
@@ -139,11 +139,15 @@ class Pane extends Model
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     return if index is -1
-    @activateNextItem() if item is @activeItem and @items.length > 1
+    if item is @activeItem
+      if @items.length is 1
+        @activeItem = undefined
+      else
+        @activateNextItem()
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
     @container?.itemDestroyed(item) if destroying
-    @destroy() if @items.length is 0
+    @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Moves the given item to the specified index.
   moveItem: (item, newIndex) ->

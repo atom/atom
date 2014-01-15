@@ -146,19 +146,27 @@ describe "Pane", ->
           expect(item1.isDestroyed()).toBe false
 
     describe "when the last item is destroyed", ->
-      it "destroys the pane", ->
-        pane.destroyItem(item) for item in pane.getItems()
-        expect(pane.isDestroyed()).toBe true
+      describe "when the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "does not destroy the pane, but leaves it in place with empty items", ->
+          expect(atom.config.get('core.destroyEmptyPanes')).toBe false
+          pane.destroyItem(item) for item in pane.getItems()
+          expect(pane.isDestroyed()).toBe false
+          expect(pane.activeItem).toBeUndefined()
+
+      describe "when the 'core.destroyEmptyPanes' config option is true", ->
+        it "destroys the pane", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+          pane.destroyItem(item) for item in pane.getItems()
+          expect(pane.isDestroyed()).toBe true
 
   describe "::destroyItems()", ->
-    it "destroys all items and the pane", ->
+    it "destroys all items", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.items
       pane.destroyItems()
       expect(item1.isDestroyed()).toBe true
       expect(item2.isDestroyed()).toBe true
       expect(item3.isDestroyed()).toBe true
-      expect(pane.isDestroyed()).toBe true
       expect(pane.items).toEqual []
 
   describe "when an item emits a destroyed event", ->
@@ -280,11 +288,21 @@ describe "Pane", ->
       expect(pane2.items).toEqual [item4, item2, item5]
 
     describe "when the moved item the last item in the source pane", ->
-      it "destroys the pane, but not the item", ->
+      beforeEach ->
         item5.destroy()
-        pane2.moveItemToPane(item4, pane1, 0)
-        expect(pane2.isDestroyed()).toBe true
-        expect(item4.isDestroyed()).toBe false
+
+      describe "when the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "does not destroy the pane or the item", ->
+          pane2.moveItemToPane(item4, pane1, 0)
+          expect(pane2.isDestroyed()).toBe false
+          expect(item4.isDestroyed()).toBe false
+
+      describe "when the 'core.destroyEmptyPanes' config option is true", ->
+        it "destroys the pane, but not the item", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+          pane2.moveItemToPane(item4, pane1, 0)
+          expect(pane2.isDestroyed()).toBe true
+          expect(item4.isDestroyed()).toBe false
 
   describe "split methods", ->
     [pane1, container] = []

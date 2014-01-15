@@ -55,6 +55,7 @@ class WorkspaceView extends View
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
+    destroyEmptyPanes: false
 
   # Private:
   @content: ->
