@@ -134,6 +134,29 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [item3, item2, item1, item4]
       expect(itemMovedHandler).toHaveBeenCalledWith(item2, 1)
 
+  describe "::moveItemToPane(item, pane, index)", ->
+    [container, pane1, pane2] = []
+    [item1, item2, item3, item4, item5] = []
+
+    beforeEach ->
+      pane1 = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      container = new PaneContainer(root: pane1)
+      pane2 = pane1.splitRight(items: [new Item("D"), new Item("E")])
+      [item1, item2, item3] = pane1.items
+      [item4, item5] = pane2.items
+
+    it "moves the item to the given pane at the given index", ->
+      pane1.moveItemToPane(item2, pane2, 1)
+      expect(pane1.items).toEqual [item1, item3]
+      expect(pane2.items).toEqual [item4, item2, item5]
+
+    describe "when the moved item the last item in the source pane", ->
+      it "destroys the pane, but not the item", ->
+        item5.destroy()
+        pane2.moveItemToPane(item4, pane1, 0)
+        expect(pane2.isDestroyed()).toBe true
+        expect(item4.isDestroyed()).toBe false
+
   describe "split methods", ->
     [pane1, container] = []
 

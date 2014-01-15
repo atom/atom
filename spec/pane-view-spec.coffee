@@ -129,37 +129,14 @@ describe "PaneView", ->
       expect(itemMovedHandler).toHaveBeenCalled()
       expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [view1, 2]
 
-  describe "::moveItemToPane(item, pane, index)", ->
-    [pane2, view3] = []
-
-    beforeEach ->
-      view3 = new TestView(id: 'view-3', text: "View 3")
-      pane2 = pane.splitRight(view3)
-
-    it "moves the item to the given pane at the given index", ->
-      pane.moveItemToPane(view1, pane2, 1)
-      expect(pane.getItems()).toEqual [editor1, view2, editor2]
-      expect(pane2.getItems()).toEqual [view3, view1]
-
-    describe "when it is the last item on the source pane", ->
-      it "removes the source pane, but does not destroy the item", ->
-        pane.destroyItem(view1)
-        pane.destroyItem(view2)
-        pane.destroyItem(editor2)
-
-        expect(pane.getItems()).toEqual [editor1]
-        pane.moveItemToPane(editor1, pane2, 1)
-
-        expect(pane.hasParent()).toBeFalsy()
-        expect(pane2.getItems()).toEqual [view3, editor1]
-        expect(editor1.isDestroyed()).toBe false
-
-    describe "when the item is a jQuery object", ->
-      it "preserves data by detaching instead of removing", ->
-        view1.data('preservative', 1234)
-        pane.moveItemToPane(view1, pane2, 1)
-        pane2.activateItemAtIndex(1)
-        expect(pane2.activeView.data('preservative')).toBe 1234
+  describe "when an item is moved to another pane", ->
+    it "detaches the item's view rather than removing it", ->
+      paneModel2 = paneModel.splitRight()
+      view1.data('preservative', 1234)
+      paneModel.moveItemToPane(view1, paneModel2, 1)
+      expect(view1.data('preservative')).toBe 1234
+      paneModel2.activateItemAtIndex(1)
+      expect(view1.data('preservative')).toBe 1234
 
   describe "pane:close", ->
     it "destroys all items and removes the pane", ->
