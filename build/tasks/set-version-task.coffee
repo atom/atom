@@ -14,7 +14,7 @@ module.exports = (grunt) ->
       spawn {cmd, args}, (error, result='', code) ->
         callback(error, result.trim?() ? result)
 
-  grunt.registerTask 'set-development-version', 'Sets version to current SHA-1', ->
+  grunt.registerTask 'set-version', 'Set the version in the plist and package.json', ->
     done = @async()
 
     getVersion (error, version) ->
