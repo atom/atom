@@ -241,73 +241,22 @@ describe "PaneView", ->
 
       expect(becameInactiveHandler.callCount).toBe 1
 
-  describe "split methods", ->
-    [pane1, view3, view4] = []
-    beforeEach ->
+  describe "when a pane is split", ->
+    it "builds the appropriate pane-row and pane-column views", ->
       pane1 = pane
+      pane1Model = pane.model
       pane.activateItem(editor1)
-      view3 = new TestView(id: 'view-3', text: 'View 3')
-      view4 = new TestView(id: 'view-4', text: 'View 4')
 
-    describe "splitRight(items...)", ->
-      it "builds a row if needed, then appends a new pane after itself", ->
-        # creates the new pane with a copy of the active item if none are given
-        pane2 = pane1.splitRight(pane1.copyActiveItem())
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-        expect(pane2.items).toEqual [editor1]
-        expect(pane2.activeItem).not.toBe editor1 # it's a copy
+      pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
+      pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
+      pane2 = pane2Model._view
+      pane3 = pane3Model._view
 
-        pane3 = pane2.splitRight(view3, view4)
-        expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
+      expect(container.find('> .pane-row > .pane').toArray()).toEqual [pane1[0]]
+      expect(container.find('> .pane-row > .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
 
-      it "builds a row if needed, then appends a new pane after itself ", ->
-        # creates the new pane with a copy of the active item if none are given
-        pane2 = pane1.splitRight()
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-        expect(pane2.items).toEqual []
-        expect(pane2.activeItem).toBeUndefined()
-
-        pane3 = pane2.splitRight()
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0], pane3[0]]
-        expect(pane3.items).toEqual []
-        expect(pane3.activeItem).toBeUndefined()
-
-    describe "splitLeft(items...)", ->
-      it "builds a row if needed, then appends a new pane before itself", ->
-        # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitLeft(pane1.copyActiveItem())
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane2[0], pane[0]]
-        expect(pane2.items).toEqual [editor1]
-        expect(pane2.activeItem).not.toBe editor1 # it's a copy
-
-        pane3 = pane2.splitLeft(view3, view4)
-        expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.pane-row .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
-
-    describe "splitDown(items...)", ->
-      it "builds a column if needed, then appends a new pane after itself", ->
-        # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitDown(pane1.copyActiveItem())
-        expect(container.find('.pane-column .pane').toArray()).toEqual [pane[0], pane2[0]]
-        expect(pane2.items).toEqual [editor1]
-        expect(pane2.activeItem).not.toBe editor1 # it's a copy
-
-        pane3 = pane2.splitDown(view3, view4)
-        expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.pane-column .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
-
-    describe "splitUp(items...)", ->
-      it "builds a column if needed, then appends a new pane before itself", ->
-        # creates the new pane with a copy of the active item if none are given
-        pane2 = pane.splitUp(pane1.copyActiveItem())
-        expect(container.find('.pane-column .pane').toArray()).toEqual [pane2[0], pane[0]]
-        expect(pane2.items).toEqual [editor1]
-        expect(pane2.activeItem).not.toBe editor1 # it's a copy
-
-        pane3 = pane2.splitUp(view3, view4)
-        expect(pane3.getItems()).toEqual [view3, view4]
-        expect(container.find('.pane-column .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
+      pane1Model.destroy()
+      expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "::itemForUri(uri)", ->
     it "returns the item for which a call to .getUri() returns the given uri", ->
