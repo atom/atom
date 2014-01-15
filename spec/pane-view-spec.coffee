@@ -265,11 +265,6 @@ describe "PaneView", ->
       pane1Model.destroy()
       expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
 
-  describe "::itemForUri(uri)", ->
-    it "returns the item for which a call to .getUri() returns the given uri", ->
-      expect(pane.itemForUri(editor1.getUri())).toBe editor1
-      expect(pane.itemForUri(editor2.getUri())).toBe editor2
-
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
       newPane = new PaneView(pane.model.testSerialization())

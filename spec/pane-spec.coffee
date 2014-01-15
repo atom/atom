@@ -224,6 +224,16 @@ describe "Pane", ->
         pane.saveActiveItemAs()
         expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
+  describe "::itemForUri(uri)", ->
+    it "returns the item for which a call to .getUri() returns the given uri", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
+      [item1, item2, item3] = pane.items
+      item1.uri = "a"
+      item2.uri = "b"
+      expect(pane.itemForUri("a")).toBe item1
+      expect(pane.itemForUri("b")).toBe item2
+      expect(pane.itemForUri("bogus")).toBeUndefined()
+
   describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
