@@ -1,3 +1,4 @@
+{find} = require 'underscore-plus'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
 Pane = require './pane'
@@ -36,14 +37,32 @@ class PaneContainer extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
+  paneForUri: (uri) ->
+    find @getPanes(), (pane) -> pane.itemForUri(uri)?
+
+  saveAll: ->
+    pane.saveItems() for pane in @getPanes()
+
   activateNextPane: ->
     panes = @getPanes()
     if panes.length > 1
       currentIndex = panes.indexOf(@activePane)
       nextIndex = (currentIndex + 1) % panes.length
       panes[nextIndex].activate()
+      true
     else
-      @activePane = null
+      false
+
+  activatePreviousPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@activePane)
+      previousIndex = currentIndex - 1
+      previousIndex = panes.length - 1 if previousIndex < 0
+      panes[previousIndex].activate()
+      true
+    else
+      false
 
   onRootChanged: (root) =>
     @unsubscribe(@previousRoot) if @previousRoot?
@@ -64,3 +83,6 @@ class PaneContainer extends Model
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
+
+  itemDestroyed: (item) ->
+    @emit 'item-destroyed', item

@@ -3,6 +3,7 @@ Q = require 'q'
 path = require 'path'
 temp = require 'temp'
 PaneView = require '../src/pane-view'
+Workspace = require '../src/workspace'
 
 describe "WorkspaceView", ->
   pathToOpen = null
@@ -10,7 +11,8 @@ describe "WorkspaceView", ->
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
-    atom.workspaceView = new WorkspaceView
+    atom.workspace = new Workspace
+    atom.workspaceView = new WorkspaceView(atom.workspace)
     atom.workspaceView.enableKeymap()
     atom.workspaceView.openSync(pathToOpen)
     atom.workspaceView.focus()
@@ -19,11 +21,12 @@ describe "WorkspaceView", ->
     viewState = null
 
     simulateReload = ->
-      workspaceState = atom.workspaceView.serialize()
+      workspaceState = atom.workspace.serialize()
       projectState = atom.project.serialize()
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
-      atom.workspaceView = WorkspaceView.deserialize(workspaceState)
+      atom.workspace = Workspace.deserialize(workspaceState)
+      atom.workspaceView = new WorkspaceView(atom.workspace)
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
@@ -187,7 +190,7 @@ describe "WorkspaceView", ->
 
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
-        workspaceView2 = atom.deserializers.deserialize(atom.workspaceView.serialize())
+        workspaceView2 = new WorkspaceView(atom.workspace.testSerialization())
         item = atom.workspaceView.getActivePaneItem()
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()

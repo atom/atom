@@ -17,6 +17,8 @@ var commands = [
   killatom,
   [__dirname, '..', 'node_modules'],
   [__dirname, '..', 'build', 'node_modules'],
+  [__dirname, '..', 'apm', 'node_modules'],
+  [__dirname, '..', 'vendor', 'apm', 'node_modules'],
   [__dirname, '..', 'atom-shell'],
   [home, '.atom', '.node-gyp'],
   [home, '.atom', 'storage'],

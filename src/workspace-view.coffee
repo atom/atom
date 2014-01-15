@@ -1,10 +1,11 @@
 ipc = require 'ipc'
 path = require 'path'
 Q = require 'q'
-{$, $$, View} = require './space-pen-extensions'
 _ = require 'underscore-plus'
+Delegator = require 'delegato'
+{$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
-Serializable = require 'serializable'
+Workspace = require './workspace'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
@@ -38,10 +39,14 @@ Editor = require './editor'
 #
 module.exports =
 class WorkspaceView extends View
-  Serializable.includeInto(this)
-  atom.deserializers.add(this, PaneView, PaneRowView, PaneColumnView, EditorView)
+  Delegator.includeInto(this)
 
-  @version: 2
+  @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
+  @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
+    'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
+    toProperty: 'model'
+
+  @version: 4
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -59,13 +64,14 @@ class WorkspaceView extends View
           @div class: 'panes', outlet: 'panes'
 
   # Private:
-  initialize: ({panes, @fullScreen}={}) ->
-    panes ?= new PaneContainerView
+  initialize: (@model) ->
+    @model ?= new Workspace
+
+    panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
     @panes = panes
 
-    @destroyedItemUris = []
-    @subscribe @panes, 'item-destroyed', @onPaneItemDestroyed
+    @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
 
     @updateTitle()
 
@@ -117,16 +123,6 @@ class WorkspaceView extends View
     @command 'core:save-as', => @saveActivePaneItemAs()
 
   # Private:
-  deserializeParams: (params) ->
-    params.panes = atom.deserializers.deserialize(params.panes)
-    params
-
-  # Private:
-  serializeParams: ->
-    panes: @panes.serialize()
-    fullScreen: atom.isFullScreen()
-
-  # Private:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -149,81 +145,6 @@ class WorkspaceView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Public: Asynchronously opens a given a filepath in Atom.
-  #
-  # * filePath: A file path
-  # * options
-  #   + initialLine: The buffer line number to open to.
-  #
-  # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (filePath, options={}) ->
-    changeFocus = options.changeFocus ? true
-    filePath = atom.project.resolve(filePath)
-    initialLine = options.initialLine
-    activePane = @getActivePane()
-
-    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
-    promise = atom.project.open(filePath, {initialLine}) if not editor
-
-    Q(editor ? promise)
-      .then (editor) =>
-        if not activePane
-          activePane = new PaneView(editor)
-          @panes.setRoot(activePane)
-
-        @itemOpened(editor)
-        activePane.activateItem(editor)
-        activePane.activate() if changeFocus
-        @trigger "uri-opened"
-        editor
-      .catch (error) ->
-        console.error(error.stack ? error)
-
-  # Private: Only used in specs
-  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
-    changeFocus ?= true
-    pane ?= @getActivePane()
-    uri = atom.project.relativize(uri)
-
-    if pane
-      if uri
-        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
-      else
-        paneItem = atom.project.openSync()
-
-      if split == 'right'
-        panes = @getPanes()
-        if panes.length == 1
-          pane = panes[0].splitRight()
-        else
-          pane = _.last(panes)
-      else if split == 'left'
-        pane = @getPanes()[0]
-
-      pane.activateItem(paneItem)
-    else
-      paneItem = atom.project.openSync(uri, {initialLine})
-      pane = new PaneView(paneItem)
-      @panes.setRoot(pane)
-
-    @itemOpened(paneItem)
-
-    pane.activate() if changeFocus
-    paneItem
-
-  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
-    changeFocus ?= true
-    uri = atom.project.relativize(uri)
-    pane = @panes.paneForUri(uri)
-
-    if pane
-      paneItem = pane.itemForUri(uri)
-      pane.activateItem(paneItem)
-      pane.activate() if changeFocus
-      paneItem
-    else
-      @openSync(uri, {changeFocus, initialLine, split})
-
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
@@ -241,22 +162,6 @@ class WorkspaceView extends View
   # Private: Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
-
-  # Private: Retrieves all of the modified buffers that are open and unsaved.
-  #
-  # Returns an {Array} of {TextBuffer}s.
-  getModifiedBuffers: ->
-    modifiedBuffers = []
-    for pane in @getPanes()
-      for item in pane.getItems() when item instanceof Editor
-        modifiedBuffers.push item.buffer if item.buffer.isModified()
-    modifiedBuffers
-
-  # Private: Retrieves all of the paths to open files.
-  #
-  # Returns an {Array} of {String}s.
-  getOpenBufferPaths: ->
-    _.uniq(_.flatten(@getEditorViews().map (editorView) -> editorView.getOpenBufferPaths()))
 
   # Public: Prepends the element to the top of the window.
   prependToTop: (element) ->
@@ -296,38 +201,22 @@ class WorkspaceView extends View
 
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
-    @panes.getActivePaneItem()
+    @model.activePaneItem
 
   # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
 
-  # Public: destroy/close the active item.
-  destroyActivePaneItem: ->
-    @getActivePane()?.destroyActiveItem()
-
-  # Public: save the active item.
-  saveActivePaneItem: ->
-    @getActivePane()?.saveActiveItem()
-
-  # Public: save the active item as.
-  saveActivePaneItemAs: ->
-    @getActivePane()?.saveActiveItemAs()
-
   # Public: Focuses the previous pane by id.
-  focusPreviousPane: -> @panes.focusPreviousPane()
+  focusPreviousPane: -> @model.activatePreviousPane()
 
   # Public: Focuses the next pane by id.
-  focusNextPane: -> @panes.focusNextPane()
+  focusNextPane: -> @model.activateNextPane()
 
   # Public:
   #
   # FIXME: Difference between active and focused pane?
   getFocusedPane: -> @panes.getFocusedPane()
-
-  # Public: Saves all of the open items within panes.
-  saveAll: ->
-    @panes.saveAll()
 
   # Public: Fires a callback on each open {PaneView}.
   eachPane: (callback) ->
@@ -350,20 +239,6 @@ class WorkspaceView extends View
 
   # Private: Destroys everything.
   remove: ->
+    @model.destroy()
     editorView.remove() for editorView in @getEditorViews()
     super
-
-  # Private: Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (e, item) =>
-    if uri = item.getUri?()
-      @destroyedItemUris.push(uri)
-
-  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
-  reopenItemSync: ->
-    if uri = @destroyedItemUris.pop()
-      @openSync(uri)
-
-  # Private: Removes the item's uri from the list of potential items to reopen.
-  itemOpened: (item) ->
-    if uri = item.getUri?()
-      _.remove(@destroyedItemUris, uri)

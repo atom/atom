@@ -1,6 +1,6 @@
 {$, View} = require './space-pen-extensions'
-Serializable = require 'serializable'
 Delegator = require 'delegato'
+PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
 
@@ -12,13 +12,10 @@ Pane = require './pane'
 # building a package that deals with switching between panes or tiems.
 module.exports =
 class PaneView extends View
-  Serializable.includeInto(this)
   Delegator.includeInto(this)
+  PropertyAccessors.includeInto(this)
 
   @version: 1
-
-  @deserialize: (state) ->
-    new this(Pane.deserialize(state.model))
 
   @content: (wrappedView) ->
     @div class: 'pane', tabindex: -1, =>
@@ -54,7 +51,6 @@ class PaneView extends View
     @subscribe @model, 'item-removed', @onItemRemoved
     @subscribe @model, 'item-moved', @onItemMoved
     @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
-    @subscribe @model, 'item-destroyed', @onItemDestroyed
     @subscribe @model, 'activated', @onActivated
     @subscribe @model.$active, @onActiveStatusChanged
 
@@ -84,13 +80,6 @@ class PaneView extends View
     @command 'pane:split-down', => @splitDown(@copyActiveItem())
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
-
-  deserializeParams: (params) ->
-    params.model = Pane.deserialize(params.model)
-    params
-
-  serializeParams: ->
-    model: @model.serialize()
 
   # Deprecated: Use ::destroyItem
   removeItem: (item) -> @destroyItem(item)
@@ -153,7 +142,6 @@ class PaneView extends View
     view.show() if @attached
     view.focus() if hasFocus
 
-    @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
   onItemAdded: (item, index) =>
@@ -166,7 +154,6 @@ class PaneView extends View
       @viewsByItem.delete(item)
 
     if viewToRemove?
-      viewToRemove.setModel?(null)
       if destroyed
         viewToRemove.remove()
       else
@@ -181,15 +168,13 @@ class PaneView extends View
     @unsubscribe(item) if typeof item.off is 'function'
     @trigger 'pane:before-item-destroyed', [item]
 
-  onItemDestroyed: (item) =>
-    @getContainer()?.itemDestroyed(item)
-
   # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
 
   # Private:
   viewForItem: (item) ->
+    return unless item?
     if item instanceof $
       item
     else if view = @viewsByItem.get(item)
@@ -201,8 +186,7 @@ class PaneView extends View
       view
 
   # Private:
-  viewForActiveItem: ->
-    @viewForItem(@activeItem)
+  @::accessor 'activeView', -> @viewForItem(@activeItem)
 
   splitLeft: (items...) -> @model.splitLeft({items})._view
 

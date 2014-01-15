@@ -24,13 +24,19 @@ module.exports = (gruntObject) ->
 
     done = @async()
 
-    createRelease (error, release) ->
+    createBuildRelease (error, release) ->
       return done(error) if error?
       zipApp (error) ->
         return done(error) if error?
         uploadAsset release, (error) ->
           return done(error) if error?
-          publishRelease(release, done)
+          publishRelease release, (error) ->
+            return done(error) if error?
+            getAtomDraftRelease (error, release) ->
+              return done(error) if error?
+              deleteExistingAsset release, (error) ->
+                return done(error) if error?
+                uploadAsset(release, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -65,6 +71,18 @@ getRelease = (callback) ->
         return
       callback()
 
+getAtomDraftRelease = (callback) ->
+  atomRepo = new GitHub({repo: 'atom/atom', token})
+  atomRepo.getReleases (error, releases=[]) ->
+    if error?
+      logError('Fetching atom/atom releases failed', error, releases)
+      callback(error)
+    else
+      for release in releases when release.draft
+        callback(null, release)
+        return
+      callback(new Error('No draft release in atom/atom repo'))
+
 deleteRelease = (release) ->
   options =
     uri: release.url
@@ -92,7 +110,7 @@ deleteExistingAsset = (release, callback) ->
 
   callback()
 
-createRelease = (callback) ->
+createBuildRelease = (callback) ->
   getRelease (error, release) ->
     if error?
       callback(error)
@@ -123,7 +141,7 @@ createRelease = (callback) ->
 
 uploadAsset = (release, callback) ->
   options =
-    uri: "https://uploads.github.com/repos/atom/atom-master-builds/releases/#{release.id}/assets?name=#{assetName}"
+    uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
     method: 'POST'
     headers: _.extend({
       'Content-Type': 'application/zip'
