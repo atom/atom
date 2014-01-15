@@ -205,41 +205,48 @@ describe "PaneView", ->
       expect(pane.getNextPane()).toBe pane2
       expect(pane2.getNextPane()).toBe pane
 
+  describe "when the pane's active status changes", ->
+    [pane2, pane2Model] = []
+
+    beforeEach ->
+      pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
+      pane2 = pane2Model._view
+      expect(pane2Model.isActive()).toBe true
+
+    it "adds or removes the .active class as appropriate", ->
+      expect(pane).not.toHaveClass('active')
+      paneModel.activate()
+      expect(pane).toHaveClass('active')
+      pane2Model.activate()
+      expect(pane).not.toHaveClass('active')
+
+    it "triggers 'pane:became-active' or 'pane:became-inactive' according to the current status", ->
+      pane.on 'pane:became-active', becameActiveHandler = jasmine.createSpy("becameActiveHandler")
+      pane.on 'pane:became-inactive', becameInactiveHandler = jasmine.createSpy("becameInactiveHandler")
+      paneModel.activate()
+
+      expect(becameActiveHandler.callCount).toBe 1
+      expect(becameInactiveHandler.callCount).toBe 0
+
+      pane2Model.activate()
+      expect(becameActiveHandler.callCount).toBe 1
+      expect(becameInactiveHandler.callCount).toBe 1
+
   describe "when the pane is focused", ->
     beforeEach ->
       container.attachToDom()
 
-    it "focuses the active item view", ->
+    it "transfers focus to the active view", ->
       focusHandler = jasmine.createSpy("focusHandler")
       pane.activeItem.on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
 
-    it "triggers 'pane:became-active' if it was not previously active", ->
-      pane2 = pane.splitRight(view2) # Make pane inactive
-
-      becameActiveHandler = jasmine.createSpy("becameActiveHandler")
-      pane.on 'pane:became-active', becameActiveHandler
-      expect(pane.isActive()).toBeFalsy()
-      pane.focusin()
-      expect(pane.isActive()).toBeTruthy()
-      pane.focusin()
-
-      expect(becameActiveHandler.callCount).toBe 1
-
-    it "triggers 'pane:became-inactive' when it was previously active", ->
-      pane2 = pane.splitRight(view2) # Make pane inactive
-
-      becameInactiveHandler = jasmine.createSpy("becameInactiveHandler")
-      pane.on 'pane:became-inactive', becameInactiveHandler
-
-      expect(pane.isActive()).toBeFalsy()
-      pane.focusin()
-      expect(pane.isActive()).toBeTruthy()
-      pane.splitRight(pane.copyActiveItem())
-      expect(pane.isActive()).toBeFalsy()
-
-      expect(becameInactiveHandler.callCount).toBe 1
+    it "makes the pane active", ->
+      paneModel.splitRight(items: [pane.copyActiveItem()])
+      expect(paneModel.isActive()).toBe false
+      pane.focus()
+      expect(paneModel.isActive()).toBe true
 
   describe "when a pane is split", ->
     it "builds the appropriate pane-row and pane-column views", ->
