@@ -133,6 +133,46 @@ describe "Pane", ->
       pane.destroyInactiveItems()
       expect(pane.items).toEqual [item2]
 
+  describe "::saveActiveItem()", ->
+    [pane, activeItemUri] = []
+
+    beforeEach ->
+      pane = new Pane(items: [new Item("A")])
+      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
+      pane.activeItem.getUri = -> activeItemUri
+
+    describe "when the active item has a uri", ->
+      beforeEach ->
+        activeItemUri = "test"
+
+      describe "when the active item has a save method", ->
+        it "saves the current item", ->
+          pane.activeItem.save = jasmine.createSpy("save")
+          pane.saveActiveItem()
+          expect(pane.activeItem.save).toHaveBeenCalled()
+
+      describe "when the current item has no save method", ->
+        it "does nothing", ->
+          expect(pane.activeItem.save).toBeUndefined()
+          pane.saveActiveItem()
+
+    describe "when the current item has no uri", ->
+      beforeEach ->
+        activeItemUri = null
+
+      describe "when the current item has a saveAs method", ->
+        it "opens a save dialog and saves the current item as the selected path", ->
+          pane.activeItem.saveAs = jasmine.createSpy("saveAs")
+          pane.saveActiveItem()
+          expect(atom.showSaveDialogSync).toHaveBeenCalled()
+          expect(pane.activeItem.saveAs).toHaveBeenCalledWith('/selected/path')
+
+      describe "when the current item has no saveAs method", ->
+        it "does nothing", ->
+          expect(pane.activeItem.saveAs).toBeUndefined()
+          pane.saveActiveItem()
+          expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+
   describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])

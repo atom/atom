@@ -138,42 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "::saveActiveItem()", ->
-    describe "when the current item has a uri", ->
-      describe "when the current item has a save method", ->
-        it "saves the current item", ->
-          spyOn(editor2, 'save')
-          pane.activateItem(editor2)
-          pane.saveActiveItem()
-          expect(editor2.save).toHaveBeenCalled()
-
-      describe "when the current item has no save method", ->
-        it "does nothing", ->
-          pane.activeItem.getUri = -> 'you are eye'
-          expect(pane.activeItem.save).toBeUndefined()
-          pane.saveActiveItem()
-
-    describe "when the current item has no uri", ->
-      beforeEach ->
-        spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
-
-      describe "when the current item has a saveAs method", ->
-        it "opens a save dialog and saves the current item as the selected path", ->
-          newEditor = atom.project.openSync()
-          spyOn(newEditor, 'saveAs')
-          pane.activateItem(newEditor)
-
-          pane.saveActiveItem()
-
-          expect(atom.showSaveDialogSync).toHaveBeenCalled()
-          expect(newEditor.saveAs).toHaveBeenCalledWith('/selected/path')
-
-      describe "when the current item has no saveAs method", ->
-        it "does nothing", ->
-          expect(pane.activeItem.saveAs).toBeUndefined()
-          pane.saveActiveItem()
-          expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
-
   describe "::saveActiveItemAs()", ->
     beforeEach ->
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
