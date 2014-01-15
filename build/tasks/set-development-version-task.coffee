@@ -4,15 +4,24 @@ path = require 'path'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
+  getVersion = (callback) ->
+    if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+      {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
+      callback(null, version)
+    else
+      cmd = 'git'
+      args = ['rev-parse', '--short', 'HEAD']
+      spawn {cmd, args}, (error, result='', code) ->
+        callback(error, result.trim?() ? result)
+
   grunt.registerTask 'set-development-version', 'Sets version to current SHA-1', ->
     done = @async()
 
-    cmd = 'git'
-    args = ['rev-parse', '--short', 'HEAD']
-    spawn {cmd, args}, (error, result, code) ->
-      return done(error) if error?
+    getVersion (error, version) ->
+      if error?
+        done(error)
+        return
 
-      version = result.stdout.trim()
       appDir = grunt.config.get('atom.appDir')
 
       # Replace version field of package.json.
