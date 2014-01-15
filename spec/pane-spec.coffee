@@ -23,6 +23,11 @@ describe "Pane", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
       expect(pane.activeItem).toBe pane.items[0]
 
+    it "compacts the items array", ->
+      pane = new Pane(items: [undefined, new Item("A"), null, new Item("B")])
+      expect(pane.items.length).toBe 2
+      expect(pane.activeItem).toBe pane.items[0]
+
   describe "::activateItem(item)", ->
     pane = null
 

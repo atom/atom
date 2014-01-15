@@ -31,7 +31,7 @@ class Pane extends Model
   constructor: (params) ->
     super
 
-    @items = Sequence.fromArray(params?.items ? [])
+    @items = Sequence.fromArray(compact(params?.items ? []))
     @activeItem ?= @items[0]
 
     @subscribe @items.onEach (item) =>
@@ -259,7 +259,8 @@ class Pane extends Model
 
   # Private:
   copyActiveItem: ->
-    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+    if @activeItem?
+      @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Public: Creates a new pane to the left of the receiver.
   #
