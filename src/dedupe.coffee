@@ -23,7 +23,7 @@ class Dedupe extends Command
     options = optimist(argv)
     options.usage """
 
-      Usage: apm dedupe
+      Usage: apm dedupe [<package_name>...]
 
       Reduce duplication in the node_modules folder in the current directory.
 
@@ -76,6 +76,8 @@ class Dedupe extends Command
 
     if vsArgs = @getVisualStudioFlags()
       dedupeArgs.push(vsArgs)
+
+    dedupeArgs.push(packageName) for packageName in options.argv._
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
