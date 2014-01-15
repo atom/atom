@@ -138,26 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "::saveActiveItemAs()", ->
-    beforeEach ->
-      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
-
-    describe "when the current item has a saveAs method", ->
-      it "opens the save dialog and calls saveAs on the item with the selected path", ->
-        spyOn(editor2, 'saveAs')
-        pane.activateItem(editor2)
-
-        pane.saveActiveItemAs()
-
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(path.dirname(editor2.getPath()))
-        expect(editor2.saveAs).toHaveBeenCalledWith('/selected/path')
-
-    describe "when the current item does not have a saveAs method", ->
-      it "does nothing", ->
-        expect(pane.activeItem.saveAs).toBeUndefined()
-        pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
-
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.activeItem).toBe view1

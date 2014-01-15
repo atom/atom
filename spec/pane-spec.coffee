@@ -173,6 +173,27 @@ describe "Pane", ->
           pane.saveActiveItem()
           expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
+  describe "::saveActiveItemAs()", ->
+    [pane, activeItemUri] = []
+
+    beforeEach ->
+      pane = new Pane(items: [new Item("A")])
+      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
+      pane.activeItem.getUri = -> "test"
+
+    describe "when the current item has a saveAs method", ->
+      it "opens the save dialog and calls saveAs on the item with the selected path", ->
+        pane.activeItem.saveAs = jasmine.createSpy("saveAs")
+        pane.saveActiveItemAs()
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(activeItemUri)
+        expect(pane.activeItem.saveAs).toHaveBeenCalledWith('/selected/path')
+
+    describe "when the current item does not have a saveAs method", ->
+      it "does nothing", ->
+        expect(pane.activeItem.saveAs).toBeUndefined()
+        pane.saveActiveItemAs()
+        expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+
   describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
