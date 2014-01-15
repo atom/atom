@@ -43,6 +43,7 @@ var commands = [
   echoNewLine,
   'node apm/node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
   'node apm/node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
+  'node apm/node_modules/atom-package-manager/bin/apm dedupe --quiet ' + apmFlags + ' roaster',
 ];
 
 process.chdir(path.dirname(__dirname));
