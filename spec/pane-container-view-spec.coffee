@@ -130,12 +130,23 @@ describe "PaneContainerView", ->
       expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
       expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
 
-    it "removes empty panes on deserialization", ->
-      # only deserialize pane 1's view successfully
-      TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
-      newContainer = new PaneContainerView(container.model.testSerialization())
-      expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
-      expect(newContainer.find('> :contains(1)')).toExist()
+    describe "if there are empty panes after deserialization", ->
+      beforeEach ->
+        # only deserialize pane 1's view successfully
+        TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
+
+      describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "leaves the empty panes intact", ->
+          newContainer = new PaneContainerView(container.model.testSerialization())
+          expect(newContainer.find('.pane-row > :contains(1)')).toExist()
+          expect(newContainer.find('.pane-row > .pane-column > .pane').length).toBe 2
+
+      describe "if the 'core.destroyEmptyPanes' config option is true", ->
+        it "removes empty panes on deserialization", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+          newContainer = new PaneContainerView(container.model.testSerialization())
+          expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
+          expect(newContainer.find('> :contains(1)')).toExist()
 
   describe "pane-container:active-pane-item-changed", ->
     [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []

@@ -24,7 +24,7 @@ class PaneContainer extends Model
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
-    params.destroyEmptyPanes = true
+    params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
     params
 
   serializeParams: (params) ->
