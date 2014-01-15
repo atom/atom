@@ -9,7 +9,7 @@ class PaneContainer extends Model
   Serializable.includeInto(this)
 
   @properties
-    root: null
+    root: -> new Pane
     activePane: null
 
   previousRoot: null
@@ -75,11 +75,8 @@ class PaneContainer extends Model
     root.parent = this
     root.container = this
 
-    if root instanceof Pane
-      @activePane ?= root
-      @subscribe root, 'destroyed', =>
-        @activePane = null
-        @root = null
+
+    @activePane ?= root if root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0

@@ -125,7 +125,7 @@ class Pane extends Model
   #     The item to add. It can be a model with an associated view or a view.
   # * index:
   #     An optional index at which to add the item. If omitted, the item is
-  #     added to the end.
+  #     added after the current active item.
   #
   # Returns the added item
   addItem: (item, index=@getActiveItemIndex() + 1) ->
@@ -135,6 +135,21 @@ class Pane extends Model
     @activeItem ?= item
     @emit 'item-added', item, index
     item
+
+  # Public: Adds the given items to the pane.
+  #
+  # * items:
+  #     An {Array} of items to add. Items can be models with associated views
+  #     or views. Any items that are already present in items will not be added.
+  # * index:
+  #     An optional index at which to add the item. If omitted, the item is
+  #     added after the current active item.
+  #
+  # Returns an {Array} of the added items
+  addItems: (items, index=@getActiveItemIndex() + 1) ->
+    items = items.filter (item) => not (item in @items)
+    @addItem(item, index + i) for item, i in items
+    items
 
   # Private:
   removeItem: (item, destroying) ->
@@ -186,6 +201,9 @@ class Pane extends Model
   # Public: Destroys all items but the active one.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
+
+  destroy: ->
+    super unless @container?.getPanes().length is 1
 
   # Private: Called by model superclass.
   destroyed: ->

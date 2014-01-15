@@ -8,6 +8,9 @@ class PaneAxisView extends View
     @onChildAdded(child) for child in @model.children
     @subscribe @model.children, 'changed', @onChildrenChanged
 
+  afterAttach: ->
+    @container = @closest('.panes').view()
+
   viewForModel: (model) ->
     viewClass = model.getViewClass()
     model._view ?= new viewClass(model)
@@ -26,9 +29,5 @@ class PaneAxisView extends View
     view = @viewForModel(child)
     view.detach()
     PaneView ?= require './pane-view'
-
     if view instanceof PaneView and view.model.isDestroyed()
-      @getContainer()?.trigger 'pane:removed', [view]
-
-  getContainer: ->
-    @closest('.panes').view()
+      @container?.trigger 'pane:removed', [view]

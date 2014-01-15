@@ -32,9 +32,6 @@ class PaneContainerView extends View
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root) ->
-    @model.root = root?.model
-
   onRootChanged: (root) =>
     focusedElement = document.activeElement if @hasFocus()
 

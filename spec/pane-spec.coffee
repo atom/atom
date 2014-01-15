@@ -42,7 +42,6 @@ describe "Pane", ->
       pane.activateItem(item2)
       item4 = new Item("D")
       pane.addItem(item4)
-      console.log pane.items
       expect(pane.items).toEqual [item1, item2, item4, item3]
 
     it "sets the active item if it is undefined", ->
@@ -425,11 +424,13 @@ describe "Pane", ->
       expect(pane2.focused).toBe true
 
   describe "::destroy()", ->
-    [pane1, container] = []
+    [container, pane1, pane2] = []
 
     beforeEach ->
-      pane1 = new Pane(items: [new Model, new Model])
-      container = new PaneContainer(root: pane1)
+      container = new PaneContainer
+      pane1 = container.root
+      pane1.addItems([new Item("A"), new Item("B")])
+      pane2 = pane1.splitRight()
 
     it "destroys the pane's destroyable items", ->
       [item1, item2] = pane1.items
@@ -439,14 +440,12 @@ describe "Pane", ->
 
     describe "if the pane is active", ->
       it "makes the next pane active", ->
-        pane2 = pane1.splitRight()
         expect(pane2.isActive()).toBe true
         pane2.destroy()
         expect(pane1.isActive()).to
 
     describe "if the pane's parent has more than two children", ->
       it "removes the pane from its parent", ->
-        pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
 
         expect(container.root.children).toEqual [pane1, pane2, pane3]
@@ -455,7 +454,6 @@ describe "Pane", ->
 
     describe "if the pane's parent has two children", ->
       it "replaces the parent with its last remaining child", ->
-        pane2 = pane1.splitRight()
         pane3 = pane2.splitDown()
 
         expect(container.root.children[0]).toBe pane1

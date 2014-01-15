@@ -102,6 +102,7 @@ class PaneView extends View
     @focus() if @model.focused and onDom
 
     return if @attached
+    @container = @closest('.panes').view()
     @attached = true
     @trigger 'pane:attached', [this]
 
@@ -118,7 +119,7 @@ class PaneView extends View
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
-    panes = @getContainer()?.getPanes()
+    panes = @container?.getPanes()
     return unless panes.length > 1
     nextIndex = (panes.indexOf(this) + 1) % panes.length
     panes[nextIndex]
@@ -193,10 +194,6 @@ class PaneView extends View
   splitUp: (items...) -> @model.splitUp({items})._view
 
   splitDown: (items...) -> @model.splitDown({items})._view
-
-  # Private:
-  getContainer: ->
-    @closest('.panes').view()
 
   beforeRemove: ->
     @model.destroy() unless @model.isDestroyed()

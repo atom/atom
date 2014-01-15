@@ -22,15 +22,15 @@ describe "PaneView", ->
     view2 = new TestView(id: 'view-2', text: 'View 2')
     editor1 = atom.project.openSync('sample.js')
     editor2 = atom.project.openSync('sample.txt')
-    pane = new PaneView(view1, editor1, view2, editor2)
+    pane = container.getRoot()
     paneModel = pane.model
-    container.setRoot(pane)
+    paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
     atom.deserializers.remove(TestView)
 
   describe "when the active pane item changes", ->
-    it "hides all item views except the one being shown and sets the activeItem", ->
+    it "hides all item views except the active one", ->
       expect(pane.activeItem).toBe view1
       expect(view1.css('display')).not.toBe 'none'
 
@@ -168,34 +168,28 @@ describe "PaneView", ->
         pane.items.length == 4
 
   describe "when a pane is destroyed", ->
+    [pane2, pane2Model] = []
+
+    beforeEach ->
+      pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
+      pane2 = pane2Model._view
+
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
       container.on 'pane:removed', removedHandler
-      pane.remove()
+      paneModel.destroy()
       expect(removedHandler).toHaveBeenCalled()
       expect(removedHandler.argsForCall[0][1]).toBe pane
 
     describe "if the destroyed pane has focus", ->
       [paneToLeft, paneToRight] = []
 
-      describe "if it is not the last pane in the container", ->
-        it "focuses the next pane", ->
-          paneModel.activateItem(editor1)
-          pane2Model = paneModel.splitRight(items: [paneModel.copyActiveItem()])
-          pane2 = pane2Model._view
-          container.attachToDom()
-          expect(pane.hasFocus()).toBe false
-          pane2Model.destroy()
-          expect(pane.hasFocus()).toBe true
-
-      describe "if it is the last pane in the container", ->
-        it "shifts focus to the workspace view", ->
-          atom.workspaceView = {focus: jasmine.createSpy("atom.workspaceView.focus")}
-          container.attachToDom()
-          pane.focus()
-          expect(container.hasFocus()).toBe true
-          paneModel.destroy()
-          expect(atom.workspaceView.focus).toHaveBeenCalled()
+      it "focuses the next pane", ->
+        container.attachToDom()
+        expect(pane.hasFocus()).toBe false
+        expect(pane2.hasFocus()).toBe true
+        pane2Model.destroy()
+        expect(pane.hasFocus()).toBe true
 
   describe "::getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
