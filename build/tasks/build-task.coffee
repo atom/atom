@@ -42,6 +42,8 @@ module.exports = (grunt) ->
     ignoredPaths = [
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
+      path.join('less', 'dist')
+      path.join('less', 'test')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
