@@ -109,7 +109,7 @@ describe "Pane", ->
 
   describe "when an item emits a destroyed event", ->
     it "removes it from the list of items", ->
-      pane = new Pane(items: [new Model, new Model, new Model])
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.items
       pane.items[1].destroy()
       expect(pane.items).toEqual [item1, item3]
