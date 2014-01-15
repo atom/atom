@@ -132,6 +132,7 @@ class Pane extends Model
     return if item in @items
 
     @items.splice(index, 0, item)
+    @activeItem ?= item
     @emit 'item-added', item, index
     item
 

@@ -28,6 +28,29 @@ describe "Pane", ->
       expect(pane.items.length).toBe 2
       expect(pane.activeItem).toBe pane.items[0]
 
+  describe "::addItem(item, index)", ->
+    it "adds the item at the given index", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.items
+      item3 = new Item("C")
+      pane.addItem(item3, 1)
+      expect(pane.items).toEqual [item1, item3, item2]
+
+    it "adds the item after the active item ", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.items
+      pane.activateItem(item2)
+      item4 = new Item("D")
+      pane.addItem(item4)
+      console.log pane.items
+      expect(pane.items).toEqual [item1, item2, item4, item3]
+
+    it "sets the active item if it is undefined", ->
+      pane = new Pane
+      item = new Item("A")
+      pane.addItem(item)
+      expect(pane.activeItem).toBe item
+
   describe "::activateItem(item)", ->
     pane = null
 
