@@ -107,6 +107,17 @@ describe "Pane", ->
         pane.destroyItem(item) for item in pane.getItems()
         expect(pane.isDestroyed()).toBe true
 
+  describe "::destroyItems()", ->
+    it "destroys all items and the pane", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.items
+      pane.destroyItems()
+      expect(item1.isDestroyed()).toBe true
+      expect(item2.isDestroyed()).toBe true
+      expect(item3.isDestroyed()).toBe true
+      expect(pane.isDestroyed()).toBe true
+      expect(pane.items).toEqual []
+
   describe "when an item emits a destroyed event", ->
     it "removes it from the list of items", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])

@@ -138,14 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "pane:close", ->
-    it "destroys all items and removes the pane", ->
-      pane.activateItem(editor1)
-      pane.trigger 'pane:close'
-      expect(pane.hasParent()).toBeFalsy()
-      expect(editor2.isDestroyed()).toBe true
-      expect(editor1.isDestroyed()).toBe true
-
   describe "pane:close-other-items", ->
     it "destroys all items except the current", ->
       pane.activateItem(editor1)
