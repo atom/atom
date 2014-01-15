@@ -31,6 +31,7 @@ if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
   fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
 var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
+var packagesToDedupe = ['roaster'];
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
@@ -43,7 +44,7 @@ var commands = [
   echoNewLine,
   'node apm/node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
   'node apm/node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
-  'node apm/node_modules/atom-package-manager/bin/apm dedupe --quiet ' + apmFlags + ' roaster',
+  'node apm/node_modules/atom-package-manager/bin/apm dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
 ];
 
 process.chdir(path.dirname(__dirname));
