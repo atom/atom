@@ -101,115 +101,26 @@ describe "PaneView", ->
         paneModel.activateItem(view2)
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
-  describe "::destroyItem(item)", ->
-    describe "if the item is not modified", ->
-      it "removes the item and tries to call destroy on it", ->
-        pane.destroyItem(editor2)
-        expect(pane.getItems().indexOf(editor2)).toBe -1
-        expect(editor2.isDestroyed()).toBe true
-
-    describe "if the item is modified", ->
-      beforeEach ->
-        jasmine.unspy(editor2, 'shouldPromptToSave')
-        spyOn(editor2, 'save')
-        spyOn(editor2, 'saveAs')
-
-        editor2.insertText('a')
-        expect(editor2.isModified()).toBeTruthy()
-
-      describe "if the [Save] option is selected", ->
-        describe "when the item has a uri", ->
-          it "saves the item before removing and destroying it", ->
-            spyOn(atom, 'confirm').andReturn(0)
-            pane.destroyItem(editor2)
-
-            expect(editor2.save).toHaveBeenCalled()
-            expect(pane.getItems().indexOf(editor2)).toBe -1
-            expect(editor2.isDestroyed()).toBe true
-
-        describe "when the item has no uri", ->
-          it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
-            editor2.buffer.setPath(undefined)
-
-            spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
-            spyOn(atom, 'confirm').andReturn(0)
-            pane.destroyItem(editor2)
-
-            expect(atom.showSaveDialogSync).toHaveBeenCalled()
-
-            expect(editor2.saveAs).toHaveBeenCalledWith("/selected/path")
-            expect(pane.getItems().indexOf(editor2)).toBe -1
-            expect(editor2.isDestroyed()).toBe true
-
-      describe "if the [Don't Save] option is selected", ->
-        it "removes and destroys the item without saving it", ->
-          spyOn(atom, 'confirm').andReturn(2)
-          pane.destroyItem(editor2)
-
-          expect(editor2.save).not.toHaveBeenCalled()
-          expect(pane.getItems().indexOf(editor2)).toBe -1
-          expect(editor2.isDestroyed()).toBe true
-
-      describe "if the [Cancel] option is selected", ->
-        it "does not save, remove, or destroy the item", ->
-          spyOn(atom, 'confirm').andReturn(1)
-          pane.destroyItem(editor2)
-
-          expect(editor2.save).not.toHaveBeenCalled()
-          expect(pane.getItems().indexOf(editor2)).not.toBe -1
-          expect(editor2.isDestroyed()).toBe false
-
-    it "removes the item's associated view", ->
-      view1.remove = (selector, keepData) -> @wasRemoved = not keepData
-      pane.destroyItem(view1)
-      expect(view1.wasRemoved).toBe true
-
-    it "removes the item from the items list and shows the next item if it was showing", ->
-      pane.destroyItem(view1)
-      expect(pane.getItems()).toEqual [editor1, view2, editor2]
-      expect(pane.activeItem).toBe editor1
-
-      pane.activateItem(editor2)
-      pane.destroyItem(editor2)
-      expect(pane.getItems()).toEqual [editor1, view2]
-      expect(pane.activeItem).toBe editor1
-
-    it "triggers 'pane:item-removed' with the item and its former index", ->
+  describe "when an item is destroyed", ->
+    it "triggers the 'pane:item-removed' event with the item and its former index", ->
       itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
       pane.on 'pane:item-removed', itemRemovedHandler
-      pane.destroyItem(editor1)
+      paneModel.destroyItem(editor1)
       expect(itemRemovedHandler).toHaveBeenCalled()
       expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
 
-    describe "when removing the last item", ->
-      it "removes the pane", ->
-        pane.destroyItem(item) for item in pane.getItems()
-        expect(pane.hasParent()).toBeFalsy()
-
-      describe "when the pane is focused", ->
-        it "shifts focus to the next pane", ->
-          expect(container.getRoot()).toBe pane
-          container.attachToDom()
-          pane2 = pane.splitRight(new TestView(id: 'view-3', text: 'View 3'))
-          pane.focus()
-          expect(pane).toMatchSelector(':has(:focus)')
-          pane.destroyItem(item) for item in pane.getItems()
-          expect(pane2).toMatchSelector ':has(:focus)'
-
-    describe "when the item is a view", ->
+    describe "when the destroyed item is a view", ->
       it "removes the item from the 'item-views' div", ->
         expect(view1.parent()).toMatchSelector pane.itemViews
-        pane.destroyItem(view1)
+        paneModel.destroyItem(view1)
         expect(view1.parent()).not.toMatchSelector pane.itemViews
 
-    describe "when the item is a model", ->
-      it "removes the associated view only when all items that require it have been removed", ->
-        pane.activateItem(editor1)
-        pane.activateItem(editor2)
-        pane.destroyItem(editor2)
-        expect(pane.itemViews.find('.editor')).toExist()
+    describe "when the destroyed item is a model", ->
+      it "removes the associated view", ->
+        paneModel.activateItem(editor1)
+        expect(pane.itemViews.find('.editor').length).toBe 1
         pane.destroyItem(editor1)
-        expect(pane.itemViews.find('.editor')).not.toExist()
+        expect(pane.itemViews.find('.editor').length).toBe 0
 
   describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits a 'pane:item-moved' event with the item and the new index", ->
