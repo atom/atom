@@ -114,6 +114,26 @@ describe "Pane", ->
       pane.items[1].destroy()
       expect(pane.items).toEqual [item1, item3]
 
+  describe "::moveItem(item, index)", ->
+    it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
+      [item1, item2, item3, item4] = pane.items
+      pane.on 'item-moved', itemMovedHandler = jasmine.createSpy("itemMovedHandler")
+
+      pane.moveItem(item1, 2)
+      expect(pane.getItems()).toEqual [item2, item3, item1, item4]
+      expect(itemMovedHandler).toHaveBeenCalledWith(item1, 2)
+      itemMovedHandler.reset()
+
+      pane.moveItem(item2, 3)
+      expect(pane.getItems()).toEqual [item3, item1, item4, item2]
+      expect(itemMovedHandler).toHaveBeenCalledWith(item2, 3)
+      itemMovedHandler.reset()
+
+      pane.moveItem(item2, 1)
+      expect(pane.getItems()).toEqual [item3, item2, item1, item4]
+      expect(itemMovedHandler).toHaveBeenCalledWith(item2, 1)
+
   describe "split methods", ->
     [pane1, container] = []
 
