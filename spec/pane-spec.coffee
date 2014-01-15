@@ -125,6 +125,14 @@ describe "Pane", ->
       pane.items[1].destroy()
       expect(pane.items).toEqual [item1, item3]
 
+  describe "::destroyInactiveItems()", ->
+    it "destroys all items but the active item", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.items
+      pane.activateItem(item2)
+      pane.destroyInactiveItems()
+      expect(pane.items).toEqual [item2]
+
   describe "::moveItem(item, index)", ->
     it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])

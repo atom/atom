@@ -138,13 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "pane:close-other-items", ->
-    it "destroys all items except the current", ->
-      pane.activateItem(editor1)
-      pane.trigger 'pane:close-other-items'
-      expect(editor2.isDestroyed()).toBe true
-      expect(pane.getItems()).toEqual [editor1]
-
   describe "::saveActiveItem()", ->
     describe "when the current item has a uri", ->
       describe "when the current item has a save method", ->
