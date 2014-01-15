@@ -15,7 +15,9 @@ class PaneContainer extends Model
   previousRoot: null
 
   @behavior 'activePaneItem', ->
-    @$activePane.switch (activePane) -> activePane?.$activeItem
+    @$activePane
+      .switch((activePane) -> activePane?.$activeItem)
+      .distinctUntilChanged()
 
   constructor: (params) ->
     super
