@@ -152,7 +152,6 @@ class PaneView extends View
       @viewsByItem.delete(item)
 
     if viewToRemove?
-      viewToRemove.setModel?(null)
       if destroyed
         viewToRemove.remove()
       else
