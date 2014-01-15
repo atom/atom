@@ -44,8 +44,6 @@ class PaneView extends View
     @handleEvents()
 
   handleEvents: ->
-    @subscribe @model, 'destroyed', => @remove()
-
     @subscribe @model.$activeItem, @onActiveItemChanged
     @subscribe @model, 'item-added', @onItemAdded
     @subscribe @model, 'item-removed', @onItemRemoved
