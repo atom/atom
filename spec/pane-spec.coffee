@@ -44,6 +44,23 @@ describe "Pane", ->
       pane.activateNextItem()
       expect(pane.activeItem).toBe item1
 
+  describe "::activateItemAtIndex(index)", ->
+    it "activates the item at the given index", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.items
+      pane.activateItemAtIndex(2)
+      expect(pane.activeItem).toBe item3
+      pane.activateItemAtIndex(1)
+      expect(pane.activeItem).toBe item2
+      pane.activateItemAtIndex(0)
+      expect(pane.activeItem).toBe item1
+
+      # Doesn't fail with out-of-bounds indices
+      pane.activateItemAtIndex(100)
+      expect(pane.activeItem).toBe item1
+      pane.activateItemAtIndex(-1)
+      expect(pane.activeItem).toBe item1
+
   describe "::destroyItem(item)", ->
     [pane, item1, item2, item3] = []
 

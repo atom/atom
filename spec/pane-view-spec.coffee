@@ -138,15 +138,6 @@ describe "PaneView", ->
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
 
-  describe "pane:show-item-N events", ->
-    it "shows the (n-1)th item if it exists", ->
-      pane.trigger 'pane:show-item-2'
-      expect(pane.activeItem).toBe pane.itemAtIndex(1)
-      pane.trigger 'pane:show-item-1'
-      expect(pane.activeItem).toBe pane.itemAtIndex(0)
-      pane.trigger 'pane:show-item-9' # don't fail on out-of-bounds indices
-      expect(pane.activeItem).toBe pane.itemAtIndex(0)
-
   describe "when the title of the active item changes", ->
     it "emits pane:active-item-title-changed", ->
       activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
