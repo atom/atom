@@ -362,6 +362,13 @@ describe "Pane", ->
       expect(item1.isDestroyed()).toBe true
       expect(item2.isDestroyed()).toBe true
 
+    describe "if the pane is active", ->
+      it "makes the next pane active", ->
+        pane2 = pane1.splitRight()
+        expect(pane2.isActive()).toBe true
+        pane2.destroy()
+        expect(pane1.isActive()).to
+
     describe "if the pane's parent has more than two children", ->
       it "removes the pane from its parent", ->
         pane2 = pane1.splitRight()

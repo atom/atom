@@ -167,12 +167,7 @@ describe "PaneView", ->
       waitsFor ->
         pane.items.length == 4
 
-  describe "::remove()", ->
-    it "destroys all the pane's items", ->
-      pane.remove()
-      expect(editor1.isDestroyed()).toBe true
-      expect(editor2.isDestroyed()).toBe true
-
+  describe "when a pane is destroyed", ->
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
       container.on 'pane:removed', removedHandler
@@ -180,51 +175,27 @@ describe "PaneView", ->
       expect(removedHandler).toHaveBeenCalled()
       expect(removedHandler.argsForCall[0][1]).toBe pane
 
-    describe "when there are other panes", ->
+    describe "if the destroyed pane has focus", ->
       [paneToLeft, paneToRight] = []
 
-      beforeEach ->
-        pane.activateItem(editor1)
-        paneToLeft = pane.splitLeft(pane.copyActiveItem())
-        paneToRight = pane.splitRight(pane.copyActiveItem())
-        container.attachToDom()
+      describe "if it is not the last pane in the container", ->
+        it "focuses the next pane", ->
+          paneModel.activateItem(editor1)
+          pane2Model = paneModel.splitRight(items: [paneModel.copyActiveItem()])
+          pane2 = pane2Model._view
+          container.attachToDom()
+          expect(pane.hasFocus()).toBe false
+          pane2Model.destroy()
+          expect(pane.hasFocus()).toBe true
 
-      describe "when the removed pane is active", ->
-        it "makes the next the next pane active and focuses it", ->
-          pane.activate()
-          pane.remove()
-          expect(paneToLeft.isActive()).toBeFalsy()
-          expect(paneToRight.isActive()).toBeTruthy()
-          expect(paneToRight).toMatchSelector ':has(:focus)'
-
-      describe "when the removed pane is not active", ->
-        it "does not affect the active pane or the focus", ->
-          paneToLeft.focus()
-          expect(paneToLeft.isActive()).toBeTruthy()
-          expect(paneToRight.isActive()).toBeFalsy()
-
-          pane.remove()
-          expect(paneToLeft.isActive()).toBeTruthy()
-          expect(paneToRight.isActive()).toBeFalsy()
-          expect(paneToLeft).toMatchSelector ':has(:focus)'
-
-    describe "when it is the last pane", ->
-      beforeEach ->
-        expect(container.getPanes().length).toBe 1
-        atom.workspaceView = focus: jasmine.createSpy("workspaceView.focus")
-
-      describe "when the removed pane is focused", ->
-        it "calls focus on workspaceView so we don't lose focus", ->
+      describe "if it is the last pane in the container", ->
+        it "shifts focus to the workspace view", ->
+          atom.workspaceView = {focus: jasmine.createSpy("atom.workspaceView.focus")}
           container.attachToDom()
           pane.focus()
-          pane.remove()
+          expect(container.hasFocus()).toBe true
+          paneModel.destroy()
           expect(atom.workspaceView.focus).toHaveBeenCalled()
-
-      describe "when the removed pane is not focused", ->
-        it "does not call focus on root view", ->
-          expect(pane).not.toMatchSelector ':has(:focus)'
-          pane.remove()
-          expect(atom.workspaceView.focus).not.toHaveBeenCalled()
 
   describe "::getNextPane()", ->
     it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
