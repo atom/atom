@@ -88,12 +88,12 @@ describe "Window", ->
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      workspaceViewState = atom.workspaceView.serialize()
+      workspaceState = atom.workspace.serialize()
       syntaxState = atom.syntax.serialize()
 
       atom.unloadEditorWindow()
 
-      expect(atom.state.workspaceView).toEqual workspaceViewState
+      expect(atom.state.workspace).toEqual workspaceState
       expect(atom.state.syntax).toEqual syntaxState
       expect(atom.saveSync).toHaveBeenCalled()
 

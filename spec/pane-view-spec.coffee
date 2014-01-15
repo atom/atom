@@ -602,12 +602,12 @@ describe "PaneView", ->
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = pane.testSerialization()
+      newPane = new PaneView(pane.model.testSerialization())
       expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
 
     it "restores the active item on deserialization", ->
       pane.activateItem(editor2)
-      newPane = pane.testSerialization()
+      newPane = new PaneView(pane.model.testSerialization())
       expect(newPane.activeItem).toEqual editor2
 
     it "does not show items that cannot be deserialized", ->
@@ -618,7 +618,7 @@ describe "PaneView", ->
 
       pane.activateItem(new Unserializable)
 
-      newPane = pane.testSerialization()
+      newPane = new PaneView(pane.model.testSerialization())
       expect(newPane.activeItem).toEqual pane.items[0]
       expect(newPane.items.length).toBe pane.items.length - 1
 
@@ -626,13 +626,13 @@ describe "PaneView", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = container.testSerialization()
+      container2 = new PaneContainerView(container.model.testSerialization())
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = container.testSerialization()
+      container3 = new PaneContainerView(container.model.testSerialization())
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

@@ -36,7 +36,7 @@ class Pane extends Model
 
     @subscribe @items.onEach (item) =>
       if typeof item.on is 'function'
-        @subscribe item, 'destroyed', => @removeItem(item)
+        @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
@@ -142,6 +142,7 @@ class Pane extends Model
     @activateNextItem() if item is @activeItem and @items.length > 1
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
+    @container?.itemDestroyed(item) if destroying
     @destroy() if @items.length is 0
 
   # Public: Moves the given item to the specified index.
@@ -166,7 +167,6 @@ class Pane extends Model
   destroyItem: (item) ->
     @emit 'before-item-destroyed', item
     if @promptToSaveItem(item)
-      @emit 'item-destroyed', item
       @removeItem(item, true)
       item.destroy?()
       true
