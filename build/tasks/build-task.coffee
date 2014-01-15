@@ -52,10 +52,11 @@ module.exports = (grunt) ->
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
+    packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
     for directory in nonPackageDirectories
       cp directory, path.join(appDir, directory), filter: nodeModulesFilter
     for directory in packageDirectories
-      cp directory, path.join(appDir, directory), filter: /.+\.(cson|coffee)$/
+      cp directory, path.join(appDir, directory), filter: packageFilter
 
     cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
