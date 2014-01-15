@@ -44,6 +44,7 @@ module.exports = (grunt) ->
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('less', 'test')
+      path.join('bootstrap', 'docs')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
