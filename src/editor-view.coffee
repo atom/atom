@@ -119,393 +119,118 @@ class EditorView extends View
   # Some commands are excluded from mini-editors.
   bindKeys: ->
     editorBindings =
-      'core:move-left': @moveCursorLeft
-      'core:move-right': @moveCursorRight
-      'core:select-left': @selectLeft
-      'core:select-right': @selectRight
-      'core:select-all': @selectAll
-      'core:backspace': @backspace
-      'core:delete': @delete
-      'core:undo': @undo
-      'core:redo': @redo
-      'core:cut': @cutSelection
-      'core:copy': @copySelection
-      'core:paste': @paste
-      'editor:move-to-previous-word': @moveCursorToPreviousWord
-      'editor:select-word': @selectWord
-      'editor:consolidate-selections': @consolidateSelections
-      'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
-      'editor:backspace-to-beginning-of-line': @backspaceToBeginningOfLine
-      'editor:delete-to-end-of-word': @deleteToEndOfWord
-      'editor:delete-line': @deleteLine
-      'editor:cut-to-end-of-line': @cutToEndOfLine
+      'core:move-left': => @editor.moveCursorLeft()
+      'core:move-right': => @editor.moveCursorRight()
+      'core:select-left': => @editor.selectLeft()
+      'core:select-right': => @editor.selectRight()
+      'core:select-all': => @editor.selectAll()
+      'core:backspace': => @editor.backspace()
+      'core:delete': => @editor.delete()
+      'core:undo': => @editor.undo()
+      'core:redo': => @editor.redo()
+      'core:cut': => @editor.cutSelection()
+      'core:copy': => @editor.copySelection()
+      'core:paste': => @editor.paste()
+      'editor:move-to-previous-word': => @editor.moveCursorToPreviousWord()
+      'editor:select-word': => @editor.selectWord()
+      'editor:consolidate-selections': (event) => @consolidateSelections(event)
+      'editor:backspace-to-beginning-of-word': => @editor.backspaceToBeginningOfWord()
+      'editor:backspace-to-beginning-of-line': => @editor.backspaceToBeginningOfLine()
+      'editor:delete-to-end-of-word': => @editor.deleteToEndOfWord()
+      'editor:delete-line': => @editor.deleteLine()
+      'editor:cut-to-end-of-line': => @editor.cutToEndOfLine()
       'editor:move-to-beginning-of-screen-line': => @editor.moveCursorToBeginningOfScreenLine()
-      'editor:move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'editor:move-to-beginning-of-line': => @editor.moveCursorToBeginningOfLine()
       'editor:move-to-end-of-screen-line': => @editor.moveCursorToEndOfScreenLine()
-      'editor:move-to-end-of-line': @moveCursorToEndOfLine
-      'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
-      'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
-      'editor:move-to-end-of-word': @moveCursorToEndOfWord
-      'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
-      'editor:move-to-previous-word-boundary': @moveCursorToPreviousWordBoundary
-      'editor:move-to-next-word-boundary': @moveCursorToNextWordBoundary
-      'editor:select-to-end-of-line': @selectToEndOfLine
-      'editor:select-to-beginning-of-line': @selectToBeginningOfLine
-      'editor:select-to-end-of-word': @selectToEndOfWord
-      'editor:select-to-beginning-of-word': @selectToBeginningOfWord
-      'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
-      'editor:select-to-next-word-boundary': @selectToNextWordBoundary
-      'editor:select-to-previous-word-boundary': @selectToPreviousWordBoundary
-      'editor:select-to-first-character-of-line': @selectToFirstCharacterOfLine
-      'editor:select-line': @selectLine
-      'editor:transpose': @transpose
-      'editor:upper-case': @upperCase
-      'editor:lower-case': @lowerCase
+      'editor:move-to-end-of-line': => @editor.moveCursorToEndOfLine()
+      'editor:move-to-first-character-of-line': => @editor.moveCursorToFirstCharacterOfLine()
+      'editor:move-to-beginning-of-word': => @editor.moveCursorToBeginningOfWord()
+      'editor:move-to-end-of-word': => @editor.moveCursorToEndOfWord()
+      'editor:move-to-beginning-of-next-word': => @editor.moveCursorToBeginningOfNextWord()
+      'editor:move-to-previous-word-boundary': => @editor.moveCursorToPreviousWordBoundary()
+      'editor:move-to-next-word-boundary': => @editor.moveCursorToNextWordBoundary()
+      'editor:select-to-end-of-line': => @editor.selectToEndOfLine()
+      'editor:select-to-beginning-of-line': => @editor.selectToBeginningOfLine()
+      'editor:select-to-end-of-word': => @editor.selectToEndOfWord()
+      'editor:select-to-beginning-of-word': => @editor.selectToBeginningOfWord()
+      'editor:select-to-beginning-of-next-word': => @editor.selectToBeginningOfNextWord()
+      'editor:select-to-next-word-boundary': => @editor.selectToNextWordBoundary()
+      'editor:select-to-previous-word-boundary': => @editor.selectToPreviousWordBoundary()
+      'editor:select-to-first-character-of-line': => @editor.selectToFirstCharacterOfLine()
+      'editor:select-line': => @editor.selectLine()
+      'editor:transpose': => @editor.transpose()
+      'editor:upper-case': => @editor.upperCase()
+      'editor:lower-case': => @editor.lowerCase()
 
     unless @mini
       _.extend editorBindings,
-        'core:move-up': @moveCursorUp
-        'core:move-down': @moveCursorDown
-        'core:move-to-top': @moveCursorToTop
-        'core:move-to-bottom': @moveCursorToBottom
-        'core:page-down': @pageDown
-        'core:page-up': @pageUp
-        'core:select-up': @selectUp
-        'core:select-down': @selectDown
-        'core:select-to-top': @selectToTop
-        'core:select-to-bottom': @selectToBottom
-        'editor:indent': @indent
-        'editor:auto-indent': @autoIndent
-        'editor:indent-selected-rows': @indentSelectedRows
-        'editor:outdent-selected-rows': @outdentSelectedRows
-        'editor:newline': @insertNewline
-        'editor:newline-below': @insertNewlineBelow
-        'editor:newline-above': @insertNewlineAbove
-        'editor:add-selection-below': @addSelectionBelow
-        'editor:add-selection-above': @addSelectionAbove
+        'core:move-up': => @editor.moveCursorUp()
+        'core:move-down': => @editor.moveCursorDown()
+        'core:move-to-top': => @editor.moveCursorToTop()
+        'core:move-to-bottom': => @editor.moveCursorToBottom()
+        'core:page-down': => @editor.pageDown()
+        'core:page-up': => @editor.pageUp()
+        'core:select-up': => @editor.selectUp()
+        'core:select-down': => @editor.selectDown()
+        'core:select-to-top': => @editor.selectToTop()
+        'core:select-to-bottom': => @editor.selectToBottom()
+        'editor:indent': => @editor.indent()
+        'editor:auto-indent': => @editor.autoIndent()
+        'editor:indent-selected-rows': => @editor.indentSelectedRows()
+        'editor:outdent-selected-rows': => @editor.outdentSelectedRows()
+        'editor:newline': => @editor.insertNewline()
+        'editor:newline-below': => @editor.insertNewlineBelow()
+        'editor:newline-above': => @editor.insertNewlineAbove()
+        'editor:add-selection-below': => @editor.addSelectionBelow()
+        'editor:add-selection-above': => @editor.addSelectionAbove()
         'editor:split-selections-into-lines': => @editor.splitSelectionsIntoLines()
-        'editor:toggle-soft-tabs': @toggleSoftTabs
-        'editor:toggle-soft-wrap': @toggleSoftWrap
-        'editor:fold-all': @foldAll
-        'editor:unfold-all': @unfoldAll
-        'editor:fold-current-row': @foldCurrentRow
-        'editor:unfold-current-row': @unfoldCurrentRow
-        'editor:fold-selection': @foldSelection
-        'editor:fold-at-indent-level-1': => @foldAllAtIndentLevel(0)
-        'editor:fold-at-indent-level-2': => @foldAllAtIndentLevel(1)
-        'editor:fold-at-indent-level-3': => @foldAllAtIndentLevel(2)
-        'editor:fold-at-indent-level-4': => @foldAllAtIndentLevel(3)
-        'editor:fold-at-indent-level-5': => @foldAllAtIndentLevel(4)
-        'editor:fold-at-indent-level-6': => @foldAllAtIndentLevel(5)
-        'editor:fold-at-indent-level-7': => @foldAllAtIndentLevel(6)
-        'editor:fold-at-indent-level-8': => @foldAllAtIndentLevel(7)
-        'editor:fold-at-indent-level-9': => @foldAllAtIndentLevel(8)
-        'editor:toggle-line-comments': @toggleLineCommentsInSelection
-        'editor:log-cursor-scope': @logCursorScope
-        'editor:checkout-head-revision': @checkoutHead
-        'editor:copy-path': @copyPathToPasteboard
-        'editor:move-line-up': @moveLineUp
-        'editor:move-line-down': @moveLineDown
-        'editor:duplicate-line': @duplicateLine
-        'editor:join-line': @joinLine
+        'editor:toggle-soft-tabs': => @toggleSoftTabs()
+        'editor:toggle-soft-wrap': => @toggleSoftWrap()
+        'editor:fold-all': => @editor.foldAll()
+        'editor:unfold-all': => @editor.unfoldAll()
+        'editor:fold-current-row': => @editor.foldCurrentRow()
+        'editor:unfold-current-row': => @editor.unfoldCurrentRow()
+        'editor:fold-selection': => @editor.foldSelection()
+        'editor:fold-at-indent-level-1': => @editor.foldAllAtIndentLevel(0)
+        'editor:fold-at-indent-level-2': => @editor.foldAllAtIndentLevel(1)
+        'editor:fold-at-indent-level-3': => @editor.foldAllAtIndentLevel(2)
+        'editor:fold-at-indent-level-4': => @editor.foldAllAtIndentLevel(3)
+        'editor:fold-at-indent-level-5': => @editor.foldAllAtIndentLevel(4)
+        'editor:fold-at-indent-level-6': => @editor.foldAllAtIndentLevel(5)
+        'editor:fold-at-indent-level-7': => @editor.foldAllAtIndentLevel(6)
+        'editor:fold-at-indent-level-8': => @editor.foldAllAtIndentLevel(7)
+        'editor:fold-at-indent-level-9': => @editor.foldAllAtIndentLevel(8)
+        'editor:toggle-line-comments': => @toggleLineCommentsInSelection()
+        'editor:log-cursor-scope': => @logCursorScope()
+        'editor:checkout-head-revision': => @checkoutHead()
+        'editor:copy-path': => @copyPathToPasteboard()
+        'editor:move-line-up': => @editor.moveLineUp()
+        'editor:move-line-down': => @editor.moveLineDown()
+        'editor:duplicate-line': => @editor.duplicateLine()
+        'editor:join-line': => @editor.joinLine()
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
-        'editor:scroll-to-cursor': @scrollToCursorPosition
+        'editor:scroll-to-cursor': => @scrollToCursorPosition()
 
     documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @command name, (e) => method.call(this, e); false
+        @command name, (e) -> method(e); false
 
-  # {Delegates to: Editor.getCursor}
-  getCursor: -> @editor.getCursor()
+  getEditor: ->
+    @editor
 
-  # {Delegates to: Editor.getCursors}
-  getCursors: -> @editor.getCursors()
+  # {Delegates to: Editor.getText}
+  getText: ->
+    @editor.getText()
 
-  # {Delegates to: Editor.addCursorAtScreenPosition}
-  addCursorAtScreenPosition: (screenPosition) -> @editor.addCursorAtScreenPosition(screenPosition)
-
-  # {Delegates to: Editor.addCursorAtBufferPosition}
-  addCursorAtBufferPosition: (bufferPosition) -> @editor.addCursorAtBufferPosition(bufferPosition)
-
-  # {Delegates to: Editor.moveCursorUp}
-  moveCursorUp: -> @editor.moveCursorUp()
-
-  # {Delegates to: Editor.moveCursorDown}
-  moveCursorDown: -> @editor.moveCursorDown()
-
-  # {Delegates to: Editor.moveCursorLeft}
-  moveCursorLeft: -> @editor.moveCursorLeft()
-
-  # {Delegates to: Editor.moveCursorRight}
-  moveCursorRight: -> @editor.moveCursorRight()
-
-  # {Delegates to: Editor.moveCursorToBeginningOfWord}
-  moveCursorToBeginningOfWord: -> @editor.moveCursorToBeginningOfWord()
-
-  # {Delegates to: Editor.moveCursorToEndOfWord}
-  moveCursorToEndOfWord: -> @editor.moveCursorToEndOfWord()
-
-  # {Delegates to: Editor.moveCursorToBeginningOfNextWord}
-  moveCursorToBeginningOfNextWord: -> @editor.moveCursorToBeginningOfNextWord()
-
-  # {Delegates to: Editor.moveCursorToTop}
-  moveCursorToTop: -> @editor.moveCursorToTop()
-
-  # {Delegates to: Editor.moveCursorToBottom}
-  moveCursorToBottom: -> @editor.moveCursorToBottom()
-
-  # {Delegates to: Editor.moveCursorToBeginningOfLine}
-  moveCursorToBeginningOfLine: -> @editor.moveCursorToBeginningOfLine()
-
-  # {Delegates to: Editor.moveCursorToFirstCharacterOfLine}
-  moveCursorToFirstCharacterOfLine: -> @editor.moveCursorToFirstCharacterOfLine()
-
-  # {Delegates to: Editor.moveCursorToPreviousWordBoundary}
-  moveCursorToPreviousWordBoundary: -> @editor.moveCursorToPreviousWordBoundary()
-
-  # {Delegates to: Editor.moveCursorToNextWordBoundary}
-  moveCursorToNextWordBoundary: -> @editor.moveCursorToNextWordBoundary()
-
-  # {Delegates to: Editor.moveCursorToEndOfLine}
-  moveCursorToEndOfLine: -> @editor.moveCursorToEndOfLine()
-
-  # {Delegates to: Editor.moveLineUp}
-  moveLineUp: -> @editor.moveLineUp()
-
-  # {Delegates to: Editor.moveLineDown}
-  moveLineDown: -> @editor.moveLineDown()
-
-  # {Delegates to: Editor.setCursorScreenPosition}
-  setCursorScreenPosition: (position, options) -> @editor.setCursorScreenPosition(position, options)
-
-  # {Delegates to: Editor.duplicateLine}
-  duplicateLine: -> @editor.duplicateLine()
-
-  # {Delegates to: Editor.joinLine}
-  joinLine: -> @editor.joinLine()
-
-  # {Delegates to: Editor.getCursorScreenPosition}
-  getCursorScreenPosition: -> @editor.getCursorScreenPosition()
-
-  # {Delegates to: Editor.getCursorScreenRow}
-  getCursorScreenRow: -> @editor.getCursorScreenRow()
-
-  # {Delegates to: Editor.setCursorBufferPosition}
-  setCursorBufferPosition: (position, options) -> @editor.setCursorBufferPosition(position, options)
-
-  # {Delegates to: Editor.getCursorBufferPosition}
-  getCursorBufferPosition: -> @editor.getCursorBufferPosition()
-
-  # {Delegates to: Editor.getCurrentParagraphBufferRange}
-  getCurrentParagraphBufferRange: -> @editor.getCurrentParagraphBufferRange()
-
-  # {Delegates to: Editor.getWordUnderCursor}
-  getWordUnderCursor: (options) -> @editor.getWordUnderCursor(options)
-
-  # {Delegates to: Editor.getSelection}
-  getSelection: (index) -> @editor.getSelection(index)
-
-  # {Delegates to: Editor.getSelections}
-  getSelections: -> @editor.getSelections()
-
-  # {Delegates to: Editor.getSelectionsOrderedByBufferPosition}
-  getSelectionsOrderedByBufferPosition: -> @editor.getSelectionsOrderedByBufferPosition()
-
-  # {Delegates to: Editor.getLastSelectionInBuffer}
-  getLastSelectionInBuffer: -> @editor.getLastSelectionInBuffer()
-
-  # {Delegates to: Editor.getSelectedText}
-  getSelectedText: -> @editor.getSelectedText()
-
-  # {Delegates to: Editor.getSelectedBufferRanges}
-  getSelectedBufferRanges: -> @editor.getSelectedBufferRanges()
-
-  # {Delegates to: Editor.getSelectedBufferRange}
-  getSelectedBufferRange: -> @editor.getSelectedBufferRange()
-
-  # {Delegates to: Editor.setSelectedBufferRange}
-  setSelectedBufferRange: (bufferRange, options) -> @editor.setSelectedBufferRange(bufferRange, options)
-
-  # {Delegates to: Editor.setSelectedBufferRanges}
-  setSelectedBufferRanges: (bufferRanges, options) -> @editor.setSelectedBufferRanges(bufferRanges, options)
-
-  # {Delegates to: Editor.addSelectionForBufferRange}
-  addSelectionForBufferRange: (bufferRange, options) -> @editor.addSelectionForBufferRange(bufferRange, options)
-
-  # {Delegates to: Editor.selectRight}
-  selectRight: -> @editor.selectRight()
-
-  # {Delegates to: Editor.selectLeft}
-  selectLeft: -> @editor.selectLeft()
-
-  # {Delegates to: Editor.selectUp}
-  selectUp: -> @editor.selectUp()
-
-  # {Delegates to: Editor.selectDown}
-  selectDown: -> @editor.selectDown()
-
-  # {Delegates to: Editor.selectToTop}
-  selectToTop: -> @editor.selectToTop()
-
-  # {Delegates to: Editor.selectToBottom}
-  selectToBottom: -> @editor.selectToBottom()
-
-  # {Delegates to: Editor.selectAll}
-  selectAll: -> @editor.selectAll()
-
-  # {Delegates to: Editor.selectToBeginningOfLine}
-  selectToBeginningOfLine: -> @editor.selectToBeginningOfLine()
-
-  # {Delegates to: Editor.selectToFirstCharacterOfLine}
-  selectToFirstCharacterOfLine: -> @editor.selectToFirstCharacterOfLine()
-
-  # {Delegates to: Editor.selectToEndOfLine}
-  selectToEndOfLine: -> @editor.selectToEndOfLine()
-
-  # {Delegates to: Editor.selectToPreviousWordBoundary}
-  selectToPreviousWordBoundary: -> @editor.selectToPreviousWordBoundary()
-
-  # {Delegates to: Editor.selectToNextWordBoundary}
-  selectToNextWordBoundary: -> @editor.selectToNextWordBoundary()
-
-  # {Delegates to: Editor.addSelectionBelow}
-  addSelectionBelow: -> @editor.addSelectionBelow()
-
-  # {Delegates to: Editor.addSelectionAbove}
-  addSelectionAbove: -> @editor.addSelectionAbove()
-
-  # {Delegates to: Editor.selectToBeginningOfWord}
-  selectToBeginningOfWord: -> @editor.selectToBeginningOfWord()
-
-  # {Delegates to: Editor.selectToEndOfWord}
-  selectToEndOfWord: -> @editor.selectToEndOfWord()
-
-  # {Delegates to: Editor.selectToBeginningOfNextWord}
-  selectToBeginningOfNextWord: -> @editor.selectToBeginningOfNextWord()
-
-  # {Delegates to: Editor.selectWord}
-  selectWord: -> @editor.selectWord()
-
-  # {Delegates to: Editor.selectLine}
-  selectLine: -> @editor.selectLine()
-
-  # {Delegates to: Editor.selectToScreenPosition}
-  selectToScreenPosition: (position) -> @editor.selectToScreenPosition(position)
-
-  # {Delegates to: Editor.transpose}
-  transpose: -> @editor.transpose()
-
-  # {Delegates to: Editor.upperCase}
-  upperCase: -> @editor.upperCase()
-
-  # {Delegates to: Editor.lowerCase}
-  lowerCase: -> @editor.lowerCase()
-
-  # {Delegates to: Editor.clearSelections}
-  clearSelections: -> @editor.clearSelections()
-
-  # {Delegates to: Editor.backspace}
-  backspace: -> @editor.backspace()
-
-  # {Delegates to: Editor.backspaceToBeginningOfWord}
-  backspaceToBeginningOfWord: -> @editor.backspaceToBeginningOfWord()
-
-  # {Delegates to: Editor.backspaceToBeginningOfLine}
-  backspaceToBeginningOfLine: -> @editor.backspaceToBeginningOfLine()
-
-  # {Delegates to: Editor.delete}
-  delete: -> @editor.delete()
-
-  # {Delegates to: Editor.deleteToEndOfWord}
-  deleteToEndOfWord: -> @editor.deleteToEndOfWord()
-
-  # {Delegates to: Editor.deleteLine}
-  deleteLine: -> @editor.deleteLine()
-
-  # {Delegates to: Editor.cutToEndOfLine}
-  cutToEndOfLine: -> @editor.cutToEndOfLine()
+  # {Delegates to: Editor.setText}
+  setText: (text) ->
+    @editor.setText(text)
 
   # {Delegates to: Editor.insertText}
-  insertText: (text, options) -> @editor.insertText(text, options)
-
-  # {Delegates to: Editor.insertNewline}
-  insertNewline: -> @editor.insertNewline()
-
-  # {Delegates to: Editor.insertNewlineBelow}
-  insertNewlineBelow: -> @editor.insertNewlineBelow()
-
-  # {Delegates to: Editor.insertNewlineAbove}
-  insertNewlineAbove: -> @editor.insertNewlineAbove()
-
-  # {Delegates to: Editor.indent}
-  indent: (options) -> @editor.indent(options)
-
-  # {Delegates to: Editor.autoIndentSelectedRows}
-  autoIndent: (options) -> @editor.autoIndentSelectedRows()
-
-  # {Delegates to: Editor.indentSelectedRows}
-  indentSelectedRows: -> @editor.indentSelectedRows()
-
-  # {Delegates to: Editor.outdentSelectedRows}
-  outdentSelectedRows: -> @editor.outdentSelectedRows()
-
-  # {Delegates to: Editor.cutSelectedText}
-  cutSelection: -> @editor.cutSelectedText()
-
-  # {Delegates to: Editor.copySelectedText}
-  copySelection: -> @editor.copySelectedText()
-
-  # {Delegates to: Editor.pasteText}
-  paste: (options) -> @editor.pasteText(options)
-
-  # {Delegates to: Editor.undo}
-  undo: -> @editor.undo()
-
-  # {Delegates to: Editor.redo}
-  redo: -> @editor.redo()
-
-  # {Delegates to: Editor.createFold}
-  createFold: (startRow, endRow) -> @editor.createFold(startRow, endRow)
-
-  # {Delegates to: Editor.foldCurrentRow}
-  foldCurrentRow: -> @editor.foldCurrentRow()
-
-  # {Delegates to: Editor.unfoldCurrentRow}
-  unfoldCurrentRow: -> @editor.unfoldCurrentRow()
-
-  # {Delegates to: Editor.foldAll}
-  foldAll: -> @editor.foldAll()
-
-  # {Delegates to: Editor.unfoldAll}
-  unfoldAll: -> @editor.unfoldAll()
-
-  # {Delegates to: Editor.foldSelection}
-  foldSelection: -> @editor.foldSelection()
-
-  # {Delegates to: Editor.destroyFoldsContainingBufferRow}
-  destroyFoldsContainingBufferRow: (bufferRow) -> @editor.destroyFoldsContainingBufferRow(bufferRow)
-
-  # {Delegates to: Editor.isFoldedAtScreenRow}
-  isFoldedAtScreenRow: (screenRow) -> @editor.isFoldedAtScreenRow(screenRow)
-
-  # {Delegates to: Editor.isFoldedAtBufferRow}
-  isFoldedAtBufferRow: (bufferRow) -> @editor.isFoldedAtBufferRow(bufferRow)
-
-  # {Delegates to: Editor.isFoldedAtCursorRow}
-  isFoldedAtCursorRow: -> @editor.isFoldedAtCursorRow()
-
-  foldAllAtIndentLevel: (indentLevel) -> @editor.foldAllAtIndentLevel(indentLevel)
-
-  # {Delegates to: Editor.lineForScreenRow}
-  lineForScreenRow: (screenRow) -> @editor.lineForScreenRow(screenRow)
-
-  # {Delegates to: Editor.linesForScreenRows}
-  linesForScreenRows: (start, end) -> @editor.linesForScreenRows(start, end)
-
-  # {Delegates to: Editor.getScreenLineCount}
-  getScreenLineCount: -> @editor.getScreenLineCount()
+  insertText: (text, options) ->
+    @editor.insertText(text, options)
 
   # Private:
   setHeightInLines: (heightInLines)->
@@ -516,30 +241,6 @@ class EditorView extends View
   setWidthInChars: (widthInChars) ->
     widthInChars ?= @calculateWidthInChars()
     @editor.setEditorWidthInChars(widthInChars) if widthInChars
-
-  # {Delegates to: Editor.getMaxScreenLineLength}
-  getMaxScreenLineLength: -> @editor.getMaxScreenLineLength()
-
-  # {Delegates to: Editor.getLastScreenRow}
-  getLastScreenRow: -> @editor.getLastScreenRow()
-
-  # {Delegates to: Editor.clipScreenPosition}
-  clipScreenPosition: (screenPosition, options={}) -> @editor.clipScreenPosition(screenPosition, options)
-
-  # {Delegates to: Editor.screenPositionForBufferPosition}
-  screenPositionForBufferPosition: (position, options) -> @editor.screenPositionForBufferPosition(position, options)
-
-  # {Delegates to: Editor.bufferPositionForScreenPosition}
-  bufferPositionForScreenPosition: (position, options) -> @editor.bufferPositionForScreenPosition(position, options)
-
-  # {Delegates to: Editor.screenRangeForBufferRange}
-  screenRangeForBufferRange: (range) -> @editor.screenRangeForBufferRange(range)
-
-  # {Delegates to: Editor.bufferRangeForScreenRange}
-  bufferRangeForScreenRange: (range) -> @editor.bufferRangeForScreenRange(range)
-
-  # {Delegates to: Editor.bufferRowsForScreenRows}
-  bufferRowsForScreenRows: (startRow, endRow) -> @editor.bufferRowsForScreenRows(startRow, endRow)
 
   # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
@@ -600,50 +301,8 @@ class EditorView extends View
 
   # Checkout the HEAD revision of this editor's file.
   checkoutHead: ->
-    if path = @getPath()
+    if path = @editor.getPath()
       atom.project.getRepo()?.checkoutHead(path)
-
-  # {Delegates to: Editor.setText}
-  setText: (text) -> @editor.setText(text)
-
-  # {Delegates to: Editor.save}
-  save: -> @editor.save()
-
-  # {Delegates to: Editor.getText}
-  getText: -> @editor.getText()
-
-  # {Delegates to: Editor.getPath}
-  getPath: -> @editor?.getPath()
-
-  # {Delegates to: Editor.transact}
-  transact: (fn) -> @editor.transact(fn)
-
-  # {Delegates to: TextBuffer.getLineCount}
-  getLineCount: -> @getBuffer().getLineCount()
-
-  # {Delegates to: TextBuffer.getLastRow}
-  getLastBufferRow: -> @getBuffer().getLastRow()
-
-  # {Delegates to: TextBuffer.getTextInRange}
-  getTextInRange: (range) -> @getBuffer().getTextInRange(range)
-
-  # {Delegates to: TextBuffer.getEofPosition}
-  getEofPosition: -> @getBuffer().getEofPosition()
-
-  # {Delegates to: TextBuffer.lineForRow}
-  lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
-
-  # {Delegates to: TextBuffer.lineLengthForRow}
-  lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
-
-  # {Delegates to: TextBuffer.rangeForRow}
-  rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-
-  # {Delegates to: TextBuffer.scanInRange}
-  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
-
-  # {Delegates to: TextBuffer.backwardsScanInRange}
-  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   ### Internal ###
 
@@ -695,11 +354,11 @@ class EditorView extends View
       screenPosition = @screenPositionFromMouseEvent(e)
       if clickCount == 1
         if e.metaKey
-          @addCursorAtScreenPosition(screenPosition)
+          @editor.addCursorAtScreenPosition(screenPosition)
         else if e.shiftKey
-          @selectToScreenPosition(screenPosition)
+          @editor.selectToScreenPosition(screenPosition)
         else
-          @setCursorScreenPosition(screenPosition)
+          @editor.setCursorScreenPosition(screenPosition)
       else if clickCount == 2
         @editor.selectWord() unless e.shiftKey
       else if clickCount == 3
@@ -744,9 +403,9 @@ class EditorView extends View
       selectedText = @getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
-      @insertText(e.originalEvent.data, {select: true, undo: 'skip'})
+      @editor.insertText(e.originalEvent.data, {select: true, undo: 'skip'})
     @hiddenInput.on 'compositionend', =>
-      @insertText(selectedText, {select: true, undo: 'skip'})
+      @editor.insertText(selectedText, {select: true, undo: 'skip'})
       @hiddenInput.css('width', '1px')
 
     lastInput = ''
@@ -757,7 +416,7 @@ class EditorView extends View
         @selectLeft()
 
       lastInput = e.originalEvent.data
-      @insertText(lastInput)
+      @editor.insertText(lastInput)
       @hiddenInput.val(lastInput)
       false
 
@@ -768,7 +427,7 @@ class EditorView extends View
     lastMoveEvent = null
     moveHandler = (event = lastMoveEvent) =>
       if event
-        @selectToScreenPosition(@screenPositionFromMouseEvent(event))
+        @editor.selectToScreenPosition(@screenPositionFromMouseEvent(event))
         lastMoveEvent = event
 
     $(document).on "mousemove.editor-#{@id}", moveHandler
@@ -814,6 +473,7 @@ class EditorView extends View
 
     @trigger 'editor:attached', [this]
 
+  # TODO: This should be private and only called from the constructor
   edit: (editor) ->
     return if editor is @editor
 
@@ -834,7 +494,7 @@ class EditorView extends View
       @showBufferConflictAlert(@editor)
 
     @editor.on "path-changed.editor", =>
-      @reloadGrammar()
+      @editor.reloadGrammar()
       @trigger 'editor:path-changed'
 
     @editor.on "grammar-changed.editor", =>
@@ -917,20 +577,15 @@ class EditorView extends View
 
   ### Public ###
 
-  # Retrieves the {Editor}'s buffer.
-  #
-  # Returns the current {TextBuffer}.
-  getBuffer: -> @editor.buffer
-
   # Scrolls the editor to the bottom.
   scrollToBottom: ->
-    @scrollBottom(@getScreenLineCount() * @lineHeight)
+    @scrollBottom(@editor.getScreenLineCount() * @lineHeight)
 
   # Scrolls the editor to the position of the most recently added cursor.
   #
   # The editor is also centered.
   scrollToCursorPosition: ->
-    @scrollToBufferPosition(@getCursorBufferPosition(), center: true)
+    @scrollToBufferPosition(@editor.getCursorBufferPosition(), center: true)
 
   # Scrolls the editor to the given buffer position.
   #
@@ -966,7 +621,7 @@ class EditorView extends View
   #
   # bufferRange - The {Range} to check.
   highlightFoldsContainingBufferRange: (bufferRange) ->
-    screenLines = @linesForScreenRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    screenLines = @editor.linesForScreenRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
     for screenLine, i in screenLines
       if fold = screenLine.fold
         screenRow = @firstRenderedScreenRow + i
@@ -1180,7 +835,7 @@ class EditorView extends View
     @setHeightInLines()
 
   updateLayerDimensions: ->
-    height = @lineHeight * @getScreenLineCount()
+    height = @lineHeight * @editor.getScreenLineCount()
     unless @layerHeight == height
       @layerHeight = height
       @underlayer.height(@layerHeight)
@@ -1189,7 +844,7 @@ class EditorView extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = Math.max(@charWidth * @getMaxScreenLineLength() + 20, @scrollView.width())
+    minWidth = Math.max(@charWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -1303,9 +958,9 @@ class EditorView extends View
 
   updatePlaceholderText: ->
     return unless @mini
-    if (not @placeholderText) or @getText()
+    if (not @placeholderText) or @editor.getText()
       @find('.placeholder-text').remove()
-    else if @placeholderText and not @getText()
+    else if @placeholderText and not @editor.getText()
       element = @find('.placeholder-text')
       if element.length
         element.text(@placeholderText)
@@ -1315,7 +970,7 @@ class EditorView extends View
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastScreenRowToRender = firstVisibleScreenRow + @heightInLines - 1
-    lastScreenRow = @getLastScreenRow()
+    lastScreenRow = @editor.getLastScreenRow()
 
     if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastScreenRowToRender <= @lastRenderedScreenRow
       renderFrom = Math.min(lastScreenRow, @firstRenderedScreenRow)
@@ -1344,15 +999,15 @@ class EditorView extends View
 
     if change.bufferDelta?
       afterStart = change.end + change.bufferDelta + 1
-      if @lineForBufferRow(afterStart) is ''
+      if @editor.lineForBufferRow(afterStart) is ''
         afterEnd = afterStart
-        afterEnd++ while @lineForBufferRow(afterEnd + 1) is ''
+        afterEnd++ while @editor.lineForBufferRow(afterEnd + 1) is ''
         emptyLineChanges.push({start: afterStart, end: afterEnd, screenDelta: 0})
 
       beforeEnd = change.start - 1
-      if @lineForBufferRow(beforeEnd) is ''
+      if @editor.lineForBufferRow(beforeEnd) is ''
         beforeStart = beforeEnd
-        beforeStart-- while @lineForBufferRow(beforeStart - 1) is ''
+        beforeStart-- while @editor.lineForBufferRow(beforeStart - 1) is ''
         emptyLineChanges.push({start: beforeStart, end: beforeEnd, screenDelta: 0})
 
     emptyLineChanges
@@ -1461,7 +1116,7 @@ class EditorView extends View
     @renderedLines.css('padding-top', paddingTop)
     @gutter.lineNumbers.css('padding-top', paddingTop)
 
-    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    paddingBottom = (@editor.getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
@@ -1480,7 +1135,7 @@ class EditorView extends View
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
     calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
-    screenRow = Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
+    screenRow = Math.max(0, Math.min(@editor.getScreenLineCount() - 1, calculatedRow))
     screenRow = 0 if isNaN(screenRow)
     screenRow
 
@@ -1585,7 +1240,7 @@ class EditorView extends View
   #
   # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (position) ->
-    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
+    @pixelPositionForScreenPosition(@editor.screenPositionForBufferPosition(position))
 
   # Converts a screen position to a pixel position.
   #
@@ -1734,31 +1389,15 @@ class EditorView extends View
     return if @mini
 
     @highlightedLine?.removeClass('cursor-line')
-    if @getSelection().isEmpty()
-      @highlightedLine = @lineElementForScreenRow(@getCursorScreenRow())
+    if @editor.getSelection().isEmpty()
+      @highlightedLine = @lineElementForScreenRow(@editor.getCursorScreenRow())
       @highlightedLine.addClass('cursor-line')
     else
       @highlightedLine = null
 
-  # {Delegates to: Editor.getGrammar}
-  getGrammar: ->
-    @editor.getGrammar()
-
-  # {Delegates to: Editor.setGrammar}
-  setGrammar: (grammar) ->
-    @editor.setGrammar(grammar)
-
-  # {Delegates to: Editor.reloadGrammar}
-  reloadGrammar: ->
-    @editor.reloadGrammar()
-
-  # {Delegates to: Editor.scopesForBufferPosition}
-  scopesForBufferPosition: (bufferPosition) ->
-    @editor.scopesForBufferPosition(bufferPosition)
-
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->
-    path = @getPath()
+    path = @editor.getPath()
     atom.pasteboard.write(path) if path?
 
   ### Internal ###
@@ -1845,25 +1484,19 @@ class EditorView extends View
       '&nbsp;'
 
   replaceSelectedText: (replaceFn) ->
-    selection = @getSelection()
+    selection = @editor.getSelection()
     return false if selection.isEmpty()
 
-    text = replaceFn(@getTextInRange(selection.getBufferRange()))
+    text = replaceFn(@editor.getTextInRange(selection.getBufferRange()))
     return false if text is null or text is undefined
 
-    @insertText(text, select: true)
+    @editor.insertText(text, select: true)
     true
 
   consolidateSelections: (e) -> e.abortKeyBinding() unless @editor.consolidateSelections()
 
   logCursorScope: ->
     console.log @editor.getCursorScopes()
-
-  beginTransaction: -> @editor.beginTransaction()
-
-  commitTransaction: -> @editor.commitTransaction()
-
-  abortTransaction: -> @editor.abortTransaction()
 
   logScreenLines: (start, end) ->
     @editor.logScreenLines(start, end)

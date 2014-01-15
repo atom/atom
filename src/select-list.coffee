@@ -30,7 +30,7 @@ class SelectList extends View
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
-    @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
+    @miniEditor.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.hiddenInput.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
@@ -98,7 +98,7 @@ class SelectList extends View
   #
   # Returns a {String} to use when fuzzy filtering the elements to display.
   getFilterQuery: ->
-    @miniEditor.getText()
+    @miniEditor.getEditor().getText()
 
   # Public: Build the DOM elements using the array from the last call to
   # {.setArray}.
@@ -207,7 +207,7 @@ class SelectList extends View
 
   # Private:
   cancelled: ->
-    @miniEditor.setText('')
+    @miniEditor.getEditor().setText('')
     @miniEditor.updateDisplay()
 
   # Public: Cancel and close the select list dialog.
