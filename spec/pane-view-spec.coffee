@@ -266,27 +266,6 @@ describe "PaneView", ->
       expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "serialization", ->
-    it "can serialize and deserialize the pane and all its items", ->
-      newPane = new PaneView(pane.model.testSerialization())
-      expect(newPane.getItems()).toEqual [view1, editor1, view2, editor2]
-
-    it "restores the active item on deserialization", ->
-      pane.activateItem(editor2)
-      newPane = new PaneView(pane.model.testSerialization())
-      expect(newPane.activeItem).toEqual editor2
-
-    it "does not show items that cannot be deserialized", ->
-      spyOn(console, 'warn')
-
-      class Unserializable
-        getViewClass: -> TestView
-
-      pane.activateItem(new Unserializable)
-
-      newPane = new PaneView(pane.model.testSerialization())
-      expect(newPane.activeItem).toEqual pane.items[0]
-      expect(newPane.items.length).toBe pane.items.length - 1
-
     it "focuses the pane after attach only if had focus when serialized", ->
       container.attachToDom()
       pane.focus()

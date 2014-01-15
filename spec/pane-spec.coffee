@@ -5,9 +5,18 @@ PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
   class Item extends Model
-    constructor: (@name) ->
+    @deserialize: ({name, uri}) -> new this(name, uri)
+    constructor: (@name, @uri) ->
     getUri: -> @uri
     getPath: -> @path
+    serialize: -> {deserializer: 'Item', @name, @uri}
+    isEqual: (other) -> @name is other?.name
+
+  beforeEach ->
+    atom.deserializers.add(Item)
+
+  afterEach ->
+    atom.deserializers.remove(Item)
 
   describe "construction", ->
     it "sets the active item to the first item", ->
@@ -397,3 +406,32 @@ describe "Pane", ->
         expect(container.root.children).toEqual [pane1, pane2]
         pane2.destroy()
         expect(container.root).toBe pane1
+
+  describe "serialization", ->
+    pane = null
+
+    beforeEach ->
+      pane = new Pane(items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")])
+
+    it "can serialize and deserialize the pane and all its items", ->
+      newPane = pane.testSerialization()
+      expect(newPane.items).toEqual pane.items
+
+    it "restores the active item on deserialization", ->
+      pane.activateItemAtIndex(1)
+      newPane = pane.testSerialization()
+      expect(newPane.activeItem).toEqual newPane.items[1]
+
+    it "does not include items that cannot be deserialized", ->
+      spyOn(console, 'warn')
+      unserializable = {}
+      pane.activateItem(unserializable)
+
+      newPane = pane.testSerialization()
+      expect(newPane.activeItem).toEqual pane.items[0]
+      expect(newPane.items.length).toBe pane.items.length - 1
+
+    it "includes the pane's focus state in the serialized state", ->
+      pane.focus()
+      newPane = pane.testSerialization()
+      expect(newPane.focused).toBe true
