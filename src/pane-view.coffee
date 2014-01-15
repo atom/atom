@@ -195,6 +195,10 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.splitDown({items})._view
 
+  # Public:
+  getContainer: ->
+    @closest('.panes').view()
+
   beforeRemove: ->
     @model.destroy() unless @model.isDestroyed()
 
