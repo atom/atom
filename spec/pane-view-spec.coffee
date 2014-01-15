@@ -5,7 +5,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, view1, view2, editor1, editor2, pane] = []
+  [container, view1, view2, editor1, editor2, pane, paneModel] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -23,120 +23,83 @@ describe "PaneView", ->
     editor1 = atom.project.openSync('sample.js')
     editor2 = atom.project.openSync('sample.txt')
     pane = new PaneView(view1, editor1, view2, editor2)
+    paneModel = pane.model
     container.setRoot(pane)
 
   afterEach ->
     atom.deserializers.remove(TestView)
 
-  describe "::initialize(items...)", ->
-    it "displays the first item in the pane", ->
-      expect(pane.itemViews.find('#view-1')).toExist()
-
-  describe "::activateItem(item)", ->
+  describe "when the active pane item changes", ->
     it "hides all item views except the one being shown and sets the activeItem", ->
       expect(pane.activeItem).toBe view1
+      expect(view1.css('display')).not.toBe 'none'
+
       pane.activateItem(view2)
       expect(view1.css('display')).toBe 'none'
       expect(view2.css('display')).not.toBe 'none'
-      expect(pane.activeItem).toBe view2
 
-    it "triggers 'pane:active-item-changed' if the item isn't already the activeItem", ->
-      pane.activate()
+    it "triggers 'pane:active-item-changed'", ->
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
       expect(pane.activeItem).toBe view1
-      pane.activateItem(view2)
-      pane.activateItem(view2)
+      paneModel.activateItem(view2)
+      paneModel.activateItem(view2)
+
       expect(itemChangedHandler.callCount).toBe 1
       expect(itemChangedHandler.argsForCall[0][1]).toBe view2
       itemChangedHandler.reset()
 
-      pane.activateItem(editor1)
+      paneModel.activateItem(editor1)
       expect(itemChangedHandler).toHaveBeenCalled()
       expect(itemChangedHandler.argsForCall[0][1]).toBe editor1
       itemChangedHandler.reset()
 
-    describe "if the pane's active view is focused before calling activateItem", ->
-      it "focuses the new active view", ->
-        container.attachToDom()
-        pane.focus()
-        expect(pane.activeView).not.toBe view2
-        expect(pane.activeView).toMatchSelector ':focus'
-        pane.activateItem(view2)
-        expect(view2).toMatchSelector ':focus'
+    it "transfers focus to the new active view if the previous view was focused", ->
+      container.attachToDom()
+      pane.focus()
+      expect(pane.activeView).not.toBe view2
+      expect(pane.activeView).toMatchSelector ':focus'
+      paneModel.activateItem(view2)
+      expect(view2).toMatchSelector ':focus'
 
-    describe "when the given item isn't yet in the items list on the pane", ->
-      view3 = null
-      beforeEach ->
-        view3 = new TestView(id: 'view-3', text: "View 3")
-        pane.activateItem(editor1)
-        expect(pane.getActiveItemIndex()).toBe 1
+    describe "when the new activeItem is a model", ->
+      it "shows the item's view or creates and shows a new view for the item if none exists", ->
+        initialViewCount = pane.itemViews.find('.test-view').length
 
-      it "adds it to the items list after the active item", ->
-        pane.activateItem(view3)
-        expect(pane.getItems()).toEqual [view1, editor1, view3, view2, editor2]
-        expect(pane.activeItem).toBe view3
-        expect(pane.getActiveItemIndex()).toBe 2
+        model1 =
+          id: 'test-model-1'
+          text: 'Test Model 1'
+          serialize: -> {@id, @text}
+          getViewClass: -> TestView
 
-      it "triggers the 'item-added' event with the item and its index before the 'active-item-changed' event", ->
-        events = []
-        container.on 'pane:item-added', (e, item, index) -> events.push(['pane:item-added', item, index])
-        container.on 'pane:active-item-changed', (e, item) -> events.push(['pane:active-item-changed', item])
-        pane.activateItem(view3)
-        expect(events).toEqual [['pane:item-added', view3, 2], ['pane:active-item-changed', view3]]
+        model2 =
+          id: 'test-model-2'
+          text: 'Test Model 2'
+          serialize: -> {@id, @text}
+          getViewClass: -> TestView
 
-    describe "when showing a model item", ->
-      describe "when no view has yet been appended for that item", ->
-        it "appends and shows a view to display the item based on its `.getViewClass` method", ->
-          pane.activateItem(editor1)
-          editorView = pane.activeView
-          expect(editorView.css('display')).not.toBe 'none'
-          expect(editorView.editor).toBe editor1
+        paneModel.activateItem(model1)
+        paneModel.activateItem(model2)
+        expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-      describe "when a valid view has already been appended for another item", ->
-        it "multiple views are created for multiple items", ->
-          pane.activateItem(editor1)
-          pane.activateItem(editor2)
-          expect(pane.itemViews.find('.editor').length).toBe 2
-          editorView = pane.activeView
-          expect(editorView.css('display')).not.toBe 'none'
-          expect(editorView.editor).toBe editor2
+        paneModel.activatePreviousItem()
+        expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
-        it "creates a new view with the item", ->
-          initialViewCount = pane.itemViews.find('.test-view').length
+        paneModel.destroyItem(model2)
+        expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
 
-          model1 =
-            id: 'test-model-1'
-            text: 'Test Model 1'
-            serialize: -> {@id, @text}
-            getViewClass: -> TestView
+        paneModel.destroyItem(model1)
+        expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
 
-          model2 =
-            id: 'test-model-2'
-            text: 'Test Model 2'
-            serialize: -> {@id, @text}
-            getViewClass: -> TestView
-
-          pane.activateItem(model1)
-          pane.activateItem(model2)
-          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
-
-          pane.activatePreviousItem()
-          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
-
-          pane.destroyItem(model2)
-          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
-
-          pane.destroyItem(model1)
-          expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
-
-    describe "when showing a view item", ->
+    describe "when the new activeItem is a view", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
-        pane.activateItem(view2)
+        paneModel.activateItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
-        expect(pane.activeView).toBe view2
+        paneModel.activateItem(view1)
+        paneModel.activateItem(view2)
+        expect(pane.itemViews.find('#view-2').length).toBe 1
 
   describe "::destroyItem(item)", ->
     describe "if the item is not modified", ->

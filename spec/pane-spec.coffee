@@ -4,6 +4,31 @@ PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
+  class Item
+    constructor: (@name) ->
+
+  describe "construction", ->
+    it "sets the active item to the first item", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      expect(pane.activeItem).toBe pane.items[0]
+
+  describe "::activateItem(item)", ->
+    pane = null
+
+    beforeEach ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+
+    it "changes the active item to the current item", ->
+      expect(pane.activeItem).toBe pane.items[0]
+      pane.activateItem(pane.items[1])
+      expect(pane.activeItem).toBe pane.items[1]
+
+    it "adds the given item if it isn't present in ::items", ->
+      item = new Item("C")
+      pane.activateItem(item)
+      expect(item in pane.items).toBe true
+      expect(pane.activeItem).toBe item
+
   describe "split methods", ->
     [pane1, container] = []
 
