@@ -38,8 +38,8 @@ describe "ThemeManager", ->
 
       # syntax theme is not a dir at this time, so only two.
       expect(paths.length).toBe 2
-      expect(paths[0]).toContain 'atom-dark-ui'
-      expect(paths[1]).toContain 'atom-light-ui'
+      expect(paths[0]).toContain 'atom-light-ui'
+      expect(paths[1]).toContain 'atom-dark-ui'
 
     it "ignores themes that cannot be resolved to a directory", ->
       atom.config.set('core.themes', ['definitely-not-a-theme'])
