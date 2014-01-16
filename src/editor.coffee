@@ -269,10 +269,9 @@ class Editor extends Model
   # * newLevel:
   #   A {Number} indicating the new indentation level.
   setIndentationForBufferRow: (bufferRow, newLevel) ->
-    currentLevel = @indentationForBufferRow(bufferRow)
-    currentIndentString = @buildIndentString(currentLevel)
+    currentIndentLength = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
-    @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
+    @buffer.change([[bufferRow, 0], [bufferRow, currentIndentLength]], newIndentString)
 
   # Public: Returns the indentation level of the given line of text.
   #
