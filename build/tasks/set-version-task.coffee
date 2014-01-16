@@ -4,15 +4,24 @@ path = require 'path'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'set-development-version', 'Sets version to current SHA-1', ->
+  getVersion = (callback) ->
+    if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
+      {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
+      callback(null, version)
+    else
+      cmd = 'git'
+      args = ['rev-parse', '--short', 'HEAD']
+      spawn {cmd, args}, (error, {stdout}={}, code) ->
+        callback(error, stdout?.trim?())
+
+  grunt.registerTask 'set-version', 'Set the version in the plist and package.json', ->
     done = @async()
 
-    cmd = 'git'
-    args = ['rev-parse', '--short', 'HEAD']
-    spawn {cmd, args}, (error, result, code) ->
-      return done(error) if error?
+    getVersion (error, version) ->
+      if error?
+        done(error)
+        return
 
-      version = result.stdout.trim()
       appDir = grunt.config.get('atom.appDir')
 
       # Replace version field of package.json.
@@ -32,7 +41,7 @@ module.exports = (grunt) ->
 
         strings =
           CompanyName: 'GitHub, Inc.'
-          FileDescription: 'The hackable, collaborative editor of tomorrow!'
+          FileDescription: 'The hackable, collaborative editor'
           LegalCopyright: 'Copyright (C) 2013 GitHub, Inc. All rights reserved'
           ProductName: 'Atom'
           ProductVersion: version

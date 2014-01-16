@@ -49,7 +49,7 @@ class CursorView extends View
     else if !@startBlinkingTimeout
       @startBlinking()
 
-    @setVisible(@cursor.isVisible() and not @editorView.isFoldedAtScreenRow(screenPosition.row))
+    @setVisible(@cursor.isVisible() and not @editorView.getEditor().isFoldedAtScreenRow(screenPosition.row))
 
   # Override for speed. The base function checks the computedStyle
   isHidden: ->

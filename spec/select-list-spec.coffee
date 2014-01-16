@@ -33,7 +33,7 @@ describe "SelectList", ->
       selectList.attachToDom()
 
     it "filters the elements in the list based on the scoreElement function and selects the first item", ->
-      miniEditor.insertText('la')
+      miniEditor.getEditor().insertText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 2
@@ -43,13 +43,13 @@ describe "SelectList", ->
       expect(selectList.error).not.toBeVisible()
 
     it "displays an error if there are no matches, removes error when there are matches", ->
-      miniEditor.insertText('nothing will match this')
+      miniEditor.getEditor().insertText('nothing will match this')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 0
       expect(selectList.error).not.toBeHidden()
 
-      miniEditor.setText('la')
+      miniEditor.getEditor().setText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 2
@@ -58,7 +58,7 @@ describe "SelectList", ->
     it "displays no elements until the array has been set on the list", ->
       selectList.array = null
       selectList.list.empty()
-      miniEditor.insertText('la')
+      miniEditor.getEditor().insertText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 0
@@ -124,7 +124,7 @@ describe "SelectList", ->
         selectList.attachToDom()
 
       it "does not trigger the confirmed hook", ->
-        miniEditor.insertText("i will never match anything")
+        miniEditor.getEditor().insertText("i will never match anything")
         window.advanceClock(selectList.inputThrottle)
 
         expect(list.find('li')).not.toExist()
@@ -132,7 +132,7 @@ describe "SelectList", ->
         expect(selectList.confirmed).not.toHaveBeenCalled()
 
       it "does trigger the cancelled hook", ->
-        miniEditor.insertText("i will never match anything")
+        miniEditor.getEditor().insertText("i will never match anything")
         window.advanceClock(selectList.inputThrottle)
 
         expect(list.find('li')).not.toExist()

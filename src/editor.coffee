@@ -930,7 +930,7 @@ class Editor extends Model
 
   # Public:
   #
-  # FIXME: What does this do?
+  # Removes all but one cursor (if there are multiple cursors)
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1

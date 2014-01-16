@@ -1,4 +1,4 @@
-Serializable = require 'serializable'
+Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
@@ -6,11 +6,9 @@ PaneContainer = require './pane-container'
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainerView extends View
-  atom.deserializers.add(this)
-  Serializable.includeInto(this)
+  Delegator.includeInto(this)
 
-  @deserialize: (state) ->
-    new this(PaneContainer.deserialize(state.model))
+  @delegatesMethod 'saveAll', toProperty: 'model'
 
   @content: ->
     @div class: 'panes'
@@ -29,13 +27,7 @@ class PaneContainerView extends View
       viewClass = model.getViewClass()
       model._view ?= new viewClass(model)
 
-  serializeParams: ->
-    model: @model.serialize()
-
   ### Public ###
-
-  itemDestroyed: (item) ->
-    @trigger 'item-destroyed', [item]
 
   getRoot: ->
     @children().first().view()
@@ -64,9 +56,6 @@ class PaneContainerView extends View
     throw new Error("Removing non-existant child") unless @getRoot() is child
     @setRoot(null)
     @trigger 'pane:removed', [child] if child instanceof PaneView
-
-  saveAll: ->
-    pane.saveItems() for pane in @getPanes()
 
   confirmClose: ->
     saved = true
@@ -105,28 +94,10 @@ class PaneContainerView extends View
     @getActivePane()?.activeView
 
   paneForUri: (uri) ->
-    for pane in @getPanes()
-      view = pane.itemForUri(uri)
-      return pane if view?
-    null
+    @viewForModel(@model.paneForUri(uri))
 
   focusNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].focus()
-      true
-    else
-      false
+    @model.activateNextPane()
 
   focusPreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@getFocusedPane())
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].focus()
-      true
-    else
-      false
+    @model.activatePreviousPane()

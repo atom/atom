@@ -3,6 +3,7 @@ Q = require 'q'
 path = require 'path'
 temp = require 'temp'
 PaneView = require '../src/pane-view'
+Workspace = require '../src/workspace'
 
 describe "WorkspaceView", ->
   pathToOpen = null
@@ -10,7 +11,8 @@ describe "WorkspaceView", ->
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
-    atom.workspaceView = new WorkspaceView
+    atom.workspace = new Workspace
+    atom.workspaceView = new WorkspaceView(atom.workspace)
     atom.workspaceView.enableKeymap()
     atom.workspaceView.openSync(pathToOpen)
     atom.workspaceView.focus()
@@ -19,20 +21,21 @@ describe "WorkspaceView", ->
     viewState = null
 
     simulateReload = ->
-      workspaceState = atom.workspaceView.serialize()
+      workspaceState = atom.workspace.serialize()
       projectState = atom.project.serialize()
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
-      atom.workspaceView = WorkspaceView.deserialize(workspaceState)
+      atom.workspace = Workspace.deserialize(workspaceState)
+      atom.workspaceView = new WorkspaceView(atom.workspace)
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
         atom.workspaceView.attachToDom()
         atom.workspaceView.openSync()
-        editor1 = atom.workspaceView.getActiveView()
-        buffer = editor1.getBuffer()
-        editor1.splitRight()
+        editorView1 = atom.workspaceView.getActiveView()
+        buffer = editorView1.getEditor().getBuffer()
+        editorView1.splitRight()
         expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPanes()[1]
 
         simulateReload()
@@ -58,31 +61,31 @@ describe "WorkspaceView", ->
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 4
-        editor1 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(0)').view()
-        editor3 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(1)').view()
-        editor2 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(0)').view()
-        editor4 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(1)').view()
+        editorView1 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(0)').view()
+        editorView3 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(1)').view()
+        editorView2 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(0)').view()
+        editorView4 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(1)').view()
 
-        expect(editor1.getPath()).toBe atom.project.resolve('a')
-        expect(editor2.getPath()).toBe atom.project.resolve('b')
-        expect(editor3.getPath()).toBe atom.project.resolve('../sample.js')
-        expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
-        expect(editor4.getPath()).toBe atom.project.resolve('../sample.txt')
-        expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
+        expect(editorView1.getEditor().getPath()).toBe atom.project.resolve('a')
+        expect(editorView2.getEditor().getPath()).toBe atom.project.resolve('b')
+        expect(editorView3.getEditor().getPath()).toBe atom.project.resolve('../sample.js')
+        expect(editorView3.getEditor().getCursorScreenPosition()).toEqual [2, 4]
+        expect(editorView4.getEditor().getPath()).toBe atom.project.resolve('../sample.txt')
+        expect(editorView4.getEditor().getCursorScreenPosition()).toEqual [0, 2]
 
         # ensure adjust pane dimensions is called
-        expect(editor1.width()).toBeGreaterThan 0
-        expect(editor2.width()).toBeGreaterThan 0
-        expect(editor3.width()).toBeGreaterThan 0
-        expect(editor4.width()).toBeGreaterThan 0
+        expect(editorView1.width()).toBeGreaterThan 0
+        expect(editorView2.width()).toBeGreaterThan 0
+        expect(editorView3.width()).toBeGreaterThan 0
+        expect(editorView4.width()).toBeGreaterThan 0
 
-        # ensure correct editor is focused again
-        expect(editor2.isFocused).toBeTruthy()
-        expect(editor1.isFocused).toBeFalsy()
-        expect(editor3.isFocused).toBeFalsy()
-        expect(editor4.isFocused).toBeFalsy()
+        # ensure correct editorView is focused again
+        expect(editorView2.isFocused).toBeTruthy()
+        expect(editorView1.isFocused).toBeFalsy()
+        expect(editorView3.isFocused).toBeFalsy()
+        expect(editorView4.isFocused).toBeFalsy()
 
-        expect(atom.workspaceView.title).toBe "#{path.basename(editor2.getPath())} - #{atom.project.getPath()}"
+        expect(atom.workspaceView.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPath()}"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
@@ -187,7 +190,7 @@ describe "WorkspaceView", ->
 
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
-        workspaceView2 = atom.deserializers.deserialize(atom.workspaceView.serialize())
+        workspaceView2 = new WorkspaceView(atom.workspace.testSerialization())
         item = atom.workspaceView.getActivePaneItem()
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()
@@ -462,27 +465,27 @@ describe "WorkspaceView", ->
     it "shows/hides invisibles in all open and future editors", ->
       atom.workspaceView.height(200)
       atom.workspaceView.attachToDom()
-      rightEditor = atom.workspaceView.getActiveView()
-      rightEditor.setText(" \t ")
-      leftEditor = rightEditor.splitLeft()
-      expect(rightEditor.find(".line:first").text()).toBe "    "
-      expect(leftEditor.find(".line:first").text()).toBe "    "
+      rightEditorView = atom.workspaceView.getActiveView()
+      rightEditorView.getEditor().setText(" \t ")
+      leftEditorView = rightEditorView.splitLeft()
+      expect(rightEditorView.find(".line:first").text()).toBe "    "
+      expect(leftEditorView.find(".line:first").text()).toBe "    "
 
-      withInvisiblesShowing = "#{rightEditor.invisibles.space}#{rightEditor.invisibles.tab} #{rightEditor.invisibles.space}#{rightEditor.invisibles.eol}"
-
-      atom.workspaceView.trigger "window:toggle-invisibles"
-      expect(rightEditor.find(".line:first").text()).toBe withInvisiblesShowing
-      expect(leftEditor.find(".line:first").text()).toBe withInvisiblesShowing
-
-      lowerLeftEditor = leftEditor.splitDown()
-      expect(lowerLeftEditor.find(".line:first").text()).toBe withInvisiblesShowing
+      withInvisiblesShowing = "#{rightEditorView.invisibles.space}#{rightEditorView.invisibles.tab} #{rightEditorView.invisibles.space}#{rightEditorView.invisibles.eol}"
 
       atom.workspaceView.trigger "window:toggle-invisibles"
-      expect(rightEditor.find(".line:first").text()).toBe "    "
-      expect(leftEditor.find(".line:first").text()).toBe "    "
+      expect(rightEditorView.find(".line:first").text()).toBe withInvisiblesShowing
+      expect(leftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
 
-      lowerRightEditor = rightEditor.splitDown()
-      expect(lowerRightEditor.find(".line:first").text()).toBe "    "
+      lowerLeftEditorView = leftEditorView.splitDown()
+      expect(lowerLeftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
+
+      atom.workspaceView.trigger "window:toggle-invisibles"
+      expect(rightEditorView.find(".line:first").text()).toBe "    "
+      expect(leftEditorView.find(".line:first").text()).toBe "    "
+
+      lowerRightEditorView = rightEditorView.splitDown()
+      expect(lowerRightEditorView.find(".line:first").text()).toBe "    "
 
   describe ".eachEditorView(callback)", ->
     beforeEach ->
