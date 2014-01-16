@@ -175,7 +175,7 @@ class EditorView extends View
         'core:select-to-top': => @editor.selectToTop()
         'core:select-to-bottom': => @editor.selectToBottom()
         'editor:indent': => @editor.indent()
-        'editor:auto-indent': => @editor.autoIndent()
+        'editor:auto-indent': => @editor.autoIndentSelectedRows()
         'editor:indent-selected-rows': => @editor.indentSelectedRows()
         'editor:outdent-selected-rows': => @editor.outdentSelectedRows()
         'editor:newline': => @editor.insertNewline()
