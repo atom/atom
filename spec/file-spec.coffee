@@ -73,7 +73,7 @@ describe 'File', ->
 
         fs.moveSync(filePath, newPath)
 
-        waitsFor "move event", ->
+        waitsFor "move event", 30000, ->
           moveHandler.callCount > 0
 
         runs ->
