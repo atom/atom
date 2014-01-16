@@ -37,7 +37,7 @@ class Rebuild extends Command
 
         rebuildArgs = ['rebuild']
         rebuildArgs.push("--target=#{config.getNodeVersion()}")
-        rebuildArgs.push('--arch=ia32')
+        rebuildArgs.push("--arch=#{config.getNodeArch()}")
         env = _.extend({}, process.env, HOME: @atomNodeDirectory)
         env.USERPROFILE = env.HOME if config.isWin32()
 
