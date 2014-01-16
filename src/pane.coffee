@@ -14,8 +14,8 @@ class Pane extends Model
   Serializable.includeInto(this)
 
   @properties
-    container: null
-    activeItem: null
+    container: undefined
+    activeItem: undefined
     focused: false
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
@@ -31,7 +31,7 @@ class Pane extends Model
   constructor: (params) ->
     super
 
-    @items = Sequence.fromArray(params?.items ? [])
+    @items = Sequence.fromArray(compact(params?.items ? []))
     @activeItem ?= @items[0]
 
     @subscribe @items.onEach (item) =>
@@ -125,25 +125,45 @@ class Pane extends Model
   #     The item to add. It can be a model with an associated view or a view.
   # * index:
   #     An optional index at which to add the item. If omitted, the item is
-  #     added to the end.
+  #     added after the current active item.
   #
   # Returns the added item
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
     @items.splice(index, 0, item)
+    @activeItem ?= item
     @emit 'item-added', item, index
     item
+
+  # Public: Adds the given items to the pane.
+  #
+  # * items:
+  #     An {Array} of items to add. Items can be models with associated views
+  #     or views. Any items that are already present in items will not be added.
+  # * index:
+  #     An optional index at which to add the item. If omitted, the item is
+  #     added after the current active item.
+  #
+  # Returns an {Array} of the added items
+  addItems: (items, index=@getActiveItemIndex() + 1) ->
+    items = items.filter (item) => not (item in @items)
+    @addItem(item, index + i) for item, i in items
+    items
 
   # Private:
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     return if index is -1
-    @activateNextItem() if item is @activeItem and @items.length > 1
+    if item is @activeItem
+      if @items.length is 1
+        @activeItem = undefined
+      else
+        @activateNextItem()
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
     @container?.itemDestroyed(item) if destroying
-    @destroy() if @items.length is 0
+    @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Moves the given item to the specified index.
   moveItem: (item, newIndex) ->
@@ -165,13 +185,14 @@ class Pane extends Model
   # Public: Destroys the given item. If it is the active item, activate the next
   # one. If this is the last item, also destroys the pane.
   destroyItem: (item) ->
-    @emit 'before-item-destroyed', item
-    if @promptToSaveItem(item)
-      @removeItem(item, true)
-      item.destroy?()
-      true
-    else
-      false
+    if item?
+      @emit 'before-item-destroyed', item
+      if @promptToSaveItem(item)
+        @removeItem(item, true)
+        item.destroy?()
+        true
+      else
+        false
 
   # Public: Destroys all items and destroys the pane.
   destroyItems: ->
@@ -180,6 +201,9 @@ class Pane extends Model
   # Public: Destroys all items but the active one.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
+
+  destroy: ->
+    super unless @container?.isAlive() and @container?.getPanes().length is 1
 
   # Private: Called by model superclass.
   destroyed: ->
@@ -255,7 +279,8 @@ class Pane extends Model
 
   # Private:
   copyActiveItem: ->
-    @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+    if @activeItem?
+      @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Public: Creates a new pane to the left of the receiver.
   #

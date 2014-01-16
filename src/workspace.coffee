@@ -132,6 +132,10 @@ class Workspace extends Model
   destroyActivePaneItem: ->
     @activePane?.destroyActiveItem()
 
+  # Public: destroy/close the active pane.
+  destroyActivePane: ->
+    @activePane?.destroy()
+
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
@@ -141,3 +145,7 @@ class Workspace extends Model
   onPaneItemDestroyed: (item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
+
+  # Private: Called by Model superclass when destroyed
+  destroyed: ->
+    @paneContainer.destroy()

@@ -98,39 +98,12 @@ describe "WorkspaceView", ->
     beforeEach ->
       atom.workspaceView.attachToDom()
 
-    describe "when there is an active view", ->
-      it "hands off focus to the active view", ->
-        editorView = atom.workspaceView.getActiveView()
-        editorView.isFocused = false
-        atom.workspaceView.focus()
-        expect(editorView.isFocused).toBeTruthy()
-
-    describe "when there is no active view", ->
-      beforeEach ->
-        atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getActiveView()).toBeUndefined()
-        atom.workspaceView.attachToDom()
-        expect(document.activeElement).toBe document.body
-
-      describe "when are visible focusable elements (with a -1 tabindex)", ->
-        it "passes focus to the first focusable element", ->
-          focusable1 = $$ -> @div "One", id: 'one', tabindex: -1
-          focusable2 = $$ -> @div "Two", id: 'two', tabindex: -1
-          atom.workspaceView.appendToLeft(focusable1, focusable2)
-          expect(document.activeElement).toBe document.body
-
-          atom.workspaceView.focus()
-          expect(document.activeElement).toBe focusable1[0]
-
-      describe "when there are no visible focusable elements", ->
-        it "surrenders focus to the body", ->
-          focusable = $$ -> @div "One", id: 'one', tabindex: -1
-          atom.workspaceView.appendToLeft(focusable)
-          focusable.hide()
-          expect(document.activeElement).toBe document.body
-
-          atom.workspaceView.focus()
-          expect(document.activeElement).toBe document.body
+    it "hands off focus to the active pane", ->
+      activePane = atom.workspaceView.getActivePane()
+      $('body').focus()
+      expect(activePane.hasFocus()).toBe false
+      atom.workspaceView.focus()
+      expect(activePane.hasFocus()).toBe true
 
   describe "keymap wiring", ->
     commandHandler = null
@@ -213,253 +186,167 @@ describe "WorkspaceView", ->
       expect(atom.config.get('editor.fontSize')).toBe 1
 
   describe ".openSync(filePath, options)", ->
-    describe "when there is no active pane", ->
-      beforeEach ->
-        spyOn(PaneView.prototype, 'focus')
-        atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getActivePane()).toBeUndefined()
+    [activePane, initialItemCount] = []
+    beforeEach ->
+      activePane = atom.workspaceView.getActivePane()
+      spyOn(activePane, 'focus')
+      initialItemCount = activePane.getItems().length
 
-      describe "when called with no path", ->
-        it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
-          editor = atom.workspaceView.openSync()
-          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
-          expect(editor.getPath()).toBeUndefined()
-          expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
+    describe "when called with no path", ->
+      it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
+        editor = atom.workspaceView.openSync()
+        expect(activePane.getItems().length).toBe initialItemCount + 1
+        expect(activePane.activeItem).toBe editor
+        expect(editor.getPath()).toBeUndefined()
+        expect(activePane.focus).toHaveBeenCalled()
 
-        it "can create multiple empty edit sessions as an item on a new pane", ->
-          editor = atom.workspaceView.openSync()
-          editor2 = atom.workspaceView.openSync()
-          expect(atom.workspaceView.getActivePane().getItems().length).toBe 2
-          expect(editor).not.toBe editor2
+    describe "when called with a path", ->
+      describe "when the active pane already has an edit session item for the path being opened", ->
+        it "shows the existing edit session in the pane", ->
+          previousEditor = activePane.activeItem
 
-      describe "when called with a path", ->
-        it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editor = atom.workspaceView.openSync('b')
-          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
-          expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-          expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
+          expect(activePane.activeItem).toBe editor
+          expect(editor).not.toBe previousEditor
 
-      describe "when the changeFocus option is false", ->
-        it "does not focus the new pane", ->
-          editor = atom.workspaceView.openSync('b', changeFocus: false)
-          expect(atom.workspaceView.getActivePane().focus).not.toHaveBeenCalled()
+          editor = atom.workspaceView.openSync(previousEditor.getPath())
+          expect(editor).toBe previousEditor
+          expect(activePane.activeItem).toBe editor
 
-      describe "when the split option is 'right'", ->
-        it "creates a new pane and opens the file in said pane", ->
-          editor = atom.workspaceView.openSync('b', split: 'right')
-          expect(atom.workspaceView.getActivePane().activeItem).toBe editor
-          expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
+          expect(activePane.focus).toHaveBeenCalled()
 
-    describe "when there is an active pane", ->
-      [activePane, initialItemCount] = []
-      beforeEach ->
-        activePane = atom.workspaceView.getActivePane()
-        spyOn(activePane, 'focus')
-        initialItemCount = activePane.getItems().length
+      describe "when the active pane does not have an edit session item for the path being opened", ->
+        it "creates a new edit session for the given path in the active editor", ->
+          editor = atom.workspaceView.openSync('b')
+          expect(activePane.items.length).toBe 2
+          expect(activePane.activeItem).toBe editor
+          expect(activePane.focus).toHaveBeenCalled()
 
-      describe "when called with no path", ->
-        it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
-          editor = atom.workspaceView.openSync()
-          expect(activePane.getItems().length).toBe initialItemCount + 1
+    describe "when the changeFocus option is false", ->
+      it "does not focus the active pane", ->
+        editor = atom.workspaceView.openSync('b', changeFocus: false)
+        expect(activePane.focus).not.toHaveBeenCalled()
+
+    describe "when the split option is 'right'", ->
+      it "creates a new pane and opens the file in said pane", ->
+        pane1 = atom.workspaceView.getActivePane()
+
+        editor = atom.workspaceView.openSync('b', split: 'right')
+        pane2 = atom.workspaceView.getActivePane()
+        expect(pane2[0]).not.toBe pane1[0]
+        expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
+
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+        editor = atom.workspaceView.openSync('file1', split: 'right')
+        pane3 = atom.workspaceView.getActivePane()
+        expect(pane3[0]).toBe pane2[0]
+        expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
+
+        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+  describe ".openSingletonSync(filePath, options)", ->
+    [pane1] = []
+    beforeEach ->
+      pane1 = atom.workspaceView.getActivePane()
+
+    it "creates a new pane and reuses the file when already open", ->
+      atom.workspaceView.openSingletonSync('b', split: 'right')
+      pane2 = atom.workspaceView.getActivePane()
+      expect(pane2[0]).not.toBe pane1[0]
+      expect(pane1.itemForUri('b')).toBeFalsy()
+      expect(pane2.itemForUri('b')).not.toBeFalsy()
+      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+      pane1.activate()
+      expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
+
+      atom.workspaceView.openSingletonSync('b', split: 'right')
+      pane3 = atom.workspaceView.getActivePane()
+      expect(pane3[0]).toBe pane2[0]
+      expect(pane1.itemForUri('b')).toBeFalsy()
+      expect(pane2.itemForUri('b')).not.toBeFalsy()
+      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+    it "handles split: left by opening to the left pane when necessary", ->
+      atom.workspaceView.openSingletonSync('b', split: 'right')
+      pane2 = atom.workspaceView.getActivePane()
+      expect(pane2[0]).not.toBe pane1[0]
+
+      atom.workspaceView.openSingletonSync('file1', split: 'left')
+
+      activePane = atom.workspaceView.getActivePane()
+      expect(activePane[0]).toBe pane1[0]
+
+      expect(pane1.itemForUri('file1')).toBeTruthy()
+      expect(pane2.itemForUri('file1')).toBeFalsy()
+      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+      pane2.activate()
+      expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
+
+      atom.workspaceView.openSingletonSync('file1', split: 'left')
+      activePane = atom.workspaceView.getActivePane()
+      expect(activePane[0]).toBe pane1[0]
+      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
+
+    it "reuses the file when already open", ->
+      atom.workspaceView.openSync('b')
+      atom.workspaceView.openSingletonSync('b', split: 'right')
+      expect(atom.workspaceView.panes.find('.pane').toArray()).toEqual [pane1[0]]
+
+  describe ".open(filePath)", ->
+    [activePane] = []
+
+    beforeEach ->
+      spyOn(PaneView.prototype, 'focus')
+      activePane = atom.workspaceView.getActivePane()
+
+    describe "when called with no path", ->
+      it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
+        editor = null
+
+        waitsForPromise ->
+          atom.workspaceView.open().then (o) -> editor = o
+
+        runs ->
+          expect(activePane.getItems().length).toBe 2
           expect(activePane.activeItem).toBe editor
           expect(editor.getPath()).toBeUndefined()
           expect(activePane.focus).toHaveBeenCalled()
 
-      describe "when called with a path", ->
-        describe "when the active pane already has an edit session item for the path being opened", ->
-          it "shows the existing edit session in the pane", ->
-            previousEditor = activePane.activeItem
+    describe "when called with a path", ->
+      describe "when the active pane already has an item for the given path", ->
+        it "shows the existing edit session in the pane", ->
+          previousEditor = activePane.activeItem
 
-            editor = atom.workspaceView.openSync('b')
-            expect(activePane.activeItem).toBe editor
-            expect(editor).not.toBe previousEditor
-
-            editor = atom.workspaceView.openSync(previousEditor.getPath())
-            expect(editor).toBe previousEditor
-            expect(activePane.activeItem).toBe editor
-
-            expect(activePane.focus).toHaveBeenCalled()
-
-        describe "when the active pane does not have an edit session item for the path being opened", ->
-          it "creates a new edit session for the given path in the active editor", ->
-            editor = atom.workspaceView.openSync('b')
-            expect(activePane.items.length).toBe 2
-            expect(activePane.activeItem).toBe editor
-            expect(activePane.focus).toHaveBeenCalled()
-
-      describe "when the changeFocus option is false", ->
-        it "does not focus the active pane", ->
-          editor = atom.workspaceView.openSync('b', changeFocus: false)
-          expect(activePane.focus).not.toHaveBeenCalled()
-
-      describe "when the split option is 'right'", ->
-        it "creates a new pane and opens the file in said pane", ->
-          pane1 = atom.workspaceView.getActivePane()
-
-          editor = atom.workspaceView.openSync('b', split: 'right')
-          pane2 = atom.workspaceView.getActivePane()
-          expect(pane2[0]).not.toBe pane1[0]
-          expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-
-          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-          editor = atom.workspaceView.openSync('file1', split: 'right')
-          pane3 = atom.workspaceView.getActivePane()
-          expect(pane3[0]).toBe pane2[0]
-          expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
-
-          expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-  describe ".openSingletonSync(filePath, options)", ->
-    describe "when there is an active pane", ->
-      [pane1] = []
-      beforeEach ->
-        pane1 = atom.workspaceView.getActivePane()
-
-      it "creates a new pane and reuses the file when already open", ->
-        atom.workspaceView.openSingletonSync('b', split: 'right')
-        pane2 = atom.workspaceView.getActivePane()
-        expect(pane2[0]).not.toBe pane1[0]
-        expect(pane1.itemForUri('b')).toBeFalsy()
-        expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-        pane1.activate()
-        expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
-
-        atom.workspaceView.openSingletonSync('b', split: 'right')
-        pane3 = atom.workspaceView.getActivePane()
-        expect(pane3[0]).toBe pane2[0]
-        expect(pane1.itemForUri('b')).toBeFalsy()
-        expect(pane2.itemForUri('b')).not.toBeFalsy()
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-      it "handles split: left by opening to the left pane when necessary", ->
-        atom.workspaceView.openSingletonSync('b', split: 'right')
-        pane2 = atom.workspaceView.getActivePane()
-        expect(pane2[0]).not.toBe pane1[0]
-
-        atom.workspaceView.openSingletonSync('file1', split: 'left')
-
-        activePane = atom.workspaceView.getActivePane()
-        expect(activePane[0]).toBe pane1[0]
-
-        expect(pane1.itemForUri('file1')).toBeTruthy()
-        expect(pane2.itemForUri('file1')).toBeFalsy()
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-        pane2.activate()
-        expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
-
-        atom.workspaceView.openSingletonSync('file1', split: 'left')
-        activePane = atom.workspaceView.getActivePane()
-        expect(activePane[0]).toBe pane1[0]
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-      it "reuses the file when already open", ->
-        atom.workspaceView.openSync('b')
-        atom.workspaceView.openSingletonSync('b', split: 'right')
-        expect(atom.workspaceView.panes.find('.pane').toArray()).toEqual [pane1[0]]
-
-  describe ".open(filePath)", ->
-    beforeEach ->
-      spyOn(PaneView.prototype, 'focus')
-
-    describe "when there is no active pane", ->
-      beforeEach ->
-        atom.workspaceView.getActivePane().remove()
-        expect(atom.workspaceView.getActivePane()).toBeUndefined()
-
-      describe "when called with no path", ->
-        it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
-          editor = null
-
-          waitsForPromise ->
-            atom.workspaceView.open().then (o) -> editor = o
-
-          runs ->
-            expect(atom.workspaceView.getActivePane().activeItem).toBe editor
-            expect(editor.getPath()).toBeUndefined()
-            expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
-
-        it "can create multiple empty edit sessions as items on a pane", ->
-          editor1 = null
-          editor2 = null
-
-          waitsForPromise ->
-            atom.workspaceView.open()
-              .then (o) ->
-                editor1 = o
-                atom.workspaceView.open()
-              .then (o) ->
-                editor2 = o
-
-          runs ->
-            expect(atom.workspaceView.getActivePane().getItems().length).toBe 2
-            expect(editor1).not.toBe editor2
-
-      describe "when called with a path", ->
-        it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editor = null
           waitsForPromise ->
             atom.workspaceView.open('b').then (o) -> editor = o
 
           runs ->
-            expect(atom.workspaceView.getActivePane().activeItem).toBe editor
-            expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-            expect(atom.workspaceView.getActivePane().focus).toHaveBeenCalled()
+            expect(activePane.activeItem).toBe editor
+            expect(editor).not.toBe previousEditor
 
-    describe "when there is an active pane", ->
-      [activePane] = []
+          waitsForPromise ->
+            atom.workspaceView.open(previousEditor.getPath()).then (o) -> editor = o
 
-      beforeEach ->
-        activePane = atom.workspaceView.getActivePane()
+          runs ->
+            expect(editor).toBe previousEditor
+            expect(activePane.activeItem).toBe editor
+            expect(activePane.focus).toHaveBeenCalled()
 
-      describe "when called with no path", ->
-        it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
+      describe "when the active pane does not have an existing item for the given path", ->
+        it "creates a new edit session for the given path in the active pane", ->
           editor = null
 
           waitsForPromise ->
-            atom.workspaceView.open().then (o) -> editor = o
+            atom.workspaceView.open('b').then (o) -> editor = o
 
           runs ->
-            expect(activePane.getItems().length).toBe 2
             expect(activePane.activeItem).toBe editor
-            expect(editor.getPath()).toBeUndefined()
+            expect(activePane.getItems().length).toBe 2
             expect(activePane.focus).toHaveBeenCalled()
-
-      describe "when called with a path", ->
-        describe "when the active pane already has an item for the given path", ->
-          it "shows the existing edit session in the pane", ->
-            previousEditor = activePane.activeItem
-
-            editor = null
-            waitsForPromise ->
-              atom.workspaceView.open('b').then (o) -> editor = o
-
-            runs ->
-              expect(activePane.activeItem).toBe editor
-              expect(editor).not.toBe previousEditor
-
-            waitsForPromise ->
-              atom.workspaceView.open(previousEditor.getPath()).then (o) -> editor = o
-
-            runs ->
-              expect(editor).toBe previousEditor
-              expect(activePane.activeItem).toBe editor
-              expect(activePane.focus).toHaveBeenCalled()
-
-        describe "when the active pane does not have an existing item for the given path", ->
-          it "creates a new edit session for the given path in the active pane", ->
-            editor = null
-
-            waitsForPromise ->
-              atom.workspaceView.open('b').then (o) -> editor = o
-
-            runs ->
-              expect(activePane.activeItem).toBe editor
-              expect(activePane.getItems().length).toBe 2
-              expect(activePane.focus).toHaveBeenCalled()
 
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
@@ -561,13 +448,12 @@ describe "WorkspaceView", ->
       expect(workspace.getActivePaneItem().getUri()).toBe 'a'
 
   describe "core:close", ->
-    it "closes the active editor until there are none", ->
+    it "closes the active pane item until all that remains is a single empty pane", ->
+      atom.config.set('core.destroyEmptyPanes', true)
       atom.project.openSync('../sample.txt')
       expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 1
       atom.workspaceView.trigger('core:close')
-      expect(atom.workspaceView.getActivePane()).not.toBeDefined()
-      atom.workspaceView.trigger('core:close')
-      expect(atom.workspaceView.getActivePane()).not.toBeDefined()
+      expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 0
 
   describe "core:save", ->
     it "saves active editor until there are none", ->

@@ -19,8 +19,8 @@ describe "PaneContainerView", ->
       isEqual: (other) -> @name is other?.name
 
     container = new PaneContainerView
-    pane1 = new PaneView(new TestView('1'))
-    container.setRoot(pane1)
+    pane1 = container.getRoot()
+    pane1.activateItem(new TestView('1'))
     pane2 = pane1.splitRight(new TestView('2'))
     pane3 = pane2.splitDown(new TestView('3'))
 
@@ -130,12 +130,23 @@ describe "PaneContainerView", ->
       expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
       expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
 
-    it "removes empty panes on deserialization", ->
-      # only deserialize pane 1's view successfully
-      TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
-      newContainer = new PaneContainerView(container.model.testSerialization())
-      expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
-      expect(newContainer.find('> :contains(1)')).toExist()
+    describe "if there are empty panes after deserialization", ->
+      beforeEach ->
+        # only deserialize pane 1's view successfully
+        TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
+
+      describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "leaves the empty panes intact", ->
+          newContainer = new PaneContainerView(container.model.testSerialization())
+          expect(newContainer.find('.pane-row > :contains(1)')).toExist()
+          expect(newContainer.find('.pane-row > .pane-column > .pane').length).toBe 2
+
+      describe "if the 'core.destroyEmptyPanes' config option is true", ->
+        it "removes empty panes on deserialization", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+          newContainer = new PaneContainerView(container.model.testSerialization())
+          expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
+          expect(newContainer.find('> :contains(1)')).toExist()
 
   describe "pane-container:active-pane-item-changed", ->
     [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []
@@ -147,23 +158,12 @@ describe "PaneContainerView", ->
       item3a = new TestView('3a')
 
       container = new PaneContainerView
+      pane1 = container.getRoot()
+      pane1.activateItem(item1a)
       container.attachToDom()
-      pane1 = new PaneView(item1a)
-      container.setRoot(pane1)
 
       activeItemChangedHandler = jasmine.createSpy("activeItemChangedHandler")
       container.on 'pane-container:active-pane-item-changed', activeItemChangedHandler
-
-    describe "when there are no panes", ->
-      it "is triggered when a new pane containing a pane item is added", ->
-        container.setRoot()
-        expect(container.getPanes().length).toBe 0
-        activeItemChangedHandler.reset()
-
-        pane = new PaneView(item1a)
-        container.setRoot(pane)
-        expect(activeItemChangedHandler.callCount).toBe 1
-        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
 
     describe "when there is one pane", ->
       it "is triggered when a new pane item is added", ->
@@ -200,11 +200,6 @@ describe "PaneContainerView", ->
 
       it "is triggered when all pane items are destroyed", ->
         pane1.destroyItem(item1a)
-        expect(activeItemChangedHandler.callCount).toBe 1
-        expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
-
-      it "is triggered when the pane is destroyed", ->
-        pane1.remove()
         expect(activeItemChangedHandler.callCount).toBe 1
         expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
 

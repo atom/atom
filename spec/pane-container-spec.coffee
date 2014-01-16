@@ -36,8 +36,8 @@ describe "PaneContainer", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      pane1 = new Pane
-      container = new PaneContainer(root: pane1)
+      container = new PaneContainer
+      pane1 = container.root
 
     it "references the first pane if no pane has been made active", ->
       expect(container.activePane).toBe pane1
@@ -60,18 +60,8 @@ describe "PaneContainer", ->
       pane2.destroy()
       expect(container.activePane).toBe pane1
       expect(pane1.active).toBe true
+
+    it "does not allow the root pane to be destroyed", ->
       pane1.destroy()
-      expect(container.activePane).toBe null
-
-  describe "when the last pane is removed", ->
-    [container, pane, surrenderedFocusHandler] = []
-
-    beforeEach ->
-      pane = new Pane
-      container = new PaneContainer(root: pane)
-      container.on 'surrendered-focus', surrenderedFocusHandler = jasmine.createSpy("surrenderedFocusHandler")
-
-    it "assigns null to the root and the activePane", ->
-      pane.destroy()
-      expect(container.root).toBe null
-      expect(container.activePane).toBe null
+      expect(container.root).toBe pane1
+      expect(pane1.isDestroyed()).toBe false

@@ -9,13 +9,15 @@ class PaneContainer extends Model
   Serializable.includeInto(this)
 
   @properties
-    root: null
+    root: -> new Pane
     activePane: null
 
   previousRoot: null
 
   @behavior 'activePaneItem', ->
-    @$activePane.switch (activePane) -> activePane?.$activeItem
+    @$activePane
+      .switch((activePane) -> activePane?.$activeItem)
+      .distinctUntilChanged()
 
   constructor: (params) ->
     super
@@ -24,7 +26,7 @@ class PaneContainer extends Model
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
-    params.destroyEmptyPanes = true
+    params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
     params
 
   serializeParams: (params) ->
@@ -75,14 +77,15 @@ class PaneContainer extends Model
     root.parent = this
     root.container = this
 
-    if root instanceof Pane
-      @activePane ?= root
-      @subscribe root, 'destroyed', =>
-        @activePane = null
-        @root = null
+
+    @activePane ?= root if root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
 
   itemDestroyed: (item) ->
     @emit 'item-destroyed', item
+
+  # Private: Called by Model superclass when destroyed
+  destroyed: ->
+    pane.destroy() for pane in @getPanes()

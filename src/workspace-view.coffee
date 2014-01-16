@@ -44,7 +44,7 @@ class WorkspaceView extends View
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
   @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
-    toProperty: 'model'
+    'destroyActivePane', toProperty: 'model'
 
   @version: 4
 
@@ -55,6 +55,7 @@ class WorkspaceView extends View
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
+    destroyEmptyPanes: false
 
   # Private:
   @content: ->
@@ -118,7 +119,7 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', => @reopenItemSync()
 
-    @command 'core:close', => @destroyActivePaneItem()
+    @command 'core:close', => if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
@@ -237,8 +238,11 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
+  # Private: Called by SpacePen
+  beforeRemove: ->
+    @model.destroy()
+
   # Private: Destroys everything.
   remove: ->
-    @model.destroy()
     editorView.remove() for editorView in @getEditorViews()
     super

@@ -76,7 +76,7 @@ class PaneView extends View
     @command 'pane:split-right', => @splitRight(@copyActiveItem())
     @command 'pane:split-up', => @splitUp(@copyActiveItem())
     @command 'pane:split-down', => @splitDown(@copyActiveItem())
-    @command 'pane:close', => @destroyItems()
+    @command 'pane:close', => @model.destroy()
     @command 'pane:close-other-items', => @destroyInactiveItems()
 
   # Deprecated: Use ::destroyItem
@@ -102,6 +102,7 @@ class PaneView extends View
     @focus() if @model.focused and onDom
 
     return if @attached
+    @container = @closest('.panes').view()
     @attached = true
     @trigger 'pane:attached', [this]
 
@@ -118,7 +119,7 @@ class PaneView extends View
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
-    panes = @getContainer()?.getPanes()
+    panes = @container?.getPanes()
     return unless panes.length > 1
     nextIndex = (panes.indexOf(this) + 1) % panes.length
     panes[nextIndex]
@@ -194,7 +195,7 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.splitDown({items})._view
 
-  # Private:
+  # Public:
   getContainer: ->
     @closest('.panes').view()
 
