@@ -20,6 +20,7 @@
     "grunt-download-atom-shell": "git+https://atom-bot:362295be4c5258d3f7b967bbabae662a455ca2a7@github.com/atom/grunt-download-atom-shell#v0.5.0",
     "grunt-lesslint": "0.13.0",
     "grunt-markdown": "~0.4.0",
+    "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
     "harmony-collections": "~0.3.8",
     "js-yaml": "~2.1.0",
@@ -29,7 +30,6 @@
     "rimraf": "~2.2.2",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
-    "walkdir": "0.0.7",
-    "grunt-peg": "~1.1.0"
+    "walkdir": "0.0.7"
   }
 }
