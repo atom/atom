@@ -38,7 +38,7 @@
     "nslog": "0.3.0",
     "oniguruma": "0.26.0",
     "optimist": "0.4.0",
-    "pathwatcher": "0.14.1",
+    "pathwatcher": "0.14.2",
     "pegjs": "0.8.0",
     "q": "0.9.7",
     "scandal": "0.12.0",
