@@ -2722,6 +2722,15 @@ describe "Editor", ->
         editor.moveCursorLeft()
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
+    describe ".setIndentationForBufferRow", ->
+      describe "when the editor uses soft tabs but the row has hard tabs", ->
+        it "only replaces whitespace charachters", ->
+          editor.setSoftWrap(true)
+          editor.setText("	1\n	2")
+          editor.setCursorBufferPosition([0, 0])
+          editor.setIndentationForBufferRow(0, 2)
+          expect(editor.getText()).toBe("    1\n	2")
+
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
       atom.packages.activatePackage('language-text', sync: true)
