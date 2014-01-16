@@ -39,6 +39,8 @@ module.exports = (grunt) ->
       else
         nonPackageDirectories.push(directory)
 
+    # Put any paths here that shouldn't end up in the built Atom.app
+    # so that it doesn't becomes larger than it needs to be.
     ignoredPaths = [
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
@@ -46,6 +48,7 @@ module.exports = (grunt) ->
       path.join('less', 'test')
       path.join('bootstrap', 'docs')
       path.join('spellchecker', 'vendor')
+      path.join('xmldom', 'test')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
