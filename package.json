@@ -23,7 +23,7 @@
     "clear-cut": "0.2.0",
     "coffee-script": "1.6.3",
     "coffeestack": "0.6.0",
-    "delegato": "~0.4.0",
+    "delegato": "1.x",
     "emissary": "0.31.0",
     "first-mate": "0.17.0",
     "fs-plus": "1.x",
