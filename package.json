@@ -41,7 +41,7 @@
     "optimist": "0.4.0",
     "pathwatcher": "0.14.2",
     "pegjs": "0.8.0",
-    "property-accessors": "~0.1.0",
+    "property-accessors": "1.x",
     "q": "0.9.7",
     "scandal": "0.13.0",
     "season": "0.14.0",
