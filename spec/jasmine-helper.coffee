@@ -4,8 +4,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   {$, $$} = require 'atom'
   window[key] = value for key, value of require '../vendor/jasmine'
 
-  require 'jasmine-focused'
-  require 'jasmine-tagged'
+  {TerminalReporter} = require 'jasmine-tagged'
 
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
@@ -18,8 +17,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
       process.stderr.write(str)
 
   if atom.getLoadSettings().exitWhenDone
-    {jasmineNode} = require 'jasmine-node/lib/jasmine-node/reporter'
-    reporter = new jasmineNode.TerminalReporter
+    reporter = new TerminalReporter
       print: (str) ->
         log(str)
       onComplete: (runner) ->

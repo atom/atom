@@ -4,6 +4,7 @@ keytar = require 'keytar'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
+screen = require 'screen'
 shell = require 'shell'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
@@ -207,10 +208,11 @@ class Atom extends Model
 
   # Private:
   restoreWindowDimensions: ->
+    workAreaSize = screen.getPrimaryDisplay().workAreaSize
     windowDimensions = @state.windowDimensions ? {}
     {initialSize} = @getLoadSettings()
-    windowDimensions.height ?= initialSize?.height ? global.screen.availHeight
-    windowDimensions.width ?= initialSize?.width ? Math.min(global.screen.availWidth, 1024)
+    windowDimensions.height ?= initialSize?.height ? workAreaSize.height
+    windowDimensions.width ?= initialSize?.width ? Math.min(workAreaSize.width, 1024)
     @setWindowDimensions(windowDimensions)
 
   # Private:

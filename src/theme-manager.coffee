@@ -42,19 +42,26 @@ class ThemeManager
   # Internal-only: adhere to the PackageActivator interface
   activatePackages: (themePackages) -> @activateThemes()
 
+  # Private: Get the enabled theme names from the config.
+  #
+  # Returns an array of theme names in the order that they should be activated.
+  getEnabledThemeNames: ->
+    themeNames = atom.config.get('core.themes') ? []
+    themeNames = [themeNames] unless _.isArray(themeNames)
+
+    # Reverse so the first (top) theme is loaded after the others. We want
+    # the first/top theme to override later themes in the stack.
+    themeNames.reverse()
+
   # Internal-only:
   activateThemes: ->
     # atom.config.observe runs the callback once, then on subsequent changes.
-    atom.config.observe 'core.themes', (themeNames) =>
+    atom.config.observe 'core.themes', =>
       @deactivateThemes()
-      themeNames = [themeNames] unless _.isArray(themeNames)
-
-      # Reverse so the first (top) theme is loaded after the others. We want
-      # the first/top theme to override later themes in the stack.
-      themeNames = _.clone(themeNames).reverse()
 
       @refreshLessCache() # Update cache for packages in core.themes config
-      @packageManager.activatePackage(themeName) for themeName in themeNames
+      for themeName in @getEnabledThemeNames()
+        @packageManager.activatePackage(themeName)
 
       @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
       @loadUserStylesheet()
@@ -85,7 +92,7 @@ class ThemeManager
       themePaths = (theme.getStylesheetsPath() for theme in activeThemes when theme)
     else
       themePaths = []
-      for themeName in atom.config.get('core.themes') ? []
+      for themeName in @getEnabledThemeNames()
         if themePath = @packageManager.resolvePackagePath(themeName)
           themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 

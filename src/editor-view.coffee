@@ -128,9 +128,9 @@ class EditorView extends View
       'core:delete': => @editor.delete()
       'core:undo': => @editor.undo()
       'core:redo': => @editor.redo()
-      'core:cut': => @editor.cutSelection()
-      'core:copy': => @editor.copySelection()
-      'core:paste': => @editor.paste()
+      'core:cut': => @editor.cutSelectedText()
+      'core:copy': => @editor.copySelectedText()
+      'core:paste': => @editor.pasteText()
       'editor:move-to-previous-word': => @editor.moveCursorToPreviousWord()
       'editor:select-word': => @editor.selectWord()
       'editor:consolidate-selections': (event) => @consolidateSelections(event)
@@ -668,7 +668,7 @@ class EditorView extends View
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
-    @css('font-size', "#{fontSize}px}")
+    @css('font-size', "#{fontSize}px")
 
     @clearCharacterWidthCache()
 
