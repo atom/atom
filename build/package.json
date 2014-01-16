@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "biscotto": "0.0.17",
-    "first-mate": "~0.10.0",
+    "first-mate": "~0.13.0",
     "formidable": "~1.0.14",
     "github-releases": "~0.2.0",
     "grunt": "~0.4.1",
@@ -28,6 +28,7 @@
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "unzip": "~0.1.9",
+    "vm-compatibility-layer": "~0.1.0",
     "walkdir": "0.0.7",
     "grunt-peg": "~1.1.0"
   }

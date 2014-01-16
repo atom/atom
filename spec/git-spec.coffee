@@ -187,6 +187,7 @@ describe "Git", ->
       newPath = atom.project.resolve('git/working-dir/untracked.txt')
       cleanPath = atom.project.resolve('git/working-dir/other.txt')
       fs.writeFileSync(newPath, '')
+      newPath = fs.absolute newPath  # specs could be running under symbol path.
 
     afterEach ->
       fs.writeFileSync(modifiedPath, originalModifiedPathText)

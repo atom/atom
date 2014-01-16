@@ -668,7 +668,7 @@ class EditorView extends View
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
-    @css('font-size', "#{fontSize}px}")
+    @css('font-size', "#{fontSize}px")
 
     @clearCharacterWidthCache()
 

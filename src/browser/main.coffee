@@ -2,7 +2,6 @@ global.shellStartTime = Date.now()
 
 autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
-delegate = require 'atom-delegate'
 app = require 'app'
 fs = require 'fs'
 module = require 'module'
@@ -24,7 +23,7 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?
   nslog(error.stack) if error.stack?
 
-delegate.browserMainParts.preMainMessageLoopRun = ->
+start = ->
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
@@ -122,3 +121,5 @@ parseCommandLine = ->
     resourcePath = path.dirname(path.dirname(__dirname))
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}
+
+start()
