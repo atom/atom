@@ -34,8 +34,6 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
 class Atom extends Model
-  @version: 1
-
   # Public: Load or create the Atom environment in the given mode
   #
   # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
@@ -43,11 +41,11 @@ class Atom extends Model
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    @deserialize(@loadState(mode)) ? new this({mode, @version})
+    @deserialize(@loadState(mode)) ? new this({mode, version: @getVersion()})
 
   # Private: Deserializes the Atom environment from a state object
   @deserialize: (state) ->
-    new this(state) if state?.version is @version
+    new this(state) if state?.version is @getVersion()
 
   # Private: Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
@@ -106,7 +104,7 @@ class Atom extends Model
 
   # Private: Get the version of the Atom application.
   @getVersion: ->
-    @version ?= app.getVersion()
+    app.getVersion()
 
   # Private: Determine whether the current version is an official release.
   @isReleasedVersion: ->
