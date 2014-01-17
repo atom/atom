@@ -125,6 +125,7 @@
       { label: 'Reload', command: 'window:reload' }
       { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
       { label: 'Open Your Stylesheet', command: 'window:open-your-stylesheet' }
+      { label: 'Open Your Keymap', command: 'window:open-your-keymap' }
       {
         label: 'Developer'
         submenu: [
