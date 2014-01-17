@@ -110,6 +110,7 @@ class ThemeManager
   #Private:
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()
+    @userStylesheetFile = null
     @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
 
   # Private:
