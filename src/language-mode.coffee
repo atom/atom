@@ -162,7 +162,7 @@ class LanguageMode
     return [startRow, endRow] if startRow isnt endRow
 
   rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
-    return null unless @isBufferRowFoldable(bufferRow)
+    return null unless @isFoldableAtBufferRow(bufferRow)
 
     startIndentLevel = @editor.indentationForBufferRow(bufferRow)
     scopes = @editor.scopesForBufferPosition([bufferRow, 0])
@@ -178,7 +178,7 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  isBufferRowFoldable: (bufferRow) ->
+  isFoldableAtBufferRow: (bufferRow) ->
     return false if @editor.isBufferRowBlank(bufferRow)
     nextNonEmptyRow = @editor.nextNonBlankBufferRow(bufferRow)
     return false unless nextNonEmptyRow?

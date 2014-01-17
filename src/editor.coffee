@@ -51,7 +51,7 @@ class Editor extends Model
 
   @delegatesMethods 'foldAll', 'unfoldAll', 'foldAllAtIndentLevel', 'foldBufferRow',
     'unfoldBufferRow', 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
-    'autoDecreaseIndentForBufferRow', 'toggleLineCommentsForBufferRows', 'isBufferRowFoldable',
+    'autoDecreaseIndentForBufferRow', 'toggleLineCommentsForBufferRows', 'isFoldableAtBufferRow',
     toProperty: 'languageMode'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
