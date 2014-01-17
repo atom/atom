@@ -45,11 +45,15 @@
   visibility: hidden;
   padding-left: .1em;
   padding-right: .5em;
-  opacity: .8;
+  opacity: .7;
 }
 
 .editor .gutter:hover .line-number.foldable .fold-icon {
   visibility: visible;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .editor .gutter .line-number.fold .fold-icon {
