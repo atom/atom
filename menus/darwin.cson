@@ -124,9 +124,6 @@
     submenu: [
       { label: 'Reload', command: 'window:reload' }
       { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
-      { label: 'Open Your Config', command: 'window:open-your-config' }
-      { label: 'Open Your Keymap', command: 'window:open-your-keymap' }
-      { label: 'Open Your Stylesheet', command: 'window:open-your-stylesheet' }
       {
         label: 'Developer'
         submenu: [
@@ -136,6 +133,10 @@
           { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
         ]
       }
+      { type: 'separator' }
+      { label: 'Open Your Config', command: 'window:open-your-config' }
+      { label: 'Open Your Keymap', command: 'window:open-your-keymap' }
+      { label: 'Open Your Stylesheet', command: 'window:open-your-stylesheet' }
       { type: 'separator' }
       { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
     ]
