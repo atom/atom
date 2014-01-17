@@ -125,6 +125,7 @@ class WorkspaceView extends View
 
     @command 'window:open-your-stylesheet', => @model.openUserStylesheet()
     @command 'window:open-your-keymap', => @model.openUserKeymap()
+    @command 'window:open-your-config', => @model.openUserConfig()
 
   # Private:
   handleFocus: (e) ->

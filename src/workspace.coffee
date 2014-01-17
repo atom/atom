@@ -46,6 +46,10 @@ class Workspace extends Model
   openUserKeymap: ->
     @open(atom.keymap.getUserKeymapPath())
 
+  # Private: Open ~/.atom/config.cson or ~/.atom/config.json
+  openUserConfig: ->
+    @open(atom.config.getUserConfigPath())
+
   # Public: Asynchronously opens a given a filepath in Atom.
   #
   # * filePath: A file path
