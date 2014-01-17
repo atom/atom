@@ -44,11 +44,16 @@ describe "Pane", ->
       pane.addItem(item4)
       expect(pane.items).toEqual [item1, item2, item4, item3]
 
-    it "sets the active item if it is undefined", ->
+    it "sets the active item after adding the first item", ->
       pane = new Pane
       item = new Item("A")
+      events = []
+      pane.on 'item-added', -> events.push('item-added')
+      pane.$activeItem.changes.onValue -> events.push('active-item-changed')
+
       pane.addItem(item)
       expect(pane.activeItem).toBe item
+      expect(events).toEqual ['item-added', 'active-item-changed']
 
   describe "::activateItem(item)", ->
     pane = null
