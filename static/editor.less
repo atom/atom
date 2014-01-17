@@ -26,7 +26,6 @@
 }
 
 .editor .gutter .line-number {
-  padding-right: .5em;
   padding-left: .5em;
   opacity: 0.6;
   position: relative;
@@ -40,21 +39,21 @@
   opacity: 1;
 }
 
-.editor .gutter .line-number:after {
-  .icon(0.8em);
-  content: @chevron-down;
-  opacity: .8;
+.editor .gutter .line-number .fold-icon {
+  .octicon(chevron-down, 0.8em);
+  display: inline-block;
   visibility: hidden;
-  position: relative;
-  top: -0.1em;
+  padding-left: .1em;
+  padding-right: .5em;
+  opacity: .8;
 }
 
-.editor .gutter .line-number.fold:after {
+.editor .gutter:hover .line-number.foldable .fold-icon {
   visibility: visible;
-  content: @chevron-right;
 }
 
-.editor .gutter:hover .line-number.foldable:not(.fold):after {
+.editor .gutter .line-number.fold .fold-icon {
+  .octicon(chevron-right, 0.8em);
   visibility: visible;
 }
 
