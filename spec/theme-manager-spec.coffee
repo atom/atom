@@ -1,5 +1,7 @@
 path = require 'path'
+
 {$, $$, fs, WorkspaceView} = require 'atom'
+temp = require 'temp'
 
 ThemeManager = require '../src/theme-manager'
 AtomPackage = require '../src/atom-package'
@@ -155,3 +157,29 @@ describe "ThemeManager", ->
       expect($(".editor").css("padding-top")).toBe "150px"
       expect($(".editor").css("padding-right")).toBe "150px"
       expect($(".editor").css("padding-bottom")).toBe "150px"
+
+  describe "when the user stylesheet changes", ->
+    it "reloads it", ->
+      userStylesheetPath = path.join(temp.mkdirSync("atom"), 'user.css')
+      fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
+
+      spyOn(themeManager, 'getUserStylesheetPath').andReturn userStylesheetPath
+      themeManager.activateThemes()
+
+      expect($(document.body).css('border-style')).toBe 'dotted'
+      spyOn(themeManager, 'loadUserStylesheet').andCallThrough()
+
+      fs.writeFileSync(userStylesheetPath, 'body {border-style: dashed}')
+
+      waitsFor ->
+        themeManager.loadUserStylesheet.callCount is 1
+
+      runs ->
+        expect($(document.body).css('border-style')).toBe 'dashed'
+        fs.removeSync(userStylesheetPath)
+
+      waitsFor ->
+        themeManager.loadUserStylesheet.callCount is 2
+
+      runs ->
+        expect($(document.body).css('border-style')).toBe 'none'
