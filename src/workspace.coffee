@@ -42,6 +42,10 @@ class Workspace extends Model
   openUserStylesheet: ->
     @open(atom.themes.getUserStylesheetPath())
 
+  # Private: Open ~/.atom/keymap.cson or ~/.atom/keymap.json
+  openUserKeymap: ->
+    @open(atom.keymap.getUserKeymapPath())
+
   # Public: Asynchronously opens a given a filepath in Atom.
   #
   # * filePath: A file path

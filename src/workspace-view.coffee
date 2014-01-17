@@ -124,6 +124,7 @@ class WorkspaceView extends View
     @command 'core:save-as', => @saveActivePaneItemAs()
 
     @command 'window:open-your-stylesheet', => @model.openUserStylesheet()
+    @command 'window:open-your-keymap', => @model.openUserKeymap()
 
   # Private:
   handleFocus: (e) ->
