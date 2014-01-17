@@ -4,10 +4,10 @@ _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
 
+{$} = require './space-pen-extensions'
+AtomPackage = require './atom-package'
 File = require './file'
 Package = require './package'
-AtomPackage = require './atom-package'
-{$} = require './space-pen-extensions'
 
 # Private: Handles discovering and loading available themes.
 #
