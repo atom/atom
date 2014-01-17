@@ -123,7 +123,7 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
-    @command 'open-your-stylesheet', => @model.openUserStylesheet()
+    @command 'window:open-your-stylesheet', => @model.openUserStylesheet()
 
   # Private:
   handleFocus: (e) ->

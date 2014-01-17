@@ -124,6 +124,7 @@
     submenu: [
       { label: 'Reload', command: 'window:reload' }
       { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
+      { label: 'Open Your Stylesheet', command: 'window:open-your-stylesheet' }
       {
         label: 'Developer'
         submenu: [
