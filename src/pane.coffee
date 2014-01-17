@@ -239,7 +239,7 @@ class Pane extends Model
   # * item: The item to save.
   # * nextAction: An optional function which will be called after the item is saved.
   saveItem: (item, nextAction) ->
-    if item.getUri?()
+    if item?.getUri?()
       item.save?()
       nextAction?()
     else
@@ -250,7 +250,7 @@ class Pane extends Model
   # * item: The item to save.
   # * nextAction: An optional function which will be called after the item is saved.
   saveItemAs: (item, nextAction) ->
-    return unless item.saveAs?
+    return unless item?.saveAs?
 
     itemPath = item.getPath?()
     itemPath = dirname(itemPath) if itemPath
