@@ -213,7 +213,7 @@ class Gutter extends View
 
       rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
 
-      html += """<div class="#{classes}" data-buffer-row=#{row}>#{rowValuePadding}#{rowValue}<div class="fold-icon"></div></div>"""
+      html += """<div class="#{classes}" data-buffer-row=#{row}>#{rowValuePadding}#{rowValue}<div class="icon-right"></div></div>"""
 
       lastRow = row
 

@@ -718,9 +718,9 @@ describe "EditorView", ->
     describe "mousedown on the fold icon of a foldable line number", ->
       it "toggles folding on the clicked buffer row", ->
         expect(editor.isFoldedAtScreenRow(1)).toBe false
-        editorView.gutter.find('.line-number:eq(1) .fold-icon').mousedown()
+        editorView.gutter.find('.line-number:eq(1) .icon-right').mousedown()
         expect(editor.isFoldedAtScreenRow(1)).toBe true
-        editorView.gutter.find('.line-number:eq(1) .fold-icon').mousedown()
+        editorView.gutter.find('.line-number:eq(1) .icon-right').mousedown()
         expect(editor.isFoldedAtScreenRow(1)).toBe false
 
   describe "when text input events are triggered on the hidden input element", ->
