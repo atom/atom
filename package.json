@@ -37,7 +37,7 @@
     "less-cache": "0.10.0",
     "mixto": "1.x",
     "nslog": "0.3.0",
-    "oniguruma": "0.26.0",
+    "oniguruma": "1.x",
     "optimist": "0.4.0",
     "pathwatcher": "0.14.2",
     "pegjs": "0.8.0",
