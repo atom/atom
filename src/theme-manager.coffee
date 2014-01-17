@@ -4,9 +4,9 @@ _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
 
-Package = require './package'
-AtomPackage = require './atom-package'
 {$} = require './space-pen-extensions'
+AtomPackage = require './atom-package'
+File = require './file'
 
 # Private: Handles discovering and loading available themes.
 #
@@ -71,7 +71,7 @@ class ThemeManager
 
   # Internal-only:
   deactivateThemes: ->
-    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+    @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
 
@@ -106,12 +106,24 @@ class ThemeManager
     else
       null
 
+  #Private:
+  unwatchUserStylesheet: ->
+    @userStylesheetFile?.off()
+    @userStylesheetFile = null
+    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+
   # Private:
   loadUserStylesheet: ->
-    if userStylesheetPath = @getUserStylesheetPath()
-      @userStylesheetPath = userStylesheetPath
-      userStylesheetContents = @loadStylesheet(userStylesheetPath)
-      @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
+    @unwatchUserStylesheet()
+    userStylesheetPath = @getUserStylesheetPath()
+    return unless fs.isFileSync(userStylesheetPath)
+
+    @userStylesheetPath = userStylesheetPath
+    @userStylesheetFile = new File(userStylesheetPath)
+    @userStylesheetFile.on 'contents-changed moved removed', =>
+      @loadUserStylesheet()
+    userStylesheetContents = @loadStylesheet(userStylesheetPath)
+    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   # Internal-only:
   loadBaseStylesheets: ->
@@ -178,8 +190,7 @@ class ThemeManager
 
   # Internal-only:
   removeStylesheet: (stylesheetPath) ->
-    unless fullPath = @resolveStylesheet(stylesheetPath)
-      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     @stylesheetElementForId(@stringToId(fullPath)).remove()
 
   # Internal-only:
