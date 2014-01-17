@@ -40,17 +40,22 @@
   opacity: 1;
 }
 
-.editor .gutter .line-number.fold:after {
-  visibility: visible;
-}
-
 .editor .gutter .line-number:after {
   .icon(0.8em);
-  content: @chevron-right;
+  content: @chevron-down;
   opacity: .8;
   visibility: hidden;
   position: relative;
-  top: -0.2em;
+  top: -0.1em;
+}
+
+.editor .gutter .line-number.fold:after {
+  visibility: visible;
+  content: @chevron-right;
+}
+
+.editor .gutter:hover .line-number.foldable:not(.fold):after {
+  visibility: visible;
 }
 
 .editor .fold-marker:after {

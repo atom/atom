@@ -1814,6 +1814,13 @@ describe "EditorView", ->
       expect(editorView.gutter.find('.line-number:first').html()).toBe "&nbsp;2"
       expect(editorView.gutter.find('.line-number:last').html()).toBe "11"
 
+    it "adds a .foldable class to lines that start foldable regions", ->
+      expect(editorView.gutter.find('.line-number:eq(0)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(1)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(2)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(4)')).toHaveClass 'foldable'
+
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
         editorView.scrollTop(3 * editorView.lineHeight)
