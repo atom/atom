@@ -52,7 +52,8 @@
     "text-buffer": "0.13.0",
     "theorist": "~0.14.0",
     "underscore-plus": "0.6.1",
-    "vm-compatibility-layer": "0.1.0"
+    "vm-compatibility-layer": "0.1.0",
+    "deferred-require": "~0.2.0"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.10.0",

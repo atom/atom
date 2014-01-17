@@ -1,3 +1,4 @@
+deferredRequire = require 'deferred-require'
 Package = require './package'
 fs = require 'fs-plus'
 path = require 'path'
@@ -191,7 +192,9 @@ class AtomPackage extends Package
   requireMainModule: ->
     return @mainModule if @mainModule?
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
+
+    if fs.isFileSync(mainModulePath)
+      deferredRequire.run => @mainModule = require(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
