@@ -369,3 +369,12 @@ describe "Keymap", ->
       runs ->
         keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
         expect(keyBinding.command).toBe 'core:move-right'
+        keymap.loadUserKeymap.reset()
+        fs.removeSync(keymapFilePath)
+
+      waitsFor ->
+        keymap.loadUserKeymap.callCount > 0
+
+      runs ->
+        keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
+        expect(keyBinding).toBeUndefined()
