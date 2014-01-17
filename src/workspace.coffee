@@ -38,7 +38,7 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
-  # Private: Open ~/.atom/user.less or ~/.atom.user.css
+  # Private: Open ~/.atom/user.less or ~/.atom/user.css
   openUserStylesheet: ->
     @open(atom.themes.getUserStylesheetPath())
 
