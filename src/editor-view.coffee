@@ -413,7 +413,7 @@ class EditorView extends View
       # Work around of the accented character suggestion feature in OS X.
       selectedLength = @hiddenInput[0].selectionEnd - @hiddenInput[0].selectionStart
       if selectedLength is 1 and lastInput is @hiddenInput.val()
-        @selectLeft()
+        @editor.selectLeft()
 
       lastInput = e.originalEvent.data
       @editor.insertText(lastInput)
