@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 path = require 'path'
 Serializable = require 'serializable'
+Delegator = require 'delegato'
 {Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
@@ -33,6 +34,7 @@ module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
   atom.deserializers.add(this)
+  Delegator.includeInto(this)
 
   @properties
     scrollTop: 0
@@ -46,6 +48,10 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
+
+  @delegatesMethods 'foldAll', 'unfoldAll', 'foldAllAtIndentLevel', 'foldBufferRow',
+    'unfoldBufferRow', 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
+    'autoDecreaseIndentForBufferRow', 'toggleLineCommentsForBufferRows', toProperty: 'languageMode'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
@@ -560,35 +566,15 @@ class Editor extends Model
     @getCursor().needsAutoscroll = true
     @buffer.redo(this)
 
-  # Public: Folds all the rows.
-  foldAll: ->
-    @languageMode.foldAll()
-
-  # Public: Unfolds all the rows.
-  unfoldAll: ->
-    @languageMode.unfoldAll()
-
-  # Public: Creates a fold for each section at the given indent level.
-  foldAllAtIndentLevel: (indentLevel) ->
-    @languageMode.foldAllAtIndentLevel(indentLevel)
-
   # Public: Folds the current row.
   foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldBufferRow(bufferRow)
 
-  # Public: Folds a give buffer row.
-  foldBufferRow: (bufferRow) ->
-    @languageMode.foldBufferRow(bufferRow)
-
   # Public: Unfolds the current row.
   unfoldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
-
-  # Public: Unfolds a given a buffer row.
-  unfoldBufferRow: (bufferRow) ->
-    @languageMode.unfoldBufferRow(bufferRow)
 
   # Public: Folds all selections.
   foldSelection: ->
@@ -630,38 +616,6 @@ class Editor extends Model
   # {Delegates to: DisplayBuffer.largestFoldStartingAtScreenRow}
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
-
-  # Public: Suggests the indent for the given buffer row.
-  suggestedIndentForBufferRow: (bufferRow) ->
-    @languageMode.suggestedIndentForBufferRow(bufferRow)
-
-  # Public: Indents all the rows between two buffer rows.
-  #
-  # * startRow: The row {Number} to start at (inclusive)
-  # * endRow: The row {Number} to end at (inclusive)
-  autoIndentBufferRows: (startRow, endRow) ->
-    @languageMode.autoIndentBufferRows(startRow, endRow)
-
-  # Public: Indents the given buffer row to it's suggested level.
-  autoIndentBufferRow: (bufferRow) ->
-    @languageMode.autoIndentBufferRow(bufferRow)
-
-  # Public:
-  #
-  # FIXME: What does this do?
-  autoDecreaseIndentForBufferRow: (bufferRow) ->
-    @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
-
-  # Public: Wraps the lines between two rows in comments.
-  #
-  # If the language doesn't have comments, nothing happens.
-  #
-  # startRow - The row {Number} to start at (inclusive)
-  # endRow - The row {Number} to end at (inclusive)
-  #
-  # Returns an {Array} of the commented {Ranges}.
-  toggleLineCommentsForBufferRows: (start, end) ->
-    @languageMode.toggleLineCommentsForBufferRows(start, end)
 
   # Public: Moves the selected line up one row.
   moveLineUp: ->
