@@ -598,6 +598,14 @@ class Editor extends Model
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
+  # Public: Folds the given buffer row if it's not currently folded, and unfolds
+  # it otherwise.
+  toggleFoldAtBufferRow: (bufferRow) ->
+    if @isFoldedAtBufferRow(bufferRow)
+      @unfoldBufferRow(bufferRow)
+    else
+      @foldBufferRow(bufferRow)
+
   # Public: Returns whether the current row is folded.
   isFoldedAtCursorRow: ->
     @isFoldedAtScreenRow(@getCursorScreenRow())

@@ -715,6 +715,14 @@ describe "EditorView", ->
         expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
         expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
+    describe "mousedown on the fold icon of a foldable line number", ->
+      it "toggles folding on the clicked buffer row", ->
+        expect(editor.isFoldedAtScreenRow(1)).toBe false
+        editorView.gutter.find('.line-number:eq(1) .fold-icon').mousedown()
+        expect(editor.isFoldedAtScreenRow(1)).toBe true
+        editorView.gutter.find('.line-number:eq(1) .fold-icon').mousedown()
+        expect(editor.isFoldedAtScreenRow(1)).toBe false
+
   describe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editorView.attachToDom()
