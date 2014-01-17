@@ -202,7 +202,7 @@ class Gutter extends View
 
     html = ''
     for row in rows
-      if row == lastScreenRow
+      if row is lastRow
         rowValue = '•'
       else
         rowValue = (row + 1).toString()
@@ -214,7 +214,7 @@ class Gutter extends View
 
       html += """<div class="#{classes}">#{rowValuePadding}#{rowValue}</div>"""
 
-      lastScreenRow = row
+      lastRow = row
 
     html
 
