@@ -7,7 +7,6 @@ fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 AtomPackage = require './atom-package'
 File = require './file'
-Package = require './package'
 
 # Private: Handles discovering and loading available themes.
 #
