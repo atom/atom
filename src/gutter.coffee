@@ -208,8 +208,8 @@ class Gutter extends View
         rowValue = (row + 1).toString()
 
       classes = "line-number line-number-#{row}"
-      classes += ' fold' if editor.isFoldedAtBufferRow(row)
       classes += ' foldable' if row isnt lastRow and editor.isFoldableAtBufferRow(row)
+      classes += ' folded' if editor.isFoldedAtBufferRow(row)
 
       rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
 

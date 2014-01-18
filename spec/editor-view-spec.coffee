@@ -1842,11 +1842,11 @@ describe "EditorView", ->
 
       it "re-renders the correct line number range when there are folds", ->
         editorView.editor.foldBufferRow(1)
-        expect(editorView.gutter.find('.line-number-1')).toHaveClass 'fold'
+        expect(editorView.gutter.find('.line-number-1')).toHaveClass 'folded'
 
         buffer.insert([0, 0], '\n')
 
-        expect(editorView.gutter.find('.line-number-2')).toHaveClass 'fold'
+        expect(editorView.gutter.find('.line-number-2')).toHaveClass 'folded'
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
@@ -1881,8 +1881,8 @@ describe "EditorView", ->
 
       it "styles folded line numbers", ->
         editor.createFold(3, 5)
-        expect(editorView.gutter.find('.line-number.fold').length).toBe 1
-        expect(editorView.gutter.find('.line-number.fold:eq(0)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number.folded').length).toBe 1
+        expect(editorView.gutter.find('.line-number.folded:eq(0)').intValue()).toBe 4
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
