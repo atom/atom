@@ -106,7 +106,6 @@ describe "LanguageMode", ->
           range = languageMode.rowRangeForParagraphAtBufferRow(15)
           expect(range).toEqual [[15,0], [15,26]]
 
-
   describe "coffeescript", ->
     beforeEach ->
       atom.packages.activatePackage('language-coffee-script', sync: true)
@@ -297,6 +296,14 @@ describe "LanguageMode", ->
           languageMode.unfoldBufferRow(1)
           expect(editor.lineForScreenRow(1).fold).toBeUndefined()
 
+    describe ".isFoldableAtBufferRow(bufferRow)", ->
+      it "returns true if the line starts a foldable row range", ->
+        expect(languageMode.isFoldableAtBufferRow(0)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(1)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(2)).toBe false
+        expect(languageMode.isFoldableAtBufferRow(3)).toBe false
+        expect(languageMode.isFoldableAtBufferRow(4)).toBe true
+
   describe "folding with comments", ->
     beforeEach ->
       atom.packages.activatePackage('language-javascript', sync: true)
@@ -349,6 +356,12 @@ describe "LanguageMode", ->
 
         fold2 = editor.lineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
+
+    describe ".isFoldableAtBufferRow(bufferRow)", ->
+      it "returns true if the line starts a multi-line comment", ->
+        expect(languageMode.isFoldableAtBufferRow(1)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(6)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(17)).toBe false
 
   describe "css", ->
     beforeEach ->

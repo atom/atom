@@ -15,6 +15,6 @@ var quicksort = function () {
     }
     return sort(left).concat(pivot).concat(sort(right));
   };
-
+  // this is a single-line comment
   return sort(Array.apply(this, arguments));
 };
