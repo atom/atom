@@ -51,18 +51,25 @@
 .editor .gutter:hover .line-number.foldable .icon-right {
   visibility: visible;
 
+  &:before {
+    content: @chevron-down;
+  }
+
   &:hover {
     opacity: 1;
   }
 }
 
-.editor .gutter .line-number.fold .icon-right {
-  .octicon(chevron-right, 0.8em);
-  visibility: visible;
+.editor .gutter, .editor .gutter:hover {
+  .line-number.fold .icon-right {
+    .octicon(chevron-right, 0.8em);
+    visibility: visible;
 
-  &:before { // chevron-right renders too far right compared to chevron-down
-    position: relative;
-    left: -.1em;
+    &:before { // chevron-right renders too far right compared to chevron-down
+      position: relative;
+      left: -.1em;
+      content: @chevron-right;
+    }
   }
 }
 
