@@ -314,16 +314,16 @@ class Editor extends Model
   # {Delegates to: TextBuffer.getPath}
   getPath: -> @buffer.getPath()
 
-  # {Delegates to: TextBuffer.getText}
+  # Public: Returns a {String} representing the entire contents of the editor.
   getText: -> @buffer.getText()
 
-  # {Delegates to: TextBuffer.setText}
+  # Public: Replaces the entire contents of the buffer with the given {String}.
   setText: (text) -> @buffer.setText(text)
 
-  # {Delegates to: TextBuffer.getTextInRange}
+  # Public: Returns a {String} of text in the given {Range}.
   getTextInRange: (range) -> @buffer.getTextInRange(range)
 
-  # {Delegates to: TextBuffer.getLineCount}
+  # Public: Returns a {Number} representing the number of lines in the editor.
   getLineCount: -> @buffer.getLineCount()
 
   # Private: Retrieves the current {TextBuffer}.
@@ -347,16 +347,28 @@ class Editor extends Model
   # {Delegates to: TextBuffer.getEofPosition}
   getEofBufferPosition: -> @buffer.getEofPosition()
 
-  # {Delegates to: TextBuffer.getLastRow}
+  # Public: Returns a {Number} representing the last zero-indexed buffer row
+  # number of the editor.
   getLastBufferRow: -> @buffer.getLastRow()
 
-  # {Delegates to: TextBuffer.rangeForRow}
+  # Public: Returns the range for the given buffer row.
+  #
+  # * row: A row {Number}.
+  # * options: An options hash with an `includeNewline` key.
+  #
+  # Returns a {Range}.
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
 
-  # {Delegates to: TextBuffer.lineForRow}
+  # Public: Returns a {String} representing the contents of the line at the
+  # given buffer row.
+  #
+  # * row - A {Number} representing a zero-indexed buffer row.
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
-  # {Delegates to: TextBuffer.lineLengthForRow}
+  # Public: Returns a {Number} representing the line length for the given
+  # buffer row, exclusive of its line-ending character(s).
+  #
+  # row - A {Number} indicating the buffer row.
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
 
   # {Delegates to: TextBuffer.scan}
