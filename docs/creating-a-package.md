@@ -172,7 +172,7 @@ specify which menus to load and in what order.
 It's recommended that you create an application menu item for common actions
 with your package that aren't tied to a specific element:
 
-```coffee-script
+```coffeescript
 'menu': [
   {
     'label': 'Packages'
@@ -202,7 +202,7 @@ by other packages in the order which they were loaded.
 It's recommended to specify a context menu item for commands that are linked to
 specific parts of the interface, like adding a file in the tree-view:
 
-```coffee-script
+```coffeescript
 'context-menu':
   '.tree-view':
     'Add file': 'tree-view:add-file'
