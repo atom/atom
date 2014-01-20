@@ -3,7 +3,6 @@ path = require 'path'
 async = require 'async'
 fs = require 'fs-plus'
 request = require 'request'
-temp = require 'temp'
 
 module.exports = (grunt) ->
   cmd = path.join('node_modules', '.bin', 'coffee')
@@ -13,8 +12,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
     done = @async()
-
-    downloadDir = temp.mkdirSync('atom-docs-download-dir-')
 
     downloadFileFromRepo = ({repo, file}, callback) ->
       uri = "https://raw2.github.com/atom/#{repo}/master/#{file}"

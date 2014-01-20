@@ -30,7 +30,6 @@
     "rcedit": "~0.1.2",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
-    "temp": "~0.6.0",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
     "walkdir": "0.0.7"
