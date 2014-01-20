@@ -99,6 +99,8 @@ class WorkspaceView extends View
     @command 'application:minimize', -> ipc.sendChannel('command', 'application:minimize')
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
+    @command 'application:open-your-config', -> ipc.sendChannel('command', 'application:open-your-config')
+    @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
 
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
@@ -123,10 +125,6 @@ class WorkspaceView extends View
     @command 'core:close', => if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
-
-    @command 'window:open-your-stylesheet', => @model.openUserStylesheet()
-    @command 'window:open-your-keymap', => @model.openUserKeymap()
-    @command 'window:open-your-config', => @model.openUserConfig()
 
   # Private:
   handleFocus: (e) ->
