@@ -44,7 +44,7 @@ key mappings your package needs to load. If not specified, mappings in the
 _keymaps_ directory are added alphabetically.
 - `menus`(**Optional**): an Array of Strings identifying the order of
 the menu mappings your package needs to load. If not specified, mappings
-in the _keymap_ directory are added alphabetically.
+in the _menus_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
