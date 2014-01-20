@@ -308,7 +308,7 @@ class Project extends Model
   # * regex: A RegExp to search with
   # * replacementText: Text to replace all matches of regex with
   # * filePaths: List of file path strings to run the replace on.
-  # * iterator: A Function callback on each file with replacements. ({filePath, replacements}) ->
+  # * iterator: A Function callback on each file with replacements. `({filePath, replacements}) ->`
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 
