@@ -111,7 +111,7 @@ describe "Pane", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.items
 
-    it "removes the item from the items list and activates the next item if it was the active item", ->
+    it "removes the item from the items list", ->
       expect(pane.activeItem).toBe item1
       pane.destroyItem(item2)
       expect(item2 in pane.items).toBe false
@@ -119,7 +119,21 @@ describe "Pane", ->
 
       pane.destroyItem(item1)
       expect(item1 in pane.items).toBe false
-      expect(pane.activeItem).toBe item3
+
+    describe "when the destroyed item is the active item and is the first item", ->
+      it "activates the next item", ->
+        expect(pane.activeItem).toBe item1
+        pane.destroyItem(item1)
+        expect(pane.activeItem).toBe item2
+
+    describe "when the destroyed item is the active item and is not the first item", ->
+      beforeEach ->
+        pane.activateItem(item2)
+
+      it "activates the previous item", ->
+        expect(pane.activeItem).toBe item2
+        pane.destroyItem(item2)
+        expect(pane.activeItem).toBe item1
 
     it "emits 'item-removed' with the item, its index, and true indicating the item is being destroyed", ->
       pane.on 'item-removed', itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
