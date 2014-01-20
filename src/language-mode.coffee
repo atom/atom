@@ -190,7 +190,7 @@ class LanguageMode
   # Private: Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtBufferRow: (bufferRow) ->
-    return false if @editor.isBufferRowBlank(bufferRow)
+    return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
     nextNonEmptyRow = @editor.nextNonBlankBufferRow(bufferRow)
     return false unless nextNonEmptyRow?
     @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
