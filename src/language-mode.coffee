@@ -28,6 +28,9 @@ class LanguageMode
   constructor: (@editor) ->
     @buffer = @editor.buffer
 
+  toggleLineCommentForBufferRow: (row) ->
+    @toggleLineCommentsForBufferRows(row, row)
+
   # Wraps the lines between two rows in comments.
   #
   # If the language doesn't have comment, nothing happens.
