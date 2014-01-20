@@ -27,6 +27,14 @@ class Workspace extends Model
   constructor: ->
     super
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
+    atom.project.registerOpener (filePath) =>
+      switch filePath
+        when 'atom://.atom/stylesheet'
+          @open(atom.themes.getUserStylesheetPath())
+        when 'atom://.atom/keymap'
+          @open(atom.keymap.getUserKeymapPath())
+        when 'atom://.atom/config'
+          @open(atom.config.getUserConfigPath())
 
   # Private: Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
@@ -37,18 +45,6 @@ class Workspace extends Model
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
-
-  # Private: Open ~/.atom/user.less or ~/.atom/user.css
-  openUserStylesheet: ->
-    @open(atom.themes.getUserStylesheetPath())
-
-  # Private: Open ~/.atom/keymap.cson or ~/.atom/keymap.json
-  openUserKeymap: ->
-    @open(atom.keymap.getUserKeymapPath())
-
-  # Private: Open ~/.atom/config.cson or ~/.atom/config.json
-  openUserConfig: ->
-    @open(atom.config.getUserConfigPath())
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
