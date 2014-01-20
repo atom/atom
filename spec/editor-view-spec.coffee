@@ -1829,6 +1829,21 @@ describe "EditorView", ->
       expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
       expect(editorView.gutter.find('.line-number:eq(4)')).toHaveClass 'foldable'
 
+      # changes to indentation update foldability
+      editor.setIndentationForBufferRow(1, 0)
+      expect(editorView.gutter.find('.line-number:eq(0)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(1)')).toHaveClass 'foldable'
+
+      # changes to comments update foldability
+      editor.toggleLineCommentsForBufferRows(2, 3)
+      expect(editorView.gutter.find('.line-number:eq(2)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      editor.toggleLineCommentForBufferRow(2)
+      expect(editorView.gutter.find('.line-number:eq(2)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      editor.toggleLineCommentForBufferRow(4)
+      expect(editorView.gutter.find('.line-number:eq(3)')).toHaveClass 'foldable'
+
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
         editorView.scrollTop(3 * editorView.lineHeight)
