@@ -44,20 +44,12 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
         expect(buffer.lineForRow(0)).toBe " // var i;"
 
-    describe "fold suggestion", ->
-      describe ".isFoldableAtBufferRow(bufferRow)", ->
-        it "returns true only when the buffer row starts a foldable region", ->
-          expect(languageMode.isFoldableAtBufferRow(0)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(1)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(2)).toBeFalsy()
-          expect(languageMode.isFoldableAtBufferRow(3)).toBeFalsy()
-
-      describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
-        it "returns the start/end rows of the foldable region starting at the given row", ->
-          expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 12]
-          expect(languageMode.rowRangeForCodeFoldAtBufferRow(1)).toEqual [1, 9]
-          expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
-          expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
+    describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
+      it "returns the start/end rows of the foldable region starting at the given row", ->
+        expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 12]
+        expect(languageMode.rowRangeForCodeFoldAtBufferRow(1)).toEqual [1, 9]
+        expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
+        expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
     describe "suggestedIndentForBufferRow", ->
       it "returns the suggested indentation based on auto-indent/outdent rules", ->
