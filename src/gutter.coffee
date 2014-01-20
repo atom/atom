@@ -228,7 +228,7 @@ class Gutter extends View
   # anyway.
   updateFoldableClasses: (changes) ->
     editor = @getEditor()
-    for {start, end} in changes when start <= @lastScreenRow
+    for {start, end} in changes when start <= @lastScreenRow and end >= @firstScreenRow
       startScreenRow = Math.max(start - 1, @firstScreenRow)
       endScreenRow =  Math.min(end + 1, @lastScreenRow)
       lastBufferRow = null
