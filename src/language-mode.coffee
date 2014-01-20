@@ -28,6 +28,9 @@ class LanguageMode
   constructor: (@editor) ->
     @buffer = @editor.buffer
 
+  toggleLineCommentForBufferRow: (row) ->
+    @toggleLineCommentsForBufferRows(row, row)
+
   # Wraps the lines between two rows in comments.
   #
   # If the language doesn't have comment, nothing happens.
@@ -162,7 +165,7 @@ class LanguageMode
     return [startRow, endRow] if startRow isnt endRow
 
   rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
-    return null unless @doesBufferRowStartFold(bufferRow)
+    return null unless @isFoldableAtBufferRow(bufferRow)
 
     startIndentLevel = @editor.indentationForBufferRow(bufferRow)
     scopes = @editor.scopesForBufferPosition([bufferRow, 0])
@@ -178,11 +181,32 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  doesBufferRowStartFold: (bufferRow) ->
-    return false if @editor.isBufferRowBlank(bufferRow)
+  # Public: Returns a {Boolean} indicating whether the given buffer row starts a
+  # foldable row range. Rows that are "foldable" have a fold icon next to their
+  # icon in the gutter in the default configuration.
+  isFoldableAtBufferRow: (bufferRow) ->
+    @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
+
+  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # a a foldable row range due to the code's indentation patterns.
+  isFoldableCodeAtBufferRow: (bufferRow) ->
+    return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
     nextNonEmptyRow = @editor.nextNonBlankBufferRow(bufferRow)
     return false unless nextNonEmptyRow?
     @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
+
+  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # a foldable row range due to being the start of a multi-line comment.
+  isFoldableCommentAtBufferRow: (bufferRow) ->
+    @isLineCommentedAtBufferRow(bufferRow) and
+      @isLineCommentedAtBufferRow(bufferRow + 1) and
+        not @isLineCommentedAtBufferRow(bufferRow - 1)
+
+  # Private: Returns a {Boolean} indicating whether the line at the given buffer
+  # row is a comment.
+  isLineCommentedAtBufferRow: (bufferRow) ->
+    return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
+    @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow.
   # Right now, a paragraph is a block of text bounded by and empty line or a
@@ -190,10 +214,7 @@ class LanguageMode
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     return unless /\w/.test(@editor.lineForBufferRow(bufferRow))
 
-    isRowComment = (row) =>
-      @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
-
-    if isRowComment(bufferRow)
+    if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
       range = @rowRangeForCommentAtBufferRow(bufferRow)
       [firstRow, lastRow] = range or [bufferRow, bufferRow]
@@ -203,14 +224,14 @@ class LanguageMode
 
     startRow = bufferRow
     while startRow > firstRow
-      break if isRowComment(startRow - 1) != isOriginalRowComment
+      break if @isLineCommentedAtBufferRow(startRow - 1) != isOriginalRowComment
       break unless /\w/.test(@editor.lineForBufferRow(startRow - 1))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
-      break if isRowComment(endRow + 1) != isOriginalRowComment
+      break if @isLineCommentedAtBufferRow(endRow + 1) != isOriginalRowComment
       break unless /\w/.test(@editor.lineForBufferRow(endRow + 1))
       endRow++
 

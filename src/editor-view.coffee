@@ -348,6 +348,11 @@ class EditorView extends View
       @editor.destroyFoldWithId(id)
       false
 
+    @gutter.on 'mousedown', '.foldable .icon-right', (e) =>
+      bufferRow = $(e.target).parent().data('bufferRow')
+      @editor.toggleFoldAtBufferRow(bufferRow)
+      false
+
     @renderedLines.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 

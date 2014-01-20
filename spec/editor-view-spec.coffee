@@ -715,6 +715,14 @@ describe "EditorView", ->
         expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
         expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
+    describe "mousedown on the fold icon of a foldable line number", ->
+      it "toggles folding on the clicked buffer row", ->
+        expect(editor.isFoldedAtScreenRow(1)).toBe false
+        editorView.gutter.find('.line-number:eq(1) .icon-right').mousedown()
+        expect(editor.isFoldedAtScreenRow(1)).toBe true
+        editorView.gutter.find('.line-number:eq(1) .icon-right').mousedown()
+        expect(editor.isFoldedAtScreenRow(1)).toBe false
+
   describe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editorView.attachToDom()
@@ -1800,19 +1808,41 @@ describe "EditorView", ->
 
     it "creates a line number element for each visible line with &nbsp; padding to the left of the number", ->
       expect(editorView.gutter.find('.line-number').length).toBe 8
-      expect(editorView.find('.line-number:first').html()).toBe "&nbsp;1"
-      expect(editorView.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
+      expect(editorView.find('.line-number:first').html()).toMatch /^&nbsp;1/
+      expect(editorView.gutter.find('.line-number:last').html()).toMatch /^&nbsp;8/
 
       # here we don't scroll far enough to trigger additional rendering
       editorView.scrollTop(editorView.lineHeight * 1.5)
       expect(editorView.renderedLines.find('.line').length).toBe 8
-      expect(editorView.gutter.find('.line-number:first').html()).toBe "&nbsp;1"
-      expect(editorView.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
+      expect(editorView.gutter.find('.line-number:first').html()).toMatch /^&nbsp;1/
+      expect(editorView.gutter.find('.line-number:last').html()).toMatch /^&nbsp;8/
 
       editorView.scrollTop(editorView.lineHeight * 3.5)
       expect(editorView.renderedLines.find('.line').length).toBe 10
-      expect(editorView.gutter.find('.line-number:first').html()).toBe "&nbsp;2"
-      expect(editorView.gutter.find('.line-number:last').html()).toBe "11"
+      expect(editorView.gutter.find('.line-number:first').html()).toMatch /^&nbsp;2/
+      expect(editorView.gutter.find('.line-number:last').html()).toMatch /^11/
+
+    it "adds a .foldable class to lines that start foldable regions", ->
+      expect(editorView.gutter.find('.line-number:eq(0)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(1)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(2)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(4)')).toHaveClass 'foldable'
+
+      # changes to indentation update foldability
+      editor.setIndentationForBufferRow(1, 0)
+      expect(editorView.gutter.find('.line-number:eq(0)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(1)')).toHaveClass 'foldable'
+
+      # changes to comments update foldability
+      editor.toggleLineCommentsForBufferRows(2, 3)
+      expect(editorView.gutter.find('.line-number:eq(2)')).toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      editor.toggleLineCommentForBufferRow(2)
+      expect(editorView.gutter.find('.line-number:eq(2)')).not.toHaveClass 'foldable'
+      expect(editorView.gutter.find('.line-number:eq(3)')).not.toHaveClass 'foldable'
+      editor.toggleLineCommentForBufferRow(4)
+      expect(editorView.gutter.find('.line-number:eq(3)')).toHaveClass 'foldable'
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
@@ -1827,11 +1857,11 @@ describe "EditorView", ->
 
       it "re-renders the correct line number range when there are folds", ->
         editorView.editor.foldBufferRow(1)
-        expect(editorView.gutter.find('.line-number-1')).toHaveClass 'fold'
+        expect(editorView.gutter.find('.line-number-1')).toHaveClass 'folded'
 
         buffer.insert([0, 0], '\n')
 
-        expect(editorView.gutter.find('.line-number-2')).toHaveClass 'fold'
+        expect(editorView.gutter.find('.line-number-2')).toHaveClass 'folded'
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
@@ -1839,7 +1869,7 @@ describe "EditorView", ->
         editorView.setWidthInChars(50)
         expect(editorView.gutter.find('.line-number').length).toEqual(8)
         expect(editorView.gutter.find('.line-number:eq(3)').intValue()).toBe 4
-        expect(editorView.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'
+        expect(editorView.gutter.find('.line-number:eq(4)').html()).toMatch /^&nbsp;•/
         expect(editorView.gutter.find('.line-number:eq(5)').intValue()).toBe 5
 
     describe "when there are folds", ->
@@ -1866,8 +1896,8 @@ describe "EditorView", ->
 
       it "styles folded line numbers", ->
         editor.createFold(3, 5)
-        expect(editorView.gutter.find('.line-number.fold').length).toBe 1
-        expect(editorView.gutter.find('.line-number.fold:eq(0)').intValue()).toBe 4
+        expect(editorView.gutter.find('.line-number.folded').length).toBe 1
+        expect(editorView.gutter.find('.line-number.folded:eq(0)').intValue()).toBe 4
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->

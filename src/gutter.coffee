@@ -151,10 +151,12 @@ class Gutter extends View
           updateAllLines = true
           break
 
+    # Rebuild the entire gutter if a change added or removed lines
     if updateAllLines
       @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
+
+    # Handle changes that didn't add/remove lines more optimally
     else
-      # When scrolling or adding/removing lines, we just add/remove lines from the ends.
       if startScreenRow < @firstScreenRow
         @prependLineElements(@buildLineElements(startScreenRow, @firstScreenRow-1))
       else if startScreenRow != @firstScreenRow
@@ -164,6 +166,8 @@ class Gutter extends View
         @appendLineElements(@buildLineElements(@lastScreenRow+1, endScreenRow))
       else if endScreenRow != @lastScreenRow
         @removeLineElements(endScreenRow - @lastScreenRow)
+
+      @updateFoldableClasses(changes)
 
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
@@ -202,21 +206,39 @@ class Gutter extends View
 
     html = ''
     for row in rows
-      if row == lastScreenRow
+      if row is lastRow
         rowValue = '•'
       else
         rowValue = (row + 1).toString()
 
       classes = "line-number line-number-#{row}"
-      classes += ' fold' if editor.isFoldedAtBufferRow(row)
+      classes += ' foldable' if row isnt lastRow and editor.isFoldableAtBufferRow(row)
+      classes += ' folded' if editor.isFoldedAtBufferRow(row)
 
       rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
 
-      html += """<div class="#{classes}">#{rowValuePadding}#{rowValue}</div>"""
+      html += """<div class="#{classes}" data-buffer-row=#{row}>#{rowValuePadding}#{rowValue}<div class="icon-right"></div></div>"""
 
-      lastScreenRow = row
+      lastRow = row
 
     html
+
+  # Private: Called to update the 'foldable' class of line numbers when there's
+  # a change to the display buffer that doesn't regenerate all the line numbers
+  # anyway.
+  updateFoldableClasses: (changes) ->
+    editor = @getEditor()
+    for {start, end} in changes when start <= @lastScreenRow and end >= @firstScreenRow
+      startScreenRow = Math.max(start - 1, @firstScreenRow)
+      endScreenRow =  Math.min(end + 1, @lastScreenRow)
+      lastBufferRow = null
+      for bufferRow in editor.bufferRowsForScreenRows(startScreenRow, endScreenRow) when bufferRow isnt lastBufferRow
+        lastBufferRow = bufferRow
+        lineNumberElement = @getLineNumberElement(bufferRow)[0]
+        if editor.isFoldableAtBufferRow(bufferRow)
+          lineNumberElement.classList.add('foldable')
+        else
+          lineNumberElement.classList.remove('foldable')
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

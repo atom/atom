@@ -26,7 +26,6 @@
 }
 
 .editor .gutter .line-number {
-  padding-right: .5em;
   padding-left: .5em;
   opacity: 0.6;
   position: relative;
@@ -36,29 +35,48 @@
   position: relative;
 }
 
-.editor .gutter .line-number.fold.cursor-line {
+.editor .gutter .line-number.folded.cursor-line {
   opacity: 1;
 }
 
-.editor .gutter .line-number.fold:after {
-  visibility: visible;
+.editor .gutter .line-number .icon-right {
+  .octicon(chevron-down, 0.8em);
+  display: inline-block;
+  visibility: hidden;
+  padding-left: .1em;
+  padding-right: .5em;
+  opacity: .7;
 }
 
-.editor .gutter .line-number:after {
-  .icon(0.8em);
-  content: @chevron-right;
-  opacity: .8;
-  visibility: hidden;
-  position: relative;
-  top: -0.2em;
+.editor .gutter:hover .line-number.foldable .icon-right {
+  visibility: visible;
+
+  &:before {
+    content: @chevron-down;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.editor .gutter, .editor .gutter:hover {
+  .line-number.folded .icon-right {
+    .octicon(chevron-right, 0.8em);
+    visibility: visible;
+
+    &:before { // chevron-right renders too far right compared to chevron-down
+      position: relative;
+      left: -.1em;
+      content: @chevron-right;
+    }
+  }
 }
 
 .editor .fold-marker:after {
   .icon(0.8em, inline);
   content: @ellipsis;
   padding-left: 0.2em;
-  position: relative;
-  top: -0.2em;
 }
 
 .editor .line.cursor-line .fold-marker:after {
