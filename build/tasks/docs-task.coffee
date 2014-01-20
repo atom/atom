@@ -14,7 +14,11 @@ module.exports = (grunt) ->
       '--title', 'Atom API Documentation'
       '-o', 'docs/output/api'
       '-r', 'docs/README.md'
-      'src/', '../text-buffer/src/range.coffee', '../text-buffer/src/point.coffee', '../text-buffer/src/marker.coffee'
+      'src/'
+      '../text-buffer/src/range.coffee'
+      '../text-buffer/src/point.coffee'
+      '../text-buffer/src/marker.coffee'
+      '../space-pen/src/space-pen.coffee'
     ]
     grunt.util.spawn({cmd, args, opts}, done)
 
