@@ -104,7 +104,7 @@ class ThemeManager
     if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else
-      null
+      path.join(@configDirPath, 'user.less')
 
   #Private:
   unwatchUserStylesheet: ->

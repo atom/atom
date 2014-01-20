@@ -146,11 +146,11 @@ class AtomApplication
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
-    @on 'application:show-settings', ->
-      if @focusedWindow()
-        @focusedWindow().openPath("atom://config")
-      else
-        @openPath(pathToOpen: "atom://config")
+
+    @openPathOnEvent('application:show-settings', 'atom://config')
+    @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
+    @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
+    @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
 
     app.on 'window-all-closed', ->
       app.quit() if process.platform is 'win32'
@@ -202,6 +202,20 @@ class AtomApplication
   sendCommand: (command, args...) ->
     unless @emit(command, args...)
       @focusedWindow()?.sendCommand(command, args...)
+
+  # Public: Open the given path in the focused window when the event is
+  # triggered.
+  #
+  # A new window will be created if there is no currently focused window.
+  #
+  # * eventName: The event to listen for.
+  # * pathToOpen: The path to open when the event is triggered.
+  openPathOnEvent: (eventName, pathToOpen) ->
+    @on eventName, ->
+      if window = @focusedWindow()
+        window.openPath(pathToOpen)
+      else
+        @openPath({pathToOpen})
 
   # Private: Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->

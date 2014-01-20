@@ -98,6 +98,10 @@ class Config
     _.extend hash, defaults
     @update()
 
+  # Public: Get the path to the config file being used.
+  getUserConfigPath: ->
+    @configFilePath
+
   # Public: Returns a new {Object} containing all of settings and defaults.
   getSettings: ->
     _.deepExtend(@settings, @defaultSettings)
