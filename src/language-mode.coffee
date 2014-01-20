@@ -196,7 +196,7 @@ class LanguageMode
     @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
 
   # Private: Returns a {Boolean} indicating whether the given buffer row starts
-  # a foldable row range due to a being the start of a multi-line comment.
+  # a foldable row range due to being the start of a multi-line comment.
   isFoldableCommentAtBufferRow: (bufferRow) ->
     @isLineCommentedAtBufferRow(bufferRow) and
       @isLineCommentedAtBufferRow(bufferRow + 1) and

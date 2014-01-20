@@ -151,7 +151,7 @@ class Gutter extends View
           updateAllLines = true
           break
 
-    # If a change added or removed lines, just rebuild the entire gutter
+    # Rebuild the entire gutter if a change added or removed lines
     if updateAllLines
       @lineNumbers[0].innerHTML = @buildLineElementsHtml(startScreenRow, endScreenRow)
 
