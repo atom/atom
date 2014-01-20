@@ -50,7 +50,7 @@ snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
 - `activationEvents` (**Optional**): an Array of Strings identifying events that
 trigger your package's activation. You can delay the loading of your package
-until one of these events is trigged.
+until one of these events is triggered.
 
 ## Source Code
 
