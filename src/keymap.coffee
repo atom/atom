@@ -122,21 +122,24 @@ class Keymap
     @loadDirectory(path.join(@resourcePath, 'keymaps'))
     @emit('bundled-keymaps-loaded')
 
-  userKeymapPath: ->
-    CSON.resolve(path.join(@configDirPath, 'keymap'))
+  getUserKeymapPath: ->
+    if userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))
+      userKeymapPath
+    else
+      path.join(@configDirPath, 'keymap.cson')
 
   unwatchUserKeymap: ->
-    keymapPath = @userKeymapPath()
     @userKeymapFile?.off()
-    @remove(keymapPath) if keymapPath
+    @remove(@userKeymapPath) if @userKeymapPath?
 
   loadUserKeymap: ->
-    keymapPath = @userKeymapPath()
     @unwatchUserKeymap()
-    if keymapPath
-      @load(keymapPath)
-      @userKeymapFile = new File(keymapPath)
-      @userKeymapFile.on 'contents-changed', => @loadUserKeymap()
+    userKeymapPath = @getUserKeymapPath()
+    if fs.isFileSync(userKeymapPath)
+      @userKeymapPath = userKeymapPath
+      @load(userKeymapPath)
+      @userKeymapFile = new File(userKeymapPath)
+      @userKeymapFile.on 'contents-changed moved removed', => @loadUserKeymap()
 
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])

@@ -184,6 +184,8 @@ describe "Pane", ->
           pane.destroyItem(item) for item in pane.getItems()
           expect(pane.isDestroyed()).toBe false
           expect(pane.activeItem).toBeUndefined()
+          expect(-> pane.saveActiveItem()).not.toThrow()
+          expect(-> pane.saveActiveItemAs()).not.toThrow()
 
       describe "when the 'core.destroyEmptyPanes' config option is true", ->
         it "destroys the pane", ->

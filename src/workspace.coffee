@@ -27,6 +27,14 @@ class Workspace extends Model
   constructor: ->
     super
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
+    atom.project.registerOpener (filePath) =>
+      switch filePath
+        when 'atom://.atom/stylesheet'
+          @open(atom.themes.getUserStylesheetPath())
+        when 'atom://.atom/keymap'
+          @open(atom.keymap.getUserKeymapPath())
+        when 'atom://.atom/config'
+          @open(atom.config.getUserConfigPath())
 
   # Private: Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
