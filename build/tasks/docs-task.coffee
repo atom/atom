@@ -15,10 +15,11 @@ module.exports = (grunt) ->
       '-o', 'docs/output/api'
       '-r', 'docs/README.md'
       'src/'
+      '../space-pen/src/space-pen.coffee'
       '../text-buffer/src/range.coffee'
       '../text-buffer/src/point.coffee'
       '../text-buffer/src/marker.coffee'
-      '../space-pen/src/space-pen.coffee'
+      '../theorist/src/model.coffee'
     ]
     grunt.util.spawn({cmd, args, opts}, done)
 
