@@ -6,9 +6,11 @@
     "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
+    "async": "~0.2.9",
     "biscotto": "0.0.17",
     "first-mate": "~0.13.0",
     "formidable": "~1.0.14",
+    "fs-plus": "1.x",
     "github-releases": "~0.2.0",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9",
@@ -28,6 +30,7 @@
     "rcedit": "~0.1.2",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
+    "temp": "~0.6.0",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
     "walkdir": "0.0.7"
