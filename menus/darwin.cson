@@ -7,6 +7,9 @@
       { label: "Install update", command: 'application:install-update', visible: false }
       { type: 'separator' }
       { label: 'Preferences...', command: 'application:show-settings' }
+      { label: 'Open Your Config', command: 'application:open-your-config' }
+      { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
+      { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
       { type: 'separator' }
       { label: 'Hide Atom', command: 'application:hide' }
       { label: 'Hide Others', command: 'application:hide-other-applications' }
@@ -133,10 +136,6 @@
           { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
         ]
       }
-      { type: 'separator' }
-      { label: 'Open Your Config', command: 'application:open-your-config' }
-      { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
-      { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
       { type: 'separator' }
       { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
     ]
