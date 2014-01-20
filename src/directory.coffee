@@ -84,7 +84,7 @@ class Directory
 
   # Public: Reads file entries in this directory from disk synchronously.
   #
-  # Returns an Array of {File} and {Directory} objects.
+  # Returns an {Array} of {File} and {Directory} objects.
   getEntriesSync: ->
     directories = []
     files = []
@@ -103,7 +103,7 @@ class Directory
   # Public: Reads file entries in this directory from disk asynchronously.
   #
   # * callback: A function to call with an Error as the first argument and
-  #   an Array of {File} and {Directory} objects as the second argument.
+  #   an {Array} of {File} and {Directory} objects as the second argument.
   getEntries: (callback) ->
     fs.list @path, (error, entries) ->
       return callback(error) if error?
