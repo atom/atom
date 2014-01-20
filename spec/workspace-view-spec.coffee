@@ -429,23 +429,23 @@ describe "WorkspaceView", ->
       expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
 
       # destroy all items
-      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
+      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
       pane.destroyActiveItem()
       expect(workspace.getActivePaneItem().getUri()).toBe 'b'
       pane.destroyActiveItem()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
+      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
       pane.destroyActiveItem()
 
       # reopens items with uris
       expect(workspace.getActivePaneItem()).toBeUndefined()
       workspace.reopenItemSync()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
+      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
 
       # does not reopen items that are already open
       workspace.openSync('b')
       expect(workspace.getActivePaneItem().getUri()).toBe 'b'
       workspace.reopenItemSync()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
+      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
 
   describe "core:close", ->
     it "closes the active pane item until all that remains is a single empty pane", ->

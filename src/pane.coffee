@@ -158,8 +158,10 @@ class Pane extends Model
     if item is @activeItem
       if @items.length is 1
         @activeItem = undefined
-      else
+      else if index is 0
         @activateNextItem()
+      else
+        @activatePreviousItem()
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroying
     @container?.itemDestroyed(item) if destroying
