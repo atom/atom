@@ -20,6 +20,12 @@ You can also require many of these classes in your packages via:
 {EditorView} = require 'atom'
 ```
 
+### How do I create a package?
+
+You probably want to read the [creating a package][creating-a-package]
+doc first and come back here when you are done.
+
 [Atom]: ../classes/Atom.html
 [Editor]: ../classes/Editor.html
 [EditorView]: ../classes/EditorView.html
+[creating-a-package]: https://www.atom.io/docs/latest/creating-a-package
