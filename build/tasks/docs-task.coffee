@@ -9,7 +9,13 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
     done = @async()
-    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', '../text-buffer/src/range.coffee', '../text-buffer/src/point.coffee', '../text-buffer/src/marker.coffee']
+    args = [
+      commonArgs...
+      '--title', 'Atom API Documentation'
+      '-o', 'docs/output/api'
+      '-r', 'docs/README.md'
+      'src/', '../text-buffer/src/range.coffee', '../text-buffer/src/point.coffee', '../text-buffer/src/marker.coffee'
+    ]
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
