@@ -47,7 +47,7 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
 
   tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
 
-  this.tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
+  @tooltip(jQuery.extend({}, tooltipDefaults, tooltipOptions))
 
 jQuery.fn.hideTooltip = ->
   tip = @data('bs.tooltip')
