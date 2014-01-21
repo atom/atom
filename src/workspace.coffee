@@ -77,8 +77,10 @@ class Workspace extends Model
         console.error(error.stack ? error)
 
   # Private: Only used in specs
-  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
-    changeFocus ?= true
+  openSync: (uri, options={}) ->
+    {initialLine, pane, split} = options
+    # TODO: Remove deprecated changeFocus option
+    activatePane = options.activatePane ? options.changeFocus ? true
     pane ?= @activePane
     uri = atom.project.relativize(uri)
 
@@ -105,7 +107,7 @@ class Workspace extends Model
 
     @itemOpened(paneItem)
 
-    pane.activate() if changeFocus
+    pane.activate() if activatePane
     paneItem
 
   # Public: Synchronously open an editor for the given URI or activate an existing
