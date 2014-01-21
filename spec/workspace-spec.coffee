@@ -49,23 +49,6 @@ describe "Workspace", ->
         workspace.openSync('b', activatePane: false)
         expect(activePane.activate).not.toHaveBeenCalled()
 
-    describe "when the 'split' option is specified", ->
-      it "activates the editor on the active pane if it has a sibling and otherwise creates a new pane", ->
-        pane1 = workspace.activePane
-
-        editor = workspace.openSync('a', split: 'right')
-        pane2 = workspace.activePane
-        expect(pane2).not.toBe pane1
-
-        expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
-
-        editor = workspace.openSync('file1', split: 'right')
-        expect(workspace.activePane).toBe pane2
-
-        expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
-        expect(pane1.items.length).toBe 0
-        expect(pane2.items.length).toBe 2
-
   describe "::openSingletonSync(uri, options)", ->
     describe "when an editor for the given uri is already open on the active pane", ->
       it "activates the existing editor", ->

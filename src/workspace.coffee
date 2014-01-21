@@ -78,37 +78,20 @@ class Workspace extends Model
 
   # Private: Only used in specs
   openSync: (uri, options={}) ->
-    {initialLine, pane, split} = options
+    {initialLine} = options
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
-    pane ?= @activePane
     uri = atom.project.relativize(uri)
 
-    if pane
-      if uri
-        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
-      else
-        paneItem = atom.project.openSync()
-
-      if split == 'right'
-        panes = @getPanes()
-        if panes.length == 1
-          pane = panes[0].splitRight()
-        else
-          pane = last(panes)
-      else if split == 'left'
-        pane = @getPanes()[0]
-
-      pane.activateItem(paneItem)
+    if uri?
+      editor = @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
     else
-      paneItem = atom.project.openSync(uri, {initialLine})
-      pane = new Pane(items: [paneItem])
-      @paneContainer.root = pane
+      editor = atom.project.openSync()
 
-    @itemOpened(paneItem)
-
-    pane.activate() if activatePane
-    paneItem
+    @activePane.activateItem(editor)
+    @itemOpened(editor)
+    @activePane.activate() if activatePane
+    editor
 
   # Public: Synchronously open an editor for the given URI or activate an existing
   # editor in any pane if one already exists.
