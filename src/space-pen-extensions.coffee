@@ -59,6 +59,13 @@ jQuery.fn.destroyTooltip = ->
   @hideTooltip()
   @tooltip('destroy')
 
+# Hide tooltips when window is resized
+jQuery(document.body).on 'show.bs.tooltip', ({target}) ->
+  windowHandler = -> jQuery(target).hideTooltip()
+  jQuery(window).one('resize', windowHandler)
+  jQuery(target).one 'hide.bs.tooltip', ->
+    jQuery(window).off('resize', windowHandler)
+
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.humanizeKeystrokes = humanizeKeystrokes
 
