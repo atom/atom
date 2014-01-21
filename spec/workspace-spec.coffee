@@ -179,3 +179,17 @@ describe "Workspace", ->
       expect(workspace.activePaneItem.getUri()).toBe 'b'
       workspace.reopenItemSync()
       expect(workspace.activePaneItem.getUri()).toBe 'file1'
+
+  describe "::increase/decreaseFontSize()", ->
+    it "increases/decreases the font size without going below 1", ->
+      atom.config.set('editor.fontSize', 1)
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 2
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 3
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 2
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 1
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe 1

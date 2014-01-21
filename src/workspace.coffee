@@ -138,6 +138,13 @@ class Workspace extends Model
   destroyActivePane: ->
     @activePane?.destroy()
 
+  increaseFontSize: ->
+    atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
+
+  decreaseFontSize: ->
+    fontSize = atom.config.get("editor.fontSize")
+    atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()

@@ -168,23 +168,6 @@ describe "WorkspaceView", ->
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()
 
-  describe "font size adjustment", ->
-    it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      fontSizeBefore = atom.config.get('editor.fontSize')
-      atom.workspaceView.trigger 'window:increase-font-size'
-      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
-      atom.workspaceView.trigger 'window:increase-font-size'
-      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 2
-      atom.workspaceView.trigger 'window:decrease-font-size'
-      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore + 1
-      atom.workspaceView.trigger 'window:decrease-font-size'
-      expect(atom.config.get('editor.fontSize')).toBe fontSizeBefore
-
-    it "does not allow the font size to be less than 1", ->
-      atom.config.set("editor.fontSize", 1)
-      atom.workspaceView.trigger 'window:decrease-font-size'
-      expect(atom.config.get('editor.fontSize')).toBe 1
-
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
       atom.workspaceView.height(200)
