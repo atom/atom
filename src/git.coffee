@@ -7,7 +7,7 @@ GitUtils = require 'git-utils'
 # Public: Represents the underlying git operations performed by Atom.
 #
 # This class shouldn't be instantiated directly but instead by accessing the
-# global project instance and calling `getRepo()`.
+# `atom.project` global and calling `getRepo()`.
 #
 # ## Example
 #

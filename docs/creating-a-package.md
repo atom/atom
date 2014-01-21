@@ -44,13 +44,13 @@ key mappings your package needs to load. If not specified, mappings in the
 _keymaps_ directory are added alphabetically.
 - `menus`(**Optional**): an Array of Strings identifying the order of
 the menu mappings your package needs to load. If not specified, mappings
-in the _keymap_ directory are added alphabetically.
+in the _menus_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
 - `activationEvents` (**Optional**): an Array of Strings identifying events that
 trigger your package's activation. You can delay the loading of your package
-until one of these events is trigged.
+until one of these events is triggered.
 
 ## Source Code
 
@@ -172,7 +172,7 @@ specify which menus to load and in what order.
 It's recommended that you create an application menu item for common actions
 with your package that aren't tied to a specific element:
 
-```coffee-script
+```coffeescript
 'menu': [
   {
     'label': 'Packages'
@@ -202,7 +202,7 @@ by other packages in the order which they were loaded.
 It's recommended to specify a context menu item for commands that are linked to
 specific parts of the interface, like adding a file in the tree-view:
 
-```coffee-script
+```coffeescript
 'context-menu':
   '.tree-view':
     'Add file': 'tree-view:add-file'

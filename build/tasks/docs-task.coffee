@@ -1,5 +1,8 @@
 path = require 'path'
-fs = require 'fs'
+
+async = require 'async'
+fs = require 'fs-plus'
+request = require 'request'
 
 module.exports = (grunt) ->
   cmd = path.join('node_modules', '.bin', 'coffee')
@@ -9,8 +12,36 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
     done = @async()
-    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', '../text-buffer/src/range.coffee', '../text-buffer/src/point.coffee', '../text-buffer/src/marker.coffee']
-    grunt.util.spawn({cmd, args, opts}, done)
+
+    downloadFileFromRepo = ({repo, file}, callback) ->
+      uri = "https://raw2.github.com/atom/#{repo}/master/#{file}"
+      request uri, (error, response, contents) ->
+        return callback(error) if error?
+        downloadPath = path.join('docs', 'includes', repo, file)
+        fs.writeFile downloadPath, contents, (error) ->
+          callback(error, downloadPath)
+
+    includes = [
+      {repo: 'space-pen',   file: 'src/space-pen.coffee'}
+      {repo: 'text-buffer', file: 'src/marker.coffee'}
+      {repo: 'text-buffer', file: 'src/point.coffee'}
+      {repo: 'text-buffer', file: 'src/range.coffee'}
+      {repo: 'theorist',    file: 'src/model.coffee'}
+    ]
+
+    async.map includes, downloadFileFromRepo, (error, includePaths) ->
+      if error?
+        done(error)
+      else
+        args = [
+          commonArgs...
+          '--title', 'Atom API Documentation'
+          '-o', 'docs/output/api'
+          '-r', 'docs/README.md'
+          'src/'
+          includePaths...
+        ]
+        grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
     done = @async()

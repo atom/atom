@@ -9,5 +9,6 @@ debug.log
 /tags
 /atom-shell/
 docs/output
+docs/includes
 spec/fixtures/evil-files/
 /apm
