@@ -185,56 +185,6 @@ describe "WorkspaceView", ->
       atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe 1
 
-  describe ".openSingletonSync(filePath, options)", ->
-    [pane1] = []
-    beforeEach ->
-      pane1 = atom.workspaceView.getActivePane()
-
-    it "creates a new pane and reuses the file when already open", ->
-      atom.workspaceView.openSingletonSync('b', split: 'right')
-      pane2 = atom.workspaceView.getActivePane()
-      expect(pane2[0]).not.toBe pane1[0]
-      expect(pane1.itemForUri('b')).toBeFalsy()
-      expect(pane2.itemForUri('b')).not.toBeFalsy()
-      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-      pane1.activate()
-      expect(atom.workspaceView.getActivePane()[0]).toBe pane1[0]
-
-      atom.workspaceView.openSingletonSync('b', split: 'right')
-      pane3 = atom.workspaceView.getActivePane()
-      expect(pane3[0]).toBe pane2[0]
-      expect(pane1.itemForUri('b')).toBeFalsy()
-      expect(pane2.itemForUri('b')).not.toBeFalsy()
-      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-    it "handles split: left by opening to the left pane when necessary", ->
-      atom.workspaceView.openSingletonSync('b', split: 'right')
-      pane2 = atom.workspaceView.getActivePane()
-      expect(pane2[0]).not.toBe pane1[0]
-
-      atom.workspaceView.openSingletonSync('file1', split: 'left')
-
-      activePane = atom.workspaceView.getActivePane()
-      expect(activePane[0]).toBe pane1[0]
-
-      expect(pane1.itemForUri('file1')).toBeTruthy()
-      expect(pane2.itemForUri('file1')).toBeFalsy()
-      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-      pane2.activate()
-      expect(atom.workspaceView.getActivePane()[0]).toBe pane2[0]
-
-      atom.workspaceView.openSingletonSync('file1', split: 'left')
-      activePane = atom.workspaceView.getActivePane()
-      expect(activePane[0]).toBe pane1[0]
-      expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-    it "reuses the file when already open", ->
-      atom.workspaceView.openSync('b')
-      atom.workspaceView.openSingletonSync('b', split: 'right')
-      expect(atom.workspaceView.panes.find('.pane').toArray()).toEqual [pane1[0]]
-
   describe ".open(filePath)", ->
     [activePane] = []
 

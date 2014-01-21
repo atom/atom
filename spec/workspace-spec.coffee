@@ -65,3 +65,58 @@ describe "Workspace", ->
         expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
         expect(pane1.items.length).toBe 0
         expect(pane2.items.length).toBe 2
+
+  describe "::openSingletonSync(uri, options)", ->
+    describe "when an editor for the given uri is already open on the active pane", ->
+      it "activates the existing editor", ->
+        editor1 = workspace.openSync('a')
+        editor2 = workspace.openSync('b')
+        expect(workspace.activePaneItem).toBe editor2
+        workspace.openSingletonSync('a')
+        expect(workspace.activePaneItem).toBe editor1
+
+    describe "when an editor for the given uri is already open on an inactive pane", ->
+      it "activates the existing editor on the inactive pane, then activates that pane", ->
+        editor1 = workspace.openSync('a')
+        pane1 = workspace.activePane
+        pane2 = workspace.activePane.splitRight()
+        editor2 = workspace.openSync('b')
+        expect(workspace.activePaneItem).toBe editor2
+        workspace.openSingletonSync('a')
+        expect(workspace.activePane).toBe pane1
+        expect(workspace.activePaneItem).toBe editor1
+
+    describe "when no editor for the given uri is open in any pane", ->
+      it "opens an editor for the given uri in the active pane", ->
+        editor1 = workspace.openSingletonSync('a')
+        expect(workspace.activePaneItem).toBe editor1
+
+      describe "when the 'split' option is 'left'", ->
+        it "opens the editor in the leftmost pane of the current pane axis", ->
+          pane1 = workspace.activePane
+          pane2 = pane1.splitRight()
+          expect(workspace.activePane).toBe pane2
+          editor1 = workspace.openSingletonSync('a', split: 'left')
+          expect(workspace.activePane).toBe pane1
+          expect(pane1.items).toEqual [editor1]
+          expect(pane2.items).toEqual []
+
+      describe "when the 'split' option is 'right'", ->
+        describe "when the active pane is in a horizontal pane axis", ->
+          it "activates the editor on the rightmost pane of the current pane axis", ->
+            pane1 = workspace.activePane
+            pane2 = pane1.splitRight()
+            pane1.activate()
+            editor1 = workspace.openSingletonSync('a', split: 'right')
+            expect(workspace.activePane).toBe pane2
+            expect(pane2.items).toEqual [editor1]
+            expect(pane1.items).toEqual []
+
+        describe "when the active pane is not in a horizontal pane axis", ->
+          it "splits the current pane to the right, then activates the editor on the right pane", ->
+            pane1 = workspace.activePane
+            editor1 = workspace.openSingletonSync('a', split: 'right')
+            pane2 = workspace.activePane
+            expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
+            expect(pane2.items).toEqual [editor1]
+            expect(pane1.items).toEqual []
