@@ -185,59 +185,6 @@ describe "WorkspaceView", ->
       atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe 1
 
-  describe ".open(filePath)", ->
-    [activePane] = []
-
-    beforeEach ->
-      spyOn(PaneView.prototype, 'focus')
-      activePane = atom.workspaceView.getActivePane()
-
-    describe "when called with no path", ->
-      it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
-        editor = null
-
-        waitsForPromise ->
-          atom.workspaceView.open().then (o) -> editor = o
-
-        runs ->
-          expect(activePane.getItems().length).toBe 2
-          expect(activePane.activeItem).toBe editor
-          expect(editor.getPath()).toBeUndefined()
-          expect(activePane.focus).toHaveBeenCalled()
-
-    describe "when called with a path", ->
-      describe "when the active pane already has an item for the given path", ->
-        it "shows the existing edit session in the pane", ->
-          previousEditor = activePane.activeItem
-
-          editor = null
-          waitsForPromise ->
-            atom.workspaceView.open('b').then (o) -> editor = o
-
-          runs ->
-            expect(activePane.activeItem).toBe editor
-            expect(editor).not.toBe previousEditor
-
-          waitsForPromise ->
-            atom.workspaceView.open(previousEditor.getPath()).then (o) -> editor = o
-
-          runs ->
-            expect(editor).toBe previousEditor
-            expect(activePane.activeItem).toBe editor
-            expect(activePane.focus).toHaveBeenCalled()
-
-      describe "when the active pane does not have an existing item for the given path", ->
-        it "creates a new edit session for the given path in the active pane", ->
-          editor = null
-
-          waitsForPromise ->
-            atom.workspaceView.open('b').then (o) -> editor = o
-
-          runs ->
-            expect(activePane.activeItem).toBe editor
-            expect(activePane.getItems().length).toBe 2
-            expect(activePane.focus).toHaveBeenCalled()
-
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
       atom.workspaceView.height(200)
