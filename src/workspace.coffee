@@ -115,15 +115,22 @@ class Workspace extends Model
   openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
     changeFocus ?= true
     uri = atom.project.relativize(uri)
-    pane = @paneContainer.paneForUri(uri)
 
-    if pane
-      paneItem = pane.itemForUri(uri)
-      pane.activateItem(paneItem)
-      pane.activate() if changeFocus
-      paneItem
+    if pane = @paneContainer.paneForUri(uri)
+      editor = pane.itemForUri(uri)
     else
-      @openSync(uri, {changeFocus, initialLine, split})
+      pane = switch split
+        when 'left'
+          @activePane.findLeftmostSibling()
+        when 'right'
+          @activePane.findOrCreateRightmostSibling()
+        else
+          @activePane
+      editor = atom.project.openSync(uri, {initialLine})
+
+    pane.activateItem(editor)
+    pane.activate() if changeFocus
+    editor
 
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
