@@ -185,66 +185,6 @@ describe "WorkspaceView", ->
       atom.workspaceView.trigger 'window:decrease-font-size'
       expect(atom.config.get('editor.fontSize')).toBe 1
 
-  describe ".openSync(filePath, options)", ->
-    [activePane, initialItemCount] = []
-    beforeEach ->
-      activePane = atom.workspaceView.getActivePane()
-      spyOn(activePane, 'focus')
-      initialItemCount = activePane.getItems().length
-
-    describe "when called with no path", ->
-      it "opens an edit session with an empty buffer as an item in the active pane and focuses it", ->
-        editor = atom.workspaceView.openSync()
-        expect(activePane.getItems().length).toBe initialItemCount + 1
-        expect(activePane.activeItem).toBe editor
-        expect(editor.getPath()).toBeUndefined()
-        expect(activePane.focus).toHaveBeenCalled()
-
-    describe "when called with a path", ->
-      describe "when the active pane already has an edit session item for the path being opened", ->
-        it "shows the existing edit session in the pane", ->
-          previousEditor = activePane.activeItem
-
-          editor = atom.workspaceView.openSync('b')
-          expect(activePane.activeItem).toBe editor
-          expect(editor).not.toBe previousEditor
-
-          editor = atom.workspaceView.openSync(previousEditor.getPath())
-          expect(editor).toBe previousEditor
-          expect(activePane.activeItem).toBe editor
-
-          expect(activePane.focus).toHaveBeenCalled()
-
-      describe "when the active pane does not have an edit session item for the path being opened", ->
-        it "creates a new edit session for the given path in the active editor", ->
-          editor = atom.workspaceView.openSync('b')
-          expect(activePane.items.length).toBe 2
-          expect(activePane.activeItem).toBe editor
-          expect(activePane.focus).toHaveBeenCalled()
-
-    describe "when the changeFocus option is false", ->
-      it "does not focus the active pane", ->
-        editor = atom.workspaceView.openSync('b', changeFocus: false)
-        expect(activePane.focus).not.toHaveBeenCalled()
-
-    describe "when the split option is 'right'", ->
-      it "creates a new pane and opens the file in said pane", ->
-        pane1 = atom.workspaceView.getActivePane()
-
-        editor = atom.workspaceView.openSync('b', split: 'right')
-        pane2 = atom.workspaceView.getActivePane()
-        expect(pane2[0]).not.toBe pane1[0]
-        expect(editor.getPath()).toBe require.resolve('./fixtures/dir/b')
-
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
-        editor = atom.workspaceView.openSync('file1', split: 'right')
-        pane3 = atom.workspaceView.getActivePane()
-        expect(pane3[0]).toBe pane2[0]
-        expect(editor.getPath()).toBe require.resolve('./fixtures/dir/file1')
-
-        expect(atom.workspaceView.panes.find('.pane-row .pane').toArray()).toEqual [pane1[0], pane2[0]]
-
   describe ".openSingletonSync(filePath, options)", ->
     [pane1] = []
     beforeEach ->
