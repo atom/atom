@@ -7,7 +7,7 @@ describe "Workspace", ->
     atom.project.setPath(atom.project.resolve('dir'))
     workspace = new Workspace
 
-  describe "::openSync(filePath, options)", ->
+  describe "::openSync(uri, options)", ->
     [activePane, initialItemCount] = []
 
     beforeEach ->
@@ -15,7 +15,7 @@ describe "Workspace", ->
       spyOn(activePane, 'activate')
       initialItemCount = activePane.items.length
 
-    describe "when called with no path", ->
+    describe "when called without a uri", ->
       it "adds and activates an empty editor on the active pane", ->
         editor = workspace.openSync()
         expect(activePane.items.length).toBe initialItemCount + 1
@@ -23,8 +23,8 @@ describe "Workspace", ->
         expect(editor.getPath()).toBeUndefined()
         expect(activePane.activate).toHaveBeenCalled()
 
-    describe "when called with a path", ->
-      describe "when the active pane already has an editor for the given path", ->
+    describe "when called with a uri", ->
+      describe "when the active pane already has an editor for the given uri", ->
         it "activates the existing editor on the active pane", ->
           editor1 = workspace.openSync('a')
           editor2 = workspace.openSync('b')
@@ -37,7 +37,7 @@ describe "Workspace", ->
           expect(activePane.activate).toHaveBeenCalled()
           expect(activePane.items.length).toBe 2
 
-      describe "when the active pane does not have an editor for the path being opened", ->
+      describe "when the active pane does not have an editor for the given uri", ->
         it "adds and activates a new editor for the given path on the active pane", ->
           editor = workspace.openSync('a')
           expect(activePane.items.length).toBe 1
