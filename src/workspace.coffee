@@ -95,8 +95,10 @@ class Workspace extends Model
 
   # Public: Synchronously open an editor for the given URI or activate an existing
   # editor in any pane if one already exists.
-  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
-    changeFocus ?= true
+  openSingletonSync: (uri, options={}) ->
+    {initialLine, split} = options
+    # TODO: Remove deprecated changeFocus option
+    activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri)
 
     if pane = @paneContainer.paneForUri(uri)
@@ -112,7 +114,7 @@ class Workspace extends Model
       editor = atom.project.openSync(uri, {initialLine})
 
     pane.activateItem(editor)
-    pane.activate() if changeFocus
+    pane.activate() if activatePane
     editor
 
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
