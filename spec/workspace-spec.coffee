@@ -146,3 +146,36 @@ describe "Workspace", ->
             expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
             expect(pane2.items).toEqual [editor1]
             expect(pane1.items).toEqual []
+
+  describe "::reopenItemSync()", ->
+    it "opens the uri associated with the last closed pane that isn't currently open", ->
+      pane = workspace.activePane
+      workspace.openSync('a')
+      workspace.openSync('b')
+      workspace.openSync('file1')
+      workspace.openSync()
+
+      # does not reopen items with no uri
+      expect(workspace.activePaneItem.getUri()).toBeUndefined()
+      pane.destroyActiveItem()
+      workspace.reopenItemSync()
+      expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
+
+      # destroy all items
+      expect(workspace.activePaneItem.getUri()).toBe 'file1'
+      pane.destroyActiveItem()
+      expect(workspace.activePaneItem.getUri()).toBe 'b'
+      pane.destroyActiveItem()
+      expect(workspace.activePaneItem.getUri()).toBe 'a'
+      pane.destroyActiveItem()
+
+      # reopens items with uris
+      expect(workspace.activePaneItem).toBeUndefined()
+      workspace.reopenItemSync()
+      expect(workspace.activePaneItem.getUri()).toBe 'a'
+
+      # does not reopen items that are already open
+      workspace.openSync('b')
+      expect(workspace.activePaneItem.getUri()).toBe 'b'
+      workspace.reopenItemSync()
+      expect(workspace.activePaneItem.getUri()).toBe 'file1'

@@ -251,39 +251,6 @@ describe "WorkspaceView", ->
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 2
 
-  describe ".reopenItemSync()", ->
-    it "opens the uri associated with the last closed pane that isn't currently open", ->
-      workspace = atom.workspaceView
-      pane = workspace.getActivePane()
-      workspace.openSync('b')
-      workspace.openSync('file1')
-      workspace.openSync()
-
-      # does not reopen items with no uri
-      expect(workspace.getActivePaneItem().getUri()).toBeUndefined()
-      pane.destroyActiveItem()
-      workspace.reopenItemSync()
-      expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
-
-      # destroy all items
-      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
-      pane.destroyActiveItem()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'b'
-      pane.destroyActiveItem()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
-      pane.destroyActiveItem()
-
-      # reopens items with uris
-      expect(workspace.getActivePaneItem()).toBeUndefined()
-      workspace.reopenItemSync()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'a'
-
-      # does not reopen items that are already open
-      workspace.openSync('b')
-      expect(workspace.getActivePaneItem().getUri()).toBe 'b'
-      workspace.reopenItemSync()
-      expect(workspace.getActivePaneItem().getUri()).toBe 'file1'
-
   describe "core:close", ->
     it "closes the active pane item until all that remains is a single empty pane", ->
       atom.config.set('core.destroyEmptyPanes', true)
