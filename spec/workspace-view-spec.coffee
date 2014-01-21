@@ -258,22 +258,3 @@ describe "WorkspaceView", ->
       expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 1
       atom.workspaceView.trigger('core:close')
       expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 0
-
-  describe "core:save", ->
-    it "saves active editor until there are none", ->
-      editor = atom.project.openSync('../sample.txt')
-      spyOn(editor, 'save')
-      atom.workspaceView.getActivePane().activateItem(editor)
-      atom.workspaceView.trigger('core:save')
-      expect(editor.save).toHaveBeenCalled()
-
-  describe "core:save-as", ->
-    beforeEach ->
-      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
-
-    it "saves active editor until there are none", ->
-      editor = atom.project.openSync('../sample.txt')
-      spyOn(editor, 'saveAs')
-      atom.workspaceView.getActivePane().activateItem(editor)
-      atom.workspaceView.trigger('core:save-as')
-      expect(editor.saveAs).toHaveBeenCalled()
