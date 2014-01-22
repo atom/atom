@@ -24,9 +24,6 @@
   'ctrl-shift-up': 'editor:add-selection-above'
   'ctrl-shift-down': 'editor:add-selection-below'
 
-'.tool-panel':
-  'escape': 'core:close'
-
 '.tool-panel.panel-left, .tool-panel.panel-right':
   'escape': 'tool-panel:unfocus'
 

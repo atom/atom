@@ -154,7 +154,7 @@ loaded in alphabetical order. An optional `keymaps` array in your _package.json_
 can specify which keymaps to load and in what order.
 
 
-Keybindings are executed by determining which element the keypress occured on. In
+Keybindings are executed by determining which element the keypress occurred on. In
 the example above, `changer:magic` command is executed when pressing `ctrl-V` on
 the `.tree-view-scroller` element.
 
@@ -381,7 +381,7 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [apm]: https://github.com/atom/apm
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
-[keymaps]: internals/keymaps.md
+[keymaps]: advanced/keymaps.md
 [theme-variables]: theme-variables.md
 [tm-tokens]: http://manual.macromates.com/en/language_grammars.html
 [spacepen]: https://github.com/nathansobo/space-pen

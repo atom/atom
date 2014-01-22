@@ -1,12 +1,8 @@
-### Internal ###
-
 isHighSurrogate = (string, index) ->
   0xD800 <= string.charCodeAt(index) <= 0xDBFF
 
 isLowSurrogate = (string, index) ->
   0xDC00 <= string.charCodeAt(index) <= 0xDFFF
-
-### Public ###
 
 # Is the character at the given index the start of a high/low surrogate pair?
 #

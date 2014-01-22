@@ -8,6 +8,7 @@ module.exports =
   File: require '../src/file'
   fs: require 'fs-plus'
   Git: require '../src/git'
+  ConfigObserver: require '../src/config-observer'
   Point: Point
   Range: Range
 

@@ -7,7 +7,13 @@ pathWatcher = require 'pathwatcher'
 
 File = require './file'
 
-# Public: Represents a directory using {File}s
+# Public: Represents a directory using {File}s.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {Directory} = require 'atom'
+# ```
 module.exports =
 class Directory
   Emitter.includeInto(this)

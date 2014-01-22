@@ -16,8 +16,7 @@ Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
 #
-# Ultimately, a project is a git directory that's been opened. It's a collection
-# of directories and files that you can operate on.
+# There is always a project available under the `atom.project` global.
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)

@@ -15,7 +15,7 @@ ConfigObserver = require './config-observer'
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
-  _.extend @prototype, ConfigObserver
+  ConfigObserver.includeInto(this)
 
   @properties
     softWrap: null
