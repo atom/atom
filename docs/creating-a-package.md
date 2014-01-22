@@ -154,7 +154,7 @@ loaded in alphabetical order. An optional `keymaps` array in your _package.json_
 can specify which keymaps to load and in what order.
 
 
-Keybindings are executed by determining which element the keypress occured on. In
+Keybindings are executed by determining which element the keypress occurred on. In
 the example above, `changer:magic` command is executed when pressing `ctrl-V` on
 the `.tree-view-scroller` element.
 
