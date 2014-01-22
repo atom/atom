@@ -765,27 +765,27 @@ class Editor extends Model
   findMarkers: (attributes) ->
     @displayBuffer.findMarkers(attributes)
 
-  # {Delegates to: DisplayBuffer.markScreenRange}
+  # Public: {Delegates to: DisplayBuffer.markScreenRange}
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # {Delegates to: DisplayBuffer.markBufferRange}
+  # Public: {Delegates to: DisplayBuffer.markBufferRange}
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # {Delegates to: DisplayBuffer.markScreenPosition}
+  # Public: {Delegates to: DisplayBuffer.markScreenPosition}
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # {Delegates to: DisplayBuffer.markBufferPosition}
+  # Public: {Delegates to: DisplayBuffer.markBufferPosition}
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # {Delegates to: DisplayBuffer.destroyMarker}
+  # Public: {Delegates to: DisplayBuffer.destroyMarker}
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # {Delegates to: DisplayBuffer.getMarkerCount}
+  # Public: {Delegates to: DisplayBuffer.getMarkerCount}
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
