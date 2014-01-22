@@ -1,4 +1,4 @@
-# Atom — The hackable, ~~collaborative~~ editor
+# Atom — The hackable editor
 
 ![Atom](http://i.imgur.com/OrTvUAD.png)
 
