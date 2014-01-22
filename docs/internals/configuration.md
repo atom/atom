@@ -8,7 +8,7 @@ value of a namespaced config key with `atom.config.get`:
 
 ```coffeescript
 # read a value with `config.get`
-@showInvisibles() if config.get "edtior.showInvisibles"
+@showInvisibles() if config.get "editor.showInvisibles"
 ```
 
 Or you can use the `::observeConfig` to track changes from any view object.
