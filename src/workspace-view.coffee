@@ -6,6 +6,7 @@ Delegator = require 'delegato'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Workspace = require './workspace'
+CommandInstaller = require './command-installer'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
@@ -108,6 +109,12 @@ class WorkspaceView extends View
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
 
+    @command 'window:install-atom-cli', =>
+      CommandInstaller.installApmCommand (error) => @commandInstalationDialog(error, 'atom')
+
+    @command 'window:install-apm-cli', =>
+      CommandInstaller.installApmCommand (error) => @commandInstalationDialog(error, 'apm')
+
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
       atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
@@ -130,6 +137,17 @@ class WorkspaceView extends View
     @command 'core:close', => if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
+
+  commandInstalationDialog: (error, commandName) ->
+    if error?
+      installDirectory = CommandInstaller.getInstallDirectory()
+      atom.confirm
+        message: error.message
+        detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} is writable. Run 'sudo chmod o+w #{installDirectory}' to fix this problem."
+    else
+      atom.confirm
+        message: "Command installed."
+        detailedMessage: "You can now use `#{commandName}` from the terminal."
 
   # Private:
   handleFocus: (e) ->
