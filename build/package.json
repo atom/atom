@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "biscotto": "git://github.com/atom/biscotto.git#408b1862dab6d11d2c4e7cecff0a59701b7b2d5e",
+    "biscotto": "git://github.com/atom/biscotto.git#4a0c9cb9d7eb818508da357b37f947d47f1c7892",
     "first-mate": "~0.13.0",
     "formidable": "~1.0.14",
     "fs-plus": "1.x",
