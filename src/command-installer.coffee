@@ -26,27 +26,33 @@ module.exports =
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath, callback) ->
+  install: (commandPath) ->
     commandName = path.basename(commandPath, path.extname(commandPath))
-
     directory = @getInstallDirectory()
     if fs.existsSync(directory)
       destinationPath = path.join(directory, commandName)
-      unlinkCommand destinationPath, (error) ->
-        return callback(error) if error?
-        symlinkCommand commandPath, destinationPath, (error) -> callback(error)
+      unlinkCommand destinationPath, (error) =>
+        if error?
+          @displayError(error, commandPath)
+        else
+          symlinkCommand commandPath, destinationPath, (error) =>
+            @displayError(error, commandPath) if error
     else
       error = new Error("No destination directory exists to install")
-      callback(error)
+      @displayError(error, commandPath) if error
+
+  displayError: (error, commandPath) ->
+    atom.confirm
+      type: 'warning'
+      message: "Failed to install `#{commandPath}` binary"
+      detailedMessage: "#{error.message}\n\nRun 'sudo ln -s #{commandPath} #{path.join(@getInstallDirectory(), path.basename(commandPath))}' to install."
 
   installAtomCommand: ->
     resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath, (error) ->
-      console.warn "Failed to install `#{commandPath}` binary", error if error?
+    @install commandPath
 
   installApmCommand: ->
     resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath, (error) ->
-      console.warn "Failed to install `#{commandPath}` binary", error if error?
+    @install commandPath
