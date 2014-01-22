@@ -45,12 +45,10 @@ module.exports =
       error = new Error "Directory '#{directory} doesn't exist."
       callback?(error)
 
-  installAtomCommand: (callback) ->
-    resourcePath = atom.getLoadSettings().resourcePath
+  installAtomCommand: (resourcePath, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
     @install commandPath, callback
 
-  installApmCommand: (callback) ->
-    resourcePath = atom.getLoadSettings().resourcePath
+  installApmCommand: (resourcePath, callback) ->
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
     @install commandPath, callback

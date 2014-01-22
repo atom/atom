@@ -146,10 +146,12 @@ class WorkspaceView extends View
           message: "Command installed."
           detailedMessage: "The shell command `#{commandName}` is installed."
 
-    CommandInstaller.installApmCommand (error) =>
+    resourcePath = atom.getLoadSettings().resourcePath
+    CommandInstaller.installApmCommand resourcePath, (error) =>
       showDialog(error, 'atom')
       unless error?
-        CommandInstaller.installApmCommand (error) => showDialog(error, 'apm')
+        CommandInstaller.installApmCommand resourcePath, (error) =>
+          showDialog(error, 'apm')
 
   # Private:
   handleFocus: (e) ->

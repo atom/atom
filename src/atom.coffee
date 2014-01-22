@@ -250,8 +250,11 @@ class Atom extends Model
   # Private: Call this method when establishing a real application window.
   startEditorWindow: ->
     CommandInstaller = require './command-installer'
-    CommandInstaller.installAtomCommand (error) -> console.warn error.message if error?
-    CommandInstaller.installApmCommand (error) -> console.warn error.message if error?
+    resourcePath = atom.getLoadSettings().resourcePath
+    CommandInstaller.installAtomCommand resourcePath, (error) ->
+      console.warn error.message if error?
+    CommandInstaller.installApmCommand resourcePath, (error) ->
+      console.warn error.message if error?
 
     @restoreWindowDimensions()
     @config.load()
