@@ -23,10 +23,6 @@ unlinkCommand = (destinationPath, callback) ->
       callback()
 
 module.exports =
-  findInstallDirectory: (callback) ->
-    directories = ['/opt/boxen', '/opt/github', '/usr/local']
-    async.detect(directories, fs.isDirectory, callback)
-
   install: (commandPath, commandName, callback) ->
     if not commandName? or _.isFunction(commandName)
       callback = commandName
@@ -37,17 +33,17 @@ module.exports =
         console.warn "Failed to install `#{commandName}` binary", error
       callback?(error, sourcePath, destinationPath)
 
-    @findInstallDirectory (directory) ->
-      if directory?
-        destinationPath = path.join(directory, 'bin', commandName)
-        unlinkCommand destinationPath, (error) ->
-          if error?
-            installCallback(error)
-          else
-            symlinkCommand commandPath, destinationPath, (error) ->
-              installCallback(error, commandPath, destinationPath)
-      else
-        installCallback(new Error("No destination directory exists to install"))
+    directory = "/usr/local"
+    if fs.existsSync(directory)
+      destinationPath = path.join(directory, 'bin', commandName)
+      unlinkCommand destinationPath, (error) ->
+        if error?
+          installCallback(error)
+        else
+          symlinkCommand commandPath, destinationPath, (error) ->
+            installCallback(error, commandPath, destinationPath)
+    else
+      installCallback(new Error("No destination directory exists to install"))
 
   installAtomCommand: (resourcePath, callback) ->
     if _.isFunction(resourcePath)
