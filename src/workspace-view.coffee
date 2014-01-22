@@ -109,11 +109,7 @@ class WorkspaceView extends View
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
 
-    @command 'window:install-atom-cli', =>
-      CommandInstaller.installApmCommand (error) => @commandInstalationDialog(error, 'atom')
-
-    @command 'window:install-apm-cli', =>
-      CommandInstaller.installApmCommand (error) => @commandInstalationDialog(error, 'apm')
+    @command 'window:install-shell-commands', => @installShellCommands()
 
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
@@ -138,16 +134,22 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
-  commandInstalationDialog: (error, commandName) ->
-    if error?
-      installDirectory = CommandInstaller.getInstallDirectory()
-      atom.confirm
-        message: error.message
-        detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} is writable. Run 'sudo chmod o+w #{installDirectory}' to fix this problem."
-    else
-      atom.confirm
-        message: "Command installed."
-        detailedMessage: "You can now use `#{commandName}` from the terminal."
+  installShellCommands: ->
+    showDialog = (error, commandName)->
+      if error?
+        installDirectory = CommandInstaller.getInstallDirectory()
+        atom.confirm
+          message: error.message
+          detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} is writable. Run 'sudo chmod o+w #{installDirectory}' to fix this problem."
+      else
+        atom.confirm
+          message: "Command installed."
+          detailedMessage: "The shell command `#{commandName}` is installed."
+
+    CommandInstaller.installApmCommand (error) =>
+      showDialog(error, 'atom')
+      unless error?
+        CommandInstaller.installApmCommand (error) => showDialog(error, 'apm')
 
   # Private:
   handleFocus: (e) ->
