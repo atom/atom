@@ -5,12 +5,14 @@ fs = require 'fs-plus'
 request = require 'request'
 
 module.exports = (grunt) ->
+  {rm} = require('./task-helpers')(grunt)
+
   cmd = path.join('node_modules', '.bin', 'coffee')
   commonArgs = [path.join('build', 'node_modules', '.bin', 'biscotto'), '--']
   opts =
     stdio: 'inherit'
 
-  grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
+  grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
 
     downloadFileFromRepo = ({repo, file}, callback) ->
@@ -34,6 +36,7 @@ module.exports = (grunt) ->
       if error?
         done(error)
       else
+        rm('docs/output/api')
         args = [
           commonArgs...
           '--title', 'Atom API Documentation'
