@@ -250,9 +250,9 @@ class Atom extends Model
   # Private: Call this method when establishing a real application window.
   startEditorWindow: ->
     if process.platform is 'darwin'
-      CommandInstaller = require './command-installer'
-      CommandInstaller.installAtomCommand()
-      CommandInstaller.installApmCommand()
+    CommandInstaller = require './command-installer'
+    CommandInstaller.installAtomCommand (error) -> console.warn error.message if error?
+    CommandInstaller.installApmCommand (error) -> console.warn error.message if error?
 
     @restoreWindowDimensions()
     @config.load()

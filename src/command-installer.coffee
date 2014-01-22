@@ -26,33 +26,29 @@ module.exports =
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath) ->
+  install: (commandPath, callback) ->
     commandName = path.basename(commandPath, path.extname(commandPath))
     directory = @getInstallDirectory()
     if fs.existsSync(directory)
       destinationPath = path.join(directory, commandName)
       unlinkCommand destinationPath, (error) =>
         if error?
-          @displayError(error, commandPath)
+          error = new Error "Could not remove file at #{destinationPath}." if error
+          callback?(error)
         else
           symlinkCommand commandPath, destinationPath, (error) =>
-            @displayError(error, commandPath) if error
+            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error
+            callback?(error)
     else
-      error = new Error("No destination directory exists to install")
-      @displayError(error, commandPath) if error
+      error = new Error "Directory '#{directory} doesn't exist."
+      callback?(error)
 
-  displayError: (error, commandPath) ->
-    atom.confirm
-      type: 'warning'
-      message: "Failed to install `#{commandPath}` binary"
-      detailedMessage: "#{error.message}\n\nRun 'sudo ln -s #{commandPath} #{path.join(@getInstallDirectory(), path.basename(commandPath))}' to install."
-
-  installAtomCommand: ->
+  installAtomCommand: (callback) ->
     resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath
+    @install commandPath, callback
 
-  installApmCommand: ->
+  installApmCommand: (callback) ->
     resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath
+    @install commandPath, callback
