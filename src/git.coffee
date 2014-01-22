@@ -250,12 +250,7 @@ class Git
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
-  # Examples
-  #
-  #   getUpstreamBranch()
-  #   # => "refs/remotes/origin/master"
-  #
-  # Returns a String.
+  # Returns a String branch name such as `refs/remotes/origin/master`
   getUpstreamBranch: -> @getRepo().getUpstreamBranch()
 
   # Public: Returns the current SHA for the given reference.
