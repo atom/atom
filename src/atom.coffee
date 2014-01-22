@@ -34,7 +34,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.themes`      - A {ThemeManager} instance
 module.exports =
 class Atom extends Model
-  # Public: Load or create the Atom environment in the given mode
+  # Public: Load or create the Atom environment in the given mode.
   #
   # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
   #         want to build.
