@@ -1,9 +1,9 @@
 _ = require 'underscore-plus'
 spacePen = require 'space-pen'
-ConfigObserver = require './config-observer'
 {Subscriber} = require 'emissary'
+ConfigObserver = require './config-observer'
 
-_.extend spacePen.View.prototype, ConfigObserver
+ConfigObserver.includeInto(spacePen.View)
 Subscriber.includeInto(spacePen.View)
 
 jQuery = spacePen.jQuery
