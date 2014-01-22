@@ -381,7 +381,7 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [apm]: https://github.com/atom/apm
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
-[keymaps]: internals/keymaps.md
+[keymaps]: advanced/keymaps.md
 [theme-variables]: theme-variables.md
 [tm-tokens]: http://manual.macromates.com/en/language_grammars.html
 [spacepen]: https://github.com/nathansobo/space-pen

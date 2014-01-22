@@ -7,7 +7,7 @@
 
 ### Advanced Topics
 
-* [Configuration](internals/configuration.md)
-* [Keymaps](internals/keymaps.md)
-* [Serialization](internals/serialization.md)
-* [View System](internals/view-system.md)
+* [Configuration](advanced/configuration.md)
+* [Keymaps](advanced/keymaps.md)
+* [Serialization](advanced/serialization.md)
+* [View System](advanced/view-system.md)
