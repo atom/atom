@@ -1,4 +1,4 @@
-'.workspace':
+'body':
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -94,7 +94,7 @@
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'.workspace .native-key-bindings':
+'body .native-key-bindings':
   'ctrl-z': 'native!'
   'ctrl-Z': 'native!'
   'ctrl-x': 'native!'

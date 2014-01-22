@@ -1,4 +1,4 @@
-'.workspace':
+'body':
   # Apple specific
   'cmd-q': 'application:quit'
   'cmd-h': 'application:hide'
@@ -148,7 +148,7 @@
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'.workspace .native-key-bindings':
+'body .native-key-bindings':
   'cmd-z': 'native!'
   'cmd-Z': 'native!'
   'cmd-x': 'native!'
