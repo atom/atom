@@ -27,6 +27,8 @@ module.exports =
     "/usr/local/bin"
 
   install: (commandPath, callback) ->
+    return unless process.platform is 'darwin'
+
     commandName = path.basename(commandPath, path.extname(commandPath))
     directory = @getInstallDirectory()
     if fs.existsSync(directory)
