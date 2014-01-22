@@ -365,8 +365,8 @@ describe "Keymap", ->
       customKeymap.destroy()
 
     it "doesn't load keybindings from other platforms", ->
-      win32FilePath = path.join(resourcePath, "keymaps", "test-win32.cson")
-      darwinFilePath = path.join(resourcePath, "keymaps", "test-darwin.cson")
+      win32FilePath = path.join(resourcePath, "keymaps", "win32.cson")
+      darwinFilePath = path.join(resourcePath, "keymaps", "darwin.cson")
       fs.writeFileSync(win32FilePath, '"body": "ctrl-l": "core:win32-move-left"')
       fs.writeFileSync(darwinFilePath, '"body": "ctrl-l": "core:darwin-move-left"')
 

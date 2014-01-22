@@ -146,7 +146,7 @@ class Keymap
     otherPlatforms = platforms.filter (name) -> name != process.platform
 
     for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
-      platform = filePath.match(/-(\w+)\.\w+$/)?[1]
+      platform = path.basename(filePath).match(/^(\w+)\.\w+$/)?[1]
       continue if platform in otherPlatforms
       @load(filePath)
 
