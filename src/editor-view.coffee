@@ -411,7 +411,7 @@ class EditorView extends View
 
     selectedText = null
     @hiddenInput.on 'compositionstart', =>
-      selectedText = @getSelectedText()
+      selectedText = @editor.getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
       @editor.insertText(e.originalEvent.data, {select: true, undo: 'skip'})
