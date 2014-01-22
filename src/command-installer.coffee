@@ -23,6 +23,9 @@ unlinkCommand = (destinationPath, callback) ->
       callback()
 
 module.exports =
+  getInstallDirectory: ->
+    "/usr/local"
+
   install: (commandPath, commandName, callback) ->
     if not commandName? or _.isFunction(commandName)
       callback = commandName
@@ -33,7 +36,7 @@ module.exports =
         console.warn "Failed to install `#{commandName}` binary", error
       callback?(error, sourcePath, destinationPath)
 
-    directory = "/usr/local"
+    directory = @getInstallDirectory()
     if fs.existsSync(directory)
       destinationPath = path.join(directory, 'bin', commandName)
       unlinkCommand destinationPath, (error) ->

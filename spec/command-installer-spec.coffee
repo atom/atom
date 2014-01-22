@@ -9,9 +9,7 @@ describe "install(commandPath, callback)", ->
   destinationPath = path.join(directory, 'bin', 'source')
 
   beforeEach ->
-    spyOn(installer, 'findInstallDirectory').andCallFake (callback) ->
-      callback(directory)
-
+    spyOn(installer, 'getInstallDirectory').andReturn directory
     fs.removeSync(directory) if fs.existsSync(directory)
 
   describe "on #darwin", ->
