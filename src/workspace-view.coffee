@@ -37,6 +37,11 @@ Editor = require './editor'
 #  * `application:bring-all-windows-to-front` - Brings all {AtomWindow}s to the
 #    the front.
 #
+# ## Requiring in package specs
+#
+# ```coffee
+#   {WorkspaceView} = require 'atom'
+# ```
 module.exports =
 class WorkspaceView extends View
   Delegator.includeInto(this)
