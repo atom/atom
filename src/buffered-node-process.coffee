@@ -6,6 +6,12 @@ path = require 'path'
 #
 # This may seem unnecessary but on Windows we have to have separate executables
 # for each script without this since Windows doesn't support shebang strings.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {BufferedNodeProcess} = require 'atom'
+# ```
 module.exports =
 class BufferedNodeProcess extends BufferedProcess
   # Executes the given Node script.

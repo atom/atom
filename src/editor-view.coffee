@@ -16,6 +16,12 @@ LongLineLength = 1000
 # Public: Represents the entire visual pane in Atom.
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {EditorView} = require 'atom'
+# ```
 module.exports =
 class EditorView extends View
   @characterWidthCache: {}

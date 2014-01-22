@@ -16,6 +16,12 @@ GitUtils = require 'git-utils'
 # git = atom.project.getRepo()
 # console.log git.getOriginUrl()
 # ```
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {Git} = require 'atom'
+# ```
 module.exports =
 class Git
   Emitter.includeInto(this)
