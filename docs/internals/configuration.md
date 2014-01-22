@@ -8,7 +8,7 @@ value of a namespaced config key with `atom.config.get`:
 
 ```coffeescript
 # read a value with `config.get`
-@showInvisibles() if config.get "editor.showInvisibles"
+@showInvisibles() if atom.config.get "editor.showInvisibles"
 ```
 
 Or you can use the `::observeConfig` to track changes from any view object.
@@ -72,5 +72,5 @@ are always overridden by values assigned with `set`. Defaults are not written
 out to the the `config.json` file to prevent it from becoming cluttered.
 
 ```coffeescript
-config.setDefaults("editor", fontSize: 18, showInvisibles: true)
+atom.config.setDefaults("editor", fontSize: 18, showInvisibles: true)
 ```
