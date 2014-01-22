@@ -1,4 +1,4 @@
-'.platform-darwin':
+'body':
   # Apple specific
   'cmd-q': 'application:quit'
   'cmd-h': 'application:hide'
@@ -87,7 +87,7 @@
   'cmd-8': 'pane:show-item-8'
   'cmd-9': 'pane:show-item-9'
 
-'.platform-darwin .editor':
+'.editor':
   # Apple Specific
   'cmd-backspace': 'editor:backspace-to-beginning-of-line'
   'cmd-delete': 'editor:backspace-to-beginning-of-line'
@@ -113,7 +113,7 @@
   'cmd-k cmd-l': 'editor:lower-case'
   'cmd-l': 'editor:select-line'
 
-'body.platform-darwin .editor:not(.mini)':
+'.workspace .editor:not(.mini)':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'
@@ -148,7 +148,7 @@
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'body.platform-darwin .native-key-bindings':
+'body .native-key-bindings':
   'cmd-z': 'native!'
   'cmd-Z': 'native!'
   'cmd-x': 'native!'

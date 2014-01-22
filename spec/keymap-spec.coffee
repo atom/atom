@@ -354,6 +354,27 @@ describe "Keymap", ->
       bindings = keymap.keyBindingsForCommandMatchingElement('cultivate', el)
       expect(bindings).toHaveLength 0
 
+  describe "loading platform specific keybindings", ->
+    customKeymap = null
+
+    beforeEach ->
+      resourcePath = temp.mkdirSync('atom')
+      customKeymap = new Keymap({configDirPath, resourcePath})
+
+    afterEach ->
+      customKeymap.destroy()
+
+    it "doesn't load keybindings from other platforms", ->
+      win32FilePath = path.join(resourcePath, "keymaps", "win32.cson")
+      darwinFilePath = path.join(resourcePath, "keymaps", "darwin.cson")
+      fs.writeFileSync(win32FilePath, '"body": "ctrl-l": "core:win32-move-left"')
+      fs.writeFileSync(darwinFilePath, '"body": "ctrl-l": "core:darwin-move-left"')
+
+      customKeymap.loadBundledKeymaps()
+      keyBindings = customKeymap.keyBindingsForKeystroke('ctrl-l')
+      expect(keyBindings).toHaveLength 1
+      expect(keyBindings[0].command).toBe "core:#{process.platform}-move-left"
+
   describe "when the user keymap file is changed", ->
     it "is reloaded", ->
       keymapFilePath = path.join(configDirPath, "keymap.cson")

@@ -142,7 +142,12 @@ class Keymap
       @userKeymapFile.on 'contents-changed moved removed', => @loadUserKeymap()
 
   loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
+    platforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32']
+    otherPlatforms = platforms.filter (name) -> name != process.platform
+
+    for filePath in fs.listSync(directoryPath, ['.cson', '.json'])
+      continue if path.basename(filePath, path.extname(filePath)) in otherPlatforms
+      @load(filePath)
 
   load: (path) ->
     @add(path, CSON.readFileSync(path))

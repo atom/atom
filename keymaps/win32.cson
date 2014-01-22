@@ -1,4 +1,4 @@
-'.platform-win32':
+'body':
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -50,7 +50,7 @@
   'ctrl-k ctrl-left': 'window:focus-previous-pane'
   'ctrl-k ctrl-right': 'window:focus-next-pane'
 
-'.platform-win32 .editor':
+'.workspace .editor':
   # Windows specific
   'ctrl-delete': 'editor:backspace-to-beginning-of-word'
 
@@ -60,7 +60,7 @@
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
 
-'.platform-win32 .editor:not(.mini)':
+'.workspace .editor:not(.mini)':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
@@ -94,7 +94,7 @@
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
 
 # allow standard input fields to work correctly
-'.platform-win32 input:not(.hidden-input), .platform-win32 .native-key-bindings':
+'body .native-key-bindings':
   'ctrl-z': 'native!'
   'ctrl-Z': 'native!'
   'ctrl-x': 'native!'
