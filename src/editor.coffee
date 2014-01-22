@@ -202,8 +202,8 @@ class Editor extends Model
   # Deprecated: Use the ::scrollLeft property directly
   getScrollLeft: -> @scrollLeft
 
-  # Set the number of characters that can be displayed horizontally in the
-  # editor that contains this edit session.
+  # Public: Set the number of characters that can be displayed horizontally in
+  # the editor.
   #
   # editorWidthInChars - A {Number} of characters
   setEditorWidthInChars: (editorWidthInChars) ->
