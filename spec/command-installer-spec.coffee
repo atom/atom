@@ -6,17 +6,17 @@ installer = require '../src/command-installer'
 describe "install(commandPath, callback)", ->
   commandFilePath = temp.openSync("atom-command").path
   commandName = path.basename(commandFilePath)
-  instalationPath = temp.mkdirSync("atom-bin")
-  instalationFilePath = path.join(instalationPath, commandName)
+  installationPath = temp.mkdirSync("atom-bin")
+  installationFilePath = path.join(installationPath, commandName)
 
   beforeEach ->
-    spyOn(installer, 'getInstallDirectory').andReturn instalationPath
+    spyOn(installer, 'getInstallDirectory').andReturn installationPath
 
   describe "on #darwin", ->
     it "symlinks the command and makes it executable", ->
       expect(fs.isFileSync(commandFilePath)).toBeTruthy()
       expect(fs.isExecutableSync(commandFilePath)).toBeFalsy()
-      expect(fs.isFileSync(instalationFilePath)).toBeFalsy()
+      expect(fs.isFileSync(installationFilePath)).toBeFalsy()
 
       installDone = false
       installError = null
@@ -29,6 +29,6 @@ describe "install(commandPath, callback)", ->
 
       runs ->
         expect(installError).toBeNull()
-        expect(fs.isFileSync(instalationFilePath)).toBeTruthy()
-        expect(fs.realpathSync(instalationFilePath)).toBe fs.realpathSync(commandFilePath)
-        expect(fs.isExecutableSync(instalationFilePath)).toBeTruthy()
+        expect(fs.isFileSync(installationFilePath)).toBeTruthy()
+        expect(fs.realpathSync(installationFilePath)).toBe fs.realpathSync(commandFilePath)
+        expect(fs.isExecutableSync(installationFilePath)).toBeTruthy()
