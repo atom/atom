@@ -140,7 +140,7 @@ class WorkspaceView extends View
         installDirectory = CommandInstaller.getInstallDirectory()
         atom.confirm
           message: error.message
-          detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} is writable. Run 'sudo chmod o+w #{installDirectory}' to fix this problem."
+          detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
       else
         atom.confirm
           message: "Command installed."
