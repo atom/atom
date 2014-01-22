@@ -24,44 +24,29 @@ unlinkCommand = (destinationPath, callback) ->
 
 module.exports =
   getInstallDirectory: ->
-    "/usr/local"
+    "/usr/local/bin"
 
-  install: (commandPath, commandName, callback) ->
-    if not commandName? or _.isFunction(commandName)
-      callback = commandName
-      commandName = path.basename(commandPath, path.extname(commandPath))
-
-    installCallback = (error, sourcePath, destinationPath) ->
-      if error?
-        console.warn "Failed to install `#{commandName}` binary", error
-      callback?(error, sourcePath, destinationPath)
+  install: (commandPath, callback) ->
+    commandName = path.basename(commandPath, path.extname(commandPath))
 
     directory = @getInstallDirectory()
     if fs.existsSync(directory)
-      destinationPath = path.join(directory, 'bin', commandName)
+      destinationPath = path.join(directory, commandName)
       unlinkCommand destinationPath, (error) ->
-        if error?
-          installCallback(error)
-        else
-          symlinkCommand commandPath, destinationPath, (error) ->
-            installCallback(error, commandPath, destinationPath)
+        return callback(error) if error?
+        symlinkCommand commandPath, destinationPath, (error) -> callback(error)
     else
-      installCallback(new Error("No destination directory exists to install"))
+      error = new Error("No destination directory exists to install")
+      callback(error)
 
-  installAtomCommand: (resourcePath, callback) ->
-    if _.isFunction(resourcePath)
-      callback = resourcePath
-      resourcePath = null
-
-    resourcePath ?= atom.getLoadSettings().resourcePath
+  installAtomCommand: ->
+    resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install(commandPath, callback)
+    @install commandPath, (error) ->
+      console.warn "Failed to install `#{commandPath}` binary", error if error?
 
-  installApmCommand: (resourcePath, callback) ->
-    if _.isFunction(resourcePath)
-      callback = resourcePath
-      resourcePath = null
-
-    resourcePath ?= atom.getLoadSettings().resourcePath
+  installApmCommand: ->
+    resourcePath = atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install(commandPath, callback)
+    @install commandPath, (error) ->
+      console.warn "Failed to install `#{commandPath}` binary", error if error?
