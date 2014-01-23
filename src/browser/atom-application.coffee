@@ -39,10 +39,6 @@ class AtomApplication
       createAtomApplication()
       return
 
-    # The net.connect is slow in atom-shell for now, use this workaround until
-    # atom/atom-shell#159 is fixed.
-    process.activateUvLoop()
-
     client = net.connect {path: socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
