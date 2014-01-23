@@ -23,15 +23,19 @@ class ThemeManager
     # TODO: Maybe should change to list all the available themes out there?
     @getLoadedNames()
 
+  # Public: Get an array of all the loaded theme names.
   getLoadedNames: ->
     theme.name for theme in @getLoadedThemes()
 
+  # Public: Get an array of all the active theme names.
   getActiveNames: ->
     theme.name for theme in @getActiveThemes()
 
+  # Public: Get an array of all the active themes.
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
+  # Public: Get an array of all the loaded themes.
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
