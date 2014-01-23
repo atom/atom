@@ -63,7 +63,7 @@ describe 'File', ->
       afterEach ->
         if fs.existsSync(newPath)
           fs.removeSync(newPath)
-          waitsFor "remove event", (done) -> file.on 'removed', done
+          waitsFor "remove event", 30000, (done) -> file.on 'removed', done
 
       it "it updates its path", ->
         jasmine.unspy(window, "setTimeout")
