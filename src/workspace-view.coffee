@@ -135,23 +135,24 @@ class WorkspaceView extends View
     @command 'core:save-as', => @saveActivePaneItemAs()
 
   installShellCommands: ->
-    showDialog = (error, commandName)->
-      if error?
-        installDirectory = CommandInstaller.getInstallDirectory()
-        atom.confirm
-          message: error.message
-          detailedMessage: "Make sure #{CommandInstaller.getInstallDirectory()} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
-      else
-        atom.confirm
-          message: "Command installed."
-          detailedMessage: "The shell command `#{commandName}` is installed."
+    showErrorDialog = (error) ->
+      installDirectory = CommandInstaller.getInstallDirectory()
+      atom.confirm
+        message: error.message
+        detailedMessage: "Make sure #{installDirectory} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
 
     resourcePath = atom.getLoadSettings().resourcePath
     CommandInstaller.installAtomCommand resourcePath, (error) =>
-      showDialog(error, 'atom')
-      unless error?
+      if error?
+        showDialog(error)
+      else
         CommandInstaller.installApmCommand resourcePath, (error) =>
-          showDialog(error, 'apm')
+          if error?
+            showDialog(error)
+          else
+            atom.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   # Private:
   handleFocus: (e) ->
