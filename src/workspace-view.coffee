@@ -6,6 +6,7 @@ Delegator = require 'delegato'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Workspace = require './workspace'
+CommandInstaller = require './command-installer'
 EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
@@ -108,6 +109,8 @@ class WorkspaceView extends View
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
 
+    @command 'window:install-shell-commands', => @installShellCommands()
+
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
       atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
@@ -130,6 +133,26 @@ class WorkspaceView extends View
     @command 'core:close', => if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
+
+  installShellCommands: ->
+    showErrorDialog = (error) ->
+      installDirectory = CommandInstaller.getInstallDirectory()
+      atom.confirm
+        message: error.message
+        detailedMessage: "Make sure #{installDirectory} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
+
+    resourcePath = atom.getLoadSettings().resourcePath
+    CommandInstaller.installAtomCommand resourcePath, (error) =>
+      if error?
+        showDialog(error)
+      else
+        CommandInstaller.installApmCommand resourcePath, (error) =>
+          if error?
+            showDialog(error)
+          else
+            atom.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   # Private:
   handleFocus: (e) ->
