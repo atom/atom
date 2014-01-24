@@ -1,6 +1,6 @@
 @echo off
 
-set USAGE="Usage: %0 source destination"
+set USAGE=Usage: %0 source destination
 
 if [%1] == [] (
   echo %USAGE%
