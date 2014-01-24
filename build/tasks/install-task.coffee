@@ -6,6 +6,14 @@ module.exports = (grunt) ->
   grunt.registerTask 'install', 'Install the built application', ->
     installDir = grunt.config.get('atom.installDir')
     shellAppDir = grunt.config.get('atom.shellAppDir')
-    rm installDir
-    mkdir path.dirname(installDir)
-    cp shellAppDir, installDir
+    if process.platform is 'win32'
+      runas = require 'runas'
+      copyFolder = path.resolve 'script', 'copy-folder.cmd'
+      # cmd /c ""script" "source" "destination""
+      arg = "/c \"\"#{copyFolder}\" \"#{shellAppDir}\" \"#{installDir}\"\""
+      if runas('cmd', [arg], hide: true) isnt 0
+        throw new Error("Failed to copy #{shellAppDir} to #{installDir}")
+    else
+      rm installDir
+      mkdir path.dirname(installDir)
+      cp shellAppDir, installDir
