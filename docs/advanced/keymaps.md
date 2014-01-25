@@ -1,58 +1,99 @@
-## Keymaps In-Depth
+# Keymaps In-Depth
 
-### Structure of a Keymap File
+## Structure of a Keymap File
 
-Keymap files are encoded as JSON or CSON files containing nested hashes. The
-top-level keys of a keymap are **CSS 3 selectors**, which specify a particular
-context in Atom's interface. Common selectors are `.editor`, which scopes
-bindings to just work when an editor is focused, and `body`, which scopes
-bindings globally.
+Keymap files are encoded as JSON or CSON files containing nested hashes. They
+work much like stylesheets, but instead of applying style properties to elements
+matching the selector, they specify the meaning of keystrokes on elements
+matching the selector. Here is an example of some bindings that apply when
+keystrokes pass through elements with the class `.editor`:
 
-Beneath the selectors are hashes mapping **keystroke patterns** to
-**semantic events**. A keystroke pattern looks like the following examples.
-Note that the last example describes multiple keystrokes in succession:
+```coffee
+'.editor':
+  'cmd-delete': 'editor:backspace-to-beginning-of-line'
+  'alt-backspace': 'editor:backspace-to-beginning-of-word'
+  'ctrl-A': 'editor:select-to-first-character-of-line'
+  'ctrl-shift-e': 'editor:select-to-end-of-line'
+  'cmd-left': 'editor:move-to-first-character-of-line'
 
-- `p`
-- `2`
-- `ctrl-p`
-- `ctrl-alt-cmd-p`
-- `tab`
-- `escape`
-- `enter`
-- `ctrl-w w`
+'.editor:not(.mini)'
+  'cmd-alt-[': 'editor:fold-current-row'
+  'cmd-alt-]': 'editor:unfold-current-row'
+```
 
-A semantic event is the name of the custom event that will be triggered on the
-target of the keydown event when a key binding matches. You can use the command
-palette (bound to `cmd-shift-P`), to get a list of relevant events and their bindings
-in any focused context in Atom.
+Beneath the first selector are several bindings, mapping specific *keystroke
+patterns* to *commands*. When an element with the `.editor` class is focused and
+`cmd-delete` is pressed, an custom DOM event called
+`editor:backspace-to-beginning-of-line` is emitted on the `.editor` element.
 
-### Rules for Mapping A Keydown Event to A Semantic Event
+The second selector group also targets editors, but only if they don't have the
+`.mini` class. In this example, the commands for code folding don't really make
+sense on mini-editors, so the selector restricts them to regular editors.
 
-A keymap's job is to translate a physical keystroke event (like `cmd-D`) into a
-semantic event (like `editor:duplicate-line`). Whenever a keydown event occurs
-on a focused element, it bubbles up the DOM as usual. As soon as an element on
-the bubble path matches a key binding for the keystroke, the binding's semantic
-event is triggered on the original target of the keydown event. Just as with
-CSS, if multiple selectors match an element, the most specific selector is
-favored. If two selectors have the same specificity, the selector that occurs
-latest in the cascade is favored.
+### Keystroke Patterns
+
+Keystroke patterns express one or more keystrokes combined with optional
+modifier keys. For example: `ctrl-w v`, or `cmd-shift-up`. A keystroke is
+composed of the following symbols, separated by a `-`. A multi-keystroke pattern
+can be expressed as keystroke patterns separated by spaces.
+
+
+| Type                | Examples
+| --------------------|----------------------------
+| Character literals  | `a` `4` `$`
+| Modifier keys       | `cmd` `ctrl` `alt` `shift`
+| Special keys        | `enter` `escape` `backspace` `delete` `tab` `home` `end` `pageup` `pagedown` `left` `right` `up` `down`
+
+### Commands
+
+Commands are custom DOM events that are triggered when a keystroke matches a
+binding. This allows user interface code to listen for named commands without
+specifying the specific keybinding that triggers it. For example, the following
+code sets up {EditorView} to listen for commands to move the cursor to the first
+character of the current line:
+
+```coffee
+class EditorView
+  listenForEvents: ->
+    @command 'editor:move-to-first-character-of-line', =>
+      @editor.moveCursorToFirstCharacterOfLine()
+```
+
+The `::command` method is basically an enhanced version of jQuery's `::on`
+method that listens for a custom DOM event and adds some metadata to the DOM,
+which is read by the command palette.
+
+When you are looking to bind new keys, it is often useful to use the command
+palette (`ctrl-shift-p`) to discover what commands are being listened for in a
+given focus context. Commands are "humanized" following a simple algorithm, so a
+command like `editor:fold-current-row` would appear as "Editor: Fold Current
+Row".
+
+### Specificity and Cascade Order
+
+As is the case with CSS applying styles, when multiple bindings match for a
+single element, the conflict is resolved by choosing the most *specific*
+selector. If two matching selectors have the same specificity, the binding
+for the selector appearing later in the cascade takes precedence.
 
 Currently, there's no way to specify selector ordering within a single keymap,
-because JSON hashes do not preserve order. Rather than making the format more
-awkward in order to preserve order, we've opted to handle cases where order is
-critical by breaking the keymap into two separate files, such as
-`snippets-1.cson` and `snippets-2.cson`.
+because JSON objects do not preserve order. We eventually plan to introduce a
+custom CSS-like file format for keymaps that allows for ordering within a single
+file. For now, we've opted to handle cases where selector ordering is critical
+by breaking the keymap into two separate files, such as `snippets-1.cson` and
+`snippets-2.cson`.
 
-### Overloading Key Bindings
+## Overloading Key Bindings
 
 Occasionally, it makes sense to layer multiple actions on top of the same key
-binding. An example of this is the snippets package. You expand a snippet by
-pressing `tab` immediately following a snippet's prefix. But if the cursor is
-not following a valid snippet prefix, then we want tab to perform its normal
-action (probably inserting a tab character or the appropriate number of spaces).
+binding. An example of this is the snippets package. Snippets are inserted by
+typing a snippet prefix such as `for` and then pressing `tab`. Every time `tab`
+is pressed, we want to execute code attempting to expand a snippet if one exists
+for the text preceding the cursor. If a snippet *doesn't* exist, we want `tab`
+to actually insert whitespace.
 
-To achieve this, the snippets package makes use of the `abortKeyBinding` method
-on the event object that's triggered by the binding for `tab`.
+To achieve this, the snippets package makes use of the `.abortKeyBinding()`
+method on the event object representing the `snippets:expand` command.
 
 ```coffee-script
 # pseudo-code
@@ -64,6 +105,19 @@ editor.command 'snippets:expand', (e) =>
 ```
 
 When the event handler observes that the cursor does not follow a valid prefix,
-it calls `e.abortKeyBinding()`, which tells the keymap system to continue
-searching up the cascade for another matching binding. In this case, the default
-implementation of `tab` ends up getting triggered.
+it calls `e.abortKeyBinding()`, telling the keymap system to continue searching
+for another matching binding.
+
+## Step-by-Step: How Keydown Events are Mapped to Commands
+
+* A keydown event occurs on a *focused* element.
+* Starting at the focused element, the keymap walks upward towards the root of
+  the document, searching for the most specific CSS selector that matches the
+  current DOM element and also contains a keystroke pattern matching the keydown
+  event.
+* When a matching keystroke pattern is found, the search is terminated and the
+  pattern's corresponding command is triggered on the current element.
+* If `.abortKeyBinding()` is called on the triggered event object, the search
+  is resumed, triggering a binding on the next-most-specific CSS selector for
+  the same element or continuing upward to parent elements.
+* If no bindings are found, the event is handled by Chromium normally.
