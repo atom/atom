@@ -8,7 +8,7 @@ tree = require './tree'
 
 module.exports =
 class Links
-  @commandNames: ['linked', 'links']
+  @commandNames: ['linked', 'links', 'lns']
 
   constructor: ->
     @devPackagesPath = path.join(config.getAtomDirectory(), 'dev', 'packages')
