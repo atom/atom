@@ -6,6 +6,7 @@ crypto = require 'crypto'
 # A pasteboard instance is always available under the `atom.pasteboard` global.
 module.exports =
 class Pasteboard
+  metadata: null
   signatureForMetadata: null
 
   # Creates an `md5` hash of some text.
@@ -27,10 +28,14 @@ class Pasteboard
 
   # Public: Read the text from the clipboard.
   #
-  # Returns an {Array}. The first element is the saved text and the second is
-  # any metadata associated with the text.
+  # Returns an {Object} with a `text` key and a `metadata` key if it has
+  # associated metadata.
   read: ->
     text = clipboard.readText()
-    value = [text]
-    value.push(@metadata) if @signatureForMetadata == @md5(text)
-    value
+    #TODO Return object once packages have been updated.
+    contents = [text]
+    contents.text = text
+    if @signatureForMetadata is @md5(text)
+      contents.push(@metadata)
+      contents.metadata = @metadata
+    contents

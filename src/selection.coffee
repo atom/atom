@@ -528,8 +528,7 @@ class Selection
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
     if maintainPasteboard
-      [currentText, metadata] = atom.pasteboard.read()
-      text = currentText + '\n' + text
+      text = atom.pasteboard.read().text + '\n' + text
     else
       metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
 
