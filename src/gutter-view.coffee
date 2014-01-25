@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 #
 # The gutter also indicates if rows are folded.
 module.exports =
-class Gutter extends View
+class GutterView extends View
 
   ### Internal ###
 

@@ -1,6 +1,6 @@
 {View, $, $$$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
-Gutter = require './gutter'
+GutterView = require './gutter-view'
 {Point, Range} = require 'text-buffer'
 Editor = require './editor'
 CursorView = require './cursor-view'
@@ -47,7 +47,7 @@ class EditorView extends View
     attributes = { class: @classes(params), tabindex: -1 }
     _.extend(attributes, params.attributes) if params.attributes
     @div attributes, =>
-      @subview 'gutter', new Gutter
+      @subview 'gutter', new GutterView
       @div class: 'scroll-view', outlet: 'scrollView', =>
         @div class: 'overlayer', outlet: 'overlayer'
         @div class: 'lines', outlet: 'renderedLines'
