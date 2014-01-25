@@ -164,9 +164,12 @@ class Keymap
       @keyBindings.push new KeyBinding(source, command, keystroke, selector)
 
   handleKeyEvent: (event) ->
+    keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
+    @handleKeystroke(keystroke, event)
+
+  handleKeystroke: (keystroke, event) ->
     element = event.target
     element = atom.workspaceView if element == document.body
-    keystroke = @keystrokeStringForEvent(event, @queuedKeystroke)
     keyBindings = @keyBindingsForKeystrokeMatchingElement(keystroke, element)
 
     if keyBindings.length == 0 and @queuedKeystroke

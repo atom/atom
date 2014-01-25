@@ -112,10 +112,24 @@ class ApplicationMenu
       item.metadata = {}
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
-        item.click = => global.atomApplication.sendCommand(item.command)
+        keystroke = @firstKeystrokeForCommand(item.command, keystrokesByCommand)
+        item.click = => global.atomApplication.sendCommandOrKeystroke(item.command, keystroke)
         item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
+
+  # Private: Determine the first bound keystroke for the given command.
+  #
+  # * command:
+  #   The name of the command.
+  # * keystrokesByCommand:
+  #   An Object where the keys are commands and the values are Arrays containing
+  #   the keystroke.
+  #
+  # Returns a String containing the keystroke in the format used in Atom's
+  #   keymap CSON files.
+  firstKeystrokeForCommand: (command, keystrokesByCommand) ->
+    keystrokesByCommand[command]?[0]
 
   # Private: Determine the accelerator for a given command.
   #
@@ -128,7 +142,7 @@ class ApplicationMenu
   # Returns a String containing the keystroke in a format that can be interpreted
   #   by atom shell to provide nice icons where available.
   acceleratorForCommand: (command, keystrokesByCommand) ->
-    firstKeystroke = keystrokesByCommand[command]?[0]
+    firstKeystroke = @firstKeystrokeForCommand(command, keystrokesByCommand)
     return null unless firstKeystroke
 
     modifiers = firstKeystroke.split('-')

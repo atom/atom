@@ -206,6 +206,24 @@ class AtomApplication
     unless @emit(command, args...)
       @focusedWindow()?.sendCommand(command, args...)
 
+  # Public: Executes the given command, or the command associated with the given
+  # keystroke.
+  #
+  # If the command isn't handled globally, then delegate the keystroke
+  # to the currently focused window.
+  #
+  # * command:
+  #   The string representing the command.
+  # * keystroke:
+  #   The keystroke, in Atom's keymap format used inside its keymap CSON,
+  #   to forward to the currently focused window if the command isn't handled
+  #   globally.
+  # * args:
+  #   The optional arguments to pass along.
+  sendCommandOrKeystroke: (command, keystroke, args...) ->
+    unless @emit(command, args...)
+      @focusedWindow()?.sendKeystrokeToBrowserWindow(keystroke, args...)
+
   # Public: Open the given path in the focused window when the event is
   # triggered.
   #
