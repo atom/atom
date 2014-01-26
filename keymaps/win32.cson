@@ -47,8 +47,12 @@
   'ctrl-k right': 'pane:split-right' # Atom Specific
   'ctrl-k ctrl-w': 'pane:close' # Atom Specific
   'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
-  'ctrl-k ctrl-left': 'window:focus-previous-pane'
-  'ctrl-k ctrl-right': 'window:focus-next-pane'
+  'ctrl-k ctrl-p': 'window:focus-previous-pane'
+  'ctrl-k ctrl-n': 'window:focus-next-pane'
+  'ctrl-k ctrl-up':    'window:focus-pane-above'
+  'ctrl-k ctrl-down':  'window:focus-pane-below'
+  'ctrl-k ctrl-left':  'window:focus-pane-on-left'
+  'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
 '.workspace .editor':
   # Windows specific
