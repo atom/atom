@@ -2,6 +2,7 @@ Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
+PositionallyAwarePane = require './positionally-aware-pane'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
@@ -98,3 +99,18 @@ class PaneContainerView extends View
 
   focusPreviousPane: ->
     @model.activatePreviousPane()
+
+  focusPaneAbove: ->
+    @positionallyAwarePaneForActivePane().focusPaneAbove()
+
+  focusPaneBelow: ->
+    @positionallyAwarePaneForActivePane().focusPaneBelow()
+
+  focusPaneOnLeft: ->
+    @positionallyAwarePaneForActivePane().focusPaneOnLeft()
+
+  focusPaneOnRight: ->
+    @positionallyAwarePaneForActivePane().focusPaneOnRight()
+
+  positionallyAwarePaneForActivePane: ->
+    new PositionallyAwarePane(@getActivePane(), @getPanes())

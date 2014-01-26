@@ -121,6 +121,10 @@ class WorkspaceView extends View
 
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:focus-previous-pane', => @focusPreviousPane()
+    @command 'window:focus-pane-above', => @focusPaneAbove()
+    @command 'window:focus-pane-below', => @focusPaneBelow()
+    @command 'window:focus-pane-on-left', => @focusPaneOnLeft()
+    @command 'window:focus-pane-on-right', => @focusPaneOnRight()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       atom.config.toggle("editor.showInvisibles")
@@ -244,6 +248,19 @@ class WorkspaceView extends View
 
   # Public: Focuses the next pane by id.
   focusNextPane: -> @model.activateNextPane()
+
+  # Public: Focuses the pane directly above the currently-focused pane.
+  focusPaneAbove: -> @panes.focusPaneAbove()
+
+  # Public: Focuses the pane directly below the currently-focused pane.
+  focusPaneBelow: -> @panes.focusPaneBelow()
+
+  # Public: Focuses the pane directly to the left of the currently-focused pane.
+  focusPaneOnLeft: -> @panes.focusPaneOnLeft()
+
+  # Public: Focuses the pane directly to the right of the currently-focused
+  # pane.
+  focusPaneOnRight: -> @panes.focusPaneOnRight()
 
   # Public:
   #
