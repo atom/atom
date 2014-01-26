@@ -27,32 +27,6 @@ describe "PaneContainerView", ->
   afterEach ->
     atom.deserializers.remove(TestView)
 
-  describe ".focusNextPane()", ->
-    it "focuses the pane following the focused pane or the first pane if no pane has focus", ->
-      container.attachToDom()
-      container.focusNextPane()
-      expect(pane1.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
-      expect(pane2.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
-      expect(pane3.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
-      expect(pane1.activeItem).toMatchSelector ':focus'
-
-  describe ".focusPreviousPane()", ->
-    it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
-      container.attachToDom()
-      container.getPanes()[0].focus() # activate first pane
-
-      container.focusPreviousPane()
-      expect(pane3.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
-      expect(pane2.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
-      expect(pane1.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
-      expect(pane3.activeItem).toMatchSelector ':focus'
-
   describe ".getActivePane()", ->
     it "returns the most-recently focused pane", ->
       focusStealer = $$ -> @div tabindex: -1, "focus stealer"
@@ -265,6 +239,32 @@ describe "PaneContainerView", ->
         pane1.remove()
         pane2.remove()
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+  describe ".focusNextPane()", ->
+    it "focuses the pane following the focused pane or the first pane if no pane has focus", ->
+      container.attachToDom()
+      container.focusNextPane()
+      expect(pane1.activeItem).toMatchSelector ':focus'
+      container.focusNextPane()
+      expect(pane2.activeItem).toMatchSelector ':focus'
+      container.focusNextPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+      container.focusNextPane()
+      expect(pane1.activeItem).toMatchSelector ':focus'
+
+  describe ".focusPreviousPane()", ->
+    it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
+      container.attachToDom()
+      container.getPanes()[0].focus() # activate first pane
+
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane2.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane1.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
 
   describe "changing focus directionally between panes", ->
     [pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9] = []
