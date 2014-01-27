@@ -16,16 +16,16 @@ class PositionallyAwarePane
   constructor: (@pane, @allPanes) ->
 
   focusPaneAbove: ->
-    @bestChoiceForVerticalNavigation(@panesInAdjecentRowAbove())?.focus()
+    @bestChoiceForVerticalNavigation(@panesInAdjacentRowAbove())?.focus()
 
   focusPaneBelow: ->
-    @bestChoiceForVerticalNavigation(@panesInAdjecentRowBelow())?.focus()
+    @bestChoiceForVerticalNavigation(@panesInAdjacentRowBelow())?.focus()
 
   focusPaneOnLeft: ->
-    @bestChoiceForHorizontalNavigation(@panesInAdjecentColumnOnLeft())?.focus()
+    @bestChoiceForHorizontalNavigation(@panesInAdjacentColumnOnLeft())?.focus()
 
   focusPaneOnRight: ->
-    @bestChoiceForHorizontalNavigation(@panesInAdjecentColumnOnRight())?.focus()
+    @bestChoiceForHorizontalNavigation(@panesInAdjacentColumnOnRight())?.focus()
 
   focus: ->
     @pane.focus()
@@ -56,14 +56,14 @@ class PositionallyAwarePane
 
   ### Internal ###
 
-  panesInAdjecentRowAbove: ->
+  panesInAdjacentRowAbove: ->
     allPanesAbove = @otherPanes().filter (pane) => @isBelow(pane)
     yBottomValues = _.map allPanesAbove, (pane) -> pane.yBottom()
     maxYBottom = _.max yBottomValues
     panesVerticallyNearest = allPanesAbove.filter (pane) ->
       pane.yBottom() == maxYBottom
 
-  panesInAdjecentRowBelow: ->
+  panesInAdjacentRowBelow: ->
     allPanesBelow = @otherPanes().filter (pane) => @isAbove(pane)
 
     yTopValues = _.map allPanesBelow, (pane) -> pane.yTop()
@@ -71,7 +71,7 @@ class PositionallyAwarePane
     panesVerticallyNearest = allPanesBelow.filter (pane) ->
       pane.yTop() == minYTop
 
-  panesInAdjecentColumnOnLeft: ->
+  panesInAdjacentColumnOnLeft: ->
     allPanesOnLeft = @otherPanes().filter (pane) => @isRightOf(pane)
     xRightValues = _.map allPanesOnLeft, (pane) -> pane.xRight()
     maxXRight = _.max xRightValues
@@ -79,7 +79,7 @@ class PositionallyAwarePane
       pane.xRight() == maxXRight
 
   # Internal
-  panesInAdjecentColumnOnRight: ->
+  panesInAdjacentColumnOnRight: ->
     allPanesOnRight = @otherPanes().filter (pane) => @isLeftOf(pane)
     xLeftValues = _.map allPanesOnRight, (pane) -> pane.xLeft()
     minXLeft = _.min xLeftValues
