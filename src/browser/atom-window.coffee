@@ -74,6 +74,8 @@ class AtomWindow
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
+      return if @isSpec
+
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
