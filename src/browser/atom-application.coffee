@@ -15,7 +15,11 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath = path.join(os.tmpdir(), 'atom.sock')
+socketPath =
+  if process.platform is 'win32'
+    '\\\\.\\pipe\\atom-sock'
+  else
+    path.join(os.tmpdir(), 'atom.sock')
 
 # Private: The application's singleton class.
 #
@@ -35,7 +39,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if (not fs.existsSync socketPath) or options.test
+    if (process.platform isnt 'win32' and not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
 
@@ -99,7 +103,8 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
-    fs.unlinkSync socketPath if fs.existsSync(socketPath)
+    if process.platform isnt 'win32' and fs.existsSync(socketPath)
+      fs.unlinkSync socketPath
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
         @openWithOptions(JSON.parse(data))
@@ -152,7 +157,9 @@ class AtomApplication
       app.quit() if process.platform is 'win32'
 
     app.on 'will-quit', =>
-      fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
+      # Clean the socket file when quit normally.
+      if process.platform isnt 'win32' and fs.existsSync(socketPath)
+        fs.unlinkSync socketPath
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
