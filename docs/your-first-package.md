@@ -110,7 +110,7 @@ Now we need to convert the selected text to ascii art. To do this we will use
 the [figlet node module](https://npmjs.org/package/figlet) from NPM. Open
 _package.json_ add the latest version of figlet to the dependencies:
 
-```coffeescript
+```json
   "dependencies": {
      "figlet": "1.0.8"
   }
