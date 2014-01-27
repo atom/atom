@@ -1,8 +1,8 @@
 # Create Your First Package
 
 The tutorial will lead you though creating a simple package that replaces
-selected text with ascii art. For example, if "cool" was selected the output
-would be:
+selected text with [ascii art](http://en.wikipedia.org/wiki/ASCII_art). For
+example, if "cool" was selected the output would be:
 
 ```
                     /\_ \
