@@ -9,6 +9,7 @@
       { label: 'Preferences...', command: 'application:show-settings' }
       { label: 'Open Your Config', command: 'application:open-your-config' }
       { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
+      { label: 'Open Your Snippets', command: 'application:open-your-snippets' }
       { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
       { type: 'separator' }
       { label: 'Install Shell Commands', command: 'window:install-shell-commands' }
