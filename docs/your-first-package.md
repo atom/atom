@@ -50,7 +50,7 @@ module.exports =
 
   convert: ->
     # This assumes the active pane item is an editor
-    editor = atom.workspace.activePaneItem.
+    editor = atom.workspace.activePaneItem
     selection = editor.getSelection()
     upperCaseSelectedText = selection.getText().toUpperCase()
     selection.insertText(upperCaseSelectedText)
