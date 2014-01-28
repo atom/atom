@@ -135,7 +135,7 @@ convert: ->
     if error
       console.error(error)
     else
-      selection.insertText("\n" + asciiArt + "\n")
+      selection.insertText("\n#{asciiArt}\n")
 ```
 
 ## Further reading
