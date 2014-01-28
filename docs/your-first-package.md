@@ -109,8 +109,8 @@ that it **doesn't** work when the Tree View is focused.
 
 Now we need to convert the selected text to ascii art. To do this we will use
 the [figlet](https://npmjs.org/package/figlet) [node](http://nodejs.org/) module
-from npm. Open _package.json_ add the latest version of figlet to the
-dependencies:
+from [npm](https://npmjs.org/). Open _package.json_ add the latest version of
+figlet to the dependencies:
 
 ```json
   "dependencies": {
