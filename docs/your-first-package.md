@@ -99,8 +99,8 @@ bindings so they only apply to specific elements. In this case, our binding is
 only active for elements matching the `.editor` selector. If the Tree View has
 focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
 if the editor has focus, the `ascii-art:convert` method *will* be triggered.
-More information on key bindings can be found in the [keymaps][keymaps]
-documentation.
+More information on key bindings can be found in the
+[keymaps](advanced/keymaps.html) documentation.
 
 Now reload the window and verify that the key binding works! You can also verify
 that it **doesn't** work when the Tree View is focused.
@@ -108,8 +108,9 @@ that it **doesn't** work when the Tree View is focused.
 ## Add the ASCII Art
 
 Now we need to convert the selected text to ascii art. To do this we will use
-the [figlet](https://npmjs.org/package/figlet) node module from npm. Open
-_package.json_ add the latest version of figlet to the dependencies:
+the [figlet](https://npmjs.org/package/figlet) [node](http://nodejs.org/) module
+from npm. Open _package.json_ add the latest version of figlet to the
+dependencies:
 
 ```json
   "dependencies": {
@@ -140,16 +141,4 @@ convert: ->
 ## Further reading
 
 For more information on the mechanics of packages, check out [Creating a
-Package][creating-a-package].
-
-[keymaps]: advanced/keymaps.html
-[bundled-libs]: creating-a-package.html#included-libraries
-[styleguide]: https://github.com/atom/styleguide
-[space-pen]: https://github.com/atom/space-pen
-[node]: http://nodejs.org/
-[path]: http://nodejs.org/docs/latest/api/path.html
-[changer_file_view]: https://f.cloud.github.com/assets/69169/1441187/d7a7cb46-41a7-11e3-8128-d93f70a5d5c1.png
-[changer_panel_append]: https://f.cloud.github.com/assets/69169/1441189/db0c74da-41a7-11e3-8286-b82dd9190c34.png
-[changer_panel_timestamps]: https://f.cloud.github.com/assets/69169/1441190/dcc8eeb6-41a7-11e3-830f-1f1b33072fcd.png
-[theme-vars]: theme-variables.html
-[creating-a-package]: creating-a-package.html
+Package](creating-a-package.html)
