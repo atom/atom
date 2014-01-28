@@ -118,13 +118,14 @@ figlet to the dependencies:
   }
 ```
 
-Save the file and then run the command 'update-package-dependencies:update' from
-the Command Palette. This will install the all the node module a package needs
-(only figlet in this case). You will need to run it whenever you update the
-dependencies field in your _package.json_ file.
+After saving the file run the command 'update-package-dependencies:update' from
+the Command Palette. This will install the packages node module dependencies,
+only figlet in this case. You will need to run
+'update-package-dependencies:update' whenever you update the dependencies field
+in your _package.json_ file.
 
-Require the figlet node module in _lib/ascii-art.coffee_ and instead of
-uppercasing the text, you can convert it to ascii art!
+Now require the figlet node module in _lib/ascii-art.coffee_ and instead of
+inserting 'Hello, World!' convert the selected text to ascii art!
 
 ```coffeescript
 convert: ->
