@@ -107,6 +107,7 @@ class WorkspaceView extends View
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
     @command 'application:open-your-config', -> ipc.sendChannel('command', 'application:open-your-config')
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
+    @command 'application:open-your-snippets', -> ipc.sendChannel('command', 'application:open-your-snippets')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
 
     @command 'window:install-shell-commands', => @installShellCommands()
