@@ -63,7 +63,7 @@ World!'.
 ## Reload the Package
 
 Before we can trigger `ascii-art:convert`, we need to load the latest code for
-our package by reloading the window. Run the `window:reload` command from the
+our package by reloading the window. Run the command `window:reload` from the
 command palette or by pressing `ctrl-alt-cmd-l`.
 
 ## Trigger the Command
@@ -78,8 +78,8 @@ to the activationEvents array:
 "activationEvents": ["ascii-art:convert"],
 ```
 
-Now reload window `ctrl-alt-cmd-l` and use the command panel to trigger the
-`ascii-art:convert` command. It will uppercase any text you have selected.
+First, run reload the window by running the command `window:reload`. Now when
+you run the `ascii-art:convert` command it will output 'Hello, World!'
 
 ## Add A Key Binding
 
