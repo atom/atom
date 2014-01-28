@@ -40,11 +40,17 @@ JavaScript lacks these abilities, we've extended Atom's environment with
 Node.js, which adds all the privileged features you'd expect from a
 full-featured programming language.
 
-### The Module System
+A full discussion working with Node.js is outside the scope of this guide, but
+we will provide a brief overview. For full documentation of the various APIs
+provided by Node, refer to the [Node API docs](http://nodejs.org/docs/v0.11.10/api/).
+Everything that works in a standard Node application should also work in Atom.
+
+### Node's Module System
 
 Atom uses Node's module system to organize code, which we'll review briefly
 here. For an in-depth description of Node's module system (which Atom fully
-supports) see the [Node documentation](http://nodejs.org/api/modules.html).
+supports) see the
+[documentation for Node's module system](http://nodejs.org/api/modules.html).
 
 #### Requiring Modules
 
