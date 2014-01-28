@@ -24,7 +24,7 @@ fs.createReadStream(fontSrc).pipe(fs.createWriteStream(fontDest))
 
 # Update Octicon UTF codes
 glyphsSrc = path.join(pathToOcticons, 'data', 'glyphs.yml')
-octiconUtfDest = path.join atomDir, 'static', 'octicon-utf-codes.less'
+octiconUtfDest = path.join atomDir, 'static', 'variables', 'octicon-utf-codes.less'
 output = []
 for {css, code} in YAML.load(fs.readFileSync(glyphsSrc).toString())
   output.push "@#{css}: \"\\#{code}\";"
