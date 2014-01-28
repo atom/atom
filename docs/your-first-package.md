@@ -118,8 +118,10 @@ figlet to the dependencies:
   }
 ```
 
-NOW GO TO THE COMMAND LINE AND RUN APM UPDATE BUT REALLY THIS STEP SEEMS LIKE
-IT COULD BE AN ATOM COMMAND.
+Save the file and then run the command 'update-package-dependencies:update' from
+the Command Palette. This will install the all the node module a package needs
+(only figlet in this case). You will need to run it whenever you update the
+dependencies field in your _package.json_ file.
 
 Require the figlet node module in _lib/ascii-art.coffee_ and instead of
 uppercasing the text, you can convert it to ascii art!
