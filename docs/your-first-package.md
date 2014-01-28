@@ -52,15 +52,13 @@ module.exports =
   convert: ->
     # This assumes the active pane item is an editor
     editor = atom.workspace.activePaneItem
-    selection = editor.getSelection()
-    upperCaseSelectedText = selection.getText().toUpperCase()
-    selection.insertText(upperCaseSelectedText)
+    editor.insertText('Hello, World!')
 ```
 
 The `atom.workspaceView.command` method takes a command name and a callback. The
 callback executes when the command is triggered. In this case, when the command
-is triggered the callback will call the `convert` method and uppercase the
-selected text.
+is triggered the callback will call the `convert` method and insert 'Hello,
+World!'.
 
 ## Reload the Package
 
@@ -128,7 +126,8 @@ uppercasing the text, you can convert it to ascii art!
 ```coffeescript
 convert: ->
   # This assumes the active pane item is an editor
-  selection = atom.workspace.activePaneItem.getSelection()
+  editor = atom.workspace.activePaneItem
+  selection = editor.getSelection()
 
   figlet = require 'figlet'
   figlet selection.getText(), {font: "Larry 3D 2"}, (error, asciiArt) ->
