@@ -20,6 +20,18 @@ arbitrary web pages in a trusted context. If you need to run untrusted code, do
 so in an untrusted iframe or JavaScript context. (TODO: Add ways to run
 untrusted code)
 
+## CoffeeScript
+
+Atom's core and standard packages are written in
+[CoffeeScript](http://coffeescript.org), which provides an convenient
+alternative syntax for JavaScript. Under the hood, CoffeeScript is compiled to
+JavaScript before it is run, but Atom supports requiring `.coffee` files
+directly, so you don't actually need to worry about this step.
+
+If you already know JavaScript, CoffeeScript really shouldn't be difficult to
+pick up, but you should also feel free to write packages in standard JavaScript,
+as none of Atom's APIs require that you use CoffeeScript.
+
 ## Node.js
 
 To be useful as a text editor, Atom needs to have access to system facilities
