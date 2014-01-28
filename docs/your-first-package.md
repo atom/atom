@@ -74,8 +74,6 @@ its not there! To fix this open _package.json_ and find the property called
 delay a package's activation until it's needed. So add the `ascii-art:convert`
 to the activationEvents array:
 
-IT SEEMS LIKE ACTIVATION EVENTS SHOULDN'T BE REQUIRED HERE. WHAT AM I MISSING?
-
 ```coffeescript
 "activationEvents": ["ascii-art:convert"],
 ```
