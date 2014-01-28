@@ -149,9 +149,10 @@ class AtomApplication
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
 
     @openPathOnEvent('application:show-settings', 'atom://config')
-    @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
-    @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
+    @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
+    @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
+    @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
 
     app.on 'window-all-closed', ->
       app.quit() if process.platform is 'win32'
