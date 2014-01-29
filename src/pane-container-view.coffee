@@ -131,10 +131,10 @@ class PaneContainerView extends View
         boxA = @boundingBoxForPane(paneA)
         boxB = @boundingBoxForPane(paneB)
         switch direction
-          when 'left' then @distance(box.left, boxA.right) - @distance(box.left, boxB.right)
-          when 'right' then @distance(box.right, boxA.left) - @distance(box.right, boxB.left)
-          when 'above' then @distance(box.top, boxA.bottom) - @distance(box.top, boxB.bottom)
-          when 'below' then @distance(box.bottom, boxA.top) - @distance(box.bottom, boxB.top)
+          when 'left' then distance(box.left, boxA.right) - distance(box.left, boxB.right)
+          when 'right' then distance(box.right, boxA.left) - distance(box.right, boxB.left)
+          when 'above' then distance(box.top, boxA.bottom) - distance(box.top, boxB.bottom)
+          when 'below' then distance(box.bottom, boxA.top) - distance(box.bottom, boxB.top)
 
     panes[0]
 
