@@ -51,7 +51,7 @@ start = ->
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
 
-    require('coffee-script')
+    require('coffee-script').register()
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
       AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
