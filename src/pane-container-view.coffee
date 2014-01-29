@@ -2,7 +2,6 @@ Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
-PositionallyAwarePane = require './positionally-aware-pane'
 
 # Private: Manages the list of panes within a {WorkspaceView}
 module.exports =
@@ -101,16 +100,52 @@ class PaneContainerView extends View
     @model.activatePreviousPane()
 
   focusPaneAbove: ->
-    @positionallyAwarePaneForActivePane().focusPaneAbove()
+    @nearestPaneInDirection('above')?.focus()
 
   focusPaneBelow: ->
-    @positionallyAwarePaneForActivePane().focusPaneBelow()
+    @nearestPaneInDirection('below')?.focus()
 
   focusPaneOnLeft: ->
-    @positionallyAwarePaneForActivePane().focusPaneOnLeft()
+    @nearestPaneInDirection('left')?.focus()
 
   focusPaneOnRight: ->
-    @positionallyAwarePaneForActivePane().focusPaneOnRight()
+    @nearestPaneInDirection('right')?.focus()
 
-  positionallyAwarePaneForActivePane: ->
-    new PositionallyAwarePane(@getActivePane(), @getPanes())
+  nearestPaneInDirection: (direction) ->
+    pane = @getActivePane()
+    box = @boundingBoxForPane(pane)
+    panes = @getPanes()
+      .filter (otherPane) =>
+        otherBox = @boundingBoxForPane(otherPane)
+        switch direction
+          when 'left' then otherBox.right.x <= box.left.x
+          when 'right' then otherBox.left.x >= box.right.x
+          when 'above' then otherBox.bottom.y <= box.top.y
+          when 'below' then otherBox.top.y >= box.bottom.y
+      .sort (paneA, paneB) =>
+        boxA = @boundingBoxForPane(paneA)
+        boxB = @boundingBoxForPane(paneB)
+        switch direction
+          when 'left'
+            @distanceBetweenPoints(box.left, boxA.right) - @distanceBetweenPoints(box.left, boxB.right)
+          when 'right'
+            @distanceBetweenPoints(box.right, boxA.left) - @distanceBetweenPoints(box.right, boxB.left)
+          when 'above'
+            @distanceBetweenPoints(box.top, boxA.bottom) - @distanceBetweenPoints(box.top, boxB.bottom)
+          when 'below'
+            @distanceBetweenPoints(box.bottom, boxA.top) - @distanceBetweenPoints(box.bottom, boxB.top)
+
+    panes[0]
+
+  boundingBoxForPane: (pane) ->
+    boundingBox = pane[0].getBoundingClientRect()
+
+    left: {x: boundingBox.left, y: boundingBox.top}
+    right: {x: boundingBox.right, y: boundingBox.top}
+    top: {x: boundingBox.left, y: boundingBox.top}
+    bottom: {x: boundingBox.left, y: boundingBox.bottom}
+
+  distanceBetweenPoints: (pointA, pointB) ->
+    x = pointB.x - pointA.x
+    y = pointB.y - pointA.y
+    Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
