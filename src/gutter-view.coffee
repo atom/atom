@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 #
 # The gutter also indicates if rows are folded.
 module.exports =
-class Gutter extends View
+class GutterView extends View
 
   ### Internal ###
 
@@ -234,11 +234,11 @@ class Gutter extends View
       lastBufferRow = null
       for bufferRow in editor.bufferRowsForScreenRows(startScreenRow, endScreenRow) when bufferRow isnt lastBufferRow
         lastBufferRow = bufferRow
-        lineNumberElement = @getLineNumberElement(bufferRow)[0]
-        if editor.isFoldableAtBufferRow(bufferRow)
-          lineNumberElement.classList.add('foldable')
-        else
-          lineNumberElement.classList.remove('foldable')
+        if lineNumberElement = @getLineNumberElement(bufferRow)[0]
+          if editor.isFoldableAtBufferRow(bufferRow)
+            lineNumberElement.classList.add('foldable')
+          else
+            lineNumberElement.classList.remove('foldable')
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

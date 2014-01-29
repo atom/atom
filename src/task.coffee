@@ -12,6 +12,12 @@ child_process = require 'child_process'
 # * task:warn - Emitted when console.warn is called within the task.
 # * task:error - Emitted when console.error is called within the task.
 # * task:completed - Emitted when the task has succeeded or failed.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {Task} = require 'atom'
+# ```
 module.exports =
 class Task
   Emitter.includeInto(this)

@@ -1,6 +1,6 @@
 {View, $, $$$} = require './space-pen-extensions'
 TextBuffer = require './text-buffer'
-Gutter = require './gutter'
+GutterView = require './gutter-view'
 {Point, Range} = require 'text-buffer'
 Editor = require './editor'
 CursorView = require './cursor-view'
@@ -16,6 +16,12 @@ LongLineLength = 1000
 # Public: Represents the entire visual pane in Atom.
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {EditorView} = require 'atom'
+# ```
 module.exports =
 class EditorView extends View
   @characterWidthCache: {}
@@ -41,7 +47,7 @@ class EditorView extends View
     attributes = { class: @classes(params), tabindex: -1 }
     _.extend(attributes, params.attributes) if params.attributes
     @div attributes, =>
-      @subview 'gutter', new Gutter
+      @subview 'gutter', new GutterView
       @div class: 'scroll-view', outlet: 'scrollView', =>
         @div class: 'overlayer', outlet: 'overlayer'
         @div class: 'lines', outlet: 'renderedLines'
@@ -405,7 +411,7 @@ class EditorView extends View
 
     selectedText = null
     @hiddenInput.on 'compositionstart', =>
-      selectedText = @getSelectedText()
+      selectedText = @editor.getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
       @editor.insertText(e.originalEvent.data, {select: true, undo: 'skip'})

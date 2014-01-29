@@ -10,6 +10,12 @@ fs = require 'fs-plus'
 #
 # You should probably create a {Directory} and access the {File} objects that
 # it creates, rather than instantiating the {File} class directly.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {File} = require 'atom'
+# ```
 module.exports =
 class File
   Emitter.includeInto(this)

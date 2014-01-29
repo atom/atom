@@ -22,7 +22,10 @@ getCachedJavaScript = (cachePath) ->
       fs.readFileSync(cachePath, 'utf8') if stat.isFile()
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
-  js = CoffeeScript.compile(coffee, filename: filePath)
+  {js,v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
+  # Include source map in the web page environment.
+  if btoa? and JSON? and unescape? and encodeURIComponent?
+    js = "#{js}\n//# sourceMappingURL=data:application/json;base64,#{btoa unescape encodeURIComponent v3SourceMap}\n//# sourceURL=#{filePath}"
   try
     mkdir(path.dirname(cachePath))
     fs.writeFileSync(cachePath, js)

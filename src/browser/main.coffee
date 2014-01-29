@@ -7,16 +7,14 @@ fs = require 'fs'
 module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
-# TODO: NSLog is missing .lib on windows
-nslog = require 'nslog' unless process.platform is 'win32'
+nslog = require 'nslog'
 dialog = require 'dialog'
 
 console.log = (args...) ->
   # TODO: Make NSLog work as expected
   output = args.map((arg) -> JSON.stringify(arg)).join(" ")
-  if process.platform == 'darwin'
-    nslog(output)
-  else
+  nslog(output)
+  if process.platform isnt 'darwin'
     fs.writeFileSync('debug.log', output, flag: 'a')
 
 process.on 'uncaughtException', (error={}) ->

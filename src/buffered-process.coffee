@@ -1,6 +1,12 @@
 ChildProcess = require 'child_process'
 
 # Public: A wrapper which provides line buffering for Node's ChildProcess.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {BufferedProcess} = require 'atom'
+# ```
 module.exports =
 class BufferedProcess
   process: null

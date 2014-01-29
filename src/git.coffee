@@ -7,13 +7,20 @@ GitUtils = require 'git-utils'
 # Public: Represents the underlying git operations performed by Atom.
 #
 # This class shouldn't be instantiated directly but instead by accessing the
-# `atom.project` global and calling `getRepo()`.
+# `atom.project` global and calling `getRepo()`. Note that this will only be
+# available when the project is backed by a Git repository.
 #
 # ## Example
 #
 # ```coffeescript
 # git = atom.project.getRepo()
 # console.log git.getOriginUrl()
+# ```
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {Git} = require 'atom'
 # ```
 module.exports =
 class Git
@@ -250,12 +257,7 @@ class Git
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
-  # Examples
-  #
-  #   getUpstreamBranch()
-  #   # => "refs/remotes/origin/master"
-  #
-  # Returns a String.
+  # Returns a String branch name such as `refs/remotes/origin/master`
   getUpstreamBranch: -> @getRepo().getUpstreamBranch()
 
   # Public: Returns the current SHA for the given reference.

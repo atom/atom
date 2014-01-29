@@ -14,11 +14,25 @@ overview of the main editor API.
 Check out the [Atom][Atom] class docs to see what globals are available and
 what they provide.
 
-You can also require many of these classes in your packages via:
+You can also require many of these classes in your package via:
 
 ```coffee
 {EditorView} = require 'atom'
 ```
+
+The classes available from `require 'atom'` are:
+  * [BufferedProcess][BufferedProcess]
+  * [BufferedNodeProcess][BufferedNodeProcess]
+  * [Directory][Directory]
+  * [EditorView][EditorView]
+  * [File][File]
+  * [Git][Git]
+  * [Point][Point]
+  * [Range][Range]
+  * [ScrollView][ScrollView]
+  * [SelectList][SelectList]
+  * [View][View]
+  * [WorkspaceView][WorkspaceView]
 
 ### How do I create a package?
 
@@ -31,7 +45,18 @@ Atom ships with node 0.11.10 and the comprehensive node API docs are available
 [here][node-docs].
 
 [Atom]: ../classes/Atom.html
+[BufferedProcess]: ../classes/BufferedProcess.html
+[BufferedNodeProcess]: ../classes/BufferedNodeProcess.html
+[Directory]: ../classes/Directory.html
 [Editor]: ../classes/Editor.html
 [EditorView]: ../classes/EditorView.html
+[File]: ../classes/File.html
+[Git]: ../classes/Git.html
+[Point]: ../classes/Point.html
+[Range]: ../classes/Range.html
+[ScrollView]: ../classes/ScrollView.html
+[SelectList]: ../classes/SelectList.html
+[View]: ../classes/View.html
+[WorkspaceView]: ../classes/WorkspaceView.html
 [creating-a-package]: https://www.atom.io/docs/latest/creating-a-package
 [node-docs]: http://nodejs.org/docs/v0.11.10/api

@@ -1,335 +1,145 @@
-# Creating Your First Package
+# Create Your First Package
 
-Let's take a look at creating your first package.
+This tutorial will guide you though creating a simple command that replaces the
+selected text with [ascii art](http://en.wikipedia.org/wiki/ASCII_art). When you
+run our new command with the word "cool" selected, it will be replaced with:
 
-To get started, hit `cmd-shift-P`, and start typing "Generate Package" to generate
-a package. Once you select the "Generate Package" command, it'll ask you for a
-name for your new package. Let's call ours _changer_.
-
-Atom will pop open a new window, showing the _changer_ package with a default set of
-folders and files created for us. Hit `cmd-shift-P` and start typing "Changer." You'll
-see a new `Changer:Toggle` command which, if selected, pops up a greeting. So far,
-so good!
-
-In order to demonstrate the capabilities of Atom and its API, our Changer plugin
-is going to do two things:
-
-1. It'll show only modified files in the file tree
-2. It'll append a new pane to the editor with some information about the modified
-files
-
-Let's get started!
-
-## Changing Keybindings and Commands
-
-Since Changer is primarily concerned with the file tree, let's write a
-key binding that works only when the tree is focused. Instead of using the
-default `toggle`, our keybinding executes a new command called `magic`.
-
-_keymaps/changer.cson_ should change to look like this:
-
-```coffeescript
-'.tree-view':
-  'ctrl-V': 'changer:magic'
+```
+                    /\_ \
+  ___    ___     ___\//\ \
+ /'___\ / __`\  / __`\\ \ \
+/\ \__//\ \L\ \/\ \L\ \\_\ \_
+\ \____\ \____/\ \____//\____\
+ \/____/\/___/  \/___/ \/____/
 ```
 
-Notice that the keybinding is called `ctrl-V` &mdash; that's actually `ctrl-shift-v`.
-You can use capital letters to denote using `shift` for your binding.
+The final package can be viewed at
+[https://github.com/atom/ascii-art](https://github.com/atom/ascii-art).
 
-`.tree-view` represents the parent container for the tree view.
-Keybindings only work within the context of where they're entered. In this case,
-hitting `ctrl-V` anywhere other than tree won't do anything. Obviously, you can
-bind to any part of the editor using element, id, or class names. For example,
-you can map to `body` if you want to scope to anywhere in Atom, or just `.editor`
-for the editor portion.
+To begin, press `cmd-shift-P` to bring up the [Command
+Palette](https://github.com/atom/command-palette). Type "generate package" and
+select the "Package Generator: Generate Package" command. Now we need to name
+the package. Let's call it _ascii-art_.
 
-To bind keybindings to a command, we'll need to do a bit of association in our
-CoffeeScript code using the `atom.workspaceView.command` method. This method takes a command
-name and executes a callback function. Open up _lib/changer-view.coffee_, and
-change `atom.workspaceView.command "changer:toggle"` to look like this:
+Atom will open a new window with the contents of our new _ascii-art_ package
+displayed in the Tree View. Because this window is opened **after** the package
+is created, the ASCII Art package will be loaded and available in our new
+window. To verify this, toggle the Command Palette (`cmd-shift-P`) and type
+"ASCII Art" you'll see a new `ASCII Art: Toggle` command. When triggered, this
+command displays a default message.
+
+Now let's edit the package files to make our ascii art package do something
+interesting. Since this package doesn't need any UI, we can remove all
+view-related code. Start by opening up _lib/ascii-art.coffee_. Remove all view
+code, so the file looks like this:
 
 ```coffeescript
-atom.workspaceView.command "changer:magic", => @magic()
+  module.exports =
+    activate: ->
 ```
 
-It's common practice to namespace your commands with your package name, separated
-with a colon (`:`). Make sure to rename your `toggle` method to `magic` as well.
+## Create a Command
 
-Every time you reload the Atom editor, changes to your package code will be reevaluated,
-just as if you were writing a script for the browser. Reload the editor, click on
-the tree, hit your keybinding, and...nothing happens! What the heck?!
+Now let's add a command. We recommend that you namespace your commands with the
+package name followed by a `:`, so we'll call our command `ascii-art:convert`.
+Register the command in _lib/ascii-art.coffee_:
 
-Open up the _package.json_ file, and find the property called `activationEvents`.
-Basically, this key tells Atom to not load a package until it hears a certain event.
-Change the event to `changer:magic` and reload the editor:
+```coffeescript
+module.exports =
+  activate: ->
+    atom.workspaceView.command "ascii-art:convert", => @convert()
+
+  convert: ->
+    # This assumes the active pane item is an editor
+    editor = atom.workspace.activePaneItem
+    editor.insertText('Hello, World!')
+```
+
+The `atom.workspaceView.command` method takes a command name and a callback. The
+callback executes when the command is triggered. In this case, when the command
+is triggered the callback will call the `convert` method and insert 'Hello,
+World!'.
+
+## Reload the Package
+
+Before we can trigger `ascii-art:convert`, we need to load the latest code for
+our package by reloading the window. Run the command `window:reload` from the
+command palette or by pressing `ctrl-alt-cmd-l`.
+
+## Trigger the Command
+
+Now open the command panel and search for the `ascii-art:convert` command. But
+its not there! To fix this open _package.json_ and find the property called
+`activationEvents`. Activation Events speed up load time by allowing an Atom to
+delay a package's activation until it's needed. So add the `ascii-art:convert`
+to the activationEvents array:
 
 ```json
-"activationEvents": ["changer:magic"]
+"activationEvents": ["ascii-art:convert"],
 ```
 
-Hitting the key binding on the tree now works!
+First, run reload the window by running the command `window:reload`. Now when
+you run the `ascii-art:convert` command it will output 'Hello, World!'
 
-## Working with Styles
+## Add A Key Binding
 
-The next step is to hide elements in the tree that aren't modified. To do that,
-we'll first try and get a list of files that have not changed.
-
-All packages are able to use jQuery in their code. In fact, there's [a list of
-the bundled libraries Atom provides by default][bundled-libs].
-
-We bring in jQuery by requiring the `atom` package and binding it to the `$` variable:
+Now let's add a key binding to trigger the `ascii-art:convert` command. Open
+_keymaps/ascii-art.cson_ and add a key binding linking `ctrl-alt-a` to the
+`ascii-art:convert` command. When finished, the file will look like this:
 
 ```coffeescript
-{$, View} = require 'atom'
+'.editor':
+  'cmd-alt-a': 'ascii-art:convert'
 ```
 
-Now, we can define the `magic` method to query the tree to get us a list of every
-file that _wasn't_ modified:
+Notice `.editor` on the first line. Just like CSS, keymap selectors *scope* key
+bindings so they only apply to specific elements. In this case, our binding is
+only active for elements matching the `.editor` selector. If the Tree View has
+focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
+if the editor has focus, the `ascii-art:convert` method *will* be triggered.
+More information on key bindings can be found in the
+[keymaps](advanced/keymaps.html) documentation.
+
+Now reload the window and verify that the key binding works! You can also verify
+that it **doesn't** work when the Tree View is focused.
+
+## Add the ASCII Art
+
+Now we need to convert the selected text to ascii art. To do this we will use
+the [figlet](https://npmjs.org/package/figlet) [node](http://nodejs.org/) module
+from [npm](https://npmjs.org/). Open _package.json_ and add the latest version of
+figlet to the dependencies:
+
+```json
+  "dependencies": {
+     "figlet": "1.0.8"
+  }
+```
+
+After saving the file run the command 'update-package-dependencies:update' from
+the Command Palette. This will install the packages node module dependencies,
+only figlet in this case. You will need to run
+'update-package-dependencies:update' whenever you update the dependencies field
+in your _package.json_ file.
+
+Now require the figlet node module in _lib/ascii-art.coffee_ and instead of
+inserting 'Hello, World!' convert the selected text to ascii art!
 
 ```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("status-modified")
-      console.log el
+convert: ->
+  # This assumes the active pane item is an editor
+  editor = atom.workspace.activePaneItem
+  selection = editor.getSelection()
+
+  figlet = require 'figlet'
+  figlet selection.getText(), {font: "Larry 3D 2"}, (error, asciiArt) ->
+    if error
+      console.error(error)
+    else
+      selection.insertText("\n#{asciiArt}\n")
 ```
-
-You can access the dev console by hitting `alt-cmd-i`. Here, you'll see all the
-statements from `console` calls. When we execute the `changer:magic` command, the
-browser console lists items that are not being modified (_i.e._, those without the
-`status-modified` class). Let's add a class to each of these elements called `hide-me`:
-
-```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("status-modified")
-      $(el).addClass("hide-me")
-```
-
-With our newly added class, we can manipulate the visibility of the elements
-with a simple stylesheet. Open up _changer.css_ in the _stylesheets_ directory,
-and add a single entry:
-
-```css
-ol.entries .hide-me {
-  display: none;
-}
-```
-
-Refresh Atom, and run the `changer` command. You'll see all the non-changed
-files disappear from the tree. Success!
-
-![Changer_File_View]
-
-There are a number of ways you can get the list back; let's just naively iterate
-over the same elements and remove the class:
-
-```coffeescript
-magic: ->
-  $('ol.entries li').each (i, el) ->
-    if !$(el).hasClass("status-modified")
-      if !$(el).hasClass("hide-me")
-        $(el).addClass("hide-me")
-      else
-        $(el).removeClass("hide-me")
-```
-
-## Creating a New Panel
-
-The next goal of this package is to append a panel to the Atom editor that lists
-some information about the modified files.
-
-To do that, we're going to first open up [the style guide][styleguide]. The Style
-Guide lists every type of UI element that can be created by an Atom package. Aside
-from helping you avoid writing fresh code from scratch, it ensures that packages
-have the same look and feel no matter how they're built.
-
-Every package that extends from the `View` class can provide an optional class
-method called `content`. The `content` method constructs the DOM that your
-package uses as its UI. The principals of `content` are built entirely on
-[SpacePen][space-pen], which we'll touch upon only briefly here.
-
-Our display will simply be an unordered list of the file names, and their
-modified times. We'll append this list to a panel on the bottom of the editor. A
-basic `panel` element inside a `tool-panel` will work well for us. Let's start by carving out a
-`div` to hold the filenames:
-
-```coffeescript
-@content: ->
-  @div class: "changer tool-panel panel-bottom", =>
-    @div class: "panel", =>
-      @div class: "panel-heading", "Modified Files"
-      @div class: "panel-body padded", outlet: 'modifiedFilesContainer', =>
-        @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
-          @li 'Modified File Test'
-          @li 'Modified File Test'
-```
-
-You can add any HTML attribute you like. `outlet` names the variable your
-package can use to manipulate the element directly. The fat arrow (`=>`)
-indicates that the next DOM set are nested children.
-
-Once again, you can style `li` elements using your stylesheets. Let's test that
-out by adding these lines to the _changer.css_ file:
-
-```css
-ul.modified-files-list {
-  color: white;
-}
-```
-
-We'll add one more line to the end of the `magic` method to make this pane
-appear:
-
-```coffeescript
-atom.workspaceView.prependToBottom(this)
-```
-
-If you refresh Atom and hit the key command, you'll see a box appear right
-underneath the editor:
-
-![Changer_Panel_Append]
-
-As you might have guessed, `atom.workspaceView.prependToBottom` tells Atom to
-prepend `this` item (_i.e._, whatever is defined by`@content`). If we had called
-`atom.workspaceView.appendToBottom`, the pane would be attached below the status
-bar.
-
-Before we populate this panel for real, let's apply some logic to toggle the
-pane off and on, just like we did with the tree view. Replace the
-`atom.workspaceView.prependToBottom` call with this code:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  @remove()
-else
-  atom.workspaceView.prependToBottom(this)
-```
-
-There are about a hundred different ways to toggle a pane on and off, and this
-might not be the most efficient one. If you know your package needs to be
-toggled on and off more freely, it might be better to draw the interface during the
-initialization, then immediately call `hide()` on the element to remove it from
-the view. You can then swap between `show()` and `hide()`, and instead of
-forcing Atom to add and remove the element as we're doing here, it'll just set a
-CSS property to control your package's visibility.
-
-Refresh Atom, hit the key combo, and watch your test list appear and disappear.
-
-## Calling Node.js Code
-
-Since Atom is built on top of [Node.js][node], you can call any of its libraries,
-including other modules that your package requires.
-
-We'll iterate through our resulting tree, and construct the path to our modified
-file based on its depth in the tree. We'll use Node to handle path joining for
-directories.
-
-Add the following Node module to the top of your file:
-
-```coffeescript
-path = require 'path'
-```
-
-Then, add these lines to your `magic` method, _before_ your pane drawing code:
-
-```coffeescript
-modifiedFiles = []
-# for each single entry...
-$('ol.entries li.file.status-modified span.name').each (i, el) ->
-  filePath = []
-  # ...grab its name...
-  filePath.unshift($(el).text())
-
-  # ... then find its parent directories, and grab their names
-  parents = $(el).parents('.directory.status-modified')
-  parents.each (i, el) ->
-    filePath.unshift($(el).find('div.header span.name').eq(0).text())
-
-  modifiedFilePath = path.join(atom.project.rootDirectory.path, filePath.join(path.sep))
-  modifiedFiles.push modifiedFilePath
-```
-
-`modifiedFiles` is an array containing a list of our modified files. We're also
-using the node.js [`path` library][path] to get the proper directory separator
-for our system.
-
-Remove the two `@li` elements we added in `@content`, so that we can
-populate our `modifiedFilesList` with real information. We'll do that by
-iterating over `modifiedFiles`, accessing a file's last modified time, and
-appending it to `modifiedFilesList`:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  @remove()
-else
-  for file in modifiedFiles
-    stat = fs.lstatSync(file)
-    mtime = stat.mtime
-    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  atom.workspaceView.prependToBottom(this)
-```
-
-When you toggle the modified files list, your pane is now populated with the
-filenames and modified times of files in your project:
-
-![Changer_Panel_Timestamps]
-
-You might notice that subsequent calls to this command reduplicate information.
-We could provide an elegant way of rechecking files already in the list, but for
-this demonstration, we'll just clear the `modifiedFilesList` each time it's closed:
-
-```coffeescript
-# toggles the pane
-if @hasParent()
-  @modifiedFilesList.empty() # added this to clear the list on close
-  @remove()
-else
-  for file in modifiedFiles
-    stat = fs.lstatSync(file)
-    mtime = stat.mtime
-    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
-  atom.workspaceView.prependToBottom(this)
-```
-
-## Coloring UI Elements
-
-For packages that create new UI elements, adhering to the style guide is just one
-part to keeping visual consistency. Packages dealing with color, fonts, padding,
-margins, and other visual cues should rely on [Theme Variables][theme-vars], instead
-of developing individual styles. Theme variables are variables defined by Atom
-for use in packages and themes. They're only available in [`LESS`](http://lesscss.org/)
-stylesheets.
-
-For our package, let's remove the style defined by `ul.modified-files-list` in
-_changer.css_. Create a new file under the _stylesheets_ directory called _text-colors.less_.
-Here, we'll import the _ui-variables.less_ file, and define some Atom-specific
-styles:
-
-```less
-@import "ui-variables";
-
-ul.modified-files-list {
-  color: @text-color;
-  background-color: @background-color-info;
-}
-```
-
-Using theme variables ensures that packages look great alongside any theme.
 
 ## Further reading
 
-For more information on the mechanics of packages, check out
-[Creating a Package][creating-a-package].
-
-[bundled-libs]: creating-a-package.html#included-libraries
-[styleguide]: https://github.com/atom/styleguide
-[space-pen]: https://github.com/atom/space-pen
-[node]: http://nodejs.org/
-[path]: http://nodejs.org/docs/latest/api/path.html
-[changer_file_view]: https://f.cloud.github.com/assets/69169/1441187/d7a7cb46-41a7-11e3-8128-d93f70a5d5c1.png
-[changer_panel_append]: https://f.cloud.github.com/assets/69169/1441189/db0c74da-41a7-11e3-8286-b82dd9190c34.png
-[changer_panel_timestamps]: https://f.cloud.github.com/assets/69169/1441190/dcc8eeb6-41a7-11e3-830f-1f1b33072fcd.png
-[theme-vars]: theme-variables.html
-[creating-a-package]: creating-a-package.html
+For more information on the mechanics of packages, check out [Creating a
+Package](creating-a-package.html)

@@ -4,6 +4,12 @@ fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a widget for users to make a selection from a list of
 # choices.
+#
+# ## Requiring in packages
+#
+# ```coffee
+#   {SelectList} = require 'atom'
+# ```
 module.exports =
 class SelectList extends View
 

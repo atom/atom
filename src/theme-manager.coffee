@@ -8,9 +8,9 @@ fs = require 'fs-plus'
 AtomPackage = require './atom-package'
 File = require './file'
 
-# Private: Handles discovering and loading available themes.
+# Public: Handles loading and activating available themes.
 #
-# Themes are a subset of packages
+# A ThemeManager instance is always available under the `atom.themes` global.
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)
@@ -19,27 +19,26 @@ class ThemeManager
     @lessCache = null
     @packageManager.registerPackageActivator(this, ['theme'])
 
-  # Internal-only:
   getAvailableNames: ->
     # TODO: Maybe should change to list all the available themes out there?
     @getLoadedNames()
 
+  # Public: Get an array of all the loaded theme names.
   getLoadedNames: ->
     theme.name for theme in @getLoadedThemes()
 
-  # Internal-only:
+  # Public: Get an array of all the active theme names.
   getActiveNames: ->
     theme.name for theme in @getActiveThemes()
 
-  # Internal-only:
+  # Public: Get an array of all the active themes.
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
-  # Internal-only:
+  # Public: Get an array of all the loaded themes.
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  # Internal-only: adhere to the PackageActivator interface
   activatePackages: (themePackages) -> @activateThemes()
 
   # Private: Get the enabled theme names from the config.
@@ -53,7 +52,6 @@ class ThemeManager
     # the first/top theme to override later themes in the stack.
     themeNames.reverse()
 
-  # Internal-only:
   activateThemes: ->
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', =>
@@ -69,13 +67,11 @@ class ThemeManager
 
       @emit('reloaded')
 
-  # Internal-only:
   deactivateThemes: ->
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
 
-  # Internal-only:
   refreshLessCache: ->
     @lessCache?.setImportPaths(@getImportPaths())
 
@@ -85,7 +81,6 @@ class ThemeManager
   setEnabledThemes: (enabledThemeNames) ->
     atom.config.set('core.themes', enabledThemeNames)
 
-  # Public:
   getImportPaths: ->
     activeThemes = @getActiveThemes()
     if activeThemes.length > 0
@@ -98,7 +93,7 @@ class ThemeManager
 
     themePath for themePath in themePaths when fs.isDirectorySync(themePath)
 
-  # Public:
+  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
     stylesheetPath = fs.resolve(path.join(@configDirPath, 'user'), ['css', 'less'])
     if fs.isFileSync(stylesheetPath)
@@ -106,13 +101,11 @@ class ThemeManager
     else
       path.join(@configDirPath, 'user.less')
 
-  #Private:
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()
     @userStylesheetFile = null
     @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
 
-  # Private:
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
     userStylesheetPath = @getUserStylesheetPath()
@@ -125,34 +118,32 @@ class ThemeManager
     userStylesheetContents = @loadStylesheet(userStylesheetPath)
     @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
-  # Internal-only:
   loadBaseStylesheets: ->
     @requireStylesheet('bootstrap/less/bootstrap')
     @reloadBaseStylesheets()
 
-  # Internal-only:
   reloadBaseStylesheets: ->
     @requireStylesheet('../static/atom')
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-  # Internal-only:
   stylesheetElementForId: (id, htmlElement=$('html')) ->
     htmlElement.find("""head style[id="#{id}"]""")
 
-  # Internal-only:
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
       fs.resolveOnLoadPath(stylesheetPath)
     else
       fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
-  # Public: resolves and applies the stylesheet specified by the path.
+  # Public: Resolve and apply the stylesheet specified by the path.
   #
-  # * stylesheetPath: String. Can be an absolute path or the name of a CSS or
-  #   LESS file in the stylesheets path.
+  # This supports both CSS and LESS stylsheets.
   #
-  # Returns the absolute path to the stylesheet
+  # * stylesheetPath: A {String} path to the stylesheet that can be an absolute
+  #   path or a relative path that will be resolved against the load path.
+  #
+  # Returns the absolute path to the required stylesheet.
   requireStylesheet: (stylesheetPath, ttype = 'bundled', htmlElement) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
@@ -162,14 +153,12 @@ class ThemeManager
 
     fullPath
 
-  # Internal-only:
   loadStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath) is '.less'
       @loadLessStylesheet(stylesheetPath)
     else
       fs.readFileSync(stylesheetPath, 'utf8')
 
-  # Internal-only:
   loadLessStylesheet: (lessStylesheetPath) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
@@ -184,16 +173,13 @@ class ThemeManager
         #{e.message}
       """
 
-  # Internal-only:
   stringToId: (string) ->
     string.replace(/\\/g, '/')
 
-  # Internal-only:
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     @stylesheetElementForId(@stringToId(fullPath)).remove()
 
-  # Internal-only:
   applyStylesheet: (path, text, ttype = 'bundled', htmlElement=$('html')) ->
     styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
     if styleElement.length

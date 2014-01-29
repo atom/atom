@@ -23,46 +23,32 @@ unlinkCommand = (destinationPath, callback) ->
       callback()
 
 module.exports =
-  findInstallDirectory: (callback) ->
-    directories = ['/opt/boxen', '/opt/github', '/usr/local']
-    async.detect(directories, fs.isDirectory, callback)
+  getInstallDirectory: ->
+    "/usr/local/bin"
 
-  install: (commandPath, commandName, callback) ->
-    if not commandName? or _.isFunction(commandName)
-      callback = commandName
-      commandName = path.basename(commandPath, path.extname(commandPath))
+  install: (commandPath, callback) ->
+    return unless process.platform is 'darwin'
 
-    installCallback = (error, sourcePath, destinationPath) ->
-      if error?
-        console.warn "Failed to install `#{commandName}` binary", error
-      callback?(error, sourcePath, destinationPath)
-
-    @findInstallDirectory (directory) ->
-      if directory?
-        destinationPath = path.join(directory, 'bin', commandName)
-        unlinkCommand destinationPath, (error) ->
-          if error?
-            installCallback(error)
-          else
-            symlinkCommand commandPath, destinationPath, (error) ->
-              installCallback(error, commandPath, destinationPath)
-      else
-        installCallback(new Error("No destination directory exists to install"))
+    commandName = path.basename(commandPath, path.extname(commandPath))
+    directory = @getInstallDirectory()
+    if fs.existsSync(directory)
+      destinationPath = path.join(directory, commandName)
+      unlinkCommand destinationPath, (error) =>
+        if error?
+          error = new Error "Could not remove file at #{destinationPath}." if error
+          callback?(error)
+        else
+          symlinkCommand commandPath, destinationPath, (error) =>
+            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error
+            callback?(error)
+    else
+      error = new Error "Directory '#{directory} doesn't exist."
+      callback?(error)
 
   installAtomCommand: (resourcePath, callback) ->
-    if _.isFunction(resourcePath)
-      callback = resourcePath
-      resourcePath = null
-
-    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install(commandPath, callback)
+    @install commandPath, callback
 
   installApmCommand: (resourcePath, callback) ->
-    if _.isFunction(resourcePath)
-      callback = resourcePath
-      resourcePath = null
-
-    resourcePath ?= atom.getLoadSettings().resourcePath
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install(commandPath, callback)
+    @install commandPath, callback

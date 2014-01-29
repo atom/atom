@@ -6,7 +6,12 @@ _ = require 'underscore-plus'
 {$, $$} = require './space-pen-extensions'
 Token = require './token'
 
-### Public ###
+# Public: Syntax class holding the grammars used for tokenizing.
+#
+# The Syntax class also contains properties for things such as the
+# language-specific comment regexes.
+#
+# There is always a syntax object available under the `atom.syntax` global.
 module.exports =
 class Syntax extends GrammarRegistry
   Subscriber.includeInto(this)
@@ -49,6 +54,18 @@ class Syntax extends GrammarRegistry
     @scopedProperties = []
     @scopedPropertiesIndex = 0
 
+  # Public: Get a property for the given scope and key path.
+  #
+  # ## Example
+  # ```coffee
+  # comment = atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')
+  # console.log(comment) # '# '
+  # ```
+  #
+  # * scope: An {Array} of {String} scopes.
+  # * keyPath: A {String} key path.
+  #
+  # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->
     for object in @propertiesForScope(scope, keyPath)
       value = _.valueForKeyPath(object, keyPath)

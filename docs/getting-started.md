@@ -19,13 +19,11 @@ bindings][key-bindings] section.
 
 ### Working With Files
 
-Atom windows are scoped to the directory they're opened from. If you launch Atom
-from the command line everything will be relative to the current directory. This
-means that the tree view on the left will only show files contained within that
-directory.
-
-This can be a useful way to organize multiple projects, as each project will be
-contained within its own window.
+Atom windows are scoped to a single directory on disk. If you launch Atom from
+the command line via the `atom` command and don't specify a path, Atom opens a
+window for the current working directory. The current window's directory will be
+visible as the root of the tree view at the left, and also serve as the context
+for all file-related operations.
 
 #### Finding Files
 
@@ -34,20 +32,17 @@ begin typing the name of the file you're looking for. If you are looking for a
 file that is already open press `cmd-b` to bring up a searchable list of open
 files.
 
-You can also use the tree view to navigate to a file. To open or move focus to
-the tree view, press `cmd-\`. You can then navigate to a file using the arrow
-keys and select it with `return`.
+You can also use the tree view to navigate to a file. To open and focus the
+the tree view, press `ctrl-0`. The tree view can be toggled open and closed with
+`cmd-\`.
 
 #### Adding, Moving, Deleting Files
 
-Currently, all file modification is performed via the tree view. To add a file,
-select a directory in the tree view and press `a`. Then type the name of the
-file. Any intermediate directories you type will be created automatically if
-needed.
-
-To move or rename a file or directory, select it in the tree view and press `m`.
-
-To delete a file, select it in the tree view and press `delete`.
+Currently, all file modification is performed via the tree view. Add, move, or
+delete a file by right-clicking in the tree view and selecting the desired
+operation from the context menu. You can also perform these operations from the
+keyboard by selecting a file or directory and using `a` to add, `m` to move, and
+`delete` to delete.
 
 ### Searching
 
@@ -58,35 +53,43 @@ To search within a buffer use `cmd-f`. To search the entire project use
 
 #### Navigating By Symbols
 
-If you want to jump to a method press `cmd-r`. It opens a list of all symbols
-in the current file.
+To jump to a symbol such as a method definition, press `cmd-r`. This opens a
+list of all symbols in the current file, which you can fuzzy filter similarly to
+`cmd-t`.
 
-To search for symbols across your project use `cmd-shift-r`, but you'll need to
-make sure you have a ctags installed and a tags file generated for your project.
-Also, if you're editing CoffeeScript, it's a good idea to update your `~/.ctags`
-file to understand the language. Here is [a good example][ctags].
+To search for symbols across your project, use `cmd-shift-r`. First you'll need
+to make sure you have ctags installed and a tags file generated for your
+project. Also, if you're editing CoffeeScript, it's a good idea to update your
+`~/.ctags` file to understand the language. Here is [a good example][ctags].
 
 ### Split Panes
 
-You can split any editor pane horizontally or vertically by using `cmd-k right` or
-`cmd-k down`. Once you have a split pane, you can move focus between them with
-`cmd-k cmd-right` or `cmd-k cmd-down`. To close a pane, close all tabs inside it.
+You can split any editor pane horizontally or vertically by using `cmd-k right`
+or `cmd-k down`. Once you have a split pane, you can move focus between them
+with `cmd-k cmd-right` or `cmd-k cmd-down`. To close a pane, close all its
+editors with `meta-w`, then press `meta-w` one more time to close the pane. You
+can configure panes to auto-close with empty in the preferences.
 
 ### Folding
 
-You can fold everything with `alt-cmd-{` and unfold everything with
-`alt-cmd-}`. Or, you can fold / unfold by a single level with `alt-cmd-[` and
-`alt-cmd-]`.
+You can fold blocks of code by clicking the arrows that appear when you hover
+your mouse cursor over the gutter. You can also fold and unfold from the
+keyboard with `alt-cmd-[` and `alt-cmd-]`. To fold everything, use
+`alt-cmd-shift-{` and to unfold everything use `alt-cmd-shift-}`. You can also
+fold at a specific indentation level with `cmd-k cmd-N` where N is the
+indentation depth.
 
 ### Soft-Wrap
 
 If you want to toggle soft wrap, trigger the command from the command palette.
 Press `cmd-shift-P` to open the palette, then type "wrap" to find the correct
-command.
+command. By default, lines will wrap based on the size of the editor. If you
+prefer to wrap at a specific line length, toggle "Wrap at preferred line length"
+in preferences.
 
 ## Configuration
 
-Press `cmd-,` to display the a settings pane. This serves as the primary
+Press `cmd-,` to display the preferences pane. This serves as the primary
 interface for adjusting config settings, installing packages and changing
 themes.
 

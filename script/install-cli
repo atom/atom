@@ -3,9 +3,8 @@
 path = require 'path'
 CommandInstaller = require '../src/command-installer'
 
-callback = (error, sourcePath, destinationPath) ->
-  unless error?
-    console.log "#{sourcePath} intalled to #{destinationPath}"
+callback = (error) ->
+  console.warn error.message if error?
 
 CommandInstaller.installAtomCommand(path.resolve(__dirname, '..'), callback)
 CommandInstaller.installApmCommand(path.resolve(__dirname, '..'), callback)

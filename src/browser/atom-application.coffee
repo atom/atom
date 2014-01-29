@@ -15,7 +15,11 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath = path.join(os.tmpdir(), 'atom.sock')
+socketPath =
+  if process.platform is 'win32'
+    '\\\\.\\pipe\\atom-sock'
+  else
+    path.join(os.tmpdir(), 'atom.sock')
 
 # Private: The application's singleton class.
 #
@@ -35,13 +39,9 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if (not fs.existsSync socketPath) or options.test
+    if (process.platform isnt 'win32' and not fs.existsSync socketPath) or options.test
       createAtomApplication()
       return
-
-    # The net.connect is slow in atom-shell for now, use this workaround until
-    # atom/atom-shell#159 is fixed.
-    process.activateUvLoop()
 
     client = net.connect {path: socketPath}, ->
       client.write JSON.stringify(options), ->
@@ -103,7 +103,8 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
-    fs.unlinkSync socketPath if fs.existsSync(socketPath)
+    if process.platform isnt 'win32' and fs.existsSync(socketPath)
+      fs.unlinkSync socketPath
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
         @openWithOptions(JSON.parse(data))
@@ -148,15 +149,18 @@ class AtomApplication
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
 
     @openPathOnEvent('application:show-settings', 'atom://config')
-    @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
-    @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
+    @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
+    @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
+    @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
 
     app.on 'window-all-closed', ->
       app.quit() if process.platform is 'win32'
 
     app.on 'will-quit', =>
-      fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
+      # Clean the socket file when quit normally.
+      if process.platform isnt 'win32' and fs.existsSync(socketPath)
+        fs.unlinkSync socketPath
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()

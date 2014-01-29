@@ -15,7 +15,7 @@ ConfigObserver = require './config-observer'
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
-  _.extend @prototype, ConfigObserver
+  ConfigObserver.includeInto(this)
 
   @properties
     softWrap: null
@@ -297,8 +297,12 @@ class DisplayBuffer extends Model
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
       unless screenLine = @screenLines[screenRow]
-        throw new Error("No screen line exists for screen row #{screenRow}, converted from buffer position (#{row}, #{column})")
-
+        throw new Error """
+          No screen line exists for screen row #{screenRow}, converted from buffer position (#{row}, #{column})
+          Soft wrap enabled: #{@getSoftWrap()}
+          Fold count: #{@findFoldMarkers().length}
+          Last buffer row: #{@getLastRow()}
+        """
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
         continue

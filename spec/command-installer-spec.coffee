@@ -4,33 +4,31 @@ temp = require 'temp'
 installer = require '../src/command-installer'
 
 describe "install(commandPath, callback)", ->
-  directory = path.join(temp.dir, 'install-atom-command', 'atom')
-  commandPath = path.join(directory, 'source')
-  destinationPath = path.join(directory, 'bin', 'source')
+  commandFilePath = temp.openSync("atom-command").path
+  commandName = path.basename(commandFilePath)
+  installationPath = temp.mkdirSync("atom-bin")
+  installationFilePath = path.join(installationPath, commandName)
 
   beforeEach ->
-    spyOn(installer, 'findInstallDirectory').andCallFake (callback) ->
-      callback(directory)
-
-    fs.removeSync(directory) if fs.existsSync(directory)
+    spyOn(installer, 'getInstallDirectory').andReturn installationPath
 
   describe "on #darwin", ->
     it "symlinks the command and makes it executable", ->
-      fs.writeFileSync(commandPath, 'test')
-      expect(fs.isFileSync(commandPath)).toBeTruthy()
-      expect(fs.isExecutableSync(commandPath)).toBeFalsy()
-      expect(fs.isFileSync(destinationPath)).toBeFalsy()
+      expect(fs.isFileSync(commandFilePath)).toBeTruthy()
+      expect(fs.isExecutableSync(commandFilePath)).toBeFalsy()
+      expect(fs.isFileSync(installationFilePath)).toBeFalsy()
 
       installDone = false
       installError = null
-      installer.install commandPath, (error) ->
+      installer.install commandFilePath, (error) ->
         installDone = true
         installError = error
 
-      waitsFor -> installDone
+      waitsFor ->
+        installDone
 
       runs ->
         expect(installError).toBeNull()
-        expect(fs.isFileSync(destinationPath)).toBeTruthy()
-        expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
-        expect(fs.isExecutableSync(destinationPath)).toBeTruthy()
+        expect(fs.isFileSync(installationFilePath)).toBeTruthy()
+        expect(fs.realpathSync(installationFilePath)).toBe fs.realpathSync(commandFilePath)
+        expect(fs.isExecutableSync(installationFilePath)).toBeTruthy()

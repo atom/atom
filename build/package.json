@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "biscotto": "0.0.17",
+    "biscotto": "git://github.com/atom/biscotto.git#12188bfbe5f7303fa9f1aa3c4f8662d40ce3c3be",
     "first-mate": "~0.13.0",
     "formidable": "~1.0.14",
     "fs-plus": "1.x",
@@ -19,7 +19,7 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.5.0",
-    "grunt-download-atom-shell": "git+https://atom-bot:362295be4c5258d3f7b967bbabae662a455ca2a7@github.com/atom/grunt-download-atom-shell#v0.5.0",
+    "grunt-download-atom-shell": "git+https://atom-bot:362295be4c5258d3f7b967bbabae662a455ca2a7@github.com/atom/grunt-download-atom-shell#v0.6.0",
     "grunt-lesslint": "0.13.0",
     "grunt-markdown": "~0.4.0",
     "grunt-peg": "~1.1.0",
@@ -30,6 +30,7 @@
     "rcedit": "~0.1.2",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
+    "runas": "~0.3.0",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
     "walkdir": "0.0.7"
