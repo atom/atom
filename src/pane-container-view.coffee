@@ -115,7 +115,7 @@ class PaneContainerView extends View
     distance: (pointA, pointB) ->
       x = pointB.x - pointA.x
       y = pointB.y - pointA.y
-      Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+      Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
     pane = @getActivePane()
     box = @boundingBoxForPane(pane)
