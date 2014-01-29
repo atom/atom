@@ -112,6 +112,11 @@ class PaneContainerView extends View
     @nearestPaneInDirection('right')?.focus()
 
   nearestPaneInDirection: (direction) ->
+    distance: (pointA, pointB) ->
+      x = pointB.x - pointA.x
+      y = pointB.y - pointA.y
+      Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+
     pane = @getActivePane()
     box = @boundingBoxForPane(pane)
     panes = @getPanes()
@@ -126,14 +131,10 @@ class PaneContainerView extends View
         boxA = @boundingBoxForPane(paneA)
         boxB = @boundingBoxForPane(paneB)
         switch direction
-          when 'left'
-            @distanceBetweenPoints(box.left, boxA.right) - @distanceBetweenPoints(box.left, boxB.right)
-          when 'right'
-            @distanceBetweenPoints(box.right, boxA.left) - @distanceBetweenPoints(box.right, boxB.left)
-          when 'above'
-            @distanceBetweenPoints(box.top, boxA.bottom) - @distanceBetweenPoints(box.top, boxB.bottom)
-          when 'below'
-            @distanceBetweenPoints(box.bottom, boxA.top) - @distanceBetweenPoints(box.bottom, boxB.top)
+          when 'left' then @distance(box.left, boxA.right) - @distance(box.left, boxB.right)
+          when 'right' then @distance(box.right, boxA.left) - @distance(box.right, boxB.left)
+          when 'above' then @distance(box.top, boxA.bottom) - @distance(box.top, boxB.bottom)
+          when 'below' then @distance(box.bottom, boxA.top) - @distance(box.bottom, boxB.top)
 
     panes[0]
 
@@ -144,8 +145,3 @@ class PaneContainerView extends View
     right: {x: boundingBox.right, y: boundingBox.top}
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
-
-  distanceBetweenPoints: (pointA, pointB) ->
-    x = pointB.x - pointA.x
-    y = pointB.y - pointA.y
-    Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
