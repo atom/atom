@@ -1,4 +1,4 @@
-{find, compact, extend} = require 'underscore-plus'
+{find, compact, extend, last} = require 'underscore-plus'
 {dirname} = require 'path'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
@@ -332,3 +332,19 @@ class Pane extends Model
 
     newPane.activate()
     newPane
+
+  # Private: If the parent is a horizontal axis, returns its first child;
+  # otherwise this pane.
+  findLeftmostSibling: ->
+    if @parent.orientation is 'horizontal'
+      @parent.children[0]
+    else
+      this
+
+  # Private: If the parent is a horizontal axis, returns its last child;
+  # otherwise returns a new pane created by splitting this pane rightward.
+  findOrCreateRightmostSibling: ->
+    if @parent.orientation is 'horizontal'
+      last(@parent.children)
+    else
+      @splitRight()

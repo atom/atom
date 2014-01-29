@@ -77,51 +77,45 @@ class Workspace extends Model
         console.error(error.stack ? error)
 
   # Private: Only used in specs
-  openSync: (uri, {changeFocus, initialLine, pane, split}={}) ->
-    changeFocus ?= true
-    pane ?= @activePane
+  openSync: (uri, options={}) ->
+    {initialLine} = options
+    # TODO: Remove deprecated changeFocus option
+    activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri)
 
-    if pane
-      if uri
-        paneItem = pane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
-      else
-        paneItem = atom.project.openSync()
-
-      if split == 'right'
-        panes = @getPanes()
-        if panes.length == 1
-          pane = panes[0].splitRight()
-        else
-          pane = last(panes)
-      else if split == 'left'
-        pane = @getPanes()[0]
-
-      pane.activateItem(paneItem)
+    if uri?
+      editor = @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
     else
-      paneItem = atom.project.openSync(uri, {initialLine})
-      pane = new Pane(items: [paneItem])
-      @paneContainer.root = pane
+      editor = atom.project.openSync()
 
-    @itemOpened(paneItem)
-
-    pane.activate() if changeFocus
-    paneItem
+    @activePane.activateItem(editor)
+    @itemOpened(editor)
+    @activePane.activate() if activatePane
+    editor
 
   # Public: Synchronously open an editor for the given URI or activate an existing
   # editor in any pane if one already exists.
-  openSingletonSync: (uri, {changeFocus, initialLine, split}={}) ->
-    changeFocus ?= true
+  openSingletonSync: (uri, options={}) ->
+    {initialLine, split} = options
+    # TODO: Remove deprecated changeFocus option
+    activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri)
-    pane = @paneContainer.paneForUri(uri)
 
-    if pane
-      paneItem = pane.itemForUri(uri)
-      pane.activateItem(paneItem)
-      pane.activate() if changeFocus
-      paneItem
+    if pane = @paneContainer.paneForUri(uri)
+      editor = pane.itemForUri(uri)
     else
-      @openSync(uri, {changeFocus, initialLine, split})
+      pane = switch split
+        when 'left'
+          @activePane.findLeftmostSibling()
+        when 'right'
+          @activePane.findOrCreateRightmostSibling()
+        else
+          @activePane
+      editor = atom.project.openSync(uri, {initialLine})
+
+    pane.activateItem(editor)
+    pane.activate() if activatePane
+    editor
 
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
@@ -143,6 +137,13 @@ class Workspace extends Model
   # Public: destroy/close the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
+
+  increaseFontSize: ->
+    atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
+
+  decreaseFontSize: ->
+    fontSize = atom.config.get("editor.fontSize")
+    atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
   # Private: Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->

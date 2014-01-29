@@ -50,7 +50,7 @@ class WorkspaceView extends View
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
   @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
-    'destroyActivePane', toProperty: 'model'
+    'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
   @version: 4
 
@@ -113,12 +113,8 @@ class WorkspaceView extends View
     @command 'window:install-shell-commands', => @installShellCommands()
 
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-    @command 'window:increase-font-size', =>
-      atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
-
-    @command 'window:decrease-font-size', =>
-      fontSize = atom.config.get "editor.fontSize"
-      atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+    @command 'window:increase-font-size', => @increaseFontSize()
+    @command 'window:decrease-font-size', => @decreaseFontSize()
 
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:focus-previous-pane', => @focusPreviousPane()
