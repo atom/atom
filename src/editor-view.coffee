@@ -429,10 +429,8 @@ class EditorView extends View
       lastInput = e.originalEvent.data
       @editor.insertText(lastInput)
 
-      # Return true if the last input was a space
-      # This prevents parent elements from scrolling
       if lastInput is ' '
-        true
+        true # Prevents parent elements from scrolling when a space is typed
       else
         @hiddenInput.val(lastInput)
         false
