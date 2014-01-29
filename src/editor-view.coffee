@@ -428,8 +428,14 @@ class EditorView extends View
 
       lastInput = e.originalEvent.data
       @editor.insertText(lastInput)
-      @hiddenInput.val(lastInput)
-      false
+
+      # Return true if the last input was a space
+      # This prevents parent elements from scrolling
+      if lastInput is ' '
+        true
+      else
+        @hiddenInput.val(lastInput)
+        false
 
   bringHiddenInputIntoView: ->
     @hiddenInput.css(top: @scrollTop(), left: @scrollLeft())
