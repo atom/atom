@@ -143,9 +143,10 @@ class Project extends Model
   #
   # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath)
-    resource = null
-    _.find @openers, (opener) -> resource = opener(filePath, options)
+    filePath = @resolve(filePath) ? ''
+    resource = opener(filePath, options) for opener in @openers when !resource
+
+    console.log resource
 
     if resource
       Q(resource)
@@ -155,11 +156,10 @@ class Project extends Model
 
   # Private: Only be used in specs
   openSync: (filePath, options={}) ->
-    filePath = @resolve(filePath)
-    for opener in @openers
-      return resource if resource = opener(filePath, options)
+    filePath = @resolve(filePath) ? ''
+    resource = opener(filePath, options) for opener in @openers when !resource
 
-    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
+    resource or @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
   # Public: Retrieves all {Editor}s for all open files.
   #
