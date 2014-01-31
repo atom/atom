@@ -59,5 +59,6 @@ class Package
   # Private:
   measure: (key, fn) ->
     startTime = Date.now()
-    fn()
+    value = fn()
     @[key] = Date.now() - startTime
+    value
