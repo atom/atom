@@ -160,7 +160,7 @@ describe "ThemeManager", ->
 
   describe "when the user stylesheet changes", ->
     it "reloads it", ->
-      userStylesheetPath = path.join(temp.mkdirSync("atom"), 'user.css')
+      userStylesheetPath = path.join(temp.mkdirSync("atom"), 'styles.css')
       fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
 
       spyOn(themeManager, 'getUserStylesheetPath').andReturn userStylesheetPath
