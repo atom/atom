@@ -24,9 +24,9 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.WorkspaceView = require '../src/workspace-view'
 
   # TODO Remove once packages have been updated
-  module.exports.SelectList = require '../src/select-list'
+  module.exports.SelectList = require '../src/select-list-view'
 
-  module.exports.SelectListView = require '../src/select-list'
+  module.exports.SelectListView = require '../src/select-list-view'
   module.exports.ScrollView = require '../src/scroll-view'
   module.exports.Task = require '../src/task'
   module.exports.View = View
