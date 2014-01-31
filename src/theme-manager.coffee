@@ -99,7 +99,7 @@ class ThemeManager
     if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else
-      path.join(@configDirPath, 'user.less')
+      path.join(@configDirPath, 'styles.less')
 
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()
