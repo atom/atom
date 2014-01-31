@@ -32,7 +32,7 @@
     "wrench": "~1.5.1",
     "npm": "1.3.18",
     "node-gyp": "~0.10.2",
-    "season": "~0.14.0",
+    "season": "1.x",
     "request": "~2.21.0",
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",
