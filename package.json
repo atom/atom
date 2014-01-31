@@ -22,7 +22,7 @@
     "bootstrap": "git://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.2.0",
     "coffee-script": "1.7.0",
-    "coffeestack": "0.6.0",
+    "coffeestack": "0.7.0",
     "delegato": "1.x",
     "emissary": "1.x",
     "first-mate": ">=1.1 <2.0",
