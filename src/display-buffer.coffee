@@ -593,8 +593,6 @@ class DisplayBuffer extends Model
 
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
     @screenLines[startScreenRow...endScreenRow] = screenLines
-    screenDelta = screenLines.length - (endScreenRow - startScreenRow)
-
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines)
 
@@ -603,7 +601,7 @@ class DisplayBuffer extends Model
     changeEvent =
       start: startScreenRow
       end: endScreenRow - 1
-      screenDelta: screenDelta
+      screenDelta: screenLines.length - (endScreenRow - startScreenRow)
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
