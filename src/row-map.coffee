@@ -1,9 +1,8 @@
 {spliceWithArray} = require 'underscore-plus'
 
-# Private: Used by the display buffer to map screen rows to buffer rows and
-# vice-versa. This mapping may not be 1:1 due to folds and soft-wraps. This
-# object maintains an array of regions, which contain `bufferRows` and
-# `screenRows` fields.
+# Used by the display buffer to map screen rows to buffer rows and vice-versa.
+# This mapping may not be 1:1 due to folds and soft-wraps. This object maintains
+# an array of regions, which contain `bufferRows` and `screenRows` fields.
 #
 # Rectangular Regions:
 # If a region has the same number of buffer rows and screen rows, it is referred
@@ -82,7 +81,6 @@ class RowMap
     spliceWithArray(@regions, index, count, regions)
     @mergeAdjacentRectangularRegions(index - 1, index + regions.length)
 
-  # Private:
   traverseToBufferRow: (targetBufferRow) ->
     bufferRows = 0
     screenRows = 0
@@ -93,7 +91,6 @@ class RowMap
       screenRows += region.screenRows
     {index, screenRows, bufferRows}
 
-  # Private:
   traverseToScreenRow: (targetScreenRow) ->
     bufferRows = 0
     screenRows = 0
@@ -104,7 +101,6 @@ class RowMap
       screenRows += region.screenRows
     {index, screenRows, bufferRows}
 
-  # Private:
   mergeAdjacentRectangularRegions: (startIndex, endIndex) ->
     for index in [endIndex..startIndex]
       if 0 < index < @regions.length
