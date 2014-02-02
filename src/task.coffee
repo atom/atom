@@ -49,8 +49,8 @@ class Task
   #   The path to the Coffeescript/Javascript file that exports a single
   #   function to execute.
   constructor: (taskPath) ->
-    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}');"
     coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
+    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
       #{coffeeScriptRequire}

@@ -95,11 +95,11 @@ class ThemeManager
 
   # Public: Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
-    stylesheetPath = fs.resolve(path.join(@configDirPath, 'user'), ['css', 'less'])
+    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
     if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else
-      path.join(@configDirPath, 'user.less')
+      path.join(@configDirPath, 'styles.less')
 
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()

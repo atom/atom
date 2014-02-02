@@ -9,7 +9,7 @@
       var currentWindow = require('remote').getCurrentWindow();
       try {
         require('vm-compatibility-layer');
-        require('coffee-script');
+        require('coffee-script').register();
         require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
         require(currentWindow.loadSettings.bootstrapScript);
         currentWindow.emit('window:loaded');

@@ -120,22 +120,24 @@ make customizations. You have full access to Atom's API from code in this file.
 If customizations become extensive, consider [creating a
 package][create-a-package].
 
-### user.less
+### styles.css
 
 If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to
-_user.less_ in your _~/.atom_ directory.
+_styles.css_ in your _~/.atom_ directory.
 
 For example, to change the color of the highlighted line number for the line
-that contains the cursor, you could add the following style to _user.less_:
+that contains the cursor, you could add the following style to _styles.css_:
 
-```less
-@highlight-color: pink;
-
-.editor .line-number.cursor-line {
-  color: @highlight-color;
+```css
+.editor .cursor {
+  border-color: pink;
 }
 ```
 
+You can also name the file _styles.less_ if you want to style Atom using
+[LESS][LESS].
+
 [create-a-package]: creating-packages.md
 [create-theme]: creating-a-theme.md
+[LESS]: http://www.lesscss.org
