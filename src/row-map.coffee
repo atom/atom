@@ -23,7 +23,7 @@ class RowMap
   getRegions: ->
     @regions.slice()
 
-  # Public: Returns and end-row-exclusive range of screen rows corresponding to
+  # Public: Returns an end-row-exclusive range of screen rows corresponding to
   # the given buffer row. If the buffer row is soft-wrapped, the range may span
   # multiple screen rows. Otherwise it will span a single screen row.
   screenRowRangeForBufferRow: (targetBufferRow) ->
@@ -35,7 +35,7 @@ class RowMap
       screenRows += targetBufferRow - bufferRows
       [screenRows, screenRows + 1]
 
-  # Public: Returns and end-row-exclusive range of buffer rows corresponding to
+  # Public: Returns an end-row-exclusive range of buffer rows corresponding to
   # the given screen row. If the screen row is the first line of a folded range
   # of buffer rows, the range may span multiple buffer rows. Otherwise it will
   # span a single buffer row.
