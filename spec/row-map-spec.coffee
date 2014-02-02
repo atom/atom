@@ -102,5 +102,3 @@ describe "RowMap", ->
       ])
 
       map.spliceRegions(3, 7, [{bufferRows: 5, screenRows: 5}])
-
-      console.log map.inspect()
