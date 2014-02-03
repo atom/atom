@@ -32,7 +32,7 @@ command displays a default message.
 Now let's edit the package files to make our ASCII Art package do something
 interesting. Since this package doesn't need any UI, we can remove all
 view-related code. Start by opening up _lib/ascii-art.coffee_. Remove all view
-code, so the `module.export` section looks like this:
+code, so the `module.exports` section looks like this:
 
 ```coffeescript
   module.exports =
