@@ -16,18 +16,24 @@ class Init extends Command
       Usage:
         apm init -p <package-name>
         apm init -t <theme-name>
+        apm init -t <theme-name> --convert ~/Downloads/Dawn.thTheme
 
       Generates code scaffolding for either a theme or package depending
       on option selected.
     """
     options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
+    options.alias('c', 'convert').string('convert').describe('convert', 'Path to TextMate theme to convert')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    if options.argv.package?
+    if options.argv.convert?
+      sourcePath = path.resolve(options.argv.convert)
+      destinationPath = path.resolve(options.argv.theme)
+      @convertTheme(sourcePath, destinationPath, callback)
+    else if options.argv.package?
       packagePath = path.resolve(options.argv.package)
       templatePath = path.resolve(__dirname, '..', 'templates', 'package')
       @generateFromTemplate(packagePath, templatePath)
@@ -39,6 +45,21 @@ class Init extends Command
       callback()
     else
       callback('You must specify either --package or --theme to `apm init`')
+
+  convertTheme: (sourcePath, destinationPath, callback) ->
+    unless fs.isFileSync(sourcePath)
+      callback("TextMate theme file not found: #{sourcePath}")
+      return
+
+    templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+    @generateFromTemplate(destinationPath, templatePath)
+
+    fs.removeSync(path.join(destinationPath, 'stylesheets'))
+
+    TextMateTheme = require './text-mate-Theme'
+    theme = new TextMateTheme(sourcePath)
+    fs.writeFileSync(path.join(destinationPath, 'index.less'), theme.getStylesheet())
+    callback()
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)

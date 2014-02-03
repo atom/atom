@@ -52,3 +52,24 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(themePath, 'index.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
+
+    describe "when converting a TextMate theme", ->
+      it "generates the proper file structure", ->
+        callback = jasmine.createSpy('callback')
+        textMateThemePath = path.join(__dirname, 'fixtures', 'Dawn.tmTheme')
+        apm.run(['init', '--theme', 'fake-theme', '--convert', textMateThemePath], callback)
+
+        waitsFor 'waiting for init to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(themePath)).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'stylesheets'))).toBeFalsy()
+          expect(fs.readFileSync(path.join(themePath, 'index.less'), 'utf8')).toContain """
+            .editor, .editor .gutter {
+              background-color: #F5F5F5;
+              color: #080808;
+            }
+          """
+          expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()

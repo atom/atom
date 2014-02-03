@@ -22,7 +22,7 @@ module.exports = (grunt) ->
 
     shell:
       test:
-        command: 'node node_modules/jasmine-focused/bin/jasmine-focused --captureExceptions --coffee spec/'
+        command: 'node --harmony_collections node_modules/jasmine-focused/bin/jasmine-focused --captureExceptions --coffee spec/'
         options:
           stdout: true
           stderr: true
