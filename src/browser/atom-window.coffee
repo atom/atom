@@ -124,6 +124,9 @@ class AtomWindow
       unless @sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
 
+  sendKeystrokeToBrowserWindow: (keystroke, args...) ->
+    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'keystroke', keystroke, args...
+
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...

@@ -20,6 +20,13 @@ class WindowEventHandler
         activeElement = atom.workspaceView
       $(activeElement).trigger(command, args...)
 
+    @subscribe ipc, 'keystroke', (keystroke) ->
+      activeElement = document.activeElement
+      # Use root view if body has focus
+      if activeElement is document.body and atom.workspaceView?
+        activeElement = atom.workspaceView
+      $(activeElement).trigger('keystroke', keystroke)
+
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
 
@@ -56,6 +63,9 @@ class WindowEventHandler
 
     @subscribe $(document), 'keydown', (event) ->
       atom.keymap.handleKeyEvent(event)
+
+    @subscribe $(document), 'keystroke', (event, keystroke) ->
+      atom.keymap.handleKeystroke(keystroke, event)
 
     @subscribe $(document), 'drop', (e) ->
       e.preventDefault()
