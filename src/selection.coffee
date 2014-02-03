@@ -528,11 +528,11 @@ class Selection
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
     if maintainPasteboard
-      text = atom.pasteboard.read().text + '\n' + text
+      text = atom.clipboard.read().text + '\n' + text
     else
       metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
 
-    atom.pasteboard.write(text, metadata)
+    atom.clipboard.write(text, metadata)
 
   # Public: Creates a fold containing the current selection.
   fold: ->
