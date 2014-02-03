@@ -29,10 +29,9 @@ class Init extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    if options.argv.convert?
+    if options.argv.convert
       sourcePath = path.resolve(options.argv.convert)
-      destinationPath = path.resolve(options.argv.theme)
-      @convertTheme(sourcePath, destinationPath, callback)
+      @convertTheme(sourcePath, options.argv.theme, callback)
     else if options.argv.package?
       packagePath = path.resolve(options.argv.package)
       templatePath = path.resolve(__dirname, '..', 'templates', 'package')
@@ -49,6 +48,12 @@ class Init extends Command
   convertTheme: (sourcePath, destinationPath, callback) ->
     unless fs.isFileSync(sourcePath)
       callback("TextMate theme file not found: #{sourcePath}")
+      return
+
+    if destinationPath
+      destinationPath = path.resolve(destinationPath)
+    else
+      callback("Specify directory to create theme in using --theme")
       return
 
     templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
