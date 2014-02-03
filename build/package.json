@@ -25,7 +25,6 @@
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
     "harmony-collections": "~0.3.8",
-    "js-yaml": "~2.1.0",
     "json-front-matter": "~0.1.3",
     "rcedit": "~0.1.2",
     "request": "~2.27.0",
