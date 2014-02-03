@@ -11,6 +11,8 @@ fs = require 'fs-plus'
 # Should be accessed via `atom.menu`.
 module.exports =
 class MenuManager
+  pendingUpdateOperation: null
+
   # Private:
   constructor: ({@resourcePath}) ->
     @template = []
@@ -49,11 +51,13 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    keystrokesByCommand = {}
-    for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
-      keystrokesByCommand[binding.command] ?= []
-      keystrokesByCommand[binding.command].push binding.keystroke
-    @sendToBrowserProcess(@template, keystrokesByCommand)
+    clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
+    @pendingUpdateOperation = setImmediate =>
+      keystrokesByCommand = {}
+      for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
+        keystrokesByCommand[binding.command] ?= []
+        keystrokesByCommand[binding.command].push binding.keystroke
+      @sendToBrowserProcess(@template, keystrokesByCommand)
 
   # Private:
   loadPlatformItems: ->
