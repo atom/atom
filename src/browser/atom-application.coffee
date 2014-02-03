@@ -72,7 +72,7 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
-    @checkForUpdates()
+    @setupAutoUpdater()
 
     @openWithOptions(options)
 
@@ -117,16 +117,28 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
 
   # Private: Enable updates unless running from a local build of Atom.
-  checkForUpdates: ->
-    versionIsSha = /\w{7}/.test @version
+  setupAutoUpdater: ->
+    autoUpdater.setFeedUrl "http://localhost:9393/releases/latest?version=#{@version}"
 
-    if versionIsSha
-      autoUpdater.setAutomaticallyDownloadsUpdates false
-      autoUpdater.setAutomaticallyChecksForUpdates false
-    else
-      autoUpdater.setAutomaticallyDownloadsUpdates true
-      autoUpdater.setAutomaticallyChecksForUpdates true
-      autoUpdater.checkForUpdatesInBackground()
+    autoUpdater.on 'checking-for-update', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(false)
+
+    autoUpdater.on 'update-not-available', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
+      atomWindow.sendCommand('window:update-available', releaseName) for atomWindow in @windows
+      @applicationMenu.showInstallUpdateItem(true)
+      @applicationMenu.showCheckForUpdateItem(false)
+      @updateVersion = releaseName
+
+    autoUpdater.on 'error', (event, message)=>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.checkForUpdates()
 
   # Private: Registers basic application commands, non-idempotent.
   handleEvents: ->
@@ -169,12 +181,6 @@ class AtomApplication
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
       @openUrl({urlToOpen, @devMode})
-
-    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
-      event.preventDefault()
-      @updateVersion = version
-      @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
-      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
