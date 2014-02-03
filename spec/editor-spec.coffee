@@ -1885,7 +1885,7 @@ describe "Editor", ->
                 editor.cutToEndOfLine()
                 expect(buffer.lineForRow(2)).toBe '    if (items.length'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(atom.clipboard.read().text).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+                expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
             describe "when text is selected", ->
               it "only cuts the selected text, not to the end of the line", ->
@@ -1895,7 +1895,7 @@ describe "Editor", ->
 
                 expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(atom.clipboard.read().text).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+                expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
         describe ".copySelectedText()", ->
           it "copies selected text onto the clipboard", ->

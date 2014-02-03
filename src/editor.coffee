@@ -559,7 +559,7 @@ class Editor extends Model
   # * options:
   #    + A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    {text, metadata} = atom.clipboard.read()
+    {text, metadata} = atom.clipboard.readWithMetadata()
 
     containsNewlines = text.indexOf('\n') isnt -1
 

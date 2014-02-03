@@ -11,16 +11,19 @@ class Clipboard
 
   # Creates an `md5` hash of some text.
   #
-  # text - A {String} to encrypt.
+  # * text: A {String} to hash.
   #
-  # Returns an encrypted {String}.
+  # Returns a hashed {String}.
   md5: (text) ->
     crypto.createHash('md5').update(text, 'utf8').digest('hex')
 
   # Public: Write the given text to the clipboard.
   #
-  # text - A {String} to store.
-  # metadata - An {Object} of additional info to associate with the text.
+  # The metadata associated with the text is available by calling
+  # {.readWithMetadata}.
+  #
+  # * text: A {String} to store.
+  # * metadata: An {Object} of additional info to associate with the text.
   write: (text, metadata) ->
     @signatureForMetadata = @md5(text)
     @metadata = metadata
@@ -28,14 +31,18 @@ class Clipboard
 
   # Public: Read the text from the clipboard.
   #
+  # Returns a {String}.
+  read: ->
+    clipboard.readText()
+
+  # Public: Read the text from the clipboard and return both the text and the
+  # associated metadata.
+  #
   # Returns an {Object} with a `text` key and a `metadata` key if it has
   # associated metadata.
-  read: ->
-    text = clipboard.readText()
-    #TODO Return object once packages have been updated.
-    contents = [text]
-    contents.text = text
+  readWithMetadata: ->
+    text = @read()
     if @signatureForMetadata is @md5(text)
-      contents.push(@metadata)
-      contents.metadata = @metadata
-    contents
+      {text, @metadata}
+    else
+      {text}
