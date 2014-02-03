@@ -1860,7 +1860,7 @@ describe "Editor", ->
         beforeEach ->
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
 
-        fdescribe ".cutSelectedText()", ->
+        describe ".cutSelectedText()", ->
           it "removes the selected text from the buffer and places it on the clipboard", ->
             editor.cutSelectedText()
             expect(buffer.lineForRow(0)).toBe "var  = function () {"
