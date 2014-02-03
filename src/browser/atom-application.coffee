@@ -134,7 +134,7 @@ class AtomApplication
       @applicationMenu.showCheckForUpdateItem(false)
       @updateVersion = releaseName
 
-    autoUpdater.on 'error', (event, message)=>
+    autoUpdater.on 'error', (event, message) =>
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
