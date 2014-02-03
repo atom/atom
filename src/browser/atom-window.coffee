@@ -5,6 +5,7 @@ dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
+url = require 'url'
 _ = require 'underscore-plus'
 
 # Private:
@@ -43,13 +44,21 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
-    @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
+    @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
     process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
+
+  getUrl: (loadSettingsObj) ->
+    loadSettings = JSON.stringify(loadSettingsObj)
+    url.format
+      protocol: 'file'
+      pathname: "#{@resourcePath}/static/index.html"
+      slashes: true
+      query: {loadSettings}
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath

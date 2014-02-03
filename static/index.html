@@ -6,15 +6,19 @@
   <script>
     window.onload = function() {
       var path = require('path');
-      var currentWindow = require('remote').getCurrentWindow();
+      var ipc = require('ipc');
       try {
         require('vm-compatibility-layer');
         require('coffee-script').register();
         require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
-        require(currentWindow.loadSettings.bootstrapScript);
-        currentWindow.emit('window:loaded');
+
+        // Skip "?loadSettings=".
+        var loadSettings = decodeURIComponent(location.search.substr(14));
+        require(JSON.parse(loadSettings).bootstrapScript);
+        ipc.sendChannel('window-command', 'window:loaded')
       }
       catch (error) {
+        var currentWindow = require('remote').getCurrentWindow();
         currentWindow.setSize(800, 600);
         currentWindow.center();
         currentWindow.show();

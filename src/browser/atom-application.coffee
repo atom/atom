@@ -1,6 +1,7 @@
 AtomWindow = require './atom-window'
 ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
+BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
@@ -194,6 +195,9 @@ class AtomApplication
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
+
+    ipc.on 'window-command', (processId, routingId, command) =>
+      BrowserWindow.fromProcessIdAndRoutingId(processId, routingId).emit(command)
 
   # Public: Executes the given command.
   #
