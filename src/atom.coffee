@@ -150,9 +150,6 @@ class Atom extends Model
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
-    # TODO Remove once packages have been updated
-    @pasteboard = @clipboard
-
     @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
 
     @subscribe @packages, 'activated', => @watchThemes()
