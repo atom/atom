@@ -104,7 +104,7 @@ class Atom extends Model
 
   # Private: Get the version of the Atom application.
   @getVersion: ->
-    @version ?= app.getVersion()
+    @version ?= @getLoadSettings().appVersion
 
   # Private: Determine whether the current version is an official release.
   @isReleasedVersion: ->

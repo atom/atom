@@ -1,6 +1,7 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 ContextMenu = require './context-menu'
+app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -32,6 +33,7 @@ class AtomWindow
 
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= '{}'
+    loadSettings.appVersion = app.getVersion()
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
