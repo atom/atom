@@ -196,7 +196,6 @@ class Atom extends Model
   #    + width: The new width.
   #    + height: The new height.
   setWindowDimensions: ({x, y, width, height}) ->
-    browserWindow = @getCurrentWindow()
     if width? and height?
       ipc.sendChannel('call-window-method', 'setSize', width, height)
     if x? and y?
