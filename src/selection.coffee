@@ -528,7 +528,7 @@ class Selection
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
     if maintainClipboard
-      text = atom.clipboard.read().text + '\n' + text
+      text = "#{atom.clipboard.read()}\n#{text}"
     else
       metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
 
