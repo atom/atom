@@ -69,19 +69,13 @@ class ApplicationMenu
     if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
       item.label = "Version #{@version}"
 
-  # Public: Makes the download menu item visible if available.
-  #
-  # Note: The update menu item's must match 'Install update' exactly otherwise
-  # this function will fail to work.
-  #
-  # * newVersion:
-  #   FIXME: Unused.
-  # * quitAndUpdateCallback:
-  #   Function to call when the install menu item has been clicked.
-  showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
-    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Install update'))
-      item.visible = true
-      item.click = quitAndUpdateCallback
+  showInstallUpdateItem: (visible=true) ->
+    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update'))
+      item.visible = visible
+
+  showCheckForUpdateItem: (visible=true) ->
+    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update'))
+      item.visible = visible
 
   # Private: Default list of menu items.
   #

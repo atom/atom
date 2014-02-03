@@ -140,6 +140,30 @@ class AtomApplication
 
     autoUpdater.checkForUpdates()
 
+  checkForUpdate: ->
+    autoUpdater.once 'update-available', ->
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'Update available.'
+        detail: 'A new update is being downloading.'
+
+    autoUpdater.once 'update-not-available', =>
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'No update available.'
+        detail: "Version #{@version} is the latest version."
+
+    autoUpdater.once 'error', (event, message)->
+      dialog.showMessageBox
+        type: 'warning'
+        buttons: ['OK']
+        message: 'There was an error checking for updates.'
+        detail: message
+
+    autoUpdater.checkForUpdates()
+
   # Private: Registers basic application commands, non-idempotent.
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
@@ -159,6 +183,8 @@ class AtomApplication
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:install-update', -> autoUpdater.quitAndInstall()
+    @on 'application:check-for-update', => @checkForUpdate()
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
