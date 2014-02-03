@@ -196,8 +196,13 @@ class AtomApplication
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
 
-    ipc.on 'window-command', (processId, routingId, command) =>
-      BrowserWindow.fromProcessIdAndRoutingId(processId, routingId).emit(command)
+    ipc.on 'window-command', (processId, routingId, command, args...) =>
+      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+      win.emit(command, args...)
+
+    ipc.on 'call-window-method', (processId, routingId, method, args...) =>
+      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+      win[method](args...)
 
   # Public: Executes the given command.
   #

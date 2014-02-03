@@ -198,11 +198,11 @@ class Atom extends Model
   setWindowDimensions: ({x, y, width, height}) ->
     browserWindow = @getCurrentWindow()
     if width? and height?
-      browserWindow.setSize(width, height)
+      ipc.sendChannel('call-window-method', 'setSize', width, height)
     if x? and y?
-      browserWindow.setPosition(x, y)
+      ipc.sendChannel('call-window-method', 'setPosition', x, y)
     else
-      browserWindow.center()
+      ipc.sendChannel('call-window-method', 'center')
 
   # Private:
   restoreWindowDimensions: ->
@@ -365,28 +365,28 @@ class Atom extends Model
 
   # Public: Open the dev tools for the current window.
   openDevTools: ->
-    @getCurrentWindow().openDevTools()
+    ipc.sendChannel('call-window-method', 'openDevTools')
 
   # Public: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
-    @getCurrentWindow().toggleDevTools()
+    ipc.sendChannel('call-window-method', 'toggleDevTools')
 
   # Public: Reload the current window.
   reload: ->
-    @getCurrentWindow().restart()
+    ipc.sendChannel('call-window-method', 'restart')
 
   # Public: Focus the current window.
   focus: ->
-    @getCurrentWindow().focus()
+    ipc.sendChannel('call-window-method', 'focus')
     $(window).focus()
 
   # Public: Show the current window.
   show: ->
-    @getCurrentWindow().show()
+    ipc.sendChannel('call-window-method', 'show')
 
   # Public: Hide the current window.
   hide: ->
-    @getCurrentWindow().hide()
+    ipc.sendChannel('call-window-method', 'hide')
 
   # Private: Schedule the window to be shown and focused on the next tick.
   #
@@ -419,7 +419,7 @@ class Atom extends Model
 
   # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
-    @getCurrentWindow().setFullScreen(fullScreen)
+    ipc.sendChannel('call-window-method', 'setFullScreen', fullScreen)
 
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
