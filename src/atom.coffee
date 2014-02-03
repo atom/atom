@@ -6,8 +6,6 @@ path = require 'path'
 remote = require 'remote'
 screen = require 'screen'
 shell = require 'shell'
-dialog = remote.require 'dialog'
-app = remote.require 'app'
 
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
@@ -340,6 +338,7 @@ class Atom extends Model
     else
       buttonLabels = Object.keys(buttons)
 
+    dialog = remote.require('dialog')
     chosen = dialog.showMessageBox @getCurrentWindow(),
       type: 'info'
       message: message
@@ -360,6 +359,7 @@ class Atom extends Model
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
+    dialog = remote.require('dialog')
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
   # Public: Open the dev tools for the current window.
@@ -402,7 +402,9 @@ class Atom extends Model
     @getCurrentWindow().close()
 
   # Private:
-  exit: (status) -> app.exit(status)
+  exit: (status) ->
+    app = remote.require('app')
+    app.exit(status)
 
   # Public: Is the current window in development mode?
   inDevMode: ->
