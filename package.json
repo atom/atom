@@ -55,7 +55,7 @@
     "vm-compatibility-layer": "0.1.0"
   },
   "packageDependencies": {
-    "atom-dark-syntax": "0.12.0",
+    "atom-dark-syntax": "0.13.0",
     "atom-dark-ui": "0.21.0",
     "atom-light-syntax": "0.12.0",
     "atom-light-ui": "0.20.0",
