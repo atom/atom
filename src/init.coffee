@@ -1,6 +1,8 @@
 path = require 'path'
+url = require 'url'
 
 optimist = require 'optimist'
+request = require 'request'
 
 Command = require './command'
 fs = require './fs'
@@ -16,22 +18,22 @@ class Init extends Command
       Usage:
         apm init -p <package-name>
         apm init -t <theme-name>
-        apm init -t <theme-name> --convert ~/Downloads/Dawn.thTheme
+        apm init -t <theme-name> -c ~/Downloads/Dawn.thTheme
+        apm init -t <theme-name> -c https://raw.github.com/chriskempson/tomorrow-theme/master/textmate/Tomorrow-Night-Eighties.tmTheme
 
       Generates code scaffolding for either a theme or package depending
       on option selected.
     """
     options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
-    options.alias('c', 'convert').string('convert').describe('convert', 'Path to TextMate theme to convert')
+    options.alias('c', 'convert').string('convert').describe('convert', 'Path or URL to TextMate theme to convert')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
     if options.argv.convert
-      sourcePath = path.resolve(options.argv.convert)
-      @convertTheme(sourcePath, options.argv.theme, callback)
+      @convertTheme(options.argv.convert, options.argv.theme, callback)
     else if options.argv.package?
       packagePath = path.resolve(options.argv.package)
       templatePath = path.resolve(__dirname, '..', 'templates', 'package')
@@ -45,26 +47,42 @@ class Init extends Command
     else
       callback('You must specify either --package or --theme to `apm init`')
 
-  convertTheme: (sourcePath, destinationPath, callback) ->
-    unless fs.isFileSync(sourcePath)
-      callback("TextMate theme file not found: #{sourcePath}")
-      return
+  readTheme: (sourcePath, callback) ->
+    {protocol} = url.parse(sourcePath)
+    if protocol is 'http:' or protocol is 'https:'
+      request sourcePath, (error, response, body) ->
+        if error?
+          callback(error)
+        else  if response.statusCode isnt 200
+          callback("Request to #{sourcePath} failed (#{response.statusCode})")
+        else
+          callback(null, body)
+    else
+      sourcePath = path.resolve(sourcePath)
+      if fs.isFileSync(sourcePath)
+        callback(null, fs.readFileSync(sourcePath, 'utf8'))
+      else
+        callback("TextMate theme file not found: #{sourcePath}")
 
+  convertTheme: (sourcePath, destinationPath, callback) ->
     if destinationPath
       destinationPath = path.resolve(destinationPath)
     else
       callback("Specify directory to create theme in using --theme")
       return
 
-    templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
-    @generateFromTemplate(destinationPath, templatePath)
+    @readTheme sourcePath, (error, themeContents) =>
+      return callback(error) if error?
 
-    fs.removeSync(path.join(destinationPath, 'stylesheets'))
+      templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+      @generateFromTemplate(destinationPath, templatePath)
 
-    TextMateTheme = require './text-mate-Theme'
-    theme = new TextMateTheme(sourcePath)
-    fs.writeFileSync(path.join(destinationPath, 'index.less'), theme.getStylesheet())
-    callback()
+      fs.removeSync(path.join(destinationPath, 'stylesheets'))
+
+      TextMateTheme = require './text-mate-Theme'
+      theme = new TextMateTheme(themeContents)
+      fs.writeFileSync(path.join(destinationPath, 'index.less'), theme.getStylesheet())
+      callback()
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)

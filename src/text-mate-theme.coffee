@@ -4,12 +4,12 @@ plist = require 'plist'
 
 module.exports =
 class TextMateTheme
-  constructor: (@path) ->
+  constructor: (@contents) ->
     @rulesets = []
     @buildRulesets()
 
   buildRulesets: ->
-    {settings} = plist.parseFileSync(@path)
+    {settings} = plist.parseStringSync(@contents)
     @buildGlobalSettingsRulesets(settings[0])
     @buildScopeSelectorRulesets(settings[1..])
 
