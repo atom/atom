@@ -69,10 +69,12 @@ class ApplicationMenu
     if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
       item.label = "Version #{@version}"
 
+  # Toggles Install Update Item
   showInstallUpdateItem: (visible=true) ->
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update'))
       item.visible = visible
 
+  # Toggles Check For Update Item
   showCheckForUpdateItem: (visible=true) ->
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update'))
       item.visible = visible
