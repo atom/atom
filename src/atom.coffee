@@ -96,7 +96,7 @@ class Atom extends Model
 
   # Private: Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
-    _.deepClone(@loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings))
+    _.deepClone(@loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14))))
 
   # Private:
   @getCurrentWindow: ->
