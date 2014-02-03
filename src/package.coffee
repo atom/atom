@@ -54,7 +54,7 @@ class Package
     atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
 
   isTheme: ->
-    !!@metadata?.theme
+    @metadata?.theme?
 
   # Private:
   measure: (key, fn) ->
