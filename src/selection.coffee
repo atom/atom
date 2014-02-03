@@ -506,28 +506,28 @@ class Selection
 
   # Public: Cuts the selection until the end of the line.
   #
-  # * maintainPasteboard:
+  # * maintainClipboard:
   #   ?
-  cutToEndOfLine: (maintainPasteboard) ->
+  cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
-    @cut(maintainPasteboard)
+    @cut(maintainClipboard)
 
-  # Public: Copies the selection to the pasteboard and then deletes it.
+  # Public: Copies the selection to the clipboard and then deletes it.
   #
-  # * maintainPasteboard:
+  # * maintainClipboard:
   #   ?
-  cut: (maintainPasteboard=false) ->
-    @copy(maintainPasteboard)
+  cut: (maintainClipboard=false) ->
+    @copy(maintainClipboard)
     @delete()
 
-  # Public: Copies the current selection to the pasteboard.
+  # Public: Copies the current selection to the clipboard.
   #
-  # * maintainPasteboard:
+  # * maintainClipboard:
   #   ?
-  copy: (maintainPasteboard=false) ->
+  copy: (maintainClipboard=false) ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
-    if maintainPasteboard
+    if maintainClipboard
       text = atom.clipboard.read().text + '\n' + text
     else
       metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
