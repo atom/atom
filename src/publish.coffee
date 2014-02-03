@@ -84,6 +84,7 @@ class Publish extends Command
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}"
         json: true
+        proxy: process.env.http_proxy || process.env.https_proxy
         headers:
           authorization: token
       request.get requestSettings, (error, response, body={}) ->
@@ -116,6 +117,7 @@ class Publish extends Command
         url: config.getAtomPackagesUrl()
         json: true
         method: 'POST'
+        proxy: process.env.http_proxy || process.env.https_proxy
         body:
           repository: repository
         headers:
@@ -145,6 +147,7 @@ class Publish extends Command
         url: "#{config.getAtomPackagesUrl()}/#{packageName}/versions"
         json: true
         method: 'POST'
+        proxy: process.env.http_proxy || process.env.https_proxy
         body:
           tag: tag
         headers:

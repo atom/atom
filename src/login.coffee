@@ -67,6 +67,7 @@ class Login extends Command
         password: password
         sendImmediately: true
       json: true
+      proxy: process.env.http_proxy || process.env.https_proxy
       headers:
         'User-Agent': @getUserAgent()
 
@@ -97,6 +98,7 @@ class Login extends Command
         scopes: ['user', 'repo', 'gist']
         note: 'GitHub Atom'
         note_url: 'https://github.com/github/atom'
+      proxy: process.env.http_proxy || process.env.https_proxy
       headers:
         'User-Agent': @getUserAgent()
 
