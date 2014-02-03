@@ -535,24 +535,24 @@ class Editor extends Model
   # Public: Copies and removes all characters from cursor to the end of the
   # line.
   cutToEndOfLine: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     @mutateSelectedText (selection) ->
-      selection.cutToEndOfLine(maintainPasteboard)
-      maintainPasteboard = true
+      selection.cutToEndOfLine(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Cuts the selected text.
   cutSelectedText: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     @mutateSelectedText (selection) ->
-      selection.cut(maintainPasteboard)
-      maintainPasteboard = true
+      selection.cut(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Copies the selected text.
   copySelectedText: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     for selection in @getSelections()
-      selection.copy(maintainPasteboard)
-      maintainPasteboard = true
+      selection.copy(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Pastes the text in the clipboard.
   #

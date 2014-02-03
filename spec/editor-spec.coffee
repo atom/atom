@@ -1856,12 +1856,12 @@ describe "Editor", ->
             expect(editor.getCursorBufferPosition()).toEqual [0, 2]
             expect(editor.getCursorScreenPosition()).toEqual [0, editor.getTabLength() * 2]
 
-      describe "pasteboard operations", ->
+      describe "clipboard operations", ->
         beforeEach ->
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
 
         describe ".cutSelectedText()", ->
-          it "removes the selected text from the buffer and places it on the pasteboard", ->
+          it "removes the selected text from the buffer and places it on the clipboard", ->
             editor.cutSelectedText()
             expect(buffer.lineForRow(0)).toBe "var  = function () {"
             expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"

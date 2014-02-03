@@ -95,9 +95,9 @@ beforeEach ->
   TokenizedBuffer.prototype.chunkSize = Infinity
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
-  pasteboardContent = 'initial pasteboard content'
-  spyOn(clipboard, 'writeText').andCallFake (text) -> pasteboardContent = text
-  spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
+  clipboardContent = 'initial clipboard content'
+  spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
+  spyOn(clipboard, 'readText').andCallFake -> clipboardContent
 
   addCustomMatchers(this)
 
