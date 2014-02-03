@@ -33,6 +33,7 @@ class Available extends Command
         requestSettings =
           url: config.getAtomPackagesUrl()
           json: true
+          proxy: process.env.http_proxy || process.env.https_proxy
           headers:
             authorization: token
         request.get requestSettings, (error, response, body={}) ->

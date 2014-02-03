@@ -46,6 +46,7 @@ class Develop extends Command
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}"
         json: true
+        proxy: process.env.http_proxy || process.env.https_proxy
         headers:
           authorization: token
       request.get requestSettings, (error, response, body={}) ->

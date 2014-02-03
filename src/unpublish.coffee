@@ -40,6 +40,7 @@ class Unpublish extends Command
           authorization: token
         method: 'DELETE'
         json: true
+        proxy: process.env.http_proxy || process.env.https_proxy
 
       request options, (error, response, body={}) ->
         if error?
