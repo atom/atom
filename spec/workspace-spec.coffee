@@ -92,33 +92,39 @@ describe "Workspace", ->
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
-      describe "when the 'split' option is 'right'", ->
-        it "activates the editor on the existing right pane", ->
-          pane1 = workspace.activePane
-          pane2 = pane1.splitRight()
-          pane1.activate()
-
-          editor = null
+          # Focus right pane and reopen the file on the left
           waitsForPromise ->
+            pane2.focus()
+            workspace.open('a', split: 'left').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.activePane).toBe pane1
+            expect(pane1.items).toEqual [editor]
+            expect(pane2.items).toEqual []
+
+      describe "when the 'split' option is 'right'", ->
+        it "opens the editor in the rightmost pane of the current pane axis", ->
+          editor = null
+          pane1 = workspace.activePane
+          pane2 = null
+          waitsForPromise ->
+            workspace.open('a', split: 'right').then (o) -> editor = o
+
+          runs ->
+            pane2 = workspace.getPanes().filter((p) -> p != pane1)[0]
+            expect(workspace.activePane).toBe pane2
+            expect(pane1.items).toEqual []
+            expect(pane2.items).toEqual [editor]
+
+          # Focus right pane and reopen the file on the right
+          waitsForPromise ->
+            pane1.focus()
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
             expect(workspace.activePane).toBe pane2
-            expect(pane2.items).toEqual [editor]
             expect(pane1.items).toEqual []
-
-        it "splits the current pane if the right pane doesn't exist", ->
-          pane1 = workspace.activePane
-
-          editor = null
-          waitsForPromise ->
-            workspace.open('a', split: 'right').then (o) -> editor = o
-
-          runs ->
-            pane2 = workspace.activePane
-            expect(workspace.paneContainer.root.children).toEqual [pane1, pane2]
             expect(pane2.items).toEqual [editor]
-            expect(pane1.items).toEqual []
 
   describe "::openSync(uri, options)", ->
     [activePane, initialItemCount] = []
