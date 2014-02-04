@@ -519,7 +519,7 @@ class Editor extends Model
   #
   # If the language doesn't have comments, nothing happens.
   #
-  # Returns an {Array} of the commented {Ranges}.
+  # Returns an {Array} of the commented {Range}s.
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
