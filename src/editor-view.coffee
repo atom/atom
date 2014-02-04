@@ -300,6 +300,11 @@ class EditorView extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
+  # Set the text to appear in the editor when it is empty.
+  #
+  # This only affects mini editors.
+  #
+  # * placeholderText: A {String} of text to display when empty.
   setPlaceholderText: (placeholderText) ->
     return unless @mini
     @placeholderText = placeholderText
