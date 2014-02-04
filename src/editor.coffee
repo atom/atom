@@ -785,7 +785,9 @@ class Editor extends Model
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # Public: {Delegates to: DisplayBuffer.getMarkerCount}
+  # Public: Get the number of markers in this editor's buffer.
+  #
+  # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
