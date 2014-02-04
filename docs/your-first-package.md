@@ -141,7 +141,7 @@ convert: ->
       selection.insertText("\n#{asciiArt}\n")
 ```
 
-Select some text in an editor window and hit `cmd-alt-a`. BAM! You're now an
+Select some text in an editor window and hit `cmd-alt-a`. :tada: You're now an
 ASCII art professional!
 
 ## Further reading
