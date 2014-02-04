@@ -45,6 +45,7 @@ class PackageConverter
 
   getDownloadUrl: ->
     downloadUrl = @sourcePath
+    downloadUrl = downloadUrl.replace(/\.git\/?$/, '')
     downloadUrl += '/' unless downloadUrl[downloadUrl.length - 1] is '/'
     downloadUrl += 'archive/master.tar.gz'
 
