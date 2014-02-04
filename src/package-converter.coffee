@@ -6,6 +6,7 @@ plist = require 'plist'
 
 fs = require './fs'
 
+# Convert a TextMate bundle to an Atom package
 module.exports =
 class PackageConverter
   constructor: (@sourcePath, @destinationPath) ->

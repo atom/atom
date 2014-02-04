@@ -54,31 +54,12 @@ class Init extends Command
     else
       callback('You must specify either --package or --theme to `apm init`')
 
-  readTheme: (sourcePath, callback) ->
-    {protocol} = url.parse(sourcePath)
-    if protocol is 'http:' or protocol is 'https:'
-      request sourcePath, (error, response, body) ->
-        if error?
-          callback(error)
-        else  if response.statusCode isnt 200
-          callback("Request to #{sourcePath} failed (#{response.statusCode})")
-        else
-          callback(null, body)
-    else
-      sourcePath = path.resolve(sourcePath)
-      if fs.isFileSync(sourcePath)
-        callback(null, fs.readFileSync(sourcePath, 'utf8'))
-      else
-        callback("TextMate theme file not found: #{sourcePath}")
-
   convertPackage: (sourcePath, destinationPath, callback) ->
     unless destinationPath
       callback("Specify directory to create theme in using --theme")
       return
 
-    sourcePath = path.resolve(sourcePath)
     destinationPath = path.resolve(destinationPath)
-
     templatePath = path.resolve(__dirname, '..', 'templates', 'bundle')
     @generateFromTemplate(destinationPath, templatePath)
 
@@ -86,24 +67,16 @@ class Init extends Command
     new PackageConverter(sourcePath, destinationPath).convert(callback)
 
   convertTheme: (sourcePath, destinationPath, callback) ->
-    if destinationPath
-      destinationPath = path.resolve(destinationPath)
-    else
+    unless destinationPath
       callback("Specify directory to create theme in using --theme")
       return
 
-    @readTheme sourcePath, (error, themeContents) =>
-      return callback(error) if error?
+    destinationPath = path.resolve(destinationPath)
+    templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+    @generateFromTemplate(destinationPath, templatePath)
 
-      templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
-      @generateFromTemplate(destinationPath, templatePath)
-
-      fs.removeSync(path.join(destinationPath, 'stylesheets'))
-
-      TextMateTheme = require './text-mate-Theme'
-      theme = new TextMateTheme(themeContents)
-      fs.writeFileSync(path.join(destinationPath, 'index.less'), theme.getStylesheet())
-      callback()
+    ThemeConverter = require './theme-converter'
+    new ThemeConverter(sourcePath, destinationPath).convert(callback)
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
