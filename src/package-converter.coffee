@@ -13,7 +13,9 @@ fs = require './fs'
 # Convert a TextMate bundle to an Atom package
 module.exports =
 class PackageConverter
-  constructor: (@sourcePath, @destinationPath) ->
+  constructor: (@sourcePath, destinationPath) ->
+    @destinationPath = path.resolve(destinationPath)
+
     @plistExtensions = [
       '.plist'
       '.tmCommand'

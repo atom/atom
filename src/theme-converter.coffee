@@ -7,7 +7,8 @@ TextMateTheme = require './text-mate-theme'
 # Convert a TextMate theme to an Atom theme
 module.exports =
 class ThemeConverter
-  constructor: (@sourcePath, @destinationPath) ->
+  constructor: (@sourcePath, destinationPath) ->
+    @destinationPath = path.resolve(destinationPath)
 
   readTheme: (callback) ->
     {protocol} = url.parse(@sourcePath)

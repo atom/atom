@@ -57,24 +57,32 @@ class Init extends Command
       callback("Specify directory to create package in using --package")
       return
 
-    destinationPath = path.resolve(destinationPath)
-    templatePath = path.resolve(__dirname, '..', 'templates', 'bundle')
-    @generateFromTemplate(destinationPath, templatePath)
-
     PackageConverter = require './package-converter'
-    new PackageConverter(sourcePath, destinationPath).convert(callback)
+    converter = new PackageConverter(sourcePath, destinationPath)
+    converter.convert (error) =>
+      if error?
+        callback(error)
+      else
+        destinationPath = path.resolve(destinationPath)
+        templatePath = path.resolve(__dirname, '..', 'templates', 'bundle')
+        @generateFromTemplate(destinationPath, templatePath)
+        callback()
 
   convertTheme: (sourcePath, destinationPath, callback) ->
     unless destinationPath
       callback("Specify directory to create theme in using --theme")
       return
 
-    destinationPath = path.resolve(destinationPath)
-    templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
-    @generateFromTemplate(destinationPath, templatePath)
-
     ThemeConverter = require './theme-converter'
-    new ThemeConverter(sourcePath, destinationPath).convert(callback)
+    converter = new ThemeConverter(sourcePath, destinationPath)
+    converter.convert (error) =>
+      if error?
+        callback(error)
+      else
+        destinationPath = path.resolve(destinationPath)
+        templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+        @generateFromTemplate(destinationPath, templatePath)
+        callback()
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
