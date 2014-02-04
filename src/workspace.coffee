@@ -7,8 +7,9 @@ PaneContainer = require './pane-container'
 Pane = require './pane'
 
 # Public: Represents the view state of the entire window, including the panes at
-# the center and panels around the periphery. You can access the singleton
-# instance via `atom.workspace`.
+# the center and panels around the periphery.
+#
+# An instance of this class is always available as the `atom.workspace` global.
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)

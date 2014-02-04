@@ -3,7 +3,7 @@ crypto = require 'crypto'
 
 # Public: Represents the clipboard used for copying and pasting in Atom.
 #
-# A clipboard instance is always available under the `atom.clipboard` global.
+# An instance of this class is always available as the `atom.clipboard` global.
 module.exports =
 class Clipboard
   metadata: null

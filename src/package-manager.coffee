@@ -6,6 +6,8 @@ path = require 'path'
 
 # Public: Package manager for coordinating the lifecycle of Atom packages.
 #
+# An instance of this class is always available as the `atom.packages` global.
+#
 # Packages can be loaded, activated, and deactivated, and unloaded:
 #  * Loading a package reads and parses the package's metadata and resources
 #    such as keymaps, menus, stylesheets, etc.
@@ -17,8 +19,6 @@ path = require 'path'
 #
 # Packages can also be enabled/disabled via the `core.disabledPackages` config
 # settings and also by calling `enablePackage()/disablePackage()`.
-#
-# An instance of this class is globally available via `atom.packages`.
 module.exports =
 class PackageManager
   Emitter.includeInto(this)

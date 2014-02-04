@@ -16,6 +16,9 @@ Editor = require './editor'
 
 # Public: The container for the entire Atom application.
 #
+# An instance of this class is always available as the `atom.workspaceView`
+# global.
+#
 # ## Commands
 #
 #  * `application:about` - Opens the about dialog.

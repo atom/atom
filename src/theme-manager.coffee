@@ -10,7 +10,7 @@ File = require './file'
 
 # Public: Handles loading and activating available themes.
 #
-# A ThemeManager instance is always available under the `atom.themes` global.
+# An instance of this class is always available as the `atom.themes` global.
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)

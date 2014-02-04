@@ -8,10 +8,10 @@ Token = require './token'
 
 # Public: Syntax class holding the grammars used for tokenizing.
 #
+# An instance of this class is always available as the `atom.syntax` global.
+#
 # The Syntax class also contains properties for things such as the
 # language-specific comment regexes.
-#
-# There is always a syntax object available under the `atom.syntax` global.
 module.exports =
 class Syntax extends GrammarRegistry
   Subscriber.includeInto(this)

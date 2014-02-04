@@ -8,7 +8,7 @@ fs = require 'fs-plus'
 # Public: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
-# Should be accessed via `atom.menu`.
+# An instance of this class is always available as the `atom.menu` global.
 module.exports =
 class MenuManager
   pendingUpdateOperation: null

@@ -5,7 +5,8 @@ remote = require 'remote'
 # Public: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
-# Should be accessed via `atom.contextMenu`.
+# An instance of this class is always available as the `atom.contextMenu`
+# global.
 module.exports =
 class ContextMenuManager
   # Private:

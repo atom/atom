@@ -8,8 +8,7 @@ pathWatcher = require 'pathwatcher'
 
 # Public: Used to access all of Atom's configuration details.
 #
-# A global instance of this class is available to all plugins which can be
-# referenced using `atom.config`
+# An instance of this class is always available as the `atom.config` global.
 #
 # ### Best practices
 #

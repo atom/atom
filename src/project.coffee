@@ -16,7 +16,7 @@ Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
 #
-# There is always a project available under the `atom.project` global.
+# An instance of this class is always available as the `atom.project` global.
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
