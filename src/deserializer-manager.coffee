@@ -1,6 +1,17 @@
 # Public: Manages the deserializers used for serialized state
 #
-# Should be accessed via `atom.deserializers`
+# An instance of this class is always available as the `atom.deserializers`
+# global.
+#
+# ### Registering a deserializer
+#
+# ```coffee
+# class MyPackageView extends View
+#   atom.deserializers.add(this)
+#
+#   @deserialize: (state) ->
+#     new MyPackageView(state)
+# ```
 module.exports =
 class DeserializerManager
   constructor: (@environment) ->
