@@ -51,6 +51,12 @@ class Workspace extends Model
   # * filePath: A file path
   # * options
   #   + initialLine: The buffer line number to open to.
+  #   + split: Takes 'left' or 'right'. Opens in existing right or left pane if
+  #     one exists, otherwise creates a new pane.
+  #   + changeFocus: Boolean that allows a filePath to be opened without
+  #     changing focus.
+  #   + searchAllPanes: Boolean that will open existing editors from any pane
+  #     if the filePath is already open (defaults to false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
@@ -103,8 +109,7 @@ class Workspace extends Model
     @activePane.activate() if activatePane
     editor
 
-  # Public: Synchronously open an editor for the given URI or activate an existing
-  # editor in any pane if one already exists.
+  # Deprecated
   openSingletonSync: (uri, options={}) ->
     {initialLine, split} = options
     # TODO: Remove deprecated changeFocus option
