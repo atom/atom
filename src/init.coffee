@@ -82,6 +82,7 @@ class Init extends Command
         destinationPath = path.resolve(destinationPath)
         templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(destinationPath, templatePath)
+        fs.removeSync(path.join(destinationPath, 'stylesheets'))
         callback()
 
   generateFromTemplate: (packagePath, templatePath) ->
@@ -97,6 +98,7 @@ class Init extends Command
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
       sourcePath = path.join(packagePath, relativePath)
+      continue if fs.existsSync(sourcePath)
       if fs.isDirectorySync(templateChildPath)
         fs.makeTreeSync(sourcePath)
       else if fs.isFileSync(templateChildPath)
