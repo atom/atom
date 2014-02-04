@@ -55,12 +55,16 @@ class AtomWindow
     process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
 
   getUrl: (loadSettingsObj) ->
-    loadSettings = JSON.stringify(loadSettingsObj)
+    # Ignore the windowState when passing loadSettings via URL, since it could
+    # be quite large.
+    loadSettings = _.clone(loadSettingsObj)
+    delete loadSettings['windowState']
+
     url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
-      query: {loadSettings}
+      query: {loadSettings: JSON.stringify(loadSettings)}
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
