@@ -2515,9 +2515,9 @@ describe "EditorView", ->
       expect(edited).toBe false
 
   describe "when editor:copy-path is triggered", ->
-    it "copies the absolute path to the editor view's file to the pasteboard", ->
+    it "copies the absolute path to the editor view's file to the clipboard", ->
       editorView.trigger 'editor:copy-path'
-      expect(atom.pasteboard.read()[0]).toBe editor.getPath()
+      expect(atom.clipboard.read()).toBe editor.getPath()
 
   describe "when editor:move-line-up is triggered", ->
     describe "when there is no selection", ->

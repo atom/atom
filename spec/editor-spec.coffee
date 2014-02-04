@@ -1856,12 +1856,12 @@ describe "Editor", ->
             expect(editor.getCursorBufferPosition()).toEqual [0, 2]
             expect(editor.getCursorScreenPosition()).toEqual [0, editor.getTabLength() * 2]
 
-      describe "pasteboard operations", ->
+      describe "clipboard operations", ->
         beforeEach ->
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
 
         describe ".cutSelectedText()", ->
-          it "removes the selected text from the buffer and places it on the pasteboard", ->
+          it "removes the selected text from the buffer and places it on the clipboard", ->
             editor.cutSelectedText()
             expect(buffer.lineForRow(0)).toBe "var  = function () {"
             expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
@@ -1885,7 +1885,7 @@ describe "Editor", ->
                 editor.cutToEndOfLine()
                 expect(buffer.lineForRow(2)).toBe '    if (items.length'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(atom.pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+                expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
             describe "when text is selected", ->
               it "only cuts the selected text, not to the end of the line", ->
@@ -1895,7 +1895,7 @@ describe "Editor", ->
 
                 expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
                 expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-                expect(atom.pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+                expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
         describe ".copySelectedText()", ->
           it "copies selected text onto the clipboard", ->
@@ -1906,7 +1906,7 @@ describe "Editor", ->
 
         describe ".pasteText()", ->
           it "pastes text into the buffer", ->
-            atom.pasteboard.write('first')
+            atom.clipboard.write('first')
             editor.pasteText()
             expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
             expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"

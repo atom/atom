@@ -28,7 +28,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.menu`        - A {MenuManager} instance
 #  * `atom.workspaceView`    - A {WorkspaceView} instance
 #  * `atom.packages`    - A {PackageManager} instance
-#  * `atom.pasteboard`  - A {Pasteboard} instance
+#  * `atom.clipboard`   - A {Clipboard} instance
 #  * `atom.project`     - A {Project} instance
 #  * `atom.syntax`      - A {Syntax} instance
 #  * `atom.themes`      - A {ThemeManager} instance
@@ -134,7 +134,7 @@ class Atom extends Model
     Config = require './config'
     Keymap = require './keymap'
     PackageManager = require './package-manager'
-    Pasteboard = require './pasteboard'
+    Clipboard = require './clipboard'
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
@@ -148,7 +148,8 @@ class Atom extends Model
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
-    @pasteboard = new Pasteboard()
+    @clipboard = new Clipboard()
+
     @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
 
     @subscribe @packages, 'activated', => @watchThemes()

@@ -54,10 +54,11 @@ class Package
     atom.config.pushAtKeyPath('core.disabledPackages', @metadata.name)
 
   isTheme: ->
-    !!@metadata?.theme
+    @metadata?.theme?
 
   # Private:
   measure: (key, fn) ->
     startTime = Date.now()
-    fn()
+    value = fn()
     @[key] = Date.now() - startTime
+    value

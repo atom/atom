@@ -30,7 +30,7 @@ The classes available from `require 'atom'` are:
   * [Point][Point]
   * [Range][Range]
   * [ScrollView][ScrollView]
-  * [SelectList][SelectList]
+  * [SelectListView][SelectListView]
   * [View][View]
   * [WorkspaceView][WorkspaceView]
 
@@ -55,7 +55,7 @@ Atom ships with node 0.11.10 and the comprehensive node API docs are available
 [Point]: ../classes/Point.html
 [Range]: ../classes/Range.html
 [ScrollView]: ../classes/ScrollView.html
-[SelectList]: ../classes/SelectList.html
+[SelectListView]: ../classes/SelectListView.html
 [View]: ../classes/View.html
 [WorkspaceView]: ../classes/WorkspaceView.html
 [creating-a-package]: https://www.atom.io/docs/latest/creating-a-package

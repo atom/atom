@@ -1,7 +1,7 @@
-SelectList = require '../src/select-list'
+SelectListView = require '../src/select-list-view'
 {$, $$} = require 'atom'
 
-describe "SelectList", ->
+describe "SelectListView", ->
   [selectList, array, list, miniEditor] = []
 
   beforeEach ->
@@ -10,7 +10,7 @@ describe "SelectList", ->
       ["D", "Delta"], ["E", "Echo"], ["F", "Foxtrot"]
     ]
 
-    selectList = new SelectList
+    selectList = new SelectListView
     selectList.maxItems = 4
     selectList.filterKey = 1
     selectList.itemForElement = (element) ->

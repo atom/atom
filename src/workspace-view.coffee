@@ -141,11 +141,11 @@ class WorkspaceView extends View
     resourcePath = atom.getLoadSettings().resourcePath
     CommandInstaller.installAtomCommand resourcePath, (error) =>
       if error?
-        showDialog(error)
+        showErrorDialog(error)
       else
         CommandInstaller.installApmCommand resourcePath, (error) =>
           if error?
-            showDialog(error)
+            showErrorDialog(error)
           else
             atom.confirm
               message: "Commands installed."

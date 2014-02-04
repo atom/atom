@@ -34,9 +34,13 @@ getKeystroke = (bindings) ->
     "<span class=\"keystroke\">#{humanizeKeystrokes(bindings[0].keystroke)}</span>"
   else
     ''
+
+requireBootstrapTooltip = _.once ->
+  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery})
+
 # options from http://getbootstrap.com/javascript/#tooltips
 jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
-  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery})
+  requireBootstrapTooltip()
 
   tooltipOptions = {title: tooltipOptions} if _.isString(tooltipOptions)
 
@@ -57,6 +61,7 @@ jQuery.fn.hideTooltip = ->
 
 jQuery.fn.destroyTooltip = ->
   @hideTooltip()
+  requireBootstrapTooltip()
   @tooltip('destroy')
 
 # Hide tooltips when window is resized

@@ -209,7 +209,7 @@ class EditorView extends View
         'editor:toggle-line-comments': => @toggleLineCommentsInSelection()
         'editor:log-cursor-scope': => @logCursorScope()
         'editor:checkout-head-revision': => @checkoutHead()
-        'editor:copy-path': => @copyPathToPasteboard()
+        'editor:copy-path': => @copyPathToClipboard()
         'editor:move-line-up': => @editor.moveLineUp()
         'editor:move-line-down': => @editor.moveLineDown()
         'editor:duplicate-line': => @editor.duplicateLine()
@@ -428,8 +428,12 @@ class EditorView extends View
 
       lastInput = e.originalEvent.data
       @editor.insertText(lastInput)
-      @hiddenInput.val(lastInput)
-      false
+
+      if lastInput is ' '
+        true # Prevents parent elements from scrolling when a space is typed
+      else
+        @hiddenInput.val(lastInput)
+        false
 
   bringHiddenInputIntoView: ->
     @hiddenInput.css(top: @scrollTop(), left: @scrollLeft())
@@ -1407,9 +1411,9 @@ class EditorView extends View
       @highlightedLine = null
 
   # Copies the current file path to the native clipboard.
-  copyPathToPasteboard: ->
+  copyPathToClipboard: ->
     path = @editor.getPath()
-    atom.pasteboard.write(path) if path?
+    atom.clipboard.write(path) if path?
 
   ### Internal ###
 
