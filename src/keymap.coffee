@@ -9,19 +9,23 @@ File = require './file'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']
 
-# Internal: Associates keymaps with actions.
+# Public: Associates keybindings with commands.
 #
-# Keymaps are defined in a CSON format. A typical keymap looks something like this:
+# An instance of this class is always available as the `atom.keymap` global.
+#
+# Keymaps are defined in a CSON/JSON format. A typical keymap looks something
+# like this:
 #
 # ```cson
 # 'body':
-#  'ctrl-l': 'package:do-something'
-#'.someClass':
-#  'enter': 'package:confirm'
+#   'ctrl-l': 'package:do-something'
+# '.someClass':
+#   'enter': 'package:confirm'
 # ```
 #
-# As a key, you define the DOM element you want to work on, using CSS notation. For that
-# key, you define one or more key:value pairs, associating keystrokes with a command to execute.
+# As a key, you define the DOM element you want to work on, using CSS notation.
+# For that key, you define one or more key:value pairs, associating keystrokes
+# with a command to execute.
 module.exports =
 class Keymap
   Emitter.includeInto(this)
