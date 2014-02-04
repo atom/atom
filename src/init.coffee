@@ -56,7 +56,7 @@ class Init extends Command
 
   convertPackage: (sourcePath, destinationPath, callback) ->
     unless destinationPath
-      callback("Specify directory to create theme in using --theme")
+      callback("Specify directory to create package in using --package")
       return
 
     destinationPath = path.resolve(destinationPath)
