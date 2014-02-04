@@ -14,7 +14,7 @@
 # ```
 module.exports =
 class DeserializerManager
-  constructor: (@environment) ->
+  constructor: ->
     @deserializers = {}
     @deferredDeserializers = {}
 
