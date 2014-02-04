@@ -1,8 +1,12 @@
 path = require 'path'
+url = require 'url'
+zlib = require 'zlib'
 
 _ = require 'underscore-plus'
-async = require 'async'
 plist = require 'plist'
+request = require 'request'
+tar = require 'tar'
+temp = require 'temp'
 
 fs = require './fs'
 
@@ -26,7 +30,22 @@ class PackageConverter
     ]
 
   convert: (callback) ->
-    @convertDirectory(directoryName) for directoryName in @directoryNames
+    {protocol} = url.parse(@sourcePath)
+    if protocol is 'http:' or protocol is 'https:'
+      tempPath = temp.mkdirSync('atom-bundle-')
+      request("#{@sourcePath}/archive/master.tar.gz")
+        .pipe(zlib.createGunzip())
+        .pipe(tar.Extract(path: tempPath))
+        .on 'error', (error) -> callback(error)
+        .on 'end', =>
+          sourcePath = path.join(tempPath, fs.readdirSync(tempPath)[0])
+          @copyDirectories(sourcePath, callback)
+    else
+      @copyDirectories(@sourcePath, callback)
+
+  copyDirectories: (sourcePath, callback) ->
+    for directoryName in @directoryNames
+      @convertDirectory(sourcePath, directoryName)
     callback()
 
   filterObject: (object) ->
@@ -61,8 +80,10 @@ class PackageConverter
         suffix++
       fs.renameSync(childPath, convertedPath)
 
-  convertDirectory: (directoryName) ->
-    source = path.join(@sourcePath, directoryName)
+  convertDirectory: (sourcePath, directoryName) ->
+    source = path.join(sourcePath, directoryName)
+    return unless fs.isDirectorySync(source)
+
     destination = path.join(@destinationPath, directoryName)
     fs.makeTreeSync(destination)
 
