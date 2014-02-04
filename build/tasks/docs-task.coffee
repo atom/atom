@@ -24,6 +24,7 @@ module.exports = (grunt) ->
           callback(error, downloadPath)
 
     includes = [
+      {repo: 'first-mate',  file: 'src/grammar.coffee'}
       {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
       {repo: 'space-pen',   file: 'src/space-pen.coffee'}
       {repo: 'text-buffer', file: 'src/marker.coffee'}
