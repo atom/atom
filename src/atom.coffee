@@ -23,6 +23,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.clipboard`     - A {Clipboard} instance
 #  * `atom.config`        - A {Config} instance
 #  * `atom.contextMenu`   - A {ContextMenuManager} instance
+#  * `atom.deserializers` - A {DeserializerManager} instance
 #  * `atom.keymap`        - A {Keymap} instance
 #  * `atom.menu`          - A {MenuManager} instance
 #  * `atom.packages`      - A {PackageManager} instance
