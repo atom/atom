@@ -146,8 +146,6 @@ class Project extends Model
     filePath = @resolve(filePath) ? ''
     resource = opener(filePath, options) for opener in @openers when !resource
 
-    console.log resource
-
     if resource
       Q(resource)
     else
