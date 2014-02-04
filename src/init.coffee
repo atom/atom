@@ -83,6 +83,7 @@ class Init extends Command
         templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(destinationPath, templatePath)
         fs.removeSync(path.join(destinationPath, 'stylesheets'))
+        fs.removeSync(path.join(destinationPath, 'LICENSE.md'))
         callback()
 
   generateFromTemplate: (packagePath, templatePath) ->

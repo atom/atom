@@ -55,6 +55,7 @@ describe "apm init", ->
           expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
           expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'LICENSE.md'))).toBeFalsy()
 
   describe "when creating a theme", ->
     it "generates the proper file structure", ->
@@ -92,3 +93,4 @@ describe "apm init", ->
           """
           expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
+          expect(fs.existsSync(path.join(themePath, 'LICENSE.md'))).toBeFalsy()
