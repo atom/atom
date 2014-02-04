@@ -35,7 +35,7 @@ class Task
     task.start(args...)
     task
 
-  # Public: Called upon task completion.
+  # Called upon task completion.
   #
   # It receives the same arguments that were passed to the task.
   #
