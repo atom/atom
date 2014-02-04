@@ -33,7 +33,7 @@ class PackageConverter
     {protocol} = url.parse(@sourcePath)
     if protocol is 'http:' or protocol is 'https:'
       tempPath = temp.mkdirSync('atom-bundle-')
-      request("#{@sourcePath}/archive/master.tar.gz")
+      request(@getDownloadUrl())
         .pipe(zlib.createGunzip())
         .pipe(tar.Extract(path: tempPath))
         .on 'error', (error) -> callback(error)
@@ -42,6 +42,11 @@ class PackageConverter
           @copyDirectories(sourcePath, callback)
     else
       @copyDirectories(@sourcePath, callback)
+
+  getDownloadUrl: ->
+    downloadUrl = @sourcePath
+    downloadUrl += '/' unless downloadUrl[downloadUrl.length - 1] is '/'
+    downloadUrl += 'archive/master.tar.gz'
 
   copyDirectories: (sourcePath, callback) ->
     for directoryName in @directoryNames
