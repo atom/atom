@@ -57,20 +57,30 @@ class Workspace extends Model
     changeFocus = options.changeFocus ? true
     filePath = atom.project.resolve(filePath)
     initialLine = options.initialLine
-    activePane = @activePane
+    searchAllPanes = options.searchAllPanes
+    split = options.split
+    uri = atom.project.relativize(filePath)
 
-    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
-    promise = atom.project.open(filePath, {initialLine}) if not editor
+    pane = switch split
+      when 'left'
+        @activePane.findLeftmostSibling()
+      when 'right'
+        @activePane.findOrCreateRightmostSibling()
+      else
+        if searchAllPanes
+          @paneContainer.paneForUri(uri) ? @activePane
+        else
+          @activePane
 
-    Q(editor ? promise)
+    Q(pane.itemForUri(uri) ? atom.project.open(filePath, options))
       .then (editor) =>
-        if not activePane
-          activePane = new Pane(items: [editor])
-          @paneContainer.root = activePane
+        if not pane
+          pane = new Pane(items: [editor])
+          @paneContainer.root = pane
 
         @itemOpened(editor)
-        activePane.activateItem(editor)
-        activePane.activate() if changeFocus
+        pane.activateItem(editor)
+        pane.activate() if changeFocus
         @emit "uri-opened"
         editor
       .catch (error) ->
