@@ -238,15 +238,15 @@ class Editor extends Model
 
   # Public: Given a position, this clips it to a real position.
   #
-  # For example, if `position`'s row exceeds the row count of the buffer,
+  # For example, if `bufferPosition`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
-  # * position:
+  # * bufferPosition:
   #   The {Point} to clip
   #
   # Returns the new, clipped {Point}. Note that this could be the same as
-  #   `position` if no clipping was performed.
+  #   `bufferPosition` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
 
   # Public: Given a range, this clips it to a real range.
