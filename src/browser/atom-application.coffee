@@ -118,7 +118,7 @@ class AtomApplication
 
   # Private: Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
-    autoUpdater.setFeedUrl "http://localhost:9393/releases/latest?version=#{@version}"
+    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
       @applicationMenu.showInstallUpdateItem(false)
