@@ -20,16 +20,17 @@ WindowEventHandler = require './window-event-handler'
 #
 # ## Useful properties available:
 #
-#  * `atom.config`      - A {Config} instance
-#  * `atom.contextMenu` - A {ContextMenuManager} instance
-#  * `atom.keymap`      - A {Keymap} instance
-#  * `atom.menu`        - A {MenuManager} instance
-#  * `atom.workspaceView`    - A {WorkspaceView} instance
-#  * `atom.packages`    - A {PackageManager} instance
-#  * `atom.clipboard`   - A {Clipboard} instance
-#  * `atom.project`     - A {Project} instance
-#  * `atom.syntax`      - A {Syntax} instance
-#  * `atom.themes`      - A {ThemeManager} instance
+#  * `atom.clipboard`     - A {Clipboard} instance
+#  * `atom.config`        - A {Config} instance
+#  * `atom.contextMenu`   - A {ContextMenuManager} instance
+#  * `atom.keymap`        - A {Keymap} instance
+#  * `atom.menu`          - A {MenuManager} instance
+#  * `atom.packages`      - A {PackageManager} instance
+#  * `atom.project`       - A {Project} instance
+#  * `atom.syntax`        - A {Syntax} instance
+#  * `atom.themes`        - A {ThemeManager} instance
+#  * `atom.workspace`     - A {Workspace} instance
+#  * `atom.workspaceView` - A {WorkspaceView} instance
 module.exports =
 class Atom extends Model
   # Public: Load or create the Atom environment in the given mode.
