@@ -223,6 +223,9 @@ class EditorView extends View
       do (name, method) =>
         @command name, (e) -> method(e); false
 
+  # Public: Get the underlying editor model for this view.
+  #
+  # Returns an {Editor}.
   getEditor: ->
     @editor
 
