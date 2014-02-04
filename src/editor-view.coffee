@@ -501,7 +501,7 @@ class EditorView extends View
     return if editor is @editor
 
     if @editor
-      @saveScrollPositionForeditor()
+      @saveScrollPositionForEditor()
       @editor.off(".editor")
 
     @editor = editor
@@ -655,7 +655,7 @@ class EditorView extends View
         else
           element.removeClass('fold-selected')
 
-  saveScrollPositionForeditor: ->
+  saveScrollPositionForEditor: ->
     if @attached
       @editor.setScrollTop(@scrollTop())
       @editor.setScrollLeft(@scrollLeft())
@@ -843,7 +843,7 @@ class EditorView extends View
       @scrollRight(desiredRight)
     else if desiredLeft < @scrollLeft()
       @scrollLeft(desiredLeft)
-    @saveScrollPositionForeditor()
+    @saveScrollPositionForEditor()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
