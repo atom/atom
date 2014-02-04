@@ -8,7 +8,7 @@ describe "apm init", ->
   [packagePath, themePath] = []
 
   beforeEach ->
-    # silenceOutput()
+    silenceOutput()
     spyOnToken()
 
     currentDir = temp.mkdirSync('apm-init-')
