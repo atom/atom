@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${1:file = }file.choose()${0:}</string>
+	<key>name</key>
+	<string>file.choose</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>fch</string>
+	<key>uuid</key>
+	<string>FA279758-BC29-4BE9-AFD6-045DB6A17711</string>
+</dict>
+</plist>

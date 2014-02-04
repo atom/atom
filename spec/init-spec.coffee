@@ -1,13 +1,14 @@
-fs = require 'fs'
 path = require 'path'
 temp = require 'temp'
+
 apm = require '../lib/apm-cli'
+fs = require '../lib/fs'
 
 describe "apm init", ->
   [packagePath, themePath] = []
 
   beforeEach ->
-    silenceOutput()
+    # silenceOutput()
     spyOnToken()
 
     currentDir = temp.mkdirSync('apm-init-')
@@ -36,6 +37,24 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
+
+    describe "when converting a TextMate bundle", ->
+      it "generates the proper file structure", ->
+        callback = jasmine.createSpy('callback')
+        textMateBundlePath = path.join(__dirname, 'fixtures', 'r.tmbundle')
+        apm.run(['init', '--package', 'fake-package', '--convert', textMateBundlePath], callback)
+
+        waitsFor 'waiting for init to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(packagePath)).toBeTruthy()
+          expect(fs.isFileSync(path.join(packagePath, 'preferences', 'comments.json'))).toBe true
+          expect(fs.isFileSync(path.join(packagePath, 'snippets', 'density.json'))).toBe true
+          expect(fs.isFileSync(path.join(packagePath, 'syntaxes', 'r.json'))).toBe true
+          expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
+          expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
 
   describe "when creating a theme", ->
     it "generates the proper file structure", ->

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>cat | R --vanilla --slave --no-readline --encoding=UTF-8 | pbcopy</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^@r</string>
+	<key>name</key>
+	<string>Copy Result into Pasteboard</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>uuid</key>
+	<string>C666D732-9E4D-49C7-BEEC-BC20590414BF</string>
+</dict>
+</plist>

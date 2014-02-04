@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -wKU
+
+rd=STDIN.read()
+if rd =~ /(?m).*?\\usage\{.*?\((.*?)\).*/m
+	rd.gsub!(/(?m).*?\\usage\{.*?\((.*?)\).*/m, '\1')
+	puts "\\arguments{"
+	counter=1
+	rd.scan(/([\w\._]+)\s*=/) do |arg|
+		puts "\t\\item{#{arg}}{${#{counter}:}}"
+		counter = counter+1
+	end
+	puts "}"
+else
+	puts "\\arguments{"
+		puts "\t\\item{${1:}}{${2:}}${0:}"
+	puts "}"
+end
+</string>
+	<key>input</key>
+	<string>document</string>
+	<key>name</key>
+	<string>Rd Insert arguments tag</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.tex.latex.rd</string>
+	<key>tabTrigger</key>
+	<string>arg</string>
+	<key>uuid</key>
+	<string>EB595EE3-9439-4AC6-8352-1EC7CAC9B05E</string>
+</dict>
+</plist>

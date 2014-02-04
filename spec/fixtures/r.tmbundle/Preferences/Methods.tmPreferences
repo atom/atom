@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Symbol List: Method</string>
+	<key>scope</key>
+	<string>keyword.name.function, meta.method.declaration.r</string>
+	<key>settings</key>
+	<dict>
+		<key>showInSymbolList</key>
+		<integer>1</integer>
+		<key>symbolTransformation</key>
+		<string>s/^.*?\(\s*([\w\d]+\s*=\s*)?(["\x{27}])(.*?)\2[^"\x{27}]+?(["\x{27}])(.*?)\4.*/- $3 ($5)/;
+	s/^\s*(\S+?)\s*\(\s*([\w\d]+\s*=\s*)?(["\x{27}])([^\3]+?)\3.*/- $1:$4/;
+	</string>
+	</dict>
+	<key>uuid</key>
+	<string>0AE8C5E0-C202-4965-B877-4CD0B9420A7D</string>
+</dict>
+</plist>

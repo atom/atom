@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+
+if [ -z "$TM_SELECTED_TEXT" ]; then
+	WORD=$(/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCR1 
+		require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+		word = Word.current_word('\w\.')
+		word.gsub!(/^[\d\.\-]+$/,"")
+		print word
+	SCR1
+	)
+else
+	WORD=$TM_SELECTED_TEXT
+fi
+
+if [ -z "$WORD" ]; then
+	open "http://search.r-project.org/"
+else
+	W=`echo -en "$WORD" | sed 's/ {1,}/+/g'`
+	open "http://search.r-project.org/cgi-bin/namazu.cgi?query=$W&amp;max=20&amp;result=normal&amp;sort=score&amp;idxname=Rhelp02a&amp;idxname=functions&amp;idxname=docs"
+fi
+</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>keyEquivalent</key>
+	<string>^~@H</string>
+	<key>name</key>
+	<string>RSite Search for Word / Selection</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>toolTip</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>B26AF49E-C737-41D4-990F-5BBB138B3FCD</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

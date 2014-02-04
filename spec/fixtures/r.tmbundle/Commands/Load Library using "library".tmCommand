@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>echo -en 'library(${1:"${2:`"$TM_BUNDLE_SUPPORT"/bin/insert_package_name.sh`}"})${0:}'</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>Load Library using “library”</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>lib</string>
+	<key>uuid</key>
+	<string>2EBC36A2-A927-4AEC-99A1-9F06C88B6844</string>
+</dict>
+</plist>

@@ -1,0 +1,121 @@
+/*
+
+Blatantly copied from Ruby. Will need to find some uniform system.
+Charilaos Skiadas. 05-03-2006
+
+Stylesheet kindly borrowed from the PyMate command. Eventually I will coordinate something
+with the author, so we don't have several identical files around.
+By Sune Foldager.
+Version 1, 12-08-2005.
+
+*/
+
+body
+{
+	font-family: "Lucida Grande";
+	font-size: FONTSIZEPLACEHOLDER;
+	background-color: rgb(170, 200, 255);
+	margin: 0;
+/*	height: 100%; */
+}
+
+p
+{
+	margin: 0;
+	padding: 2px 0 2px 0;
+}
+
+p#version
+{
+	font-size: 10pt;
+	font-weight: bold;
+	color: #005C3E;
+}
+
+div.framed
+{
+	border-style: dotted;
+	border-width: 1px 0;
+	border-color: #666;
+	margin: 10px 0;
+	padding: 10px
+}
+
+div#script_output
+{
+	background-color: rgb(230, 240, 255);
+}
+
+pre
+{
+	padding: 0;
+	margin: 0;
+	line-height: 1.5;
+	font-family: FONTPLACEHOLDER;
+	font-size: FONTSIZEPLACEHOLDER;
+}
+
+pre strong
+{
+	/* used for messages */
+	font-weight: normal;
+	color: #0000CC;
+}
+
+pre strong i
+{
+	/* used for messages */
+	font-weight: normal;
+	color: #AAAAAA;
+}
+
+pre em
+{
+	/* used for stderr */
+	font-style: normal;
+	color: #FF5600;
+}
+
+div#exception_report
+{
+	background-color: rgb(210, 220, 255);
+}
+
+p#exception strong
+{
+	color: #FF5600;
+}
+
+p#traceback
+{
+	font-size: FONTSIZEPLACEHOLDER;
+}
+
+table
+{
+	margin: 0;
+	padding: 0;
+}
+
+td
+{
+	margin: 0;
+	padding: 2px 2px 2px 5px;
+	font-size: FONTSIZEPLACEHOLDER;
+}
+
+a
+{
+	color: #FF5600;
+}
+
+.hidden
+{
+	display: none;
+}
+
+.prompt
+{
+    color: darkcyan;
+    text-decoration: none;
+}

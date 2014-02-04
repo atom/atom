@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>
+export WORD=$(/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCR1 
+	require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+	word = Word.current_word('\w\.')
+	print word
+SCR1
+)
+
+#check whether WORD is defined otherwise quit
+[[ -z "$WORD" ]] &amp;&amp; echo "No keyword found" &amp;&amp; exit_show_tool_tip
+
+RhelperAnswer="/tmp/textmate_Rhelper_out"
+
+WORDORG="$WORD"
+RD=$(echo -n "$TM_SCOPE" | grep -c -F 'source.rd.console')
+
+if [ $RD -gt 0 ]; then
+	RDHOME="$HOME/Library/Application Support/Rdaemon"
+	if [ "$TM_RdaemonRAMDRIVE" == "1" ]; then
+		RDRAMDISK="/tmp/TMRramdisk1"
+	else
+		RDRAMDISK="$RDHOME"
+	fi
+
+	#get R's PID
+	RPID=$(ps aw | grep '[0-9] /.*TMRdaemon' | awk '{print $1;}' )
+
+	#check whether Rdaemon runs
+	if [ -z $RPID ]; then
+		RDTEXT="Rdaemon is not running."
+	else
+		[[ -e "$RDRAMDISK"/r_tmp ]] &amp;&amp; rm "$RDRAMDISK"/r_tmp
+		TASK="@|sink('$RDRAMDISK/r_tmp')"
+		echo -e "$TASK" &gt; "$RDHOME"/r_in
+		TASK="@|cat(paste(apropos('^${WORD}'),'|OK',sep='',collapse='\\\n'))"
+		echo -e "$TASK" &gt; "$RDHOME"/r_in
+		TASK="@|sink(file=NULL)"
+		echo -e "$TASK" &gt; "$RDHOME"/r_in
+
+		#get R's PID
+		RPID=$(ps aw | grep '[0-9] /.*TMRdaemon' | awk '{print $1;}' )
+		#check whether Rdaemon runs
+		test -z $RPID &amp;&amp; echo -en "Rdaemon is not running." &amp;&amp; exit 206
+
+		while [ 1 ]
+		do
+			RES=$(tail -c 2 "$RDRAMDISK"/r_out)
+			#expect these things from R
+			[[ "$RES" == "&gt; " ]] &amp;&amp; break
+			[[ "$RES" == "+ " ]] &amp;&amp; break
+			[[ "$RES" == ": " ]] &amp;&amp; break
+			sleep 0.05
+		done
+		sleep 0.001
+		LOCAL=$(cat "$RDRAMDISK"/r_tmp | sort)
+	fi
+fi
+
+[[ $RD -eq 0 ]] &amp;&amp; LOCAL=$(cat | grep '&lt;\- *function' | perl -pe 's/\t//g;s/ *(.*?) *&lt;\-.*/$1|OK/' | sort | egrep -i "^${WORD//./\\.}")
+
+#get suggestions
+"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getCompletionList('$WORD',T)"
+RES=$(cat "$RhelperAnswer")
+RES=$(echo -e "$LOCAL"; echo -en "$RES")
+
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCRIPT 2&gt; /dev/null
+require File.join(ENV["TM_SUPPORT_PATH"], "lib/exit_codes.rb")
+require "#{ENV["TM_SUPPORT_PATH"]}/lib/ui"
+word = "$WORD"
+wordorg = "$WORDORG"
+text = "$RES"
+funs = text.gsub(/\n{2,}/,"\n").split("\n")
+
+rdfuns = funs.select {|x| x =~ /\|OK$/ }
+rdfuns.collect! {|x| x.gsub(/\|OK$/, "") }
+funs.delete_if {|x| x.match('\|OK$') }
+f1 = funs.collect{|item| item.gsub(/\t.*/, "")}
+rdfuns.sort! {|x,y| y &lt;=&gt; x }
+rdfuns.each_index do |i|
+	if  ! f1.include?(rdfuns[i]) &amp;&amp; rdfuns[i].length &gt; 0
+		funs.unshift(rdfuns[i] + "	local" )
+	end
+end
+
+funs.delete_if {|x| x.match('[,\- ]') }
+funs.delete_if {|x| x.match('matrices.*rgl') }
+funs.delete_if {|x| x.match('^\s*$') }
+if "$RD" == "1"
+	funs.collect! do |x|
+		if rdfuns.include?(x.gsub(/\t.*/,""))
+			x= "%s 　 …%s…" % x.split("\t")
+		else
+			x= "%s 　 {%s}" % x.split("\t")
+		end
+	end
+else
+	funs.collect! do |x|
+		if rdfuns.include?(x.gsub(/\t.*/,""))
+			x= "%s 　 …%s…" % x.split("\t")
+		else
+			x= "%s 　 [%s]" % x.split("\t")
+		end
+	end
+end
+
+functions = funs.select{|item| item =~ /^#{word.gsub(".","\\.")}/}
+func = funs.select{|item| item !~ /^#{word.gsub(".","\\.")}/}
+fp = func.join("\n")
+if (functions.size &lt; 1 &amp;&amp; (ENV['TM_SELECTED_TEXT'].nil? || ENV['TM_SELECTED_TEXT'].empty?)) then
+	if fp.size &gt; 0
+		TextMate.exit_show_tool_tip("Only found :\n#{fp}")
+	else
+		TextMate.exit_show_tool_tip("Nothing found")
+	end
+end
+
+if (! ENV['TM_SELECTED_TEXT'].nil? &amp;&amp; ! ENV['TM_SELECTED_TEXT'].empty?) then
+	functions.replace(funs)
+end
+
+if (functions.size == 1 &amp;&amp; (ENV['R_AUTOCOMPLETE'].to_i == 1 || ENV['TM_R_AUTOCOMPLETE'].to_i == 1))
+	function = functions.first
+else
+	isDIALOG2 = ! ENV["DIALOG"].match(/2$/).nil?
+	if isDIALOG2
+		fn = []
+		functions.each do |f|
+			fn &lt;&lt; {'insert' =&gt; "\${1:(\${2:})}", 'display' =&gt; f, 'match' =&gt; f.gsub(/\s.*/,"")}
+		end
+		TextMate::UI.complete(fn, :extra_chars =&gt; '.')
+		TextMate.exit_discard
+	else
+		idx = TextMate::UI.menu(functions)
+		TextMate.exit_discard if idx.nil?
+		function = functions[idx]
+	end
+end
+# TextMate.exit_discard if function.empty?
+if ENV['TM_SELECTED_TEXT'].nil? or ENV['TM_SELECTED_TEXT'].empty?
+  print function.gsub!(/\s.*/,"")[wordorg.length..-1]
+else
+  print function.gsub!(/\s.*/,"")
+end
+SCRIPT
+</string>
+	<key>fallbackInput</key>
+	<string>none</string>
+	<key>input</key>
+	<string>document</string>
+	<key>keyEquivalent</key>
+	<string>^.</string>
+	<key>name</key>
+	<string>Completion…</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>8A17F5A3-7E52-4C6D-AA70-99476FB82625</string>
+</dict>
+</plist>

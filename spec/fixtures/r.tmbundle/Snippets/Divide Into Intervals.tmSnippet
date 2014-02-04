@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>cut(${1:x}, breaks = c(${2:${3:}, ${4:max(${1:x})}}))</string>
+	<key>name</key>
+	<string>Divide Into Intervals</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>cut</string>
+	<key>uuid</key>
+	<string>217EE449-B990-4FDA-A897-F7063022241E</string>
+</dict>
+</plist>

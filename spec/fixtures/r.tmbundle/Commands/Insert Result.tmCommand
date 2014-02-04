@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>if [ -z "$TM_SELECTED_TEXT" ]; then
+	echo
+	cat | R --vanilla --slave --no-readline --encoding=UTF-8
+else
+	cat | R --vanilla --slave --no-readline --encoding=UTF-8
+	exit_replace_text
+fi</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^@r</string>
+	<key>name</key>
+	<string>Insert Result</string>
+	<key>output</key>
+	<string>afterSelectedText</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>uuid</key>
+	<string>99E59A8E-A7DC-4CB0-AA51-6305921D3411</string>
+</dict>
+</plist>

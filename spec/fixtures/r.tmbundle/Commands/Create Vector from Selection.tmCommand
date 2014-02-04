@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -wKU
+require ENV['TM_SUPPORT_PATH'] + "/lib/escape.rb";
+text = STDIN.read
+text = `export __CF_USER_TEXT_ENCODING=0x1F5:0x8000100:0x8000100; pbpaste` if text.empty?
+text.gsub!(/(^\s+|\s+$)/,"")
+text.gsub!(/\s{1,}/," ")
+print "${1:${2:x} &lt;- }c("
+out = Array.new
+$LFlag = ''
+text.split.each{|b|
+	$LFlag = ''
+	if b.match(/^\d+L$/)
+		$LFlag = 'L'
+		b.gsub!(/L$/, '')
+	end
+	if  (b.to_f == 0 &amp;&amp; ! b.match(/-?\.?0\.?0*/) &amp;&amp; ! b.match(/^["'].*["']$/)) || b.match(/^\d+[^\d\-\.eE]+/ )
+		out &lt;&lt; '"' + e_sn(b) + '"'
+	else
+		out &lt;&lt; e_sn(b) + $LFlag
+	end
+}
+print out.join(', ')
+print ")"
+</string>
+	<key>fallbackInput</key>
+	<string>none</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^~c</string>
+	<key>name</key>
+	<string>Create Vector from Selection</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>F61688AA-C298-4D58-A9DE-87891797B2F9</string>
+</dict>
+</plist>

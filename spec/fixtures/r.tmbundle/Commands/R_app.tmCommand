@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+# input is selection or document
+rawText="`cat`"
+
+curDir=''
+if [[ ${#TM_DIRECTORY} -gt 0 ]]; then
+	curDir="$TM_DIRECTORY"
+fi
+
+osascript -e 'on run(theCode)' \
+		  -e 'tell application "R" to activate' \
+		  -e 'if (item 2 of theCode) is not "" then tell application "R" to cmd "setwd('\''" &amp; (item 2 of theCode) &amp; "'\'')"' \
+		  -e 'tell application "R" to cmd (item 1 of theCode)' \
+		  -e 'end run' -- "$rawText" "$curDir"
+</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>keyEquivalent</key>
+	<string>~@R</string>
+	<key>name</key>
+	<string>R.app</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>toolTip</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>semanticClass</key>
+	<string>process.external.run.r</string>
+	<key>uuid</key>
+	<string>15FF2003-99F5-464C-A0C2-BAFED7AD73EB</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

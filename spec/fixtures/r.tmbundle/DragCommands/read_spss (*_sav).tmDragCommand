@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>bundleUUID</key>
+	<string>B29D7850-6E70-11D9-A369-000D93B3A10E</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+
+
+if [ "${TM_SCOPE:0:17}" == "source.rd.console" ]; then
+	echo -n "read.spss(file=\"$TM_DROPPED_FILEPATH\", use.value.labels=\${1:TRUE}, to.data.frame=\${2:TRUE}, max.value.labels=\${3:Inf}, trim.factor.names=\${4:FALSE})"
+else
+	if [ "$TM_MODIFIER_FLAGS" == "SHIFT" ]; then
+		echo "read.spss(file=\"$TM_DROPPED_FILEPATH\", use.value.labels=\${1:TRUE}, to.data.frame=\${2:TRUE}, max.value.labels=\${3:Inf}, trim.factor.names=\${4:FALSE})"
+	else
+		echo "read.spss(file=\"$TM_DROPPED_FILE\", use.value.labels=\${1:TRUE}, to.data.frame=\${2:TRUE}, max.value.labels=\${3:Inf}, trim.factor.names=\${4:FALSE})"
+	fi
+fi</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>sav</string>
+		<string>SAV</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>read.spss (*.sav)</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>A6E69150-0E80-4D24-9170-725B7A30EE18</string>
+</dict>
+</plist>

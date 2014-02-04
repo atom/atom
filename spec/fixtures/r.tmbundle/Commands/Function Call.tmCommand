@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby
+require ENV['TM_SUPPORT_PATH'] +'/lib/escape.rb'
+require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+if ENV['TM_SELECTED_TEXT'].nil? or ENV['TM_SELECTED_TEXT'].empty?
+	word = Word.current_word('\w\.')
+else
+	word = ENV['TM_SELECTED_TEXT']
+end
+line, col = ENV['TM_CURRENT_LINE'], ENV['TM_LINE_INDEX'].to_i
+left  = line[0...(col - word.length)].to_s
+right = line[col..-1].to_s
+if ENV['TM_SELECTED_TEXT'].nil? or ENV['TM_SELECTED_TEXT'].empty?
+	print "#{e_sn(left)}${1:sum}(#{e_sn(word)})#{e_sn(right)}"
+else
+	print "${1:#{ENV['TM_R_WRAP_DEFAULT_FUNCTION']?ENV['TM_R_WRAP_DEFAULT_FUNCTION']:'sum'}}(#{e_sn(word)})"
+end</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^W</string>
+	<key>name</key>
+	<string>Function Call</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>769AC12C-9EDF-4089-8834-062A301907ED</string>
+</dict>
+</plist>

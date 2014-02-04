@@ -17,8 +17,11 @@ class Init extends Command
     options.usage """
       Usage:
         apm init -p <package-name>
+        apm init -p <package-name> -c ~/Downloads/r.tmbundle
+        apm init -p <package-name> -c https://github.com/textmate/r.tmbundle
+
         apm init -t <theme-name>
-        apm init -t <theme-name> -c ~/Downloads/Dawn.thTheme
+        apm init -t <theme-name> -c ~/Downloads/Dawn.tmTheme
         apm init -t <theme-name> -c https://raw.github.com/chriskempson/tomorrow-theme/master/textmate/Tomorrow-Night-Eighties.tmTheme
 
       Generates code scaffolding for either a theme or package depending
@@ -26,24 +29,28 @@ class Init extends Command
     """
     options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
-    options.alias('c', 'convert').string('convert').describe('convert', 'Path or URL to TextMate theme to convert')
+    options.alias('c', 'convert').string('convert').describe('convert', 'Path or URL to TextMate bundle/theme to convert')
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    if options.argv.convert
-      @convertTheme(options.argv.convert, options.argv.theme, callback)
-    else if options.argv.package?
-      packagePath = path.resolve(options.argv.package)
-      templatePath = path.resolve(__dirname, '..', 'templates', 'package')
-      @generateFromTemplate(packagePath, templatePath)
-      callback()
+    if options.argv.package?
+      if options.argv.convert
+        @convertPackage(options.argv.convert, options.argv.package, callback)
+      else
+        packagePath = path.resolve(options.argv.package)
+        templatePath = path.resolve(__dirname, '..', 'templates', 'package')
+        @generateFromTemplate(packagePath, templatePath)
+        callback()
     else if options.argv.theme?
-      themePath = path.resolve(options.argv.theme)
-      templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
-      @generateFromTemplate(themePath, templatePath)
-      callback()
+      if options.argv.convert
+        @convertTheme(options.argv.convert, options.argv.theme, callback)
+      else
+        themePath = path.resolve(options.argv.theme)
+        templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+        @generateFromTemplate(themePath, templatePath)
+        callback()
     else
       callback('You must specify either --package or --theme to `apm init`')
 
@@ -63,6 +70,20 @@ class Init extends Command
         callback(null, fs.readFileSync(sourcePath, 'utf8'))
       else
         callback("TextMate theme file not found: #{sourcePath}")
+
+  convertPackage: (sourcePath, destinationPath, callback) ->
+    unless destinationPath
+      callback("Specify directory to create theme in using --theme")
+      return
+
+    sourcePath = path.resolve(sourcePath)
+    destinationPath = path.resolve(destinationPath)
+
+    templatePath = path.resolve(__dirname, '..', 'templates', 'bundle')
+    @generateFromTemplate(destinationPath, templatePath)
+
+    PackageConverter = require './package-converter'
+    new PackageConverter(sourcePath, destinationPath).convert(callback)
 
   convertTheme: (sourcePath, destinationPath, callback) ->
     if destinationPath

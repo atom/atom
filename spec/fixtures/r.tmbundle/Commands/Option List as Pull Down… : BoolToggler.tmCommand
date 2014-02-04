@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>LIST=$(cat)
+[[ -z "$LIST" ]] &amp;&amp; exit_discard
+echo -en "$LIST"  | /System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -e '
+	require File.join(ENV["TM_SUPPORT_PATH"], "lib/ui.rb")
+	require File.join(ENV["TM_SUPPORT_PATH"], "lib/exit_codes.rb")
+	words = STDIN.read().split("|")
+	if words.size == 1
+		if  words[0] == "TRUE" ||  words[0] == "FALSE" || words[0] == "T" || words[0] == "F"
+			print "FALSE" if words[0] == "TRUE"
+			print "TRUE" if words[0] == "FALSE"
+			print "F" if words[0] == "T"
+			print "T" if words[0] == "F"
+		else
+			TextMate.exit_discard()
+		end
+	else
+		index=TextMate::UI.menu(words)
+		if index != nil
+			if words[index].match("\-")
+				print words[index].gsub!(/\-.*/,"")
+			else
+				print words[index]
+			end
+		else
+			TextMate.exit_discard()
+		end
+	end
+'
+
+</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^</string>
+	<key>name</key>
+	<string>Option List as Pull Down… / BoolToggler</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>B2612EB0-22A3-4D09-A851-721EA294DF13</string>
+</dict>
+</plist>

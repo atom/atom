@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>density(${1:x}${2:, bw = ${3:bandwidth}})</string>
+	<key>name</key>
+	<string>Density</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>den</string>
+	<key>uuid</key>
+	<string>93D9F298-A5FF-4935-A906-1C1E31AF451A</string>
+</dict>
+</plist>

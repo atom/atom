@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>"$TM_BUNDLE_SUPPORT"/bin/insert_package_name.sh</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>~@L</string>
+	<key>name</key>
+	<string>Package Name…</string>
+	<key>output</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>18B3BAF5-A2E0-43A6-9017-56E1D365A055</string>
+</dict>
+</plist>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>commands</key>
+	<array>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>beforeRunningCommand</key>
+				<string>nop</string>
+				<key>command</key>
+				<string>"$TM_BUNDLE_SUPPORT"/bin/auto_show_func_usage.sh &amp;</string>
+				<key>fallbackInput</key>
+				<string>line</string>
+				<key>input</key>
+				<string>document</string>
+				<key>name</key>
+				<string>Auto Show Func Usage</string>
+				<key>output</key>
+				<string>showAsTooltip</string>
+				<key>uuid</key>
+				<string>9AACF8E0-2705-4994-B67F-77D030F9ABA7</string>
+			</dict>
+			<key>command</key>
+			<string>executeCommandWithOptions:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<string>(</string>
+			<key>command</key>
+			<string>insertText:</string>
+		</dict>
+	</array>
+	<key>isDisabled</key>
+	<true/>
+	<key>keyEquivalent</key>
+	<string>(</string>
+	<key>name</key>
+	<string>Show Function Usage + Insert “(”</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>280CC3F2-8A69-446D-89A2-2886D3DF9495</string>
+</dict>
+</plist>

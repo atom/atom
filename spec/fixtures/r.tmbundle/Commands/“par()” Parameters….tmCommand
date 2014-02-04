@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>export WORD="par"
+
+"$TM_BUNDLE_SUPPORT"/bin/initCommandArgsDir.sh
+if [ -e "$TM_BUNDLE_SUPPORT"/lib/command_args/$WORD ]; then
+	export RES=$(cat "$TM_BUNDLE_SUPPORT"/lib/command_args/$WORD | perl -pe 's/\|/:/g;s/,/\|/g;s/\n/,/g;s/ //g;')
+fi
+
+#if no parameter quit
+[[ -z "$RES" ]] &amp;&amp; exit_discard
+
+#show all parameters as inline menu and insert the parameter as snippet (if '=' is found only the value)
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCRIPT
+# 2&gt; /dev/null
+require File.join(ENV["TM_SUPPORT_PATH"], "lib/exit_codes.rb")
+require "#{ENV["TM_SUPPORT_PATH"]}/lib/ui"
+word = "$WORD"
+text = ENV["RES"]
+funs = text.split(",")
+funs.collect! {|x| x.gsub(/\|/, ", ").gsub(/=/, " = ").gsub(/:/, "|")}
+
+TextMate.exit_discard if funs.size &lt; 1
+
+if funs.size == 1
+  function = funs.first
+else
+	idx = TextMate::UI.menu(funs)
+	TextMate.exit_discard if idx.nil?
+	function = funs[idx]
+end
+TextMate.exit_discard if function.empty?
+curword = ENV['TM_CURRENT_WORD']
+comma=""
+if ! curword.match(",") &amp;&amp; ! curword.match('\( *\)+$')
+	comma = "\${200:, }"
+end
+
+if function.match("=")
+	arr = function.gsub(/ = /, "=").split('=')
+	if arr[1].match("\"")
+		print "#{comma}#{arr[0]} = \"\${1:#{arr[1].gsub(/\"/, "")}}\"\${300:}"
+	else
+		if arr[1].match("^c\(.*?\)$")
+			subarr = arr[1].gsub(/^c\(/, "").gsub(/\)$/,"").gsub(/ /,"").split(",")
+			for i in (0..(subarr.size - 1))
+				subarr[i] = "\${#{i+2}:#{subarr[i]}}"
+			end
+			print "#{comma}#{arr[0]} = \${1:c(#{subarr.join(", ")})}\${300:}"
+		else
+			print "#{comma}#{arr[0]} = \${1:#{arr[1]}}\${30:}"
+		end
+	end
+else
+	print "#{comma}\${1:#{function}}\${3:}"
+end
+SCRIPT
+</string>
+	<key>fallbackInput</key>
+	<string>none</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^;</string>
+	<key>name</key>
+	<string>“par()” Parameters…</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>38BD6CA7-0916-43BD-88C9-CBFC4ED17FDE</string>
+</dict>
+</plist>

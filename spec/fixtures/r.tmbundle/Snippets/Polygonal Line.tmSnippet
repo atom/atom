@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>lines(${1:x}${2:, color=${3:red}})</string>
+	<key>name</key>
+	<string>Polygonal Line</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>lin</string>
+	<key>uuid</key>
+	<string>A4E14B93-E8D0-4C8E-AB8E-CCB029E170F0</string>
+</dict>
+</plist>

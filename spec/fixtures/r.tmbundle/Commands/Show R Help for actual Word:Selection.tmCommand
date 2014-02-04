@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#dispose all frozen ProgressDialogs
+{
+while [ 1 ]
+do
+	res=$("$DIALOG" -x `"$DIALOG" -l 2&gt;/dev/null| grep Rdaemon | cut -d " " -f 1` 2&gt;/dev/null)
+	[[ ${#res} -eq 0 ]] &amp;&amp; break
+done
+} &amp;
+
+RhelperAnswer="/tmp/textmate_Rhelper_out"
+
+if [ -z "$TM_SELECTED_TEXT" ]; then
+	WORD=$(/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCR1 
+		require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+		word = Word.current_word('\w\.:')
+		word.gsub!(/^[\d\.\-]+$/,"")
+		print word
+	SCR1
+	)
+
+	if [ -z "$WORD" ]; then
+		#look for nested commands
+		WORD=$(perl -e '
+		$line=$ENV{"TM_CURRENT_LINE"};$col=$ENV{"TM_LINE_INDEX"};
+		$line=substr($line,0,$col);
+		#$line=~s/ //g;
+		@arr=split(//,$line);$c=0;
+		for($i=$#arr;$i&gt;-1;$i--){$c-- if($arr[$i] eq ")");$c++ if($arr[$i] eq "(");last if $c&gt;0;}
+		if($i==-1) {
+			print "";
+		} else {
+			substr($line,0,$i)=~m/([\w\.:]+)$/;
+			print $1 if defined($1);
+		}
+		')
+	fi
+else
+	#take the selected text
+	WORD=$(echo -en "$TM_SELECTED_TEXT" | perl -e '$_=&lt;&gt;;chomp;s/^[\t ]*//;s/([\w\.:]+)[ \(\{].*/$1/g;print')
+fi
+
+if [ -z "$WORD" ]; then
+	WORD=$("$DIALOG" -m -p 'prompt="Search for:";title="Look up in R Documentation";' RequestString | perl -e 'undef($/);$a=&lt;&gt;;$a=~s/\n|\t//mg;$a=~m/.*?&lt;key&gt;returnArgument&lt;\/key&gt;&lt;string&gt;(.*?)&lt;\/string&gt;.*/; print $1 if (length($1))')
+	[[ -z "$WORD" ]] &amp;&amp; exit_discard
+fi
+
+
+# LIB=
+if [ ! -z "${WORD//:/}" ]; then
+	if [ `echo "$WORD" | grep -Fc ':'` -gt 0 ]; then
+		LIB=",package='${WORD%%:*}'"
+	fi
+	WORD="${WORD##*:}"
+fi
+
+#check whether WORD is defined otherwise quit
+[[ -z "$WORD" ]] &amp;&amp; echo "No keyword found." &amp;&amp; exit_show_tool_tip
+
+# Check if it is a Rdaemon doc
+RD=$(echo -n "$TM_SCOPE" | grep -c -F 'source.rd.console')
+if [ $RD -gt 0 -a "$TM_R_SHOW_ALWAYS_HELPSEARCH" != "1" ]; then
+	#get R's PID
+	RPID=$(ps aw | grep '[0-9] /.*TMRdaemon' | awk '{print $1;}' )
+	#check whether Rdaemon runs
+	if [ ! -z $RPID ]; then
+		RDHOME="$HOME/Library/Application Support/Rdaemon"
+		if [ "$TM_RdaemonRAMDRIVE" == "1" ]; then
+			RDRAMDISK="/tmp/TMRramdisk1"
+		else
+			RDRAMDISK="$RDHOME"
+		fi
+		[[ -e "$RDRAMDISK"/r_tmp ]] &amp;&amp; rm "$RDRAMDISK"/r_tmp
+		TASK="@|sink('$RDRAMDISK/r_tmp')"
+		echo "$TASK" &gt; "$RDHOME"/r_in
+		echo "@|if(getRversion()&gt;='2.10.0'){cat(gsub('.*/library/(.*?)/.*?/(.*?)(\\\\.html|$)',paste('http://127.0.0.1:',ifelse(tools:::httpdPort&lt;1,tools::startDynamicHelp(T),tools:::httpdPort),'/library/\\\\1/html/\\\\2.html',sep=''),as.vector(help('$WORD'$LIB)),perl=T),sep='\n')}else{cat(gsub('(.*?)/library/(.*?)/.*?/(.*?)(\\\\.html|$)','\\\\1/library/\\\\2/html/\\\\3.html',as.vector(help('$WORD'$LIB)),perl=T),sep='\n')}" &gt; "$RDHOME"/r_in
+		sleep 0.001
+		while [ 1 ]
+		do
+			RES=$(tail -c 2 "$RDRAMDISK"/r_out)
+			[[ "$RES" == "&gt; " ]] &amp;&amp; break
+			[[ "$RES" == ": " ]] &amp;&amp; break
+			[[ "$RES" == "+ " ]] &amp;&amp; break
+			sleep 0.005
+		done
+		sleep 0.001
+		FILE=$(cat "$RDRAMDISK"/r_tmp)
+		TASK="@|sink(NULL)"
+		echo "$TASK" &gt; "$RDHOME"/r_in
+		sleep 0.001
+		if [ ! -z "$FILE" -a "$FILE" != "NA" ]; then
+			if [ "${FILE:0:1}" = "/" ]; then
+				echo -en "&lt;meta http-equiv='REFRESH' content='0;url=file://$FILE'&gt;&lt;/head&gt;"
+			else
+				echo -en "&lt;meta http-equiv='REFRESH' content='0;url=$FILE'&gt;&lt;/head&gt;"
+			fi
+			exit_show_html
+		fi
+	fi
+fi
+
+FILE=""
+CNT=0
+if [ "$TM_R_SHOW_ALWAYS_HELPSEARCH" != "1" ]; then
+	"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getHelpURL('$WORD'$LIB)"
+	FILE=$(cat "$RhelperAnswer")
+	CNT=`echo -e "$FILE" | wc -l`
+	if [ ! -z "$FILE" -a "$FILE" != "NA" -a $CNT -eq 1 ]; then
+		if [ "${FILE:0:1}" = "/" ]; then
+			echo -en "&lt;meta http-equiv='REFRESH' content='0;url=file://$FILE'&gt;&lt;/head&gt;"
+		else
+			echo -en "&lt;meta http-equiv='REFRESH' content='0;url=$FILE'&gt;&lt;/head&gt;"
+		fi
+		exit_show_html
+	else
+		FILE=""
+		CNT=0
+	fi
+fi
+
+# Function to output the HTML frame set
+printframe() {
+	ROWSIZE=$1
+	cat &lt;&lt;-HF
+	&lt;HTML&gt;
+	&lt;HEAD&gt;
+	&lt;META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8"&gt;
+	&lt;TITLE&gt;TextMate&amp;apos;s R Help&lt;/TITLE&gt;
+	&lt;/HEAD&gt;
+	&lt;FRAMESET COLS="$ROWSIZE,*" FRAMEBORDER="5" FRAMESPACING="5" BORDER="7" FRAMEBORDER="YES" onload='parent.search.sform.search.value="$WORD";parent.search.sform.search.select();parent.search.sform.search.focus()'&gt;
+		&lt;FRAMESET ROWS="*,90" FRAMEBORDER="1" FRAMESPACING="0" BORDER="1" FRAMEBORDER="NO"&gt;
+			&lt;FRAME SRC="file:///tmp/textmate_Rhelper_head.html" NAME="head" MARGINWIDTH="30" MARGINHEIGHT="0"  SCROLLING="YES"&gt;
+			&lt;FRAME SRC="file:///tmp/textmate_Rhelper_search.html" NAME="search" MARGINWIDTH="30" MARGINHEIGHT="0"  SCROLLING="NO"&gt;
+		&lt;/FRAMESET&gt;
+		&lt;FRAME SRC="file:///tmp/textmate_Rhelper_data.html" NAME="data" MARGINWIDTH="30" MARGINHEIGHT="0"  SCROLLING="YES"&gt;
+	&lt;/FRAMESET&gt;
+	&lt;/HTML&gt;
+HF
+
+}
+
+HEAD="/tmp/textmate_Rhelper_head.html"
+DATA="/tmp/textmate_Rhelper_data.html"
+SEARCH="/tmp/textmate_Rhelper_search.html"
+RHOME=${R_HOME:=/Library/Frameworks/R.framework/Versions/Current/Resources}
+
+echo "&lt;html&gt;&lt;/html&gt;" &gt; "$DATA"
+
+"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "cat(getRversion()&gt;='2.10.0',sep='')"
+IS_HELPSERVER=$(cat "$RhelperAnswer")
+"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getHttpPort()"
+PORT=$(cat "$RhelperAnswer")
+
+
+cat &lt;&lt;-"HFS" &gt; "$SEARCH"
+&lt;html&gt;
+	&lt;head&gt;
+	&lt;script type='text/javascript' charset='utf-8'&gt;
+		function SearchServer(term) {
+			if (term.length &gt; 0) {
+				TextMate.isBusy = true;
+				if(document.sform.where.checked == true) {
+					TextMate.system('"$TM_BUNDLE_SUPPORT/bin/Rsearch.sh" "' + term + '" 1', null);
+				} else {
+					TextMate.system('"$TM_BUNDLE_SUPPORT/bin/Rsearch.sh" "' + term + '" 0', null);
+				}
+				TextMate.system('sleep 0.3', null);
+				parent.head.location.reload();
+				parent.data.location.reload();
+				TextMate.isBusy = false;
+				parent.search.sform.search.value = term;
+			}
+		}
+		function Rdoc() {
+HFS
+
+if [ "$IS_HELPSERVER" != "TRUE" ]; then
+			echo "TextMate.system('open \"${R_HOME:=/Library/Frameworks/R.framework/Versions/Current/Resources}/doc/html/index.html\"', null);" &gt;&gt; "$SEARCH"
+else
+			echo "TextMate.system('open \"http://127.0.0.1:$PORT/doc/html/index.html\"', null);" &gt;&gt; "$SEARCH"
+fi
+
+
+if [ "$TM_R_SHOW_ALWAYS_HELPSEARCH" == "1" ]; then
+	"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getHelpURL('$WORD'$LIB)"
+	FILE=$(cat "$RhelperAnswer")
+	if [ -z "$FILE" -o "$FILE" == "NA" ]; then
+		CNT=0
+		FILE=""
+	else
+		CNT=`echo -e "$FILE" | wc -l`
+		if [ $CNT -eq 1 ]; then
+			theLib=$(echo "$FILE" | perl -pe 's!.*?/library/(.*?)/.*!$1!')
+			FILE="$theLib	$WORD	$FILE"
+		else
+			"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getSearchHelp('^$WORD$')"
+			FILE=$(cat "$RhelperAnswer")
+			CNT=`echo -e "$FILE" | wc -l`
+		fi
+	fi
+	BEGINSEARCH=""
+fi
+if [ $CNT -eq 0 ]; then
+	"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getSearchHelp('^$WORD')"
+	sleep 0.01
+	FILE=$(cat "$RhelperAnswer")
+	if [ -z "$FILE" -o "$FILE" == "NA" ]; then
+		CNT=0
+		FILE=""
+	else
+		CNT=`echo -e "$FILE" | wc -l`
+	fi
+	BEGINSEARCH="checked"
+	if [ $CNT -eq 0 ]; then
+		"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getSearchHelp('$WORD')"
+		FILE=$(cat "$RhelperAnswer")
+		if [ -z "$FILE" -o "$FILE" == "NA" ]; then
+			CNT=0
+			FILE=""
+		else
+			CNT=`echo -e "$FILE" | wc -l`
+		fi
+		BEGINSEARCH=""
+	fi
+fi
+
+cat &lt;&lt;-HFS01 &gt;&gt; "$SEARCH"
+		}
+	&lt;/script&gt;
+	&lt;/head&gt;
+	&lt;body bgcolor='#ECECEC''&gt;
+	&lt;table&gt;
+		&lt;tr&gt;
+			&lt;td&gt;
+			&lt;form name='sform' onsubmit='SearchServer(document.sform.search.value)'&gt;
+			&lt;small&gt;&lt;small&gt;&lt;i&gt;Search for&lt;/i&gt;&lt;br /&gt;&lt;/small&gt;&lt;/small&gt;
+			&lt;input tabindex='0' id='search' type='search' placeholder='regexp' results='20' onsearch='SearchServer(this.value)'&gt;
+			&lt;/td&gt;
+			&lt;td&gt;
+			&lt;font style='font-size:7pt'&gt;
+			&lt;br /&gt;&lt;button onclick='SearchServer(document.sform.search.value)'&gt;Search&lt;/button&gt;&lt;br /&gt;&lt;input type='checkbox' name='where' value='key' $BEGINSEARCH&gt;&lt;i&gt; begins with&lt;/i&gt;
+			&lt;/font&gt;
+			&lt;/td&gt;
+			&lt;/form&gt;
+			&lt;/td&gt;
+		&lt;/tr&gt;
+		&lt;tr&gt;
+			&lt;td align=center colspan=3&gt;
+			&lt;input onclick='Rdoc()' type=button value='R documentation'&gt;&lt;br/&gt;
+			&lt;/td&gt;
+		&lt;/tr&gt;
+	&lt;/table&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+HFS01
+
+echo "&lt;html&gt;&lt;body style='margin-top:5mm'&gt;" &gt; "$HEAD"
+echo "&lt;table style='border-collapse:collapse'&gt;&lt;tr&gt;&lt;td style='padding-right:1cm;border-bottom:1px solid black'&gt;&lt;b&gt;Package&lt;/b&gt;&lt;/td&gt;&lt;td style='border-bottom:1px solid black'&gt;&lt;b&gt;Topic&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;" &gt;&gt; "$HEAD"
+
+if [ $CNT -gt 10 ]; then
+	export token=$("$DIALOG" -c -a ProgressDialog -p "{title=Rdaemon;isIndeterminate=1;summary='R Documentation';details='Please wait. Building Help Page… $CNT items found';}")
+fi
+
+if [ $CNT -gt 500 ]; then
+	echo "&lt;tr colspan=2&gt;&lt;td&gt;&lt;i&gt;too much matches...&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;" &gt;&gt; "$HEAD"
+else
+		oifs="$IFS"
+		IFS="
+"
+
+	if [ "$IS_HELPSERVER" == "TRUE" ]; then
+		for i in $FILE
+		do
+			lib=$(echo -e "$i" | cut -d '	' -f1)
+			fun=$(echo -e "$i" | cut -d '	' -f2)
+			link=$(echo -e "$i" | cut -d '	' -f3)
+			echo "&lt;tr&gt;&lt;td&gt;$lib&lt;/td&gt;&lt;td&gt;&lt;a href='$link' target='data'&gt;$fun&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;" &gt;&gt; "$HEAD"
+		done
+		if [ $CNT -eq 1 ]; then
+			echo "&lt;base href=\"$link\"&gt;" &gt; "$DATA"
+			curl -gsS "$link" &gt;&gt; "$DATA"
+		fi
+	else
+		for i in $FILE
+		do
+			lib=$(echo -e "$i" | cut -d '	' -f1)
+			fun=$(echo -e "$i" | cut -d '	' -f2)
+			link=$(echo -e "$i" | cut -d '	' -f3)
+			echo "&lt;tr&gt;&lt;td&gt;$lib&lt;/td&gt;&lt;td&gt;&lt;a href='file://$link' target='data'&gt;$fun&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;" &gt;&gt; "$HEAD"
+		done
+		if [ $CNT -eq 1 ]; then
+			echo "&lt;base href=\"file://$link\"&gt;" &gt; "$DATA"
+			cat "$link" | iconv -s -f ISO8859-1 -t UTF-8 &gt;&gt; "$DATA"
+		fi
+	fi
+fi
+echo "&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;" &gt;&gt; "$HEAD"
+
+printframe 340
+
+"$DIALOG" -x $token 2&amp;&gt;/dev/null
+exit_show_html
+
+</string>
+	<key>fallbackInput</key>
+	<string>none</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^h</string>
+	<key>name</key>
+	<string>Show R Help for actual Word / Selection</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>3F849C03-8BFC-4A54-B985-09BB453AF679</string>
+</dict>
+</plist>

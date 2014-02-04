@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string># input is selection or document
+rawText="`cat`"
+
+curDir=''
+if [[ ${#TM_DIRECTORY} -gt 0 ]]; then
+	curDir="$TM_DIRECTORY"
+fi
+
+osascript -e 'on run(theCode)' \
+		  -e 'tell application "R" to activate' \
+		  -e 'if (item 2 of theCode) is not "" then tell application "R" to cmd "setwd('\''" &amp; (item 2 of theCode) &amp; "'\'')"' \
+		  -e 'tell application "R" to cmd (item 1 of theCode)' \
+		  -e 'end run' -- "$rawText" "$curDir"
+
+if [ "$TM_LINE_NUMBER" != "" ]; then
+	open "txmt://open?line=$(($TM_LINE_NUMBER+1))&amp;column=1000000" &amp;
+elif [[ $TM_SELECTION =~ [1-9][0-9]*:?[0-9]*-([1-9][0-9]*):?[0-9]* ]]; then
+	 # Regular Selection
+	open "txmt://open?line=$((${BASH_REMATCH[1]}+1))&amp;column=1000000" &amp;
+elif [[ $TM_SELECTION =~ [1-9][0-9]*:?[0-9]*x([1-9][0-9]*):?[0-9]* ]]; then 
+	# Block (option) selection
+	open "txmt://open?line=$((${BASH_REMATCH[1]}+1))&amp;column=1000000" &amp;
+else 
+	open "txmt://open"
+fi</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>keyEquivalent</key>
+	<string>~$</string>
+	<key>name</key>
+	<string>R.app &amp; Step</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>uuid</key>
+	<string>ED52D514-DDB8-4D8C-BE0C-F791C70F530A</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

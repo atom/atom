@@ -1,0 +1,75 @@
+add.smooth=TRUE
+check.bounds=FALSE
+continue="+ "
+defaultPackages=c("datasets", "utils", "grDevices", "graphics", "stats", "methods")
+deparse.max.lines=10
+digits=7
+digits.secs=0...6
+download.file.method="internal|wget|lynx|auto"
+echo=TRUE
+encoding="native.enc"
+error=NULL|fun
+expressions25...500000
+keep.source=TRUE
+keep.source.pkgs=FALSE
+mailer="none"
+max.contour.segments=250000
+max.print=99999
+OutDec="."
+pager="$R_HOME/bin/pager"
+papersize=""
+printcmd=""
+prompt="> "
+rl_word_breaks=" \t\n\"\\`><=%;,|&{()}"
+save.defaults=list(ascii=TRUE, safe=FALSE)
+save.image.defaults=list(ascii=TRUE, safe=FALSE)
+scipen=integer_positiveFixed|negativeScientific
+showErrorCalls=TRUE
+showWarnCalls=TRUE
+showNCalls=30...500
+show.error.messages=TRUE
+stringsAsFactors=TRUE
+texi2dvi="NULL|script"
+timeout=60
+topLevelEnvironment=""
+useFancyQuotes=TRUE
+verbose=TRUE
+warn=-1-ignore|0-default|1-as_occur|2-as_error
+warnPartialMatchArgs=TRUE
+warnPartialMatchAttr=TRUE
+warnPartialMatchDollar=TRUE
+warning.expression="func"
+warnings.length=100...8170
+width=10...10000
+-
+device="x11|quartz|postscript|pdf"
+locatorBell=TRUE
+par.ask.default=TRUE
+X11colortype="true"
+X11fonts=c("", "")
+gamma=1
+-
+contrasts=c("unordered", "ordered")
+na.action="func"
+show.coef.Pvalues=TRUE.
+show.signif.stars=TRUE
+ts.eps=1e-05
+ts.S.compat=TRUE
+-
+browser="Safari"
+de.cellwidth=|0|negative|NA
+editor="mate -w"
+example.ask=TRUE
+help.try.all.packages=TRUE
+HTTPUserAgent="NULL"
+internet.info=2|1|0
+menu.graphics=FALSE
+pkgType="source|mac.binary"
+repos=c(CRAN="@CRAN@")
+SweaveHooks=""
+SweaveSyntax=""
+unzip="internal|PATH"
+-
+dvipscmd="command"
+latexcmd="command"
+pdfviewer=""

@@ -1,0 +1,9 @@
+asp="y/x aspect ratio"
+log="x|y|xy|yx"
+main="title"
+sub="subtitle"
+type="p|l|b|c|o|h|s|S|n"
+xlab="x-title"
+xlog=TRUE
+ylab="y-title"
+ylog=TRUE
