@@ -1,8 +1,6 @@
 path = require 'path'
-url = require 'url'
 
 optimist = require 'optimist'
-request = require 'request'
 
 Command = require './command'
 fs = require './fs'
