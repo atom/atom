@@ -6,8 +6,6 @@ path = require 'path'
 remote = require 'remote'
 screen = require 'screen'
 shell = require 'shell'
-dialog = remote.require 'dialog'
-app = remote.require 'app'
 
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
@@ -96,7 +94,14 @@ class Atom extends Model
 
   # Private: Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
-    _.deepClone(@loadSettings ?= _.deepClone(@getCurrentWindow().loadSettings))
+    @loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14)))
+    cloned = _.deepClone(@loadSettings)
+    # The loadSettings.windowState could be large, request it only when needed.
+    cloned.__defineGetter__ 'windowState', =>
+      @getCurrentWindow().loadSettings.windowState
+    cloned.__defineSetter__ 'windowState', (value) =>
+      @getCurrentWindow().loadSettings.windowState = value
+    cloned
 
   # Private:
   @getCurrentWindow: ->
@@ -104,7 +109,7 @@ class Atom extends Model
 
   # Private: Get the version of the Atom application.
   @getVersion: ->
-    @version ?= app.getVersion()
+    @version ?= @getLoadSettings().appVersion
 
   # Private: Determine whether the current version is an official release.
   @isReleasedVersion: ->
@@ -197,13 +202,12 @@ class Atom extends Model
   #    + width: The new width.
   #    + height: The new height.
   setWindowDimensions: ({x, y, width, height}) ->
-    browserWindow = @getCurrentWindow()
     if width? and height?
-      browserWindow.setSize(width, height)
+      @setSize(width, height)
     if x? and y?
-      browserWindow.setPosition(x, y)
+      @setPosition(x, y)
     else
-      browserWindow.center()
+      @center()
 
   # Private:
   restoreWindowDimensions: ->
@@ -342,6 +346,7 @@ class Atom extends Model
     else
       buttonLabels = Object.keys(buttons)
 
+    dialog = remote.require('dialog')
     chosen = dialog.showMessageBox @getCurrentWindow(),
       type: 'info'
       message: message
@@ -362,32 +367,45 @@ class Atom extends Model
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
+    dialog = remote.require('dialog')
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
   # Public: Open the dev tools for the current window.
   openDevTools: ->
-    @getCurrentWindow().openDevTools()
+    ipc.sendChannel('call-window-method', 'openDevTools')
 
   # Public: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
-    @getCurrentWindow().toggleDevTools()
+    ipc.sendChannel('call-window-method', 'toggleDevTools')
 
   # Public: Reload the current window.
   reload: ->
-    @getCurrentWindow().restart()
+    ipc.sendChannel('call-window-method', 'restart')
 
   # Public: Focus the current window.
   focus: ->
-    @getCurrentWindow().focus()
+    ipc.sendChannel('call-window-method', 'focus')
     $(window).focus()
 
   # Public: Show the current window.
   show: ->
-    @getCurrentWindow().show()
+    ipc.sendChannel('call-window-method', 'show')
 
   # Public: Hide the current window.
   hide: ->
-    @getCurrentWindow().hide()
+    ipc.sendChannel('call-window-method', 'hide')
+
+  # Public: Set the size of current window.
+  setSize: (width, height) ->
+    ipc.sendChannel('call-window-method', 'setSize', width, height)
+
+  # Public: Set the position of current window.
+  setPosition: (x, y) ->
+    ipc.sendChannel('call-window-method', 'setPosition', x, y)
+
+  # Public: Move current window to the center of the screen.
+  center: ->
+    ipc.sendChannel('call-window-method', 'center')
 
   # Private: Schedule the window to be shown and focused on the next tick.
   #
@@ -404,7 +422,9 @@ class Atom extends Model
     @getCurrentWindow().close()
 
   # Private:
-  exit: (status) -> app.exit(status)
+  exit: (status) ->
+    app = remote.require('app')
+    app.exit(status)
 
   # Public: Is the current window in development mode?
   inDevMode: ->
@@ -420,7 +440,7 @@ class Atom extends Model
 
   # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
-    @getCurrentWindow().setFullScreen(fullScreen)
+    ipc.sendChannel('call-window-method', 'setFullScreen', fullScreen)
 
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
