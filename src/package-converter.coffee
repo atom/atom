@@ -32,22 +32,27 @@ class PackageConverter
   convert: (callback) ->
     {protocol} = url.parse(@sourcePath)
     if protocol is 'http:' or protocol is 'https:'
-      tempPath = temp.mkdirSync('atom-bundle-')
-      request(@getDownloadUrl())
-        .pipe(zlib.createGunzip())
-        .pipe(tar.Extract(path: tempPath))
-        .on 'error', (error) -> callback(error)
-        .on 'end', =>
-          sourcePath = path.join(tempPath, fs.readdirSync(tempPath)[0])
-          @copyDirectories(sourcePath, callback)
+      @downloadBundle(callback)
     else
       @copyDirectories(@sourcePath, callback)
 
   getDownloadUrl: ->
     downloadUrl = @sourcePath
-    downloadUrl = downloadUrl.replace(/\.git\/?$/, '')
-    downloadUrl += '/' unless downloadUrl[downloadUrl.length - 1] is '/'
-    downloadUrl += 'archive/master.tar.gz'
+    downloadUrl = downloadUrl.replace(/(\.git)?\/*$/, '')
+    downloadUrl += '/archive/master.tar.gz'
+
+  downloadBundle: (callback) ->
+    tempPath = temp.mkdirSync('atom-bundle-')
+    request(@getDownloadUrl())
+      .on 'response', ({headers, statusCode}) ->
+        if statusCode isnt 200
+          callback("Download failed (#{headers.status})")
+      .pipe(zlib.createGunzip())
+      .pipe(tar.Extract(path: tempPath))
+      .on 'error', (error) -> callback(error)
+      .on 'end', =>
+        sourcePath = path.join(tempPath, fs.readdirSync(tempPath)[0])
+        @copyDirectories(sourcePath, callback)
 
   copyDirectories: (sourcePath, callback) ->
     for directoryName in @directoryNames
