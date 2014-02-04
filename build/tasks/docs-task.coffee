@@ -16,7 +16,7 @@ module.exports = (grunt) ->
     done = @async()
 
     downloadFileFromRepo = ({repo, file}, callback) ->
-      uri = "https://raw2.github.com/atom/#{repo}/master/#{file}"
+      uri = "https://raw.github.com/atom/#{repo}/master/#{file}"
       request uri, (error, response, contents) ->
         return callback(error) if error?
         downloadPath = path.join('docs', 'includes', repo, file)
