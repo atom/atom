@@ -195,11 +195,11 @@ class Atom extends Model
   #    + height: The new height.
   setWindowDimensions: ({x, y, width, height}) ->
     if width? and height?
-      ipc.sendChannel('call-window-method', 'setSize', width, height)
+      @setSize(width, height)
     if x? and y?
-      ipc.sendChannel('call-window-method', 'setPosition', x, y)
+      @setPosition(x, y)
     else
-      ipc.sendChannel('call-window-method', 'center')
+      @center()
 
   # Private:
   restoreWindowDimensions: ->
@@ -386,6 +386,18 @@ class Atom extends Model
   # Public: Hide the current window.
   hide: ->
     ipc.sendChannel('call-window-method', 'hide')
+
+  # Public: Set the size of current window.
+  setSize: (width, height) ->
+    ipc.sendChannel('call-window-method', 'setSize', width, height)
+
+  # Public: Set the position of current window.
+  setPosition: (x, y) ->
+    ipc.sendChannel('call-window-method', 'setPosition', x, y)
+
+  # Public: Move current window to the center of the screen.
+  center: ->
+    ipc.sendChannel('call-window-method', 'center')
 
   # Private: Schedule the window to be shown and focused on the next tick.
   #
