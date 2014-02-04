@@ -81,7 +81,9 @@ class Pane extends Model
   # Private:
   getPanes: -> [this]
 
-  # Public:
+  # Public: Get the items in this pane.
+  #
+  # Returns an {Array} of items.
   getItems: ->
     @items.slice()
 
