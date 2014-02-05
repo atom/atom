@@ -42,11 +42,7 @@ class AtomPackage extends Package
         @loadStylesheets()
         @loadGrammars()
         @loadScopedProperties()
-
-        if @metadata.activationEvents?
-          @registerDeferredDeserializers()
-        else
-          @requireMainModule()
+        @requireMainModule() unless @metadata.activationEvents?
 
       catch e
         console.warn "Failed to load package named '#{@name}'", e.stack ? e
@@ -202,12 +198,6 @@ class AtomPackage extends Package
       else
         path.join(@path, 'index')
     @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
-
-  registerDeferredDeserializers: ->
-    for deserializerName in @metadata.deferredDeserializers ? []
-      atom.deserializers.addDeferred deserializerName, =>
-        @activateStylesheets()
-        @requireMainModule()
 
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
