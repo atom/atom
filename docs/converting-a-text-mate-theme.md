@@ -40,7 +40,7 @@ you can convert the theme with the following command:
 apm init --theme ~/.atom/packages/my-theme --convert ~/Downloads/MyTheme.tmTheme
 ```
 
-You can browse to `~/.atom/packages/my-theme` to see the generated theme.
+You can browse to `~/.atom/packages/my-theme` to see the converted theme.
 
 ### Activate the Theme
 
