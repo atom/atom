@@ -249,17 +249,16 @@ class WorkspaceView extends View
   # Public: Focuses the next pane by id.
   focusNextPane: -> @model.activateNextPane()
 
-  # Public: Focuses the pane directly above the currently-focused pane.
+  # Public: Focuses the pane directly above the active pane.
   focusPaneAbove: -> @panes.focusPaneAbove()
 
-  # Public: Focuses the pane directly below the currently-focused pane.
+  # Public: Focuses the pane directly below the active pane.
   focusPaneBelow: -> @panes.focusPaneBelow()
 
-  # Public: Focuses the pane directly to the left of the currently-focused pane.
+  # Public: Focuses the pane directly to the left of the active pane.
   focusPaneOnLeft: -> @panes.focusPaneOnLeft()
 
-  # Public: Focuses the pane directly to the right of the currently-focused
-  # pane.
+  # Public: Focuses the pane directly to the right of the active pane.
   focusPaneOnRight: -> @panes.focusPaneOnRight()
 
   # Public:
