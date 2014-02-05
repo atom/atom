@@ -57,7 +57,7 @@ __Syntax Theme__ dropdown menu to enable your new theme.
 
 :bulb: Consider using `apm publish` to publish this theme to [atom.io][atomio].
 
-[atomio]: https://www.atom.io
+[atomio]: https://atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
 [LESS]: http://lesscss.org
 [plist]: http://en.wikipedia.org/wiki/Property_list
