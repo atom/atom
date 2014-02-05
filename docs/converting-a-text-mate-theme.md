@@ -19,7 +19,7 @@ a TextMate theme to an Atom theme.
 Check that you have `apm` installed by running the following command in your
 terminal:
 
-```
+```sh
 apm -h
 ```
 
