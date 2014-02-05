@@ -19,7 +19,7 @@ class ThemeConverter
             error = "Could not resolve URL: #{@sourcePath}"
           callback(error)
         else  if response.statusCode isnt 200
-          callback("Request to #{@sourcePath} failed (#{response.statusCode})")
+          callback("Request to #{@sourcePath} failed (#{response.headers.status})")
         else
           callback(null, body)
     else
