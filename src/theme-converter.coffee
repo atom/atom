@@ -15,6 +15,8 @@ class ThemeConverter
     if protocol is 'http:' or protocol is 'https:'
       request @sourcePath, (error, response, body) =>
         if error?
+          if error.code is 'ENOTFOUND'
+            error = "Could not resolve URL: #{@sourcePath}"
           callback(error)
         else  if response.statusCode isnt 200
           callback("Request to #{@sourcePath} failed (#{response.statusCode})")
