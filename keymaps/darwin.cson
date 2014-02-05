@@ -75,8 +75,12 @@
   'cmd-k right': 'pane:split-right' # Atom Specific
   'cmd-k cmd-w': 'pane:close' # Atom Specific
   'cmd-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
-  'cmd-k cmd-left': 'window:focus-previous-pane'
-  'cmd-k cmd-right': 'window:focus-next-pane'
+  'cmd-k cmd-p': 'window:focus-previous-pane'
+  'cmd-k cmd-n': 'window:focus-next-pane'
+  'cmd-k cmd-up': 'window:focus-pane-above'
+  'cmd-k cmd-down': 'window:focus-pane-below'
+  'cmd-k cmd-left': 'window:focus-pane-on-left'
+  'cmd-k cmd-right': 'window:focus-pane-on-right'
   'cmd-1': 'pane:show-item-1'
   'cmd-2': 'pane:show-item-2'
   'cmd-3': 'pane:show-item-3'
