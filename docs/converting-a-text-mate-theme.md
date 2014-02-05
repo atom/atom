@@ -20,13 +20,16 @@ Check that you have `apm` installed by running the following command in your
 terminal:
 
 ```sh
-apm -h
+apm help init
 ```
 
 You should see a message print out with all the possible `apm` commands.
 
 If you do not, launch Atom and run the _Atom > Install Shell Commmands_ menu
 to install the `apm` and `atom` commands.
+
+You can now run `apm help init` to see all the options for initializing new
+packages and themes.
 
 ### Convert the Theme
 
@@ -52,6 +55,9 @@ __Syntax Theme__ dropdown menu to enable your new theme.
 
 :tada: Your theme is now enabled, open an editor to see it in action!
 
+:bulb: Consider using `apm publish` to publish this theme to [atom.io][atomio].
+
+[atomio]: https://www.atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
 [LESS]: http://lesscss.org
 [plist]: http://en.wikipedia.org/wiki/Property_list
