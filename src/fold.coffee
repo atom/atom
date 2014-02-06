@@ -10,8 +10,6 @@ class Fold
   displayBuffer: null
   marker: null
 
-  ### Internal ###
-
   constructor: (@displayBuffer, @marker) ->
     @id = @marker.id
     @displayBuffer.foldsByMarkerId[@marker.id] = this

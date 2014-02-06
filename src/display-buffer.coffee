@@ -81,8 +81,6 @@ class DisplayBuffer extends Model
     bufferDelta = 0
     @emitChanged({ start, end, screenDelta, bufferDelta })
 
-  ### Public ###
-
   # Sets the visibility of the tokenized buffer.
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
@@ -418,8 +416,6 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  ### Public ###
-
   # Given a line, finds the point where it would wrap.
   #
   # line - The {String} to check
@@ -578,8 +574,6 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @lineForRow(row).text
       console.log row, line, line.length
-
-  ### Internal ###
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange

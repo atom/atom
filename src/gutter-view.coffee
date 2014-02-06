@@ -7,9 +7,6 @@ _ = require 'underscore-plus'
 # The gutter also indicates if rows are folded.
 module.exports =
 class GutterView extends View
-
-  ### Internal ###
-
   @content: ->
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
@@ -50,8 +47,6 @@ class GutterView extends View
 
     $(document).on "mousemove.gutter-#{editorView.id}", moveHandler
     $(document).one "mouseup.gutter-#{editorView.id}", => $(document).off 'mousemove', moveHandler
-
-  ### Public ###
 
   # Retrieves the containing {EditorView}.
   #
@@ -137,8 +132,6 @@ class GutterView extends View
       classesRemoved |= hasClass
       el.classList.remove(klass) if hasClass
     classesRemoved
-
-  ### Internal ###
 
   updateLineNumbers: (changes, startScreenRow, endScreenRow) ->
     # Check if we have something already rendered that overlaps the requested range

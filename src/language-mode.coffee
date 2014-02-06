@@ -3,8 +3,6 @@ _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
 
-### Internal ###
-
 module.exports =
 class LanguageMode
   Emitter.includeInto(this)
@@ -15,12 +13,8 @@ class LanguageMode
   editor: null
   currentGrammarScore: null
 
-  ### Internal ###
-
   destroy: ->
     @unsubscribe()
-
-  ### Public ###
 
   # Sets up a `LanguageMode` for the given {Editor}.
   #

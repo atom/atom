@@ -27,8 +27,6 @@ class PaneContainerView extends View
       viewClass = model.getViewClass()
       model._view ?= new viewClass(model)
 
-  ### Public ###
-
   getRoot: ->
     @children().first().view()
 

@@ -1,7 +1,6 @@
 {View} = require './space-pen-extensions'
 PaneView = null
 
-### Internal ###
 module.exports =
 class PaneAxisView extends View
   initialize: (@model) ->

@@ -71,8 +71,6 @@ class TextBuffer extends TextBufferCore
       @clearUndoStack()
     this
 
-  ### Internal ###
-
   handleTextChange: (event) =>
     @conflict = false if @conflict and !@isModified()
     @scheduleModifiedEvents()
@@ -126,8 +124,6 @@ class TextBuffer extends TextBufferCore
 
     @file.on "moved", =>
       @emit "path-changed", this
-
-  ### Public ###
 
   # Identifies if the buffer belongs to multiple editors.
   #
@@ -389,8 +385,6 @@ class TextBuffer extends TextBufferCore
       if match = @lineForRow(row).match(/^\s/)
         return match[0][0] != '\t'
     undefined
-
-  ### Internal ###
 
   change: (oldRange, newText, options={}) ->
     @setTextInRange(oldRange, newText, options.normalizeLineEndings)

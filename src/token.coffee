@@ -21,14 +21,10 @@ class Token
   isAtomic: null
   isHardTab: null
 
-  ### Internal ###
-
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasSurrogatePair = textUtils.hasSurrogatePair(@value)
-
-  ### Public ###
 
   isEqual: (other) ->
     @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
