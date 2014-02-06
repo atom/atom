@@ -11,11 +11,11 @@ class TextMatePackage extends Package
     /(^language-.+)|((\.|_|-)tmbundle$)/.test(packageName)
 
   @getLoadQueue: ->
-    return @loadQueue if @loadQueue
-    @loadQueue = async.queue (pack, done) ->
-      pack.loadGrammars ->
-        pack.loadScopedProperties(done)
+    return @loadQueue if @loadQueue?
 
+    @loadQueue = async.queue (pack, done) ->
+      pack.loadGrammars -> pack.loadScopedProperties(done)
+    @loadQueue.concurreny = 10
     @loadQueue
 
   constructor: ->
