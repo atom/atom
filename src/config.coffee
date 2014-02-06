@@ -26,14 +26,11 @@ module.exports =
 class Config
   Emitter.includeInto(this)
 
-  defaultSettings: null
-  settings: null
-  configFileHasErrors: null
-
-  # Created during initialization, available as `global.config`
+  # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
     @defaultSettings = {}
     @settings = {}
+    @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
