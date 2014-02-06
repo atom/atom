@@ -12,8 +12,6 @@
 # ```
 module.exports =
 class ScrollView extends View
-
-  # Internal: The constructor.
   initialize: ->
     @on 'core:page-up', => @pageUp()
     @on 'core:page-down', => @pageDown()

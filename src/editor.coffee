@@ -1085,7 +1085,6 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
-  # Internal: Executes given function on all local cursors.
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()

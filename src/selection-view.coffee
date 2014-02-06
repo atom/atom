@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {View, $$} = require './space-pen-extensions'
 
-# Internal:
 module.exports =
 class SelectionView extends View
 
