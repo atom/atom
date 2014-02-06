@@ -67,6 +67,7 @@ in the proper package's repository.
 * Use [TomDoc](http://tomdoc.org/).
 * Use [Markdown](https://daringfireball.net/projects/markdown/).
 * Reference classes with `{ClassName}` style notation.
+* Reference methods with `{ClassName.methodName}` style notation.
 * Delegate to comments elsewhere with `{Delegates to: ClassName.methodName}`
   style notation.
 
