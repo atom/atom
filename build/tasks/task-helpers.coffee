@@ -11,6 +11,7 @@ module.exports = (grunt) ->
 
       stats = fs.lstatSync(sourcePath)
       if stats.isSymbolicLink()
+        console.log sourcePath, destinationPath
         grunt.file.mkdir(path.dirname(destinationPath))
         fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
       else if stats.isFile()
@@ -26,7 +27,13 @@ module.exports = (grunt) ->
         onFile = (sourcePath) ->
           destinationPath = path.join(destination, path.relative(source, sourcePath))
           copyFile(sourcePath, destinationPath)
-        onDirectory = -> true
+        onDirectory = (sourcePath) ->
+          if fs.isSymbolicLinkSync(sourcePath)
+            destinationPath = path.join(destination, path.relative(source, sourcePath))
+            copyFile(sourcePath, destinationPath)
+            false
+          else
+            true
         fs.traverseTreeSync source, onFile, onDirectory
       catch error
         grunt.fatal(error)
