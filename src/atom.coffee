@@ -305,31 +305,32 @@ class Atom extends Model
   # Calling this method without an options parameter will open a prompt to pick
   # a file/folder to open in the new window.
   #
-  # * options
-  #   * pathsToOpen: A string array of paths to open
+  # options - An {Object} with the following keys:
+  #   :pathsToOpen -  An {Array} of {String} paths to open.
   open: (options) ->
     ipc.sendChannel('open', options)
 
   # Public: Open a confirm dialog.
   #
-  # ## Example:
-  # ```coffeescript
+  # ## Example
+  #
+  # ```coffee
   #   atom.confirm
-  #      message: 'How you feeling?'
-  #      detailedMessage: 'Be honest.'
-  #      buttons:
-  #        Good: -> window.alert('good to hear')
-  #        Bad: ->  window.alert('bummer')
+  #     message: 'How you feeling?'
+  #     detailedMessage: 'Be honest.'
+  #     buttons:
+  #       Good: -> window.alert('good to hear')
+  #       Bad:  -> window.alert('bummer')
   # ```
   #
-  # * options:
-  #    + message: The string message to display.
-  #    + detailedMessage: The string detailed message to display.
-  #    + buttons: Either an array of strings or an object where the values
-  #      are callbacks to invoke when clicked.
+  # options - An {Object} with the following keys:
+  #   :message - The {String} message to display.
+  #   :detailedMessage - The {String} detailed message to display.
+  #   :buttons - Either an array of strings or an object where keys are
+  #              button names and the values are callbacks to invoke when
+  #              clicked.
   #
-  # Returns the chosen index if buttons was an array or the return of the
-  # callback if buttons was an object.
+  # Returns the chosen button index {Number} if the buttons option was an array.
   confirm: ({message, detailedMessage, buttons}={}) ->
     buttons ?= {}
     if _.isArray(buttons)
@@ -385,10 +386,16 @@ class Atom extends Model
     ipc.sendChannel('call-window-method', 'hide')
 
   # Public: Set the size of current window.
+  #
+  # width  - The {Number} of pixels.
+  # height - The {Number} of pixels.
   setSize: (width, height) ->
     ipc.sendChannel('call-window-method', 'setSize', width, height)
 
   # Public: Set the position of current window.
+  #
+  # x - The {Number} of pixels.
+  # y - The {Number} of pixels.
   setPosition: (x, y) ->
     ipc.sendChannel('call-window-method', 'setPosition', x, y)
 
@@ -498,6 +505,9 @@ class Atom extends Model
   #
   # The globals will be set on the `window` object and removed after the
   # require completes.
+  #
+  # id - The {String} module name or path.
+  # globals - An {Object} to set as globals during require (default: {})
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals
