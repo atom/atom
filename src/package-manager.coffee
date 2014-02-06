@@ -67,14 +67,14 @@ class PackageManager
     pack?.disable()
     pack
 
-  # Private: Activate all the packages that should be activated.
+  # Activate all the packages that should be activated.
   activate: ->
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
     @emit 'activated'
 
-  # Private: another type of package manager can handle other package types.
+  # another type of package manager can handle other package types.
   # See ThemeManager
   registerPackageActivator: (activator, types) ->
     @packageActivators.push([activator, types])
@@ -84,7 +84,7 @@ class PackageManager
     @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
-  # Private: Activate a single package by name
+  # Activate a single package by name
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name, options)
@@ -92,12 +92,12 @@ class PackageManager
       pack.activate(options)
       pack
 
-  # Private: Deactivate all packages
+  # Deactivate all packages
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
     @unobserveDisabledPackages()
 
-  # Private: Deactivate the package with the given name
+  # Deactivate the package with the given name
   deactivatePackage: (name) ->
     if pack = @getActivePackage(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
@@ -189,7 +189,7 @@ class PackageManager
   getLoadedPackages: ->
     _.values(@loadedPackages)
 
-  # Private: Get packages for a certain package type
+  # Get packages for a certain package type
   #
   # * types: an {Array} of {String}s like ['atom', 'textmate']
   getLoadedPackagesForTypes: (types) ->

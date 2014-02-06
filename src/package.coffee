@@ -1,7 +1,6 @@
 CSON = require 'season'
 {basename, join} = require 'path'
 
-### Internal ###
 module.exports =
 class Package
   @build: (path) ->

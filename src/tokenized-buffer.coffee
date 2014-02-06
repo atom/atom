@@ -5,8 +5,6 @@ Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
 
-### Internal ###
-
 module.exports =
 class TokenizedBuffer extends Model
   Serializable.includeInto(this)

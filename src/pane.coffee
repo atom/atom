@@ -43,31 +43,31 @@ class Pane extends Model
 
     @activate() if params?.active
 
-  # Private: Called by the Serializable mixin during serialization.
+  # Called by the Serializable mixin during serialization.
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
     focused: @focused
     active: @active
 
-  # Private: Called by the Serializable mixin during deserialization.
+  # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
     {items, activeItemUri} = params
     params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  # Private: Called by the view layer to construct a view for this model.
+  # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
   isActive: -> @active
 
-  # Private: Called by the view layer to indicate that the pane has gained focus.
+  # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
     @activate() unless @isActive()
 
-  # Private: Called by the view layer to indicate that the pane has lost focus.
+  # Called by the view layer to indicate that the pane has lost focus.
   blur: ->
     @focused = false
     true # if this is called from an event handler, don't cancel it
@@ -209,7 +209,7 @@ class Pane extends Model
   destroy: ->
     super unless @container?.isAlive() and @container?.getPanes().length is 1
 
-  # Private: Called by model superclass.
+  # Called by model superclass.
   destroyed: ->
     @container.activateNextPane() if @isActive()
     item.destroy?() for item in @items.slice()
@@ -335,7 +335,7 @@ class Pane extends Model
     newPane.activate()
     newPane
 
-  # Private: If the parent is a horizontal axis, returns its first child;
+  # If the parent is a horizontal axis, returns its first child;
   # otherwise this pane.
   findLeftmostSibling: ->
     if @parent.orientation is 'horizontal'
@@ -343,7 +343,7 @@ class Pane extends Model
     else
       this
 
-  # Private: If the parent is a horizontal axis, returns its last child;
+  # If the parent is a horizontal axis, returns its last child;
   # otherwise returns a new pane created by splitting this pane rightward.
   findOrCreateRightmostSibling: ->
     if @parent.orientation is 'horizontal'

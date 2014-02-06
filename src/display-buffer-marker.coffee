@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 
-# Private:
 module.exports =
 class DisplayBufferMarker
   Emitter.includeInto(this)
@@ -15,8 +14,6 @@ class DisplayBufferMarker
   oldTailScreenPosition: null
   wasValid: true
 
-  ### Internal ###
-
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @id = @bufferMarker.id
     @oldHeadBufferPosition = @getHeadBufferPosition()
@@ -27,8 +24,6 @@ class DisplayBufferMarker
 
     @subscribe @bufferMarker, 'destroyed', => @destroyed()
     @subscribe @bufferMarker, 'changed', (event) => @notifyObservers(event)
-
-  ### Public ###
 
   copy: (attributes) ->
     @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
@@ -169,8 +164,6 @@ class DisplayBufferMarker
   # Returns a {String} representation of the marker
   inspect: ->
     "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange()})"
-
-  ### Internal ###
 
   destroyed: ->
     delete @displayBuffer.markers[@id]

@@ -86,6 +86,6 @@ class PaneContainer extends Model
   itemDestroyed: (item) ->
     @emit 'item-destroyed', item
 
-  # Private: Called by Model superclass when destroyed
+  # Called by Model superclass when destroyed
   destroyed: ->
     pane.destroy() for pane in @getPanes()

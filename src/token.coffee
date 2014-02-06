@@ -12,7 +12,7 @@ WhitespaceRegex = /\S/
 
 MaxTokenLength = 20000
 
-# Private: Represents a single unit of text as selected by a grammar.
+# Represents a single unit of text as selected by a grammar.
 module.exports =
 class Token
   value: null
@@ -21,14 +21,10 @@ class Token
   isAtomic: null
   isHardTab: null
 
-  ### Internal ###
-
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasSurrogatePair = textUtils.hasSurrogatePair(@value)
-
-  ### Public ###
 
   isEqual: (other) ->
     @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic

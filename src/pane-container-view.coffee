@@ -3,7 +3,7 @@ Delegator = require 'delegato'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
 
-# Private: Manages the list of panes within a {WorkspaceView}
+# Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainerView extends View
   Delegator.includeInto(this)
@@ -26,8 +26,6 @@ class PaneContainerView extends View
     if model?
       viewClass = model.getViewClass()
       model._view ?= new viewClass(model)
-
-  ### Public ###
 
   getRoot: ->
     @children().first().view()

@@ -5,7 +5,7 @@ shell = require 'shell'
 {Subscriber} = require 'emissary'
 fs = require 'fs-plus'
 
-# Private: Handles low-level events related to the window.
+# Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
   Subscriber.includeInto(this)
@@ -75,7 +75,7 @@ class WindowEventHandler
 
     @handleNativeKeybindings()
 
-  # Private: Wire commands that should be handled by the native menu
+  # Wire commands that should be handled by the native menu
   # for elements with the `.native-key-bindings` class.
   handleNativeKeybindings: ->
     menu = null

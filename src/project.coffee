@@ -153,7 +153,7 @@ class Project extends Model
       @bufferForPath(filePath).then (buffer) =>
         @buildEditorForBuffer(buffer, options)
 
-  # Private: Only be used in specs
+  # Only be used in specs
   openSync: (filePath, options={}) ->
     filePath = @resolve(filePath)
     for opener in @openers
@@ -176,14 +176,14 @@ class Project extends Model
   removeEditor: (editor) ->
     _.remove(@editors, editor)
 
-  # Private: Retrieves all the {TextBuffer}s in the project; that is, the
+  # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
     @buffers.slice()
 
-  # Private: Is the buffer for the given path modified?
+  # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
     @findBufferForPath(@resolve(filePath))?.isModified()
 
@@ -191,13 +191,13 @@ class Project extends Model
   findBufferForPath: (filePath) ->
    _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
-  # Private: Only to be used in specs
+  # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
-  # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
+  # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
@@ -214,14 +214,14 @@ class Project extends Model
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Private: DEPRECATED
+  # DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
 
-  # Private: Given a file path, this sets its {TextBuffer}.
+  # Given a file path, this sets its {TextBuffer}.
   #
   # absoluteFilePath - A {String} representing a path
   # text - The {String} text to use as a buffer
@@ -246,7 +246,7 @@ class Project extends Model
     @emit 'buffer-created', buffer
     buffer
 
-  # Private: Removes a {TextBuffer} association from the project.
+  # Removes a {TextBuffer} association from the project.
   #
   # Returns the removed {TextBuffer}.
   removeBuffer: (buffer) ->

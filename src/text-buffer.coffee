@@ -8,7 +8,7 @@ TextBufferCore = require 'text-buffer'
 
 File = require './file'
 
-# Private: Represents the contents of a file.
+# Represents the contents of a file.
 #
 # The `TextBuffer` is often associated with a {File}. However, this is not always
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
@@ -71,8 +71,6 @@ class TextBuffer extends TextBufferCore
       @clearUndoStack()
     this
 
-  ### Internal ###
-
   handleTextChange: (event) =>
     @conflict = false if @conflict and !@isModified()
     @scheduleModifiedEvents()
@@ -127,8 +125,6 @@ class TextBuffer extends TextBufferCore
     @file.on "moved", =>
       @emit "path-changed", this
 
-  ### Public ###
-
   # Identifies if the buffer belongs to multiple editors.
   #
   # For example, if the {EditorView} was split.
@@ -145,11 +141,11 @@ class TextBuffer extends TextBufferCore
     @emitModifiedStatusChanged(false)
     @emit 'reloaded'
 
-  # Private: Rereads the contents of the file, and stores them in the cache.
+  # Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsSync: ->
     @cachedDiskContents = @file?.readSync() ? ""
 
-  # Private: Rereads the contents of the file, and stores them in the cache.
+  # Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
     Q(@file?.read() ? "").then (contents) =>
       @cachedDiskContents = contents
@@ -389,8 +385,6 @@ class TextBuffer extends TextBufferCore
       if match = @lineForRow(row).match(/^\s/)
         return match[0][0] != '\t'
     undefined
-
-  ### Internal ###
 
   change: (oldRange, newText, options={}) ->
     @setTextInRange(oldRange, newText, options.normalizeLineEndings)

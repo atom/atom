@@ -3,7 +3,7 @@ ipc = require 'ipc'
 Menu = require 'menu'
 _ = require 'underscore-plus'
 
-# Private: Used to manage the global application menu.
+# Used to manage the global application menu.
 #
 # It's created by {AtomApplication} upon instantiation and used to add, remove
 # and maintain the state of all menu items.
@@ -29,7 +29,7 @@ class ApplicationMenu
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
 
-  # Private: Flattens the given menu and submenu items into an single Array.
+  # Flattens the given menu and submenu items into an single Array.
   #
   # * menu:
   #   A complete menu configuration object for atom-shell's menu API.
@@ -42,7 +42,7 @@ class ApplicationMenu
       items = items.concat(@flattenMenuItems(item.submenu)) if item.submenu
     items
 
-  # Private: Flattens the given menu template into an single Array.
+  # Flattens the given menu template into an single Array.
   #
   # * template:
   #   An object describing the menu item.
@@ -64,7 +64,7 @@ class ApplicationMenu
     for item in @flattenMenuItems(@menu)
       item.enabled = enable if item.metadata?['windowSpecific']
 
-  # Private: Replaces VERSION with the current version.
+  # Replaces VERSION with the current version.
   substituteVersion: (template) ->
     if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
       item.label = "Version #{@version}"
@@ -79,7 +79,7 @@ class ApplicationMenu
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update'))
       item.visible = visible
 
-  # Private: Default list of menu items.
+  # Default list of menu items.
   #
   # Returns an Array of menu item Objects.
   getDefaultTemplate: ->
@@ -93,7 +93,7 @@ class ApplicationMenu
       ]
     ]
 
-  # Private: Combines a menu template with the appropriate keystroke.
+  # Combines a menu template with the appropriate keystroke.
   #
   # * template:
   #   An Object conforming to atom-shell's menu api but lacking accelerator and
@@ -113,7 +113,7 @@ class ApplicationMenu
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 
-  # Private: Determine the accelerator for a given command.
+  # Determine the accelerator for a given command.
   #
   # * command:
   #   The name of the command.

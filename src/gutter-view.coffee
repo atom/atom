@@ -2,14 +2,11 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
-# Private: Represents the portion of the {EditorView} containing row numbers.
+# Represents the portion of the {EditorView} containing row numbers.
 #
 # The gutter also indicates if rows are folded.
 module.exports =
 class GutterView extends View
-
-  ### Internal ###
-
   @content: ->
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
@@ -50,8 +47,6 @@ class GutterView extends View
 
     $(document).on "mousemove.gutter-#{editorView.id}", moveHandler
     $(document).one "mouseup.gutter-#{editorView.id}", => $(document).off 'mousemove', moveHandler
-
-  ### Public ###
 
   # Retrieves the containing {EditorView}.
   #
@@ -138,8 +133,6 @@ class GutterView extends View
       el.classList.remove(klass) if hasClass
     classesRemoved
 
-  ### Internal ###
-
   updateLineNumbers: (changes, startScreenRow, endScreenRow) ->
     # Check if we have something already rendered that overlaps the requested range
     updateAllLines = not (startScreenRow? and endScreenRow?)
@@ -223,7 +216,7 @@ class GutterView extends View
 
     html
 
-  # Private: Called to update the 'foldable' class of line numbers when there's
+  # Called to update the 'foldable' class of line numbers when there's
   # a change to the display buffer that doesn't regenerate all the line numbers
   # anyway.
   updateFoldableClasses: (changes) ->

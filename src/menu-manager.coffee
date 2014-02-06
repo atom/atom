@@ -29,7 +29,7 @@ class MenuManager
     @merge(@template, item) for item in items
     @update()
 
-  # Private: Should the binding for the given selector be included in the menu
+  # Should the binding for the given selector be included in the menu
   # commands.
   #
   # * selector: A String selector to check.
@@ -66,7 +66,7 @@ class MenuManager
     {menu} = CSON.readFileSync(platformMenuPath)
     @add(menu)
 
-  # Private: Merges an item in a submenu aware way such that new items are always
+  # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
     item = _.deepClone(item)
@@ -76,7 +76,7 @@ class MenuManager
     else
       menu.push(item) unless _.find(menu, (i) => @normalizeLabel(i.label) == @normalizeLabel(item.label))
 
-  # Private: OSX can't handle displaying accelerators for multiple keystrokes.
+  # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->

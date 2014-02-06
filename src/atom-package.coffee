@@ -6,8 +6,8 @@ _ = require 'underscore-plus'
 CSON = require 'season'
 {Emitter} = require 'emissary'
 
-### Internal: Loads and resolves packages. ###
-
+# Loads and activates a package's main module and resources such as
+# stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class AtomPackage extends Package
   Emitter.includeInto(this)

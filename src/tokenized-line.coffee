@@ -1,7 +1,5 @@
 _ = require 'underscore-plus'
 
-### Internal ###
-
 module.exports =
 class TokenizedLine
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->

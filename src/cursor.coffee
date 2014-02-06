@@ -17,7 +17,7 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  # Private: Instantiated by an {Editor}
+  # Instantiated by an {Editor}
   constructor: ({@editor, @marker}) ->
     @updateVisibility()
     @marker.on 'changed', (e) =>
@@ -45,11 +45,9 @@ class Cursor
       @emit 'destroyed'
     @needsAutoscroll = true
 
-  # Private:
   destroy: ->
     @marker.destroy()
 
-  # Private:
   changePosition: (options, fn) ->
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()

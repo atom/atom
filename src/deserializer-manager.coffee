@@ -41,7 +41,7 @@ class DeserializerManager
     else
       console.warn "No deserializer found for", state
 
-  # Private: Get the deserializer for the state.
+  # Get the deserializer for the state.
   get: (state) ->
     return unless state?
 

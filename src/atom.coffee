@@ -43,11 +43,11 @@ class Atom extends Model
   @loadOrCreate: (mode) ->
     @deserialize(@loadState(mode)) ? new this({mode, version: @getVersion()})
 
-  # Private: Deserializes the Atom environment from a state object
+  # Deserializes the Atom environment from a state object
   @deserialize: (state) ->
     new this(state) if state?.version is @getVersion()
 
-  # Private: Loads and returns the serialized state corresponding to this window
+  # Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
   @loadState: (mode) ->
     statePath = @getStatePath(mode)
@@ -65,7 +65,7 @@ class Atom extends Model
     catch error
       console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
-  # Private: Returns the path where the state for the current window will be
+  # Returns the path where the state for the current window will be
   # located if it exists.
   @getStatePath: (mode) ->
     switch mode
@@ -82,19 +82,19 @@ class Atom extends Model
     else
       null
 
-  # Private: Get the directory path to Atom's configuration area.
+  # Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to ~/.atom
   @getConfigDirPath: ->
     @configDirPath ?= fs.absolute('~/.atom')
 
-  # Private: Get the path to Atom's storage directory.
+  # Get the path to Atom's storage directory.
   #
   # Returns the absolute path to ~/.atom/storage
   @getStorageDirPath: ->
     @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
 
-  # Private: Returns the load settings hash associated with the current window.
+  # Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
     @loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14)))
     cloned = _.deepClone(@loadSettings)
@@ -105,21 +105,20 @@ class Atom extends Model
       @getCurrentWindow().loadSettings.windowState = value
     cloned
 
-  # Private:
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  # Private: Get the version of the Atom application.
+  # Get the version of the Atom application.
   @getVersion: ->
     @version ?= @getLoadSettings().appVersion
 
-  # Private: Determine whether the current version is an official release.
+  # Determine whether the current version is an official release.
   @isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
   workspaceViewParentSelector: 'body'
 
-  # Private: Call .loadOrCreate instead
+  # Call .loadOrCreate instead
   constructor: (@state) ->
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
@@ -175,7 +174,6 @@ class Atom extends Model
   # Deprecated: Callers should be converted to use atom.deserializers
   registerRepresentationClasses: ->
 
-  # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
@@ -211,7 +209,6 @@ class Atom extends Model
     else
       @center()
 
-  # Private:
   restoreWindowDimensions: ->
     workAreaSize = screen.getPrimaryDisplay().workAreaSize
     windowDimensions = @state.windowDimensions ? {}
@@ -220,7 +217,6 @@ class Atom extends Model
     windowDimensions.width ?= initialSize?.width ? Math.min(workAreaSize.width, 1024)
     @setWindowDimensions(windowDimensions)
 
-  # Private:
   storeWindowDimensions: ->
     @state.windowDimensions = @getWindowDimensions()
 
@@ -230,12 +226,10 @@ class Atom extends Model
   getLoadSettings: ->
     @constructor.getLoadSettings()
 
-  # Private:
   deserializeProject: ->
     Project = require './project'
     @project ?= @deserializers.deserialize(@project) ? new Project(path: @getLoadSettings().initialPath)
 
-  # Private:
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
     WorkspaceView = require './workspace-view'
@@ -243,18 +237,16 @@ class Atom extends Model
     @workspaceView = new WorkspaceView(@workspace)
     $(@workspaceViewParentSelector).append(@workspaceView)
 
-  # Private:
   deserializePackageStates: ->
     @packages.packageStates = @state.packageStates ? {}
     delete @state.packageStates
 
-  # Private:
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspaceView()
 
-  # Private: Call this method when establishing a real application window.
+  # Call this method when establishing a real application window.
   startEditorWindow: ->
     CommandInstaller = require './command-installer'
     resourcePath = atom.getLoadSettings().resourcePath
@@ -283,7 +275,6 @@ class Atom extends Model
 
     @displayWindow()
 
-  # Private:
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
@@ -299,11 +290,9 @@ class Atom extends Model
     @keymap.destroy()
     @windowState = null
 
-  # Private:
   loadThemes: ->
     @themes.load()
 
-  # Private:
   watchThemes: ->
     @themes.on 'reloaded', =>
       # Only reload stylesheets from non-theme packages
@@ -361,11 +350,9 @@ class Atom extends Model
       callback = buttons[buttonLabels[chosen]]
       callback?()
 
-  # Private:
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
 
-  # Private:
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
@@ -409,7 +396,7 @@ class Atom extends Model
   center: ->
     ipc.sendChannel('call-window-method', 'center')
 
-  # Private: Schedule the window to be shown and focused on the next tick.
+  # Schedule the window to be shown and focused on the next tick.
   #
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
@@ -423,7 +410,6 @@ class Atom extends Model
   close: ->
     @getCurrentWindow().close()
 
-  # Private:
   exit: (status) ->
     app = remote.require('app')
     app.exit(status)
@@ -473,7 +459,6 @@ class Atom extends Model
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 
-  # Private:
   saveSync: ->
     stateString = JSON.stringify(@state)
     if statePath = @constructor.getStatePath(@mode)
@@ -491,11 +476,9 @@ class Atom extends Model
   getWindowLoadTime: ->
     @loadTime
 
-  # Private:
   crashMainProcess: ->
     remote.process.crash()
 
-  # Private:
   crashRenderProcess: ->
     process.crash()
 
@@ -504,7 +487,6 @@ class Atom extends Model
     shell.beep() if @config.get('core.audioBeep')
     @workspaceView.trigger 'beep'
 
-  # Private:
   requireUserInitScript: ->
     if userInitScriptPath = fs.resolve(@getConfigDirPath(), 'user', ['js', 'coffee'])
       try

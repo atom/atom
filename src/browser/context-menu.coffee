@@ -8,7 +8,7 @@ class ContextMenu
     menu = Menu.buildFromTemplate(template)
     menu.popup(browserWindow)
 
-  # Private: It's necessary to build the event handlers in this process, otherwise
+  # It's necessary to build the event handlers in this process, otherwise
   # closures are drug across processes and failed to be garbage collected
   # appropriately.
   createClickHandlers: (template) ->

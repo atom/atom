@@ -134,18 +134,16 @@ class Directory
       async.eachLimit entries, 1, statEntry, ->
         callback(null, directories.concat(files))
 
-  # Private:
   subscribeToNativeChangeEvents: ->
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType) =>
         @emit "contents-changed" if eventType is "change"
 
-  # Private:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null
 
-  # Private: Does given full path start with the given prefix?
+  # Does given full path start with the given prefix?
   isPathPrefixOf: (prefix, fullPath) ->
     fullPath.indexOf(prefix) is 0 and fullPath[prefix.length] is path.sep

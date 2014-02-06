@@ -9,7 +9,6 @@ remote = require 'remote'
 # global.
 module.exports =
 class ContextMenuManager
-  # Private:
   constructor: (@devMode=false) ->
     @definitions = {}
     @devModeDefinitions = {}
@@ -37,7 +36,7 @@ class ContextMenuManager
       for label, command of items
         @addBySelector(selector, {label, command}, {devMode})
 
-  # Private: Registers a command to be displayed when the relevant item is right
+  # Registers a command to be displayed when the relevant item is right
   # clicked.
   #
   # * selector: The css selector for the active element which should include
@@ -50,7 +49,7 @@ class ContextMenuManager
     definitions = if devMode then @devModeDefinitions else @definitions
     (definitions[selector] ?= []).push(definition)
 
-  # Private: Returns definitions which match the element and devMode.
+  # Returns definitions which match the element and devMode.
   definitionsForElement: (element, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
     matchedDefinitions = []
@@ -59,7 +58,7 @@ class ContextMenuManager
 
     matchedDefinitions
 
-  # Private: Used to generate the context menu for a specific element and it's
+  # Used to generate the context menu for a specific element and it's
   # parents.
   #
   # The menu items are sorted such that menu items that match closest to the
@@ -74,7 +73,7 @@ class ContextMenuManager
     else
       menuTemplate
 
-  # Private: Returns a menu template for both normal entries as well as
+  # Returns a menu template for both normal entries as well as
   # development mode entries.
   combinedMenuTemplateForElement: (element) ->
     normalItems = @menuTemplateForMostSpecificElement(element)
@@ -84,7 +83,7 @@ class ContextMenuManager
     menuTemplate.push({ type: 'separator' }) if normalItems.length > 0 and devItems.length > 0
     menuTemplate.concat(devItems)
 
-  # Private: Executes `executeAtBuild` if defined for each menu item with
+  # Executes `executeAtBuild` if defined for each menu item with
   # the provided event and then removes the `executeAtBuild` property from
   # the menu item.
   #

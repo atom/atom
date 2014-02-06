@@ -41,7 +41,7 @@ class ThemeManager
 
   activatePackages: (themePackages) -> @activateThemes()
 
-  # Private: Get the enabled theme names from the config.
+  # Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->

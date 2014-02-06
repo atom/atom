@@ -97,7 +97,6 @@ class Editor extends Model
     params.registerEditor = true
     params
 
-  # Private:
   subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
@@ -111,7 +110,6 @@ class Editor extends Model
     @subscribe @buffer, "destroyed", => @destroy()
     @preserveCursorPositionOnBufferReload()
 
-  # Private:
   subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
@@ -119,11 +117,9 @@ class Editor extends Model
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
-  # Private:
   getViewClass: ->
     require './editor-view'
 
-  # Private:
   destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
@@ -132,7 +128,7 @@ class Editor extends Model
     @languageMode.destroy()
     atom.project?.removeEditor(this)
 
-  # Private: Creates an {Editor} with the same initial state
+  # Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
@@ -295,7 +291,7 @@ class Editor extends Model
     else
       0
 
-  # Private: Constructs the string used for tabs.
+  # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @getSoftTabs()
       _.multiplyString(" ", number * @getTabLength())
@@ -326,7 +322,7 @@ class Editor extends Model
   # Public: Returns a {Number} representing the number of lines in the editor.
   getLineCount: -> @buffer.getLineCount()
 
-  # Private: Retrieves the current {TextBuffer}.
+  # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
   # Public: Retrieves the current buffer's URI.
@@ -737,11 +733,9 @@ class Editor extends Model
       @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
       @foldCurrentRow() if cursorRowFolded
 
-  # Private:
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
-  # Private:
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
@@ -1091,7 +1085,6 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
-  # Internal: Executes given function on all local cursors.
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
@@ -1291,7 +1284,7 @@ class Editor extends Model
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()
 
-  # Private: Merges intersecting selections. If passed a function, it executes
+  # Merges intersecting selections. If passed a function, it executes
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->
@@ -1315,7 +1308,6 @@ class Editor extends Model
 
     _.reduce(@getSelections(), reducer, [])
 
-  # Private:
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
     @subscribe @buffer, "will-reload", =>
@@ -1336,7 +1328,6 @@ class Editor extends Model
   reloadGrammar: ->
     @displayBuffer.reloadGrammar()
 
-  # Private:
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
 
@@ -1347,32 +1338,24 @@ class Editor extends Model
   # undo stack remains relevant.
   transact: (fn) -> @buffer.transact(fn)
 
-  # Private:
   beginTransaction: -> @buffer.beginTransaction()
 
-  # Private:
   commitTransaction: -> @buffer.commitTransaction()
 
-  # Private:
   abortTransaction: -> @buffer.abortTransaction()
 
-  # Private:
   inspect: ->
     "<Editor #{@id}>"
 
-  # Private:
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  # Private:
   handleGrammarChange: ->
     @unfoldAll()
     @emit 'grammar-changed'
 
-  # Private:
   handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
 
-  # Private:
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'

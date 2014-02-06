@@ -11,7 +11,6 @@ Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
 ConfigObserver = require './config-observer'
 
-# Private:
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
@@ -81,8 +80,6 @@ class DisplayBuffer extends Model
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @emitChanged({ start, end, screenDelta, bufferDelta })
-
-  ### Public ###
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -419,8 +416,6 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  ### Public ###
-
   # Given a line, finds the point where it would wrap.
   #
   # line - The {String} to check
@@ -579,8 +574,6 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @lineForRow(row).text
       console.log row, line, line.length
-
-  ### Internal ###
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
