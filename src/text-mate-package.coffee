@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 async = require 'async'
+Q = require 'q'
 
 ### Internal ###
 
@@ -12,13 +13,19 @@ class TextMatePackage extends Package
     packageName = path.basename(packageName)
     /(^language-.+)|((\.|_|-)tmbundle$)/.test(packageName)
 
-  @getActivationQueue: ->
-    return @activationQueue if @activationQueue?
-    @activationQueue = async.queue (pack, done) ->
-      pack.loadGrammars ->
-        pack.loadScopedProperties(done)
+  @addPackageToActivationQueue: (pack)->
+    @activationQueue ?= []
+    @activationQueue.push(pack)
+    @activateNextPacakageInQueue() if @activationQueue.length == 1
 
-    @activationQueue
+  @activateNextPacakageInQueue: ->
+    if pack = @activationQueue[0]
+      pack.loadGrammars()
+        .then ->
+          pack.loadScopedProperties()
+        .then ->
+          @activationQueue.shift()
+          @activateNextPacakageInQueue()
 
   constructor: ->
     super
@@ -32,12 +39,12 @@ class TextMatePackage extends Package
     @measure 'loadTime', =>
       @metadata = Package.loadMetadata(@path, true)
 
-  activate: ({sync}={})->
-    if sync
+  activate: ({sync, immediate}={})->
+    if sync or immediate
       @loadGrammarsSync()
       @loadScopedPropertiesSync()
     else
-      TextMatePackage.getActivationQueue().push(this)
+      TextMatePackage.addPackageToActivationQueue(this)
 
   activateConfig: -> # noop
 
@@ -47,29 +54,27 @@ class TextMatePackage extends Package
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json', 'cson']
 
-  loadGrammars: (done) ->
+  loadGrammars: ->
+    deferred = Q.defer()
     fs.isDirectory @getSyntaxesPath(), (isDirectory) =>
-      if isDirectory
-        fs.list @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
-          if error?
-            console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
-            done()
-          else
-            async.eachSeries(paths, @loadGrammarAtPath, done)
-      else
-        done()
+      return deferred.resolve() unless isDirectory
+
+      fs.list @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
+        if error?
+          console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
+          deferred.resolve()
+        else
+          promise = Q()
+          promise = promise.then(=> @loadGrammarAtPath(path)) for path in paths
+
+    deferred.promise
 
   loadGrammarAtPath: (grammarPath, done) =>
-    atom.syntax.readGrammar grammarPath, (error, grammar) =>
-      if error?
-        console.log("Error loading grammar at path '#{grammarPath}':", error.stack ? error)
-      else
+    Q.nfcall(atom.syntax.readGrammar, grammarPath)
+      .then (grammar) ->
         @addGrammar(grammar)
-        done?()
-
-  loadGrammarsSync: ->
-    for grammarPath in fs.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
-      @addGrammar(atom.syntax.readGrammarSync(grammarPath))
+      .fail (error) ->
+        console.log("Error loading grammar at path '#{grammarPath}':", error.stack ? error)
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
@@ -90,22 +95,6 @@ class TextMatePackage extends Package
       preferencesPath
     else
       path.join(@path, "Preferences")
-
-  loadScopedPropertiesSync: ->
-    for grammar in @getGrammars()
-      if properties = @propertiesFromTextMateSettings(grammar)
-        selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
-        @scopedProperties.push({selector, properties})
-
-    for preferencePath in fs.listSync(@getPreferencesPath())
-      {scope, settings} = fs.readObjectSync(preferencePath)
-      if properties = @propertiesFromTextMateSettings(settings)
-        selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
-        @scopedProperties.push({selector, properties})
-
-    if @isActive()
-      for {selector, properties} in @scopedProperties
-        atom.syntax.addProperties(@path, selector, properties)
 
   loadScopedProperties: (callback) ->
     scopedProperties = []
@@ -164,3 +153,25 @@ class TextMatePackage extends Package
       completions: textMateSettings.completions
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
+
+  # Deprecated
+  loadGrammarsSync: ->
+    for grammarPath in fs.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
+      @addGrammar(atom.syntax.readGrammarSync(grammarPath))
+
+  # Deprecated
+  loadScopedPropertiesSync: ->
+    for grammar in @getGrammars()
+      if properties = @propertiesFromTextMateSettings(grammar)
+        selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
+        @scopedProperties.push({selector, properties})
+
+    for preferencePath in fs.listSync(@getPreferencesPath())
+      {scope, settings} = fs.readObjectSync(preferencePath)
+      if properties = @propertiesFromTextMateSettings(settings)
+        selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
+        @scopedProperties.push({selector, properties})
+
+    if @isActive()
+      for {selector, properties} in @scopedProperties
+        atom.syntax.addProperties(@path, selector, properties)
