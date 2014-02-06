@@ -11,7 +11,6 @@ module.exports = (grunt) ->
 
       stats = fs.lstatSync(sourcePath)
       if stats.isSymbolicLink()
-        console.log sourcePath, destinationPath
         grunt.file.mkdir(path.dirname(destinationPath))
         fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
       else if stats.isFile()
