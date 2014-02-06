@@ -23,9 +23,9 @@ class Package
 
     pack
 
-  @load: (path, options) ->
+  @load: (path) ->
     pack = @build(path)
-    pack?.load(options)
+    pack?.load()
     pack
 
   @loadMetadata: (path, ignoreErrors=false) ->

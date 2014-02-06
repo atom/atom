@@ -87,7 +87,7 @@ class PackageManager
   # Private: Activate a single package by name
   activatePackage: (name, options) ->
     return pack if pack = @getActivePackage(name)
-    if pack = @loadPackage(name, options)
+    if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
       pack.activate(options)
       pack
@@ -139,7 +139,7 @@ class PackageManager
     @observingDisabledPackages = true
 
   # Private:
-  loadPackages: (options) ->
+  loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
@@ -147,16 +147,16 @@ class PackageManager
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
-    @loadPackage(packagePath, options) for packagePath in packagePaths
+    @loadPackage(packagePath) for packagePath in packagePaths
     @emit 'loaded'
 
   # Private:
-  loadPackage: (nameOrPath, options) ->
+  loadPackage: (nameOrPath) ->
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
       return pack if pack = @getLoadedPackage(name)
 
-      pack = Package.load(packagePath, options)
+      pack = Package.load(packagePath)
       @loadedPackages[pack.name] = pack if pack?
       pack
     else

@@ -12,13 +12,13 @@ class TextMatePackage extends Package
     packageName = path.basename(packageName)
     /(^language-.+)|((\.|_|-)tmbundle$)/.test(packageName)
 
-  @getLoadQueue: ->
-    return @loadQueue if @loadQueue
-    @loadQueue = async.queue (pack, done) ->
+  @getActivationQueue: ->
+    return @activationQueue if @activationQueue?
+    @activationQueue = async.queue (pack, done) ->
       pack.loadGrammars ->
         pack.loadScopedProperties(done)
 
-    @loadQueue
+    @activationQueue
 
   constructor: ->
     super
@@ -28,21 +28,16 @@ class TextMatePackage extends Package
 
   getType: -> 'textmate'
 
-  load: ({sync}={}) ->
+  load: ->
     @measure 'loadTime', =>
       @metadata = Package.loadMetadata(@path, true)
 
-      if sync
-        @loadGrammarsSync()
-        @loadScopedPropertiesSync()
-      else
-        TextMatePackage.getLoadQueue().push(this)
-
-  activate: ->
-    @measure 'activateTime', =>
-      grammar.activate() for grammar in @grammars
-      for { selector, properties } in @scopedProperties
-        atom.syntax.addProperties(@path, selector, properties)
+  activate: ({sync}={})->
+    if sync
+      @loadGrammarsSync()
+      @loadScopedPropertiesSync()
+    else
+      TextMatePackage.getActivationQueue().push(this)
 
   activateConfig: -> # noop
 
