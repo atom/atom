@@ -37,7 +37,6 @@ class Config
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
-  # Private:
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)
 
@@ -54,13 +53,11 @@ class Config
       queue.push({sourcePath, destinationPath})
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-  # Private:
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
     @observeUserConfig()
 
-  # Private:
   loadUserConfig: ->
     unless fs.existsSync(@configFilePath)
       fs.makeTreeSync(path.dirname(@configFilePath))
@@ -76,17 +73,14 @@ class Config
       console.error "Failed to load user config '#{@configFilePath}'", e.message
       console.error e.stack
 
-  # Private:
   observeUserConfig: ->
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
       @loadUserConfig() if eventType is 'change' and @watchSubscription?
 
-  # Private:
   unobserveUserConfig: ->
     @watchSubscription?.close()
     @watchSubscription = null
 
-  # Private:
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
@@ -229,12 +223,10 @@ class Config
   unobserve: (keyPath) ->
     @off("updated.#{keyPath.replace(/\./, '-')}")
 
-  # Private:
   update: ->
     return if @configFileHasErrors
     @save()
     @emit 'updated'
 
-  # Private:
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)

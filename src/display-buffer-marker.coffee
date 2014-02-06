@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
 
-# Private:
 module.exports =
 class DisplayBufferMarker
   Emitter.includeInto(this)

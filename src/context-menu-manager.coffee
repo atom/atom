@@ -9,7 +9,6 @@ remote = require 'remote'
 # global.
 module.exports =
 class ContextMenuManager
-  # Private:
   constructor: (@devMode=false) ->
     @definitions = {}
     @devModeDefinitions = {}

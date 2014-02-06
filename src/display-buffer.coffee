@@ -11,7 +11,6 @@ Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
 ConfigObserver = require './config-observer'
 
-# Private:
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)

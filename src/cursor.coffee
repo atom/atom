@@ -45,11 +45,9 @@ class Cursor
       @emit 'destroyed'
     @needsAutoscroll = true
 
-  # Private:
   destroy: ->
     @marker.destroy()
 
-  # Private:
   changePosition: (options, fn) ->
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()

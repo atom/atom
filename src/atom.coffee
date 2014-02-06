@@ -105,7 +105,6 @@ class Atom extends Model
       @getCurrentWindow().loadSettings.windowState = value
     cloned
 
-  # Private:
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
@@ -175,7 +174,6 @@ class Atom extends Model
   # Deprecated: Callers should be converted to use atom.deserializers
   registerRepresentationClasses: ->
 
-  # Private:
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
@@ -211,7 +209,6 @@ class Atom extends Model
     else
       @center()
 
-  # Private:
   restoreWindowDimensions: ->
     workAreaSize = screen.getPrimaryDisplay().workAreaSize
     windowDimensions = @state.windowDimensions ? {}
@@ -220,7 +217,6 @@ class Atom extends Model
     windowDimensions.width ?= initialSize?.width ? Math.min(workAreaSize.width, 1024)
     @setWindowDimensions(windowDimensions)
 
-  # Private:
   storeWindowDimensions: ->
     @state.windowDimensions = @getWindowDimensions()
 
@@ -230,12 +226,10 @@ class Atom extends Model
   getLoadSettings: ->
     @constructor.getLoadSettings()
 
-  # Private:
   deserializeProject: ->
     Project = require './project'
     @project ?= @deserializers.deserialize(@project) ? new Project(path: @getLoadSettings().initialPath)
 
-  # Private:
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
     WorkspaceView = require './workspace-view'
@@ -243,12 +237,10 @@ class Atom extends Model
     @workspaceView = new WorkspaceView(@workspace)
     $(@workspaceViewParentSelector).append(@workspaceView)
 
-  # Private:
   deserializePackageStates: ->
     @packages.packageStates = @state.packageStates ? {}
     delete @state.packageStates
 
-  # Private:
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
@@ -283,7 +275,6 @@ class Atom extends Model
 
     @displayWindow()
 
-  # Private:
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
@@ -299,11 +290,9 @@ class Atom extends Model
     @keymap.destroy()
     @windowState = null
 
-  # Private:
   loadThemes: ->
     @themes.load()
 
-  # Private:
   watchThemes: ->
     @themes.on 'reloaded', =>
       # Only reload stylesheets from non-theme packages
@@ -361,11 +350,9 @@ class Atom extends Model
       callback = buttons[buttonLabels[chosen]]
       callback?()
 
-  # Private:
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
 
-  # Private:
   showSaveDialogSync: (defaultPath) ->
     defaultPath ?= @project?.getPath()
     currentWindow = @getCurrentWindow()
@@ -423,7 +410,6 @@ class Atom extends Model
   close: ->
     @getCurrentWindow().close()
 
-  # Private:
   exit: (status) ->
     app = remote.require('app')
     app.exit(status)
@@ -473,7 +459,6 @@ class Atom extends Model
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 
-  # Private:
   saveSync: ->
     stateString = JSON.stringify(@state)
     if statePath = @constructor.getStatePath(@mode)
@@ -491,11 +476,9 @@ class Atom extends Model
   getWindowLoadTime: ->
     @loadTime
 
-  # Private:
   crashMainProcess: ->
     remote.process.crash()
 
-  # Private:
   crashRenderProcess: ->
     process.crash()
 
@@ -504,7 +487,6 @@ class Atom extends Model
     shell.beep() if @config.get('core.audioBeep')
     @workspaceView.trigger 'beep'
 
-  # Private:
   requireUserInitScript: ->
     if userInitScriptPath = fs.resolve(@getConfigDirPath(), 'user', ['js', 'coffee'])
       try
