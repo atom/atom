@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Emitter} = require 'emissary'
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
@@ -9,12 +9,10 @@ RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
-ConfigObserver = require './config-observer'
 
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
-  ConfigObserver.includeInto(this)
 
   @properties
     softWrap: null
@@ -38,10 +36,10 @@ class DisplayBuffer extends Model
       @emit 'soft-wrap-changed', softWrap
       @updateWrappedScreenLines()
 
-    @observeConfig 'editor.preferredLineLength', callNow: false, =>
+    @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
 
-    @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
+    @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap
 
   serializeParams: ->
@@ -568,7 +566,6 @@ class DisplayBuffer extends Model
     marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
-    @unobserveConfig()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

@@ -11,35 +11,6 @@ describe "SpacePen extensions", ->
     parent = $$ -> @div()
     parent.append(view)
 
-  describe "View.observeConfig(keyPath, callback)", ->
-    observeHandler = null
-
-    beforeEach ->
-      observeHandler = jasmine.createSpy("observeHandler")
-      view.observeConfig "foo.bar", observeHandler
-      expect(view.hasParent()).toBeTruthy()
-
-    it "observes the keyPath and cancels the subscription when `.unobserveConfig()` is called", ->
-      expect(observeHandler).toHaveBeenCalledWith(undefined)
-      observeHandler.reset()
-
-      atom.config.set("foo.bar", "hello")
-
-      expect(observeHandler).toHaveBeenCalledWith("hello", previous: undefined)
-      observeHandler.reset()
-
-      view.unobserveConfig()
-
-      atom.config.set("foo.bar", "goodbye")
-
-      expect(observeHandler).not.toHaveBeenCalled()
-
-    it "unobserves when the view is removed", ->
-      observeHandler.reset()
-      parent.remove()
-      atom.config.set("foo.bar", "hello")
-      expect(observeHandler).not.toHaveBeenCalled()
-
   describe "View.subscribe(eventEmitter, eventName, callback)", ->
     [emitter, eventHandler] = []
 
