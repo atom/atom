@@ -118,7 +118,6 @@ class File
   exists: ->
     fs.existsSync(@getPath())
 
-  # Private:
   setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
 
@@ -126,7 +125,6 @@ class File
   getDigest: ->
     @digest ? @setDigest(@readSync())
 
-  # Private:
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
@@ -139,11 +137,9 @@ class File
       @read(true).done (newContents) =>
         @emit 'contents-changed' unless oldContents == newContents
 
-  # Private:
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
 
-  # Private:
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
@@ -152,13 +148,11 @@ class File
       @cachedContents = null
       @emit "removed"
 
-  # Private:
   subscribeToNativeChangeEvents: ->
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
         @handleNativeChangeEvent(eventType, path)
 
-  # Private:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()

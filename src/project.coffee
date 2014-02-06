@@ -63,19 +63,16 @@ class Project extends Model
   # Public: Remove a previously registered opener.
   unregisterOpener: (opener) -> _.remove(@openers, opener)
 
-  # Private:
   destroyed: ->
     editor.destroy() for editor in @getEditors()
     buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
-  # Private:
   destroyRepo: ->
     if @repo?
       @repo.destroy()
       @repo = null
 
-  # Private:
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
 
@@ -187,7 +184,6 @@ class Project extends Model
   isPathModified: (filePath) ->
     @findBufferForPath(@resolve(filePath))?.isModified()
 
-  # Private:
   findBufferForPath: (filePath) ->
    _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
@@ -210,7 +206,6 @@ class Project extends Model
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
-  # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
@@ -234,12 +229,10 @@ class Project extends Model
       .then((buffer) -> buffer)
       .catch(=> @removeBuffer(buffer))
 
-  # Private:
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
     buffer.once 'destroyed', => @removeBuffer(buffer)
 
-  # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     buffer.once 'destroyed', => @removeBuffer(buffer)
@@ -253,7 +246,6 @@ class Project extends Model
     index = @buffers.indexOf(buffer)
     @removeBufferAtIndex(index) unless index is -1
 
-  # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
@@ -339,18 +331,15 @@ class Project extends Model
 
     deferred.promise
 
-  # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new Editor(_.extend({buffer}, editorOptions))
     @addEditor(editor)
     editor
 
-  # Private:
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor-created', (editor) -> callback(editor)
 
-  # Private:
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()

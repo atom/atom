@@ -14,7 +14,6 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  # Private:
   constructor: ({@cursor, @marker, @editor}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
@@ -23,18 +22,15 @@ class Selection
       @editor.removeSelection(this)
       @emit 'destroyed' unless @editor.isDestroyed()
 
-  # Private:
   destroy: ->
     @marker.destroy()
 
-  # Private:
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
     if @isEmpty()
       @wordwise = false
       @linewise = false
 
-  # Private:
   clearAutoscroll: ->
     @needsAutoscroll = null
 
@@ -600,7 +596,6 @@ class Selection
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  # Private:
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange

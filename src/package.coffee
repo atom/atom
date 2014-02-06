@@ -55,7 +55,6 @@ class Package
   isTheme: ->
     @metadata?.theme?
 
-  # Private:
   measure: (key, fn) ->
     startTime = Date.now()
     value = fn()

@@ -23,7 +23,6 @@ module.exports =
 class PackageManager
   Emitter.includeInto(this)
 
-  # Private:
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]
     if devMode
@@ -47,11 +46,9 @@ class PackageManager
   getPackageDirPaths: ->
     _.clone(@packageDirPaths)
 
-  # Private:
   getPackageState: (name) ->
     @packageStates[name]
 
-  # Private:
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
@@ -79,7 +76,6 @@ class PackageManager
   registerPackageActivator: (activator, types) ->
     @packageActivators.push([activator, types])
 
-  # Private:
   activatePackages: (packages) ->
     @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
@@ -118,13 +114,11 @@ class PackageManager
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
-  # Private:
   unobserveDisabledPackages: ->
     return unless @observingDisabledPackages
     atom.config.unobserve('core.disabledPackages')
     @observingDisabledPackages = false
 
-  # Private:
   observeDisabledPackages: ->
     return if @observingDisabledPackages
 
@@ -138,7 +132,6 @@ class PackageManager
 
     @observingDisabledPackages = true
 
-  # Private:
   loadPackages: (options) ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
@@ -150,7 +143,6 @@ class PackageManager
     @loadPackage(packagePath, options) for packagePath in packagePaths
     @emit 'loaded'
 
-  # Private:
   loadPackage: (nameOrPath, options) ->
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
@@ -162,12 +154,10 @@ class PackageManager
     else
       throw new Error("Could not resolve '#{nameOrPath}' to a package path")
 
-  # Private:
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
     null
 
-  # Private:
   unloadPackage: (name) ->
     if @isPackageActive(name)
       throw new Error("Tried to unload active package '#{name}'")
@@ -209,7 +199,6 @@ class PackageManager
   isPackageDisabled: (name) ->
     _.include(atom.config.get('core.disabledPackages') ? [], name)
 
-  # Private:
   hasAtomEngine: (packagePath) ->
     metadata = Package.loadMetadata(packagePath, true)
     metadata?.engines?.atom?
@@ -218,7 +207,6 @@ class PackageManager
   isBundledPackage: (name) ->
     @getPackageDependencies().hasOwnProperty(name)
 
-  # Private:
   getPackageDependencies: ->
     unless @packageDependencies?
       try

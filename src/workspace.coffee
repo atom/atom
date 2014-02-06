@@ -24,7 +24,6 @@ class Workspace extends Model
     fullScreen: false
     destroyedItemUris: -> []
 
-  # Private:
   constructor: ->
     super
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed

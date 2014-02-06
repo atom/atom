@@ -27,7 +27,6 @@ class Pane extends Model
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 
-  # Private:
   constructor: (params) ->
     super
 
@@ -78,7 +77,6 @@ class Pane extends Model
     @container?.activePane = this
     @emit 'activated'
 
-  # Private:
   getPanes: -> [this]
 
   # Public: Get the items in this pane.
@@ -153,7 +151,6 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  # Private:
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     return if index is -1
@@ -281,7 +278,6 @@ class Pane extends Model
     else
       false
 
-  # Private:
   copyActiveItem: ->
     if @activeItem?
       @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
@@ -322,7 +318,6 @@ class Pane extends Model
   splitDown: (params) ->
     @split('vertical', 'after', params)
 
-  # Private:
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))

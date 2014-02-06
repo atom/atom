@@ -13,7 +13,6 @@ module.exports =
 class MenuManager
   pendingUpdateOperation: null
 
-  # Private:
   constructor: ({@resourcePath}) ->
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
@@ -59,7 +58,6 @@ class MenuManager
         keystrokesByCommand[binding.command].push binding.keystroke
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
-  # Private:
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
@@ -89,12 +87,10 @@ class MenuManager
         filtered[key].push(binding)
     filtered
 
-  # Private:
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
 
-  # Private:
   normalizeLabel: (label) ->
     return undefined unless label?
 

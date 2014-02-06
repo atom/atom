@@ -66,14 +66,12 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: false
 
-  # Private:
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
       @div class: 'horizontal', outlet: 'horizontal', =>
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
-  # Private:
   initialize: (@model) ->
     @model ?= new Workspace
 
@@ -158,7 +156,6 @@ class WorkspaceView extends View
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  # Private:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -173,7 +170,6 @@ class WorkspaceView extends View
         $(document.body).focus()
         true
 
-  # Private:
   afterAttach: (onDom) ->
     @focus() if onDom
 

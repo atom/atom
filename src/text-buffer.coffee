@@ -40,7 +40,6 @@ class TextBuffer extends TextBufferCore
 
     @load() if loadWhenAttached
 
-  # Private:
   serializeParams: ->
     params = super
     _.extend params,
@@ -48,7 +47,6 @@ class TextBuffer extends TextBufferCore
       modifiedWhenLastPersisted: @isModified()
       digestWhenLastPersisted: @file?.getDigest()
 
-  # Private:
   deserializeParams: (params) ->
     params = super(params)
     params.loadWhenAttached = true
