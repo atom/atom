@@ -465,7 +465,7 @@ class DisplayBuffer extends Model
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # Constructs a new marker at the given screen range.
+  # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -475,7 +475,7 @@ class DisplayBuffer extends Model
     bufferRange = @bufferRangeForScreenRange(args.shift())
     @markBufferRange(bufferRange, args...)
 
-  # Constructs a new marker at the given buffer range.
+  # Public: Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -484,7 +484,7 @@ class DisplayBuffer extends Model
   markBufferRange: (args...) ->
     @getMarker(@buffer.markRange(args...).id)
 
-  # Constructs a new marker at the given screen position.
+  # Public: Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -493,7 +493,7 @@ class DisplayBuffer extends Model
   markScreenPosition: (screenPosition, options) ->
     @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
 
-  # Constructs a new marker at the given buffer position.
+  # Public: Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -502,7 +502,7 @@ class DisplayBuffer extends Model
   markBufferPosition: (bufferPosition, options) ->
     @getMarker(@buffer.markPosition(bufferPosition, options).id)
 
-  # Removes the marker with the given id.
+  # Public: Removes the marker with the given id.
   #
   # id - The {Number} of the ID to remove
   destroyMarker: (id) ->
