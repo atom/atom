@@ -10,12 +10,12 @@ pathWatcher = require 'pathwatcher'
 #
 # An instance of this class is always available as the `atom.config` global.
 #
-# ### Best practices
+# ## Best practices
 #
 # * Create your own root keypath using your package's name.
 # * Don't depend on (or write to) configuration keys outside of your keypath.
 #
-# ### Example
+# ## Example
 #
 # ```coffeescript
 # atom.config.set('myplugin.key', 'value')
