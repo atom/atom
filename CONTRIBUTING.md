@@ -61,3 +61,11 @@ in the proper package's repository.
 
 * Set parameter defaults without spaces around the equal sign
   * `clear = (count=1) ->` instead of `clear = (count = 1) ->`
+
+## Documentation Styleguide
+
+* Use [TomDoc](http://tomdoc.org/).
+* Use [Markdown](https://daringfireball.net/projects/markdown/).
+* Reference classes with `{ClassName}` style notation.
+* Delegate to comments elsewhere with `{Delegates to: ClassName.methodName}`
+  style notation.
