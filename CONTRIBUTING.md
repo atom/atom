@@ -82,8 +82,11 @@ in the proper package's repository.
 # * `package-disabled`         - after the package is disabled.
 #
 # name     - The {String} name of the package to disable.
+# options  - The {Object} with disable options (default: {}):
+#   :trackTime - `true` to track the amount of time disabling took.
+#   :ignoreErrors - `true` to catch and ignore errors thrown.
 # callback - The {Function} to call after the package has been disabled.
 #
 # Returns `undefined`.
-disablePackage: (name, delay, callback) ->
+disablePackage: (name, options, callback) ->
 ```
