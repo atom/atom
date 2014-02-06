@@ -132,7 +132,7 @@ class Editor extends Model
     @languageMode.destroy()
     atom.project?.removeEditor(this)
 
-  # Private: Creates an {Editor} with the same initial state
+  # Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
@@ -295,7 +295,7 @@ class Editor extends Model
     else
       0
 
-  # Private: Constructs the string used for tabs.
+  # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @getSoftTabs()
       _.multiplyString(" ", number * @getTabLength())
@@ -326,7 +326,7 @@ class Editor extends Model
   # Public: Returns a {Number} representing the number of lines in the editor.
   getLineCount: -> @buffer.getLineCount()
 
-  # Private: Retrieves the current {TextBuffer}.
+  # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
   # Public: Retrieves the current buffer's URI.
@@ -1291,7 +1291,7 @@ class Editor extends Model
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()
 
-  # Private: Merges intersecting selections. If passed a function, it executes
+  # Merges intersecting selections. If passed a function, it executes
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->

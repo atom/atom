@@ -68,7 +68,7 @@ class BufferedProcess
         processExited = true
         triggerExitCallback()
 
-  # Private: Helper method to pass data line by line.
+  # Helper method to pass data line by line.
   #
   # * stream:
   #   The Stream to read from.

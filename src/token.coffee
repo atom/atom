@@ -12,7 +12,7 @@ WhitespaceRegex = /\S/
 
 MaxTokenLength = 20000
 
-# Private: Represents a single unit of text as selected by a grammar.
+# Represents a single unit of text as selected by a grammar.
 module.exports =
 class Token
   value: null

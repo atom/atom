@@ -34,7 +34,7 @@ class File
 
     @handleEventSubscriptions()
 
-  # Private: Subscribes to file system notifications when necessary.
+  # Subscribes to file system notifications when necessary.
   handleEventSubscriptions: ->
     eventNames = ['contents-changed', 'moved', 'removed']
 
@@ -49,7 +49,7 @@ class File
       subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
       @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
-  # Private: Sets the path for the file.
+  # Sets the path for the file.
   setPath: (@path) ->
 
   # Public: Returns the path for the file.
@@ -66,7 +66,7 @@ class File
     fs.writeFileSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @hasSubscriptions()
 
-  # Private: Deprecated
+  # Deprecated
   readSync: (flushCache) ->
     if not @exists()
       @cachedContents = null

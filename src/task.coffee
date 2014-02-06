@@ -73,7 +73,7 @@ class Task
 
     @handleEvents()
 
-  # Private: Routes messages from the child to the appropriate event.
+  # Routes messages from the child to the appropriate event.
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>

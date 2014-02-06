@@ -2,7 +2,7 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
-# Private: Represents the portion of the {EditorView} containing row numbers.
+# Represents the portion of the {EditorView} containing row numbers.
 #
 # The gutter also indicates if rows are folded.
 module.exports =
@@ -223,7 +223,7 @@ class GutterView extends View
 
     html
 
-  # Private: Called to update the 'foldable' class of line numbers when there's
+  # Called to update the 'foldable' class of line numbers when there's
   # a change to the display buffer that doesn't regenerate all the line numbers
   # anyway.
   updateFoldableClasses: (changes) ->

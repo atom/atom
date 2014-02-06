@@ -187,7 +187,7 @@ class LanguageMode
   isFoldableAtBufferRow: (bufferRow) ->
     @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
 
-  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtBufferRow: (bufferRow) ->
     return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
@@ -195,14 +195,14 @@ class LanguageMode
     return false unless nextNonEmptyRow?
     @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
 
-  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # Returns a {Boolean} indicating whether the given buffer row starts
   # a foldable row range due to being the start of a multi-line comment.
   isFoldableCommentAtBufferRow: (bufferRow) ->
     @isLineCommentedAtBufferRow(bufferRow) and
       @isLineCommentedAtBufferRow(bufferRow + 1) and
         not @isLineCommentedAtBufferRow(bufferRow - 1)
 
-  # Private: Returns a {Boolean} indicating whether the line at the given buffer
+  # Returns a {Boolean} indicating whether the line at the given buffer
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()

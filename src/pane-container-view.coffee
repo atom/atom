@@ -3,7 +3,7 @@ Delegator = require 'delegato'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
 
-# Private: Manages the list of panes within a {WorkspaceView}
+# Manages the list of panes within a {WorkspaceView}
 module.exports =
 class PaneContainerView extends View
   Delegator.includeInto(this)

@@ -30,7 +30,7 @@ class Config
   settings: null
   configFileHasErrors: null
 
-  # Private: Created during initialization, available as `global.config`
+  # Created during initialization, available as `global.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
     @defaultSettings = {}
     @settings = {}

@@ -547,7 +547,7 @@ class Selection
     fn()
     @retainSelection = false
 
-  # Private: Sets the marker's tail to the same position as the marker's head.
+  # Sets the marker's tail to the same position as the marker's head.
   #
   # This only works if there isn't already a tail position.
   #

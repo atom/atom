@@ -37,12 +37,12 @@ class Workspace extends Model
         when 'atom://.atom/config'
           @open(atom.config.getUserConfigPath())
 
-  # Private: Called by the Serializable mixin during deserialization
+  # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
-  # Private: Called by the Serializable mixin during serialization.
+  # Called by the Serializable mixin during serialization.
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
@@ -77,7 +77,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Private: Only used in specs
+  # Only used in specs
   openSync: (uri, options={}) ->
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
@@ -146,16 +146,16 @@ class Workspace extends Model
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Private: Removes the item's uri from the list of potential items to reopen.
+  # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
       remove(@destroyedItemUris, uri)
 
-  # Private: Adds the destroyed item's uri to the list of items to reopen.
+  # Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 
-  # Private: Called by Model superclass when destroyed
+  # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()

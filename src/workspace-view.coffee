@@ -195,7 +195,7 @@ class WorkspaceView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {EditorView}s.
+  # Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -285,11 +285,11 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Private: Called by SpacePen
+  # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
 
-  # Private: Destroys everything.
+  # Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditorViews()
     super

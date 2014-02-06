@@ -17,7 +17,7 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  # Private: Instantiated by an {Editor}
+  # Instantiated by an {Editor}
   constructor: ({@editor, @marker}) ->
     @updateVisibility()
     @marker.on 'changed', (e) =>

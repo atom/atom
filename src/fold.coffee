@@ -1,6 +1,6 @@
 {Point, Range} = require 'text-buffer'
 
-# Private: Represents a fold that collapses multiple buffer lines into a single
+# Represents a fold that collapses multiple buffer lines into a single
 # line on the screen.
 #
 # Their creation is managed by the {DisplayBuffer}.
