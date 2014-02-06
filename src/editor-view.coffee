@@ -318,12 +318,12 @@ class EditorView extends View
       atom.project.getRepo()?.checkoutHead(path)
 
   configure: ->
-    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
-    @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
-    @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
-    @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
-    @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
-    @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
+    @subscribe atom.config.observe 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
+    @subscribe atom.config.observe 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @subscribe atom.config.observe 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
+    @subscribe atom.config.observe 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
+    @subscribe atom.config.observe 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+    @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
   handleEvents: ->
     @on 'focus', =>

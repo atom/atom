@@ -1,18 +1,13 @@
 _ = require 'underscore-plus'
 spacePen = require 'space-pen'
 {Subscriber} = require 'emissary'
-ConfigObserver = require './config-observer'
 
-ConfigObserver.includeInto(spacePen.View)
 Subscriber.includeInto(spacePen.View)
 
 jQuery = spacePen.jQuery
 originalCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
-  for element in elements
-    if view = jQuery(element).view()
-      view.unobserveConfig()
-      view.unsubscribe()
+  jQuery(element).view()?.unsubscribe() for element in elements
   originalCleanData(elements)
 
 tooltipDefaults =

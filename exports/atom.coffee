@@ -4,7 +4,6 @@ module.exports =
   _: require 'underscore-plus'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
-  ConfigObserver: require '../src/config-observer'
   Directory: require '../src/directory'
   File: require '../src/file'
   fs: require 'fs-plus'
