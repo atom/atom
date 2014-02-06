@@ -69,3 +69,20 @@ in the proper package's repository.
 * Reference classes with `{ClassName}` style notation.
 * Delegate to comments elsewhere with `{Delegates to: ClassName.methodName}`
   style notation.
+
+### Example
+
+```coffee
+# Public: Disable the package with the given name.
+#
+# This method emits multiple events:
+#
+# * `package-will-be-disabled` - before the package is disabled.
+# * `package-disabled`         - after the package is disabled.
+#
+# name     - The {String} name of the package to disable.
+# callback - The {Function} to call after the package has been disabled.
+#
+# Returns `undefined`.
+disablePackage: (name, delay, callback) ->
+```
