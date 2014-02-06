@@ -198,6 +198,9 @@ class Config
   # options - An optional {Object} containing the `callNow` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
+  #
+  # Returns an {Object} with the following keys:
+  #  :off - A {Function} that unobserves the `keyPath` with called.
   observe: (keyPath, options={}, callback) ->
     if _.isFunction(options)
       callback = options
