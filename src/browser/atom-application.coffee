@@ -73,7 +73,7 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
-    @checkForUpdates()
+    @setupAutoUpdater()
 
     @openWithOptions(options)
 
@@ -118,16 +118,52 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
 
   # Private: Enable updates unless running from a local build of Atom.
-  checkForUpdates: ->
-    versionIsSha = /\w{7}/.test @version
+  setupAutoUpdater: ->
+    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
-    if versionIsSha
-      autoUpdater.setAutomaticallyDownloadsUpdates false
-      autoUpdater.setAutomaticallyChecksForUpdates false
-    else
-      autoUpdater.setAutomaticallyDownloadsUpdates true
-      autoUpdater.setAutomaticallyChecksForUpdates true
-      autoUpdater.checkForUpdatesInBackground()
+    autoUpdater.on 'checking-for-update', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(false)
+
+    autoUpdater.on 'update-not-available', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
+      atomWindow.sendCommand('window:update-available', releaseName) for atomWindow in @windows
+      @applicationMenu.showInstallUpdateItem(true)
+      @applicationMenu.showCheckForUpdateItem(false)
+      @updateVersion = releaseName
+
+    autoUpdater.on 'error', (event, message) =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.checkForUpdates()
+
+  checkForUpdate: ->
+    autoUpdater.once 'update-available', ->
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'Update available.'
+        detail: 'A new update is being downloading.'
+
+    autoUpdater.once 'update-not-available', =>
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'No update available.'
+        detail: "Version #{@version} is the latest version."
+
+    autoUpdater.once 'error', (event, message)->
+      dialog.showMessageBox
+        type: 'warning'
+        buttons: ['OK']
+        message: 'There was an error checking for updates.'
+        detail: message
+
+    autoUpdater.checkForUpdates()
 
   # Private: Registers basic application commands, non-idempotent.
   handleEvents: ->
@@ -148,6 +184,8 @@ class AtomApplication
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:install-update', -> autoUpdater.quitAndInstall()
+    @on 'application:check-for-update', => @checkForUpdate()
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
@@ -170,12 +208,6 @@ class AtomApplication
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
       @openUrl({urlToOpen, @devMode})
-
-    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
-      event.preventDefault()
-      @updateVersion = version
-      @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
-      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
