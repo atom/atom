@@ -60,18 +60,33 @@ class AtomPackage extends Package
     @grammars = []
     @scopedProperties = []
 
-  activate: ({immediate}={}) ->
+  activate: ->
     return @activationDeferred.promise if @activationDeferred?
 
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @activateResources()
-      if @metadata.activationEvents? and not immediate
+      if @metadata.activationEvents?
         @subscribeToActivationEvents()
       else
         @activateNow()
 
     @activationDeferred.promise
+
+  # Deprecated
+  activateSync: ({immediate}={}) ->
+    @activateResources()
+    if @metadata.activationEvents? and not immediate
+      @subscribeToActivationEvents()
+    else
+      try
+        @activateConfig()
+        @activateStylesheets()
+        if @requireMainModule()
+          @mainModule.activate(atom.packages.getPackageState(@name) ? {})
+          @mainActivated = true
+      catch e
+        console.warn "Failed to activate package named '#{@name}'", e.stack
 
   activateNow: ->
     try

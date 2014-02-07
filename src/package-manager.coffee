@@ -98,11 +98,12 @@ class PackageManager
         @activePackages[pack.name] = pack
         pack
 
+  # Deprecated
   activatePackageSync: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
-      pack.activate(options)
+      pack.activateSync(options)
       pack
 
   # Private: Deactivate all packages
