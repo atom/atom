@@ -19,9 +19,20 @@ class MenuManager
 
   # Public: Adds the given item definition to the existing template.
   #
-  # * item:
-  #   An object which describes a menu item as defined by
-  #   https://github.com/atom/atom-shell/blob/master/docs/api/browser/menu.md
+  # ## Example
+  # ```coffee
+  #   atom.menu.add [
+  #     {
+  #       label: 'Hello'
+  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #     }
+  #   ]
+  # ```
+  #
+  # items - An {Array} of menu item {Object}s containing the keys:
+  #   :label   - The {String} menu label.
+  #   :submenu - An optional {Array} of sub menu items.
+  #   :command - An option {String} command to trigger when the item is clicked.
   #
   # Returns nothing.
   add: (items) ->
@@ -31,7 +42,7 @@ class MenuManager
   # Should the binding for the given selector be included in the menu
   # commands.
   #
-  # * selector: A String selector to check.
+  # selector - A {String} selector to check.
   #
   # Returns true to include the selector, false otherwise.
   includeSelector: (selector) ->
