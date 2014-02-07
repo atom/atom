@@ -69,7 +69,7 @@
     "background-tips": "0.5.0",
     "bookmarks": "0.18.0",
     "bracket-matcher": "0.19.0",
-    "command-logger": "0.10.0",
+    "command-logger": "0.11.0",
     "command-palette": "0.15.0",
     "dev-live-reload": "0.23.0",
     "editor-stats": "0.12.0",
