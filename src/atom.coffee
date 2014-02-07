@@ -494,8 +494,12 @@ class Atom extends Model
     shell.beep() if @config.get('core.audioBeep')
     @workspaceView.trigger 'beep'
 
+  getUserInitScriptPath: ->
+    initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])
+    initScriptPath ? path.join(@getConfigDirPath(), 'init.coffee')
+
   requireUserInitScript: ->
-    if userInitScriptPath = fs.resolve(@getConfigDirPath(), 'user', ['js', 'coffee'])
+    if userInitScriptPath = @getUserInitScriptPath()
       try
         require userInitScriptPath
       catch error

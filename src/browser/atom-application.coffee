@@ -189,6 +189,7 @@ class AtomApplication
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
+    @openPathOnEvent('application:open-your-init-script', 'atom://.atom/init-script')
     @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')

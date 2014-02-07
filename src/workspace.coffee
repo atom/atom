@@ -35,6 +35,8 @@ class Workspace extends Model
           @open(atom.keymap.getUserKeymapPath())
         when 'atom://.atom/config'
           @open(atom.config.getUserConfigPath())
+        when 'atom://.atom/init-script'
+          @open(atom.getUserInitScriptPath())
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
