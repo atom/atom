@@ -44,9 +44,6 @@ class Package
   constructor: (@path) ->
     @name = basename(@path)
 
-  isActive: ->
-    atom.packages.isPackageActive(@name)
-
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
 
