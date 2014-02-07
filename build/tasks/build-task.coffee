@@ -46,6 +46,7 @@ module.exports = (grunt) ->
       path.join('less', 'dist')
       path.join('less', 'test')
       path.join('bootstrap', 'docs')
+      path.join('bootstrap', 'examples')
       path.join('spellchecker', 'vendor')
       path.join('xmldom', 'test')
       path.join('vendor', 'apm')
