@@ -927,7 +927,7 @@ class Editor extends Model
   # Public: Moves every local cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options  - An {object} with properties based on {Cursor.setScreenPosition}.
+  # options  - An {Object} with properties based on {Cursor.setScreenPosition}.
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
