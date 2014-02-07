@@ -1,6 +1,7 @@
 {$, $$, fs, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
+AtomPackage = require '../src/atom-package'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
@@ -58,6 +59,18 @@ describe "the `atom` global", ->
 
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
+        describe "when called multiple times", ->
+          it "it only calls activate on the package once", ->
+            spyOn(AtomPackage.prototype, 'activateNow').andCallThrough()
+            atom.packages.activatePackage('package-with-index')
+            atom.packages.activatePackage('package-with-index')
+
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-index')
+
+            runs ->
+              expect(AtomPackage.prototype.activateNow.callCount).toBe 1
+
         describe "when the package has a main module", ->
           describe "when the metadata specifies a main module path˜", ->
             it "requires the module at the specified path", ->
@@ -99,7 +112,6 @@ describe "the `atom` global", ->
               spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
 
               promise = atom.packages.activatePackage('package-with-activation-events')
-
 
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
               expect(promise.isFulfilled()).not.toBeTruthy()

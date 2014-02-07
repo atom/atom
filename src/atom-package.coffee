@@ -61,6 +61,8 @@ class AtomPackage extends Package
     @scopedProperties = []
 
   activate: ({immediate}={}) ->
+    return @activationDeferred.promise if @activationDeferred?
+
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @activateResources()
