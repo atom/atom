@@ -71,7 +71,7 @@
     "bracket-matcher": "0.20.0",
     "command-logger": "0.11.0",
     "command-palette": "0.16.0",
-    "dev-live-reload": "0.23.0",
+    "dev-live-reload": "0.24.0",
     "editor-stats": "0.12.0",
     "exception-reporting": "0.13.0",
     "feedback": "0.22.0",
