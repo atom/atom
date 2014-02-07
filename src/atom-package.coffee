@@ -2,6 +2,7 @@ Package = require './package'
 fs = require 'fs-plus'
 path = require 'path'
 _ = require 'underscore-plus'
+Q = require 'q'
 {$} = require './space-pen-extensions'
 CSON = require 'season'
 {Emitter} = require 'emissary'
@@ -60,12 +61,15 @@ class AtomPackage extends Package
     @scopedProperties = []
 
   activate: ({immediate}={}) ->
+    @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @activateResources()
       if @metadata.activationEvents? and not immediate
         @subscribeToActivationEvents()
       else
         @activateNow()
+
+    @activationDeferred.promise
 
   activateNow: ->
     try
@@ -76,6 +80,8 @@ class AtomPackage extends Package
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
+
+    @activationDeferred.resolve()
 
   activateConfig: ->
     return if @configActivated

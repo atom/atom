@@ -13,19 +13,12 @@ class TextMatePackage extends Package
     packageName = path.basename(packageName)
     /(^language-.+)|((\.|_|-)tmbundle$)/.test(packageName)
 
-  @addPackageToActivationQueue: (pack)->
-    @activationQueue ?= []
-    @activationQueue.push(pack)
-    @activateNextPacakageInQueue() if @activationQueue.length == 1
-
-  @activateNextPacakageInQueue: ->
-    if pack = @activationQueue[0]
+  @addToActivationPromise = (pack) ->
+    @activationPromise ?= Q()
+    @activationPromise = @activationPromise.then =>
       pack.loadGrammars()
-        .then ->
-          pack.loadScopedProperties()
-        .then ->
-          @activationQueue.shift()
-          @activateNextPacakageInQueue()
+        .then -> pack.loadScopedProperties()
+        .fail (error) -> console.log pack.name, error
 
   constructor: ->
     super
@@ -44,7 +37,7 @@ class TextMatePackage extends Package
       @loadGrammarsSync()
       @loadScopedPropertiesSync()
     else
-      TextMatePackage.addPackageToActivationQueue(this)
+      TextMatePackage.addToActivationPromise(this)
 
   activateConfig: -> # noop
 
@@ -64,21 +57,25 @@ class TextMatePackage extends Package
           console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
           deferred.resolve()
         else
-          promise = Q()
-          promise = promise.then(=> @loadGrammarAtPath(path)) for path in paths
+          promises = paths.map (path) => @loadGrammarAtPath(path)
+          Q.all(promises).then -> deferred.resolve()
 
     deferred.promise
 
-  loadGrammarAtPath: (grammarPath, done) =>
-    Q.nfcall(atom.syntax.readGrammar, grammarPath)
-      .then (grammar) ->
-        @addGrammar(grammar)
-      .fail (error) ->
+  loadGrammarAtPath: (grammarPath) ->
+    deferred = Q.defer()
+    atom.syntax.readGrammar grammarPath, (error, grammar) =>
+      if error?
         console.log("Error loading grammar at path '#{grammarPath}':", error.stack ? error)
+      else
+        @addGrammar(grammar)
+      deferred.resolve()
+
+    deferred.promise
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    grammar.activate() if @isActive()
+    grammar.activate()
 
   getGrammars: -> @grammars
 
@@ -96,7 +93,7 @@ class TextMatePackage extends Package
     else
       path.join(@path, "Preferences")
 
-  loadScopedProperties: (callback) ->
+  loadScopedProperties: ->
     scopedProperties = []
 
     for grammar in @getGrammars()
@@ -104,38 +101,37 @@ class TextMatePackage extends Package
         selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         scopedProperties.push({selector, properties})
 
-    preferenceObjects = []
-    done = =>
+    @loadTextMatePreferenceObjects().then (preferenceObjects=[]) =>
       for {scope, settings} in preferenceObjects
         if properties = @propertiesFromTextMateSettings(settings)
           selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
           scopedProperties.push({selector, properties})
 
       @scopedProperties = scopedProperties
-      if @isActive()
-        for {selector, properties} in @scopedProperties
-          atom.syntax.addProperties(@path, selector, properties)
-      callback?()
-    @loadTextMatePreferenceObjects(preferenceObjects, done)
+      for {selector, properties} in @scopedProperties
+        atom.syntax.addProperties(@path, selector, properties)
 
-  loadTextMatePreferenceObjects: (preferenceObjects, done) ->
+  loadTextMatePreferenceObjects: ->
+    deferred = Q.defer()
     fs.isDirectory @getPreferencesPath(), (isDirectory) =>
-      return done() unless isDirectory
-
+      return deferred.resolve() unless isDirectory
       fs.list @getPreferencesPath(), (error, paths) =>
         if error?
           console.log("Error loading preferences of TextMate package '#{@path}':", error.stack, error)
-          done()
-          return
+          deferred.resolve()
+        else
+          promises = paths.map (path) => @loadPreferencesAtPath(path)
+          Q.all(promises).then (preferenceObjects) -> deferred.resolve(preferenceObjects)
 
-        loadPreferencesAtPath = (preferencePath, done) ->
-          fs.readObject preferencePath, (error, preferences) =>
-            if error?
-              console.warn("Failed to parse preference at path '#{preferencePath}'", error.stack, error)
-            else
-              preferenceObjects.push(preferences)
-            done()
-        async.eachSeries paths, loadPreferencesAtPath, done
+    deferred.promise
+
+  loadPreferencesAtPath: (preferencePath) ->
+    deferred = Q.defer()
+    fs.readObject preferencePath, (error, preference) ->
+      if error?
+        console.warn("Failed to parse preference at path '#{preferencePath}'", error.stack, error)
+      deferred.resolve(preference)
+    deferred.promise
 
   propertiesFromTextMateSettings: (textMateSettings) ->
     if textMateSettings.shellVariables
@@ -172,6 +168,5 @@ class TextMatePackage extends Package
         selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
 
-    if @isActive()
-      for {selector, properties} in @scopedProperties
-        atom.syntax.addProperties(@path, selector, properties)
+    for {selector, properties} in @scopedProperties
+      atom.syntax.addProperties(@path, selector, properties)

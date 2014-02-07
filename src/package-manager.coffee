@@ -1,6 +1,7 @@
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
+Q = require 'q'
 Package = require './package'
 path = require 'path'
 
@@ -85,7 +86,19 @@ class PackageManager
     @observeDisabledPackages()
 
   # Private: Activate a single package by name
-  activatePackage: (name, options) ->
+  activatePackage: (name, options={}) ->
+    if options.sync? or options.immediate?
+      return @activatePackageSync(name, options)
+
+    if pack = @getActivePackage(name)
+      Q(pack)
+    else
+      pack = @loadPackage(name)
+      pack.activate(options).then =>
+        @activePackages[pack.name] = pack
+        pack
+
+  activatePackageSync: (name, options) ->
     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
