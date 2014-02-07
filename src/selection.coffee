@@ -55,10 +55,8 @@ class Selection
 
   # Public: Modifies the screen range for the selection.
   #
-  # * screenRange:
-  #   The new {Range} to use
-  # * options:
-  #   + A hash of options matching those found in {.setBufferRange}
+  # screenRange - The new {Range} to use.
+  # options - A hash of options matching those found in {.setBufferRange}.
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editor.bufferRangeForScreenRange(screenRange), options)
 
@@ -68,13 +66,11 @@ class Selection
 
   # Public: Modifies the buffer {Range} for the selection.
   #
-  # * screenRange:
-  #   The new {Range} to select
-  # * options
-  #    + preserveFolds:
-  #      if `true`, the fold settings are preserved after the selection moves
-  #    + autoscroll:
-  #      if `true`, the {Editor} scrolls to the new selection
+  # screenRange - The new {Range} to select.
+  # options - An {Object} with the keys:
+  #   :preserveFolds - if `true`, the fold settings are preserved after the
+  #                    selection moves.
+  #   :autoscroll - if `true`, the {Editor} scrolls to the new selection.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -124,8 +120,7 @@ class Selection
 
   # Public: Selects an entire line in the buffer.
   #
-  # * row:
-  #   The line Number to select (default: the row of the cursor)
+  # row - The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
     @setBufferRange(@getBufferRange().union(range))
@@ -144,8 +139,7 @@ class Selection
   # Public: Selects the text from the current cursor position to a given screen
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     @modifySelection =>
       if @initialScreenRange
@@ -164,8 +158,7 @@ class Selection
   # Public: Selects the text from the current cursor position to a given buffer
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
     @modifySelection => @cursor.setBufferPosition(position)
 
@@ -255,8 +248,6 @@ class Selection
       @editor.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
-  # Public:
-  #
   # FIXME: I have no idea what this does.
   getGoalBufferRange: ->
     @marker.getAttributes().goalBufferRange
@@ -281,20 +272,14 @@ class Selection
 
   # Public: Replaces text at the current selection.
   #
-  # * text:
-  #   A {String} representing the text to add
-  # * options
-  #    + select:
-  #      if `true`, selects the newly added text
-  #    + autoIndent:
-  #      if `true`, indents all inserted text appropriately
-  #    + autoIndentNewline:
-  #      if `true`, indent newline appropriately
-  #    + autoDecreaseIndent:
-  #      if `true`, decreases indent level appropriately (for example, when a
-  #      closing bracket is inserted)
-  #    + undo:
-  #      if `skip`, skips the undo stack for this operation.
+  # text - A {String} representing the text to add
+  # options - An {Object} with keys:
+  #   :select - if `true`, selects the newly added text.
+  #   :autoIndent - if `true`, indents all inserted text appropriately.
+  #   :autoIndentNewline - if `true`, indent newline appropriately.
+  #   :autoDecreaseIndent - if `true`, decreases indent level appropriately
+  #                         (for example, when a closing bracket is inserted).
+  #   :undo - if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -322,10 +307,8 @@ class Selection
 
   # Public: Indents the given text to the suggested level based on the grammar.
   #
-  # * text:
-  #   The string to indent within the selection.
-  # * indentBasis:
-  #   The beginning indent level.
+  # text - The {String} to indent within the selection.
+  # indentBasis - The beginning indent level.
   normalizeIndents: (text, indentBasis) ->
     textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
     isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
@@ -353,10 +336,9 @@ class Selection
 
   # Public: Indents the selection.
   #
-  # * options - A hash with one key,
-  #    + autoIndent:
-  #      If `true`, the indentation is performed appropriately. Otherwise,
-  #      {Editor.getTabText} is used
+  # options - A {Object} with the keys:
+  #   :autoIndent - If `true`, the indentation is performed appropriately.
+  #                 Otherwise, {Editor.getTabText} is used.
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
@@ -501,25 +483,16 @@ class Selection
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   # Public: Cuts the selection until the end of the line.
-  #
-  # * maintainClipboard:
-  #   ?
   cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.
-  #
-  # * maintainClipboard:
-  #   ?
   cut: (maintainClipboard=false) ->
     @copy(maintainClipboard)
     @delete()
 
   # Public: Copies the current selection to the clipboard.
-  #
-  # * maintainClipboard:
-  #   ?
   copy: (maintainClipboard=false) ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
@@ -536,7 +509,6 @@ class Selection
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: ?
   modifySelection: (fn) ->
     @retainSelection = true
     @plantTail()
@@ -553,8 +525,7 @@ class Selection
 
   # Public: Identifies if a selection intersects with a given buffer range.
   #
-  # * bufferRange:
-  #   A {Range} to check against
+  # bufferRange - A {Range} to check against.
   #
   # Returns a Boolean.
   intersectsBufferRange: (bufferRange) ->
@@ -562,8 +533,7 @@ class Selection
 
   # Public: Identifies if a selection intersects with another selection.
   #
-  # * otherSelection:
-  #   A {Selection} to check against
+  # otherSelection - A {Selection} to check against.
   #
   # Returns a Boolean.
   intersectsWith: (otherSelection) ->
@@ -572,10 +542,8 @@ class Selection
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
   #
-  # * otherSelection:
-  #   A {Selection} to merge with
-  # * options
-  #    + A hash of options matching those found in {.setBufferRange}
+  # otherSelection - A {Selection} to merge with.
+  # options - A hash of options matching those found in {.setBufferRange}.
   merge: (otherSelection, options) ->
     myGoalBufferRange = @getGoalBufferRange()
     otherGoalBufferRange = otherSelection.getGoalBufferRange()
@@ -591,8 +559,7 @@ class Selection
   #
   # See {Range.compare} for more details.
   #
-  # * otherSelection:
-  #   A {Selection} to compare with.
+  # otherSelection - A {Selection} to compare against.
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
