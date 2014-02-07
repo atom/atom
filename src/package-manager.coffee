@@ -181,7 +181,7 @@ class PackageManager
 
   # Get packages for a certain package type
   #
-  # * types: an {Array} of {String}s like ['atom', 'textmate']
+  # types - an {Array} of {String}s like ['atom', 'textmate'].
   getLoadedPackagesForTypes: (types) ->
     pack for pack in @getLoadedPackages() when pack.getType() in types
 

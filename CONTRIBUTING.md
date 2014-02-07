@@ -30,7 +30,7 @@ in the proper package's repository.
   * Follow the [CoffeeScript](#coffeescript-styleguide),
     [JavaScript](https://github.com/styleguide/javascript),
     and [CSS](https://github.com/styleguide/css) styleguides
-  * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
+  * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine)
     specs
   * Avoid placing files in `vendor`. 3rd-party packages should be added as a
     `package.json` dependency.
@@ -61,3 +61,32 @@ in the proper package's repository.
 
 * Set parameter defaults without spaces around the equal sign
   * `clear = (count=1) ->` instead of `clear = (count = 1) ->`
+
+## Documentation Styleguide
+
+* Use [TomDoc](http://tomdoc.org).
+* Use [Markdown](https://daringfireball.net/projects/markdown).
+* Reference classes with `{ClassName}` style notation.
+* Reference methods with `{ClassName.methodName}` style notation.
+* Delegate to comments elsewhere with `{Delegates to: ClassName.methodName}`
+  style notation.
+
+### Example
+
+```coffee
+# Public: Disable the package with the given name.
+#
+# This method emits multiple events:
+#
+# * `package-will-be-disabled` - before the package is disabled.
+# * `package-disabled`         - after the package is disabled.
+#
+# name     - The {String} name of the package to disable.
+# options  - The {Object} with disable options (default: {}):
+#   :trackTime - `true` to track the amount of time disabling took.
+#   :ignoreErrors - `true` to catch and ignore errors thrown.
+# callback - The {Function} to call after the package has been disabled.
+#
+# Returns `undefined`.
+disablePackage: (name, options, callback) ->
+```

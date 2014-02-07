@@ -238,8 +238,7 @@ class Editor extends Model
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
-  # * bufferPosition:
-  #   The {Point} to clip
+  # bufferPosition - The {Point} to clip.
   #
   # Returns the new, clipped {Point}. Note that this could be the same as
   #   `bufferPosition` if no clipping was performed.
@@ -251,8 +250,7 @@ class Editor extends Model
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real range.
   #
-  # * range:
-  #   The {Range} to clip
+  # range - The {Range} to clip.
   #
   # Returns the new, clipped {Range}. Note that this could be the same as
   #   `range` if no clipping was performed.
@@ -260,17 +258,14 @@ class Editor extends Model
 
   # Public: Returns the indentation level of the given a buffer row
   #
-  # * bufferRow:
-  #   A Number indicating the buffer row.
+  # bufferRow - A {Number} indicating the buffer row.
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
 
   # Public: Sets the indentation level for the given buffer row.
   #
-  # * bufferRow:
-  #   A {Number} indicating the buffer row.
-  # * newLevel:
-  #   A {Number} indicating the new indentation level.
+  # bufferRow - A {Number} indicating the buffer row.
+  # newLevel - A {Number} indicating the new indentation level.
   setIndentationForBufferRow: (bufferRow, newLevel) ->
     currentIndentLength = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
@@ -278,8 +273,7 @@ class Editor extends Model
 
   # Public: Returns the indentation level of the given line of text.
   #
-  # * line:
-  #   A {String} in the current buffer.
+  # line - A {String} in the current buffer.
   #
   # Returns a {Number} or 0 if the text isn't found within the buffer.
   indentLevelForLine: (line) ->
@@ -349,8 +343,8 @@ class Editor extends Model
 
   # Public: Returns the range for the given buffer row.
   #
-  # * row: A row {Number}.
-  # * options: An options hash with an `includeNewline` key.
+  # row - A row {Number}.
+  # options - An options hash with an `includeNewline` key.
   #
   # Returns a {Range}.
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
@@ -358,7 +352,7 @@ class Editor extends Model
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
   #
-  # * row - A {Number} representing a zero-indexed buffer row.
+  # row - A {Number} representing a zero-indexed buffer row.
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
   # Public: Returns a {Number} representing the line length for the given
@@ -433,10 +427,8 @@ class Editor extends Model
 
   # Public: Inserts text at the current cursor positions
   #
-  # * text:
-  #   A String representing the text to insert.
-  # * options:
-  #   + A set of options equivalent to {Selection.insertText}
+  # text - A {String} representing the text to insert.
+  # options - A set of options equivalent to {Selection.insertText}.
   insertText: (text, options={}) ->
     options.autoIndentNewline ?= @shouldAutoIndent()
     options.autoDecreaseIndent ?= @shouldAutoIndent()
@@ -463,8 +455,7 @@ class Editor extends Model
 
   # Public: Indents the current line.
   #
-  # * options
-  #    + A set of options equivalent to {Selection.indent}.
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
@@ -552,8 +543,7 @@ class Editor extends Model
 
   # Public: Pastes the text in the clipboard.
   #
-  # * options:
-  #    + A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
@@ -820,10 +810,8 @@ class Editor extends Model
 
   # Public: Creates a new selection at the given marker.
   #
-  # * marker:
-  #   The {DisplayBufferMarker} to highlight
-  # * options:
-  #   + A hash of options that pertain to the {Selection} constructor.
+  # marker  - The {DisplayBufferMarker} to highlight
+  # options - An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
@@ -844,10 +832,8 @@ class Editor extends Model
 
   # Public: Given a buffer range, this adds a new selection for it.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.markBufferRange}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.markBufferRange}.
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
@@ -857,20 +843,16 @@ class Editor extends Model
   # Public: Given a buffer range, this removes all previous selections and
   # creates a new selection for it.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.setSelectedBufferRanges}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.setSelectedBufferRanges}.
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
   # Public: Given an array of buffer ranges, this removes all previous
   # selections and creates new selections for them.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.setSelectedBufferRanges}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.setSelectedBufferRanges}.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
@@ -887,7 +869,7 @@ class Editor extends Model
 
   # Public: Unselects a given selection.
   #
-  # * selection - The {Selection} to remove.
+  # selection - The {Selection} to remove.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
 
@@ -898,9 +880,7 @@ class Editor extends Model
     @consolidateSelections()
     @getSelection().clear()
 
-  # Public:
-  #
-  # Removes all but one cursor (if there are multiple cursors)
+  # Removes all but one cursor (if there are multiple cursors).
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1
@@ -937,8 +917,7 @@ class Editor extends Model
 
   # Public: Determines if a given buffer range is included in a {Selection}.
   #
-  # * bufferRange:
-  #   The {Range} you're checking against
+  # bufferRange - The {Range} you're checking against.
   #
   # Returns a {Boolean}.
   selectionIntersectsBufferRange: (bufferRange) ->
@@ -947,10 +926,8 @@ class Editor extends Model
 
   # Public: Moves every local cursor to a given screen position.
   #
-  # * position:
-  #   An {Array} of two numbers: the screen row, and the screen column.
-  # * options:
-  #   An object with properties based on {Cursor.setScreenPosition}
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options  - An {Object} with properties based on {Cursor.setScreenPosition}.
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
@@ -969,10 +946,8 @@ class Editor extends Model
 
   # Public: Moves every cursor to a given buffer position.
   #
-  # * position:
-  #   An {Array} of two numbers: the buffer row, and the buffer column.
-  # * options:
-  #    + An object with properties based on {Cursor.setBufferPosition}
+  # position - An {Array} of two numbers: the buffer row, and the buffer column.
+  # options - An object with properties based on {Cursor.setBufferPosition}.
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
@@ -1015,9 +990,8 @@ class Editor extends Model
 
   # Public: Returns the word under the most recently added local {Cursor}.
   #
-  # * options:
-  #    + An object with properties based on
-  #      {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on
+  #           {Cursor.getBeginningOfCurrentWordBufferPosition}.
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
@@ -1092,8 +1066,7 @@ class Editor extends Model
   # Public: Selects the text from the current cursor position to a given screen
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
@@ -1252,8 +1225,6 @@ class Editor extends Model
       @setSelectedBufferRange(range)
       range
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   mergeCursors: ->
     positions = []
@@ -1264,22 +1235,16 @@ class Editor extends Model
       else
         positions.push(position)
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   expandSelectionsForward: (fn) ->
     @mergeIntersectingSelections =>
       fn(selection) for selection in @getSelections()
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   expandSelectionsBackward: (fn) ->
     @mergeIntersectingSelections isReversed: true, =>
       fn(selection) for selection in @getSelections()
 
-  # Public:
-  #
   # FIXME: No idea what this does.
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()

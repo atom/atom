@@ -7,7 +7,7 @@ pathWatcher = require 'pathwatcher'
 
 File = require './file'
 
-# Public: Represents a directory using {File}s.
+# Public: Represents a directory on disk.
 #
 # ## Requiring in packages
 #
@@ -18,15 +18,12 @@ module.exports =
 class Directory
   Emitter.includeInto(this)
 
-  path: null
   realPath: null
 
   # Public: Configures a new Directory instance, no files are accessed.
   #
-  # * path:
-  #   A String containing the absolute path to the directory.
-  # + symlink:
-  #   A Boolean indicating if the path is a symlink (defaults to false).
+  # path - A {String} containing the absolute path to the directory.
+  # symlink - A {Boolean} indicating if the path is a symlink (default: false).
   constructor: (@path, @symlink=false) ->
     @on 'first-contents-changed-subscription-will-be-added', =>
       # Triggered by emissary, when a new contents-changed listener attaches
@@ -36,7 +33,7 @@ class Directory
       # Triggered by emissary, when the last contents-changed listener detaches
       @unsubscribeFromNativeChangeEvents()
 
-  # Public: Returns the basename of the directory.
+  # Public: Returns the {String} basename of the directory.
   getBaseName: ->
     path.basename(@path)
 
@@ -108,8 +105,8 @@ class Directory
 
   # Public: Reads file entries in this directory from disk asynchronously.
   #
-  # * callback: A function to call with an Error as the first argument and
-  #   an {Array} of {File} and {Directory} objects as the second argument.
+  # callback - A {Function} to call with an {Error} as the 1st argument and
+  #            an {Array} of {File} and {Directory} objects as the 2nd argument.
   getEntries: (callback) ->
     fs.list @path, (error, entries) ->
       return callback(error) if error?
