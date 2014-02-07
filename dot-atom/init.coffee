@@ -10,4 +10,4 @@
 #
 # atom.workspaceView.eachEditorView (editorView) ->
 #   if path.extname(editorView.getEditor().getPath()) is '.md'
-#     editorView.setFontSize(20)
+#     editorView.setFontSize(24)
