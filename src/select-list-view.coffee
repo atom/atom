@@ -64,14 +64,14 @@ class SelectListView extends View
 
   # Public: Set the array of items to display in the list.
   #
-  # * array: The array of model elements to display in the list.
+  # array - The {Array} of model elements to display in the list.
   setArray: (@array=[]) ->
     @populateList()
     @setLoading()
 
   # Public: Set the error message to display.
   #
-  # * message: The error message.
+  # message - The {String} error message (default: '').
   setError: (message='') ->
     if message.length is 0
       @error.text('').hide()
@@ -81,7 +81,7 @@ class SelectListView extends View
 
   # Public: Set the loading message to display.
   #
-  # * message: The loading message.
+  # message - The {String} loading message (default: '').
   setLoading: (message='') ->
     if message.length is 0
       @loading.text("")
@@ -131,8 +131,8 @@ class SelectListView extends View
   #
   # Subclasses may override this method to customize the message.
   #
-  # * itemCount: The number of items in the array specified to {.setArray}
-  # * filteredItemCount: The number of items that pass the fuzzy filter test.
+  # itemCount - The {Number} of items in the array specified to {.setArray}
+  # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
   selectPreviousItem: ->
@@ -184,7 +184,7 @@ class SelectListView extends View
   #
   # This method should be overridden by subclasses.
   #
-  # * element: The selected model element.
+  # element - The selected model element.
   confirmed: (element) ->
 
   attach: ->
