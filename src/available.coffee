@@ -16,11 +16,14 @@ class Available extends Command
     options.usage """
 
       Usage: apm available
+             apm available --themes
+             apm available --compatible 0.49.0
 
-      List all the Atom packages that have been published to the apm registry.
+      List the Atom packages that have been published to the atom.io registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').describe('themes', 'Only list themes')
+    options.alias('c', 'compatible').describe('compatible', 'Only list packages compatitle with this Atom version')
     options.boolean('json').describe('json', 'Output available packages as JSON array')
 
   getAvailablePackages: (atomVersion, callback) ->
@@ -36,6 +39,8 @@ class Available extends Command
           proxy: process.env.http_proxy || process.env.https_proxy
           headers:
             authorization: token
+        requestSettings.qs = engine: atomVersion if atomVersion
+
         request.get requestSettings, (error, response, body={}) ->
           if error?
             callback(error)
@@ -52,7 +57,7 @@ class Available extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    @getAvailablePackages options.argv.atomVersion, (error, packages) ->
+    @getAvailablePackages options.argv.compatible, (error, packages) ->
       if error?
         callback(error)
         return
