@@ -25,10 +25,8 @@ class File
 
   # Public: Creates a new file.
   #
-  # * path:
-  #   A String containing the absolute path to the file
-  # * symlink:
-  #   A Boolean indicating if the path is a symlink (default: false)
+  # path - A {String} containing the absolute path to the file
+  # symlink - A {Boolean} indicating if the path is a symlink (default: false).
   constructor: (@path, @symlink=false) ->
     throw new Error("#{@path} is a directory") if fs.isDirectorySync(@path)
 
@@ -52,10 +50,10 @@ class File
   # Sets the path for the file.
   setPath: (@path) ->
 
-  # Public: Returns the path for the file.
+  # Public: Returns the {String} path for the file.
   getPath: -> @path
 
-  # Public: Return the filename without any directory information.
+  # Public: Return the {String} filename without any directory information.
   getBaseName: ->
     path.basename(@path)
 
@@ -80,9 +78,8 @@ class File
 
   # Public: Reads the contents of the file.
   #
-  # * flushCache:
-  #   A Boolean indicating whether to require a direct read or if a cached
-  #   copy is acceptable.
+  # flushCache - A {Boolean} indicating whether to require a direct read or if
+  #              a cached copy is acceptable.
   #
   # Returns a promise that resovles to a String.
   read: (flushCache) ->
