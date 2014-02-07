@@ -121,11 +121,9 @@ class Pane extends Model
 
   # Public: Adds the item to the pane.
   #
-  # * item:
-  #     The item to add. It can be a model with an associated view or a view.
-  # * index:
-  #     An optional index at which to add the item. If omitted, the item is
-  #     added after the current active item.
+  # item - The item to add. It can be a model with an associated view or a view.
+  # index - An optional index at which to add the item. If omitted, the item is
+  #         added after the current active item.
   #
   # Returns the added item
   addItem: (item, index=@getActiveItemIndex() + 1) ->
@@ -138,12 +136,11 @@ class Pane extends Model
 
   # Public: Adds the given items to the pane.
   #
-  # * items:
-  #     An {Array} of items to add. Items can be models with associated views
-  #     or views. Any items that are already present in items will not be added.
-  # * index:
-  #     An optional index at which to add the item. If omitted, the item is
-  #     added after the current active item.
+  # items - An {Array} of items to add. Items can be models with associated
+  #         views or views. Any items that are already present in items will
+  #         not be added.
+  # index - An optional index at which to add the item. If omitted, the item is
+  #         added after the current active item.
   #
   # Returns an {Array} of the added items
   addItems: (items, index=@getActiveItemIndex() + 1) ->
@@ -237,8 +234,9 @@ class Pane extends Model
 
   # Public: Saves the specified item.
   #
-  # * item: The item to save.
-  # * nextAction: An optional function which will be called after the item is saved.
+  # item - The item to save.
+  # nextAction - An optional function which will be called after the item is
+  #              saved.
   saveItem: (item, nextAction) ->
     if item?.getUri?()
       item.save?()
@@ -248,8 +246,9 @@ class Pane extends Model
 
   # Public: Saves the given item at a prompted-for location.
   #
-  # * item: The item to save.
-  # * nextAction: An optional function which will be called after the item is saved.
+  # item - The item to save.
+  # nextAction - An optional function which will be called after the item is
+  #              saved.
   saveItemAs: (item, nextAction) ->
     return unless item?.saveAs?
 
@@ -284,8 +283,8 @@ class Pane extends Model
 
   # Public: Creates a new pane to the left of the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitLeft: (params) ->
@@ -293,8 +292,8 @@ class Pane extends Model
 
   # Public: Creates a new pane to the right of the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitRight: (params) ->
@@ -302,8 +301,8 @@ class Pane extends Model
 
   # Public: Creates a new pane above the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitUp: (params) ->
@@ -311,8 +310,8 @@ class Pane extends Model
 
   # Public: Creates a new pane below the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitDown: (params) ->
