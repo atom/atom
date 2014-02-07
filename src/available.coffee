@@ -22,8 +22,8 @@ class Available extends Command
       List the Atom packages that have been published to the atom.io registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('t', 'themes').describe('themes', 'Only list themes')
-    options.alias('c', 'compatible').describe('compatible', 'Only list packages compatitle with this Atom version')
+    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
+    options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages compatitle with this Atom version')
     options.boolean('json').describe('json', 'Output available packages as JSON array')
 
   getAvailablePackages: (atomVersion, callback) ->
