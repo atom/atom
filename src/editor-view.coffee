@@ -276,12 +276,11 @@ class EditorView extends View
 
   # Public: Defines which characters are invisible.
   #
-  # invisibles - An {Object} defining the invisible characters.
-  #              The defaults are:
-  #                eol: `\u00ac`
-  #                space: `\u00b7`
-  #                tab: `\u00bb`
-  #                cr: `\u00a4`
+  # invisibles - An {Object} defining the invisible characters:
+  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
+  #   :space - The space invisible {String} (default: `\u00b7`).
+  #   :tab   - The tab invisible {String} (default: `\u00bb`).
+  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
@@ -627,8 +626,8 @@ class EditorView extends View
   #                 an {Object} (`{row, column}`), {Array} (`[row, column]`), or
   #                 {Point}.
   # options - A hash with the following keys:
-  #             center - if `true`, the position is scrolled such that it's in
-  #                      the center of the editor
+  #   :center - if `true`, the position is scrolled such that it's in
+  #             the center of the editor
   scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)
