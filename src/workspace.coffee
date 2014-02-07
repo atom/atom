@@ -48,9 +48,9 @@ class Workspace extends Model
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # * filePath: A file path
-  # * options
-  #   + initialLine: The buffer line number to open to.
+  # filePath - A {String} file path.
+  # options  - An options {Object} (default: {}).
+  #   :initialLine - The buffer line number to open to.
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
