@@ -4,8 +4,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 
-### Internal ###
-
 module.exports =
 class TextMatePackage extends Package
   @testName: (packageName) ->

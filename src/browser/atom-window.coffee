@@ -9,7 +9,6 @@ fs = require 'fs'
 url = require 'url'
 _ = require 'underscore-plus'
 
-# Private:
 module.exports =
 class AtomWindow
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')

@@ -12,30 +12,27 @@ class BufferedProcess
   process: null
   killed: false
 
-  # Executes the given executable.
+  # Public: Executes the given executable.
   #
-  # * options
-  #    + command:
-  #      The path to the executable to execute.
-  #    + args:
-  #      The array of arguments to pass to the script (optional).
-  #    + options:
-  #      The options Object to pass to Node's `ChildProcess.spawn` (optional).
-  #    + stdout:
-  #      The callback that receives a single argument which contains the
-  #      standard output of the script. The callback is called as data is
-  #      received but it's buffered to ensure only complete lines are passed
-  #      until the source stream closes. After the source stream has closed
-  #      all remaining data is sent in a final call (optional).
-  #    + stderr:
-  #      The callback that receives a single argument which contains the
-  #      standard error of the script. The callback is called as data is
-  #      received but it's buffered to ensure only complete lines are passed
-  #      until the source stream closes. After the source stream has closed
-  #      all remaining data is sent in a final call (optional).
-  #    + exit:
-  #      The callback which receives a single argument containing the exit
-  #      status (optional).
+  # options - An {Object} with the following keys:
+  #   :command - The {String} command to execute.
+  #   :args - The {String}} of arguments to pass to the script (optional).
+  #   :options - The options {Object} to pass to Node's `ChildProcess.spawn`
+  #              (optional).
+  #   :stdout - The callback that receives a single argument which contains the
+  #             standard output of the script. The callback is called as data is
+  #             received but it's buffered to ensure only complete lines are
+  #             passed until the source stream closes. After the source stream
+  #             has closed all remaining data is sent in a final call
+  #             (optional).
+  #   :stderr - The callback that receives a single argument which contains the
+  #             standard error of the script. The callback is called as data is
+  #             received but it's buffered to ensure only complete lines are
+  #             passed until the source stream closes. After the source stream
+  #             has closed all remaining data is sent in a final call
+  #             (optional).
+  #   :exit - The callback which receives a single argument containing the exit
+  #           status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     @process = ChildProcess.spawn(command, args, options)
@@ -68,7 +65,7 @@ class BufferedProcess
         processExited = true
         triggerExitCallback()
 
-  # Private: Helper method to pass data line by line.
+  # Helper method to pass data line by line.
   #
   # * stream:
   #   The Stream to read from.
@@ -93,7 +90,7 @@ class BufferedProcess
       onLines(buffered) if buffered.length > 0
       onDone()
 
-  # Public: Terminates the process.
+  # Public: Terminate the process.
   kill: ->
     @killed = true
     @process.kill()

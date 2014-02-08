@@ -1,7 +1,6 @@
 CSON = require 'season'
 {basename, join} = require 'path'
 
-### Internal ###
 module.exports =
 class Package
   @build: (path) ->
@@ -53,7 +52,6 @@ class Package
   isTheme: ->
     @metadata?.theme?
 
-  # Private:
   measure: (key, fn) ->
     startTime = Date.now()
     value = fn()

@@ -66,14 +66,12 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: false
 
-  # Private:
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
       @div class: 'horizontal', outlet: 'horizontal', =>
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
-  # Private:
   initialize: (@model) ->
     @model ?= new Workspace
 
@@ -109,6 +107,7 @@ class WorkspaceView extends View
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
     @command 'application:open-your-config', -> ipc.sendChannel('command', 'application:open-your-config')
+    @command 'application:open-your-init-script', -> ipc.sendChannel('command', 'application:open-your-init-script')
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-snippets', -> ipc.sendChannel('command', 'application:open-your-snippets')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
@@ -158,7 +157,6 @@ class WorkspaceView extends View
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  # Private:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -173,7 +171,6 @@ class WorkspaceView extends View
         $(document.body).focus()
         true
 
-  # Private:
   afterAttach: (onDom) ->
     @focus() if onDom
 
@@ -195,7 +192,7 @@ class WorkspaceView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {EditorView}s.
+  # Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -285,11 +282,11 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Private: Called by SpacePen
+  # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
 
-  # Private: Destroys everything.
+  # Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditorViews()
     super

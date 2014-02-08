@@ -22,7 +22,7 @@ socketPath =
   else
     path.join(os.tmpdir(), 'atom.sock')
 
-# Private: The application's singleton class.
+# The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
 # of the application.
@@ -77,7 +77,7 @@ class AtomApplication
 
     @openWithOptions(options)
 
-  # Private: Opens a new window based on the options provided.
+  # Opens a new window based on the options provided.
   openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
@@ -98,7 +98,7 @@ class AtomApplication
     @windows.push window
     @applicationMenu?.enableWindowSpecificItems(true)
 
-  # Private: Creates server to listen for additional atom application launches.
+  # Creates server to listen for additional atom application launches.
   #
   # You can run the atom command multiple times, but after the first launch
   # the other launches will just pass their information to this server and then
@@ -113,11 +113,11 @@ class AtomApplication
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
 
-  # Private: Configures required javascript environment flags.
+  # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
 
-  # Private: Enable updates unless running from a local build of Atom.
+  # Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
@@ -165,7 +165,7 @@ class AtomApplication
 
     autoUpdater.checkForUpdates()
 
-  # Private: Registers basic application commands, non-idempotent.
+  # Registers basic application commands, non-idempotent.
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
@@ -189,6 +189,7 @@ class AtomApplication
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
+    @openPathOnEvent('application:open-your-init-script', 'atom://.atom/init-script')
     @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
@@ -262,7 +263,7 @@ class AtomApplication
       else
         @openPath({pathToOpen})
 
-  # Private: Returns the {AtomWindow} for the given path.
+  # Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
@@ -350,7 +351,7 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  # Private: Open an atom:// url.
+  # Open an atom:// url.
   #
   # The host of the URL being opened is assumed to be the package name
   # responsible for opening the URL.  A new window will be created with
@@ -382,7 +383,7 @@ class AtomApplication
     else
       console.log "Opening unknown url: #{urlToOpen}"
 
-  # Private: Opens up a new {AtomWindow} to run specs within.
+  # Opens up a new {AtomWindow} to run specs within.
   #
   # * options
   #    + exitWhenDone:
@@ -413,7 +414,7 @@ class AtomApplication
     isSpec = true
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
-  # Private: Opens a native dialog to prompt the user for a path.
+  # Opens a native dialog to prompt the user for a path.
   #
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #

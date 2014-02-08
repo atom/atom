@@ -13,26 +13,36 @@ module.exports =
 class MenuManager
   pendingUpdateOperation: null
 
-  # Private:
   constructor: ({@resourcePath}) ->
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
   # Public: Adds the given item definition to the existing template.
   #
-  # * item:
-  #   An object which describes a menu item as defined by
-  #   https://github.com/atom/atom-shell/blob/master/docs/api/browser/menu.md
+  # ## Example
+  # ```coffee
+  #   atom.menu.add [
+  #     {
+  #       label: 'Hello'
+  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #     }
+  #   ]
+  # ```
+  #
+  # items - An {Array} of menu item {Object}s containing the keys:
+  #   :label   - The {String} menu label.
+  #   :submenu - An optional {Array} of sub menu items.
+  #   :command - An option {String} command to trigger when the item is clicked.
   #
   # Returns nothing.
   add: (items) ->
     @merge(@template, item) for item in items
     @update()
 
-  # Private: Should the binding for the given selector be included in the menu
+  # Should the binding for the given selector be included in the menu
   # commands.
   #
-  # * selector: A String selector to check.
+  # selector - A {String} selector to check.
   #
   # Returns true to include the selector, false otherwise.
   includeSelector: (selector) ->
@@ -59,14 +69,13 @@ class MenuManager
         keystrokesByCommand[binding.command].push binding.keystroke
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
-  # Private:
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
     {menu} = CSON.readFileSync(platformMenuPath)
     @add(menu)
 
-  # Private: Merges an item in a submenu aware way such that new items are always
+  # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
     item = _.deepClone(item)
@@ -76,7 +85,7 @@ class MenuManager
     else
       menu.push(item) unless _.find(menu, (i) => @normalizeLabel(i.label) == @normalizeLabel(item.label))
 
-  # Private: OSX can't handle displaying accelerators for multiple keystrokes.
+  # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->
@@ -89,12 +98,10 @@ class MenuManager
         filtered[key].push(binding)
     filtered
 
-  # Private:
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
 
-  # Private:
   normalizeLabel: (label) ->
     return undefined unless label?
 

@@ -1,4 +1,4 @@
-# Private: Maintains the canonical map between screen and buffer positions.
+# Maintains the canonical map between screen and buffer positions.
 #
 # Facilitates the mapping of screen rows to buffer rows and vice versa. All row
 # ranges dealt with by this class are end-row exclusive. For example, a fold of

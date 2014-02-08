@@ -24,7 +24,6 @@ module.exports =
 class PackageManager
   Emitter.includeInto(this)
 
-  # Private:
   constructor: ({configDirPath, devMode, @resourcePath}) ->
     @packageDirPaths = [path.join(configDirPath, "packages")]
     if devMode
@@ -48,11 +47,9 @@ class PackageManager
   getPackageDirPaths: ->
     _.clone(@packageDirPaths)
 
-  # Private:
   getPackageState: (name) ->
     @packageStates[name]
 
-  # Private:
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
@@ -68,24 +65,23 @@ class PackageManager
     pack?.disable()
     pack
 
-  # Private: Activate all the packages that should be activated.
+  # Activate all the packages that should be activated.
   activate: ->
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
     @emit 'activated'
 
-  # Private: another type of package manager can handle other package types.
+  # another type of package manager can handle other package types.
   # See ThemeManager
   registerPackageActivator: (activator, types) ->
     @packageActivators.push([activator, types])
 
-  # Private:
   activatePackages: (packages) ->
     @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
-  # Private: Activate a single package by name
+  # Activate a single package by name
   activatePackage: (name, options={}) ->
     if options.sync? or options.immediate?
       return @activatePackageSync(name, options)
@@ -100,18 +96,18 @@ class PackageManager
 
   # Deprecated
   activatePackageSync: (name, options) ->
-    return pack if pack = @getActivePackage(name)
+     return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
       pack.activateSync(options)
       pack
 
-  # Private: Deactivate all packages
+  # Deactivate all packages
   deactivatePackages: ->
     @deactivatePackage(pack.name) for pack in @getActivePackages()
     @unobserveDisabledPackages()
 
-  # Private: Deactivate the package with the given name
+  # Deactivate the package with the given name
   deactivatePackage: (name) ->
     if pack = @getActivePackage(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
@@ -132,13 +128,11 @@ class PackageManager
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
-  # Private:
   unobserveDisabledPackages: ->
     return unless @observingDisabledPackages
     atom.config.unobserve('core.disabledPackages')
     @observingDisabledPackages = false
 
-  # Private:
   observeDisabledPackages: ->
     return if @observingDisabledPackages
 
@@ -152,7 +146,6 @@ class PackageManager
 
     @observingDisabledPackages = true
 
-  # Private:
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
@@ -164,7 +157,6 @@ class PackageManager
     @loadPackage(packagePath) for packagePath in packagePaths
     @emit 'loaded'
 
-  # Private:
   loadPackage: (nameOrPath) ->
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
@@ -176,12 +168,10 @@ class PackageManager
     else
       throw new Error("Could not resolve '#{nameOrPath}' to a package path")
 
-  # Private:
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
     null
 
-  # Private:
   unloadPackage: (name) ->
     if @isPackageActive(name)
       throw new Error("Tried to unload active package '#{name}'")
@@ -203,9 +193,9 @@ class PackageManager
   getLoadedPackages: ->
     _.values(@loadedPackages)
 
-  # Private: Get packages for a certain package type
+  # Get packages for a certain package type
   #
-  # * types: an {Array} of {String}s like ['atom', 'textmate']
+  # types - an {Array} of {String}s like ['atom', 'textmate'].
   getLoadedPackagesForTypes: (types) ->
     pack for pack in @getLoadedPackages() when pack.getType() in types
 
@@ -223,7 +213,6 @@ class PackageManager
   isPackageDisabled: (name) ->
     _.include(atom.config.get('core.disabledPackages') ? [], name)
 
-  # Private:
   hasAtomEngine: (packagePath) ->
     metadata = Package.loadMetadata(packagePath, true)
     metadata?.engines?.atom?
@@ -232,7 +221,6 @@ class PackageManager
   isBundledPackage: (name) ->
     @getPackageDependencies().hasOwnProperty(name)
 
-  # Private:
   getPackageDependencies: ->
     unless @packageDependencies?
       try

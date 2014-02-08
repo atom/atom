@@ -24,11 +24,9 @@ class Task
 
   # Public: A helper method to easily launch and run a task once.
   #
-  # * taskPath:
-  #   The path to the Coffeescript/Javascript file which exports a single
-  #   function to execute.
-  # * args:
-  #   The Array of arguments to pass to the exported function.
+  # taskPath - The {String} path to the CoffeeScript/JavaScript file which
+  #            exports a single {Function} to execute.
+  # args     - The arguments to pass to the exported function.
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
     task.once 'task:completed', -> task.terminate()
@@ -45,9 +43,8 @@ class Task
 
   # Public: Creates a task.
   #
-  # * taskPath:
-  #   The path to the Coffeescript/Javascript file that exports a single
-  #   function to execute.
+  # taskPath - The {String} path to the CoffeeScript/JavaScript file that
+  #            exports a single {Function} to execute.
   constructor: (taskPath) ->
     coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
     coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
@@ -73,7 +70,7 @@ class Task
 
     @handleEvents()
 
-  # Private: Routes messages from the child to the appropriate event.
+  # Routes messages from the child to the appropriate event.
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
@@ -81,21 +78,21 @@ class Task
 
   # Public: Starts the task.
   #
-  # * args:
-  #   The Array of arguments to pass to the function exported by the script. If
-  #   the last argument is a function, its removed from the array and called
-  #   upon completion (and replaces the complete function on the task instance).
-  start: (args...) ->
+  # args - The arguments to pass to the function exported by this task's script.
+  # callback - An optional {Function} to call when the task completes.
+  start: (args..., callback) ->
     throw new Error("Cannot start terminated process") unless @childProcess?
 
     @handleEvents()
-    @callback = args.pop() if _.isFunction(args[args.length - 1])
+    if _.isFunction(callback)
+      @callback = callback
+    else
+      args = arguments
     @send({event: 'start', args})
 
   # Public: Send message to the task.
   #
-  # * message:
-  #   The message to send
+  # message - The message to send to the task.
   send: (message) ->
     throw new Error("Cannot send message to terminated process") unless @childProcess?
     @childProcess.send(message)

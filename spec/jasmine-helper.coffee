@@ -21,10 +21,6 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
       print: (str) ->
         log(str)
       onComplete: (runner) ->
-        log('\n')
-        timeReporter.logLongestSuites 10, (line) -> log("#{line}\n")
-        log('\n')
-        timeReporter.logLongestSpecs 10, (line) -> log("#{line}\n")
         fs.closeSync(logStream) if logStream?
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else

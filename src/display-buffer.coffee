@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Emitter} = require 'emissary'
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
@@ -9,13 +9,10 @@ RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
-ConfigObserver = require './config-observer'
 
-# Private:
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
-  ConfigObserver.includeInto(this)
 
   @properties
     softWrap: null
@@ -39,10 +36,10 @@ class DisplayBuffer extends Model
       @emit 'soft-wrap-changed', softWrap
       @updateWrappedScreenLines()
 
-    @observeConfig 'editor.preferredLineLength', callNow: false, =>
+    @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
 
-    @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
+    @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @softWrap
 
   serializeParams: ->
@@ -81,8 +78,6 @@ class DisplayBuffer extends Model
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @emitChanged({ start, end, screenDelta, bufferDelta })
-
-  ### Public ###
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -419,8 +414,6 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  ### Public ###
-
   # Given a line, finds the point where it would wrap.
   #
   # line - The {String} to check
@@ -470,7 +463,7 @@ class DisplayBuffer extends Model
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # Constructs a new marker at the given screen range.
+  # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -480,7 +473,7 @@ class DisplayBuffer extends Model
     bufferRange = @bufferRangeForScreenRange(args.shift())
     @markBufferRange(bufferRange, args...)
 
-  # Constructs a new marker at the given buffer range.
+  # Public: Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -489,7 +482,7 @@ class DisplayBuffer extends Model
   markBufferRange: (args...) ->
     @getMarker(@buffer.markRange(args...).id)
 
-  # Constructs a new marker at the given screen position.
+  # Public: Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -498,7 +491,7 @@ class DisplayBuffer extends Model
   markScreenPosition: (screenPosition, options) ->
     @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
 
-  # Constructs a new marker at the given buffer position.
+  # Public: Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # options - Options to pass to the {Marker} constructor
@@ -507,7 +500,7 @@ class DisplayBuffer extends Model
   markBufferPosition: (bufferPosition, options) ->
     @getMarker(@buffer.markPosition(bufferPosition, options).id)
 
-  # Removes the marker with the given id.
+  # Public: Removes the marker with the given id.
   #
   # id - The {Number} of the ID to remove
   destroyMarker: (id) ->
@@ -573,14 +566,11 @@ class DisplayBuffer extends Model
     marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
-    @unobserveConfig()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row).text
       console.log row, line, line.length
-
-  ### Internal ###
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange

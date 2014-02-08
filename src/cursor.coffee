@@ -17,7 +17,7 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  # Private: Instantiated by an {Editor}
+  # Instantiated by an {Editor}
   constructor: ({@editor, @marker}) ->
     @updateVisibility()
     @marker.on 'changed', (e) =>
@@ -45,11 +45,9 @@ class Cursor
       @emit 'destroyed'
     @needsAutoscroll = true
 
-  # Private:
   destroy: ->
     @marker.destroy()
 
-  # Private:
   changePosition: (options, fn) ->
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
@@ -58,12 +56,11 @@ class Cursor
 
   # Public: Moves a cursor to a given screen position.
   #
-  # * screenPosition:
-  #   An {Array} of two numbers: the screen row, and the screen column.
-  # * options:
-  #    + autoscroll:
-  #      A Boolean which, if `true`, scrolls the {Editor} to wherever the
-  #      cursor moves to.
+  # screenPosition - An {Array} of two numbers: the screen row, and the screen
+  #                  column.
+  # options - An {Object} with the following keys:
+  #   :autoscroll - A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #                 the cursor moves to.
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
       @marker.setHeadScreenPosition(screenPosition, options)
@@ -74,12 +71,11 @@ class Cursor
 
   # Public: Moves a cursor to a given buffer position.
   #
-  # * bufferPosition:
-  #   An {Array} of two numbers: the buffer row, and the buffer column.
-  # * options:
-  #    + autoscroll:
-  #      A Boolean which, if `true`, scrolls the {Editor} to wherever the
-  #      cursor moves to.
+  # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer
+  #                  column.
+  # options - An {Object} with the following keys:
+  #   :autoscroll - A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #                 the cursor moves to.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
       @marker.setHeadBufferPosition(bufferPosition, options)
@@ -104,11 +100,11 @@ class Cursor
 
   # Public: Get the RegExp used by the cursor to determine what a "word" is.
   #
-  # * options:
-  #    + includeNonWordCharacters:
-  #      A Boolean indicating whether to include non-word characters in the regex.
+  # options: An {Object} with the following keys:
+  #   :includeNonWordCharacters - A {Boolean} indicating whether to include
+  #                               non-word characters in the regex.
   #
-  # Returns a RegExp.
+  # Returns a {RegExp}.
   wordRegExp: ({includeNonWordCharacters}={})->
     includeNonWordCharacters ?= true
     nonWordCharacters = atom.config.get('editor.nonWordCharacters')
@@ -122,7 +118,7 @@ class Cursor
   #
   # "Last" is defined as the most recently added cursor.
   #
-  # Returns a Boolean.
+  # Returns a {Boolean}.
   isLastCursor: ->
     this == @editor.getCursor()
 
@@ -131,7 +127,7 @@ class Cursor
   # "Surrounded" here means that all characters before and after the cursor is
   # whitespace.
   #
-  # Returns a Boolean.
+  # Returns a {Boolean}.
   isSurroundedByWhitespace: ->
     {row, column} = @getBufferPosition()
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
@@ -217,9 +213,9 @@ class Cursor
 
   # Public: Moves the cursor left one screen column.
   #
-  # * options:
-  #    + moveToEndOfSelection:
-  #      if true, move to the left of the selection if a selection exists.
+  # options - An {Object} with the following keys:
+  #   :moveToEndOfSelection - if true, move to the left of the selection if a
+  #                           selection exists.
   moveLeft: ({moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
@@ -231,9 +227,9 @@ class Cursor
 
   # Public: Moves the cursor right one screen column.
   #
-  # * options:
-  #    + moveToEndOfSelection:
-  #      if true, move to the right of the selection if a selection exists.
+  # options - An {Object} with the following keys:
+  #   :moveToEndOfSelection - if true, move to the right of the selection if a
+  #                           selection exists.
   moveRight: ({moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
@@ -313,12 +309,12 @@ class Cursor
 
   # Public: Retrieves the buffer position of where the current word starts.
   #
-  # * options:
-  #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
-  #    + includeNonWordCharacters:
-  #      A Boolean indicating whether to include non-word characters in the
-  #      default word regex. Has no effect if wordRegex is set.
+  # options - An {Object} with the following keys:
+  #   :wordRegex - A {RegExp} indicating what constitutes a "word"
+  #                (default: {.wordRegExp}).
+  #   :includeNonWordCharacters - A {Boolean} indicating whether to include
+  #                               non-word characters in the default word regex.
+  #                               Has no effect if wordRegex is set.
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
@@ -381,12 +377,12 @@ class Cursor
 
   # Public: Retrieves the buffer position of where the current word ends.
   #
-  # * options:
-  #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
-  #    + includeNonWordCharacters:
-  #      A Boolean indicating whether to include non-word characters in the
-  #      default word regex. Has no effect if wordRegex is set.
+  # options - An {Object} with the following keys:
+  #   :wordRegex - A {RegExp} indicating what constitutes a "word"
+  #                (default: {.wordRegExp})
+  #   :includeNonWordCharacters - A Boolean indicating whether to include
+  #                               non-word characters in the default word regex.
+  #                               Has no effect if wordRegex is set.
   #
   # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
@@ -405,9 +401,9 @@ class Cursor
 
   # Public: Retrieves the buffer position of where the next word starts.
   #
-  # * options:
-  #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
+  # options -
+  #   :wordRegex - A {RegExp} indicating what constitutes a "word"
+  #                (default: {.wordRegExp}).
   #
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
@@ -424,9 +420,9 @@ class Cursor
 
   # Public: Returns the buffer Range occupied by the word located under the cursor.
   #
-  # * options:
-  #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
+  # options -
+  #   :wordRegex - A {RegExp} indicating what constitutes a "word"
+  #                (default: {.wordRegExp}).
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
     endOptions = _.extend(_.clone(options), allowNext: false)
@@ -434,9 +430,9 @@ class Cursor
 
   # Public: Returns the buffer Range for the current line.
   #
-  # * options:
-  #    + includeNewline:
-  #      A boolean which controls whether the Range should include the newline.
+  # options -
+  #   :includeNewline: - A {Boolean} which controls whether the Range should
+  #                      include the newline.
   getCurrentLineBufferRange: (options) ->
     @editor.bufferRangeForBufferRow(@getBufferRow(), options)
 

@@ -5,7 +5,7 @@ LessCache = require 'less-cache'
 
 tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
-# Private: {LessCache} wrapper used by {ThemeManager} to read stylesheets.
+# {LessCache} wrapper used by {ThemeManager} to read stylesheets.
 module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)

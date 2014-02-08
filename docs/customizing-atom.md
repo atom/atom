@@ -112,13 +112,15 @@ namespaces: `core` and `editor`.
 
 ### Quick Personal Hacks
 
-### user.coffee
+### init.coffee
 
-When Atom finishes loading, it will evaluate _user.coffee_ in your _~/.atom_
+When Atom finishes loading, it will evaluate _init.coffee_ in your _~/.atom_
 directory, giving you a chance to run arbitrary personal CoffeeScript code to
 make customizations. You have full access to Atom's API from code in this file.
 If customizations become extensive, consider [creating a
 package][create-a-package].
+
+This file can also be named _init.js_ and contain JavaScript code.
 
 ### styles.css
 

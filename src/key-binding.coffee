@@ -2,8 +2,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
 
-### Internal ###
-
 module.exports =
 class KeyBinding
   @parser: null

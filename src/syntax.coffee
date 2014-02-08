@@ -15,7 +15,6 @@ Token = require './token'
 module.exports =
 class Syntax extends GrammarRegistry
   Subscriber.includeInto(this)
-
   atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
@@ -62,8 +61,8 @@ class Syntax extends GrammarRegistry
   # console.log(comment) # '# '
   # ```
   #
-  # * scope: An {Array} of {String} scopes.
-  # * keyPath: A {String} key path.
+  # scope - An {Array} of {String} scopes.
+  # keyPath - A {String} key path.
   #
   # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->

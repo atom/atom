@@ -42,7 +42,7 @@ class ThemeManager
 
   activatePackages: (themePackages) -> @activateThemes()
 
-  # Private: Get the enabled theme names from the config.
+  # Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
@@ -81,7 +81,7 @@ class ThemeManager
 
   # Public: Set the list of enabled themes.
   #
-  # * enabledThemeNames: An {Array} of {String} theme names.
+  # enabledThemeNames - An {Array} of {String} theme names.
   setEnabledThemes: (enabledThemeNames) ->
     atom.config.set('core.themes', enabledThemeNames)
 
@@ -144,8 +144,9 @@ class ThemeManager
   #
   # This supports both CSS and LESS stylsheets.
   #
-  # * stylesheetPath: A {String} path to the stylesheet that can be an absolute
-  #   path or a relative path that will be resolved against the load path.
+  # stylesheetPath - A {String} path to the stylesheet that can be an absolute
+  #                  path or a relative path that will be resolved against the
+  #                  load path.
   #
   # Returns the absolute path to the required stylesheet.
   requireStylesheet: (stylesheetPath, ttype = 'bundled', htmlElement) ->
