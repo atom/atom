@@ -2,7 +2,6 @@ Package = require './package'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-async = require 'async'
 Q = require 'q'
 
 ### Internal ###
