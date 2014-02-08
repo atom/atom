@@ -33,11 +33,11 @@ class TextMatePackage extends Package
       @metadata = Package.loadMetadata(@path, true)
 
   activate: ({sync, immediate}={})->
-    if sync or immediate
-      @loadGrammarsSync()
-      @loadScopedPropertiesSync()
-    else
-      TextMatePackage.addToActivationPromise(this)
+    TextMatePackage.addToActivationPromise(this)
+
+  activateSync: ->
+    @loadGrammarsSync()
+    @loadScopedPropertiesSync()
 
   activateConfig: -> # noop
 
