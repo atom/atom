@@ -96,7 +96,7 @@ class PackageManager
 
   # Deprecated
   activatePackageSync: (name, options) ->
-     return pack if pack = @getActivePackage(name)
+    return pack if pack = @getActivePackage(name)
     if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
       pack.activateSync(options)
