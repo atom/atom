@@ -185,6 +185,8 @@ class AtomPackage extends Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
+    @activationDeferred.reject()
+    @activationDeferred = null
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
