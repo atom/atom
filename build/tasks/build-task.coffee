@@ -49,6 +49,7 @@ module.exports = (grunt) ->
       path.join('bootstrap', 'examples')
       path.join('spellchecker', 'vendor')
       path.join('xmldom', 'test')
+      path.join('jasmine-reporters', 'ext')
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', '.deps')
       path.join('vendor', 'apm')
