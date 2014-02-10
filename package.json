@@ -109,7 +109,7 @@
     "language-clojure": "0.1.0",
     "language-coffee-script": "0.7.0",
     "language-css": "0.3.0",
-    "language-gfm": "0.13.0",
+    "language-gfm": "0.14.0",
     "language-git": "0.4.0",
     "language-go": "0.3.0",
     "language-html": "0.3.0",
