@@ -27,10 +27,12 @@ class List
     options.usage """
 
       Usage: apm list
+             apm list --themes
 
       List all the installed packages and also the packages bundled with Atom.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('t', 'themes').describe('themes', 'Only list themes')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
@@ -45,7 +47,7 @@ class List
       packageLine
     console.log()
 
-  listPackages: (directoryPath) ->
+  listPackages: (directoryPath, options) ->
     packages = []
     for child in fs.list(directoryPath)
       continue unless fs.isDirectorySync(path.join(directoryPath, child))
@@ -56,36 +58,46 @@ class List
           manifest = CSON.readFileSync(manifestPath)
       manifest ?= {}
       manifest.name = child
-      packages.push(manifest)
+      if options.argv.themes
+        packages.push(manifest) if manifest.theme
+      else
+        packages.push(manifest)
 
     packages
 
-  listUserPackages: ->
-    userPackages = @listPackages(@userPackagesDirectory)
+  listUserPackages: (options) ->
+    userPackages = @listPackages(@userPackagesDirectory, options)
     console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
     @logPackages(userPackages)
 
-  listDevPackages: ->
-    devPackages = @listPackages(@devPackagesDirectory)
+  listDevPackages: (options) ->
+    devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
       console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
       @logPackages(devPackages)
 
-  listNodeModulesWithAtomEngine: ->
+  listNodeModulesWithAtomEngine: (options) ->
     nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
-    allPackages = @listPackages(nodeModulesDirectory)
+    allPackages = @listPackages(nodeModulesDirectory, options)
     allPackages.filter (manifest) -> manifest.engines?.atom?
 
-  listBundledPackages: ->
-    bundledPackages = @listPackages(@bundledPackagesDirectory)
-    vendoredPackages = @listPackages(@vendoredPackagesDirectory)
-    atomEnginePackages = @listNodeModulesWithAtomEngine()
+  listBundledPackages: (options) ->
+    bundledPackages = @listPackages(@bundledPackagesDirectory, options)
+    vendoredPackages = @listPackages(@vendoredPackagesDirectory, options)
+    atomEnginePackages = @listNodeModulesWithAtomEngine(options)
     packages = _.sortBy(bundledPackages.concat(vendoredPackages).concat(atomEnginePackages), 'name')
-    console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
+
+    if options.argv.themes
+      console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
+    else
+      console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
     @logPackages(packages)
 
   run: (options) ->
-    @listBundledPackages()
-    @listDevPackages()
-    @listUserPackages()
-    options.callback()
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
+    @listBundledPackages(options)
+    @listDevPackages(options)
+    @listUserPackages(options)
+    callback()
