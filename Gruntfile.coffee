@@ -19,6 +19,7 @@ module.exports = (grunt) ->
 
       src: ['src/**/*.coffee']
       test: ['spec/*.coffee']
+      gruntfile: ['Gruntfile.coffee']
 
     shell:
       test:
@@ -35,7 +36,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'clean', ->
     grunt.file.delete('lib') if grunt.file.exists('lib')
 
-  grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test'])
+  grunt.registerTask('lint', ['coffeelint'])
   grunt.registerTask('default', ['coffee', 'coffeelint:src'])
   grunt.registerTask('test', ['clean', 'default', 'coffeelint:test', 'shell:test'])
   grunt.registerTask('prepublish', ['clean', 'coffee', 'lint'])
