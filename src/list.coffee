@@ -74,7 +74,6 @@ class List
       console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
       @logPackages(devPackages)
 
-
   listBundledPackages: (options) ->
     nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
     packages = @listPackages(nodeModulesDirectory, options)
