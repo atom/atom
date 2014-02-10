@@ -32,7 +32,6 @@ class PackageManager
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
-    @observingDisabledPackages = false
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
@@ -129,22 +128,17 @@ class PackageManager
     @getActivePackage(name)?
 
   unobserveDisabledPackages: ->
-    return unless @observingDisabledPackages
-    atom.config.unobserve('core.disabledPackages')
-    @observingDisabledPackages = false
+    @disabledPackagesSubscription?.off()
+    @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    return if @observingDisabledPackages
-
-    atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+    @disabledPackagesSubscription ?= atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 
       @deactivatePackage(packageName) for packageName in packagesToDisable when @getActivePackage(packageName)
       @activatePackage(packageName) for packageName in packagesToEnable
       null
-
-    @observingDisabledPackages = true
 
   loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
