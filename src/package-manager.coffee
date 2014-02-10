@@ -103,17 +103,16 @@ class PackageManager
 
   # Deactivate all packages
   deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getActivePackages()
+    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
-    if pack = @getActivePackage(name)
+    pack = @getLoadedPackage(name)
+    if @isPackageActive(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
-      pack.deactivate()
-      delete @activePackages[pack.name]
-    else
-      throw new Error("No active package for name '#{name}'")
+    pack.deactivate()
+    delete @activePackages[pack.name]
 
   # Public: Get an array of all the active packages
   getActivePackages: ->
