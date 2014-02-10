@@ -2,7 +2,7 @@
 path = require 'path'
 temp = require 'temp'
 
-fdescribe "the `syntax` global", ->
+describe "the `syntax` global", ->
   beforeEach ->
 
     waitsForPromise ->
