@@ -39,7 +39,8 @@ parseOptions = (args=[]) ->
 
     Usage: apm <command>
 
-    where <command> is one of:\n
+    where <command> is one of:
+
   """
   usage += wordwrap(4, 80)(Object.keys(commands).sort().join(', '))
   usage += ".\n\nRun `apm help <command>` to see the more details about a specific command."
