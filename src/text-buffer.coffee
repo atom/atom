@@ -213,7 +213,10 @@ class TextBuffer extends TextBufferCore
     else
       not @isEmpty()
 
-  # Identifies if a buffer is in a git conflict with `HEAD`.
+  # Is the buffer's text in conflict with the text on disk?
+  #
+  # This occurs when the buffer's file changes on disk while the buffer has
+  # unsaved changes.
   #
   # Returns a {Boolean}.
   isInConflict: -> @conflict
