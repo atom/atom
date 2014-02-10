@@ -3,7 +3,7 @@ fs = require 'fs-plus'
 path = require 'path'
 protocol = require 'protocol'
 
-# Private: Handles requests with 'atom' protocol.
+# Handles requests with 'atom' protocol.
 #
 # It's created by {AtomApplication} upon instantiation, and is used to create a
 # custom resource loader by adding the 'atom' custom protocol.
@@ -18,7 +18,7 @@ class AtomProtocolHandler
 
     @registerAtomProtocol()
 
-  # Private: Creates the 'atom' custom protocol handler.
+  # Creates the 'atom' custom protocol handler.
   registerAtomProtocol: ->
     protocol.registerProtocol 'atom', (request) =>
       relativePath = path.normalize(request.url.substr(7))

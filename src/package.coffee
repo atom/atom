@@ -1,7 +1,6 @@
 CSON = require 'season'
 {basename, join} = require 'path'
 
-### Internal ###
 module.exports =
 class Package
   @build: (path) ->
@@ -23,9 +22,9 @@ class Package
 
     pack
 
-  @load: (path, options) ->
+  @load: (path) ->
     pack = @build(path)
-    pack?.load(options)
+    pack?.load()
     pack
 
   @loadMetadata: (path, ignoreErrors=false) ->
@@ -44,9 +43,6 @@ class Package
   constructor: (@path) ->
     @name = basename(@path)
 
-  isActive: ->
-    atom.packages.isPackageActive(@name)
-
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
 
@@ -56,7 +52,6 @@ class Package
   isTheme: ->
     @metadata?.theme?
 
-  # Private:
   measure: (key, fn) ->
     startTime = Date.now()
     value = fn()

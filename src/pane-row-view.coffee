@@ -2,8 +2,6 @@
 _ = require 'underscore-plus'
 PaneAxisView = require './pane-axis-view'
 
-### Internal ###
-
 module.exports =
 class PaneRowView extends PaneAxisView
   @content: ->

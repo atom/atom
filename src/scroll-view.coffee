@@ -2,8 +2,14 @@
 
 # Public: Represents a view that scrolls.
 #
-# This `View` subclass listens to events such as `page-up`, `page-down`,
-# `move-to-top`, and `move-to-bottom`.
+# Subclasses must call `super` if overriding the `initialize` method or else
+# the following events won't be handled by the ScrollView.
+#
+# ## Events
+#   * `core:page-up`
+#   * `core:page-down`
+#   * `core:move-to-top`
+#   * `core:move-to-bottom`
 #
 # ## Requiring in packages
 #
@@ -12,8 +18,6 @@
 # ```
 module.exports =
 class ScrollView extends View
-
-  # Internal: The constructor.
   initialize: ->
     @on 'core:page-up', => @pageUp()
     @on 'core:page-down', => @pageDown()

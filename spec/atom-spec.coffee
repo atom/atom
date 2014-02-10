@@ -1,6 +1,7 @@
 {$, $$, fs, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
+AtomPackage = require '../src/atom-package'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
@@ -21,12 +22,16 @@ describe "the `atom` global", ->
     describe ".unloadPackage(name)", ->
       describe "when the package is active", ->
         it "throws an error", ->
-          pack = atom.packages.activatePackage('package-with-main')
-          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
-          expect( -> atom.packages.unloadPackage(pack.name)).toThrow()
-          expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
-          expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
+          pack = null
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-main').then (p) -> pack = p
+
+          runs ->
+            expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+            expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
+            expect( -> atom.packages.unloadPackage(pack.name)).toThrow()
+            expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
+            expect(atom.packages.isPackageActive(pack.name)).toBeTruthy()
 
       describe "when the package is not loaded", ->
         it "throws an error", ->
@@ -43,22 +48,42 @@ describe "the `atom` global", ->
 
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
+        describe "when called multiple times", ->
+          it "it only calls activate on the package once", ->
+            spyOn(AtomPackage.prototype, 'activateNow').andCallThrough()
+            atom.packages.activatePackage('package-with-index')
+            atom.packages.activatePackage('package-with-index')
+
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-index')
+
+            runs ->
+              expect(AtomPackage.prototype.activateNow.callCount).toBe 1
+
         describe "when the package has a main module", ->
           describe "when the metadata specifies a main module path˜", ->
             it "requires the module at the specified path", ->
               mainModule = require('./fixtures/packages/package-with-main/main-module')
               spyOn(mainModule, 'activate')
-              pack = atom.packages.activatePackage('package-with-main')
-              expect(mainModule.activate).toHaveBeenCalled()
-              expect(pack.mainModule).toBe mainModule
+              pack = null
+              waitsForPromise ->
+                atom.packages.activatePackage('package-with-main').then (p) -> pack = p
+
+              runs ->
+                expect(mainModule.activate).toHaveBeenCalled()
+                expect(pack.mainModule).toBe mainModule
 
           describe "when the metadata does not specify a main module", ->
             it "requires index.coffee", ->
               indexModule = require('./fixtures/packages/package-with-index/index')
               spyOn(indexModule, 'activate')
-              pack = atom.packages.activatePackage('package-with-index')
-              expect(indexModule.activate).toHaveBeenCalled()
-              expect(pack.mainModule).toBe indexModule
+              pack = null
+              waitsForPromise ->
+                atom.packages.activatePackage('package-with-index').then (p) -> pack = p
+
+              runs ->
+                expect(indexModule.activate).toHaveBeenCalled()
+                expect(pack.mainModule).toBe indexModule
 
           it "assigns config defaults from the module", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
@@ -67,20 +92,22 @@ describe "the `atom` global", ->
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
           describe "when the package metadata includes activation events", ->
-            [mainModule, pack] = []
+            [mainModule, promise] = []
 
             beforeEach ->
               mainModule = require './fixtures/packages/package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
               AtomPackage = require '../src/atom-package'
               spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
-              pack = atom.packages.activatePackage('package-with-activation-events')
+
+              promise = atom.packages.activatePackage('package-with-activation-events')
 
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
-              expect(pack.requireMainModule).not.toHaveBeenCalled()
-              expect(mainModule.activate).not.toHaveBeenCalled()
+              expect(promise.isFulfilled()).not.toBeTruthy()
               atom.workspaceView.trigger 'activation-event'
-              expect(mainModule.activate).toHaveBeenCalled()
+
+              waitsForPromise ->
+                promise
 
             it "triggers the activation event on all handlers registered during activation", ->
               atom.workspaceView.openSync()
@@ -105,13 +132,17 @@ describe "the `atom` global", ->
             expect(console.warn).not.toHaveBeenCalled()
 
         it "passes the activate method the package's previously serialized state if it exists", ->
-          pack = atom.packages.activatePackage("package-with-serialization")
-          expect(pack.mainModule.someNumber).not.toBe 77
-          pack.mainModule.someNumber = 77
-          atom.packages.deactivatePackage("package-with-serialization")
-          spyOn(pack.mainModule, 'activate').andCallThrough()
-          atom.packages.activatePackage("package-with-serialization")
-          expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
+          pack = null
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-serialization").then (p) -> pack = p
+
+          runs ->
+            expect(pack.mainModule.someNumber).not.toBe 77
+            pack.mainModule.someNumber = 77
+            atom.packages.deactivatePackage("package-with-serialization")
+            spyOn(pack.mainModule, 'activate').andCallThrough()
+            atom.packages.activatePackage("package-with-serialization")
+            expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
         it "logs warning instead of throwing an exception if the package fails to load", ->
           atom.config.set("core.disabledPackages", [])
@@ -234,29 +265,38 @@ describe "the `atom` global", ->
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
-            atom.packages.activatePackage("package-with-scoped-properties")
-            expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-scoped-properties")
+
+            runs ->
+              expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.packages.activatePackage('language-ruby', sync: true)
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
+
+          waitsForPromise ->
+            atom.packages.activatePackage('language-ruby')
+
+          runs ->
+            expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-          atom.packages.activatePackage('language-ruby', sync: true)
-          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
+
+          waitsForPromise ->
+            atom.packages.activatePackage('language-ruby')
+
+          runs ->
+            expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
         describe "when the package has no grammars but does have preferences", ->
           it "loads the package's preferences as scoped properties", ->
             jasmine.unspy(window, 'setTimeout')
             spyOn(atom.syntax, 'addProperties').andCallThrough()
 
-            atom.packages.activatePackage('package-with-preferences-tmbundle')
-
-            waitsFor ->
-              atom.syntax.addProperties.callCount > 0
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-preferences-tmbundle')
 
             runs ->
               expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
@@ -264,30 +304,43 @@ describe "the `atom` global", ->
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
         it "calls `deactivate` on the package's main module if activate was successful", ->
-          pack = atom.packages.activatePackage("package-with-deactivate")
-          expect(atom.packages.isPackageActive("package-with-deactivate")).toBeTruthy()
-          spyOn(pack.mainModule, 'deactivate').andCallThrough()
+          pack = null
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-deactivate").then (p) -> pack = p
 
-          atom.packages.deactivatePackage("package-with-deactivate")
-          expect(pack.mainModule.deactivate).toHaveBeenCalled()
-          expect(atom.packages.isPackageActive("package-with-module")).toBeFalsy()
+          runs ->
+            expect(atom.packages.isPackageActive("package-with-deactivate")).toBeTruthy()
+            spyOn(pack.mainModule, 'deactivate').andCallThrough()
 
-          spyOn(console, 'warn')
-          badPack = atom.packages.activatePackage("package-that-throws-on-activate")
-          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
-          spyOn(badPack.mainModule, 'deactivate').andCallThrough()
+            atom.packages.deactivatePackage("package-with-deactivate")
+            expect(pack.mainModule.deactivate).toHaveBeenCalled()
+            expect(atom.packages.isPackageActive("package-with-module")).toBeFalsy()
 
-          atom.packages.deactivatePackage("package-that-throws-on-activate")
-          expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
-          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
+            spyOn(console, 'warn')
+
+          badPack = null
+          waitsForPromise ->
+            atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
+
+          runs ->
+            expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
+            spyOn(badPack.mainModule, 'deactivate').andCallThrough()
+
+            atom.packages.deactivatePackage("package-that-throws-on-activate")
+            expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
+            expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
 
         it "does not serialize packages that have not been activated called on their main module", ->
           spyOn(console, 'warn')
-          badPack = atom.packages.activatePackage("package-that-throws-on-activate")
-          spyOn(badPack.mainModule, 'serialize').andCallThrough()
+          badPack = null
+          waitsForPromise ->
+            atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
 
-          atom.packages.deactivatePackage("package-that-throws-on-activate")
-          expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
+          runs ->
+            spyOn(badPack.mainModule, 'serialize').andCallThrough()
+
+            atom.packages.deactivatePackage("package-that-throws-on-activate")
+            expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
         it "absorbs exceptions that are thrown by the package module's serialize methods", ->
           spyOn(console, 'error')
@@ -299,32 +352,44 @@ describe "the `atom` global", ->
           expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
-          atom.packages.activatePackage('package-with-grammars')
-          atom.packages.deactivatePackage('package-with-grammars')
-          expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
-          expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-grammars')
+
+          runs ->
+            atom.packages.deactivatePackage('package-with-grammars')
+            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
+            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
         it "removes the package's keymaps", ->
-          atom.packages.activatePackage('package-with-keymaps')
-          atom.packages.deactivatePackage('package-with-keymaps')
-          expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
-          expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-keymaps')
+
+          runs ->
+            atom.packages.deactivatePackage('package-with-keymaps')
+            expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
+            expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
 
         it "removes the package's stylesheets", ->
-          atom.packages.activatePackage('package-with-stylesheets')
-          atom.packages.deactivatePackage('package-with-stylesheets')
-          one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
-          two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
-          three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-          expect(atom.themes.stylesheetElementForId(one)).not.toExist()
-          expect(atom.themes.stylesheetElementForId(two)).not.toExist()
-          expect(atom.themes.stylesheetElementForId(three)).not.toExist()
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-stylesheets')
+
+          runs ->
+            atom.packages.deactivatePackage('package-with-stylesheets')
+            one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
+            two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
+            three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+            expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+            expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+            expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
         it "removes the package's scoped-properties", ->
-          atom.packages.activatePackage("package-with-scoped-properties")
-          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
-          atom.packages.deactivatePackage("package-with-scoped-properties")
-          expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-scoped-properties")
+
+          runs ->
+            expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            atom.packages.deactivatePackage("package-with-scoped-properties")
+            expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
       describe "textmate packages", ->
         it "removes the package's grammars", ->
@@ -371,7 +436,7 @@ describe "the `atom` global", ->
         themes = themeActivator.mostRecentCall.args[0]
         expect(['theme']).toContain(theme.getType()) for theme in themes
 
-    describe ".en/disablePackage()", ->
+    describe ".enablePackage() and disablePackage()", ->
       describe "with packages", ->
         it ".enablePackage() enables a disabled package", ->
           packageName = 'package-with-main'
@@ -380,28 +445,36 @@ describe "the `atom` global", ->
           expect(atom.config.get('core.disabledPackages')).toContain packageName
 
           pack = atom.packages.enablePackage(packageName)
-
           loadedPackages = atom.packages.getLoadedPackages()
-          activatedPackages = atom.packages.getActivePackages()
-          expect(loadedPackages).toContain(pack)
-          expect(activatedPackages).toContain(pack)
-          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+          activatedPackages = null
+          waitsFor ->
+            activatedPackages = atom.packages.getActivePackages()
+            activatedPackages.length > 0
+
+          runs ->
+            expect(loadedPackages).toContain(pack)
+            expect(activatedPackages).toContain(pack)
+            expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
         it ".disablePackage() disables an enabled package", ->
           packageName = 'package-with-main'
-          atom.packages.activatePackage(packageName)
-          atom.packages.observeDisabledPackages()
-          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+          waitsForPromise ->
+            atom.packages.activatePackage(packageName)
 
-          pack = atom.packages.disablePackage(packageName)
+          runs ->
+            atom.packages.observeDisabledPackages()
+            expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
-          activatedPackages = atom.packages.getActivePackages()
-          expect(activatedPackages).not.toContain(pack)
-          expect(atom.config.get('core.disabledPackages')).toContain packageName
+            pack = atom.packages.disablePackage(packageName)
+
+            activatedPackages = atom.packages.getActivePackages()
+            expect(activatedPackages).not.toContain(pack)
+            expect(atom.config.get('core.disabledPackages')).toContain packageName
 
       describe "with themes", ->
         beforeEach ->
-          atom.themes.activateThemes()
+          waitsForPromise ->
+            atom.themes.activateThemes()
 
         afterEach ->
           atom.themes.deactivateThemes()
@@ -415,18 +488,24 @@ describe "the `atom` global", ->
 
           # enabling of theme
           pack = atom.packages.enablePackage(packageName)
-          activatedPackages = atom.packages.getActivePackages()
-          expect(activatedPackages).toContain(pack)
-          expect(atom.config.get('core.themes')).toContain packageName
-          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
-          # disabling of theme
-          pack = atom.packages.disablePackage(packageName)
-          activatedPackages = atom.packages.getActivePackages()
-          expect(activatedPackages).not.toContain(pack)
-          expect(atom.config.get('core.themes')).not.toContain packageName
-          expect(atom.config.get('core.themes')).not.toContain packageName
-          expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+          activatedPackages = null
+          waitsFor ->
+            activatedPackages = atom.packages.getActivePackages()
+            activatedPackages.length > 0
+
+          runs ->
+            expect(activatedPackages).toContain(pack)
+            expect(atom.config.get('core.themes')).toContain packageName
+            expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+
+            # disabling of theme
+            pack = atom.packages.disablePackage(packageName)
+            activatedPackages = atom.packages.getActivePackages()
+            expect(activatedPackages).not.toContain(pack)
+            expect(atom.config.get('core.themes')).not.toContain packageName
+            expect(atom.config.get('core.themes')).not.toContain packageName
+            expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->

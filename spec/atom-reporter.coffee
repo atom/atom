@@ -6,8 +6,7 @@ sourceMaps = {}
 formatStackTrace = (stackTrace) ->
   return stackTrace unless stackTrace
 
-  jasminePath = require.resolve('../vendor/jasmine')
-  jasminePattern = new RegExp("\\(#{_.escapeRegExp(jasminePath)}:\\d+:\\d+\\)\\s*$")
+  jasminePattern = /^\s*at\s+.*\(?.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
   convertedLines = []
   for line in stackTrace.split('\n')
     convertedLines.push(line) unless jasminePattern.test(line)

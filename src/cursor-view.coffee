@@ -2,7 +2,6 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
-### Internal ###
 module.exports =
 class CursorView extends View
   @content: ->

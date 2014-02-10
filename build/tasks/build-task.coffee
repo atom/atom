@@ -21,7 +21,6 @@ module.exports = (grunt) ->
 
     cp 'atom.sh', path.join(appDir, 'atom.sh')
     cp 'package.json', path.join(appDir, 'package.json')
-    cp 'apm', path.join(appDir, 'apm')
 
     packageDirectories = []
     nonPackageDirectories = [
@@ -47,8 +46,12 @@ module.exports = (grunt) ->
       path.join('less', 'dist')
       path.join('less', 'test')
       path.join('bootstrap', 'docs')
+      path.join('bootstrap', 'examples')
       path.join('spellchecker', 'vendor')
       path.join('xmldom', 'test')
+      path.join('jasmine-reporters', 'ext')
+      path.join('build', 'Release', 'obj.target')
+      path.join('build', 'Release', '.deps')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
@@ -64,6 +67,7 @@ module.exports = (grunt) ->
     cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
+    cp 'apm', path.join(appDir, 'apm'), filter: nodeModulesFilter
 
     if process.platform is 'darwin'
       grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->

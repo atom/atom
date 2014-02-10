@@ -12,8 +12,6 @@ fuzzyFilter = require('fuzzaldrin').filter
 # ```
 module.exports =
 class SelectListView extends View
-
-  # Private:
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new EditorView(mini: true)
@@ -23,7 +21,6 @@ class SelectListView extends View
         @span class: 'badge', outlet: 'loadingBadge'
       @ol class: 'list-group', outlet: 'list'
 
-  # Private:
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
@@ -59,7 +56,6 @@ class SelectListView extends View
       @confirmSelection() if $(e.target).closest('li').hasClass('selected')
       e.preventDefault()
 
-  # Private:
   schedulePopulateList: ->
     clearTimeout(@scheduleTimeout)
     populateCallback = =>
@@ -68,14 +64,14 @@ class SelectListView extends View
 
   # Public: Set the array of items to display in the list.
   #
-  # * array: The array of model elements to display in the list.
+  # array - The {Array} of model elements to display in the list.
   setArray: (@array=[]) ->
     @populateList()
     @setLoading()
 
   # Public: Set the error message to display.
   #
-  # * message: The error message.
+  # message - The {String} error message (default: '').
   setError: (message='') ->
     if message.length is 0
       @error.text('').hide()
@@ -85,7 +81,7 @@ class SelectListView extends View
 
   # Public: Set the loading message to display.
   #
-  # * message: The loading message.
+  # message - The {String} loading message (default: '').
   setLoading: (message='') ->
     if message.length is 0
       @loading.text("")
@@ -135,30 +131,26 @@ class SelectListView extends View
   #
   # Subclasses may override this method to customize the message.
   #
-  # * itemCount: The number of items in the array specified to {.setArray}
-  # * filteredItemCount: The number of items that pass the fuzzy filter test.
+  # itemCount - The {Number} of items in the array specified to {.setArray}
+  # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
-  # Private:
   selectPreviousItem: ->
     item = @getSelectedItem().prev()
     item = @list.find('li:last') unless item.length
     @selectItem(item)
 
-  # Private:
   selectNextItem: ->
     item = @getSelectedItem().next()
     item = @list.find('li:first') unless item.length
     @selectItem(item)
 
-  # Private:
   selectItem: (item) ->
     return unless item.length
     @list.find('.selected').removeClass('selected')
     item.addClass 'selected'
     @scrollToItem(item)
 
-  # Private:
   scrollToItem: (item) ->
     scrollTop = @list.scrollTop()
     desiredTop = item.position().top + scrollTop
@@ -181,7 +173,6 @@ class SelectListView extends View
   getSelectedElement: ->
     @getSelectedItem().data('select-list-element')
 
-  # Private:
   confirmSelection: ->
     element = @getSelectedElement()
     if element?
@@ -193,25 +184,21 @@ class SelectListView extends View
   #
   # This method should be overridden by subclasses.
   #
-  # * element: The selected model element.
+  # element - The selected model element.
   confirmed: (element) ->
 
-  # Private:
   attach: ->
     @storeFocusedElement()
 
-  # Private:
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
 
-  # Private:
   restoreFocus: ->
     if @previouslyFocusedElement?.isOnDom()
       @previouslyFocusedElement.focus()
     else
       atom.workspaceView.focus()
 
-  # Private:
   cancelled: ->
     @miniEditor.getEditor().setText('')
     @miniEditor.updateDisplay()

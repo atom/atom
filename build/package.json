@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "biscotto": "git://github.com/atom/biscotto.git#12188bfbe5f7303fa9f1aa3c4f8662d40ce3c3be",
+    "biscotto": "0.6.0",
     "first-mate": "1.x",
     "formidable": "~1.0.14",
     "fs-plus": "1.x",
@@ -32,7 +32,6 @@
     "runas": "~0.3.0",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
-    "vm-compatibility-layer": "~0.1.0",
-    "walkdir": "0.0.7"
+    "vm-compatibility-layer": "~0.1.0"
   }
 }

@@ -1,6 +1,5 @@
 global.shellStartTime = Date.now()
 
-autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs'
@@ -42,7 +41,6 @@ start = ->
 
   app.on 'will-finish-launching', ->
     setupCrashReporter()
-    setupAutoUpdater()
 
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
@@ -65,9 +63,6 @@ global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
-
-setupAutoUpdater = ->
-  autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
 
 parseCommandLine = ->
   version = app.getVersion()

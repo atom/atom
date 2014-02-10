@@ -7,8 +7,9 @@ PaneContainer = require './pane-container'
 Pane = require './pane'
 
 # Public: Represents the view state of the entire window, including the panes at
-# the center and panels around the periphery. You can access the singleton
-# instance via `atom.workspace`.
+# the center and panels around the periphery.
+#
+# An instance of this class is always available as the `atom.workspace` global.
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
@@ -23,7 +24,6 @@ class Workspace extends Model
     fullScreen: false
     destroyedItemUris: -> []
 
-  # Private:
   constructor: ->
     super
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
@@ -35,28 +35,30 @@ class Workspace extends Model
           @open(atom.keymap.getUserKeymapPath())
         when 'atom://.atom/config'
           @open(atom.config.getUserConfigPath())
+        when 'atom://.atom/init-script'
+          @open(atom.getUserInitScriptPath())
 
-  # Private: Called by the Serializable mixin during deserialization
+  # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
-  # Private: Called by the Serializable mixin during serialization.
+  # Called by the Serializable mixin during serialization.
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # * filePath: A file path
-  # * options
-  #   + initialLine: The buffer line number to open to.
-  #   + split: Takes 'left' or 'right'. Opens in existing right or left pane if
-  #     one exists, otherwise creates a new pane.
-  #   + changeFocus: Boolean that allows a filePath to be opened without
-  #     changing focus.
-  #   + searchAllPanes: Boolean that will open existing editors from any pane
-  #     if the filePath is already open (defaults to false)
+  # filePath - A {String} file path.
+  # options  - An options {Object} (default: {}).
+  #   :initialLine - A {Number} indicating which line number to open to.
+  #   :split - A {String} ('left' or 'right') that opens the filePath in a new
+  #            pane or an existing one if it exists.
+  #   :changeFocus - A {Boolean} that allows the filePath to be opened without
+  #                  changing focus.
+  #   :searchAllPanes - A {Boolean} that will open existing editors from any pane
+  #                     if the filePath is already open (default: false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
@@ -92,7 +94,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Private: Only used in specs
+  # Only used in specs
   openSync: (uri, options={}) ->
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
@@ -160,16 +162,16 @@ class Workspace extends Model
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Private: Removes the item's uri from the list of potential items to reopen.
+  # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
       remove(@destroyedItemUris, uri)
 
-  # Private: Adds the destroyed item's uri to the list of items to reopen.
+  # Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 
-  # Private: Called by Model superclass when destroyed
+  # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
