@@ -2,6 +2,7 @@ Package = require './package'
 fs = require 'fs-plus'
 path = require 'path'
 _ = require 'underscore-plus'
+Q = require 'q'
 {$} = require './space-pen-extensions'
 CSON = require 'season'
 {Emitter} = require 'emissary'
@@ -59,13 +60,33 @@ class AtomPackage extends Package
     @grammars = []
     @scopedProperties = []
 
-  activate: ({immediate}={}) ->
+  activate: ->
+    return @activationDeferred.promise if @activationDeferred?
+
+    @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @activateResources()
-      if @metadata.activationEvents? and not immediate
+      if @metadata.activationEvents?
         @subscribeToActivationEvents()
       else
         @activateNow()
+
+    @activationDeferred.promise
+
+  # Deprecated
+  activateSync: ({immediate}={}) ->
+    @activateResources()
+    if @metadata.activationEvents? and not immediate
+      @subscribeToActivationEvents()
+    else
+      try
+        @activateConfig()
+        @activateStylesheets()
+        if @requireMainModule()
+          @mainModule.activate(atom.packages.getPackageState(@name) ? {})
+          @mainActivated = true
+      catch e
+        console.warn "Failed to activate package named '#{@name}'", e.stack
 
   activateNow: ->
     try
@@ -76,6 +97,8 @@ class AtomPackage extends Package
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
+
+    @activationDeferred.resolve()
 
   activateConfig: ->
     return if @configActivated
@@ -162,6 +185,8 @@ class AtomPackage extends Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
+    @activationDeferred?.reject()
+    @activationDeferred = null
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
@@ -226,6 +251,8 @@ class AtomPackage extends Package
     @unsubscribeFromActivationEvents()
 
   unsubscribeFromActivationEvents: ->
+    return unless atom.workspaceView?
+
     if _.isArray(@metadata.activationEvents)
       atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)

@@ -1,6 +1,7 @@
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
+Q = require 'q'
 Package = require './package'
 path = require 'path'
 
@@ -31,7 +32,6 @@ class PackageManager
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
-    @observingDisabledPackages = false
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
@@ -81,26 +81,38 @@ class PackageManager
     @observeDisabledPackages()
 
   # Activate a single package by name
-  activatePackage: (name, options) ->
+  activatePackage: (name, options={}) ->
+    if options.sync? or options.immediate?
+      return @activatePackageSync(name, options)
+
+    if pack = @getActivePackage(name)
+      Q(pack)
+    else
+      pack = @loadPackage(name)
+      pack.activate(options).then =>
+        @activePackages[pack.name] = pack
+        pack
+
+  # Deprecated
+  activatePackageSync: (name, options) ->
     return pack if pack = @getActivePackage(name)
-    if pack = @loadPackage(name, options)
+    if pack = @loadPackage(name)
       @activePackages[pack.name] = pack
-      pack.activate(options)
+      pack.activateSync(options)
       pack
 
   # Deactivate all packages
   deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getActivePackages()
+    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
-    if pack = @getActivePackage(name)
+    pack = @getLoadedPackage(name)
+    if @isPackageActive(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
-      pack.deactivate()
-      delete @activePackages[pack.name]
-    else
-      throw new Error("No active package for name '#{name}'")
+    pack.deactivate()
+    delete @activePackages[pack.name]
 
   # Public: Get an array of all the active packages
   getActivePackages: ->
@@ -115,14 +127,11 @@ class PackageManager
     @getActivePackage(name)?
 
   unobserveDisabledPackages: ->
-    return unless @observingDisabledPackages
-    atom.config.unobserve('core.disabledPackages')
-    @observingDisabledPackages = false
+    @disabledPackagesSubscription?.off()
+    @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    return if @observingDisabledPackages
-
-    atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+    @disabledPackagesSubscription ?= atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 
@@ -130,9 +139,7 @@ class PackageManager
       @activatePackage(packageName) for packageName in packagesToEnable
       null
 
-    @observingDisabledPackages = true
-
-  loadPackages: (options) ->
+  loadPackages: ->
     # Ensure atom exports is already in the require cache so the load time
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
@@ -140,15 +147,15 @@ class PackageManager
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
-    @loadPackage(packagePath, options) for packagePath in packagePaths
+    @loadPackage(packagePath) for packagePath in packagePaths
     @emit 'loaded'
 
-  loadPackage: (nameOrPath, options) ->
+  loadPackage: (nameOrPath) ->
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
       return pack if pack = @getLoadedPackage(name)
 
-      pack = Package.load(packagePath, options)
+      pack = Package.load(packagePath)
       @loadedPackages[pack.name] = pack if pack?
       pack
     else

@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
+Q = require 'q'
 
 {$} = require './space-pen-extensions'
 AtomPackage = require './atom-package'
@@ -53,19 +54,22 @@ class ThemeManager
     themeNames.reverse()
 
   activateThemes: ->
+    deferred = Q.defer()
+
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', =>
       @deactivateThemes()
 
       @refreshLessCache() # Update cache for packages in core.themes config
-      for themeName in @getEnabledThemeNames()
-        @packageManager.activatePackage(themeName)
+      promises = @getEnabledThemeNames().map (themeName) => @packageManager.activatePackage(themeName)
+      Q.all(promises).then =>
+        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+        @loadUserStylesheet()
+        @reloadBaseStylesheets()
+        @emit('reloaded')
+        deferred.resolve()
 
-      @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-      @loadUserStylesheet()
-      @reloadBaseStylesheets()
-
-      @emit('reloaded')
+    deferred.promise
 
   deactivateThemes: ->
     @unwatchUserStylesheet()
@@ -91,7 +95,7 @@ class ThemeManager
         if themePath = @packageManager.resolvePackagePath(themeName)
           themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
-    themePath for themePath in themePaths when fs.isDirectorySync(themePath)
+    themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
 
   # Public: Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->

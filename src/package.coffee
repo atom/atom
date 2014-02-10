@@ -22,9 +22,9 @@ class Package
 
     pack
 
-  @load: (path, options) ->
+  @load: (path) ->
     pack = @build(path)
-    pack?.load(options)
+    pack?.load()
     pack
 
   @loadMetadata: (path, ignoreErrors=false) ->
@@ -42,9 +42,6 @@ class Package
 
   constructor: (@path) ->
     @name = basename(@path)
-
-  isActive: ->
-    atom.packages.isPackageActive(@name)
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
