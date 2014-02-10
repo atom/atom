@@ -26,9 +26,9 @@ class PackageConverter
     ]
 
     @directoryNames = [
-      'preferences'
-      'snippets'
-      'syntaxes'
+      'Preferences'
+      'Snippets'
+      'Syntaxes'
     ]
 
   convert: (callback) ->
@@ -97,7 +97,7 @@ class PackageConverter
     source = path.join(sourcePath, directoryName)
     return unless fs.isDirectorySync(source)
 
-    destination = path.join(@destinationPath, directoryName)
+    destination = path.join(@destinationPath, directoryName.toLowerCase())
     fs.makeTreeSync(destination)
 
     for child in fs.readdirSync(source)
