@@ -1,6 +1,4 @@
-Q = require 'q'
 AtomPackage = require './atom-package'
-Package = require './package'
 
 ### Internal: Loads and resolves packages. ###
 
