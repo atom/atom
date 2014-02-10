@@ -33,18 +33,17 @@ for commandClass in commandClasses
 
 parseOptions = (args=[]) ->
   options = optimist(args)
-  usage = """
+  options.usage """
 
     apm - Atom Package Manager powered by https://atom.io
 
     Usage: apm <command>
 
     where <command> is one of:
+    #{wordwrap(4, 80)(Object.keys(commands).sort().join(', '))}.
 
+    Run `apm help <command>` to see the more details about a specific command.
   """
-  usage += wordwrap(4, 80)(Object.keys(commands).sort().join(', '))
-  usage += ".\n\nRun `apm help <command>` to see the more details about a specific command."
-  options.usage(usage)
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
   options.boolean('color').default('color', true).describe('color', 'Enable colored output')
