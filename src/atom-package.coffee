@@ -251,6 +251,8 @@ class AtomPackage extends Package
     @unsubscribeFromActivationEvents()
 
   unsubscribeFromActivationEvents: ->
+    return unless atom.workspaceView?
+
     if _.isArray(@metadata.activationEvents)
       atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)
