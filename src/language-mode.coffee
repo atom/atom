@@ -8,19 +8,14 @@ class LanguageMode
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
-  buffer: null
-  grammar: null
-  editor: null
-  currentGrammarScore: null
-
-  destroy: ->
-    @unsubscribe()
-
   # Sets up a `LanguageMode` for the given {Editor}.
   #
   # editor - The {Editor} to associate with
   constructor: (@editor) ->
-    @buffer = @editor.buffer
+    {@buffer} = @editor
+
+  destroy: ->
+    @unsubscribe()
 
   toggleLineCommentForBufferRow: (row) ->
     @toggleLineCommentsForBufferRows(row, row)
