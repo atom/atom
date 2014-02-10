@@ -33,7 +33,6 @@ class ThemeConverter
     @readTheme (error, themeContents) =>
       return callback(error) if error?
 
-      TextMateTheme = require './text-mate-Theme'
       theme = new TextMateTheme(themeContents)
       fs.writeFileSync(path.join(@destinationPath, 'index.less'), theme.getStylesheet())
       callback()
