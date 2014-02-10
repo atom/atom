@@ -14,6 +14,7 @@ class List
 
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
+    @devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
     @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')
     @vendoredPackagesDirectory = path.join(config.getResourcePath(), 'vendor', 'packages')
     if configPath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
@@ -42,6 +43,7 @@ class List
       packageLine += "@#{pack.version}" if pack.version?
       packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
       packageLine
+    console.log()
 
   listPackages: (directoryPath) ->
     packages = []
@@ -63,6 +65,12 @@ class List
     console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
     @logPackages(userPackages)
 
+  listDevPackages: ->
+    devPackages = @listPackages(@devPackagesDirectory)
+    if devPackages.length > 0
+      console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
+      @logPackages(devPackages)
+
   listNodeModulesWithAtomEngine: ->
     nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
     allPackages = @listPackages(nodeModulesDirectory)
@@ -77,7 +85,7 @@ class List
     @logPackages(packages)
 
   run: (options) ->
-    @listUserPackages()
-    console.log ''
     @listBundledPackages()
+    @listDevPackages()
+    @listUserPackages()
     options.callback()
