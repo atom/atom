@@ -355,12 +355,18 @@ describe "the `atom` global", ->
 
         it "absorbs exceptions that are thrown by the package module's serialize methods", ->
           spyOn(console, 'error')
-          atom.packages.activatePackage('package-with-serialize-error',  immediate: true)
-          atom.packages.activatePackage('package-with-serialization', immediate: true)
-          atom.packages.deactivatePackages()
-          expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
-          expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
-          expect(console.error).toHaveBeenCalled()
+
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-serialize-error')
+
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-serialization')
+
+          runs ->
+            atom.packages.deactivatePackages()
+            expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+            expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+            expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
           waitsForPromise ->
@@ -405,15 +411,22 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "removes the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.packages.activatePackage('language-ruby', sync: true)
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.packages.deactivatePackage('language-ruby')
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+
+          waitsForPromise ->
+            atom.packages.activatePackage('language-ruby')
+
+          runs ->
+            expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
+            atom.packages.deactivatePackage('language-ruby')
+            expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
-          atom.packages.activatePackage('language-ruby', sync: true)
-          atom.packages.deactivatePackage('language-ruby')
-          expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          waitsForPromise ->
+            atom.packages.activatePackage('language-ruby')
+
+          runs ->
+            atom.packages.deactivatePackage('language-ruby')
+            expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
     describe ".activate()", ->
       packageActivator = null
