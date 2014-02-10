@@ -1,5 +1,3 @@
-fs = require 'fs'
-
 _ = require 'underscore-plus'
 colors = require 'colors'
 optimist = require 'optimist'
