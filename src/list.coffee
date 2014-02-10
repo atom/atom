@@ -15,8 +15,6 @@ class List
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
-    @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')
-    @vendoredPackagesDirectory = path.join(config.getResourcePath(), 'vendor', 'packages')
     if configPath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
       try
         @disabledPackages = CSON.readFileSync(configPath)?.core?.disabledPackages
@@ -76,16 +74,11 @@ class List
       console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
       @logPackages(devPackages)
 
-  listNodeModulesWithAtomEngine: (options) ->
-    nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
-    allPackages = @listPackages(nodeModulesDirectory, options)
-    allPackages.filter (manifest) -> manifest.engines?.atom?
 
   listBundledPackages: (options) ->
-    bundledPackages = @listPackages(@bundledPackagesDirectory, options)
-    vendoredPackages = @listPackages(@vendoredPackagesDirectory, options)
-    atomEnginePackages = @listNodeModulesWithAtomEngine(options)
-    packages = _.sortBy(bundledPackages.concat(vendoredPackages).concat(atomEnginePackages), 'name')
+    nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
+    packages = @listPackages(nodeModulesDirectory, options)
+    packages.filter (manifest) -> manifest.engines?.atom?
 
     if options.argv.themes
       console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
