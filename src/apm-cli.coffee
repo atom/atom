@@ -35,6 +35,8 @@ parseOptions = (args=[]) ->
   options = optimist(args)
   usage = """
 
+    apm - Atom Package Manager powered by https://atom.io
+
     Usage: apm <command>
 
     where <command> is one of:\n
