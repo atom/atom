@@ -571,6 +571,23 @@ describe 'TextBuffer', ->
         saveBuffer.reload()
         expect(events).toEqual ['will-reload', 'reloaded']
 
+      it "no longer reports being in conflict", ->
+        saveBuffer.setText('a')
+        saveBuffer.save()
+        saveBuffer.setText('ab')
+
+        fs.writeFileSync(saveBuffer.getPath(), 'c')
+        conflictHandler = jasmine.createSpy('conflictHandler')
+        saveBuffer.on 'contents-conflicted', conflictHandler
+
+        waitsFor ->
+          conflictHandler.callCount > 0
+
+        runs ->
+          expect(saveBuffer.isInConflict()).toBe true
+          saveBuffer.save()
+          expect(saveBuffer.isInConflict()).toBe false
+
     describe "when the buffer has no path", ->
       it "throws an exception", ->
         saveBuffer = atom.project.bufferForPathSync(null)
