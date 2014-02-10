@@ -1,4 +1,4 @@
-describe "LanguageMode", ->
+fdescribe "LanguageMode", ->
   [editor, buffer, languageMode] = []
 
   afterEach ->
@@ -6,9 +6,11 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
-      atom.packages.activatePackage('language-javascript', sync: true)
       editor = atom.project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns the minimum indent level for the given row range", ->
@@ -100,9 +102,11 @@ describe "LanguageMode", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      atom.packages.activatePackage('language-coffee-script', sync: true)
       editor = atom.project.openSync('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -147,9 +151,11 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.packages.activatePackage('language-css', sync: true)
       editor = atom.project.openSync('css.css', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-css')
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -188,10 +194,14 @@ describe "LanguageMode", ->
 
   describe "less", ->
     beforeEach ->
-      atom.packages.activatePackage('language-less', sync: true)
-      atom.packages.activatePackage('language-css', sync: true)
       editor = atom.project.openSync('sample.less', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-less')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-css')
 
     describe "when commenting lines", ->
       it "only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart`", ->
@@ -200,9 +210,11 @@ describe "LanguageMode", ->
 
   describe "folding", ->
     beforeEach ->
-      atom.packages.activatePackage('language-javascript', sync: true)
       editor = atom.project.openSync('sample.js', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
 
     it "maintains cursor buffer position when a folding/unfolding", ->
       editor.setCursorBufferPosition([5,5])
@@ -298,9 +310,11 @@ describe "LanguageMode", ->
 
   describe "folding with comments", ->
     beforeEach ->
-      atom.packages.activatePackage('language-javascript', sync: true)
       editor = atom.project.openSync('sample-with-comments.js', autoIndent: false)
       {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
@@ -362,9 +376,11 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.packages.activatePackage('language-source', sync: true)
-      atom.packages.activatePackage('language-css', sync: true)
       editor = atom.project.openSync('css.css', autoIndent: true)
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-source')
+        atom.packages.activatePackage('language-css')
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->
