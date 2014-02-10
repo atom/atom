@@ -1,10 +1,7 @@
 AtomPackage = require './atom-package'
 
-### Internal: Loads and resolves packages. ###
-
 module.exports =
 class ThemePackage extends AtomPackage
-
   getType: -> 'theme'
 
   getStylesheetType: -> 'theme'
