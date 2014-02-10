@@ -212,7 +212,7 @@ class SpecResultView extends View
 
   initialize: (@spec) ->
     @addClass("spec-view-#{@spec.id}")
-    @description.html @spec.description
+    @description.text @spec.description
 
     for result in @spec.results().getItems() when not result.passed()
       stackTrace = formatStackTrace(result.trace.stack)
