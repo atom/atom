@@ -16,10 +16,12 @@ describe "Editor", ->
 
   describe "with default options", ->
     beforeEach ->
-      atom.packages.activatePackage('language-javascript', sync: true)
       editor = atom.project.openSync('sample.js', autoIndent: false)
       buffer = editor.buffer
       lineLengths = buffer.getLines().map (line) -> line.length
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
 
     describe "when the editor is deserialized", ->
       it "restores selections and folds based on markers in the buffer", ->
@@ -2733,19 +2735,26 @@ describe "Editor", ->
 
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
-      atom.packages.activatePackage('language-text', sync: true)
-      atom.packages.activatePackage('language-javascript', sync: true)
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-text')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
 
     it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
-      atom.packages.activatePackage('language-hyperlink', sync: true)
-      grammar = atom.syntax.selectGrammar("text.js")
-      {tokens} = grammar.tokenizeLine("var i; // http://github.com")
+      waitsForPromise ->
+        atom.packages.activatePackage('language-hyperlink')
 
-      expect(tokens[0].value).toBe "var"
-      expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+      runs ->
+        grammar = atom.syntax.selectGrammar("text.js")
+        {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
-      expect(tokens[6].value).toBe "http://github.com"
-      expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+        expect(tokens[0].value).toBe "var"
+        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+
+        expect(tokens[6].value).toBe "http://github.com"
+        expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
     describe "when the grammar is added", ->
       it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -2756,11 +2765,13 @@ describe "Editor", ->
         expect(tokens[1].value).toBe " http://github.com"
         expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-        atom.packages.activatePackage('language-hyperlink', sync: true)
+        waitsForPromise ->
+          atom.packages.activatePackage('language-hyperlink')
 
-        {tokens} = editor.lineForScreenRow(0)
-        expect(tokens[2].value).toBe "http://github.com"
-        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+        runs ->
+          {tokens} = editor.lineForScreenRow(0)
+          expect(tokens[2].value).toBe "http://github.com"
+          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
     describe "when the grammar is updated", ->
       it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -2771,14 +2782,17 @@ describe "Editor", ->
         expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
         expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-        atom.packages.activatePackage('package-with-injection-selector', sync: true)
+
+        atom.packages.activatePackage('package-with-injection-selector')
 
         {tokens} = editor.lineForScreenRow(0)
         expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
         expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-        atom.packages.activatePackage('language-sql', sync: true)
+        waitsForPromise ->
+          atom.packages.activatePackage('language-sql')
 
-        {tokens} = editor.lineForScreenRow(0)
-        expect(tokens[2].value).toBe "SELECT"
-        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
+        runs ->
+          {tokens} = editor.lineForScreenRow(0)
+          expect(tokens[2].value).toBe "SELECT"
+          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
