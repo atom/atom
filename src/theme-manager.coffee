@@ -95,7 +95,7 @@ class ThemeManager
         if themePath = @packageManager.resolvePackagePath(themeName)
           themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
-    themePath for themePath in themePaths when fs.isDirectorySync(themePath)
+    themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
 
   # Public: Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
