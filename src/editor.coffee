@@ -78,7 +78,7 @@ class Editor extends Model
         position = [0, 0]
       @addCursorAtBufferPosition(position)
 
-    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @languageMode = new LanguageMode(this)
 
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
@@ -297,9 +297,6 @@ class Editor extends Model
 
   # {Delegates to: TextBuffer.saveAs}
   saveAs: (path) -> @buffer.saveAs(path)
-
-  # {Delegates to: TextBuffer.getExtension}
-  getFileExtension: -> @buffer.getExtension()
 
   # {Delegates to: TextBuffer.getPath}
   getPath: -> @buffer.getPath()

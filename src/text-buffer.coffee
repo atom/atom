@@ -179,15 +179,6 @@ class TextBuffer extends TextBufferCore
 
     @emit "path-changed", this
 
-  # Retrieves the current buffer's file extension.
-  #
-  # Returns a {String}.
-  getExtension: ->
-    if @getPath()
-      @getPath().split('/').pop().split('.').pop()
-    else
-      null
-
   # Deprecated: Use ::getEndPosition instead
   getEofPosition: -> @getEndPosition()
 
