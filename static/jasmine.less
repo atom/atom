@@ -1,7 +1,5 @@
 @import "octicon-mixins";
 
-@font-face { .octicon-font(); }
-
 body {
   background-color: #fff;
   padding: 0;
@@ -112,12 +110,15 @@ body {
       border-left: 3px solid #d9534f;
 
       .spec-toggle {
-        font-family: Octicons Regular;
-        font-size: 20px;
+        .octicon(fold);
         float: right;
         cursor: pointer;
         opacity: 0;
         color: #999;
+
+        &.folded {
+          .octicon(unfold);
+        }
       }
 
       .spec-toggle:hover {

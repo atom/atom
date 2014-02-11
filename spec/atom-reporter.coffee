@@ -117,7 +117,7 @@ class AtomReporter extends View
       element = $(currentTarget)
       specFailures = element.parent().find('.spec-failures')
       specFailures.toggle()
-      if specFailures.is(":visible") then element.text "\uf03d" else element.html "\uf03f"
+      element.toggleClass('folded')
       false
 
   updateSpecCounts: ->
@@ -224,7 +224,7 @@ class SuiteResultView extends View
 class SpecResultView extends View
   @content: ->
     @div class: 'spec', =>
-      @div "\uf03d", class: 'spec-toggle'
+      @div class: 'spec-toggle'
       @div outlet: 'description', class: 'description'
       @div outlet: 'specFailures', class: 'spec-failures'
   spec: null
