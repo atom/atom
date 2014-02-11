@@ -621,7 +621,7 @@ class Editor extends Model
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
-  # Public: Moves the selected line up one row.
+  # Public: Moves the selected lines up one row.
   moveLineUp: ->
     selection = @getSelectedBufferRange()
     return if selection.start.row is 0
@@ -655,7 +655,7 @@ class Editor extends Model
 
       @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
 
-  # Public: Moves the selected line down one row.
+  # Public: Moves the selected lines down one row.
   moveLineDown: ->
     selection = @getSelectedBufferRange()
     lastRow = @buffer.getLastRow()
