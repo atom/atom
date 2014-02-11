@@ -68,6 +68,8 @@
   'cmd-=': 'window:increase-font-size'
   'cmd-+': 'window:increase-font-size'
   'cmd--': 'window:decrease-font-size'
+  'cmd-_': 'window:decrease-font-size'
+  'cmd-0': 'window:reset-font-size'
 
   'cmd-k up': 'pane:split-up' # Atom Specific
   'cmd-k down': 'pane:split-down' # Atom Specific
@@ -122,7 +124,6 @@
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'
   'alt-cmd-ctrl-f': 'editor:fold-selection'
-  'cmd-=': 'editor:auto-indent'
 
   # Sublime Parity
   'cmd-enter': 'editor:newline-below'
