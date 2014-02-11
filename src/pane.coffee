@@ -3,6 +3,7 @@
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
+Editor = require './editor'
 PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
@@ -90,6 +91,12 @@ class Pane extends Model
   # Returns a pane item.
   getActiveItem: ->
     @activeItem
+
+  # Public: Returns an {Editor} if the pane item is an {Editor}, or null
+  # otherwise.
+  getActiveEditor: ->
+    console.log
+    @activeItem if @activeItem instanceof Editor
 
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->

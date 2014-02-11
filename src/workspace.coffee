@@ -155,6 +155,11 @@ class Workspace extends Model
   destroyActivePane: ->
     @activePane?.destroy()
 
+  # Public: Returns an {Editor} if the active pane item is an {Editor},
+  # or null otherwise.
+  getActiveEditor: ->
+    @activePane?.getActiveEditor()
+
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
