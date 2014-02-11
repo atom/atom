@@ -28,7 +28,7 @@ formatStackTrace = (message='', stackTrace) ->
 module.exports =
 class AtomReporter extends View
   @content: ->
-    @div id: 'HTMLReporter', class: 'jasmine_reporter spec-reporter', =>
+    @div class: 'jasmine_reporter spec-reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
       @div outlet: 'coreArea', =>
