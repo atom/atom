@@ -1,17 +1,14 @@
-@import "octicon-mixins.less";
+@import "octicon-mixins";
 
 @font-face { .octicon-font(); }
 
 body {
-  background-color: #ddd;
+  background-color: #fff;
   padding: 0;
 }
 
 .spec-popup {
   position: absolute;
-  background-color: #ddd;
-  border: 2px solid black;
-  padding: 5px;
   font-size: 13px;
   display: none;
 }
@@ -22,9 +19,8 @@ body {
 
 .spec-reporter {
   font-size: 11px;
-  font-family: Monaco, Consolas, monospace;
   line-height: 1.6em;
-  color: #333333;
+  color: #333;
 
   #jasmine_content {
     position: fixed;
@@ -32,19 +28,24 @@ body {
   }
 
   .symbol-header {
-    background-color: #222;
-    color: #c2c2c2;
     font-size: 12px;
     margin: 0;
-    padding: 5px 2px 2px 2px;
+    padding-bottom: 5px;
+  }
+
+  .symbol-area {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
   }
 
   .symbol-summary {
-    background-color: #222;
     overflow: hidden;
     margin: 0;
 
     li {
+      font-family: Monaco, Consolas, monospace;
       float: left;
       line-height: 10px;
       height: 10px;
@@ -52,46 +53,34 @@ body {
       font-size: 10px;
 
       &.passed {
-        color: #63AD75;
+        color: #5cb85c;
       }
 
       &.failed {
-        color: #FF3F05;
+        color: #d9534f;
       }
 
       &.skipped {
-        color: #444
+        color: #ddd;
       }
 
       &.pending {
-        color: #111;
+        color: #eee;
       }
 
       &:before {
         content: "\02022";
-      }
-
-      &:hover {
-        color: white;
       }
     }
   }
 
   .status {
     font-size: 20px;
-    color: #222;
-    background-color: #E5FFC0;
     line-height: 2em;
-    padding: 2px;
-    border: 2px solid #222;
-    border-left: 0;
-    border-right: 0;
+    padding: 5px;
+    border-radius: 0;
+    margin: 0;
     text-align: center;
-
-    &.failed {
-      color: white;
-      background-color: rgba(204,51,63,1.0);
-    }
 
     .spec-count {
       float: left;
@@ -103,81 +92,56 @@ body {
   }
 
   .results {
-    .suite + .suite,
-    .spec + .spec {
-      border-radius: 0;
+    padding: 10px;
+
+    .description {
+      font-size: 16px;
+      padding: 5px 0 5px 0;
     }
 
-    .suite,
-    .spec {
-      border: 2px solid #222;
-      border-radius: 7px 0 0 0;
-      border-right: none;
-      border-bottom: none;
-      padding: 5px;
-      padding-right: 0;
-      padding-bottom: 0;
-    }
+    > .suite {
+      > .description {
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-    .suite:first-child {
-      border-radius: 0;
-      border: 2px solid #6A4A3C;
-      border-top: 0;
-      border-left: 0;
-      border-right: 0;
-    }
-
-    .suite {
-      border: 2px solid #6A4A3C;
-      border-radius: 7px 0 0 0;
-      border-right: none;
-      border-bottom: none;
-      padding: 5px;
-      padding-right: 0;
-      padding-bottom: 0;
-      background-color:rgba(204,51,63,0.33);
+      margin-bottom: 20px;
     }
 
     .spec {
-      padding: 10px;
-      background-color:rgba(204,51,63,1.0);
+      margin-top: 5px;
+      padding: 0 10px 10px 10px;
+      border-left: 3px solid #d9534f;
+
+      .spec-toggle {
+        font-family: Octicons Regular;
+        font-size: 20px;
+        float: right;
+        cursor: pointer;
+        opacity: 0;
+        color: #999;
+      }
+
+      .spec-toggle:hover {
+        color: #333;
+      }
+
+      &:hover .spec-toggle {
+        opacity: 1;
+      }
     }
 
     .suite > .suite,
     .suite > .spec {
-      margin-left: 5px
-    }
-
-    .description {
-      color: white;
-      font-size: 15px;
-      padding-bottom: 10px
-    }
-
-    .spec .spec-toggle {
-      font-family: Octicons Regular;
-      color: white;
-      font-size: 20px;
-      float: right;
-      cursor: pointer;
-      text-shadow: 3px 3px #222;
-      opacity: 0;
-    }
-
-    .spec .spec-toggle:hover {
-      text-shadow: none;
-      padding-top: 3px;
-    }
-
-    .spec:hover .spec-toggle {
-      opacity: 1;
+      margin-left: 10px;
     }
   }
 
   .result-message {
-    padding-top: 5px;
-    color: #fff;
-    font-size: 15px
+    font-size: 16px;
+    font-weight: bold;
+    color: #d9534f;
+    padding: 5px 0 5px 0;
   }
 
   .stack-trace {
@@ -185,10 +149,8 @@ body {
     margin: 5px 0 0 0;
     border-radius: 2px;
     line-height: 18px;
-    color: #666666;
+    color: #666;
     border: 1px solid #ddd;
-    background: white;
-    white-space: pre;
     overflow: auto;
   }
 }
