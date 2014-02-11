@@ -670,8 +670,9 @@ class Editor extends Model
 
       # Move line around the fold that is directly below the selection
       insertDelta = 1
-      if foldRange = @languageMode.rowRangeForFoldAtBufferRow(selection.end.row + 1)
-        insertDelta += foldRange[1] - foldRange[0]
+      if @isFoldedAtBufferRow(selection.end.row + 1)
+        foldRange = @languageMode.rowRangeForFoldAtBufferRow(selection.end.row + 1)
+        insertDelta += foldRange[1] - foldRange[0] if foldRange?
 
       for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
@@ -694,6 +695,12 @@ class Editor extends Model
         insertPosition = Point.min([startRow + insertDelta], @buffer.getEofPosition())
         if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
           lines = "\n#{lines}"
+
+        # Make sure the inserted text doesn't go into an existing fold
+        if @isFoldedAtBufferRow(insertPosition.row)
+          @destroyFoldsContainingBufferRow(insertPosition.row)
+          foldedRows.push(insertPosition.row + startRow - endRow + 1)
+
         @buffer.insert(insertPosition, lines)
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows

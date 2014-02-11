@@ -2640,6 +2640,24 @@ describe "EditorView", ->
           expect(editor.getCursorBufferPosition()).toEqual [9, 0]
           expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
           expect(buffer.lineForRow(9)).toBe 'var quicksort = function () {'
+          expect(editor.isFoldedAtBufferRow(0)).toBe true
+          expect(editor.isFoldedAtBufferRow(9)).toBe false
+
+      describe "when line below is empty and the line below that is folded", ->
+        it "moves the line to the empty line", ->
+          editor.setCursorBufferPosition([0, Infinity])
+          editor.insertText('\n')
+          editor.setCursorBufferPosition([0, 0])
+          editor.foldBufferRow(2)
+          editorView.trigger 'editor:move-line-down'
+
+          expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+          expect(buffer.lineForRow(0)).toBe ''
+          expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
+          expect(editor.isFoldedAtBufferRow(0)).toBe false
+          expect(editor.isFoldedAtBufferRow(1)).toBe false
+          expect(editor.isFoldedAtBufferRow(2)).toBe true
 
     describe "when the cursor is on the last line", ->
       it "does not move the line", ->
