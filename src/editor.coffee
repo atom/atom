@@ -694,11 +694,10 @@ class Editor extends Model
         insertDelta = 1
 
       for row in rows
-        screenRow = @screenPositionForBufferPosition([row]).row
-        if @isFoldedAtScreenRow(screenRow)
-          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
+          bufferRange = fold.getBufferRange()
           startRow = bufferRange.start.row
-          endRow = bufferRange.end.row - 1
+          endRow = bufferRange.end.row
           foldedRows.push(endRow + insertDelta)
         else
           startRow = row
