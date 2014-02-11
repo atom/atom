@@ -16,20 +16,12 @@ module.exports =
 class DeserializerManager
   constructor: ->
     @deserializers = {}
-    @deferredDeserializers = {}
 
   # Public: Register the given class(es) as deserializers.
   #
   # classes - One or more classes to register.
   add: (classes...) ->
     @deserializers[klass.name] = klass for klass in classes
-
-  # Public: Add a deferred deserializer for the given class name.
-  #
-  # name - The {String} name of the deserializer.
-  # fn   - The {Function} that creates the deserializer.
-  addDeferred: (name, fn) ->
-    @deferredDeserializers[name] = fn
 
   # Public: Remove the given class(es) as deserializers.
   #
@@ -59,8 +51,4 @@ class DeserializerManager
     return unless state?
 
     name = state.get?('deserializer') ? state.deserializer
-    if @deferredDeserializers[name]
-      @deferredDeserializers[name]()
-      delete @deferredDeserializers[name]
-
     @deserializers[name]

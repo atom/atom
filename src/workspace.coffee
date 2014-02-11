@@ -52,27 +52,43 @@ class Workspace extends Model
   #
   # filePath - A {String} file path.
   # options  - An options {Object} (default: {}).
-  #   :initialLine - The buffer line number to open to.
+  #   :initialLine - A {Number} indicating which line number to open to.
+  #   :split - A {String} ('left' or 'right') that opens the filePath in a new
+  #            pane or an existing one if it exists.
+  #   :changeFocus - A {Boolean} that allows the filePath to be opened without
+  #                  changing focus.
+  #   :searchAllPanes - A {Boolean} that will open existing editors from any pane
+  #                     if the filePath is already open (default: false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (filePath, options={}) ->
     changeFocus = options.changeFocus ? true
     filePath = atom.project.resolve(filePath)
     initialLine = options.initialLine
-    activePane = @activePane
+    searchAllPanes = options.searchAllPanes
+    split = options.split
+    uri = atom.project.relativize(filePath)
 
-    editor = activePane.itemForUri(atom.project.relativize(filePath)) if activePane and filePath
-    promise = atom.project.open(filePath, {initialLine}) if not editor
+    pane = switch split
+      when 'left'
+        @activePane.findLeftmostSibling()
+      when 'right'
+        @activePane.findOrCreateRightmostSibling()
+      else
+        if searchAllPanes
+          @paneContainer.paneForUri(uri) ? @activePane
+        else
+          @activePane
 
-    Q(editor ? promise)
+    Q(pane.itemForUri(uri) ? atom.project.open(filePath, options))
       .then (editor) =>
-        if not activePane
-          activePane = new Pane(items: [editor])
-          @paneContainer.root = activePane
+        if not pane
+          pane = new Pane(items: [editor])
+          @paneContainer.root = pane
 
         @itemOpened(editor)
-        activePane.activateItem(editor)
-        activePane.activate() if changeFocus
+        pane.activateItem(editor)
+        pane.activate() if changeFocus
         @emit "uri-opened"
         editor
       .catch (error) ->
@@ -95,8 +111,7 @@ class Workspace extends Model
     @activePane.activate() if activatePane
     editor
 
-  # Public: Synchronously open an editor for the given URI or activate an existing
-  # editor in any pane if one already exists.
+  # Deprecated
   openSingletonSync: (uri, options={}) ->
     {initialLine, split} = options
     # TODO: Remove deprecated changeFocus option
@@ -139,6 +154,11 @@ class Workspace extends Model
   # Public: destroy/close the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
+
+  # Public: Returns an {Editor} if the active pane item is an {Editor},
+  # or null otherwise.
+  getActiveEditor: ->
+    @activePane?.getActiveEditor()
 
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)

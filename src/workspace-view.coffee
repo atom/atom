@@ -229,8 +229,12 @@ class WorkspaceView extends View
     @horizontal.append(element)
 
   # Public: Returns the currently focused {PaneView}.
-  getActivePane: ->
+  getActivePaneView: ->
     @panes.getActivePane()
+
+  # Deprecated: Returns the currently focused {PaneView}.
+  getActivePane: ->
+    @getActivePaneView()
 
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
