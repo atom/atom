@@ -628,19 +628,20 @@ class Editor extends Model
     lastRow = @buffer.getLastRow()
     return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
 
-    # Move line around the fold that is directly above the selection
-    precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
-    precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
-    if fold = @largestFoldContainingBufferRow(precedingBufferRow)
-      insertDelta = fold.getBufferRange().getRowCount()
-    else
-      insertDelta = 1
-
     @transact =>
       foldedRows = []
       rows = [selection.start.row..selection.end.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
         rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
+
+      # Move line around the fold that is directly above the selection
+      precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
+      precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
+      if fold = @largestFoldContainingBufferRow(precedingBufferRow)
+        insertDelta = fold.getBufferRange().getRowCount()
+      else
+        insertDelta = 1
+
       for row in rows
         if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
           bufferRange = fold.getBufferRange()
