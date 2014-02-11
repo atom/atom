@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 
 sourceMaps = {}
-formatStackTrace = (stackTrace) ->
+formatStackTrace = (message='', stackTrace) ->
   return stackTrace unless stackTrace
 
   jasminePattern = /^\s*at\s+.*\(?.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
@@ -11,7 +11,19 @@ formatStackTrace = (stackTrace) ->
   for line in stackTrace.split('\n')
     convertedLines.push(line) unless jasminePattern.test(line)
 
-  convertStackTrace(convertedLines.join('\n'), sourceMaps)
+  stackTrace = convertStackTrace(convertedLines.join('\n'), sourceMaps)
+  lines = stackTrace.split('\n')
+
+  # Remove first line of stack when it is the same as the error message
+  errorMatch = lines[0]?.match(/^Error: (.*)/)
+  lines.shift() if message.trim() is errorMatch?[1]?.trim()
+
+  # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
+  for line, index in lines
+    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^\)]+)\)/)
+    lines[index] = "at #{prefixMatch[1]}" if prefixMatch
+
+  lines.join('\n')
 
 module.exports =
 class AtomReporter extends View
@@ -215,7 +227,7 @@ class SpecResultView extends View
     @description.text @spec.description
 
     for result in @spec.results().getItems() when not result.passed()
-      stackTrace = formatStackTrace(result.trace.stack)
+      stackTrace = formatStackTrace(result.message, result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'resultMessage fail'
         @div stackTrace, class: 'stack-trace padded' if stackTrace
