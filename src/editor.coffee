@@ -669,10 +669,12 @@ class Editor extends Model
         rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
 
       # Move line around the fold that is directly below the selection
-      insertDelta = 1
-      if @isFoldedAtBufferRow(selection.end.row + 1)
-        foldRange = @languageMode.rowRangeForFoldAtBufferRow(selection.end.row + 1)
-        insertDelta += foldRange[1] - foldRange[0] if foldRange?
+      followingScreenRow = @screenPositionForBufferPosition([selection.end.row]).translate([1])
+      followingBufferRow = @bufferPositionForScreenPosition(followingScreenRow).row
+      if fold = @largestFoldContainingBufferRow(followingBufferRow)
+        insertDelta = fold.getBufferRange().getRowCount()
+      else
+        insertDelta = 1
 
       for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
@@ -680,7 +682,7 @@ class Editor extends Model
           bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
           startRow = bufferRange.start.row
           endRow = bufferRange.end.row - 1
-          foldedRows.push(endRow + 1)
+          foldedRows.push(endRow + insertDelta)
         else
           startRow = row
           endRow = row
@@ -697,9 +699,9 @@ class Editor extends Model
           lines = "\n#{lines}"
 
         # Make sure the inserted text doesn't go into an existing fold
-        if @isFoldedAtBufferRow(insertPosition.row)
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
           @destroyFoldsContainingBufferRow(insertPosition.row)
-          foldedRows.push(insertPosition.row + startRow - endRow + 1)
+          foldedRows.push(insertPosition.row + fold.getBufferRange().getRowCount())
 
         @buffer.insert(insertPosition, lines)
 

@@ -2643,6 +2643,26 @@ describe "EditorView", ->
           expect(editor.isFoldedAtBufferRow(0)).toBe true
           expect(editor.isFoldedAtBufferRow(9)).toBe false
 
+        describe "when the line being moved is folded", ->
+          it "moves the fold around the fold below it", ->
+            editor.setCursorBufferPosition([0, 0])
+            editor.insertText """
+              var a = function() {
+                b = 3;
+              };
+
+            """
+            editor.foldBufferRow(0)
+            editor.foldBufferRow(3)
+            editor.setCursorBufferPosition([0, 0])
+            editorView.trigger 'editor:move-line-down'
+
+            expect(editor.getCursorBufferPosition()).toEqual [13, 0]
+            expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+            expect(buffer.lineForRow(13)).toBe 'var a = function() {'
+            expect(editor.isFoldedAtBufferRow(0)).toBe true
+            expect(editor.isFoldedAtBufferRow(13)).toBe true
+
       describe "when line below is empty and the line below that is folded", ->
         it "moves the line to the empty line", ->
           editor.setCursorBufferPosition([0, Infinity])
