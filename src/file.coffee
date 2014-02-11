@@ -5,6 +5,7 @@ Q = require 'q'
 {Emitter} = require 'emissary'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+runas = require 'runas'
 
 # Public: Represents an individual file.
 #
@@ -61,7 +62,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fs.writeFileSync(@getPath(), text)
+    @writeFileWithPrivilegeEscalationSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @hasSubscriptions()
 
   # Deprecated
@@ -121,6 +122,21 @@ class File
   # Public: Get the SHA-1 digest of this file
   getDigest: ->
     @digest ? @setDigest(@readSync())
+
+  # Private: Writes the text to specified path.
+  #
+  # Privilege escalation would be asked when current user doesn't have
+  # permission to the path.
+  writeFileWithPrivilegeEscalationSync: (path, text) ->
+    try
+      fs.writeFileSync(path, text)
+    catch error
+      if error.code is 'EACCES' and process.platform is 'darwin'
+        authopen = '/usr/libexec/authopen'  # man 1 auth open
+        unless runas(authopen, ['-w', '-c', path], stdin: text) is 0
+          throw error
+      else
+        throw error
 
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
