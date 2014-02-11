@@ -705,7 +705,9 @@ class Editor extends Model
 
         @buffer.insert(insertPosition, lines)
 
-      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+      # Restore folds that existed before the lines were moved
+      for foldedRow in foldedRows when foldedRow <= @getLastBufferRow()
+        @foldBufferRow(foldedRow)
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
 
