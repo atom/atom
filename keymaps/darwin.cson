@@ -124,7 +124,6 @@
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'
   'alt-cmd-ctrl-f': 'editor:fold-selection'
-  'cmd-=': 'editor:auto-indent'
 
   # Sublime Parity
   'cmd-enter': 'editor:newline-below'

@@ -71,7 +71,6 @@
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
   'alt-ctrl-f': 'editor:fold-selection'
-  'ctrl-=': 'editor:auto-indent'
 
   # Sublime Parity
   'ctrl-enter': 'editor:newline-below'
