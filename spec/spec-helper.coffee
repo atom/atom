@@ -169,7 +169,6 @@ addCustomMatchers = (spec) ->
       element = element.get(0) if element.jquery
       element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
 
-
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
