@@ -179,7 +179,7 @@ class SuiteResultView extends View
 
   initialize: (@suite) ->
     @attr('id', "suite-view-#{@suite.id}")
-    @description.html @suite.description
+    @description.text(@suite.description)
 
   attach: ->
     (@parentSuiteView() or $('.results')).append this
