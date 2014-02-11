@@ -2631,7 +2631,7 @@ describe "EditorView", ->
         editorView.trigger 'editor:move-line-down'
         expect(editor.getCursorBufferPosition()).toEqual [1, 2]
 
-      describe "when the line below is folder", ->
+      describe "when the line below is folded", ->
         it "moves the line around the fold", ->
           editor.setCursorBufferPosition([0, 0])
           editor.foldBufferRow(1)
