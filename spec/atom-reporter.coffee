@@ -230,7 +230,7 @@ class SpecResultView extends View
       stackTrace = formatStackTrace(result.message, result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'result-message fail'
-        @div stackTrace, class: 'stack-trace padded' if stackTrace
+        @pre stackTrace, class: 'stack-trace padded' if stackTrace
 
   attach: ->
     @parentSuiteView().append this
