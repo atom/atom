@@ -158,15 +158,15 @@ class AtomReporter extends View
           @userSummary.append symbol
 
     if coreSpecs > 0
-      @coreHeader.text("Core Specs (#{coreSpecs}):")
+      @coreHeader.text("Core Specs (#{coreSpecs})")
     else
       @coreArea.hide()
     if bundledPackageSpecs > 0
-      @bundledHeader.text("Bundled Package Specs (#{bundledPackageSpecs}):")
+      @bundledHeader.text("Bundled Package Specs (#{bundledPackageSpecs})")
     else
       @bundledArea.hide()
     if userPackageSpecs > 0
-      @userHeader.text("User Package Specs (#{userPackageSpecs}):")
+      @userHeader.text("User Package Specs (#{userPackageSpecs})")
     else
       @userArea.hide()
 
