@@ -61,7 +61,7 @@ class AtomReporter extends View
 
   reportRunnerStarting: (runner) ->
     @handleEvents()
-    @startedAt = new Date()
+    @startedAt = Date.now()
     specs = runner.specs()
     @totalSpecCount = specs.length
     @addSpecs(specs)
@@ -78,7 +78,7 @@ class AtomReporter extends View
 
   reportSpecResults: (spec) ->
     @completeSpecCount++
-    spec.endedAt = new Date().getTime()
+    spec.endedAt = Date.now()
     @specComplete(spec)
     @updateStatusView(spec)
 
@@ -139,7 +139,7 @@ class AtomReporter extends View
     rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
     @message.text rootSuite.description
 
-    time = "#{Math.round((spec.endedAt - @startedAt.getTime()) / 10)}"
+    time = "#{Math.round((spec.endedAt - @startedAt) / 10)}"
     time = "0#{time}" if time.length < 3
     @time[0].textContent = "#{time[0...-2]}.#{time[-2..]}s"
 
