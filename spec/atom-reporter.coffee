@@ -1,6 +1,7 @@
-{View, $, $$} = require '../src/space-pen-extensions'
+path = require 'path'
 _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
+{View, $, $$} = require '../src/space-pen-extensions'
 
 sourceMaps = {}
 formatStackTrace = (message='', stackTrace) ->
@@ -166,7 +167,12 @@ class AtomReporter extends View
     else
       @bundledArea.hide()
     if userPackageSpecs > 0
-      @userHeader.text("User Package Specs (#{userPackageSpecs})")
+      if coreSpecs is 0 and bundledPackageSpecs is 0
+        packageFolderName = path.basename(path.dirname(specs[0].specDirectory))
+        packageName = _.undasherize(_.uncamelcase(packageFolderName))
+        @userHeader.text("#{packageName} Specs (#{userPackageSpecs})")
+      else
+        @userHeader.text("User Package Specs (#{userPackageSpecs})")
     else
       @userArea.hide()
 
