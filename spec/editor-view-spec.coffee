@@ -2634,12 +2634,12 @@ describe "EditorView", ->
       describe "when the line below is folder", ->
         it "moves the line around the fold", ->
           editor.setCursorBufferPosition([0, 0])
-          editor.foldBufferRow(2)
+          editor.foldBufferRow(1)
           editorView.trigger 'editor:move-line-down'
 
-          expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+          expect(editor.getCursorBufferPosition()).toEqual [9, 0]
           expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
-          expect(buffer.lineForRow(10)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(9)).toBe 'var quicksort = function () {'
 
     describe "when the cursor is on the last line", ->
       it "does not move the line", ->

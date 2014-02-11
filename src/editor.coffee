@@ -667,6 +667,12 @@ class Editor extends Model
       rows = [selection.end.row..selection.start.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
         rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
+
+      # Move line around the fold that is directly below the selection
+      insertDelta = 1
+      if foldRange = @languageMode.rowRangeForFoldAtBufferRow(selection.end.row + 1)
+        insertDelta += foldRange[1] - foldRange[0]
+
       for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
         if @isFoldedAtScreenRow(screenRow)
@@ -684,14 +690,15 @@ class Editor extends Model
           endPosition = [endRow + 1]
         lines = @buffer.getTextInRange([[startRow], endPosition])
         @buffer.deleteRows(startRow, endRow)
-        insertPosition = Point.min([startRow + 1], @buffer.getEofPosition())
+
+        insertPosition = Point.min([startRow + insertDelta], @buffer.getEofPosition())
         if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
           lines = "\n#{lines}"
         @buffer.insert(insertPosition, lines)
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows
 
-      @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
 
   # Public: Duplicates the current line.
   #
