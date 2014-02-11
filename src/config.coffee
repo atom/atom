@@ -150,6 +150,14 @@ class Config
   toggle: (keyPath) ->
     @set(keyPath, !@get(keyPath))
 
+  # Public: Restore the key path to its default value.
+  #
+  # keyPath - The {String} name of the key.
+  #
+  # Returns the new value.
+  restoreDefault: (keyPath) ->
+    @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.

@@ -167,6 +167,9 @@ class Workspace extends Model
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
+  resetFontSize: ->
+    atom.config.restoreDefault("editor.fontSize")
+
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
