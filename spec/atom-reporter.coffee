@@ -177,8 +177,6 @@ class SuiteResultView extends View
     @div class: 'suite', =>
       @div outlet: 'description', class: 'description'
 
-  suite: null
-
   initialize: (@suite) ->
     @attr('id', "suite-view-#{@suite.id}")
     @description.html @suite.description
@@ -201,7 +199,6 @@ class SpecResultView extends View
       @div class: 'spec-toggle'
       @div outlet: 'description', class: 'description'
       @div outlet: 'specFailures', class: 'spec-failures'
-  spec: null
 
   initialize: (@spec) ->
     @addClass("spec-view-#{@spec.id}")
