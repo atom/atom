@@ -27,7 +27,7 @@ class PaneView extends View
     'destroyItem', 'destroyItems', 'destroyActiveItem', 'destroyInactiveItems',
     'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs', 'saveItems',
     'itemForUri', 'activateItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
-    'activate', toProperty: 'model'
+    'activate', 'getActiveItem', toProperty: 'model'
 
   previousActiveItem: null
 
