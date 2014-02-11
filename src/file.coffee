@@ -61,8 +61,8 @@ class File
   # Public: Overwrites the file with the given String.
   write: (text) ->
     previouslyExisted = @exists()
-    @cachedContents = text
     @writeFileWithPrivilegeEscalationSync(@getPath(), text)
+    @cachedContents = text
     @subscribeToNativeChangeEvents() if not previouslyExisted and @hasSubscriptions()
 
   # Deprecated
@@ -132,7 +132,7 @@ class File
       fs.writeFileSync(path, text)
     catch error
       if error.code is 'EACCES' and process.platform is 'darwin'
-        authopen = '/usr/libexec/authopen'  # man 1 auth open
+        authopen = '/usr/libexec/authopen'  # man 1 authopen
         unless runas(authopen, ['-w', '-c', path], stdin: text) is 0
           throw error
       else
