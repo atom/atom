@@ -16,7 +16,7 @@ formatStackTrace = (stackTrace) ->
 module.exports =
 class AtomReporter extends View
   @content: ->
-    @div id: 'HTMLReporter', class: 'jasmine_reporter', =>
+    @div id: 'HTMLReporter', class: 'jasmine_reporter spec-reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
       @div outlet: 'coreArea', =>
@@ -218,7 +218,7 @@ class SpecResultView extends View
       stackTrace = formatStackTrace(result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'resultMessage fail'
-        @div stackTrace, class: 'stackTrace' if stackTrace
+        @div stackTrace, class: 'stack-trace padded' if stackTrace
 
   attach: ->
     @parentSuiteView().append this
