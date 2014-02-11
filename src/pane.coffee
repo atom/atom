@@ -85,6 +85,12 @@ class Pane extends Model
   getItems: ->
     @items.slice()
 
+  # Public: Get the active pane item in this pane.
+  #
+  # Returns a pane item.
+  getActiveItem: ->
+    @activeItem
+
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
     @items[index]
