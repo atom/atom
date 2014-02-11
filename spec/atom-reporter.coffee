@@ -32,14 +32,14 @@ class AtomReporter extends View
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
       @div outlet: 'coreArea', =>
-        @div outlet: 'coreHeader', class: 'symbolHeader'
-        @ul outlet: 'coreSummary', class: 'symbolSummary list-unstyled'
+        @div outlet: 'coreHeader', class: 'symbol-header'
+        @ul outlet: 'coreSummary', class: 'symbol-summary list-unstyled'
       @div outlet: 'bundledArea', =>
-        @div outlet: 'bundledHeader', class: 'symbolHeader'
-        @ul outlet: 'bundledSummary', class: 'symbolSummary list-unstyled'
+        @div outlet: 'bundledHeader', class: 'symbol-header'
+        @ul outlet: 'bundledSummary', class: 'symbol-summary list-unstyled'
       @div outlet: 'userArea', =>
-        @div outlet: 'userHeader', class: 'symbolHeader'
-        @ul outlet: 'userSummary', class: 'symbolSummary list-unstyled'
+        @div outlet: 'userHeader', class: 'symbol-header'
+        @ul outlet: 'userSummary', class: 'symbol-summary list-unstyled'
       @div outlet: "status", class: 'status', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'
@@ -229,7 +229,7 @@ class SpecResultView extends View
     for result in @spec.results().getItems() when not result.passed()
       stackTrace = formatStackTrace(result.message, result.trace.stack)
       @specFailures.append $$ ->
-        @div result.message, class: 'resultMessage fail'
+        @div result.message, class: 'result-message fail'
         @div stackTrace, class: 'stack-trace padded' if stackTrace
 
   attach: ->

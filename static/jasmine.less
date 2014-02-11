@@ -31,7 +31,7 @@ body {
     right: 100%;
   }
 
-  .symbolHeader {
+  .symbol-header {
     background-color: #222;
     color: #c2c2c2;
     font-size: 12px;
@@ -39,41 +39,41 @@ body {
     padding: 5px 2px 2px 2px;
   }
 
-  .symbolSummary {
+  .symbol-summary {
     background-color: #222;
     overflow: hidden;
     margin: 0;
-  }
 
-  .symbolSummary li {
-    float: left;
-    line-height: 10px;
-    height: 10px;
-    width: 10px;
-    font-size: 10px;
+    li {
+      float: left;
+      line-height: 10px;
+      height: 10px;
+      width: 10px;
+      font-size: 10px;
 
-    &.passed {
-      color: #63AD75;
-    }
+      &.passed {
+        color: #63AD75;
+      }
 
-    &.failed {
-      color: #FF3F05;
-    }
+      &.failed {
+        color: #FF3F05;
+      }
 
-    &.skipped {
-      color: #444
-    }
+      &.skipped {
+        color: #444
+      }
 
-    &.pending {
-      color: #111;
-    }
+      &.pending {
+        color: #111;
+      }
 
-    &:before {
-      content: "\02022";
-    }
+      &:before {
+        content: "\02022";
+      }
 
-    &:hover {
-      color: white;
+      &:hover {
+        color: white;
+      }
     }
   }
 
@@ -174,7 +174,7 @@ body {
     }
   }
 
-  .resultMessage {
+  .result-message {
     padding-top: 5px;
     color: #fff;
     font-size: 15px
