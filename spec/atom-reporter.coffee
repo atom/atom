@@ -30,15 +30,15 @@ module.exports =
 class AtomReporter extends View
   @content: ->
     @div class: 'jasmine_reporter spec-reporter', =>
-      @div outlet: 'specPopup', class: "spec-popup"
+      @div outlet: 'specPopup', class: "spec-popup alert alert-info"
       @div outlet: "suites"
-      @div outlet: 'coreArea', =>
+      @div outlet: 'coreArea', class: 'symbol-area', =>
         @div outlet: 'coreHeader', class: 'symbol-header'
         @ul outlet: 'coreSummary', class: 'symbol-summary list-unstyled'
-      @div outlet: 'bundledArea', =>
+      @div outlet: 'bundledArea', class: 'symbol-area', =>
         @div outlet: 'bundledHeader', class: 'symbol-header'
         @ul outlet: 'bundledSummary', class: 'symbol-summary list-unstyled'
-      @div outlet: 'userArea', =>
+      @div outlet: 'userArea', class: 'symbol-area', =>
         @div outlet: 'userHeader', class: 'symbol-header'
         @ul outlet: 'userSummary', class: 'symbol-summary list-unstyled'
       @div outlet: "status", class: 'status alert alert-success', =>
