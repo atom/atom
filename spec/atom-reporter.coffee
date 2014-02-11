@@ -8,9 +8,11 @@ formatStackTrace = (message='', stackTrace) ->
   return stackTrace unless stackTrace
 
   jasminePattern = /^\s*at\s+.*\(?.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
+  firstJasmineLinePattern = /^\s*at \/.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
   convertedLines = []
   for line in stackTrace.split('\n')
     convertedLines.push(line) unless jasminePattern.test(line)
+    break if firstJasmineLinePattern.test(line)
 
   stackTrace = convertStackTrace(convertedLines.join('\n'), sourceMaps)
   lines = stackTrace.split('\n')
