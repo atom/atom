@@ -84,19 +84,6 @@ class AtomReporter extends View
   reportSpecStarting: (spec) ->
     @specStarted(spec)
 
-  specFilter: (spec) ->
-    globalFocusPriority = jasmine.getEnv().focusPriority
-    parent = spec.parentSuite ? spec.suite
-
-    if !globalFocusPriority
-      true
-    else if spec.focusPriority >= globalFocusPriority
-      true
-    else if not parent
-      false
-    else
-      @specFilter(parent)
-
   handleEvents: ->
     $(document).on "click", ".spec-toggle", ({currentTarget}) =>
       element = $(currentTarget)
