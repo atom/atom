@@ -68,13 +68,10 @@ class AtomReporter extends View
 
   reportRunnerResults: (runner) ->
     @updateSpecCounts()
-    if @failedCount == 0
-      @message.text "Specs Passed"
+    if @failedCount is 1
+      @message.text "#{@failedCount} failure"
     else
-      if @failedCount is 1
-        @message.text "#{@failedCount} Failure"
-      else
-        @message.text "#{@failedCount} Failures"
+      @message.text "#{@failedCount} failures"
 
   reportSuiteResults: (suite) ->
 
