@@ -628,32 +628,49 @@ class Editor extends Model
     lastRow = @buffer.getLastRow()
     return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
 
+    # Move line around the fold that is directly above the selection
+    precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
+    precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
+    if fold = @largestFoldContainingBufferRow(precedingBufferRow)
+      insertDelta = fold.getBufferRange().getRowCount()
+    else
+      insertDelta = 1
+
     @transact =>
       foldedRows = []
       rows = [selection.start.row..selection.end.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
         rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
       for row in rows
-        screenRow = @screenPositionForBufferPosition([row]).row
-        if @isFoldedAtScreenRow(screenRow)
-          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
+          bufferRange = fold.getBufferRange()
           startRow = bufferRange.start.row
-          endRow = bufferRange.end.row - 1
-          foldedRows.push(endRow - 1)
+          endRow = bufferRange.end.row
+          foldedRows.push(startRow - insertDelta)
         else
           startRow = row
           endRow = row
 
+        insertPosition = Point.fromObject([startRow - insertDelta])
         endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
         lines = @buffer.getTextInRange([[startRow], endPosition])
         if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
           lines = "#{lines}\n"
+
         @buffer.deleteRows(startRow, endRow)
-        @buffer.insert([startRow - 1], lines)
 
-      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
+          @destroyFoldsContainingBufferRow(insertPosition.row)
+          foldedRows.push(insertPosition.row + endRow - startRow + fold.getBufferRange().getRowCount())
 
-      @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
+        @buffer.insert(insertPosition, lines)
+
+      # Restore folds that existed before the lines were moved
+      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
+        @foldBufferRow(foldedRow)
+
+      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true)
 
   # Public: Moves the selected lines down one screen row.
   moveLineDown: ->
@@ -706,7 +723,7 @@ class Editor extends Model
         @buffer.insert(insertPosition, lines)
 
       # Restore folds that existed before the lines were moved
-      for foldedRow in foldedRows when foldedRow <= @getLastBufferRow()
+      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
