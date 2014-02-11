@@ -231,7 +231,10 @@ class SpecResultView extends View
 
   initialize: (@spec) ->
     @addClass("spec-view-#{@spec.id}")
-    @description.text @spec.description
+
+    description = @spec.description
+    description = "it #{description}" if description.indexOf('it ') isnt 0
+    @description.text(description)
 
     for result in @spec.results().getItems() when not result.passed()
       stackTrace = formatStackTrace(result.message, result.trace.stack)
