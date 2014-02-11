@@ -33,7 +33,6 @@ module.exports =
 class AtomReporter extends View
   @content: ->
     @div class: 'jasmine_reporter spec-reporter', =>
-      @div outlet: 'specPopup', class: "spec-popup alert alert-info"
       @div outlet: "suites"
       @div outlet: 'coreArea', class: 'symbol-area', =>
         @div outlet: 'coreHeader', class: 'symbol-header'
@@ -99,22 +98,6 @@ class AtomReporter extends View
       @specFilter(parent)
 
   handleEvents: ->
-    $(document).on "mouseover", ".spec-summary", ({currentTarget}) =>
-      element = $(currentTarget)
-      description = element.data("description")
-      return unless description
-
-      clearTimeout @timeoutId if @timeoutId?
-      @specPopup.show()
-      spec = _.find(window.timedSpecs, ({fullName}) -> description is fullName)
-      description = "#{description} #{spec.time}ms" if spec
-      @specPopup.text description
-      {left, top} = element.offset()
-      left += 20
-      top += 20
-      @specPopup.offset({left, top})
-      @timeoutId = setTimeout((=> @specPopup.hide()), 3000)
-
     $(document).on "click", ".spec-toggle", ({currentTarget}) =>
       element = $(currentTarget)
       specFailures = element.parent().find('.spec-failures')
@@ -186,7 +169,7 @@ class AtomReporter extends View
   specComplete: (spec) ->
     specSummaryElement = $("#spec-summary-#{spec.id}")
     specSummaryElement.removeClass('pending')
-    specSummaryElement.data("description", spec.getFullName())
+    specSummaryElement.setTooltip(title: spec.getFullName(), container: '.spec-reporter')
 
     results = spec.results()
     if results.skipped

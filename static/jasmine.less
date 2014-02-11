@@ -5,12 +5,6 @@ body {
   padding: 0;
 }
 
-.spec-popup {
-  position: absolute;
-  font-size: 13px;
-  display: none;
-}
-
 .list-unstyled {
   list-style: none;
 }
@@ -151,5 +145,22 @@ body {
     color: #666;
     border: 1px solid #ddd;
     overflow: auto;
+  }
+
+  .tooltip {
+    .tooltip-inner {
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #666;
+      max-width: 400px;
+    }
+
+    &.in {
+      opacity: 1;
+    }
+
+    .tooltip-arrow {
+      visibility: hidden;
+    }
   }
 }
