@@ -68,6 +68,7 @@
   'cmd-=': 'window:increase-font-size'
   'cmd-+': 'window:increase-font-size'
   'cmd--': 'window:decrease-font-size'
+  'cmd-_': 'window:decrease-font-size'
 
   'cmd-k up': 'pane:split-up' # Atom Specific
   'cmd-k down': 'pane:split-down' # Atom Specific
