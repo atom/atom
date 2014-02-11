@@ -170,7 +170,7 @@ class AtomReporter extends View
       if coreSpecs is 0 and bundledPackageSpecs is 0
         packageFolderName = path.basename(path.dirname(specs[0].specDirectory))
         packageName = _.undasherize(_.uncamelcase(packageFolderName))
-        @userHeader.text("#{packageName} Specs (#{userPackageSpecs})")
+        @userHeader.text("#{packageName} Specs")
       else
         @userHeader.text("User Package Specs (#{userPackageSpecs})")
     else
