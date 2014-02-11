@@ -41,7 +41,7 @@ class AtomReporter extends View
       @div outlet: 'userArea', =>
         @div outlet: 'userHeader', class: 'symbol-header'
         @ul outlet: 'userSummary', class: 'symbol-summary list-unstyled'
-      @div outlet: "status", class: 'status', =>
+      @div outlet: "status", class: 'status alert alert-success', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'
         @div outlet: "message", class: 'message'
@@ -128,7 +128,7 @@ class AtomReporter extends View
 
   updateStatusView: (spec) ->
     if @failedCount > 0
-      @status.addClass('failed') unless @status.hasClass('failed')
+      @status.addClass('alert-danger').removeClass('alert-success')
 
     @updateSpecCounts()
 
