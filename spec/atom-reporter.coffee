@@ -23,6 +23,7 @@ formatStackTrace = (message='', stackTrace) ->
     prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^\)]+)\)/)
     lines[index] = "at #{prefixMatch[1]}" if prefixMatch
 
+  lines = lines.map (line) -> line.trim()
   lines.join('\n')
 
 module.exports =
