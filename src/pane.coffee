@@ -111,15 +111,15 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
-  # Public: Returns the index of the current active item.
+  # Returns the index of the current active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
-  # Public: Makes the item at the given index active.
+  # Makes the item at the given index active.
   activateItemAtIndex: (index) ->
     @activateItem(@itemAtIndex(index))
 
-  # Public: Makes the given item active, adding the item if necessary.
+  # Makes the given item active, adding the item if necessary.
   activateItem: (item) ->
     if item?
       @addItem(item)
