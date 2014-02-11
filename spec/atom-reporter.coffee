@@ -168,7 +168,9 @@ class AtomReporter extends View
       @bundledArea.hide()
     if userPackageSpecs > 0
       if coreSpecs is 0 and bundledPackageSpecs is 0
-        packageFolderName = path.basename(path.dirname(specs[0].specDirectory))
+        # Package specs being run, show a more descriptive label
+        {specDirectory} = specs[0]
+        packageFolderName = path.basename(path.dirname(specDirectory))
         packageName = _.undasherize(_.uncamelcase(packageFolderName))
         @userHeader.text("#{packageName} Specs")
       else
