@@ -111,29 +111,6 @@ class Workspace extends Model
     @activePane.activate() if activatePane
     editor
 
-  # Deprecated
-  openSingletonSync: (uri, options={}) ->
-    {initialLine, split} = options
-    # TODO: Remove deprecated changeFocus option
-    activatePane = options.activatePane ? options.changeFocus ? true
-    uri = atom.project.relativize(uri)
-
-    if pane = @paneContainer.paneForUri(uri)
-      editor = pane.itemForUri(uri)
-    else
-      pane = switch split
-        when 'left'
-          @activePane.findLeftmostSibling()
-        when 'right'
-          @activePane.findOrCreateRightmostSibling()
-        else
-          @activePane
-      editor = atom.project.openSync(uri, {initialLine})
-
-    pane.activateItem(editor)
-    pane.activate() if activatePane
-    editor
-
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
