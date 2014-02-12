@@ -16,7 +16,7 @@ class CursorView extends View
     @cursorViews ?= []
     @cursorViews.push(cursorView)
     if @cursorViews.length is 1
-      @blinkInterval = setInterval(@blinkCursors.bind(@), @blinkPeriod / 2)
+      @blinkInterval = setInterval(@blinkCursors.bind(this), @blinkPeriod / 2)
 
   @stopBlinking: (cursorView) ->
     cursorView[0].classList.remove('blink-off')
