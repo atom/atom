@@ -81,25 +81,14 @@ class PackageManager
     @observeDisabledPackages()
 
   # Activate a single package by name
-  activatePackage: (name, options={}) ->
-    if options.sync? or options.immediate?
-      return @activatePackageSync(name, options)
-
+  activatePackage: (name) ->
     if pack = @getActivePackage(name)
       Q(pack)
     else
       pack = @loadPackage(name)
-      pack.activate(options).then =>
+      pack.activate().then =>
         @activePackages[pack.name] = pack
         pack
-
-  # Deprecated
-  activatePackageSync: (name, options) ->
-    return pack if pack = @getActivePackage(name)
-    if pack = @loadPackage(name)
-      @activePackages[pack.name] = pack
-      pack.activateSync(options)
-      pack
 
   # Deactivate all packages
   deactivatePackages: ->

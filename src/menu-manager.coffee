@@ -11,9 +11,8 @@ fs = require 'fs-plus'
 # An instance of this class is always available as the `atom.menu` global.
 module.exports =
 class MenuManager
-  pendingUpdateOperation: null
-
   constructor: ({@resourcePath}) ->
+    @pendingUpdateOperation = null
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
@@ -32,7 +31,8 @@ class MenuManager
   # items - An {Array} of menu item {Object}s containing the keys:
   #   :label   - The {String} menu label.
   #   :submenu - An optional {Array} of sub menu items.
-  #   :command - An option {String} command to trigger when the item is clicked.
+  #   :command - An optional {String} command to trigger when the item is
+  #              clicked.
   #
   # Returns nothing.
   add: (items) ->
@@ -48,14 +48,21 @@ class MenuManager
   includeSelector: (selector) ->
     return true if document.body.webkitMatchesSelector(selector)
 
-    # Simulate an .editor element attached to a body element that has the same
-    # classes as the current body element.
+    # Simulate an .editor element attached to a .workspace element attached to
+    # a body element that has the same classes as the current body element.
     unless @testEditor?
+      testBody = document.createElement('body')
+      testBody.classList.add(@classesForElement(document.body)...)
+
+      testWorkspace = document.createElement('body')
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace')) ? ['.workspace']
+      testWorkspace.classList.add(workspaceClasses...)
+
+      testBody.appendChild(testWorkspace)
+
       @testEditor = document.createElement('div')
       @testEditor.classList.add('editor')
-      testBody = document.createElement('body')
-      testBody.classList.add(document.body.classList.toString().split(' ')...)
-      testBody.appendChild(@testEditor)
+      testWorkspace.appendChild(@testEditor)
 
     @testEditor.webkitMatchesSelector(selector)
 
@@ -109,3 +116,7 @@ class MenuManager
       label.replace(/\&/g, '')
     else
       label
+
+  # Get an {Array} of {String} classes for the given element.
+  classesForElement: (element) ->
+    element?.classList.toString().split(' ') ? []

@@ -26,6 +26,7 @@ module.exports =
 class EditorView extends View
   @characterWidthCache: {}
   @configDefaults:
+    fontFamily: ''
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false

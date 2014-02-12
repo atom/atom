@@ -3,6 +3,7 @@
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
+Editor = require './editor'
 PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
@@ -85,6 +86,17 @@ class Pane extends Model
   getItems: ->
     @items.slice()
 
+  # Public: Get the active pane item in this pane.
+  #
+  # Returns a pane item.
+  getActiveItem: ->
+    @activeItem
+
+  # Public: Returns an {Editor} if the pane item is an {Editor}, or null
+  # otherwise.
+  getActiveEditor: ->
+    @activeItem if @activeItem instanceof Editor
+
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
     @items[index]
@@ -105,15 +117,15 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
-  # Public: Returns the index of the current active item.
+  # Returns the index of the current active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
-  # Public: Makes the item at the given index active.
+  # Makes the item at the given index active.
   activateItemAtIndex: (index) ->
     @activateItem(@itemAtIndex(index))
 
-  # Public: Makes the given item active, adding the item if necessary.
+  # Makes the given item active, adding the item if necessary.
   activateItem: (item) ->
     if item?
       @addItem(item)

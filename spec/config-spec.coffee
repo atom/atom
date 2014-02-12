@@ -63,6 +63,19 @@ describe "Config", ->
       atom.config.toggle('foo.a')
       expect(atom.config.get('foo.a')).toBe false
 
+  describe ".restoreDefault(keyPath)", ->
+    it "sets the value of the key path to its default", ->
+      atom.config.setDefaults('a', b: 3)
+      atom.config.set('a.b', 4)
+      expect(atom.config.get('a.b')).toBe 4
+      atom.config.restoreDefault('a.b')
+      expect(atom.config.get('a.b')).toBe 3
+
+      atom.config.set('a.c', 5)
+      expect(atom.config.get('a.c')).toBe 5
+      atom.config.restoreDefault('a.c')
+      expect(atom.config.get('a.c')).toBeUndefined()
+
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->
       atom.config.set("foo.bar.baz", ["a"])

@@ -1,171 +1,164 @@
-@import "octicon-mixins.less";
+@import "octicon-mixins";
 
-@font-face { .octicon-font(); }
+#jasmine_content {
+  position: fixed;
+  right: 100%;
+}
 
 body {
-  background-color: #ddd;
+  background-color: #fff;
   padding: 0;
 }
 
-.spec-popup {
-  position: absolute;
-  background-color: #ddd;
-  border: 2px solid black;
-  padding: 5px;
-  font-size: 13px;
-  display: none;
-}
+.spec-reporter {
+  font-size: 11px;
+  line-height: 1.6em;
+  color: #333;
 
-.list-unstyled {
-  list-style: none;
-}
+  .list-unstyled {
+    list-style: none;
+  }
 
-#HTMLReporter { font-size: 11px; font-family: Monaco, Consolas, monospace; line-height: 1.6em; color: #333333; }
-#HTMLReporter #jasmine_content { position: fixed; right: 100%; }
+  .symbol-header {
+    font-size: 18px;
+    font-weight: bold;
+    padding-bottom: 10px;
+  }
 
-#HTMLReporter .symbolHeader {
-  background-color: #222;
-  color: #c2c2c2;
-  font-size: 12px;
-  margin: 0;
-  padding: 5px 2px 2px 2px;
-}
+  .symbol-area {
+    padding: 10px;
+  }
 
-#HTMLReporter .symbolSummary {
-  background-color: #222;
-  overflow: hidden;
-  margin: 0;
-}
+  .symbol-summary {
+    overflow: hidden;
+    margin: 0;
 
-#HTMLReporter .symbolSummary li {
-  float: left;
-  line-height: 10px;
-  height: 10px;
-  width: 10px;
-  font-size: 10px;
-}
+    li {
+      font-family: Monaco, Consolas, monospace;
+      float: left;
+      line-height: 10px;
+      height: 10px;
+      width: 10px;
+      font-size: 10px;
 
-#HTMLReporter .symbolSummary li.passed { color: #63AD75 }
-#HTMLReporter .symbolSummary li.failed { color: #FF3F05 }
-#HTMLReporter .symbolSummary li.skipped { color: #444 }
-#HTMLReporter .symbolSummary li.pending { color: #111 }
+      &.passed {
+        color: #5cb85c;
+      }
 
-#HTMLReporter .symbolSummary li:before { content: "\02022"; }
+      &.failed {
+        color: #d9534f;
+      }
 
-#HTMLReporter .symbolSummary li:hover {
-  color: white;
-}
+      &.skipped {
+        color: #f0ad4e;
+      }
 
-#HTMLReporter .status {
-  font-size: 20px;
-  color: #222;
-  background-color: #E5FFC0;
-  line-height: 2em;
-  padding: 2px;
-  border: 2px solid #222;
-  border-left: 0;
-  border-right: 0;
-  text-align: center;
-}
+      &.pending {
+        color: #eee;
+      }
 
-#HTMLReporter .status.failed {
-  color: white;
-  background-color: rgba(204,51,63,1.0);
-}
+      &:before {
+        content: "\02022";
+      }
+    }
+  }
 
-#HTMLReporter .status .spec-count {
-  float: left;
-}
+  .status {
+    font-size: 20px;
+    line-height: 2em;
+    padding: 5px;
+    border-radius: 0;
+    text-align: center;
 
-#HTMLReporter .status .message {
-}
+    .spec-count {
+      float: left;
+    }
 
-#HTMLReporter .status .time {
-  float: right;
-}
+    .time {
+      float: right;
+    }
+  }
 
-#HTMLReporter .results .suite + .suite, #HTMLReporter .results .spec + .spec {
-  border-radius: 0;
-}
+  .results {
+    padding: 10px;
 
-#HTMLReporter .results .suite, #HTMLReporter .results .spec {
-  border: 2px solid #222;
-  border-radius: 7px 0 0 0;
-  border-right: none;
-  border-bottom: none;
-  padding: 5px;
-  padding-right: 0;
-  padding-bottom: 0;
-}
+    .description {
+      font-size: 16px;
+      padding: 5px 0 5px 0;
+    }
 
-#HTMLReporter .results .suite:first-child {
-  border-radius: 0;
-  border: 2px solid #6A4A3C;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-}
+    > .suite {
+      > .description {
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-#HTMLReporter .results .suite {
-  border: 2px solid #6A4A3C;
-  border-radius: 7px 0 0 0;
-  border-right: none;
-  border-bottom: none;
-  padding: 5px;
-  padding-right: 0;
-  padding-bottom: 0;
-  background-color:rgba(204,51,63,0.33);
-}
+      margin-bottom: 20px;
+    }
 
-#HTMLReporter .results .spec {
-  padding: 10px;
-  background-color:rgba(204,51,63,1.0);
-}
+    .spec {
+      margin-top: 5px;
+      padding: 0 10px 10px 10px;
+      border-left: 3px solid #d9534f;
 
-#HTMLReporter .results .suite > .suite, #HTMLReporter .results .suite > .spec {
-  margin-left: 5px
-}
+      .spec-toggle {
+        .octicon(fold);
+        float: right;
+        cursor: pointer;
+        opacity: 0;
+        color: #999;
 
-#HTMLReporter .results .description {
-  color: white;
-  font-size: 15px;
-  padding-bottom: 10px
-}
+        &.folded {
+          .octicon(unfold);
+        }
+      }
 
-#HTMLReporter .results .spec .spec-toggle {
-  font-family: Octicons Regular;
-  color: white;
-  font-size: 20px;
-  float: right;
-  cursor: pointer;
-  text-shadow: 3px 3px #222;
-  opacity: 0;
-}
+      .spec-toggle:hover {
+        color: #333;
+      }
 
-#HTMLReporter .results .spec .spec-toggle:hover {
-  text-shadow: none;
-  padding-top: 3px;
-}
+      &:hover .spec-toggle {
+        opacity: 1;
+      }
+    }
 
-#HTMLReporter .results .spec:hover .spec-toggle {
-  opacity: 1;
-}
+    .suite > .suite,
+    .suite > .spec {
+      margin-left: 10px;
+    }
+  }
 
-#HTMLReporter .resultMessage {
-  padding-top: 5px;
-  color: #fff;
-  font-size: 15px
-}
+  .result-message {
+    font-size: 16px;
+    font-weight: bold;
+    color: #d9534f;
+    padding: 5px 0 5px 0;
+  }
 
-#HTMLReporter .stackTrace {
-  font-size: 12px;
-  padding: 5px;
-  margin: 5px 0 0 0;
-  border-radius: 2px;
-  line-height: 18px;
-  color: #666666;
-  border: 1px solid #ddd;
-  background: white;
-  white-space: pre;
-  overflow: auto;
+  .stack-trace {
+    font-size: 12px;
+    margin: 5px 0 0 0;
+    border-radius: 2px;
+    line-height: 18px;
+    color: #666;
+    border: 1px solid #ddd;
+    overflow: auto;
+  }
+
+  .tooltip {
+    .tooltip-inner {
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #666;
+      max-width: 400px;
+    }
+
+    &.in {
+      opacity: 1;
+    }
+
+    .tooltip-arrow {
+      visibility: hidden;
+    }
+  }
 }

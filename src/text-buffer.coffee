@@ -165,14 +165,14 @@ class TextBuffer extends TextBufferCore
 
   # Sets the path for the file.
   #
-  # path - A {String} representing the new file path
-  setPath: (path) ->
-    return if path == @getPath()
+  # filePath - A {String} representing the new file path
+  setPath: (filePath) ->
+    return if filePath == @getPath()
 
     @file?.off()
 
-    if path
-      @file = new File(path)
+    if filePath
+      @file = new File(filePath)
       @subscribeToFile()
     else
       @file = null
@@ -188,14 +188,15 @@ class TextBuffer extends TextBufferCore
 
   # Saves the buffer at a specific path.
   #
-  # path - The path to save at.
-  saveAs: (path) ->
-    unless path then throw new Error("Can't save buffer with no file path")
+  # filePath - The path to save at.
+  saveAs: (filePath) ->
+    unless filePath then throw new Error("Can't save buffer with no file path")
 
     @emit 'will-be-saved', this
-    @setPath(path)
+    @setPath(filePath)
     @file.write(@getText())
     @cachedDiskContents = @getText()
+    @conflict = false
     @emitModifiedStatusChanged(false)
     @emit 'saved', this
 
@@ -212,7 +213,10 @@ class TextBuffer extends TextBufferCore
     else
       not @isEmpty()
 
-  # Identifies if a buffer is in a git conflict with `HEAD`.
+  # Is the buffer's text in conflict with the text on disk?
+  #
+  # This occurs when the buffer's file changes on disk while the buffer has
+  # unsaved changes.
   #
   # Returns a {Boolean}.
   isInConflict: -> @conflict
