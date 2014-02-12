@@ -64,8 +64,7 @@ class CursorView extends View
 
   # Override for speed. The base function checks the computedStyle
   isHidden: ->
-    style = this[0].style
-    if style.display == 'none' or not @isOnDom()
+    if this[0].style.display is 'none' or not @isOnDom()
       true
     else
       false
@@ -80,7 +79,7 @@ class CursorView extends View
     @editorView.pixelPositionForScreenPosition(@getScreenPosition())
 
   setVisible: (visible) ->
-    unless @visible == visible
+    unless @visible is visible
       @visible = visible
       @toggle(@visible)
 
