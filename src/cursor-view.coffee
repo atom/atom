@@ -64,10 +64,7 @@ class CursorView extends View
 
   # Override for speed. The base function checks the computedStyle
   isHidden: ->
-    if this[0].style.display is 'none' or not @isOnDom()
-      true
-    else
-      false
+    this[0].style.display is 'none' or not @isOnDom()
 
   needsAutoscroll: ->
     @cursor.needsAutoscroll
