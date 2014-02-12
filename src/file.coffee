@@ -123,7 +123,7 @@ class File
   getDigest: ->
     @digest ? @setDigest(@readSync())
 
-  # Private: Writes the text to specified path.
+  # Writes the text to specified path.
   #
   # Privilege escalation would be asked when current user doesn't have
   # permission to the path.
