@@ -52,10 +52,12 @@ class MenuManager
     # a body element that has the same classes as the current body element.
     unless @testEditor?
       testBody = document.createElement('body')
-      testBody.classList.add(document.body.classList.toString().split(' ')...)
+      testBody.classList.add(@classesForElement(document.body)...)
 
       testWorkspace = document.createElement('body')
-      testWorkspace.classList.add(document.body.querySelector('.workspace').classList.toString().split(' ')...)
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace')) ? ['.workspace']
+      testWorkspace.classList.add(workspaceClasses...)
+
       testBody.appendChild(testWorkspace)
 
       @testEditor = document.createElement('div')
@@ -114,3 +116,7 @@ class MenuManager
       label.replace(/\&/g, '')
     else
       label
+
+  # Get an {Array} of {String} classes for the given element.
+  classesForElement: (element) ->
+    element?.classList.toString().split(' ') ? []
