@@ -703,7 +703,7 @@ class EditorView extends View
 
   # Public: Sets the font family for the editor.
   #
-  # fontFamily - A {String} identifying the CSS `font-family`,
+  # fontFamily - A {String} identifying the CSS `font-family`.
   setFontFamily: (fontFamily='') ->
     @css('font-family', fontFamily)
 
@@ -713,7 +713,7 @@ class EditorView extends View
 
   # Public: Gets the font family for the editor.
   #
-  # Returns a {String} identifying the CSS `font-family`,
+  # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: -> @css("font-family")
 
   # Public: Redraw the editor
