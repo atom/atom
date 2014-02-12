@@ -48,14 +48,19 @@ class MenuManager
   includeSelector: (selector) ->
     return true if document.body.webkitMatchesSelector(selector)
 
-    # Simulate an .editor element attached to a body element that has the same
-    # classes as the current body element.
+    # Simulate an .editor element attached to a .workspace element attached to
+    # a body element that has the same classes as the current body element.
     unless @testEditor?
-      @testEditor = document.createElement('div')
-      @testEditor.classList.add('editor')
       testBody = document.createElement('body')
       testBody.classList.add(document.body.classList.toString().split(' ')...)
-      testBody.appendChild(@testEditor)
+
+      testWorkspace = document.createElement('body')
+      testWorkspace.classList.add(document.body.querySelector('.workspace').classList.toString().split(' ')...)
+      testBody.appendChild(testWorkspace)
+
+      @testEditor = document.createElement('div')
+      @testEditor.classList.add('editor')
+      testWorkspace.appendChild(@testEditor)
 
     @testEditor.webkitMatchesSelector(selector)
 
