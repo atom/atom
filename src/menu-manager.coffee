@@ -11,9 +11,8 @@ fs = require 'fs-plus'
 # An instance of this class is always available as the `atom.menu` global.
 module.exports =
 class MenuManager
-  pendingUpdateOperation: null
-
   constructor: ({@resourcePath}) ->
+    @pendingUpdateOperation = null
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
