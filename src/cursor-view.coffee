@@ -33,7 +33,7 @@ class CursorView extends View
       @needsUpdate = true
       @shouldPauseBlinking = true
 
-    @subscribe @cursor, 'visibility-changed', (visible) =>
+    @subscribe @cursor, 'visibility-changed', =>
       @needsUpdate = true
 
     @subscribe @cursor, 'autoscrolled', =>
