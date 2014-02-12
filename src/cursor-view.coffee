@@ -1,5 +1,4 @@
 {View} = require './space-pen-extensions'
-{Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
 module.exports =
@@ -7,31 +6,44 @@ class CursorView extends View
   @content: ->
     @div class: 'cursor idle', => @raw '&nbsp;'
 
-  blinkPeriod: 800
-  editorView: null
-  visible: true
+  @blinkPeriod: 800
 
+  @blinkCursors: ->
+    element.classList.toggle('blink-off') for [element] in @cursorViews
+
+  @startBlinking: (cursorView) ->
+    @cursorViews ?= []
+    @cursorViews.push(cursorView)
+    if @cursorViews.length is 1
+      @blinkInterval = setInterval(@blinkCursors.bind(this), @blinkPeriod / 2)
+
+  @stopBlinking: (cursorView) ->
+    cursorView[0].classList.remove('blink-off')
+    _.remove(@cursorViews, cursorView)
+    clearInterval(@blinkInterval) if @cursorViews.length is 0
+
+  blinking: false
+  visible: true
   needsUpdate: true
   needsRemoval: false
   shouldPauseBlinking: false
 
   initialize: (@cursor, @editorView) ->
-    @cursor.on 'moved.cursor-view', =>
+    @subscribe @cursor, 'moved', =>
       @needsUpdate = true
       @shouldPauseBlinking = true
 
-    @cursor.on 'visibility-changed.cursor-view', (visible) =>
+    @subscribe @cursor, 'visibility-changed', =>
       @needsUpdate = true
 
-    @cursor.on 'autoscrolled.cursor-view', =>
+    @subscribe @cursor, 'autoscrolled', =>
       @editorView.requestDisplayUpdate()
 
-    @cursor.on 'destroyed.cursor-view', =>
+    @subscribe @cursor, 'destroyed', =>
       @needsRemoval = true
 
   beforeRemove: ->
     @editorView.removeCursorView(this)
-    @cursor.off('.cursor-view')
     @stopBlinking()
 
   updateDisplay: ->
@@ -52,11 +64,7 @@ class CursorView extends View
 
   # Override for speed. The base function checks the computedStyle
   isHidden: ->
-    style = this[0].style
-    if style.display == 'none' or not @isOnDom()
-      true
-    else
-      false
+    this[0].style.display is 'none' or not @isOnDom()
 
   needsAutoscroll: ->
     @cursor.needsAutoscroll
@@ -68,19 +76,17 @@ class CursorView extends View
     @editorView.pixelPositionForScreenPosition(@getScreenPosition())
 
   setVisible: (visible) ->
-    unless @visible == visible
+    unless @visible is visible
       @visible = visible
       @toggle(@visible)
 
   stopBlinking: ->
-    clearInterval(@blinkInterval) if @blinkInterval
-    @blinkInterval = null
-    this[0].classList.remove('blink-off')
+    @constructor.stopBlinking(this) if @blinking
+    @blinking = false
 
   startBlinking: ->
-    return if @blinkInterval?
-    blink = => @toggleClass('blink-off')
-    @blinkInterval = setInterval(blink, @blinkPeriod / 2)
+    @constructor.startBlinking(this) unless @blinking
+    @blinking = true
 
   resetBlinking: ->
     @stopBlinking()
