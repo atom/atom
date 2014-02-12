@@ -29,22 +29,21 @@ class CursorView extends View
   shouldPauseBlinking: false
 
   initialize: (@cursor, @editorView) ->
-    @cursor.on 'moved.cursor-view', =>
+    @subscribe @cursor, 'moved', =>
       @needsUpdate = true
       @shouldPauseBlinking = true
 
-    @cursor.on 'visibility-changed.cursor-view', (visible) =>
+    @subscribe @cursor, 'visibility-changed', (visible) =>
       @needsUpdate = true
 
-    @cursor.on 'autoscrolled.cursor-view', =>
+    @subscribe @cursor, 'autoscrolled', =>
       @editorView.requestDisplayUpdate()
 
-    @cursor.on 'destroyed.cursor-view', =>
+    @subscribe @cursor, 'destroyed', =>
       @needsRemoval = true
 
   beforeRemove: ->
     @editorView.removeCursorView(this)
-    @cursor.off('.cursor-view')
     @stopBlinking()
 
   updateDisplay: ->
