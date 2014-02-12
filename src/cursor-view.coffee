@@ -7,10 +7,24 @@ class CursorView extends View
   @content: ->
     @div class: 'cursor idle', => @raw '&nbsp;'
 
-  blinkPeriod: 800
-  editorView: null
-  visible: true
+  @blinkPeriod: 800
 
+  @blinkCursors: ->
+    element.classList.toggle('blink-off') for [element] in @cursorViews
+
+  @startBlinking: (cursorView) ->
+    @cursorViews ?= []
+    @cursorViews.push(cursorView)
+    if @cursorViews.length is 1
+      @blinkInterval = setInterval(@blinkCursors.bind(@), @blinkPeriod / 2)
+
+  @stopBlinking: (cursorView) ->
+    cursorView[0].classList.remove('blink-off')
+    _.remove(@cursorViews, cursorView)
+    clearInterval(@blinkInterval) if @cursorViews.length is 0
+
+  blinking: false
+  visible: true
   needsUpdate: true
   needsRemoval: false
   shouldPauseBlinking: false
@@ -73,14 +87,12 @@ class CursorView extends View
       @toggle(@visible)
 
   stopBlinking: ->
-    clearInterval(@blinkInterval) if @blinkInterval
-    @blinkInterval = null
-    this[0].classList.remove('blink-off')
+    @constructor.stopBlinking(this) if @blinking
+    @blinking = false
 
   startBlinking: ->
-    return if @blinkInterval?
-    blink = => @toggleClass('blink-off')
-    @blinkInterval = setInterval(blink, @blinkPeriod / 2)
+    @constructor.startBlinking(this) unless @blinking
+    @blinking = true
 
   resetBlinking: ->
     @stopBlinking()
