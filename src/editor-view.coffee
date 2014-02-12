@@ -1420,7 +1420,7 @@ class EditorView extends View
     line.push("<div #{attributePairs}>")
 
     if text == ''
-      html = EditorView.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
+      html = @buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)
