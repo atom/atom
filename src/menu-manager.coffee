@@ -31,7 +31,8 @@ class MenuManager
   # items - An {Array} of menu item {Object}s containing the keys:
   #   :label   - The {String} menu label.
   #   :submenu - An optional {Array} of sub menu items.
-  #   :command - An option {String} command to trigger when the item is clicked.
+  #   :command - An optional {String} command to trigger when the item is
+  #              clicked.
   #
   # Returns nothing.
   add: (items) ->
