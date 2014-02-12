@@ -69,21 +69,6 @@ class AtomPackage extends Package
 
     @activationDeferred.promise
 
-  # Deprecated
-  activateSync: ({immediate}={}) ->
-    @activateResources()
-    if @metadata.activationEvents? and not immediate
-      @subscribeToActivationEvents()
-    else
-      try
-        @activateConfig()
-        @activateStylesheets()
-        if @requireMainModule()
-          @mainModule.activate(atom.packages.getPackageState(@name) ? {})
-          @mainActivated = true
-      catch e
-        console.warn "Failed to activate package named '#{@name}'", e.stack
-
   activateNow: ->
     try
       @activateConfig()

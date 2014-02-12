@@ -10,8 +10,6 @@ describe "EditorView", ->
   [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.packages.activatePackage('language-text', sync: true)
-    atom.packages.activatePackage('language-javascript', sync: true)
     editor = atom.project.openSync('sample.js')
     buffer = editor.buffer
     editorView = new EditorView(editor)
@@ -25,6 +23,12 @@ describe "EditorView", ->
       @height(getLineHeight() * heightInLines)
       @width(getCharWidth() * widthInChars) if widthInChars
       $('#jasmine-content').append(this)
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-text', sync: true)
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-javascript', sync: true)
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
