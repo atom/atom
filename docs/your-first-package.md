@@ -35,8 +35,8 @@ view-related code. Start by opening up _lib/ascii-art.coffee_. Remove all view
 code, so the `module.exports` section looks like this:
 
 ```coffeescript
-  module.exports =
-    activate: ->
+module.exports =
+  activate: ->
 ```
 
 ## Create a Command
