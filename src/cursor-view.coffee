@@ -1,5 +1,4 @@
 {View} = require './space-pen-extensions'
-{Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
 module.exports =
