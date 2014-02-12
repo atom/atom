@@ -43,6 +43,7 @@
     "pegjs": "0.8.0",
     "property-accessors": "1.x",
     "q": "1.0.x",
+    "runas": "0.4.0",
     "scandal": "0.14.0",
     "season": "1.x",
     "semver": "1.1.4",

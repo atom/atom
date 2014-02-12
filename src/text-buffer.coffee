@@ -194,8 +194,8 @@ class TextBuffer extends TextBufferCore
 
     @emit 'will-be-saved', this
     @setPath(filePath)
-    @cachedDiskContents = @getText()
     @file.write(@getText())
+    @cachedDiskContents = @getText()
     @conflict = false
     @emitModifiedStatusChanged(false)
     @emit 'saved', this
