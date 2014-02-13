@@ -74,7 +74,7 @@ release.  You should now see a `v0.1.0` tag in your Git repository after
 publishing.
 
 :tada: Your package is now published and available on atom.io. Head on over to
-`http://atom.io/packages/my-package` to see your package's page. People can
+`http://atom.io/packages/my-package` to see your package's page. People can now
 install it by running `apm install my-package` or from the Atom settings view
 via the *Atom > Preferences...* menu.
 
