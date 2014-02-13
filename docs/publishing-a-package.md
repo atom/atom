@@ -3,11 +3,11 @@
 This guide will show you how to publish a package or theme to the
 [atom.io][atomio] package registry.
 
-Publishing a package allows other people to install it and use it in Atom. It
+Publishing a package allows other people to install it and use it in Atomg. It
 is a great way to share what you've made and get feedback and contributions from
 others.
 
-This guide assumes your package's name is `my-package` but you should pick a
+This guide assumes your package's name is `my-package` and but you should pick a
 better name.
 
 ### Install apm
@@ -85,8 +85,8 @@ with a minor release.
 
 ### Further Reading
 
- * Check out [semantic versioning][semver] to learn more about versioning your
-   package releases.
+* Check out [semantic versioning][semver] to learn more about versioning your
+  package releases.
 
 [atomio]: https://atom.io
 [github]: https://github.com
