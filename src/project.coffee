@@ -128,13 +128,12 @@ class Project extends Model
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
-
-  # Public: Add the given {Editor}.
+  # Add the given {Editor}.
   addEditor: (editor) ->
     @editors.push editor
     @emit 'editor-created', editor
 
-  # Public: Return and removes the given {Editor}.
+  # Return and removes the given {Editor}.
   removeEditor: (editor) ->
     _.remove(@editors, editor)
 
