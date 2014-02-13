@@ -45,38 +45,48 @@ If not, there are a few things you should check before publishing:
   
 ### Publish Your Package
 
-One last thing to check before publishing is that a package with the same
-name hasn't already been published to atom.io.  You can do so by visiting
-`http://atom.io/packages/my-package` to see if the package already exists.
-If it does, update your package's name to something that is available.
+Before you publish a package it is a good idea to check ahead of time if
+a package with the same name has already been published to atom.io. You can do
+that by visiting `http://atom.io/packages/my-package` to see if the package
+already exists. If it does, update your package's name to something that is
+available before proceeding.
 
-Run the following commands to publish your package (this assumes your package
-is located at `~/github/my-package`).
+Now let's review what the `apm publish` command does:
+
+  1. Registers the package name on atom.io if it is being published for the
+     first time.
+  2. Updates the `version` field in the *package.json* file and commits it.
+  3. Creates a new [Git tag][git-tag] for the version being published.
+  4. Pushes the tag and current branch up to GitHub.
+  5. Updates atom.io with the new version being published.
+  
+Now run the following commands to publish your package:
 
 ```sh
 cd ~/github/my-package
 apm publish minor
 ```
 
-If this is the first time you are publishing, the `apm publish` command may
+If this is the first package you are publishing, the `apm publish` command may
 prompt you for your GitHub username and password. This is required to publish
 and you only need to enter this information the first time you publish. The
 credentials are stored securely in your [keychain][keychain] once you login.
 
-The `minor` option to the publish command tells apm to increment the second
-digit of the version before publishing so the published version will be `0.1.0`.
-You could have run `apm publish major` to publish a `1.0.0` version  but since
-this is your first version it is better to start with minor release. You can
-read more about semantic versioning [here][semver].
-
-The publish command also creates and pushes a [Git tag][git-tag] for this
-release.  You should now see a `v0.1.0` tag in your Git repository after
-publishing.
-
 :tada: Your package is now published and available on atom.io. Head on over to
-`http://atom.io/packages/my-package` to see your package's page. People can now
-install it by running `apm install my-package` or from the Atom settings view
-via the *Atom > Preferences...* menu.
+`http://atom.io/packages/my-package` to see your package's page.
+
+The `minor` option to the publish command tells apm to increment the second
+digit of the version before publishing so the published version will be `0.1.0`
+and the Git tag created will be `v0.1.0`.
+
+In the future you can run `apm publish major` to publish the `1.0.0` version but
+since this was the first version being published it is a good idead to start
+with a minor release.
+
+### Further Reading
+
+ * Check out [semantic versioning][semver] to learn more about versioning your
+   package releases.
 
 [atomio]: https://atom.io
 [github]: https://github.com
