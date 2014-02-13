@@ -84,4 +84,4 @@ via the *Atom > Preferences...* menu.
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [keychain]: http://en.wikipedia.org/wiki/Keychain_(Apple)
 [semver]: http://semver.org
-[your-first-package]: ./your-first-package.html
+[your-first-package]: your-first-package.html
