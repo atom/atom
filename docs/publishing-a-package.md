@@ -34,14 +34,13 @@ doc then you should be ready to publish and you can skip to the next step.
 
 If not, there are a few things you should check before publishing:
 
-  * Your *package.json* file contains the accurate `name`, `description`,
-    and `repository` information.
-  * Your *package.json* file has a version field of `0.0.0`.
+  * Your *package.json* file has `name`, `description`, and `repository` fields.
+  * Your *package.json* file has a `version` field with a value of  `"0.0.0"`.
   * Your *package.json* file has an `engines` field that contains an entry
     for Atom such as: `"engines": {"atom": ">=0.50.0"}`.
-  * Your package is stored in a git repository that is hosted on
-    [GitHub][github].
   * Your package has a `README.md` file at the root.
+  * Your package is in a Git repository that has been pushed to
+    [GitHub][github].
   
 ### Publish Your Package
 
