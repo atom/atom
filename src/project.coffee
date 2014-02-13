@@ -314,13 +314,13 @@ class Project extends Model
   # Deprecated: delegate
   registerOpener: (opener) ->
     @openers.push(opener)
-    
+
   # Deprecated: delegate
   unregisterOpener: (opener) ->
     _.remove(@openers, opener)
-  
+
   # Deprecated: delegate
-  eachEditor: (callback) -> 
+  eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor-created', (editor) -> callback(editor)
 

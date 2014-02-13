@@ -96,7 +96,7 @@ class Workspace extends Model
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri) ? ''
-
+  
     if uri?
       item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
       editor = item ? @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
