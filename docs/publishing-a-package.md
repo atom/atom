@@ -78,7 +78,6 @@ publishing.
 install it by running `apm install my-package` or from the Atom settings view
 via the *Atom > Preferences...* menu.
 
-
 [atomio]: https://atom.io
 [github]: https://github.com
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
