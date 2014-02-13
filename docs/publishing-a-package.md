@@ -64,10 +64,10 @@ and you only need to enter this information the first time you publish. The
 credentials are stored securely in your [keychain][keychain] once you login.
 
 The `minor` option to the publish command tells apm to increment the second
-digit of your version before publishing so the version published will be
-`0.1.0`. You could have run `apm publish major` to publish a `1.0.0` version
-but since this is your first version it is better to start with minor release.
-You can read more about semantic versioning [here][semver].
+digit of the version before publishing so the published version will be `0.1.0`.
+You could have run `apm publish major` to publish a `1.0.0` version  but since
+this is your first version it is better to start with minor release. You can
+read more about semantic versioning [here][semver].
 
 The publish command also creates and pushes a [Git tag][git-tag] for this
 release.  You should now see a `v0.1.0` tag in your Git repository after
