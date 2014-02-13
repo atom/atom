@@ -32,7 +32,12 @@ class Login extends Command
       .then(@getTwoFactorCode)
       .then(@createToken)
       .then(@saveToken)
-      .catch(callback)
+      .catch (error) ->
+        if error.message is 'canceled'
+          console.log()
+          callback()
+        else
+          callback(error)
 
   prompt: (options) ->
     readPromise = Q.denodeify(read)
