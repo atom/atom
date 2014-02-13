@@ -97,34 +97,34 @@ class Workspace extends Model
     activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri) ? ''
 
-    editor = @activePane.itemForUri(uri)
+    item = @activePane.itemForUri(uri)
     if uri
-      editor ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !editor
-    editor ?= atom.project.openSync(uri, {initialLine})
+      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
+    item ?= atom.project.openSync(uri, {initialLine})
 
-    @activePane.activateItem(editor)
-    @itemOpened(editor)
+    @activePane.activateItem(item)
+    @itemOpened(item)
     @activePane.activate() if activatePane
-    editor
+    item
 
   openUriInPane: (uri, pane, options={}) ->
     changeFocus = options.changeFocus ? true
 
-    editor = pane.itemForUri(uri)
+    item = pane.itemForUri(uri)
     if uri
-      editor ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !editor
-    editor ?= atom.project.open(uri, options)
+      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
+    item ?= atom.project.open(uri, options)
 
-    Q(editor)
-      .then (editor) =>
+    Q(item)
+      .then (item) =>
         if not pane
-          pane = new Pane(items: [editor])
+          pane = new Pane(items: [item])
           @paneContainer.root = pane
-        @itemOpened(editor)
-        pane.activateItem(editor)
+        @itemOpened(item)
+        pane.activateItem(item)
         pane.activate() if changeFocus
         @emit "uri-opened"
-        editor
+        item
       .catch (error) ->
         console.error(error.stack ? error)
 
