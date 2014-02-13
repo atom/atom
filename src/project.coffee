@@ -30,11 +30,12 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
+    @openers = []
+
     for buffer in @buffers
       do (buffer) =>
         buffer.once 'destroyed', => @removeBuffer(buffer)
 
-    @openers = []
     @editors = []
     @setPath(path)
 
@@ -45,23 +46,6 @@ class Project extends Model
   deserializeParams: (params) ->
     params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
     params
-
-  # Public: Register an opener for project files.
-  #
-  # An {Editor} will be used if no openers return a value.
-  #
-  # ## Example
-  # ```coffeescript
-  #   atom.project.registerOpener (filePath) ->
-  #     if path.extname(filePath) is '.toml'
-  #       return new TomlEditor(filePath)
-  # ```
-  #
-  # opener - A {Function} to be called when a path is being opened.
-  registerOpener: (opener) -> @openers.push(opener)
-
-  # Public: Remove a previously registered opener.
-  unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   destroyed: ->
     editor.destroy() for editor in @getEditors()
@@ -129,7 +113,7 @@ class Project extends Model
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
-  # Public: Given a path to a file, this constructs and associates a new
+  # Given a path to a file, this constructs and associates a new
   # {Editor}, showing the file.
   #
   # filePath - The {String} path of the file to associate with.
@@ -137,34 +121,21 @@ class Project extends Model
   #
   # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath) ? ''
-    resource = opener(filePath, options) for opener in @openers when !resource
+    filePath = @resolve(filePath)
+    @bufferForPath(filePath).then (buffer) =>
+      @buildEditorForBuffer(buffer, options)
 
-    if resource
-      Q(resource)
-    else
-      @bufferForPath(filePath).then (buffer) =>
-        @buildEditorForBuffer(buffer, options)
-
-  # Only be used in specs
+  # Deprecated
   openSync: (filePath, options={}) ->
-    filePath = @resolve(filePath) ? ''
-    resource = opener(filePath, options) for opener in @openers when !resource
+    filePath = @resolve(filePath)
+    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
-    resource or @buildEditorForBuffer(@bufferForPathSync(filePath), options)
-
-  # Public: Retrieves all {Editor}s for all open files.
-  #
-  # Returns an {Array} of {Editor}s.
-  getEditors: ->
-    new Array(@editors...)
-
-  # Public: Add the given {Editor}.
+  # Add the given {Editor}.
   addEditor: (editor) ->
     @editors.push editor
     @emit 'editor-created', editor
 
-  # Public: Return and removes the given {Editor}.
+  # Return and removes the given {Editor}.
   removeEditor: (editor) ->
     _.remove(@editors, editor)
 
@@ -330,10 +301,6 @@ class Project extends Model
     @addEditor(editor)
     editor
 
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
-
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -343,3 +310,20 @@ class Project extends Model
       subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
+
+  # Deprecated: delegate
+  registerOpener: (opener) ->
+    @openers.push(opener)
+
+  # Deprecated: delegate
+  unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
+
+  # Deprecated: delegate
+  eachEditor: (callback) ->
+    callback(editor) for editor in @getEditors()
+    @on 'editor-created', (editor) -> callback(editor)
+
+  # Deprecated: delegate
+  getEditors: ->
+    new Array(@editors...)

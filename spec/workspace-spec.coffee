@@ -126,6 +126,22 @@ describe "Workspace", ->
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
+    describe "when passed a path that matches a custom opener", ->
+      it "returns the resource returned by the custom opener", ->
+        fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
+        barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
+        workspace.registerOpener(fooOpener)
+        workspace.registerOpener(barOpener)
+
+        waitsForPromise ->
+          pathToOpen = atom.project.resolve('a.foo')
+          workspace.open(pathToOpen, hey: "there").then (item) ->
+            expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
+
+        waitsForPromise ->
+          workspace.open("bar://baz").then (item) ->
+            expect(item).toEqual { bar: "bar://baz" }
+
   describe "::openSync(uri, options)", ->
     [activePane, initialItemCount] = []
 
