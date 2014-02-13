@@ -38,8 +38,10 @@ You can now browse to `~/.atom/packages/language-r` to see the converted bundle.
 :tada: Your new package is now ready to use, launch Atom and open a `.r` file in
 the editor to see it in action!
 
-:bulb: Consider using `apm publish` to publish this package to
-[atom.io][atomio].
+### Further Reading
+
+* Check out [Publishing a Package](publish-a-package.html) for more information
+  on publishing the package you just created to [atom.io](https://atom.io).
 
 [atomio]: https://atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets

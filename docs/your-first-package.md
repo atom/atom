@@ -150,4 +150,4 @@ ASCII art professional!
   the mechanics of packages.
 
 * Check out [Publishing a Package](publish-a-package.html) for more information
-  on publishing the package you just created.
+  on publishing the package you just created to [atom.io](https://atom.io).
