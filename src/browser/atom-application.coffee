@@ -139,7 +139,9 @@ class AtomApplication
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
-    autoUpdater.checkForUpdates()
+    # Check for update after Atom has fully started and the menus are created
+    setTimeout((-> autoUpdater.checkForUpdates()), 10000)
+
 
   checkForUpdate: ->
     autoUpdater.once 'update-available', ->
