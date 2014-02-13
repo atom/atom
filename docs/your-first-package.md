@@ -113,9 +113,9 @@ from [npm](https://npmjs.org/). Open _package.json_ and add the latest version o
 figlet to the dependencies:
 
 ```json
-  "dependencies": {
-     "figlet": "1.0.8"
-  }
+"dependencies": {
+   "figlet": "1.0.8"
+}
 ```
 
 After saving the file, run the command 'update-package-dependencies:update' from
