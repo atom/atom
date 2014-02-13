@@ -57,7 +57,7 @@ class Workspace extends Model
 
   # Public: Returns an {Array} of all open {Editor}s.
   getEditors: ->
-    atom.project.getEditors()    
+    atom.project.getEditors()
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
@@ -96,7 +96,7 @@ class Workspace extends Model
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri) ? ''
-  
+
     if uri?
       item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
       editor = item ? @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
@@ -149,7 +149,7 @@ class Workspace extends Model
   # Public: Remove a registered opener.
   unregisterOpener: (opener) ->
     atom.project.unregisterOpener(opener)
-    
+
   getOpeners: ->
     atom.project.openers
 
