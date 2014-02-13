@@ -146,5 +146,8 @@ ASCII art professional!
 
 ## Further reading
 
-For more information on the mechanics of packages, check out [Creating a
-Package](creating-a-package.html)
+* Check out [Creating a Package](creating-a-package.html) for more information on
+  the mechanics of packages.
+
+* Check out [Publishing a Package](publish-a-package.html) for more information
+  on publishing the package you just created.
