@@ -97,11 +97,10 @@ class Workspace extends Model
     activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.relativize(uri) ? ''
 
-    if uri?
-      item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
-      editor = item ? @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
-    else
-      editor = atom.project.openSync()
+    editor = @activePane.itemForUri(uri)
+    if uri
+      editor ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !editor
+    editor ?= atom.project.openSync(uri, {initialLine})
 
     @activePane.activateItem(editor)
     @itemOpened(editor)
@@ -110,10 +109,13 @@ class Workspace extends Model
 
   openUriInPane: (uri, pane, options={}) ->
     changeFocus = options.changeFocus ? true
-    item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
-    promise = Q(item ? pane.itemForUri(uri) ? atom.project.open(uri, options))
 
-    promise
+    editor = pane.itemForUri(uri)
+    if uri
+      editor ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !editor
+    editor ?= atom.project.open(uri, options)
+
+    Q(editor)
       .then (editor) =>
         if not pane
           pane = new Pane(items: [editor])
