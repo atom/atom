@@ -18,10 +18,10 @@ class Login extends Command
       Usage: apm login
 
       Create and save a GitHub OAuth2 token to the keychain. This token will
-      be used to identify yourself when publishing packages.
+      be used to identify yourself when publishing packages to atom.io.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('u', 'user').describe('user', 'GitHub username')
+    options.alias('u', 'user').describe('user', 'GitHub username or email')
 
   run: (options) ->
     {callback} = options
