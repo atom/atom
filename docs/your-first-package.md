@@ -146,8 +146,10 @@ ASCII art professional!
 
 ## Further reading
 
-* Check out [Creating a Package](creating-a-package.html) for more information
-  on the mechanics of packages.
+* [Getting your project on GitHub guide](http://guides.github.com/overviews/desktop)
 
-* Check out [Publishing a Package](publish-a-package.html) for more information
-  on publishing the package you just created to [atom.io](https://atom.io).
+* [Creating a Package guide](creating-a-package.html) for more information
+  on the mechanics of packages
+
+* [Publishing a Package guide](publish-a-package.html) for more information
+  on publishing your package to [atom.io](https://atom.io)

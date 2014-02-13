@@ -40,7 +40,8 @@ If not, there are a few things you should check before publishing:
     for Atom such as: `"engines": {"atom": ">=0.50.0"}`.
   * Your package has a `README.md` file at the root.
   * Your package is in a Git repository that has been pushed to
-    [GitHub][github].
+    [GitHub][github]. Follow [this guide][repo-guide] if your package isn't
+    already on GitHub.
   
 ### Publish Your Package
 
@@ -91,5 +92,6 @@ with a minor release.
 [github]: https://github.com
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [keychain]: http://en.wikipedia.org/wiki/Keychain_(Apple)
+[repo-guide]: http://guides.github.com/overviews/desktop
 [semver]: http://semver.org
 [your-first-package]: your-first-package.html
