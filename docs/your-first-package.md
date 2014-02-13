@@ -146,8 +146,8 @@ ASCII art professional!
 
 ## Further reading
 
-* Check out [Creating a Package](creating-a-package.html) for more information on
-  the mechanics of packages.
+* Check out [Creating a Package](creating-a-package.html) for more information
+  on the mechanics of packages.
 
 * Check out [Publishing a Package](publish-a-package.html) for more information
   on publishing the package you just created to [atom.io](https://atom.io).
