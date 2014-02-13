@@ -39,27 +39,23 @@ module.exports =
 
     commandName = path.basename(commandPath, path.extname(commandPath))
     directory = @getInstallDirectory()
-    if fs.existsSync(directory)
-      destinationPath = path.join(directory, commandName)
-      unlinkCommand destinationPath, (error) =>
-        # Retry with privilige escalation.
-        if error?.code is 'EACCES' and unlinkCommandWithPrivilegeSync(destinationPath)
-          error = null
+    destinationPath = path.join(directory, commandName)
+    unlinkCommand destinationPath, (error) =>
+      # Retry with privilige escalation.
+      if error?.code is 'EACCES' and unlinkCommandWithPrivilegeSync(destinationPath)
+        error = null
 
-        if error?
-          error = new Error "Could not remove file at #{destinationPath}."
+      if error?
+        error = new Error "Could not remove file at #{destinationPath}."
+        callback?(error)
+      else
+        symlinkCommand commandPath, destinationPath, (error) =>
+          # Retry with privilige escalation.
+          if error?.code is 'EACCES' and symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
+            error = null
+
+          error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error?
           callback?(error)
-        else
-          symlinkCommand commandPath, destinationPath, (error) =>
-            # Retry with privilige escalation.
-            if error?.code is 'EACCES' and symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
-              error = null
-
-            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error?
-            callback?(error)
-    else
-      error = new Error "Directory '#{directory} doesn't exist."
-      callback?(error)
 
   installAtomCommand: (resourcePath, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
