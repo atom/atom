@@ -128,11 +128,6 @@ class Project extends Model
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {Editor}s for all open files.
-  #
-  # Returns an {Array} of {Editor}s.
-  getEditors: ->
-    new Array(@editors...)
 
   # Public: Add the given {Editor}.
   addEditor: (editor) ->
@@ -305,10 +300,6 @@ class Project extends Model
     @addEditor(editor)
     editor
 
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
-
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -322,3 +313,5 @@ class Project extends Model
   # Deprecated delegates
   registerOpener: -> atom.workspaceView.model.registerOpener(arguments)
   unregisterOpener: -> atom.workspaceView.model.unregisterOpener(arguments)
+  eachEditor: -> atom.workspaceView.model.eachEditor(arguments)
+  getEditors: -> atom.workspaceView.model.getEditors(arguments)

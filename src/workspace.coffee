@@ -49,6 +49,18 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
+  # Public: Calls callback for every existing {Editor} and for all new {Editors}
+  # that are created.
+  #
+  # callback - A {Function} with an {Editor} as its only argument
+  eachEditor: (callback) ->
+    callback(editor) for editor in @getEditors()
+    @on 'editor-created', (editor) -> callback(editor)
+
+  # Public: Returns an {Array} of all open {Editor}s.
+  getEditors: ->
+    new Array(atom.project.editors...)
+
   # Public: Asynchronously opens a given a filepath in Atom.
   #
   # uri - A {String} uri.
