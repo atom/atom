@@ -145,10 +145,12 @@ class Workspace extends Model
   # ```
   #
   # opener - A {Function} to be called when a path is being opened.
-  registerOpener: (opener) -> @openers.push(opener)
+  registerOpener: (opener) ->
+    @openers.push(opener)
 
   # Public: Remove a registered opener.
-  unregisterOpener: (opener) -> _.remove(@openers, opener)
+  unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
 
   # Public: save the active item.
   saveActivePaneItem: ->
