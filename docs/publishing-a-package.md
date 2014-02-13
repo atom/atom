@@ -59,7 +59,7 @@ apm publish minor
 ```
 
 If this is the first time you are publishing, the `apm publish` command may
-prompt you for your GitHub] username and password. This is required to publish
+prompt you for your GitHub username and password. This is required to publish
 and you only need to enter this information the first time you publish. The
 credentials are stored securely in your [keychain][keychain] once you login.
 
