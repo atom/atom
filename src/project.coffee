@@ -310,7 +310,7 @@ class Project extends Model
       @on 'buffer-created', (buffer) -> callback(buffer)
 
   # Deprecated delegates
-  registerOpener: -> atom.workspaceView.model.registerOpener(arguments)
-  unregisterOpener: -> atom.workspaceView.model.unregisterOpener(arguments)
-  eachEditor: -> atom.workspaceView.model.eachEditor(arguments)
-  getEditors: -> atom.workspaceView.model.getEditors(arguments)
+  registerOpener: -> atom.workspaceView.model.registerOpener(arguments...)
+  unregisterOpener: -> atom.workspaceView.model.unregisterOpener(arguments...)
+  eachEditor: -> atom.workspaceView.model.eachEditor(arguments...)
+  getEditors: -> atom.workspaceView.model.getEditors(arguments...)
