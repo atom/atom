@@ -3,7 +3,7 @@
 This guide will show you how to publish a package or theme to the
 [atom.io][atomio] package registry.
 
-Publishing a package allows other people to install it and use it in Atom.  It
+Publishing a package allows other people to install it and use it in Atom. It
 is a great way to share what you've made and get feedback and contributions from
 others.
 
