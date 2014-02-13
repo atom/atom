@@ -215,8 +215,8 @@ class Publish extends Command
     options = @parseOptions(options.commandArgs)
 
     metadataPath = path.resolve('package.json')
-    unless metadataPath
-      return callback("No package.json file found in #{process.cwd()}")
+    unless fs.isFileSync(metadataPath)
+      return callback("No package.json file found at #{process.cwd()}/package.json")
 
     try
       pack = JSON.parse(fs.readFileSync(metadataPath))
