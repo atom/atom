@@ -237,14 +237,13 @@ class Publish extends Command
               if firstTimePublishing and not error?
                 @logFirstTimePublishMessage(pack)
               callback(error)
-    else
-      if tag = options.argv.tag
-        @registerPackage pack, (error, firstTimePublishing) =>
-          return callback(error) if error?
+    else if tag = options.argv.tag
+      @registerPackage pack, (error, firstTimePublishing) =>
+        return callback(error) if error?
 
-          @publishPackage pack, tag, (error) =>
-            if firstTimePublishing and not error?
-              @logFirstTimePublishMessage(pack)
-            callback(error)
-      else
-        callback('Missing required tag to publish')
+        @publishPackage pack, tag, (error) =>
+          if firstTimePublishing and not error?
+            @logFirstTimePublishMessage(pack)
+          callback(error)
+    else
+      callback('Missing required tag to publish')
