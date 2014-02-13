@@ -3,9 +3,12 @@
 This guide will show you how to publish a package or theme to the
 [atom.io][atomio] package registry.
 
-Publishing a package allows other people to install it and use it.  It is a
-great way to share what you've made and get feedback and contributions from
+Publishing a package allows other people to install it and use it in Atom.  It
+is a great way to share what you've made and get feedback and contributions from
 others.
+
+This guide assumes your package's name is `my-package` but you should pick a
+better name.
 
 ### Install apm
 
@@ -35,11 +38,17 @@ If not, there are a few things you should check before publishing:
     and `repository` information.
   * Your *package.json* file has a version field of `0.0.0`.
   * Your *package.json* file has an `engines` field that contains an entry
-    for Atom such as: `"engines": {"atom": ">=0.50.0"}`
-  * Your package is stored in a git repository that is hosted on [GitHub][github]
+    for Atom such as: `"engines": {"atom": ">=0.50.0"}`.
+  * Your package is stored in a git repository that is hosted on
+    [GitHub][github].
   * Your package has a `README.md` file at the root.
   
 ### Publish Your Package
+
+One last thing to check before publishing is that a package with the same
+name hasn't already been published to atom.io.  You can do so by visiting
+`http://atom.io/packages/my-package` to see if the package already exists.
+If it does, update your package's name to something that is available.
 
 Run the following commands to publish your package (this assumes your package
 is located at `~/github/my-package`).
@@ -63,6 +72,11 @@ You can read more about semantic versioning [here][semver].
 The publish command also creates and pushes a [Git tag][git-tag] for this
 release.  You should now see a `v0.1.0` tag in your Git repository after
 publishing.
+
+:tada: Your package is now published and available on atom.io. Head on over to
+`http://atom.io/packages/my-package` to see your package's page. People can
+install it by running `apm install my-package` or from the Atom settings view
+via the *Atom > Preferences...* menu.
 
 
 [atomio]: https://atom.io
