@@ -18,7 +18,7 @@ symlinkCommand = (sourcePath, destinationPath, callback) ->
             if error?
               callback(error)
             else
-              fs.chmod(destinationPath, 0o755, callback)
+              fs.chmod(destinationPath, '755', callback)
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
   if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
