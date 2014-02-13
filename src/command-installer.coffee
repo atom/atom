@@ -47,7 +47,7 @@ module.exports =
           error = null
 
         if error?
-          error = new Error "Could not remove file at #{destinationPath}." if error
+          error = new Error "Could not remove file at #{destinationPath}."
           callback?(error)
         else
           symlinkCommand commandPath, destinationPath, (error) =>
@@ -55,7 +55,7 @@ module.exports =
             if error?.code is 'EACCES' and symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
               error = null
 
-            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error
+            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error?
             callback?(error)
     else
       error = new Error "Directory '#{directory} doesn't exist."
