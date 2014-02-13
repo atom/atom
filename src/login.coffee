@@ -32,12 +32,8 @@ class Login extends Command
       .then(@getTwoFactorCode)
       .then(@createToken)
       .then(@saveToken)
-      .catch (error) ->
-        if error.message is 'canceled'
-          console.log()
-          callback()
-        else
-          callback(error)
+      .then (token) -> callback(null, token)
+      .catch(callback)
 
   prompt: (options) ->
     readPromise = Q.denodeify(read)
@@ -121,3 +117,4 @@ class Login extends Command
 
   saveToken: ({token}) =>
     keytar.replacePassword('Atom GitHub API Token', 'github', token)
+    Q(token)

@@ -72,7 +72,13 @@ module.exports =
           message = error
         else
           message = error.message ? error
-        console.error(message.red) if message
+
+        if message is 'canceled'
+          # A prompt was canceled so just log an empty line
+          console.log()
+        else if message
+          console.error(message.red)
+
         process.exit(1)
       else
         callback?()

@@ -8,6 +8,7 @@ request = require 'request'
 auth = require './auth'
 config = require './config'
 Command = require './command'
+Login = require './login'
 
 module.exports =
 class Publish extends Command
@@ -37,6 +38,13 @@ class Publish extends Command
     options.alias('t', 'tag').string('tag').describe('tag', 'Specify a tag to publish')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
+
+  getToken: (callback) ->
+    auth.getToken (error, token) ->
+      if error?
+        new Login().run({callback, commandArgs: []})
+      else
+        callback(null, token)
 
   # Create a new version and tag use the `npm version` command.
   #
@@ -76,7 +84,7 @@ class Publish extends Command
   #  * callback: The callback function invoke with an error as the first
   #    argument and true/false as the second argument.
   packageExists: (packageName, callback) ->
-    auth.getToken (error, token) ->
+    @getToken (error, token) ->
       if error?
         callback(error)
         return
@@ -108,7 +116,7 @@ class Publish extends Command
   #  * repository: The string repository in `name/owner` format.
   #  * callback: The callback function to
   registerPackage: (repository, callback) ->
-    auth.getToken (error, token) ->
+    @getToken (error, token) ->
       if error?
         callback(error)
         return
@@ -138,7 +146,7 @@ class Publish extends Command
   #  * callback: The callback function to invoke with an error as the first
   #    argument.
   createPackageVersion: (packageName, tag, callback) ->
-    auth.getToken (error, token) ->
+    @getToken (error, token) ->
       if error?
         callback(error)
         return
