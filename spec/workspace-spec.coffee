@@ -134,7 +134,7 @@ describe "Workspace", ->
         workspace.registerOpener(barOpener)
 
         waitsForPromise ->
-          pathToOpen = atom.project.relativize('a.foo')
+          pathToOpen = atom.project.resolve('a.foo')
           workspace.open(pathToOpen, hey: "there").then (item) ->
             expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
 
