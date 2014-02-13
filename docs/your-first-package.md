@@ -148,8 +148,8 @@ ASCII art professional!
 
 * [Getting your project on GitHub guide](http://guides.github.com/overviews/desktop)
 
-* [Creating a Package guide](creating-a-package.html) for more information
+* [Creating a package guide](creating-a-package.html) for more information
   on the mechanics of packages
 
-* [Publishing a Package guide](publish-a-package.html) for more information
+* [Publishing a package guide](publish-a-package.html) for more information
   on publishing your package to [atom.io](https://atom.io)
