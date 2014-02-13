@@ -1,11 +1,11 @@
 path = require 'path'
 url = require 'url'
 
-CSON = require 'season'
 optimist = require 'optimist'
 request = require 'request'
 
 auth = require './auth'
+fs = require './fs'
 config = require './config'
 Command = require './command'
 Login = require './login'
@@ -113,31 +113,47 @@ class Publish extends Command
 
   # Register the current repository with the package registry.
   #
-  #  * repository: The string repository in `name/owner` format.
-  #  * callback: The callback function to
-  registerPackage: (repository, callback) ->
-    @getToken (error, token) ->
-      if error?
-        callback(error)
+  #  * pack: The package metadata.
+  #  * callback: The callback function.
+  registerPackage: (pack, callback) ->
+    unless pack.name
+      callback('Required name field in package.json not found')
+      return
+
+    @packageExists pack.name, (error, exists) =>
+      return callback(error) if error?
+      return callback() if exists
+
+      unless repository = @getRepository(pack)
+        callback('Unable to parse repository name/owner from package.json repository field')
         return
 
-      requestSettings =
-        url: config.getAtomPackagesUrl()
-        json: true
-        method: 'POST'
-        proxy: process.env.http_proxy || process.env.https_proxy
-        body:
-          repository: repository
-        headers:
-          authorization: token
-      request.get requestSettings, (error, response, body={}) ->
+      process.stdout.write "Registering #{pack.name} "
+      @getToken (error, token) ->
         if error?
+          process.stdout.write '\u2717\n'.red
           callback(error)
-        else if response.statusCode isnt 201
-          message = body.message ? body.error ? body
-          callback("Registering package failed: #{message}")
-        else
-          callback()
+          return
+
+        requestSettings =
+          url: config.getAtomPackagesUrl()
+          json: true
+          method: 'POST'
+          proxy: process.env.http_proxy || process.env.https_proxy
+          body:
+            repository: repository
+          headers:
+            authorization: token
+        request.get requestSettings, (error, response, body={}) ->
+          if error?
+            callback(error)
+          else if response.statusCode isnt 201
+            message = body.message ? body.error ? body
+            process.stdout.write '\u2717\n'.red
+            callback("Registering package failed: #{message}")
+          else
+            process.stdout.write '\u2713\n'.green
+            callback(null, true)
 
   # Create a new package version at the given Git tag.
   #
@@ -171,70 +187,64 @@ class Publish extends Command
 
   # Publish the version of the package associated with the given tag.
   #
+  #  * pack: The package metadata.
   #  * tag: The Git tag string of the package version to publish.
   #  * callback: The callback function to invoke when done with an error as the
   #    first argument.
-  publishPackage: (tag, callback) ->
-    try
-      pack = CSON.readFileSync(CSON.resolve('package')) ? {}
-
-    unless repository = @getRepository(pack)
-      callback('Unable to parse repository name/owner from package.json repository field')
-      return
-
-    publishNewVersion = (firstTime) =>
-      process.stdout.write "Publishing #{pack.name}@#{tag} "
-      @createPackageVersion pack.name, tag, (error) ->
-        if error?
-          process.stdout.write '\u2717\n'.red
-          callback(error)
-        else
-          process.stdout.write '\u2713\n'.green
-
-          if firstTime
-            process.stdout.write 'Congrats on publishing a new package!'.rainbow
-            # :+1: :package: :tada when available
-            if process.platform is 'darwin'
-              process.stdout.write ' \uD83D\uDC4D  \uD83D\uDCE6  \uD83C\uDF89'
-
-            process.stdout.write "\nCheck it out at https://atom.io/packages/#{pack.name}\n"
-
-          callback()
-
-    @packageExists pack.name, (error, exists) =>
+  publishPackage: (pack, tag, callback) ->
+    process.stdout.write "Publishing #{pack.name}@#{tag} "
+    @createPackageVersion pack.name, tag, (error) ->
       if error?
+        process.stdout.write '\u2717\n'.red
         callback(error)
-        return
-
-      if exists
-        publishNewVersion()
       else
-        process.stdout.write "Registering #{pack.name} "
-        @registerPackage repository, (error) =>
-          if error?
-            process.stdout.write '\u2717\n'.red
-            callback(error)
-          else
-            process.stdout.write '\u2713\n'.green
-            publishNewVersion(true)
+        process.stdout.write '\u2713\n'.green
+        callback()
+
+  logFirstTimePublishMessage: (pack) ->
+    process.stdout.write 'Congrats on publishing a new package!'.rainbow
+    # :+1: :package: :tada when available
+    if process.platform is 'darwin'
+      process.stdout.write ' \uD83D\uDC4D  \uD83D\uDCE6  \uD83C\uDF89'
+
+    process.stdout.write "\nCheck it out at https://atom.io/packages/#{pack.name}\n"
 
   # Run the publish command with the given options
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
+    metadataPath = path.resolve('package.json')
+    unless metadataPath
+      return callback("No package.json file found in #{process.cwd()}")
+
+    try
+      pack = JSON.parse(fs.readFileSync(metadataPath))
+    catch error
+      return callback('Error parsing package.json file')
+
     if version = options.argv._[0]
-      @versionPackage version, (error, tag) =>
-        if error?
-          callback(error)
-        else
+      @registerPackage pack, (error, firstTimePublishing) =>
+        return callback(error) if error?
+
+        @versionPackage version, (error, tag) =>
+          return callback(error) if error?
+
           @pushVersion tag, (error) =>
-            if error?
+            return callback(error) if error?
+
+            @publishPackage pack, tag, (error) =>
+              if firstTimePublishing and not error?
+                @logFirstTimePublishMessage(pack)
               callback(error)
-            else
-              @publishPackage(tag, callback)
     else
       if tag = options.argv.tag
-        @publishPackage(tag, callback)
+        @registerPackage pack, (error, firstTimePublishing) =>
+          return callback(error) if error?
+
+          @publishPackage pack, tag, (error) =>
+            if firstTimePublishing and not error?
+              @logFirstTimePublishMessage(pack)
+            callback(error)
       else
         callback('Missing required tag to publish')
