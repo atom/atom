@@ -6,29 +6,29 @@ mkdirp = require 'mkdirp'
 runas = require 'runas'
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
-  mkdirp path.dirname(destinationPath), (error) ->
-    if error?
+  fs.unlink destinationPath, (error) ->
+    if error? and error?.code != 'ENOENT'
       callback(error)
     else
-      fs.symlink sourcePath, destinationPath, (error) ->
+      mkdirp path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
-          fs.chmod(destinationPath, 0o755, callback)
+          fs.symlink sourcePath, destinationPath, (error) ->
+            if error?
+              callback(error)
+            else
+              fs.chmod(destinationPath, 0o755, callback)
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
-  runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true)
-  runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) is 0
+  if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
+    throw new Error("Failed to remove '#{destinationPath}'")
 
-unlinkCommand = (destinationPath, callback) ->
-  fs.unlink destinationPath, (error) ->
-    if error? and error.code isnt 'ENOENT'
-      callback(error)
-    else
-      callback()
+  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) != 0
+    throw new Error("Failed to create directory '#{destinationPath}'")
 
-unlinkCommandWithPrivilegeSync = (destinationPath) ->
-  runas('/bin/rm', ['-f', destinationPath], admin: true) is 0
+  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) != 0
+    throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =
   getInstallDirectory: ->
@@ -38,24 +38,15 @@ module.exports =
     return unless process.platform is 'darwin'
 
     commandName = path.basename(commandPath, path.extname(commandPath))
-    directory = @getInstallDirectory()
-    destinationPath = path.join(directory, commandName)
-    unlinkCommand destinationPath, (error) =>
-      # Retry with privilige escalation.
-      if error?.code is 'EACCES' and unlinkCommandWithPrivilegeSync(destinationPath)
-        error = null
+    destinationPath = path.join(@getInstallDirectory(), commandName)
+    symlinkCommand commandPath, destinationPath, (error) =>
+      if error?.code is 'EACCES'
+        try
+          error = null
+          symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
+        catch error
 
-      if error?
-        error = new Error "Could not remove file at #{destinationPath}."
-        callback?(error)
-      else
-        symlinkCommand commandPath, destinationPath, (error) =>
-          # Retry with privilige escalation.
-          if error?.code is 'EACCES' and symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
-            error = null
-
-          error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error?
-          callback?(error)
+      callback?(error)
 
   installAtomCommand: (resourcePath, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
