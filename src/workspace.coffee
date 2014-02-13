@@ -26,8 +26,9 @@ class Workspace extends Model
 
   constructor: ->
     super
+    @openers = []
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
-    atom.project.registerOpener (filePath) =>
+    @registerOpener (filePath) =>
       switch filePath
         when 'atom://.atom/stylesheet'
           @open(atom.themes.getUserStylesheetPath())
@@ -50,7 +51,7 @@ class Workspace extends Model
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
-  # filePath - A {String} file path.
+  # uri - A {String} uri.
   # options  - An options {Object} (default: {}).
   #   :initialLine - A {Number} indicating which line number to open to.
   #   :split - A {String} ('left' or 'right') that opens the filePath in a new
@@ -58,16 +59,13 @@ class Workspace extends Model
   #   :changeFocus - A {Boolean} that allows the filePath to be opened without
   #                  changing focus.
   #   :searchAllPanes - A {Boolean} that will open existing editors from any pane
-  #                     if the filePath is already open (default: false)
+  #                     if the uri is already open (default: false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (filePath, options={}) ->
-    changeFocus = options.changeFocus ? true
-    filePath = atom.project.resolve(filePath)
-    initialLine = options.initialLine
+  open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.relativize(filePath)
+    uri = atom.project.relativize(uri) ? ''
 
     pane = switch split
       when 'left'
@@ -80,29 +78,18 @@ class Workspace extends Model
         else
           @activePane
 
-    Q(pane.itemForUri(uri) ? atom.project.open(filePath, options))
-      .then (editor) =>
-        if not pane
-          pane = new Pane(items: [editor])
-          @paneContainer.root = pane
-
-        @itemOpened(editor)
-        pane.activateItem(editor)
-        pane.activate() if changeFocus
-        @emit "uri-opened"
-        editor
-      .catch (error) ->
-        console.error(error.stack ? error)
+    @openUriInPane(uri, pane, options)
 
   # Only used in specs
   openSync: (uri, options={}) ->
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
-    uri = atom.project.relativize(uri)
+    uri = atom.project.relativize(uri) ? ''
 
     if uri?
-      editor = @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
+      item = opener(uri, options) for opener in @openers when !item
+      editor = item ? @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
     else
       editor = atom.project.openSync()
 
@@ -111,10 +98,45 @@ class Workspace extends Model
     @activePane.activate() if activatePane
     editor
 
+  openUriInPane: (uri, pane, options={}) ->
+    changeFocus = options.changeFocus ? true
+    item = opener(uri, options) for opener in @openers when !item
+    promise = Q(item ? pane.itemForUri(uri) ? atom.project.open(uri, options))
+
+    promise
+      .then (editor) =>
+        if not pane
+          pane = new Pane(items: [editor])
+          @paneContainer.root = pane
+        @itemOpened(editor)
+        pane.activateItem(editor)
+        pane.activate() if changeFocus
+        @emit "uri-opened"
+        editor
+      .catch (error) ->
+        console.error(error.stack ? error)
+
   # Public: Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
+
+  # Public: Register an opener for a uri.
+  #
+  # An {Editor} will be used if no openers return a value.
+  #
+  # ## Example
+  # ```coffeescript
+  #   atom.project.registerOpener (uri) ->
+  #     if path.extname(uri) is '.toml'
+  #       return new TomlEditor(uri)
+  # ```
+  #
+  # opener - A {Function} to be called when a path is being opened.
+  registerOpener: (opener) -> @openers.push(opener)
+
+  # Public: Remove a registered opener.
+  unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Public: save the active item.
   saveActivePaneItem: ->
