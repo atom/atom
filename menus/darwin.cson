@@ -5,7 +5,7 @@
       { label: 'About Atom', command: 'application:about' }
       { label: "VERSION", enabled: false }
       { label: "Restart and Install Update", command: 'application:install-update', visible: false}
-      { label: "Check for Update", command: 'application:check-for-update'}
+      { label: "Check for Update", command: 'application:check-for-update', visible: false}
       { type: 'separator' }
       { label: 'Preferences...', command: 'application:show-settings' }
       { label: 'Open Your Config', command: 'application:open-your-config' }
