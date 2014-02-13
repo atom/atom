@@ -45,7 +45,7 @@ class Login extends Command
   getUser: (state) =>
     return Q(state) if state.user
 
-    @prompt({prompt: 'Username>', edit: true})
+    @prompt({prompt: 'GitHub Username or Email>', edit: true})
       .spread (user) ->
         state.user = user
         Q(state)
@@ -77,7 +77,7 @@ class Login extends Command
       if statusCode is 200
         deferred.resolve(state)
       else if statusCode is 401 and headers['x-github-otp']
-        @prompt({prompt: 'Authentication Code>', edit: true})
+        @prompt({prompt: 'Two-Factor Authentication Code>', edit: true})
           .spread (authCode) ->
             state.authCode = authCode
             deferred.resolve(state)
