@@ -99,7 +99,7 @@ class Publish extends Command
         if error?
           callback(error)
         else
-          callback(null, response.statusCode is 404)
+          callback(null, response.statusCode is 200)
 
   # Parse the repository in `name/owner` format from the package metadata.
   #
@@ -182,7 +182,7 @@ class Publish extends Command
       callback('Unable to parse repository name/owner from package.json repository field')
       return
 
-    publishNewVersion = =>
+    publishNewVersion = (firstTime) =>
       process.stdout.write "Publishing #{pack.name}@#{tag} "
       @createPackageVersion pack.name, tag, (error) ->
         if error?
@@ -190,6 +190,15 @@ class Publish extends Command
           callback(error)
         else
           process.stdout.write '\u2713\n'.green
+
+          if firstTime
+            process.stdout.write 'Congrats on publishing a new package!'.rainbow
+            # :+1: :package: :tada when available
+            if process.platform is 'darwin'
+              process.stdout.write ' \uD83D\uDC4D  \uD83D\uDCE6  \uD83C\uDF89'
+
+            process.stdout.write "\nCheck it out at https://atom.io/packages/#{pack.name}\n"
+
           callback()
 
     @packageExists pack.name, (error, exists) =>
@@ -198,16 +207,16 @@ class Publish extends Command
         return
 
       if exists
-        process.stdout.write "Registering #{pack.name} (#{repository}) "
+        publishNewVersion()
+      else
+        process.stdout.write "Registering #{pack.name} "
         @registerPackage repository, (error) =>
           if error?
             process.stdout.write '\u2717\n'.red
             callback(error)
           else
             process.stdout.write '\u2713\n'.green
-            publishNewVersion()
-      else
-        publishNewVersion()
+            publishNewVersion(true)
 
   # Run the publish command with the given options
   run: (options) ->
