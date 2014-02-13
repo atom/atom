@@ -221,7 +221,7 @@ class Publish extends Command
     try
       pack = JSON.parse(fs.readFileSync(metadataPath))
     catch error
-      return callback('Error parsing package.json file')
+      return callback("Error parsing package.json file: #{error.message}")
 
     if version = options.argv._[0]
       @registerPackage pack, (error, firstTimePublishing) =>
