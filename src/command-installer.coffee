@@ -34,13 +34,13 @@ module.exports =
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath, callback) ->
+  install: (commandPath, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
 
     commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
     symlinkCommand commandPath, destinationPath, (error) =>
-      if error?.code is 'EACCES'
+      if askForPrivilege and error?.code is 'EACCES'
         try
           error = null
           symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
@@ -48,10 +48,10 @@ module.exports =
 
       callback?(error)
 
-  installAtomCommand: (resourcePath, callback) ->
+  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath, callback
+    @install commandPath, askForPrivilege, callback
 
-  installApmCommand: (resourcePath, callback) ->
+  installApmCommand: (resourcePath, askForPrivilege, callback) ->
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath, callback
+    @install commandPath, askForPrivilege, callback
