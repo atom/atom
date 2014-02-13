@@ -30,6 +30,8 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
+    @openers = []
+
     for buffer in @buffers
       do (buffer) =>
         buffer.once 'destroyed', => @removeBuffer(buffer)
@@ -309,8 +311,19 @@ class Project extends Model
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
-  # Deprecated: delegates
-  registerOpener: -> atom.workspaceView.model.registerOpener(arguments...)
-  unregisterOpener: -> atom.workspaceView.model.unregisterOpener(arguments...)
-  eachEditor: -> atom.workspaceView.model.eachEditor(arguments...)
-  getEditors: -> atom.workspaceView.model.getEditors(arguments...)
+  # Deprecated: delegate
+  registerOpener: (opener) ->
+    @openers.push(opener)
+    
+  # Deprecated: delegate
+  unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
+  
+  # Deprecated: delegate
+  eachEditor: (callback) -> 
+    callback(editor) for editor in @getEditors()
+    @on 'editor-created', (editor) -> callback(editor)
+
+  # Deprecated: delegate
+  getEditors: ->
+    new Array(@editors...)

@@ -26,7 +26,6 @@ class Workspace extends Model
 
   constructor: ->
     super
-    @openers = []
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
       switch filePath
@@ -54,12 +53,11 @@ class Workspace extends Model
   #
   # callback - A {Function} with an {Editor} as its only argument
   eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    atom.project.eachEditor(callback)
 
   # Public: Returns an {Array} of all open {Editor}s.
   getEditors: ->
-    new Array(atom.project.editors...)
+    atom.project.getEditors()    
 
   # Public: Asynchronously opens a given a filepath in Atom.
   #
@@ -100,7 +98,7 @@ class Workspace extends Model
     uri = atom.project.relativize(uri) ? ''
 
     if uri?
-      item = opener(uri, options) for opener in @openers when !item
+      item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
       editor = item ? @activePane.itemForUri(uri) ? atom.project.openSync(uri, {initialLine})
     else
       editor = atom.project.openSync()
@@ -112,7 +110,7 @@ class Workspace extends Model
 
   openUriInPane: (uri, pane, options={}) ->
     changeFocus = options.changeFocus ? true
-    item = opener(uri, options) for opener in @openers when !item
+    item = opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
     promise = Q(item ? pane.itemForUri(uri) ? atom.project.open(uri, options))
 
     promise
@@ -146,11 +144,14 @@ class Workspace extends Model
   #
   # opener - A {Function} to be called when a path is being opened.
   registerOpener: (opener) ->
-    @openers.push(opener)
+    atom.project.registerOpener(opener)
 
   # Public: Remove a registered opener.
   unregisterOpener: (opener) ->
-    _.remove(@openers, opener)
+    atom.project.unregisterOpener(opener)
+    
+  getOpeners: ->
+    atom.project.openers
 
   # Public: save the active item.
   saveActivePaneItem: ->
