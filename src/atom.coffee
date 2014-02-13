@@ -250,9 +250,9 @@ class Atom extends Model
   startEditorWindow: ->
     CommandInstaller = require './command-installer'
     resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, (error) ->
+    CommandInstaller.installAtomCommand resourcePath, false, (error) ->
       console.warn error.message if error?
-    CommandInstaller.installApmCommand resourcePath, (error) ->
+    CommandInstaller.installApmCommand resourcePath, false, (error) ->
       console.warn error.message if error?
 
     @restoreWindowDimensions()

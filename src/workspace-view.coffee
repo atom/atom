@@ -142,15 +142,15 @@ class WorkspaceView extends View
     showErrorDialog = (error) ->
       installDirectory = CommandInstaller.getInstallDirectory()
       atom.confirm
-        message: error.message
-        detailedMessage: "Make sure #{installDirectory} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
 
     resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, (error) =>
+    CommandInstaller.installAtomCommand resourcePath, true, (error) =>
       if error?
         showErrorDialog(error)
       else
-        CommandInstaller.installApmCommand resourcePath, (error) =>
+        CommandInstaller.installApmCommand resourcePath, true, (error) =>
           if error?
             showErrorDialog(error)
           else

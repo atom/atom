@@ -29,7 +29,7 @@
     "rcedit": "~0.1.2",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
-    "runas": "0.4.0",
+    "runas": "0.5.x",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0"

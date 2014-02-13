@@ -3,52 +3,55 @@ _ = require 'underscore-plus'
 async = require 'async'
 fs = require 'fs-plus'
 mkdirp = require 'mkdirp'
+runas = require 'runas'
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
-  mkdirp path.dirname(destinationPath), (error) ->
-    if error?
+  fs.unlink destinationPath, (error) ->
+    if error? and error?.code != 'ENOENT'
       callback(error)
     else
-      fs.symlink sourcePath, destinationPath, (error) ->
+      mkdirp path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
-          fs.chmod(destinationPath, 0o755, callback)
+          fs.symlink sourcePath, destinationPath, (error) ->
+            if error?
+              callback(error)
+            else
+              fs.chmod(destinationPath, '755', callback)
 
-unlinkCommand = (destinationPath, callback) ->
-  fs.unlink destinationPath, (error) ->
-    if error? and error.code isnt 'ENOENT'
-      callback(error)
-    else
-      callback()
+symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
+  if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
+    throw new Error("Failed to remove '#{destinationPath}'")
+
+  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) != 0
+    throw new Error("Failed to create directory '#{destinationPath}'")
+
+  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) != 0
+    throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath, callback) ->
+  install: (commandPath, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
 
     commandName = path.basename(commandPath, path.extname(commandPath))
-    directory = @getInstallDirectory()
-    if fs.existsSync(directory)
-      destinationPath = path.join(directory, commandName)
-      unlinkCommand destinationPath, (error) =>
-        if error?
-          error = new Error "Could not remove file at #{destinationPath}." if error
-          callback?(error)
-        else
-          symlinkCommand commandPath, destinationPath, (error) =>
-            error = new Error "Failed to symlink #{commandPath} to #{destinationPath}." if error
-            callback?(error)
-    else
-      error = new Error "Directory '#{directory} doesn't exist."
+    destinationPath = path.join(@getInstallDirectory(), commandName)
+    symlinkCommand commandPath, destinationPath, (error) =>
+      if askForPrivilege and error?.code is 'EACCES'
+        try
+          error = null
+          symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
+        catch error
+
       callback?(error)
 
-  installAtomCommand: (resourcePath, callback) ->
+  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath, callback
+    @install commandPath, askForPrivilege, callback
 
-  installApmCommand: (resourcePath, callback) ->
+  installApmCommand: (resourcePath, askForPrivilege, callback) ->
     commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath, callback
+    @install commandPath, askForPrivilege, callback
