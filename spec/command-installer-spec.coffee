@@ -20,7 +20,7 @@ describe "install(commandPath, callback)", ->
 
       installDone = false
       installError = null
-      installer.install commandFilePath, (error) ->
+      installer.install commandFilePath, false, (error) ->
         installDone = true
         installError = error
 
