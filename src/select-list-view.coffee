@@ -28,6 +28,19 @@ class SelectListView extends View
         @span class: 'badge', outlet: 'loadingBadge'
       @ol class: 'list-group', outlet: 'list'
 
+  # Public: Get the classes to set on the root view element.
+  #
+  # Subclasses may override this method but should call `super` to get the
+  # default classes.
+  #
+  # ### Example
+  # ```coffee
+  # class MySelectListView extends SelectListView
+  #   @viewClass: ->
+  #     "#{super} my-view-class"
+  # ```
+  #
+  # Return a {String} of space-separated CSS classes.
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
