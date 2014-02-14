@@ -204,7 +204,7 @@ class SelectListView extends View
   #
   # Returns a model item.
   getSelectedItem: ->
-    @getSelectedView().data('select-list-item')
+    @getSelectedItemView().data('select-list-item')
 
   confirmSelection: ->
     item = @getSelectedItem()
