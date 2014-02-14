@@ -453,6 +453,10 @@ class Editor extends Model
       @insertNewline()
       @moveCursorUp() if onFirstLine
 
+  # {Delegates to: TextBuffer.deleteRow}
+  deleteBufferRow: (bufferRow) ->
+    @buffer.deleteRow(bufferRow)
+
   # Public: Indents the current line.
   #
   # options - A set of options equivalent to {Selection.indent}.
