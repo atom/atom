@@ -213,7 +213,7 @@ class Publish extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    tag = options.argv.tag
+    {tag} = options.argv
     [version] = options.argv._
 
     metadataPath = path.resolve('package.json')
