@@ -71,10 +71,10 @@ class SelectListView extends View
 
   # Public: Set the array of items to display in the list.
   #
-  # This should be model items not actual views.  `viewForItem(item)` will be
+  # This should be model items not actual views. {.viewForItem} will be
   # called to render the item when it is being appended to the list view.
   #
-  # items - The {Array} of model items to display in the list.
+  # items - The {Array} of model items to display in the list (default: []).
   setItems: (@items=[]) ->
     @populateList()
     @setLoading()
@@ -112,8 +112,10 @@ class SelectListView extends View
   getFilterQuery: ->
     @editorView.getEditor().getText()
 
-  # Public: Build the DOM elements using the array from the last call to
-  # {.setItems}.
+  # Public: Populate the list view with the model items previously set by
+  # calling {.setItems}.
+  #
+  # Subclasses may override this method but should always call `super`.
   populateList: ->
     return unless @items?
 
@@ -143,6 +145,8 @@ class SelectListView extends View
   #
   # itemCount - The {Number} of items in the array specified to {.setItems}
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
+  #
+  # Returns a {String} message (default: 'No matches found').
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
   # Public: Set the maximum numbers of items to display in the list.
