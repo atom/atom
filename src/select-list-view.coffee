@@ -249,13 +249,12 @@ class SelectListView extends View
   # Returns the property name to fuzzy filter by.
   getFilterKey: ->
 
-  attach: ->
-    @storeFocusedElement()
-
   # Public: Focus the fuzzy filter editor.
   focusEditor: ->
     @filterEditorView.focus()
 
+  # Public: Store the currently focused element. This element will be given
+  # back focus when {.cancel} is called.
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
 
