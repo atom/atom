@@ -59,21 +59,25 @@ class SelectListView extends View
   initialize: ->
     @miniEditor.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.hiddenInput.on 'focusout', => @cancel() unless @cancelling
-    @on 'core:move-up', => @selectPreviousItem()
-    @on 'core:move-down', => @selectNextItem()
+
+    @on 'core:move-up', =>
+      @selectPreviousItemView()
+    @on 'core:move-down', =>
+      @selectNextItemView()
     @on 'core:move-to-top', =>
-      @selectItem(@list.find('li:first'))
+      @selectItemView(@list.find('li:first'))
       @list.scrollToTop()
       false
     @on 'core:move-to-bottom', =>
-      @selectItem(@list.find('li:last'))
+      @selectItemView(@list.find('li:last'))
       @list.scrollToBottom()
       false
+
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 
     @list.on 'mousedown', 'li', (e) =>
-      @selectItem($(e.target).closest('li'))
+      @selectItemView($(e.target).closest('li'))
       e.preventDefault()
 
     @list.on 'mouseup', 'li', (e) =>
@@ -161,44 +165,41 @@ class SelectListView extends View
   # itemCount - The {Number} of items in the array specified to {.setItems}
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
-g
-  selectPreviousItem: ->
-    item = @getSelectedItem().prev()
-    item = @list.find('li:last') unless item.length
-    @selectItem(item)
 
-  selectNextItem: ->
-    item = @getSelectedItem().next()
-    item = @list.find('li:first') unless item.length
-    @selectItem(item)
+  selectPreviousItemView: ->
+    view = @getSelectedItemView().prev()
+    view = @list.find('li:last') unless view.length
+    @selectItemView(view)
 
-  selectItem: (item) ->
-    return unless item.length
+  selectNextItemView: ->
+    view = @getSelectedItemView().next()
+    view = @list.find('li:first') unless view.length
+    @selectItemView(view)
+
+  selectItemView: (view) ->
+    return unless view.length
     @list.find('.selected').removeClass('selected')
-    item.addClass 'selected'
-    @scrollToItem(item)
+    view.addClass('selected')
+    @scrollToItemView(item)
 
-  scrollToItem: (item) ->
+  scrollToItemView: (view) ->
     scrollTop = @list.scrollTop()
-    desiredTop = item.position().top + scrollTop
-    desiredBottom = desiredTop + item.outerHeight()
+    desiredTop = view.position().top + scrollTop
+    desiredBottom = desiredTop + view.outerHeight()
 
     if desiredTop < scrollTop
       @list.scrollTop(desiredTop)
     else if desiredBottom > @list.scrollBottom()
       @list.scrollBottom(desiredBottom)
 
-  # Public: Get the selected DOM element.
-  #
-  # Call {.getSelectedElement} to get the selected model element.
-  getSelectedItem: ->
+  getSelectedItemView: ->
     @list.find('li.selected')
 
-  # Public: Get the selected model element.
+  # Public: Get the model item that is currently selected in the list view.
   #
-  # Call {.getSelectedItem} to get the selected DOM element.
-  getSelectedElement: ->
-    @getSelectedItem().data('select-list-element')
+  # Returns a model item.
+  getSelectedItem: ->
+    @getSelectedView().data('select-list-element')
 
   confirmSelection: ->
     element = @getSelectedElement()
