@@ -207,9 +207,9 @@ class SelectListView extends View
     @getSelectedView().data('select-list-item')
 
   confirmSelection: ->
-    element = @getSelectedElement()
-    if element?
-      @confirmed(element)
+    item = @getSelectedItem()
+    if item?
+      @confirmed(item)
     else
       @cancel()
 
