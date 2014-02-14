@@ -166,6 +166,11 @@ class SelectListView extends View
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
+  # Public: Set the maximum numbers of items to display in the list.
+  #
+  # maxItems - The maximum {Number} of items to display.
+  setMaxItems: (@maxItems) ->
+
   selectPreviousItemView: ->
     view = @getSelectedItemView().prev()
     view = @list.find('li:last') unless view.length
