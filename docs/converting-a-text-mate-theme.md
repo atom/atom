@@ -55,7 +55,10 @@ __Syntax Theme__ dropdown menu to enable your new theme.
 
 :tada: Your theme is now enabled, open an editor to see it in action!
 
-:bulb: Consider using `apm publish` to publish this theme to [atom.io][atomio].
+### Further Reading
+
+* Check out [Publishing a Package](publish-a-package.html) for more information
+  on publishing the theme you just created to [atom.io][atomio].
 
 [atomio]: https://atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
