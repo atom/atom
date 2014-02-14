@@ -1,5 +1,5 @@
 {$, View} = require './space-pen-extensions'
-EditorView = require './editor-view'
+filterEditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that
@@ -34,7 +34,7 @@ module.exports =
 class SelectListView extends View
   @content: ->
     @div class: 'select-list', =>
-      @subview 'editorView', new EditorView(mini: true)
+      @subview 'filterEditorView', new filterEditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
@@ -51,8 +51,8 @@ class SelectListView extends View
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
-    @editorView.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
-    @editorView.hiddenInput.on 'focusout', => @cancel() unless @cancelling
+    @filterEditorView.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
+    @filterEditorView.hiddenInput.on 'focusout', => @cancel() unless @cancelling
 
     @on 'core:move-up', =>
       @selectPreviousItemView()
@@ -125,7 +125,7 @@ class SelectListView extends View
   #
   # Returns a {String} to use when fuzzy filtering the elements to display.
   getFilterQuery: ->
-    @editorView.getEditor().getText()
+    @filterEditorView.getEditor().getText()
 
   # Public: Populate the list view with the model items previously set by
   # calling {.setItems}.
@@ -254,7 +254,7 @@ class SelectListView extends View
 
   # Public: Focus the fuzzy filter editor.
   focusEditor: ->
-    @editorView.focus()
+    @filterEditorView.focus()
 
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
@@ -266,16 +266,16 @@ class SelectListView extends View
       atom.workspaceView.focus()
 
   cancelled: ->
-    @editorView.getEditor().setText('')
-    @editorView.updateDisplay()
+    @filterEditorView.getEditor().setText('')
+    @filterEditorView.updateDisplay()
 
   # Public: Cancel and close the select list dialog.
   cancel: ->
     @list.empty()
     @cancelling = true
-    editorViewFocused = @editorView.isFocused
+    filterEditorViewFocused = @filterEditorView.isFocused
     @cancelled()
     @detach()
-    @restoreFocus() if editorViewFocused
+    @restoreFocus() if filterEditorViewFocused
     @cancelling = false
     clearTimeout(@scheduleTimeout)
