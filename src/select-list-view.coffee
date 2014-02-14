@@ -150,9 +150,9 @@ class SelectListView extends View
 
       for i in [0...Math.min(filteredItems.length, @maxItems)]
         item = filteredItems[i]
-        view = @viewForItem(item)
-        view.data('select-list-item', item)
-        @list.append(item)
+        itemView = @viewForItem(item)
+        itemView.data('select-list-item', item)
+        @list.append(itemView)
 
       @selectItemView(@list.find('li:first'))
     else
@@ -185,7 +185,7 @@ class SelectListView extends View
     return unless view.length
     @list.find('.selected').removeClass('selected')
     view.addClass('selected')
-    @scrollToItemView(item)
+    @scrollToItemView(view)
 
   scrollToItemView: (view) ->
     scrollTop = @list.scrollTop()
