@@ -22,7 +22,7 @@ fuzzyFilter = require('fuzzaldrin').filter
 #     @addClass('overlay from-top')
 #     @setItems(['Hello', 'World'])
 #     atom.workspaceView.append(this)
-#     @focusEditor()
+#     @focusFilterEditor()
 #
 #   viewForItem: (item) ->
 #     "<li>#{item}</li>"
@@ -249,7 +249,7 @@ class SelectListView extends View
   getFilterKey: ->
 
   # Public: Focus the fuzzy filter editor.
-  focusEditor: ->
+  focusFilterEditor: ->
     @filterEditorView.focus()
 
   # Public: Store the currently focused element. This element will be given
