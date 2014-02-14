@@ -406,6 +406,8 @@ class Editor extends Model
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
+  bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
+
   # {Delegates to: DisplayBuffer.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 

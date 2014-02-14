@@ -144,5 +144,8 @@
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
     "test": "node script/test"
+  },
+  "devDependencies": {
+    "random-words": "0.0.1"
   }
 }

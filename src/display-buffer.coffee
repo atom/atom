@@ -570,7 +570,7 @@ class DisplayBuffer extends Model
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row).text
-      console.log row, line, line.length
+      console.log row, @bufferRowForScreenRow(row), line, line.length
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
@@ -581,21 +581,17 @@ class DisplayBuffer extends Model
     startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
     endScreenRow = @rowMap.screenRowRangeForBufferRow(endBufferRow - 1)[1]
 
-    @rowMap.applyBufferDelta(startBufferRow, bufferDelta)
-
-    { newScreenLines, newMappings } = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
-    @screenLines[startScreenRow...endScreenRow] = newScreenLines
-    screenDelta = newScreenLines.length - (endScreenRow - startScreenRow)
-    @rowMap.applyScreenDelta(startScreenRow, screenDelta)
-    @rowMap.mapBufferRowRange(mapping...) for mapping in newMappings
-    @findMaxLineLength(startScreenRow, endScreenRow, newScreenLines)
+    {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
+    @screenLines[startScreenRow...endScreenRow] = screenLines
+    @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
+    @findMaxLineLength(startScreenRow, endScreenRow, screenLines)
 
     return if options.suppressChangeEvent
 
     changeEvent =
       start: startScreenRow
       end: endScreenRow - 1
-      screenDelta: screenDelta
+      screenDelta: screenLines.length - (endScreenRow - startScreenRow)
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
@@ -605,26 +601,9 @@ class DisplayBuffer extends Model
       @emitChanged(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
-    newScreenLines = []
-    newMappings = []
-    pendingIsoMapping = null
-
-    pushNewMapping = (startBufferRow, endBufferRow, screenRows) ->
-      if endBufferRow - startBufferRow == screenRows
-        if pendingIsoMapping
-          pendingIsoMapping[1] = endBufferRow
-        else
-          pendingIsoMapping = [startBufferRow, endBufferRow]
-      else
-        clearPendingIsoMapping()
-        newMappings.push([startBufferRow, endBufferRow, screenRows])
-
-    clearPendingIsoMapping = ->
-      if pendingIsoMapping
-        [isoStart, isoEnd] = pendingIsoMapping
-        pendingIsoMapping.push(isoEnd - isoStart)
-        newMappings.push(pendingIsoMapping)
-        pendingIsoMapping = null
+    screenLines = []
+    regions = []
+    rectangularRegion = null
 
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
@@ -633,22 +612,39 @@ class DisplayBuffer extends Model
       if fold = @largestFoldStartingAtBufferRow(bufferRow)
         foldLine = tokenizedLine.copy()
         foldLine.fold = fold
-        newScreenLines.push(foldLine)
-        pushNewMapping(bufferRow, fold.getEndRow() + 1, 1)
-        bufferRow = fold.getEndRow() + 1
+        screenLines.push(foldLine)
+
+        if rectangularRegion?
+          regions.push(rectangularRegion)
+          rectangularRegion = null
+
+        foldedRowCount = fold.getBufferRowCount()
+        regions.push(bufferRows: foldedRowCount, screenRows: 1)
+        bufferRow += foldedRowCount
       else
         softWraps = 0
         while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
           [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-
-          newScreenLines.push(wrappedLine)
+          screenLines.push(wrappedLine)
           softWraps++
-        newScreenLines.push(tokenizedLine)
-        pushNewMapping(bufferRow, bufferRow + 1, softWraps + 1)
-        bufferRow++
-    clearPendingIsoMapping()
+        screenLines.push(tokenizedLine)
 
-    { newScreenLines, newMappings }
+        if softWraps > 0
+          if rectangularRegion?
+            regions.push(rectangularRegion)
+            rectangularRegion = null
+          regions.push(bufferRows: 1, screenRows: softWraps + 1)
+        else
+          rectangularRegion ?= {bufferRows: 0, screenRows: 0}
+          rectangularRegion.bufferRows++
+          rectangularRegion.screenRows++
+
+        bufferRow++
+
+    if rectangularRegion?
+      regions.push(rectangularRegion)
+
+    {screenLines, regions}
 
   findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines) ->
     if startScreenRow <= @longestScreenRow < endScreenRow
