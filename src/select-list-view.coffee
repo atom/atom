@@ -64,8 +64,8 @@ class SelectListView extends View
 
   # Public: Set the array of items to display in the list.
   #
-  # array - The {Array} of model elements to display in the list.
-  setArray: (@array=[]) ->
+  # items - The {Array} of model items to display in the list.
+  setItems: (@items=[]) ->
     @populateList()
     @setLoading()
 
@@ -103,7 +103,7 @@ class SelectListView extends View
     @miniEditor.getEditor().getText()
 
   # Public: Build the DOM elements using the array from the last call to
-  # {.setArray}.
+  # {.setItems}.
   populateList: ->
     return unless @array?
 
@@ -131,7 +131,7 @@ class SelectListView extends View
   #
   # Subclasses may override this method to customize the message.
   #
-  # itemCount - The {Number} of items in the array specified to {.setArray}
+  # itemCount - The {Number} of items in the array specified to {.setItems}
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
