@@ -230,7 +230,7 @@ class SelectListView extends View
   # to fuzzy filter by that property when text is entered into this view's
   # editor.
   #
-  # Returns a {String} property name to fuzzy filter by.
+  # Returns the property name to fuzzy filter by.
   getFilterKey: ->
 
   attach: ->
