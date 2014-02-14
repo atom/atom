@@ -24,7 +24,7 @@ fuzzyFilter = require('fuzzaldrin').filter
 module.exports =
 class SelectListView extends View
   @content: ->
-    @div class: @viewClass(), =>
+    @div class: @getViewClasses(), =>
       @subview 'editorView', new EditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
@@ -32,7 +32,7 @@ class SelectListView extends View
         @span class: 'badge', outlet: 'loadingBadge'
       @ol class: 'list-group', outlet: 'list'
 
-  # Public: Get the classes to set on the root view element.
+  # Public: Get the CSS classes to set on the root view element.
   #
   # Subclasses may override this method but should call `super` to get the
   # default classes.
@@ -40,12 +40,12 @@ class SelectListView extends View
   # ### Example
   # ```coffee
   # class MySelectListView extends SelectListView
-  #   @viewClass: ->
+  #   @getViewClasses: ->
   #     "#{super} my-view-class"
   # ```
   #
   # Return a {String} of space-separated CSS classes.
-  @viewClass: -> 'select-list'
+  @getViewClasses: -> 'select-list'
 
   maxItems: Infinity
   scheduleTimeout: null
