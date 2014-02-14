@@ -2,25 +2,25 @@ SelectListView = require '../src/select-list-view'
 {$, $$} = require 'atom'
 
 describe "SelectListView", ->
-  [selectList, array, list, miniEditor] = []
+  [selectList, items, list, filterEditorView] = []
 
   beforeEach ->
-    array = [
+    items = [
       ["A", "Alpha"], ["B", "Bravo"], ["C", "Charlie"],
       ["D", "Delta"], ["E", "Echo"], ["F", "Foxtrot"]
     ]
 
     selectList = new SelectListView
-    selectList.maxItems = 4
-    selectList.filterKey = 1
-    selectList.itemForElement = (element) ->
-      $$ -> @li element[1], class: element[0]
+    selectList.setMaxItems(4)
+    selectList.getFilterKey = -> 1
+    selectList.viewForItem = (item) ->
+      $$ -> @li item[1], class: item[0]
 
     selectList.confirmed = jasmine.createSpy('confirmed hook')
     selectList.cancelled = jasmine.createSpy('cancelled hook')
 
-    selectList.setArray(array)
-    {list, miniEditor} = selectList
+    selectList.setItems(items)
+    {list, filterEditorView} = selectList
 
   describe "when an array is assigned", ->
     it "populates the list with up to maxItems items, based on the liForElement function", ->
@@ -28,12 +28,27 @@ describe "SelectListView", ->
       expect(list.find('li:eq(0)')).toHaveText 'Alpha'
       expect(list.find('li:eq(0)')).toHaveClass 'A'
 
+  describe "viewForItem(item)", ->
+    it "allows raw DOM elements to be returned", ->
+      selectList.viewForItem = (item) ->
+        li = document.createElement('li')
+        li.classList.add(item[0])
+        li.innerText = item[1]
+        li
+
+      selectList.setItems(items)
+
+      expect(list.find('li').length).toBe selectList.maxItems
+      expect(list.find('li:eq(0)')).toHaveText 'Alpha'
+      expect(list.find('li:eq(0)')).toHaveClass 'A'
+      expect(selectList.getSelectedItem()).toBe items[0]
+
   describe "when the text of the mini editor changes", ->
     beforeEach ->
       selectList.attachToDom()
 
     it "filters the elements in the list based on the scoreElement function and selects the first item", ->
-      miniEditor.getEditor().insertText('la')
+      filterEditorView.getEditor().insertText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 2
@@ -43,54 +58,54 @@ describe "SelectListView", ->
       expect(selectList.error).not.toBeVisible()
 
     it "displays an error if there are no matches, removes error when there are matches", ->
-      miniEditor.getEditor().insertText('nothing will match this')
+      filterEditorView.getEditor().insertText('nothing will match this')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 0
       expect(selectList.error).not.toBeHidden()
 
-      miniEditor.getEditor().setText('la')
+      filterEditorView.getEditor().setText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 2
       expect(selectList.error).not.toBeVisible()
 
     it "displays no elements until the array has been set on the list", ->
-      selectList.array = null
+      selectList.items = null
       selectList.list.empty()
-      miniEditor.getEditor().insertText('la')
+      filterEditorView.getEditor().insertText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 0
       expect(selectList.error).toBeHidden()
-      selectList.setArray(array)
+      selectList.setItems(items)
       expect(list.find('li').length).toBe 2
 
-  describe "when core:move-up / core:move-down are triggered on the miniEditor", ->
+  describe "when core:move-up / core:move-down are triggered on the filterEditorView", ->
     it "selects the previous / next item in the list, or wraps around to the other side", ->
       expect(list.find('li:first')).toHaveClass 'selected'
 
-      miniEditor.trigger 'core:move-up'
+      filterEditorView.trigger 'core:move-up'
 
       expect(list.find('li:first')).not.toHaveClass 'selected'
       expect(list.find('li:last')).toHaveClass 'selected'
 
-      miniEditor.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
 
       expect(list.find('li:first')).toHaveClass 'selected'
       expect(list.find('li:last')).not.toHaveClass 'selected'
 
-      miniEditor.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
 
       expect(list.find('li:eq(0)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
 
-      miniEditor.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
 
       expect(list.find('li:eq(1)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(2)')).toHaveClass 'selected'
 
-      miniEditor.trigger 'core:move-up'
+      filterEditorView.trigger 'core:move-up'
 
       expect(list.find('li:eq(2)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
@@ -100,43 +115,43 @@ describe "SelectListView", ->
       itemHeight = list.find('li').outerHeight()
       list.height(itemHeight * 2)
 
-      miniEditor.trigger 'core:move-down'
-      miniEditor.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
       expect(list.scrollBottom()).toBe itemHeight * 3
 
-      miniEditor.trigger 'core:move-down'
+      filterEditorView.trigger 'core:move-down'
       expect(list.scrollBottom()).toBe itemHeight * 4
 
-      miniEditor.trigger 'core:move-up'
-      miniEditor.trigger 'core:move-up'
+      filterEditorView.trigger 'core:move-up'
+      filterEditorView.trigger 'core:move-up'
       expect(list.scrollTop()).toBe itemHeight
 
   describe "the core:confirm event", ->
     describe "when there is an item selected (because the list in not empty)", ->
       it "triggers the selected hook with the selected array element", ->
-        miniEditor.trigger 'core:move-down'
-        miniEditor.trigger 'core:move-down'
-        miniEditor.trigger 'core:confirm'
-        expect(selectList.confirmed).toHaveBeenCalledWith(array[2])
+        filterEditorView.trigger 'core:move-down'
+        filterEditorView.trigger 'core:move-down'
+        filterEditorView.trigger 'core:confirm'
+        expect(selectList.confirmed).toHaveBeenCalledWith(items[2])
 
     describe "when there is no item selected (because the list is empty)", ->
       beforeEach ->
         selectList.attachToDom()
 
       it "does not trigger the confirmed hook", ->
-        miniEditor.getEditor().insertText("i will never match anything")
+        filterEditorView.getEditor().insertText("i will never match anything")
         window.advanceClock(selectList.inputThrottle)
 
         expect(list.find('li')).not.toExist()
-        miniEditor.trigger 'core:confirm'
+        filterEditorView.trigger 'core:confirm'
         expect(selectList.confirmed).not.toHaveBeenCalled()
 
       it "does trigger the cancelled hook", ->
-        miniEditor.getEditor().insertText("i will never match anything")
+        filterEditorView.getEditor().insertText("i will never match anything")
         window.advanceClock(selectList.inputThrottle)
 
         expect(list.find('li')).not.toExist()
-        miniEditor.trigger 'core:confirm'
+        filterEditorView.trigger 'core:confirm'
         expect(selectList.cancelled).toHaveBeenCalled()
 
   describe "when a list item is clicked", ->
@@ -147,12 +162,12 @@ describe "SelectListView", ->
       expect(item).toHaveClass 'selected'
       item.mouseup()
 
-      expect(selectList.confirmed).toHaveBeenCalledWith(array[1])
+      expect(selectList.confirmed).toHaveBeenCalledWith(items[1])
 
   describe "the core:cancel event", ->
     it "triggers the cancelled hook and detaches and empties the select list", ->
       spyOn(selectList, 'detach')
-      miniEditor.trigger 'core:cancel'
+      filterEditorView.trigger 'core:cancel'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
       expect(selectList.list).toBeEmpty()
@@ -160,7 +175,7 @@ describe "SelectListView", ->
   describe "when the mini editor loses focus", ->
     it "triggers the cancelled hook and detaches the select list", ->
       spyOn(selectList, 'detach')
-      miniEditor.hiddenInput.trigger 'focusout'
+      filterEditorView.hiddenInput.trigger 'focusout'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
 
