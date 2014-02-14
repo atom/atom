@@ -220,10 +220,9 @@ class SelectListView extends View
   # item - The model item being rendered. This will always be one of the items
   #        previously passed to {.setItems}.
   #
-  # Returns a DOM element, jQuery object, or {View}.
+  # Returns a String of HTML, DOM element, jQuery object, or View.
   viewForItem: (item) ->
     throw new Error("Subclass must implement a viewForItem(item) method")
-
 
   # Public: Callback function for when an item is selected.
   #
