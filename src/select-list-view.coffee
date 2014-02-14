@@ -1,5 +1,5 @@
 {$, View} = require './space-pen-extensions'
-filterEditorView = require './editor-view'
+EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that
@@ -34,7 +34,7 @@ module.exports =
 class SelectListView extends View
   @content: ->
     @div class: 'select-list', =>
-      @subview 'filterEditorView', new filterEditorView(mini: true)
+      @subview 'filterEditorView', new EditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
