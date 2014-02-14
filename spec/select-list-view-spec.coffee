@@ -28,6 +28,21 @@ describe "SelectListView", ->
       expect(list.find('li:eq(0)')).toHaveText 'Alpha'
       expect(list.find('li:eq(0)')).toHaveClass 'A'
 
+  describe "viewForItem(item)", ->
+    it "allows raw DOM elements to be returned", ->
+      selectList.viewForItem = (item) ->
+        li = document.createElement('li')
+        li.classList.add(item[0])
+        li.innerText = item[1]
+        li
+
+      selectList.setItems(items)
+
+      expect(list.find('li').length).toBe selectList.maxItems
+      expect(list.find('li:eq(0)')).toHaveText 'Alpha'
+      expect(list.find('li:eq(0)')).toHaveClass 'A'
+      expect(selectList.getSelectedItem()).toBe items[0]
+
   describe "when the text of the mini editor changes", ->
     beforeEach ->
       selectList.attachToDom()
