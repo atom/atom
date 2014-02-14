@@ -8,61 +8,81 @@ fs = require 'fs-plus'
 # Public: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
-# Should be accessed via `atom.menu`.
+# An instance of this class is always available as the `atom.menu` global.
 module.exports =
 class MenuManager
-  # Private:
   constructor: ({@resourcePath}) ->
+    @pendingUpdateOperation = null
     @template = []
     atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
   # Public: Adds the given item definition to the existing template.
   #
-  # * item:
-  #   An object which describes a menu item as defined by
-  #   https://github.com/atom/atom-shell/blob/master/docs/api/browser/menu.md
+  # ## Example
+  # ```coffee
+  #   atom.menu.add [
+  #     {
+  #       label: 'Hello'
+  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #     }
+  #   ]
+  # ```
+  #
+  # items - An {Array} of menu item {Object}s containing the keys:
+  #   :label   - The {String} menu label.
+  #   :submenu - An optional {Array} of sub menu items.
+  #   :command - An optional {String} command to trigger when the item is
+  #              clicked.
   #
   # Returns nothing.
   add: (items) ->
     @merge(@template, item) for item in items
     @update()
 
-  # Private: Should the binding for the given selector be included in the menu
+  # Should the binding for the given selector be included in the menu
   # commands.
   #
-  # * selector: A String selector to check.
+  # selector - A {String} selector to check.
   #
   # Returns true to include the selector, false otherwise.
   includeSelector: (selector) ->
     return true if document.body.webkitMatchesSelector(selector)
 
-    # Simulate an .editor element attached to a body element that has the same
-    # classes as the current body element.
+    # Simulate an .editor element attached to a .workspace element attached to
+    # a body element that has the same classes as the current body element.
     unless @testEditor?
+      testBody = document.createElement('body')
+      testBody.classList.add(@classesForElement(document.body)...)
+
+      testWorkspace = document.createElement('body')
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace')) ? ['.workspace']
+      testWorkspace.classList.add(workspaceClasses...)
+
+      testBody.appendChild(testWorkspace)
+
       @testEditor = document.createElement('div')
       @testEditor.classList.add('editor')
-      testBody = document.createElement('body')
-      testBody.classList.add(document.body.classList.toString().split(' ')...)
-      testBody.appendChild(@testEditor)
+      testWorkspace.appendChild(@testEditor)
 
     @testEditor.webkitMatchesSelector(selector)
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    keystrokesByCommand = {}
-    for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
-      keystrokesByCommand[binding.command] ?= []
-      keystrokesByCommand[binding.command].push binding.keystroke
-    @sendToBrowserProcess(@template, keystrokesByCommand)
+    clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
+    @pendingUpdateOperation = setImmediate =>
+      keystrokesByCommand = {}
+      for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
+        keystrokesByCommand[binding.command] ?= []
+        keystrokesByCommand[binding.command].push binding.keystroke
+      @sendToBrowserProcess(@template, keystrokesByCommand)
 
-  # Private:
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
     {menu} = CSON.readFileSync(platformMenuPath)
     @add(menu)
 
-  # Private: Merges an item in a submenu aware way such that new items are always
+  # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
     item = _.deepClone(item)
@@ -72,7 +92,7 @@ class MenuManager
     else
       menu.push(item) unless _.find(menu, (i) => @normalizeLabel(i.label) == @normalizeLabel(item.label))
 
-  # Private: OSX can't handle displaying accelerators for multiple keystrokes.
+  # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->
@@ -85,12 +105,10 @@ class MenuManager
         filtered[key].push(binding)
     filtered
 
-  # Private:
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
 
-  # Private:
   normalizeLabel: (label) ->
     return undefined unless label?
 
@@ -98,3 +116,7 @@ class MenuManager
       label.replace(/\&/g, '')
     else
       label
+
+  # Get an {Array} of {String} classes for the given element.
+  classesForElement: (element) ->
+    element?.classList.toString().split(' ') ? []

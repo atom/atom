@@ -15,24 +15,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
 
-    downloadFileFromRepo = ({repo, file}, callback) ->
-      uri = "https://raw2.github.com/atom/#{repo}/master/#{file}"
-      request uri, (error, response, contents) ->
-        return callback(error) if error?
-        downloadPath = path.join('docs', 'includes', repo, file)
-        fs.writeFile downloadPath, contents, (error) ->
-          callback(error, downloadPath)
-
-    includes = [
-      {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
-      {repo: 'space-pen',   file: 'src/space-pen.coffee'}
-      {repo: 'text-buffer', file: 'src/marker.coffee'}
-      {repo: 'text-buffer', file: 'src/point.coffee'}
-      {repo: 'text-buffer', file: 'src/range.coffee'}
-      {repo: 'theorist',    file: 'src/model.coffee'}
-    ]
-
-    async.map includes, downloadFileFromRepo, (error, includePaths) ->
+    downloadIncludes (error, includePaths) ->
       if error?
         done(error)
       else
@@ -49,13 +32,32 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--noOutput', 'src/']
-    grunt.util.spawn({cmd, args, opts}, done)
+    downloadIncludes (error, includePaths) ->
+      if error?
+        done(error)
+      else
+        args = [
+          commonArgs...
+          '--noOutput'
+          'src/'
+          includePaths...
+        ]
+        grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'missing-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--noOutput', '--missing', 'src/']
-    grunt.util.spawn({cmd, args, opts}, done)
+    downloadIncludes (error, includePaths) ->
+      if error?
+        done(error)
+      else
+        args = [
+          commonArgs...
+          '--noOutput'
+          '--missing'
+          'src/'
+          includePaths...
+        ]
+        grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'copy-docs', 'Copies over latest API docs to atom-docs', ->
     done = @async()
@@ -129,3 +131,24 @@ module.exports = (grunt) ->
       grunt.util.spawn({cmd, args, opts}, callback)
 
     grunt.util.async.waterfall [fetchTag, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
+
+downloadFileFromRepo = ({repo, file}, callback) ->
+  uri = "https://raw.github.com/atom/#{repo}/master/#{file}"
+  request uri, (error, response, contents) ->
+    return callback(error) if error?
+    downloadPath = path.join('docs', 'includes', repo, file)
+    fs.writeFile downloadPath, contents, (error) ->
+      callback(error, downloadPath)
+
+downloadIncludes = (callback) ->
+  includes = [
+    {repo: 'first-mate',  file: 'src/grammar.coffee'}
+    {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
+    {repo: 'space-pen',   file: 'src/space-pen.coffee'}
+    {repo: 'text-buffer', file: 'src/marker.coffee'}
+    {repo: 'text-buffer', file: 'src/point.coffee'}
+    {repo: 'text-buffer', file: 'src/range.coffee'}
+    {repo: 'theorist',    file: 'src/model.coffee'}
+  ]
+
+  async.map(includes, downloadFileFromRepo, callback)

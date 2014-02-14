@@ -71,27 +71,3 @@ will only attempt to call deserialize if the two versions match, and otherwise
 return undefined. We plan on implementing a migration system in the future, but
 this at least protects you from improperly deserializing old state. If you find
 yourself in dire need of the migration system, let us know.
-
-### Deferred Package Deserializers
-
-If your package defers loading on startup with an `activationEvents` property in
-its `package.cson`, your deserializers won't be loaded until your package is
-activated. If you want to deserialize an object from your package on startup,
-this could be a problem.
-
-The solution is to also supply a `deferredDeserializers` array in your
-`package.cson` with the names of all your deserializers. When Atom attempts to
-deserialize some state whose `deserializer` matches one of these names, it will
-load your package first so it can register any necessary deserializers before
-proceeding.
-
-For example, the markdown preview package doesn't fully load until a preview is
-triggered. But if you refresh a window with a preview pane, it loads the
-markdown package early so Atom can deserialize the view correctly.
-
-```coffee-script
-# markdown-preview/package.cson
-'activationEvents': 'markdown-preview:toggle': '.editor'
-'deferredDeserializers': ['MarkdownPreviewView']
-...
-```

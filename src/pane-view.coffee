@@ -27,11 +27,10 @@ class PaneView extends View
     'destroyItem', 'destroyItems', 'destroyActiveItem', 'destroyInactiveItems',
     'saveActiveItem', 'saveActiveItemAs', 'saveItem', 'saveItemAs', 'saveItems',
     'itemForUri', 'activateItemForUri', 'promptToSaveItem', 'copyActiveItem', 'isActive',
-    'activate', toProperty: 'model'
+    'activate', 'getActiveItem', toProperty: 'model'
 
   previousActiveItem: null
 
-  # Private:
   initialize: (args...) ->
     if args[0] instanceof Pane
       @model = args[0]
@@ -97,7 +96,6 @@ class PaneView extends View
   # Deprecated: Use ::activatePreviousItem
   showPreviousItem: -> @activatePreviousItem()
 
-  # Private:
   afterAttach: (onDom) ->
     @focus() if @model.focused and onDom
 
@@ -167,11 +165,9 @@ class PaneView extends View
     @unsubscribe(item) if typeof item.off is 'function'
     @trigger 'pane:before-item-destroyed', [item]
 
-  # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
 
-  # Private:
   viewForItem: (item) ->
     return unless item?
     if item instanceof $
@@ -184,7 +180,6 @@ class PaneView extends View
       @viewsByItem.set(item, view)
       view
 
-  # Private:
   @::accessor 'activeView', -> @viewForItem(@activeItem)
 
   splitLeft: (items...) -> @model.splitLeft({items})._view
@@ -195,14 +190,15 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.splitDown({items})._view
 
-  # Public:
+  # Public: Get the container view housing this pane.
+  #
+  # Returns a {View}.
   getContainer: ->
     @closest('.panes').view()
 
   beforeRemove: ->
     @model.destroy() unless @model.isDestroyed()
 
-  # Private:
   remove: (selector, keepData) ->
     return super if keepData
     @unsubscribe()

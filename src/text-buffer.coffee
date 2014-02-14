@@ -8,7 +8,7 @@ TextBufferCore = require 'text-buffer'
 
 File = require './file'
 
-# Private: Represents the contents of a file.
+# Represents the contents of a file.
 #
 # The `TextBuffer` is often associated with a {File}. However, this is not always
 # the case, as a `TextBuffer` could be an unsaved chunk of text.
@@ -40,7 +40,6 @@ class TextBuffer extends TextBufferCore
 
     @load() if loadWhenAttached
 
-  # Private:
   serializeParams: ->
     params = super
     _.extend params,
@@ -48,7 +47,6 @@ class TextBuffer extends TextBufferCore
       modifiedWhenLastPersisted: @isModified()
       digestWhenLastPersisted: @file?.getDigest()
 
-  # Private:
   deserializeParams: (params) ->
     params = super(params)
     params.loadWhenAttached = true
@@ -70,8 +68,6 @@ class TextBuffer extends TextBufferCore
         @reload()
       @clearUndoStack()
     this
-
-  ### Internal ###
 
   handleTextChange: (event) =>
     @conflict = false if @conflict and !@isModified()
@@ -127,8 +123,6 @@ class TextBuffer extends TextBufferCore
     @file.on "moved", =>
       @emit "path-changed", this
 
-  ### Public ###
-
   # Identifies if the buffer belongs to multiple editors.
   #
   # For example, if the {EditorView} was split.
@@ -145,11 +139,11 @@ class TextBuffer extends TextBufferCore
     @emitModifiedStatusChanged(false)
     @emit 'reloaded'
 
-  # Private: Rereads the contents of the file, and stores them in the cache.
+  # Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContentsSync: ->
     @cachedDiskContents = @file?.readSync() ? ""
 
-  # Private: Rereads the contents of the file, and stores them in the cache.
+  # Rereads the contents of the file, and stores them in the cache.
   updateCachedDiskContents: ->
     Q(@file?.read() ? "").then (contents) =>
       @cachedDiskContents = contents
@@ -171,28 +165,19 @@ class TextBuffer extends TextBufferCore
 
   # Sets the path for the file.
   #
-  # path - A {String} representing the new file path
-  setPath: (path) ->
-    return if path == @getPath()
+  # filePath - A {String} representing the new file path
+  setPath: (filePath) ->
+    return if filePath == @getPath()
 
     @file?.off()
 
-    if path
-      @file = new File(path)
+    if filePath
+      @file = new File(filePath)
       @subscribeToFile()
     else
       @file = null
 
     @emit "path-changed", this
-
-  # Retrieves the current buffer's file extension.
-  #
-  # Returns a {String}.
-  getExtension: ->
-    if @getPath()
-      @getPath().split('/').pop().split('.').pop()
-    else
-      null
 
   # Deprecated: Use ::getEndPosition instead
   getEofPosition: -> @getEndPosition()
@@ -203,14 +188,15 @@ class TextBuffer extends TextBufferCore
 
   # Saves the buffer at a specific path.
   #
-  # path - The path to save at.
-  saveAs: (path) ->
-    unless path then throw new Error("Can't save buffer with no file path")
+  # filePath - The path to save at.
+  saveAs: (filePath) ->
+    unless filePath then throw new Error("Can't save buffer with no file path")
 
     @emit 'will-be-saved', this
-    @setPath(path)
-    @cachedDiskContents = @getText()
+    @setPath(filePath)
     @file.write(@getText())
+    @cachedDiskContents = @getText()
+    @conflict = false
     @emitModifiedStatusChanged(false)
     @emit 'saved', this
 
@@ -227,7 +213,10 @@ class TextBuffer extends TextBufferCore
     else
       not @isEmpty()
 
-  # Identifies if a buffer is in a git conflict with `HEAD`.
+  # Is the buffer's text in conflict with the text on disk?
+  #
+  # This occurs when the buffer's file changes on disk while the buffer has
+  # unsaved changes.
   #
   # Returns a {Boolean}.
   isInConflict: -> @conflict
@@ -389,8 +378,6 @@ class TextBuffer extends TextBufferCore
       if match = @lineForRow(row).match(/^\s/)
         return match[0][0] != '\t'
     undefined
-
-  ### Internal ###
 
   change: (oldRange, newText, options={}) ->
     @setTextInRange(oldRange, newText, options.normalizeLineEndings)

@@ -5,6 +5,7 @@ Q = require 'q'
 {Emitter} = require 'emissary'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+runas = require 'runas'
 
 # Public: Represents an individual file.
 #
@@ -25,16 +26,14 @@ class File
 
   # Public: Creates a new file.
   #
-  # * path:
-  #   A String containing the absolute path to the file
-  # * symlink:
-  #   A Boolean indicating if the path is a symlink (default: false)
+  # path - A {String} containing the absolute path to the file
+  # symlink - A {Boolean} indicating if the path is a symlink (default: false).
   constructor: (@path, @symlink=false) ->
     throw new Error("#{@path} is a directory") if fs.isDirectorySync(@path)
 
     @handleEventSubscriptions()
 
-  # Private: Subscribes to file system notifications when necessary.
+  # Subscribes to file system notifications when necessary.
   handleEventSubscriptions: ->
     eventNames = ['contents-changed', 'moved', 'removed']
 
@@ -49,24 +48,24 @@ class File
       subscriptionsEmpty = _.every eventNames, (eventName) => @getSubscriptionCount(eventName) is 0
       @unsubscribeFromNativeChangeEvents() if subscriptionsEmpty
 
-  # Private: Sets the path for the file.
+  # Sets the path for the file.
   setPath: (@path) ->
 
-  # Public: Returns the path for the file.
+  # Public: Returns the {String} path for the file.
   getPath: -> @path
 
-  # Public: Return the filename without any directory information.
+  # Public: Return the {String} filename without any directory information.
   getBaseName: ->
     path.basename(@path)
 
   # Public: Overwrites the file with the given String.
   write: (text) ->
     previouslyExisted = @exists()
+    @writeFileWithPrivilegeEscalationSync(@getPath(), text)
     @cachedContents = text
-    fs.writeFileSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @hasSubscriptions()
 
-  # Private: Deprecated
+  # Deprecated
   readSync: (flushCache) ->
     if not @exists()
       @cachedContents = null
@@ -80,9 +79,8 @@ class File
 
   # Public: Reads the contents of the file.
   #
-  # * flushCache:
-  #   A Boolean indicating whether to require a direct read or if a cached
-  #   copy is acceptable.
+  # flushCache - A {Boolean} indicating whether to require a direct read or if
+  #              a cached copy is acceptable.
   #
   # Returns a promise that resovles to a String.
   read: (flushCache) ->
@@ -118,7 +116,6 @@ class File
   exists: ->
     fs.existsSync(@getPath())
 
-  # Private:
   setDigest: (contents) ->
     @digest = crypto.createHash('sha1').update(contents ? '').digest('hex')
 
@@ -126,7 +123,21 @@ class File
   getDigest: ->
     @digest ? @setDigest(@readSync())
 
-  # Private:
+  # Writes the text to specified path.
+  #
+  # Privilege escalation would be asked when current user doesn't have
+  # permission to the path.
+  writeFileWithPrivilegeEscalationSync: (path, text) ->
+    try
+      fs.writeFileSync(path, text)
+    catch error
+      if error.code is 'EACCES' and process.platform is 'darwin'
+        authopen = '/usr/libexec/authopen'  # man 1 authopen
+        unless runas(authopen, ['-w', '-c', path], stdin: text) is 0
+          throw error
+      else
+        throw error
+
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
@@ -139,11 +150,9 @@ class File
       @read(true).done (newContents) =>
         @emit 'contents-changed' unless oldContents == newContents
 
-  # Private:
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
 
-  # Private:
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
@@ -152,13 +161,11 @@ class File
       @cachedContents = null
       @emit "removed"
 
-  # Private:
   subscribeToNativeChangeEvents: ->
     unless @watchSubscription?
       @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
         @handleNativeChangeEvent(eventType, path)
 
-  # Private:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()

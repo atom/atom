@@ -16,6 +16,9 @@ Editor = require './editor'
 
 # Public: The container for the entire Atom application.
 #
+# An instance of this class is always available as the `atom.workspaceView`
+# global.
+#
 # ## Commands
 #
 #  * `application:about` - Opens the about dialog.
@@ -48,7 +51,7 @@ class WorkspaceView extends View
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
-  @delegatesMethods 'open', 'openSync', 'openSingletonSync', 'reopenItemSync',
+  @delegatesMethods 'open', 'openSync', 'reopenItemSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
@@ -63,14 +66,12 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: false
 
-  # Private:
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
       @div class: 'horizontal', outlet: 'horizontal', =>
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
-  # Private:
   initialize: (@model) ->
     @model ?= new Workspace
 
@@ -106,6 +107,7 @@ class WorkspaceView extends View
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
     @command 'application:open-your-config', -> ipc.sendChannel('command', 'application:open-your-config')
+    @command 'application:open-your-init-script', -> ipc.sendChannel('command', 'application:open-your-init-script')
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-snippets', -> ipc.sendChannel('command', 'application:open-your-snippets')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
@@ -115,9 +117,14 @@ class WorkspaceView extends View
     @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', => @increaseFontSize()
     @command 'window:decrease-font-size', => @decreaseFontSize()
+    @command 'window:reset-font-size', => @model.resetFontSize()
 
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:focus-previous-pane', => @focusPreviousPane()
+    @command 'window:focus-pane-above', => @focusPaneAbove()
+    @command 'window:focus-pane-below', => @focusPaneBelow()
+    @command 'window:focus-pane-on-left', => @focusPaneOnLeft()
+    @command 'window:focus-pane-on-right', => @focusPaneOnRight()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       atom.config.toggle("editor.showInvisibles")
@@ -135,23 +142,22 @@ class WorkspaceView extends View
     showErrorDialog = (error) ->
       installDirectory = CommandInstaller.getInstallDirectory()
       atom.confirm
-        message: error.message
-        detailedMessage: "Make sure #{installDirectory} exists and is writable. Run 'sudo mkdir -p #{installDirectory} && sudo chown $USER #{installDirectory}' to fix this problem."
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
 
     resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, (error) =>
+    CommandInstaller.installAtomCommand resourcePath, true, (error) =>
       if error?
-        showDialog(error)
+        showErrorDialog(error)
       else
-        CommandInstaller.installApmCommand resourcePath, (error) =>
+        CommandInstaller.installApmCommand resourcePath, true, (error) =>
           if error?
-            showDialog(error)
+            showErrorDialog(error)
           else
             atom.confirm
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  # Private:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -166,7 +172,6 @@ class WorkspaceView extends View
         $(document.body).focus()
         true
 
-  # Private:
   afterAttach: (onDom) ->
     @focus() if onDom
 
@@ -188,7 +193,7 @@ class WorkspaceView extends View
   setTitle: (title) ->
     document.title = title
 
-  # Private: Returns an Array of  all of the application's {EditorView}s.
+  # Returns an Array of  all of the application's {EditorView}s.
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
@@ -225,8 +230,12 @@ class WorkspaceView extends View
     @horizontal.append(element)
 
   # Public: Returns the currently focused {PaneView}.
-  getActivePane: ->
+  getActivePaneView: ->
     @panes.getActivePane()
+
+  # Deprecated: Returns the currently focused {PaneView}.
+  getActivePane: ->
+    @getActivePaneView()
 
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
@@ -241,6 +250,18 @@ class WorkspaceView extends View
 
   # Public: Focuses the next pane by id.
   focusNextPane: -> @model.activateNextPane()
+
+  # Public: Focuses the pane directly above the active pane.
+  focusPaneAbove: -> @panes.focusPaneAbove()
+
+  # Public: Focuses the pane directly below the active pane.
+  focusPaneBelow: -> @panes.focusPaneBelow()
+
+  # Public: Focuses the pane directly to the left of the active pane.
+  focusPaneOnLeft: -> @panes.focusPaneOnLeft()
+
+  # Public: Focuses the pane directly to the right of the active pane.
+  focusPaneOnRight: -> @panes.focusPaneOnRight()
 
   # Public:
   #
@@ -266,11 +287,11 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Private: Called by SpacePen
+  # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
 
-  # Private: Destroys everything.
+  # Destroys everything.
   remove: ->
     editorView.remove() for editorView in @getEditorViews()
     super

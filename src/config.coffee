@@ -8,15 +8,14 @@ pathWatcher = require 'pathwatcher'
 
 # Public: Used to access all of Atom's configuration details.
 #
-# A global instance of this class is available to all plugins which can be
-# referenced using `atom.config`
+# An instance of this class is always available as the `atom.config` global.
 #
-# ### Best practices
+# ## Best practices
 #
 # * Create your own root keypath using your package's name.
 # * Don't depend on (or write to) configuration keys outside of your keypath.
 #
-# ### Example
+# ## Example
 #
 # ```coffeescript
 # atom.config.set('myplugin.key', 'value')
@@ -27,18 +26,14 @@ module.exports =
 class Config
   Emitter.includeInto(this)
 
-  defaultSettings: null
-  settings: null
-  configFileHasErrors: null
-
-  # Private: Created during initialization, available as `global.config`
+  # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
     @defaultSettings = {}
     @settings = {}
+    @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
-  # Private:
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)
 
@@ -55,13 +50,11 @@ class Config
       queue.push({sourcePath, destinationPath})
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-  # Private:
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
     @observeUserConfig()
 
-  # Private:
   loadUserConfig: ->
     unless fs.existsSync(@configFilePath)
       fs.makeTreeSync(path.dirname(@configFilePath))
@@ -77,17 +70,14 @@ class Config
       console.error "Failed to load user config '#{@configFilePath}'", e.message
       console.error e.stack
 
-  # Private:
   observeUserConfig: ->
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
       @loadUserConfig() if eventType is 'change' and @watchSubscription?
 
-  # Private:
   unobserveUserConfig: ->
     @watchSubscription?.close()
     @watchSubscription = null
 
-  # Private:
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
@@ -160,6 +150,14 @@ class Config
   toggle: (keyPath) ->
     @set(keyPath, !@get(keyPath))
 
+  # Public: Restore the key path to its default value.
+  #
+  # keyPath - The {String} name of the key.
+  #
+  # Returns the new value.
+  restoreDefault: (keyPath) ->
+    @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.
@@ -205,6 +203,9 @@ class Config
   # options - An optional {Object} containing the `callNow` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
+  #
+  # Returns an {Object} with the following keys:
+  #  :off - A {Function} that unobserves the `keyPath` with called.
   observe: (keyPath, options={}, callback) ->
     if _.isFunction(options)
       callback = options
@@ -230,12 +231,10 @@ class Config
   unobserve: (keyPath) ->
     @off("updated.#{keyPath.replace(/\./, '-')}")
 
-  # Private:
   update: ->
     return if @configFileHasErrors
     @save()
     @emit 'updated'
 
-  # Private:
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)

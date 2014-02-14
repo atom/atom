@@ -16,7 +16,7 @@ Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
 #
-# There is always a project available under the `atom.project` global.
+# An instance of this class is always available as the `atom.project` global.
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
@@ -30,11 +30,12 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
+    @openers = []
+
     for buffer in @buffers
       do (buffer) =>
         buffer.once 'destroyed', => @removeBuffer(buffer)
 
-    @openers = []
     @editors = []
     @setPath(path)
 
@@ -46,36 +47,16 @@ class Project extends Model
     params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
     params
 
-  # Public: Register an opener for project files.
-  #
-  # An {Editor} will be used if no openers return a value.
-  #
-  # ## Example:
-  # ```coffeescript
-  #   atom.project.registerOpener (filePath) ->
-  #     if path.extname(filePath) is '.toml'
-  #       return new TomlEditor(filePath)
-  # ```
-  #
-  # * opener: A function to be called when a path is being opened.
-  registerOpener: (opener) -> @openers.push(opener)
-
-  # Public: Remove a previously registered opener.
-  unregisterOpener: (opener) -> _.remove(@openers, opener)
-
-  # Private:
   destroyed: ->
     editor.destroy() for editor in @getEditors()
     buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
-  # Private:
   destroyRepo: ->
     if @repo?
       @repo.destroy()
       @repo = null
 
-  # Private:
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
 
@@ -111,8 +92,7 @@ class Project extends Model
   # the path is already absolute or if it is prefixed with a scheme, it is
   # returned unchanged.
   #
-  # * uri:
-  #   The String name of the path to convert
+  # uri - The {String} name of the path to convert.
   #
   # Returns a String.
   resolve: (uri) ->
@@ -133,71 +113,53 @@ class Project extends Model
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
-  # Public: Given a path to a file, this constructs and associates a new
+  # Given a path to a file, this constructs and associates a new
   # {Editor}, showing the file.
   #
-  # * filePath:
-  #   The {String} path of the file to associate with
-  # * options:
-  #   Options that you can pass to the {Editor} constructor
+  # filePath - The {String} path of the file to associate with.
+  # options  - Options that you can pass to the {Editor} constructor.
   #
   # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
-    resource = null
-    _.find @openers, (opener) -> resource = opener(filePath, options)
+    @bufferForPath(filePath).then (buffer) =>
+      @buildEditorForBuffer(buffer, options)
 
-    if resource
-      Q(resource)
-    else
-      @bufferForPath(filePath).then (buffer) =>
-        @buildEditorForBuffer(buffer, options)
-
-  # Private: Only be used in specs
+  # Deprecated
   openSync: (filePath, options={}) ->
     filePath = @resolve(filePath)
-    for opener in @openers
-      return resource if resource = opener(filePath, options)
-
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
-  # Public: Retrieves all {Editor}s for all open files.
-  #
-  # Returns an {Array} of {Editor}s.
-  getEditors: ->
-    new Array(@editors...)
-
-  # Public: Add the given {Editor}.
+  # Add the given {Editor}.
   addEditor: (editor) ->
     @editors.push editor
     @emit 'editor-created', editor
 
-  # Public: Return and removes the given {Editor}.
+  # Return and removes the given {Editor}.
   removeEditor: (editor) ->
     _.remove(@editors, editor)
 
-  # Private: Retrieves all the {TextBuffer}s in the project; that is, the
+  # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
     @buffers.slice()
 
-  # Private: Is the buffer for the given path modified?
+  # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
     @findBufferForPath(@resolve(filePath))?.isModified()
 
-  # Private:
   findBufferForPath: (filePath) ->
    _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
-  # Private: Only to be used in specs
+  # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolve(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
-  # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
+  # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
@@ -210,21 +172,20 @@ class Project extends Model
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
-  # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Private: DEPRECATED
+  # DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
 
-  # Private: Given a file path, this sets its {TextBuffer}.
+  # Given a file path, this sets its {TextBuffer}.
   #
-  # absoluteFilePath - A {String} representing a path
-  # text - The {String} text to use as a buffer
+  # absoluteFilePath - A {String} representing a path.
+  # text - The {String} text to use as a buffer.
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
@@ -234,38 +195,33 @@ class Project extends Model
       .then((buffer) -> buffer)
       .catch(=> @removeBuffer(buffer))
 
-  # Private:
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
     buffer.once 'destroyed', => @removeBuffer(buffer)
 
-  # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     buffer.once 'destroyed', => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 
-  # Private: Removes a {TextBuffer} association from the project.
+  # Removes a {TextBuffer} association from the project.
   #
   # Returns the removed {TextBuffer}.
   removeBuffer: (buffer) ->
     index = @buffers.indexOf(buffer)
     @removeBufferAtIndex(index) unless index is -1
 
-  # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
 
   # Public: Performs a search across all the files in the project.
   #
-  # * regex:
-  #   A RegExp to search with
-  # * options:
-  #   - paths: an {Array} of glob patterns to search within
-  # * iterator:
-  #   A Function callback on each file found
+  # regex - A {RegExp} to search with.
+  # options - An optional options {Object} (default: {}):
+  #   :paths - An {Array} of glob patterns to search within
+  # iterator - A {Function} callback on each file found
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
@@ -304,10 +260,11 @@ class Project extends Model
 
   # Public: Performs a replace across all the specified files in the project.
   #
-  # * regex: A RegExp to search with
-  # * replacementText: Text to replace all matches of regex with
-  # * filePaths: List of file path strings to run the replace on.
-  # * iterator: A Function callback on each file with replacements. `({filePath, replacements}) ->`
+  # regex - A {RegExp} to search with.
+  # replacementText - Text to replace all matches of regex with
+  # filePaths - List of file path strings to run the replace on.
+  # iterator - A {Function} callback on each file with replacements:
+  #            `({filePath, replacements}) ->`.
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 
@@ -339,18 +296,11 @@ class Project extends Model
 
     deferred.promise
 
-  # Private:
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new Editor(_.extend({buffer}, editorOptions))
     @addEditor(editor)
     editor
 
-  # Private:
-  eachEditor: (callback) ->
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
-
-  # Private:
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -360,3 +310,20 @@ class Project extends Model
       subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
+
+  # Deprecated: delegate
+  registerOpener: (opener) ->
+    @openers.push(opener)
+
+  # Deprecated: delegate
+  unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
+
+  # Deprecated: delegate
+  eachEditor: (callback) ->
+    callback(editor) for editor in @getEditors()
+    @on 'editor-created', (editor) -> callback(editor)
+
+  # Deprecated: delegate
+  getEditors: ->
+    new Array(@editors...)

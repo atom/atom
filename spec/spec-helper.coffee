@@ -95,9 +95,9 @@ beforeEach ->
   TokenizedBuffer.prototype.chunkSize = Infinity
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
-  pasteboardContent = 'initial pasteboard content'
-  spyOn(clipboard, 'writeText').andCallFake (text) -> pasteboardContent = text
-  spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
+  clipboardContent = 'initial clipboard content'
+  spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
+  spyOn(clipboard, 'readText').andCallFake -> clipboardContent
 
   addCustomMatchers(this)
 
@@ -158,6 +158,16 @@ addCustomMatchers = (spec) ->
       notText = this.isNot and " not" or ""
       @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
       fs.existsSync(@actual)
+
+    toHaveFocus: ->
+      notText = this.isNot and " not" or ""
+      if not document.hasFocus()
+        console.error "Specs will fail because the Dev Tools have focus. To fix this close the Dev Tools or click the spec runner."
+
+      @message = -> return "Expected element '" + @actual + "' or its descendants" + notText + " to have focus."
+      element = @actual
+      element = element.get(0) if element.jquery
+      element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

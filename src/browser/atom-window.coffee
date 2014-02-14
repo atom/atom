@@ -1,13 +1,14 @@
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 ContextMenu = require './context-menu'
+app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
+url = require 'url'
 _ = require 'underscore-plus'
 
-# Private:
 module.exports =
 class AtomWindow
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
@@ -31,6 +32,7 @@ class AtomWindow
 
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= '{}'
+    loadSettings.appVersion = app.getVersion()
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
@@ -43,13 +45,25 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
-    @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
+    @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
     process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
+
+  getUrl: (loadSettingsObj) ->
+    # Ignore the windowState when passing loadSettings via URL, since it could
+    # be quite large.
+    loadSettings = _.clone(loadSettingsObj)
+    delete loadSettings['windowState']
+
+    url.format
+      protocol: 'file'
+      pathname: "#{@resourcePath}/static/index.html"
+      slashes: true
+      query: {loadSettings: JSON.stringify(loadSettings)}
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath

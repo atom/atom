@@ -5,11 +5,14 @@ describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
-    atom.packages.activatePackage('language-javascript', sync: true)
+
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-javascript')
 
   afterEach ->
     displayBuffer.destroy()

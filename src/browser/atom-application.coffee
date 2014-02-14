@@ -1,6 +1,7 @@
 AtomWindow = require './atom-window'
 ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
+BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
 app = require 'app'
@@ -21,7 +22,7 @@ socketPath =
   else
     path.join(os.tmpdir(), 'atom.sock')
 
-# Private: The application's singleton class.
+# The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
 # of the application.
@@ -72,11 +73,11 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
-    @checkForUpdates()
+    @setupAutoUpdater()
 
     @openWithOptions(options)
 
-  # Private: Opens a new window based on the options provided.
+  # Opens a new window based on the options provided.
   openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
@@ -97,7 +98,7 @@ class AtomApplication
     @windows.push window
     @applicationMenu?.enableWindowSpecificItems(true)
 
-  # Private: Creates server to listen for additional atom application launches.
+  # Creates server to listen for additional atom application launches.
   #
   # You can run the atom command multiple times, but after the first launch
   # the other launches will just pass their information to this server and then
@@ -112,23 +113,60 @@ class AtomApplication
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
 
-  # Private: Configures required javascript environment flags.
+  # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
 
-  # Private: Enable updates unless running from a local build of Atom.
-  checkForUpdates: ->
-    versionIsSha = /\w{7}/.test @version
+  # Enable updates unless running from a local build of Atom.
+  setupAutoUpdater: ->
+    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
-    if versionIsSha
-      autoUpdater.setAutomaticallyDownloadsUpdates false
-      autoUpdater.setAutomaticallyChecksForUpdates false
-    else
-      autoUpdater.setAutomaticallyDownloadsUpdates true
-      autoUpdater.setAutomaticallyChecksForUpdates true
-      autoUpdater.checkForUpdatesInBackground()
+    autoUpdater.on 'checking-for-update', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(false)
 
-  # Private: Registers basic application commands, non-idempotent.
+    autoUpdater.on 'update-not-available', =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
+      atomWindow.sendCommand('window:update-available', releaseName) for atomWindow in @windows
+      @applicationMenu.showInstallUpdateItem(true)
+      @applicationMenu.showCheckForUpdateItem(false)
+      @updateVersion = releaseName
+
+    autoUpdater.on 'error', (event, message) =>
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(true)
+
+    # Check for update after Atom has fully started and the menus are created
+    setTimeout((-> autoUpdater.checkForUpdates()), 5000)
+
+  checkForUpdate: ->
+    autoUpdater.once 'update-available', ->
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'Update available.'
+        detail: 'A new update is being downloading.'
+
+    autoUpdater.once 'update-not-available', =>
+      dialog.showMessageBox
+        type: 'info'
+        buttons: ['OK']
+        message: 'No update available.'
+        detail: "Version #{@version} is the latest version."
+
+    autoUpdater.once 'error', (event, message)->
+      dialog.showMessageBox
+        type: 'warning'
+        buttons: ['OK']
+        message: 'There was an error checking for updates.'
+        detail: message
+
+    autoUpdater.checkForUpdates()
+
+  # Registers basic application commands, non-idempotent.
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
@@ -147,9 +185,12 @@ class AtomApplication
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:install-update', -> autoUpdater.quitAndInstall()
+    @on 'application:check-for-update', => @checkForUpdate()
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
+    @openPathOnEvent('application:open-your-init-script', 'atom://.atom/init-script')
     @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
@@ -170,12 +211,6 @@ class AtomApplication
       event.preventDefault()
       @openUrl({urlToOpen, @devMode})
 
-    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
-      event.preventDefault()
-      @updateVersion = version
-      @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
-      atomWindow.sendCommand('window:update-available', version) for atomWindow in @windows
-
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
       if options?
@@ -194,6 +229,14 @@ class AtomApplication
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
+
+    ipc.on 'window-command', (processId, routingId, command, args...) ->
+      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+      win.emit(command, args...)
+
+    ipc.on 'call-window-method', (processId, routingId, method, args...) ->
+      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+      win[method](args...)
 
   # Public: Executes the given command.
   #
@@ -221,7 +264,7 @@ class AtomApplication
       else
         @openPath({pathToOpen})
 
-  # Private: Returns the {AtomWindow} for the given path.
+  # Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
@@ -309,7 +352,7 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  # Private: Open an atom:// url.
+  # Open an atom:// url.
   #
   # The host of the URL being opened is assumed to be the package name
   # responsible for opening the URL.  A new window will be created with
@@ -341,7 +384,7 @@ class AtomApplication
     else
       console.log "Opening unknown url: #{urlToOpen}"
 
-  # Private: Opens up a new {AtomWindow} to run specs within.
+  # Opens up a new {AtomWindow} to run specs within.
   #
   # * options
   #    + exitWhenDone:
@@ -372,7 +415,7 @@ class AtomApplication
     isSpec = true
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
-  # Private: Opens a native dialog to prompt the user for a path.
+  # Opens a native dialog to prompt the user for a path.
   #
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #

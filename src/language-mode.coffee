@@ -3,30 +3,19 @@ _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
 
-### Internal ###
-
 module.exports =
 class LanguageMode
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
-  buffer: null
-  grammar: null
-  editor: null
-  currentGrammarScore: null
-
-  ### Internal ###
-
-  destroy: ->
-    @unsubscribe()
-
-  ### Public ###
-
   # Sets up a `LanguageMode` for the given {Editor}.
   #
   # editor - The {Editor} to associate with
   constructor: (@editor) ->
-    @buffer = @editor.buffer
+    {@buffer} = @editor
+
+  destroy: ->
+    @unsubscribe()
 
   toggleLineCommentForBufferRow: (row) ->
     @toggleLineCommentsForBufferRows(row, row)
@@ -187,7 +176,7 @@ class LanguageMode
   isFoldableAtBufferRow: (bufferRow) ->
     @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
 
-  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtBufferRow: (bufferRow) ->
     return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
@@ -195,14 +184,14 @@ class LanguageMode
     return false unless nextNonEmptyRow?
     @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
 
-  # Private: Returns a {Boolean} indicating whether the given buffer row starts
+  # Returns a {Boolean} indicating whether the given buffer row starts
   # a foldable row range due to being the start of a multi-line comment.
   isFoldableCommentAtBufferRow: (bufferRow) ->
     @isLineCommentedAtBufferRow(bufferRow) and
       @isLineCommentedAtBufferRow(bufferRow + 1) and
         not @isLineCommentedAtBufferRow(bufferRow - 1)
 
-  # Private: Returns a {Boolean} indicating whether the line at the given buffer
+  # Returns a {Boolean} indicating whether the line at the given buffer
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()

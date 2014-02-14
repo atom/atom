@@ -14,7 +14,6 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  # Private:
   constructor: ({@cursor, @marker, @editor}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
@@ -23,18 +22,15 @@ class Selection
       @editor.removeSelection(this)
       @emit 'destroyed' unless @editor.isDestroyed()
 
-  # Private:
   destroy: ->
     @marker.destroy()
 
-  # Private:
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
     if @isEmpty()
       @wordwise = false
       @linewise = false
 
-  # Private:
   clearAutoscroll: ->
     @needsAutoscroll = null
 
@@ -59,10 +55,8 @@ class Selection
 
   # Public: Modifies the screen range for the selection.
   #
-  # * screenRange:
-  #   The new {Range} to use
-  # * options:
-  #   + A hash of options matching those found in {.setBufferRange}
+  # screenRange - The new {Range} to use.
+  # options - A hash of options matching those found in {.setBufferRange}.
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editor.bufferRangeForScreenRange(screenRange), options)
 
@@ -72,13 +66,11 @@ class Selection
 
   # Public: Modifies the buffer {Range} for the selection.
   #
-  # * screenRange:
-  #   The new {Range} to select
-  # * options
-  #    + preserveFolds:
-  #      if `true`, the fold settings are preserved after the selection moves
-  #    + autoscroll:
-  #      if `true`, the {Editor} scrolls to the new selection
+  # screenRange - The new {Range} to select.
+  # options - An {Object} with the keys:
+  #   :preserveFolds - if `true`, the fold settings are preserved after the
+  #                    selection moves.
+  #   :autoscroll - if `true`, the {Editor} scrolls to the new selection.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -128,8 +120,7 @@ class Selection
 
   # Public: Selects an entire line in the buffer.
   #
-  # * row:
-  #   The line Number to select (default: the row of the cursor)
+  # row - The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
     @setBufferRange(@getBufferRange().union(range))
@@ -148,8 +139,7 @@ class Selection
   # Public: Selects the text from the current cursor position to a given screen
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     @modifySelection =>
       if @initialScreenRange
@@ -168,8 +158,7 @@ class Selection
   # Public: Selects the text from the current cursor position to a given buffer
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
     @modifySelection => @cursor.setBufferPosition(position)
 
@@ -259,8 +248,6 @@ class Selection
       @editor.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
-  # Public:
-  #
   # FIXME: I have no idea what this does.
   getGoalBufferRange: ->
     @marker.getAttributes().goalBufferRange
@@ -285,20 +272,14 @@ class Selection
 
   # Public: Replaces text at the current selection.
   #
-  # * text:
-  #   A {String} representing the text to add
-  # * options
-  #    + select:
-  #      if `true`, selects the newly added text
-  #    + autoIndent:
-  #      if `true`, indents all inserted text appropriately
-  #    + autoIndentNewline:
-  #      if `true`, indent newline appropriately
-  #    + autoDecreaseIndent:
-  #      if `true`, decreases indent level appropriately (for example, when a
-  #      closing bracket is inserted)
-  #    + undo:
-  #      if `skip`, skips the undo stack for this operation.
+  # text - A {String} representing the text to add
+  # options - An {Object} with keys:
+  #   :select - if `true`, selects the newly added text.
+  #   :autoIndent - if `true`, indents all inserted text appropriately.
+  #   :autoIndentNewline - if `true`, indent newline appropriately.
+  #   :autoDecreaseIndent - if `true`, decreases indent level appropriately
+  #                         (for example, when a closing bracket is inserted).
+  #   :undo - if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -326,10 +307,8 @@ class Selection
 
   # Public: Indents the given text to the suggested level based on the grammar.
   #
-  # * text:
-  #   The string to indent within the selection.
-  # * indentBasis:
-  #   The beginning indent level.
+  # text - The {String} to indent within the selection.
+  # indentBasis - The beginning indent level.
   normalizeIndents: (text, indentBasis) ->
     textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
     isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
@@ -357,10 +336,9 @@ class Selection
 
   # Public: Indents the selection.
   #
-  # * options - A hash with one key,
-  #    + autoIndent:
-  #      If `true`, the indentation is performed appropriately. Otherwise,
-  #      {Editor.getTabText} is used
+  # options - A {Object} with the keys:
+  #   :autoIndent - If `true`, the indentation is performed appropriately.
+  #                 Otherwise, {Editor.getTabText} is used.
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
@@ -505,35 +483,25 @@ class Selection
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   # Public: Cuts the selection until the end of the line.
-  #
-  # * maintainPasteboard:
-  #   ?
-  cutToEndOfLine: (maintainPasteboard) ->
+  cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
-    @cut(maintainPasteboard)
+    @cut(maintainClipboard)
 
-  # Public: Copies the selection to the pasteboard and then deletes it.
-  #
-  # * maintainPasteboard:
-  #   ?
-  cut: (maintainPasteboard=false) ->
-    @copy(maintainPasteboard)
+  # Public: Copies the selection to the clipboard and then deletes it.
+  cut: (maintainClipboard=false) ->
+    @copy(maintainClipboard)
     @delete()
 
-  # Public: Copies the current selection to the pasteboard.
-  #
-  # * maintainPasteboard:
-  #   ?
-  copy: (maintainPasteboard=false) ->
+  # Public: Copies the current selection to the clipboard.
+  copy: (maintainClipboard=false) ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
-    if maintainPasteboard
-      [currentText, metadata] = atom.pasteboard.read()
-      text = currentText + '\n' + text
+    if maintainClipboard
+      text = "#{atom.clipboard.read()}\n#{text}"
     else
       metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
 
-    atom.pasteboard.write(text, metadata)
+    atom.clipboard.write(text, metadata)
 
   # Public: Creates a fold containing the current selection.
   fold: ->
@@ -541,14 +509,13 @@ class Selection
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: ?
   modifySelection: (fn) ->
     @retainSelection = true
     @plantTail()
     fn()
     @retainSelection = false
 
-  # Private: Sets the marker's tail to the same position as the marker's head.
+  # Sets the marker's tail to the same position as the marker's head.
   #
   # This only works if there isn't already a tail position.
   #
@@ -558,8 +525,7 @@ class Selection
 
   # Public: Identifies if a selection intersects with a given buffer range.
   #
-  # * bufferRange:
-  #   A {Range} to check against
+  # bufferRange - A {Range} to check against.
   #
   # Returns a Boolean.
   intersectsBufferRange: (bufferRange) ->
@@ -567,8 +533,7 @@ class Selection
 
   # Public: Identifies if a selection intersects with another selection.
   #
-  # * otherSelection:
-  #   A {Selection} to check against
+  # otherSelection - A {Selection} to check against.
   #
   # Returns a Boolean.
   intersectsWith: (otherSelection) ->
@@ -577,10 +542,8 @@ class Selection
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
   #
-  # * otherSelection:
-  #   A {Selection} to merge with
-  # * options
-  #    + A hash of options matching those found in {.setBufferRange}
+  # otherSelection - A {Selection} to merge with.
+  # options - A hash of options matching those found in {.setBufferRange}.
   merge: (otherSelection, options) ->
     myGoalBufferRange = @getGoalBufferRange()
     otherGoalBufferRange = otherSelection.getGoalBufferRange()
@@ -596,12 +559,10 @@ class Selection
   #
   # See {Range.compare} for more details.
   #
-  # * otherSelection:
-  #   A {Selection} to compare with.
+  # otherSelection - A {Selection} to compare against.
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  # Private:
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange

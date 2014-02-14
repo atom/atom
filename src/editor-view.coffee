@@ -26,6 +26,7 @@ module.exports =
 class EditorView extends View
   @characterWidthCache: {}
   @configDefaults:
+    fontFamily: ''
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false
@@ -40,8 +41,6 @@ class EditorView extends View
     softWrapAtPreferredLineLength: false
 
   @nextEditorId: 1
-
-  ### Internal ###
 
   @content: (params) ->
     attributes = { class: @classes(params), tabindex: -1 }
@@ -79,14 +78,12 @@ class EditorView extends View
   redrawOnReattach: false
   bottomPaddingInLines: 10
 
-  ### Public ###
-
   # The constructor for setting up an `EditorView` instance.
   #
   # editorOrOptions - Either an {Editor}, or an object with one property, `mini`.
-  #                        If `mini` is `true`, a "miniature" `Editor` is constructed.
-  #                        Typically, this is ideal for scenarios where you need an Atom editor,
-  #                        but without all the chrome, like scrollbars, gutter, _e.t.c._.
+  #                   If `mini` is `true`, a "miniature" `Editor` is constructed.
+  #                   Typically, this is ideal for scenarios where you need an Atom editor,
+  #                   but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   initialize: (editorOrOptions) ->
     if editorOrOptions instanceof Editor
@@ -120,7 +117,7 @@ class EditorView extends View
     else
       throw new Error("Must supply an Editor or mini: true")
 
-  # Internal: Sets up the core Atom commands.
+  # Sets up the core Atom commands.
   #
   # Some commands are excluded from mini-editors.
   bindKeys: ->
@@ -209,7 +206,7 @@ class EditorView extends View
         'editor:toggle-line-comments': => @toggleLineCommentsInSelection()
         'editor:log-cursor-scope': => @logCursorScope()
         'editor:checkout-head-revision': => @checkoutHead()
-        'editor:copy-path': => @copyPathToPasteboard()
+        'editor:copy-path': => @copyPathToClipboard()
         'editor:move-line-up': => @editor.moveLineUp()
         'editor:move-line-down': => @editor.moveLineDown()
         'editor:duplicate-line': => @editor.duplicateLine()
@@ -223,6 +220,9 @@ class EditorView extends View
       do (name, method) =>
         @command name, (e) -> method(e); false
 
+  # Public: Get the underlying editor model for this view.
+  #
+  # Returns an {Editor}.
   getEditor: ->
     @editor
 
@@ -238,7 +238,6 @@ class EditorView extends View
   insertText: (text, options) ->
     @editor.insertText(text, options)
 
-  # Private:
   setHeightInLines: (heightInLines)->
     heightInLines ?= @calculateHeightInLines()
     @heightInLines = heightInLines if heightInLines
@@ -248,39 +247,41 @@ class EditorView extends View
     widthInChars ?= @calculateWidthInChars()
     @editor.setEditorWidthInChars(widthInChars) if widthInChars
 
-  # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
+  # Public: Emulates the "page down" key, where the last row of a buffer scrolls
+  # to become the first.
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight
     @editor.moveCursorDown(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
-  # Public: Emulates the "page up" key, where the frst row of a buffer scrolls to become the last.
+  # Public: Emulates the "page up" key, where the frst row of a buffer scrolls
+  # to become the last.
   pageUp: ->
     newScrollTop = @scrollTop() - @scrollView[0].clientHeight
     @editor.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
-  # Gets the number of actual page rows existing in an editor.
+  # Public: Gets the number of actual page rows existing in an editor.
   #
   # Returns a {Number}.
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
-  # Set whether invisible characters are shown.
+  # Public: Set whether invisible characters are shown.
   #
-  # showInvisibles - A {Boolean} which, if `true`, show invisible characters
+  # showInvisibles - A {Boolean} which, if `true`, show invisible characters.
   setShowInvisibles: (showInvisibles) ->
     return if showInvisibles == @showInvisibles
     @showInvisibles = showInvisibles
     @resetDisplay()
 
-  # Defines which characters are invisible.
+  # Public: Defines which characters are invisible.
   #
-  # invisibles - A hash defining the invisible characters: The defaults are:
-  #              eol: `\u00ac`
-  #              space: `\u00b7`
-  #              tab: `\u00bb`
-  #              cr: `\u00a4`
+  # invisibles - An {Object} defining the invisible characters:
+  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
+  #   :space - The space invisible {String} (default: `\u00b7`).
+  #   :tab   - The tab invisible {String} (default: `\u00bb`).
+  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
@@ -289,14 +290,20 @@ class EditorView extends View
       cr: '\u00a4'
     @resetDisplay()
 
-  # Sets whether you want to show the indentation guides.
+  # Public: Sets whether you want to show the indentation guides.
   #
-  # showIndentGuide - A {Boolean} you can set to `true` if you want to see the indentation guides.
+  # showIndentGuide - A {Boolean} you can set to `true` if you want to see the
+  #                   indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
     return if showIndentGuide == @showIndentGuide
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
+  # Public: Set the text to appear in the editor when it is empty.
+  #
+  # This only affects mini editors.
+  #
+  # placeholderText - A {String} of text to display when empty.
   setPlaceholderText: (placeholderText) ->
     return unless @mini
     @placeholderText = placeholderText
@@ -310,15 +317,13 @@ class EditorView extends View
     if path = @editor.getPath()
       atom.project.getRepo()?.checkoutHead(path)
 
-  ### Internal ###
-
   configure: ->
-    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
-    @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
-    @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
-    @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
-    @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
-    @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
+    @subscribe atom.config.observe 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
+    @subscribe atom.config.observe 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @subscribe atom.config.observe 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
+    @subscribe atom.config.observe 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
+    @subscribe atom.config.observe 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+    @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
   handleEvents: ->
     @on 'focus', =>
@@ -488,12 +493,11 @@ class EditorView extends View
 
     @trigger 'editor:attached', [this]
 
-  # TODO: This should be private and only called from the constructor
   edit: (editor) ->
     return if editor is @editor
 
     if @editor
-      @saveScrollPositionForeditor()
+      @saveScrollPositionForEditor()
       @editor.off(".editor")
 
     @editor = editor
@@ -590,19 +594,18 @@ class EditorView extends View
     else
       @scrollView.scrollRight()
 
-  ### Public ###
-
-  # Scrolls the editor to the bottom.
+  # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
     @scrollBottom(@editor.getScreenLineCount() * @lineHeight)
 
-  # Scrolls the editor to the position of the most recently added cursor.
+  # Public: Scrolls the editor to the position of the most recently added
+  # cursor.
   #
   # The editor is also centered.
   scrollToCursorPosition: ->
     @scrollToBufferPosition(@editor.getCursorBufferPosition(), center: true)
 
-  # Scrolls the editor to the given buffer position.
+  # Public: Scrolls the editor to the given buffer position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -610,7 +613,7 @@ class EditorView extends View
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
 
-  # Scrolls the editor to the given screen position.
+  # Public: Scrolls the editor to the given screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -618,18 +621,20 @@ class EditorView extends View
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
 
-  # Scrolls the editor to the given pixel position.
+  # Public: Scrolls the editor to the given pixel position.
   #
   # pixelPosition - An object that represents a pixel position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #                 an {Object} (`{row, column}`), {Array} (`[row, column]`), or
+  #                 {Point}.
   # options - A hash with the following keys:
-  #          center: if `true`, the position is scrolled such that it's in the center of the editor
+  #   :center - if `true`, the position is scrolled such that it's in
+  #             the center of the editor
   scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
 
-  # Highlight all the folds within the given buffer range.
+  # Public: Highlight all the folds within the given buffer range.
   #
   # "Highlighting" essentially just adds the `fold-selected` class to the line's
   # DOM element.
@@ -647,29 +652,27 @@ class EditorView extends View
         else
           element.removeClass('fold-selected')
 
-  saveScrollPositionForeditor: ->
+  saveScrollPositionForEditor: ->
     if @attached
       @editor.setScrollTop(@scrollTop())
       @editor.setScrollLeft(@scrollLeft())
 
-  # Toggle soft tabs on the edit session.
+  # Public: Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
     @editor.setSoftTabs(not @editor.getSoftTabs())
 
-  # Toggle soft wrap on the edit session.
+  # Public: Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
     @setWidthInChars()
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
-  # Private:
   calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
-  # Private:
   calculateHeightInLines: ->
     Math.ceil($(window).height() / @lineHeight)
 
-  # Enables/disables soft wrap on the editor.
+  # Public: Enables/disables soft wrap on the editor.
   #
   # softWrap - A {Boolean} which, if `true`, enables soft wrap
   setSoftWrap: (softWrap) ->
@@ -679,7 +682,7 @@ class EditorView extends View
     else
       @removeClass 'soft-wrap'
 
-  # Sets the font size for the editor.
+  # Public: Sets the font size for the editor.
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
@@ -692,15 +695,15 @@ class EditorView extends View
     else
       @redrawOnReattach = @attached
 
-  # Retrieves the font size for the editor.
+  # Public: Retrieves the font size for the editor.
   #
   # Returns a {Number} indicating the font size in pixels.
   getFontSize: ->
     parseInt(@css("font-size"))
 
-  # Sets the font family for the editor.
+  # Public: Sets the font family for the editor.
   #
-  # fontFamily - A {String} identifying the CSS `font-family`,
+  # fontFamily - A {String} identifying the CSS `font-family`.
   setFontFamily: (fontFamily='') ->
     @css('font-family', fontFamily)
 
@@ -708,12 +711,12 @@ class EditorView extends View
 
     @redraw()
 
-  # Gets the font family for the editor.
+  # Public: Gets the font family for the editor.
   #
-  # Returns a {String} identifying the CSS `font-family`,
+  # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: -> @css("font-family")
 
-  # Redraw the editor
+  # Public: Redraw the editor
   redraw: ->
     return unless @hasParent()
     return unless @attached
@@ -723,23 +726,27 @@ class EditorView extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
+  # Public: Split the editor view left.
   splitLeft: ->
     pane = @getPane()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
+  # Public: Split the editor view right.
   splitRight: ->
     pane = @getPane()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
+  # Public: Split the editor view up.
   splitUp: ->
     pane = @getPane()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
+  # Public: Split the editor view down.
   splitDown: ->
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Retrieve's the `EditorView`'s pane.
+  # Public: Get this view's pane.
   #
   # Returns a {Pane}.
   getPane: ->
@@ -750,7 +757,6 @@ class EditorView extends View
     super
     atom.workspaceView?.focus()
 
-  # Private:
   beforeRemove: ->
     @trigger 'editor:will-be-removed'
     @removed = true
@@ -797,8 +803,6 @@ class EditorView extends View
   appendToLinesView: (view) ->
     @overlayer.append(view)
 
-  ### Internal ###
-
   # Scrolls the editor vertically to a given position.
   scrollVertically: (pixelPosition, {center}={}) ->
     scrollViewHeight = @scrollView.height()
@@ -835,7 +839,7 @@ class EditorView extends View
       @scrollRight(desiredRight)
     else if desiredLeft < @scrollLeft()
       @scrollLeft(desiredLeft)
-    @saveScrollPositionForeditor()
+    @saveScrollPositionForEditor()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -1135,9 +1139,8 @@ class EditorView extends View
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
-  ### Public ###
-
-  # Retrieves the number of the row that is visible and currently at the top of the editor.
+  # Public: Retrieves the number of the row that is visible and currently at the
+  # top of the editor.
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
@@ -1145,7 +1148,8 @@ class EditorView extends View
     screenRow = 0 if isNaN(screenRow)
     screenRow
 
-  # Retrieves the number of the row that is visible and currently at the bottom of the editor.
+  # Public: Retrieves the number of the row that is visible and currently at the
+  # bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
@@ -1154,15 +1158,13 @@ class EditorView extends View
     screenRow = 0 if isNaN(screenRow)
     screenRow
 
-  # Given a row number, identifies if it is currently visible.
+  # Public: Given a row number, identifies if it is currently visible.
   #
   # row - A row {Number} to check
   #
   # Returns a {Boolean}.
   isScreenRowVisible: (row) ->
     @getFirstVisibleScreenRow() <= row <= @getLastVisibleScreenRow()
-
-  ### Internal ###
 
   handleScreenLinesChange: (change) ->
     @pendingChanges.push(change)
@@ -1246,21 +1248,19 @@ class EditorView extends View
   toggleLineCommentsInSelection: ->
     @editor.toggleLineCommentsInSelection()
 
-  ### Public ###
-
-  # Converts a buffer position to a pixel position.
+  # Public: Converts a buffer position to a pixel position.
   #
   # position - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #            an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   #
   # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@editor.screenPositionForBufferPosition(position))
 
-  # Converts a screen position to a pixel position.
+  # Public: Converts a screen position to a pixel position.
   #
   # position - An object that represents a screen position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #            an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   #
   # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (position) ->
@@ -1297,7 +1297,6 @@ class EditorView extends View
         index++
     left
 
-  # Private:
   measureToColumn: (lineElement, tokenizedLine, screenColumn) ->
     left = oldLeft = index = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, TextNodeFilter)
@@ -1343,7 +1342,6 @@ class EditorView extends View
 
     returnLeft ? left
 
-  # Private:
   getCharacterWidthCache: (scopes, char) ->
     scopes ?= NoScope
     obj = @constructor.characterWidthCache
@@ -1352,7 +1350,6 @@ class EditorView extends View
       return null unless obj?
     obj[char]
 
-  # Private:
   setCharacterWidthCache: (scopes, char, val) ->
     scopes ?= NoScope
     obj = @constructor.characterWidthCache
@@ -1361,7 +1358,6 @@ class EditorView extends View
       obj = obj[scope]
     obj[char] = val
 
-  # Private:
   clearCharacterWidthCache: ->
     @constructor.characterWidthCache = {}
 
@@ -1411,11 +1407,9 @@ class EditorView extends View
       @highlightedLine = null
 
   # Copies the current file path to the native clipboard.
-  copyPathToPasteboard: ->
+  copyPathToClipboard: ->
     path = @editor.getPath()
-    atom.pasteboard.write(path) if path?
-
-  ### Internal ###
+    atom.clipboard.write(path) if path?
 
   @buildLineHtml: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, showIndentGuide, indentation, editor, mini}) ->
     scopeStack = []
@@ -1426,7 +1420,7 @@ class EditorView extends View
     line.push("<div #{attributePairs}>")
 
     if text == ''
-      html = EditorView.buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
+      html = @buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)

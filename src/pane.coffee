@@ -3,6 +3,7 @@
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
+Editor = require './editor'
 PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
@@ -27,7 +28,6 @@ class Pane extends Model
       .map((activePane) => activePane is this)
       .distinctUntilChanged()
 
-  # Private:
   constructor: (params) ->
     super
 
@@ -43,31 +43,31 @@ class Pane extends Model
 
     @activate() if params?.active
 
-  # Private: Called by the Serializable mixin during serialization.
+  # Called by the Serializable mixin during serialization.
   serializeParams: ->
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
     focused: @focused
     active: @active
 
-  # Private: Called by the Serializable mixin during deserialization.
+  # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
     {items, activeItemUri} = params
     params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  # Private: Called by the view layer to construct a view for this model.
+  # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
   isActive: -> @active
 
-  # Private: Called by the view layer to indicate that the pane has gained focus.
+  # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
     @activate() unless @isActive()
 
-  # Private: Called by the view layer to indicate that the pane has lost focus.
+  # Called by the view layer to indicate that the pane has lost focus.
   blur: ->
     @focused = false
     true # if this is called from an event handler, don't cancel it
@@ -78,12 +78,24 @@ class Pane extends Model
     @container?.activePane = this
     @emit 'activated'
 
-  # Private:
   getPanes: -> [this]
 
-  # Public:
+  # Public: Get the items in this pane.
+  #
+  # Returns an {Array} of items.
   getItems: ->
     @items.slice()
+
+  # Public: Get the active pane item in this pane.
+  #
+  # Returns a pane item.
+  getActiveItem: ->
+    @activeItem
+
+  # Public: Returns an {Editor} if the pane item is an {Editor}, or null
+  # otherwise.
+  getActiveEditor: ->
+    @activeItem if @activeItem instanceof Editor
 
   # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
@@ -105,15 +117,15 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
-  # Public: Returns the index of the current active item.
+  # Returns the index of the current active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
-  # Public: Makes the item at the given index active.
+  # Makes the item at the given index active.
   activateItemAtIndex: (index) ->
     @activateItem(@itemAtIndex(index))
 
-  # Public: Makes the given item active, adding the item if necessary.
+  # Makes the given item active, adding the item if necessary.
   activateItem: (item) ->
     if item?
       @addItem(item)
@@ -121,11 +133,9 @@ class Pane extends Model
 
   # Public: Adds the item to the pane.
   #
-  # * item:
-  #     The item to add. It can be a model with an associated view or a view.
-  # * index:
-  #     An optional index at which to add the item. If omitted, the item is
-  #     added after the current active item.
+  # item - The item to add. It can be a model with an associated view or a view.
+  # index - An optional index at which to add the item. If omitted, the item is
+  #         added after the current active item.
   #
   # Returns the added item
   addItem: (item, index=@getActiveItemIndex() + 1) ->
@@ -138,12 +148,11 @@ class Pane extends Model
 
   # Public: Adds the given items to the pane.
   #
-  # * items:
-  #     An {Array} of items to add. Items can be models with associated views
-  #     or views. Any items that are already present in items will not be added.
-  # * index:
-  #     An optional index at which to add the item. If omitted, the item is
-  #     added after the current active item.
+  # items - An {Array} of items to add. Items can be models with associated
+  #         views or views. Any items that are already present in items will
+  #         not be added.
+  # index - An optional index at which to add the item. If omitted, the item is
+  #         added after the current active item.
   #
   # Returns an {Array} of the added items
   addItems: (items, index=@getActiveItemIndex() + 1) ->
@@ -151,7 +160,6 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  # Private:
   removeItem: (item, destroying) ->
     index = @items.indexOf(item)
     return if index is -1
@@ -207,7 +215,7 @@ class Pane extends Model
   destroy: ->
     super unless @container?.isAlive() and @container?.getPanes().length is 1
 
-  # Private: Called by model superclass.
+  # Called by model superclass.
   destroyed: ->
     @container.activateNextPane() if @isActive()
     item.destroy?() for item in @items.slice()
@@ -238,8 +246,9 @@ class Pane extends Model
 
   # Public: Saves the specified item.
   #
-  # * item: The item to save.
-  # * nextAction: An optional function which will be called after the item is saved.
+  # item - The item to save.
+  # nextAction - An optional function which will be called after the item is
+  #              saved.
   saveItem: (item, nextAction) ->
     if item?.getUri?()
       item.save?()
@@ -249,8 +258,9 @@ class Pane extends Model
 
   # Public: Saves the given item at a prompted-for location.
   #
-  # * item: The item to save.
-  # * nextAction: An optional function which will be called after the item is saved.
+  # item - The item to save.
+  # nextAction - An optional function which will be called after the item is
+  #              saved.
   saveItemAs: (item, nextAction) ->
     return unless item?.saveAs?
 
@@ -279,15 +289,14 @@ class Pane extends Model
     else
       false
 
-  # Private:
   copyActiveItem: ->
     if @activeItem?
       @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
 
   # Public: Creates a new pane to the left of the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitLeft: (params) ->
@@ -295,8 +304,8 @@ class Pane extends Model
 
   # Public: Creates a new pane to the right of the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitRight: (params) ->
@@ -304,8 +313,8 @@ class Pane extends Model
 
   # Public: Creates a new pane above the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitUp: (params) ->
@@ -313,14 +322,13 @@ class Pane extends Model
 
   # Public: Creates a new pane below the receiver.
   #
-  # * params:
-  #   + items: An optional array of items with which to construct the new pane.
+  # params - An object with keys:
+  #   :items - An optional array of items with which to construct the new pane.
   #
   # Returns the new {Pane}.
   splitDown: (params) ->
     @split('vertical', 'after', params)
 
-  # Private:
   split: (orientation, side, params) ->
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
@@ -333,7 +341,7 @@ class Pane extends Model
     newPane.activate()
     newPane
 
-  # Private: If the parent is a horizontal axis, returns its first child;
+  # If the parent is a horizontal axis, returns its first child;
   # otherwise this pane.
   findLeftmostSibling: ->
     if @parent.orientation is 'horizontal'
@@ -341,7 +349,7 @@ class Pane extends Model
     else
       this
 
-  # Private: If the parent is a horizontal axis, returns its last child;
+  # If the parent is a horizontal axis, returns its last child;
   # otherwise returns a new pane created by splitting this pane rightward.
   findOrCreateRightmostSibling: ->
     if @parent.orientation is 'horizontal'

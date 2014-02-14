@@ -5,6 +5,7 @@ selected text with [ascii art](http://en.wikipedia.org/wiki/ASCII_art). When you
 run our new command with the word "cool" selected, it will be replaced with:
 
 ```
+                     ___
                     /\_ \
   ___    ___     ___\//\ \
  /'___\ / __`\  / __`\\ \ \
@@ -25,17 +26,17 @@ Atom will open a new window with the contents of our new _ascii-art_ package
 displayed in the Tree View. Because this window is opened **after** the package
 is created, the ASCII Art package will be loaded and available in our new
 window. To verify this, toggle the Command Palette (`cmd-shift-P`) and type
-"ASCII Art" you'll see a new `ASCII Art: Toggle` command. When triggered, this
+"ASCII Art". You'll see a new `ASCII Art: Toggle` command. When triggered, this
 command displays a default message.
 
-Now let's edit the package files to make our ascii art package do something
+Now let's edit the package files to make our ASCII Art package do something
 interesting. Since this package doesn't need any UI, we can remove all
 view-related code. Start by opening up _lib/ascii-art.coffee_. Remove all view
-code, so the file looks like this:
+code, so the `module.exports` section looks like this:
 
 ```coffeescript
-  module.exports =
-    activate: ->
+module.exports =
+  activate: ->
 ```
 
 ## Create a Command
@@ -69,23 +70,24 @@ command palette or by pressing `ctrl-alt-cmd-l`.
 ## Trigger the Command
 
 Now open the command panel and search for the `ascii-art:convert` command. But
-its not there! To fix this open _package.json_ and find the property called
-`activationEvents`. Activation Events speed up load time by allowing an Atom to
-delay a package's activation until it's needed. So add the `ascii-art:convert`
-to the activationEvents array:
+it's not there! To fix this, open _package.json_ and find the property called
+`activationEvents`. Activation Events speed up load time by allowing Atom to
+delay a package's activation until it's needed. So remove the existing command
+and add `ascii-art:convert` to the `activationEvents` array:
 
 ```json
 "activationEvents": ["ascii-art:convert"],
 ```
 
-First, run reload the window by running the command `window:reload`. Now when
-you run the `ascii-art:convert` command it will output 'Hello, World!'
+First, reload the window by running the command `window:reload`. Now when you
+run the `ascii-art:convert` command it will output 'Hello, World!'
 
-## Add A Key Binding
+## Add a Key Binding
 
 Now let's add a key binding to trigger the `ascii-art:convert` command. Open
 _keymaps/ascii-art.cson_ and add a key binding linking `ctrl-alt-a` to the
-`ascii-art:convert` command. When finished, the file will look like this:
+`ascii-art:convert` command. You can delete the pre-existing key binding since
+you don't need it anymore. When finished, the file will look like this:
 
 ```coffeescript
 '.editor':
@@ -105,25 +107,25 @@ that it **doesn't** work when the Tree View is focused.
 
 ## Add the ASCII Art
 
-Now we need to convert the selected text to ascii art. To do this we will use
+Now we need to convert the selected text to ASCII art. To do this we will use
 the [figlet](https://npmjs.org/package/figlet) [node](http://nodejs.org/) module
 from [npm](https://npmjs.org/). Open _package.json_ and add the latest version of
 figlet to the dependencies:
 
 ```json
-  "dependencies": {
-     "figlet": "1.0.8"
-  }
+"dependencies": {
+   "figlet": "1.0.8"
+}
 ```
 
-After saving the file run the command 'update-package-dependencies:update' from
-the Command Palette. This will install the packages node module dependencies,
+After saving the file, run the command 'update-package-dependencies:update' from
+the Command Palette. This will install the package's node module dependencies,
 only figlet in this case. You will need to run
 'update-package-dependencies:update' whenever you update the dependencies field
 in your _package.json_ file.
 
 Now require the figlet node module in _lib/ascii-art.coffee_ and instead of
-inserting 'Hello, World!' convert the selected text to ascii art!
+inserting 'Hello, World!' convert the selected text to ASCII art.
 
 ```coffeescript
 convert: ->
@@ -139,7 +141,15 @@ convert: ->
       selection.insertText("\n#{asciiArt}\n")
 ```
 
+Select some text in an editor window and hit `cmd-alt-a`. :tada: You're now an
+ASCII art professional!
+
 ## Further reading
 
-For more information on the mechanics of packages, check out [Creating a
-Package](creating-a-package.html)
+* [Getting your project on GitHub guide](http://guides.github.com/overviews/desktop)
+
+* [Creating a package guide](creating-a-package.html) for more information
+  on the mechanics of packages
+
+* [Publishing a package guide](publish-a-package.html) for more information
+  on publishing your package to [atom.io](https://atom.io)

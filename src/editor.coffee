@@ -78,7 +78,7 @@ class Editor extends Model
         position = [0, 0]
       @addCursorAtBufferPosition(position)
 
-    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @languageMode = new LanguageMode(this)
 
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
@@ -97,7 +97,6 @@ class Editor extends Model
     params.registerEditor = true
     params
 
-  # Private:
   subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
@@ -111,7 +110,6 @@ class Editor extends Model
     @subscribe @buffer, "destroyed", => @destroy()
     @preserveCursorPositionOnBufferReload()
 
-  # Private:
   subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
@@ -119,11 +117,9 @@ class Editor extends Model
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
-  # Private:
   getViewClass: ->
     require './editor-view'
 
-  # Private:
   destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
@@ -132,7 +128,7 @@ class Editor extends Model
     @languageMode.destroy()
     atom.project?.removeEditor(this)
 
-  # Private: Creates an {Editor} with the same initial state
+  # Creates an {Editor} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
@@ -238,15 +234,14 @@ class Editor extends Model
 
   # Public: Given a position, this clips it to a real position.
   #
-  # For example, if `position`'s row exceeds the row count of the buffer,
+  # For example, if `bufferPosition`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
-  # * position:
-  #   The {Point} to clip
+  # bufferPosition - The {Point} to clip.
   #
   # Returns the new, clipped {Point}. Note that this could be the same as
-  #   `position` if no clipping was performed.
+  #   `bufferPosition` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
 
   # Public: Given a range, this clips it to a real range.
@@ -255,8 +250,7 @@ class Editor extends Model
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real range.
   #
-  # * range:
-  #   The {Range} to clip
+  # range - The {Range} to clip.
   #
   # Returns the new, clipped {Range}. Note that this could be the same as
   #   `range` if no clipping was performed.
@@ -264,17 +258,14 @@ class Editor extends Model
 
   # Public: Returns the indentation level of the given a buffer row
   #
-  # * bufferRow:
-  #   A Number indicating the buffer row.
+  # bufferRow - A {Number} indicating the buffer row.
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
 
   # Public: Sets the indentation level for the given buffer row.
   #
-  # * bufferRow:
-  #   A {Number} indicating the buffer row.
-  # * newLevel:
-  #   A {Number} indicating the new indentation level.
+  # bufferRow - A {Number} indicating the buffer row.
+  # newLevel - A {Number} indicating the new indentation level.
   setIndentationForBufferRow: (bufferRow, newLevel) ->
     currentIndentLength = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
@@ -282,8 +273,7 @@ class Editor extends Model
 
   # Public: Returns the indentation level of the given line of text.
   #
-  # * line:
-  #   A {String} in the current buffer.
+  # line - A {String} in the current buffer.
   #
   # Returns a {Number} or 0 if the text isn't found within the buffer.
   indentLevelForLine: (line) ->
@@ -295,7 +285,7 @@ class Editor extends Model
     else
       0
 
-  # Private: Constructs the string used for tabs.
+  # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @getSoftTabs()
       _.multiplyString(" ", number * @getTabLength())
@@ -307,9 +297,6 @@ class Editor extends Model
 
   # {Delegates to: TextBuffer.saveAs}
   saveAs: (path) -> @buffer.saveAs(path)
-
-  # {Delegates to: TextBuffer.getExtension}
-  getFileExtension: -> @buffer.getExtension()
 
   # {Delegates to: TextBuffer.getPath}
   getPath: -> @buffer.getPath()
@@ -326,7 +313,7 @@ class Editor extends Model
   # Public: Returns a {Number} representing the number of lines in the editor.
   getLineCount: -> @buffer.getLineCount()
 
-  # Private: Retrieves the current {TextBuffer}.
+  # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
   # Public: Retrieves the current buffer's URI.
@@ -353,8 +340,8 @@ class Editor extends Model
 
   # Public: Returns the range for the given buffer row.
   #
-  # * row: A row {Number}.
-  # * options: An options hash with an `includeNewline` key.
+  # row - A row {Number}.
+  # options - An options hash with an `includeNewline` key.
   #
   # Returns a {Range}.
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
@@ -362,7 +349,7 @@ class Editor extends Model
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
   #
-  # * row - A {Number} representing a zero-indexed buffer row.
+  # row - A {Number} representing a zero-indexed buffer row.
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
   # Public: Returns a {Number} representing the line length for the given
@@ -439,10 +426,8 @@ class Editor extends Model
 
   # Public: Inserts text at the current cursor positions
   #
-  # * text:
-  #   A String representing the text to insert.
-  # * options:
-  #   + A set of options equivalent to {Selection.insertText}
+  # text - A {String} representing the text to insert.
+  # options - A set of options equivalent to {Selection.insertText}.
   insertText: (text, options={}) ->
     options.autoIndentNewline ?= @shouldAutoIndent()
     options.autoDecreaseIndent ?= @shouldAutoIndent()
@@ -469,8 +454,7 @@ class Editor extends Model
 
   # Public: Indents the current line.
   #
-  # * options
-  #    + A set of options equivalent to {Selection.indent}.
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
@@ -521,7 +505,7 @@ class Editor extends Model
   #
   # If the language doesn't have comments, nothing happens.
   #
-  # Returns an {Array} of the commented {Ranges}.
+  # Returns an {Array} of the commented {Range}s.
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
@@ -537,31 +521,30 @@ class Editor extends Model
   # Public: Copies and removes all characters from cursor to the end of the
   # line.
   cutToEndOfLine: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     @mutateSelectedText (selection) ->
-      selection.cutToEndOfLine(maintainPasteboard)
-      maintainPasteboard = true
+      selection.cutToEndOfLine(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Cuts the selected text.
   cutSelectedText: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     @mutateSelectedText (selection) ->
-      selection.cut(maintainPasteboard)
-      maintainPasteboard = true
+      selection.cut(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Copies the selected text.
   copySelectedText: ->
-    maintainPasteboard = false
+    maintainClipboard = false
     for selection in @getSelections()
-      selection.copy(maintainPasteboard)
-      maintainPasteboard = true
+      selection.copy(maintainClipboard)
+      maintainClipboard = true
 
   # Public: Pastes the text in the clipboard.
   #
-  # * options:
-  #    + A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    [text, metadata] = atom.pasteboard.read()
+    {text, metadata} = atom.clipboard.readWithMetadata()
 
     containsNewlines = text.indexOf('\n') isnt -1
 
@@ -640,7 +623,7 @@ class Editor extends Model
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
-  # Public: Moves the selected line up one row.
+  # Public: Moves the selected lines up one screen row.
   moveLineUp: ->
     selection = @getSelectedBufferRange()
     return if selection.start.row is 0
@@ -652,29 +635,47 @@ class Editor extends Model
       rows = [selection.start.row..selection.end.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
         rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
+
+      # Move line around the fold that is directly above the selection
+      precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
+      precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
+      if fold = @largestFoldContainingBufferRow(precedingBufferRow)
+        insertDelta = fold.getBufferRange().getRowCount()
+      else
+        insertDelta = 1
+
       for row in rows
-        screenRow = @screenPositionForBufferPosition([row]).row
-        if @isFoldedAtScreenRow(screenRow)
-          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
+          bufferRange = fold.getBufferRange()
           startRow = bufferRange.start.row
-          endRow = bufferRange.end.row - 1
-          foldedRows.push(endRow - 1)
+          endRow = bufferRange.end.row
+          foldedRows.push(startRow - insertDelta)
         else
           startRow = row
           endRow = row
 
+        insertPosition = Point.fromObject([startRow - insertDelta])
         endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
         lines = @buffer.getTextInRange([[startRow], endPosition])
         if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
           lines = "#{lines}\n"
+
         @buffer.deleteRows(startRow, endRow)
-        @buffer.insert([startRow - 1], lines)
 
-      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
+          @destroyFoldsContainingBufferRow(insertPosition.row)
+          foldedRows.push(insertPosition.row + endRow - startRow + fold.getBufferRange().getRowCount())
 
-      @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
+        @buffer.insert(insertPosition, lines)
 
-  # Public: Moves the selected line down one row.
+      # Restore folds that existed before the lines were moved
+      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
+        @foldBufferRow(foldedRow)
+
+      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true)
+
+  # Public: Moves the selected lines down one screen row.
   moveLineDown: ->
     selection = @getSelectedBufferRange()
     lastRow = @buffer.getLastRow()
@@ -686,13 +687,21 @@ class Editor extends Model
       rows = [selection.end.row..selection.start.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
         rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
+
+      # Move line around the fold that is directly below the selection
+      followingScreenRow = @screenPositionForBufferPosition([selection.end.row]).translate([1])
+      followingBufferRow = @bufferPositionForScreenPosition(followingScreenRow).row
+      if fold = @largestFoldContainingBufferRow(followingBufferRow)
+        insertDelta = fold.getBufferRange().getRowCount()
+      else
+        insertDelta = 1
+
       for row in rows
-        screenRow = @screenPositionForBufferPosition([row]).row
-        if @isFoldedAtScreenRow(screenRow)
-          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
+          bufferRange = fold.getBufferRange()
           startRow = bufferRange.start.row
-          endRow = bufferRange.end.row - 1
-          foldedRows.push(endRow + 1)
+          endRow = bufferRange.end.row
+          foldedRows.push(endRow + insertDelta)
         else
           startRow = row
           endRow = row
@@ -703,14 +712,23 @@ class Editor extends Model
           endPosition = [endRow + 1]
         lines = @buffer.getTextInRange([[startRow], endPosition])
         @buffer.deleteRows(startRow, endRow)
-        insertPosition = Point.min([startRow + 1], @buffer.getEofPosition())
+
+        insertPosition = Point.min([startRow + insertDelta], @buffer.getEofPosition())
         if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
           lines = "\n#{lines}"
+
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
+          @destroyFoldsContainingBufferRow(insertPosition.row)
+          foldedRows.push(insertPosition.row + fold.getBufferRange().getRowCount())
+
         @buffer.insert(insertPosition, lines)
 
-      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+      # Restore folds that existed before the lines were moved
+      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
+        @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
 
   # Public: Duplicates the current line.
   #
@@ -739,11 +757,9 @@ class Editor extends Model
       @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
       @foldCurrentRow() if cursorRowFolded
 
-  # Private:
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
-  # Private:
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
@@ -787,7 +803,9 @@ class Editor extends Model
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # Public: {Delegates to: DisplayBuffer.getMarkerCount}
+  # Public: Get the number of markers in this editor's buffer.
+  #
+  # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
@@ -826,10 +844,8 @@ class Editor extends Model
 
   # Public: Creates a new selection at the given marker.
   #
-  # * marker:
-  #   The {DisplayBufferMarker} to highlight
-  # * options:
-  #   + A hash of options that pertain to the {Selection} constructor.
+  # marker  - The {DisplayBufferMarker} to highlight
+  # options - An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
@@ -850,10 +866,8 @@ class Editor extends Model
 
   # Public: Given a buffer range, this adds a new selection for it.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.markBufferRange}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.markBufferRange}.
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
@@ -863,20 +877,16 @@ class Editor extends Model
   # Public: Given a buffer range, this removes all previous selections and
   # creates a new selection for it.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.setSelectedBufferRanges}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.setSelectedBufferRanges}.
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
   # Public: Given an array of buffer ranges, this removes all previous
   # selections and creates new selections for them.
   #
-  # * bufferRange:
-  #   A {Range} in the buffer
-  # * options:
-  #    + A hash of options for {.setSelectedBufferRanges}
+  # bufferRange - A {Range} in the buffer.
+  # options - An options {Object} for {.setSelectedBufferRanges}.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
@@ -893,7 +903,7 @@ class Editor extends Model
 
   # Public: Unselects a given selection.
   #
-  # * selection - The {Selection} to remove.
+  # selection - The {Selection} to remove.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
 
@@ -904,9 +914,7 @@ class Editor extends Model
     @consolidateSelections()
     @getSelection().clear()
 
-  # Public:
-  #
-  # Removes all but one cursor (if there are multiple cursors)
+  # Removes all but one cursor (if there are multiple cursors).
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1
@@ -943,8 +951,7 @@ class Editor extends Model
 
   # Public: Determines if a given buffer range is included in a {Selection}.
   #
-  # * bufferRange:
-  #   The {Range} you're checking against
+  # bufferRange - The {Range} you're checking against.
   #
   # Returns a {Boolean}.
   selectionIntersectsBufferRange: (bufferRange) ->
@@ -953,10 +960,8 @@ class Editor extends Model
 
   # Public: Moves every local cursor to a given screen position.
   #
-  # * position:
-  #   An {Array} of two numbers: the screen row, and the screen column.
-  # * options:
-  #   An object with properties based on {Cursor.setScreenPosition}
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options  - An {Object} with properties based on {Cursor.setScreenPosition}.
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
@@ -975,10 +980,8 @@ class Editor extends Model
 
   # Public: Moves every cursor to a given buffer position.
   #
-  # * position:
-  #   An {Array} of two numbers: the buffer row, and the buffer column.
-  # * options:
-  #    + An object with properties based on {Cursor.setBufferPosition}
+  # position - An {Array} of two numbers: the buffer row, and the buffer column.
+  # options - An object with properties based on {Cursor.setBufferPosition}.
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
@@ -1021,9 +1024,8 @@ class Editor extends Model
 
   # Public: Returns the word under the most recently added local {Cursor}.
   #
-  # * options:
-  #    + An object with properties based on
-  #      {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on
+  #           {Cursor.getBeginningOfCurrentWordBufferPosition}.
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
@@ -1091,7 +1093,6 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
-  # Internal: Executes given function on all local cursors.
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
@@ -1099,8 +1100,7 @@ class Editor extends Model
   # Public: Selects the text from the current cursor position to a given screen
   # position.
   #
-  # * position:
-  #   An instance of {Point}, with a given `row` and `column`.
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
@@ -1259,8 +1259,6 @@ class Editor extends Model
       @setSelectedBufferRange(range)
       range
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   mergeCursors: ->
     positions = []
@@ -1271,27 +1269,21 @@ class Editor extends Model
       else
         positions.push(position)
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   expandSelectionsForward: (fn) ->
     @mergeIntersectingSelections =>
       fn(selection) for selection in @getSelections()
 
-  # Public:
-  #
   # FIXME: Not sure how to describe what this does.
   expandSelectionsBackward: (fn) ->
     @mergeIntersectingSelections isReversed: true, =>
       fn(selection) for selection in @getSelections()
 
-  # Public:
-  #
   # FIXME: No idea what this does.
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()
 
-  # Private: Merges intersecting selections. If passed a function, it executes
+  # Merges intersecting selections. If passed a function, it executes
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->
@@ -1315,7 +1307,6 @@ class Editor extends Model
 
     _.reduce(@getSelections(), reducer, [])
 
-  # Private:
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
     @subscribe @buffer, "will-reload", =>
@@ -1336,7 +1327,6 @@ class Editor extends Model
   reloadGrammar: ->
     @displayBuffer.reloadGrammar()
 
-  # Private:
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
 
@@ -1347,32 +1337,24 @@ class Editor extends Model
   # undo stack remains relevant.
   transact: (fn) -> @buffer.transact(fn)
 
-  # Private:
   beginTransaction: -> @buffer.beginTransaction()
 
-  # Private:
   commitTransaction: -> @buffer.commitTransaction()
 
-  # Private:
   abortTransaction: -> @buffer.abortTransaction()
 
-  # Private:
   inspect: ->
     "<Editor #{@id}>"
 
-  # Private:
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  # Private:
   handleGrammarChange: ->
     @unfoldAll()
     @emit 'grammar-changed'
 
-  # Private:
   handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
 
-  # Private:
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'

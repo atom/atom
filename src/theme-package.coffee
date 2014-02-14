@@ -1,11 +1,8 @@
+Q = require 'q'
 AtomPackage = require './atom-package'
-Package = require './package'
-
-### Internal: Loads and resolves packages. ###
 
 module.exports =
 class ThemePackage extends AtomPackage
-
   getType: -> 'theme'
 
   getStylesheetType: -> 'theme'
@@ -25,6 +22,11 @@ class ThemePackage extends AtomPackage
     this
 
   activate: ->
+    return @activationDeferred.promise if @activationDeferred?
+
+    @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @loadStylesheets()
       @activateNow()
+
+    @activationDeferred.promise

@@ -10,8 +10,6 @@ describe "EditorView", ->
   [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.packages.activatePackage('language-text', sync: true)
-    atom.packages.activatePackage('language-javascript', sync: true)
     editor = atom.project.openSync('sample.js')
     buffer = editor.buffer
     editorView = new EditorView(editor)
@@ -25,6 +23,12 @@ describe "EditorView", ->
       @height(getLineHeight() * heightInLines)
       @width(getCharWidth() * widthInChars) if widthInChars
       $('#jasmine-content').append(this)
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-text', sync: true)
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-javascript', sync: true)
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
@@ -2515,9 +2519,9 @@ describe "EditorView", ->
       expect(edited).toBe false
 
   describe "when editor:copy-path is triggered", ->
-    it "copies the absolute path to the editor view's file to the pasteboard", ->
+    it "copies the absolute path to the editor view's file to the clipboard", ->
       editorView.trigger 'editor:copy-path'
-      expect(atom.pasteboard.read()[0]).toBe editor.getPath()
+      expect(atom.clipboard.read()).toBe editor.getPath()
 
   describe "when editor:move-line-up is triggered", ->
     describe "when there is no selection", ->
@@ -2531,6 +2535,52 @@ describe "EditorView", ->
         editor.setCursorBufferPosition([1,2])
         editorView.trigger 'editor:move-line-up'
         expect(editor.getCursorBufferPosition()).toEqual [0,2]
+
+      describe "when the line above is folded", ->
+        it "moves the line around the fold", ->
+          editor.foldBufferRow(1)
+          editor.setCursorBufferPosition([10, 0])
+          editorView.trigger 'editor:move-line-up'
+
+          expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+          expect(buffer.lineForRow(1)).toBe ''
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
+          expect(editor.isFoldedAtBufferRow(1)).toBe false
+          expect(editor.isFoldedAtBufferRow(2)).toBe true
+
+        describe "when the line being moved is folded", ->
+          it "moves the fold around the fold above it", ->
+            editor.setCursorBufferPosition([0, 0])
+            editor.insertText """
+              var a = function() {
+                b = 3;
+              };
+
+            """
+            editor.foldBufferRow(0)
+            editor.foldBufferRow(3)
+            editor.setCursorBufferPosition([3, 0])
+            editorView.trigger 'editor:move-line-up'
+
+            expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+            expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+            expect(buffer.lineForRow(13)).toBe 'var a = function() {'
+            editor.logScreenLines()
+            expect(editor.isFoldedAtBufferRow(0)).toBe true
+            expect(editor.isFoldedAtBufferRow(13)).toBe true
+
+      describe "when the line above is empty and the line above that is folded", ->
+        it "moves the line to the empty line", ->
+          editor.foldBufferRow(2)
+          editor.setCursorBufferPosition([11, 0])
+          editorView.trigger 'editor:move-line-up'
+
+          expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+          expect(buffer.lineForRow(9)).toBe '  };'
+          expect(buffer.lineForRow(10)).toBe '  return sort(Array.apply(this, arguments));'
+          expect(buffer.lineForRow(11)).toBe ''
+          expect(editor.isFoldedAtBufferRow(2)).toBe true
+          expect(editor.isFoldedAtBufferRow(10)).toBe false
 
     describe "where there is a selection", ->
       describe "when the selection falls inside the line", ->
@@ -2630,6 +2680,54 @@ describe "EditorView", ->
         editor.setCursorBufferPosition([0, 2])
         editorView.trigger 'editor:move-line-down'
         expect(editor.getCursorBufferPosition()).toEqual [1, 2]
+
+      describe "when the line below is folded", ->
+        it "moves the line around the fold", ->
+          editor.setCursorBufferPosition([0, 0])
+          editor.foldBufferRow(1)
+          editorView.trigger 'editor:move-line-down'
+
+          expect(editor.getCursorBufferPosition()).toEqual [9, 0]
+          expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+          expect(buffer.lineForRow(9)).toBe 'var quicksort = function () {'
+          expect(editor.isFoldedAtBufferRow(0)).toBe true
+          expect(editor.isFoldedAtBufferRow(9)).toBe false
+
+        describe "when the line being moved is folded", ->
+          it "moves the fold around the fold below it", ->
+            editor.setCursorBufferPosition([0, 0])
+            editor.insertText """
+              var a = function() {
+                b = 3;
+              };
+
+            """
+            editor.foldBufferRow(0)
+            editor.foldBufferRow(3)
+            editor.setCursorBufferPosition([0, 0])
+            editorView.trigger 'editor:move-line-down'
+
+            expect(editor.getCursorBufferPosition()).toEqual [13, 0]
+            expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+            expect(buffer.lineForRow(13)).toBe 'var a = function() {'
+            expect(editor.isFoldedAtBufferRow(0)).toBe true
+            expect(editor.isFoldedAtBufferRow(13)).toBe true
+
+      describe "when the line below is empty and the line below that is folded", ->
+        it "moves the line to the empty line", ->
+          editor.setCursorBufferPosition([0, Infinity])
+          editor.insertText('\n')
+          editor.setCursorBufferPosition([0, 0])
+          editor.foldBufferRow(2)
+          editorView.trigger 'editor:move-line-down'
+
+          expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+          expect(buffer.lineForRow(0)).toBe ''
+          expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
+          expect(editor.isFoldedAtBufferRow(0)).toBe false
+          expect(editor.isFoldedAtBufferRow(1)).toBe false
+          expect(editor.isFoldedAtBufferRow(2)).toBe true
 
     describe "when the cursor is on the last line", ->
       it "does not move the line", ->

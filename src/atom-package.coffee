@@ -2,12 +2,13 @@ Package = require './package'
 fs = require 'fs-plus'
 path = require 'path'
 _ = require 'underscore-plus'
+Q = require 'q'
 {$} = require './space-pen-extensions'
 CSON = require 'season'
 {Emitter} = require 'emissary'
 
-### Internal: Loads and resolves packages. ###
-
+# Loads and activates a package's main module and resources such as
+# stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class AtomPackage extends Package
   Emitter.includeInto(this)
@@ -42,11 +43,7 @@ class AtomPackage extends Package
         @loadStylesheets()
         @loadGrammars()
         @loadScopedProperties()
-
-        if @metadata.activationEvents?
-          @registerDeferredDeserializers()
-        else
-          @requireMainModule()
+        @requireMainModule() unless @metadata.activationEvents?
 
       catch e
         console.warn "Failed to load package named '#{@name}'", e.stack ? e
@@ -59,13 +56,18 @@ class AtomPackage extends Package
     @grammars = []
     @scopedProperties = []
 
-  activate: ({immediate}={}) ->
+  activate: ->
+    return @activationDeferred.promise if @activationDeferred?
+
+    @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @activateResources()
-      if @metadata.activationEvents? and not immediate
+      if @metadata.activationEvents?
         @subscribeToActivationEvents()
       else
         @activateNow()
+
+    @activationDeferred.promise
 
   activateNow: ->
     try
@@ -76,6 +78,8 @@ class AtomPackage extends Package
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
+
+    @activationDeferred.resolve()
 
   activateConfig: ->
     return if @configActivated
@@ -162,6 +166,8 @@ class AtomPackage extends Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
+    @activationDeferred?.reject()
+    @activationDeferred = null
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
@@ -203,12 +209,6 @@ class AtomPackage extends Package
         path.join(@path, 'index')
     @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
-  registerDeferredDeserializers: ->
-    for deserializerName in @metadata.deferredDeserializers ? []
-      atom.deserializers.addDeferred deserializerName, =>
-        @activateStylesheets()
-        @requireMainModule()
-
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
@@ -226,6 +226,8 @@ class AtomPackage extends Package
     @unsubscribeFromActivationEvents()
 
   unsubscribeFromActivationEvents: ->
+    return unless atom.workspaceView?
+
     if _.isArray(@metadata.activationEvents)
       atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else if _.isString(@metadata.activationEvents)

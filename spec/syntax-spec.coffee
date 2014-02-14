@@ -4,10 +4,18 @@ temp = require 'temp'
 
 describe "the `syntax` global", ->
   beforeEach ->
-    atom.packages.activatePackage('language-text', sync: true)
-    atom.packages.activatePackage('language-javascript', sync: true)
-    atom.packages.activatePackage('language-coffee-script', sync: true)
-    atom.packages.activatePackage('language-ruby', sync: true)
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-text')
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-javascript')
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-coffee-script')
+
+    waitsForPromise ->
+      atom.packages.activatePackage('language-ruby')
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->
@@ -20,29 +28,33 @@ describe "the `syntax` global", ->
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
-      atom.packages.activatePackage('language-git', sync: true)
+      waitsForPromise ->
+        atom.packages.activatePackage('language-git')
 
-      expect(atom.syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
-      expect(atom.syntax.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
-      expect(atom.syntax.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
-      expect(atom.syntax.selectGrammar("curb").name).toBe "Null Grammar"
-      expect(atom.syntax.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
+      runs ->
+        expect(atom.syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
+        expect(atom.syntax.selectGrammar(path.join(temp.dir, '.git', 'config')).name).toBe "Git Config" # based on end of the path (.git/config)
+        expect(atom.syntax.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
+        expect(atom.syntax.selectGrammar("curb").name).toBe "Null Grammar"
+        expect(atom.syntax.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("./fixtures/shebang")
       expect(atom.syntax.selectGrammar(filePath).name).toBe "Ruby"
 
     it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
-      atom.packages.activatePackage('language-property-list', sync: true)
+      waitsForPromise ->
+        atom.packages.activatePackage('language-property-list')
 
-      fileContent = "first-line\n<html>"
-      expect(atom.syntax.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"
+      runs ->
+        fileContent = "first-line\n<html>"
+        expect(atom.syntax.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"
 
-      fileContent = '<?xml version="1.0" encoding="UTF-8"?>'
-      expect(atom.syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Null Grammar"
+        fileContent = '<?xml version="1.0" encoding="UTF-8"?>'
+        expect(atom.syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Null Grammar"
 
-      fileContent += '\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
-      expect(atom.syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
+        fileContent += '\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+        expect(atom.syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("./fixtures/shebang")

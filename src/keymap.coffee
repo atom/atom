@@ -9,19 +9,23 @@ File = require './file'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']
 
-# Internal: Associates keymaps with actions.
+# Public: Associates keybindings with commands.
 #
-# Keymaps are defined in a CSON format. A typical keymap looks something like this:
+# An instance of this class is always available as the `atom.keymap` global.
+#
+# Keymaps are defined in a CSON/JSON format. A typical keymap looks something
+# like this:
 #
 # ```cson
 # 'body':
-#  'ctrl-l': 'package:do-something'
-#'.someClass':
-#  'enter': 'package:confirm'
+#   'ctrl-l': 'package:do-something'
+# '.someClass':
+#   'enter': 'package:confirm'
 # ```
 #
-# As a key, you define the DOM element you want to work on, using CSS notation. For that
-# key, you define one or more key:value pairs, associating keystrokes with a command to execute.
+# As a key, you define the DOM element you want to work on, using CSS notation.
+# For that key, you define one or more key:value pairs, associating keystrokes
+# with a command to execute.
 module.exports =
 class Keymap
   Emitter.includeInto(this)
@@ -39,10 +43,8 @@ class Keymap
   # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
   # that match a keystroke and element.
   #
-  # * keystroke:
-  #   The string representing the keys pressed (e.g. ctrl-P).
-  # * element:
-  #   The DOM node that will match a {KeyBinding}'s selector.
+  # keystroke - The {String} representing the keys pressed (e.g. ctrl-P).
+  # element - The DOM node that will match a {KeyBinding}'s selector.
   keyBindingsForKeystrokeMatchingElement: (keystroke, element) ->
     keyBindings = @keyBindingsForKeystroke(keystroke)
     @keyBindingsMatchingElement(element, keyBindings)
@@ -50,41 +52,37 @@ class Keymap
   # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
   # that match a command.
   #
-  # * command:
-  #   The string representing the command (tree-view:toggle)
-  # * element:
-  #   The DOM node that will match a {KeyBinding}'s selector.
+  # command - The {String} representing the command (tree-view:toggle).
+  # element - The DOM node that will match a {KeyBinding}'s selector.
   keyBindingsForCommandMatchingElement: (command, element) ->
     keyBindings = @keyBindingsForCommand(command)
     @keyBindingsMatchingElement(element, keyBindings)
 
   # Public: Returns an array of {KeyBinding}s that match a keystroke
-  # * keystroke:
-  #   The string representing the keys pressed (e.g. ctrl-P)
+  #
+  # keystroke: The {String} representing the keys pressed (e.g. ctrl-P)
   keyBindingsForKeystroke: (keystroke) ->
     keystroke = KeyBinding.normalizeKeystroke(keystroke)
     @keyBindings.filter (keyBinding) -> keyBinding.matches(keystroke)
 
   # Public: Returns an array of {KeyBinding}s that match a command
-  # * keystroke:
-  #   The string representing the keys pressed (e.g. ctrl-P)
+  #
+  # keystroke - The {String} representing the keys pressed (e.g. ctrl-P)
   keyBindingsForCommand: (command) ->
     @keyBindings.filter (keyBinding) -> keyBinding.command == command
 
   # Public: Returns a array of {KeyBinding}s (sorted by selector specificity)
   # whos selector matches the element.
   #
-  # * element:
-  #   The DOM node that will match a {KeyBinding}'s selector.
+  # element - The DOM node that will match a {KeyBinding}'s selector.
   keyBindingsMatchingElement: (element, keyBindings=@keyBindings) ->
     keyBindings = keyBindings.filter ({selector}) -> $(element).closest(selector).length > 0
     keyBindings.sort (a, b) -> a.compare(b)
 
   # Public: Returns a keystroke string derived from an event.
-  # * event:
-  #   A DOM or jQuery event
-  # * previousKeystroke:
-  #   An optional string used for multiKeystrokes
+  #
+  # event - A DOM or jQuery event.
+  # previousKeystroke - An optional string used for multiKeystrokes.
   keystrokeStringForEvent: (event, previousKeystroke) ->
     if event.originalEvent.keyIdentifier.indexOf('U+') == 0
       hexCharCode = event.originalEvent.keyIdentifier[2..]

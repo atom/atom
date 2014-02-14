@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
+Q = require 'q'
 
 {$} = require './space-pen-extensions'
 AtomPackage = require './atom-package'
@@ -10,7 +11,7 @@ File = require './file'
 
 # Public: Handles loading and activating available themes.
 #
-# A ThemeManager instance is always available under the `atom.themes` global.
+# An instance of this class is always available as the `atom.themes` global.
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)
@@ -41,7 +42,7 @@ class ThemeManager
 
   activatePackages: (themePackages) -> @activateThemes()
 
-  # Private: Get the enabled theme names from the config.
+  # Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
@@ -53,19 +54,22 @@ class ThemeManager
     themeNames.reverse()
 
   activateThemes: ->
+    deferred = Q.defer()
+
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', =>
       @deactivateThemes()
 
       @refreshLessCache() # Update cache for packages in core.themes config
-      for themeName in @getEnabledThemeNames()
-        @packageManager.activatePackage(themeName)
+      promises = @getEnabledThemeNames().map (themeName) => @packageManager.activatePackage(themeName)
+      Q.all(promises).then =>
+        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+        @loadUserStylesheet()
+        @reloadBaseStylesheets()
+        @emit('reloaded')
+        deferred.resolve()
 
-      @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-      @loadUserStylesheet()
-      @reloadBaseStylesheets()
-
-      @emit('reloaded')
+    deferred.promise
 
   deactivateThemes: ->
     @unwatchUserStylesheet()
@@ -77,7 +81,7 @@ class ThemeManager
 
   # Public: Set the list of enabled themes.
   #
-  # * enabledThemeNames: An {Array} of {String} theme names.
+  # enabledThemeNames - An {Array} of {String} theme names.
   setEnabledThemes: (enabledThemeNames) ->
     atom.config.set('core.themes', enabledThemeNames)
 
@@ -91,7 +95,7 @@ class ThemeManager
         if themePath = @packageManager.resolvePackagePath(themeName)
           themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
 
-    themePath for themePath in themePaths when fs.isDirectorySync(themePath)
+    themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
 
   # Public: Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
@@ -140,8 +144,9 @@ class ThemeManager
   #
   # This supports both CSS and LESS stylsheets.
   #
-  # * stylesheetPath: A {String} path to the stylesheet that can be an absolute
-  #   path or a relative path that will be resolved against the load path.
+  # stylesheetPath - A {String} path to the stylesheet that can be an absolute
+  #                  path or a relative path that will be resolved against the
+  #                  load path.
   #
   # Returns the absolute path to the required stylesheet.
   requireStylesheet: (stylesheetPath, ttype = 'bundled', htmlElement) ->

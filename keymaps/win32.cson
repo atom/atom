@@ -40,6 +40,8 @@
   'ctrl-=': 'window:increase-font-size'
   'ctrl-+': 'window:increase-font-size'
   'ctrl--': 'window:decrease-font-size'
+  'ctrl-_': 'window:decrease-font-size'
+  'ctrl-0': 'window:reset-font-size'
 
   'ctrl-k up': 'pane:split-up' # Atom Specific
   'ctrl-k down': 'pane:split-down' # Atom Specific
@@ -47,8 +49,12 @@
   'ctrl-k right': 'pane:split-right' # Atom Specific
   'ctrl-k ctrl-w': 'pane:close' # Atom Specific
   'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
-  'ctrl-k ctrl-left': 'window:focus-previous-pane'
-  'ctrl-k ctrl-right': 'window:focus-next-pane'
+  'ctrl-k ctrl-p': 'window:focus-previous-pane'
+  'ctrl-k ctrl-n': 'window:focus-next-pane'
+  'ctrl-k ctrl-up':    'window:focus-pane-above'
+  'ctrl-k ctrl-down':  'window:focus-pane-below'
+  'ctrl-k ctrl-left':  'window:focus-pane-on-left'
+  'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
 '.workspace .editor':
   # Windows specific
@@ -65,7 +71,6 @@
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
   'alt-ctrl-f': 'editor:fold-selection'
-  'ctrl-=': 'editor:auto-indent'
 
   # Sublime Parity
   'ctrl-enter': 'editor:newline-below'
