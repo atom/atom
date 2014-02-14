@@ -453,6 +453,10 @@ class Editor extends Model
       @insertNewline()
       @moveCursorUp() if onFirstLine
 
+  # {Delegates to: TextBuffer.append}
+  appendText: (text, normalizeLineEndings) ->
+    @buffer.append(text, normalizeLineEndings)
+
   # {Delegates to: TextBuffer.deleteRow}
   deleteBufferRow: (bufferRow) ->
     @buffer.deleteRow(bufferRow)
