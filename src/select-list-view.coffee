@@ -7,14 +7,8 @@ fuzzyFilter = require('fuzzaldrin').filter
 #
 # Subclasses must implement the following methods:
 #
-# * viewForItem(item) - Returns a DOM element, jQuery object, or {View}. This
-#                       is called when an item is being rendered in the list.
-#                       The item parameter will always be one of the items
-#                       previously passed to {.setItems}.
-#
-# * confirmed(item)   - Called when an item is selected from the list. The item
-#                       parameter will always be one of the items previously
-#                       passed to {.setItems}.
+# * {.viewForItem}
+# * {.confirmed}
 #
 # ## Requiring in packages
 #
@@ -213,12 +207,30 @@ class SelectListView extends View
     else
       @cancel()
 
+  # Public: Create a view for the given model item.
+  #
+  # This method must be overridden by subclasses.
+  #
+  # This is called when the item is about to appended to the list view.
+  #
+  # item - The model item being rendered. This will always be one of the items
+  #        previously passed to {.setItems}.
+  #
+  # Returns a DOM element, jQuery object, or {View}.
+  viewForItem: (item) ->
+    throw new Error("Subclass must implement a viewForItem(item) method")
+
+
   # Public: Callback function for when an item is selected.
   #
-  # This method should be overridden by subclasses.
+  # This method must be overridden by subclasses.
   #
-  # item - The selected model item.
+  # item - The selected model item. This will always be one of the items
+  #        previously passed to {.setItems}.
+  #
+  # Returns a DOM element, jQuery object, or {View}.
   confirmed: (item) ->
+    throw new Error("Subclass must implement a confirmed(item) method")
 
   # Public: Get the property name to use when filtering items.
   #
