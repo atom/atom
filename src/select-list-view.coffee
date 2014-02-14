@@ -5,6 +5,13 @@ fuzzyFilter = require('fuzzaldrin').filter
 # Public: Provides a widget for users to make a selection from a list of
 # choices.
 #
+# Subclasses must implement the following methods:
+#
+# * viewForItem(item) - Returns a DOM element, jQuery object, or {View}. This
+#                       is called when an item is being rendered in the list.
+#                       The item parameter will always be one of the items
+#                       passed to {.setItems}.
+#
 # ## Requiring in packages
 #
 # ```coffee
@@ -63,6 +70,9 @@ class SelectListView extends View
     @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
 
   # Public: Set the array of items to display in the list.
+  #
+  # This should be model items not actual views.  `viewForItem(item)` will be
+  # called to render the item when it is being appended to the list view.
   #
   # items - The {Array} of model items to display in the list.
   setItems: (@items=[]) ->
@@ -134,7 +144,7 @@ class SelectListView extends View
   # itemCount - The {Number} of items in the array specified to {.setItems}
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
-
+g
   selectPreviousItem: ->
     item = @getSelectedItem().prev()
     item = @list.find('li:last') unless item.length
