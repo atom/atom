@@ -132,13 +132,13 @@ class SelectListView extends View
   # Public: Build the DOM elements using the array from the last call to
   # {.setItems}.
   populateList: ->
-    return unless @array?
+    return unless @items?
 
     filterQuery = @getFilterQuery()
     if filterQuery.length
-      filteredArray = fuzzyFilter(@array, filterQuery, key: @getFilterKey())
+      filteredArray = fuzzyFilter(@items, filterQuery, key: @getFilterKey())
     else
-      filteredArray = @array
+      filteredArray = @items
 
     @list.empty()
     if filteredArray.length
@@ -152,7 +152,7 @@ class SelectListView extends View
 
       @selectItem(@list.find('li:first'))
     else
-      @setError(@getEmptyMessage(@array.length, filteredArray.length))
+      @setError(@getEmptyMessage(@items.length, filteredArray.length))
 
   # Public: Get the message to display when there are no items.
   #
