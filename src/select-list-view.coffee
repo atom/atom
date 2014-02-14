@@ -25,7 +25,7 @@ module.exports =
 class SelectListView extends View
   @content: ->
     @div class: @viewClass(), =>
-      @subview 'miniEditor', new EditorView(mini: true)
+      @subview 'editorView', new EditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
@@ -57,8 +57,8 @@ class SelectListView extends View
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
-    @miniEditor.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
-    @miniEditor.hiddenInput.on 'focusout', => @cancel() unless @cancelling
+    @editorView.getEditor().getBuffer().on 'changed', => @schedulePopulateList()
+    @editorView.hiddenInput.on 'focusout', => @cancel() unless @cancelling
 
     @on 'core:move-up', =>
       @selectPreviousItemView()
@@ -131,7 +131,7 @@ class SelectListView extends View
   #
   # Returns a {String} to use when fuzzy filtering the elements to display.
   getFilterQuery: ->
-    @miniEditor.getEditor().getText()
+    @editorView.getEditor().getText()
 
   # Public: Build the DOM elements using the array from the last call to
   # {.setItems}.
@@ -241,16 +241,16 @@ class SelectListView extends View
       atom.workspaceView.focus()
 
   cancelled: ->
-    @miniEditor.getEditor().setText('')
-    @miniEditor.updateDisplay()
+    @editorView.getEditor().setText('')
+    @editorView.updateDisplay()
 
   # Public: Cancel and close the select list dialog.
   cancel: ->
     @list.empty()
     @cancelling = true
-    miniEditorFocused = @miniEditor.isFocused
+    editorViewFocused = @editorView.isFocused
     @cancelled()
     @detach()
-    @restoreFocus() if miniEditorFocused
+    @restoreFocus() if editorViewFocused
     @cancelling = false
     clearTimeout(@scheduleTimeout)
