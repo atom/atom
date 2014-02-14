@@ -104,14 +104,25 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
-    if process.platform isnt 'win32' and fs.existsSync(socketPath)
-      fs.unlinkSync socketPath
+    @deleteSocketFile()
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
         @openWithOptions(JSON.parse(data))
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
+
+  deleteSocketFile: ->
+    return if process.platform is 'win32'
+
+    if fs.existsSync(socketPath)
+      try
+        fs.unlinkSync(socketPath)
+      catch error
+        # Ignore ENOENT errors in case the file was deleted between the exists
+        # check and the call to unlink sync. This occurred occasionally on CI
+        # which is why this check is here.
+        throw error unless error.code is 'ENOENT'
 
   # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
@@ -198,10 +209,8 @@ class AtomApplication
     app.on 'window-all-closed', ->
       app.quit() if process.platform is 'win32'
 
-    app.on 'will-quit', =>
-      # Clean the socket file when quit normally.
-      if process.platform isnt 'win32' and fs.existsSync(socketPath)
-        fs.unlinkSync socketPath
+    app.on 'will-quit', => @deleteSocketFile()
+    app.on 'will-exit', => @deleteSocketFile()
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()

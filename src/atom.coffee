@@ -419,6 +419,7 @@ class Atom extends Model
 
   exit: (status) ->
     app = remote.require('app')
+    app.emit('will-exit')
     app.exit(status)
 
   # Public: Is the current window in development mode?
