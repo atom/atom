@@ -2,8 +2,9 @@
 EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
-# Public: Provides a widget for users to make a selection from a list of
-# choices.
+# Public: Provides a view that renders a list of items with an editor that
+# filters the items. Used by many packages such as the fuzzy-finder,
+# command-palette, symbols-view and autocomplete.
 #
 # Subclasses must implement the following methods:
 #
@@ -14,6 +15,20 @@ fuzzyFilter = require('fuzzaldrin').filter
 #
 # ```coffee
 # {SelectListView} = require 'atom'
+#
+# class MySelectListView extends SelectListView
+#   initialize: ->
+#     super
+#     @addClass('overlay from-top')
+#     @setItems(['Hello', 'World'])
+#     atom.workspaceView.append(this)
+#     @focusEditor()
+#
+#   viewForItem: (item) ->
+#     "<li>#{item}</li>"
+#
+#   confirmed: (item) ->
+#     console.log("#{item} was selected")
 # ```
 module.exports =
 class SelectListView extends View
@@ -236,6 +251,10 @@ class SelectListView extends View
 
   attach: ->
     @storeFocusedElement()
+
+  # Public: Focus the fuzzy filter editor.
+  focusEditor: ->
+    @editorView.focus()
 
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
