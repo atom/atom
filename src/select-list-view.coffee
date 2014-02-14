@@ -19,7 +19,7 @@ fuzzyFilter = require('fuzzaldrin').filter
 # ## Requiring in packages
 #
 # ```coffee
-#   {SelectListView} = require 'atom'
+# {SelectListView} = require 'atom'
 # ```
 module.exports =
 class SelectListView extends View
