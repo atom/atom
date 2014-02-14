@@ -149,9 +149,9 @@ class SelectListView extends View
       @setError(null)
 
       for i in [0...Math.min(filteredArray.length, @maxItems)]
-        element = filteredArray[i]
-        item = @viewForItem(item)
-        item.data('select-list-element', element)
+        item = filteredArray[i]
+        view = @viewForItem(item)
+        view.data('select-list-item', item)
         @list.append(item)
 
       @selectItem(@list.find('li:first'))
@@ -199,7 +199,7 @@ class SelectListView extends View
   #
   # Returns a model item.
   getSelectedItem: ->
-    @getSelectedView().data('select-list-element')
+    @getSelectedView().data('select-list-item')
 
   confirmSelection: ->
     element = @getSelectedElement()
