@@ -154,7 +154,7 @@ class SelectListView extends View
         view.data('select-list-item', item)
         @list.append(item)
 
-      @selectItem(@list.find('li:first'))
+      @selectItemView(@list.find('li:first'))
     else
       @setError(@getEmptyMessage(@items.length, filteredArray.length))
 
