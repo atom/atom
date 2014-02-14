@@ -119,7 +119,7 @@ class SelectListView extends View
 
       for i in [0...Math.min(filteredArray.length, @maxItems)]
         element = filteredArray[i]
-        item = @itemForElement(element)
+        item = @viewForItem(item)
         item.data('select-list-element', element)
         @list.append(item)
 
