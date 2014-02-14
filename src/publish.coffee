@@ -203,7 +203,7 @@ class Publish extends Command
 
   logFirstTimePublishMessage: (pack) ->
     process.stdout.write 'Congrats on publishing a new package!'.rainbow
-    # :+1: :package: :tada when available
+    # :+1: :package: :tada: when available
     if process.platform is 'darwin'
       process.stdout.write ' \uD83D\uDC4D  \uD83D\uDCE6  \uD83C\uDF89'
 
