@@ -10,6 +10,10 @@ fuzzyFilter = require('fuzzaldrin').filter
 # * viewForItem(item) - Returns a DOM element, jQuery object, or {View}. This
 #                       is called when an item is being rendered in the list.
 #                       The item parameter will always be one of the items
+#                       previously passed to {.setItems}.
+#
+# * confirmed(item)   - Called when an item is selected from the list. The item
+#                       parameter will always be one of the items previously
 #                       passed to {.setItems}.
 #
 # ## Requiring in packages
@@ -203,12 +207,12 @@ g
     else
       @cancel()
 
-  # Public: Callback function for when a selection is made.
+  # Public: Callback function for when an item is selected.
   #
   # This method should be overridden by subclasses.
   #
-  # element - The selected model element.
-  confirmed: (element) ->
+  # item - The selected model item.
+  confirmed: (item) ->
 
   attach: ->
     @storeFocusedElement()
