@@ -213,6 +213,8 @@ class Publish extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
+    tag = options.argv.tag
+    [version] = options.argv._
 
     metadataPath = path.resolve('package.json')
     unless fs.isFileSync(metadataPath)
@@ -223,7 +225,7 @@ class Publish extends Command
     catch error
       return callback("Error parsing package.json file: #{error.message}")
 
-    if version = options.argv._[0]
+    if version?.length > 0
       @registerPackage pack, (error, firstTimePublishing) =>
         return callback(error) if error?
 
@@ -237,7 +239,7 @@ class Publish extends Command
               if firstTimePublishing and not error?
                 @logFirstTimePublishMessage(pack)
               callback(error)
-    else if tag = options.argv.tag
+    else if tag?.length > 0
       @registerPackage pack, (error, firstTimePublishing) =>
         return callback(error) if error?
 
