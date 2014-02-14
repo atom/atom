@@ -140,23 +140,23 @@ class SelectListView extends View
 
     filterQuery = @getFilterQuery()
     if filterQuery.length
-      filteredArray = fuzzyFilter(@items, filterQuery, key: @getFilterKey())
+      filteredItems = fuzzyFilter(@items, filterQuery, key: @getFilterKey())
     else
-      filteredArray = @items
+      filteredItems = @items
 
     @list.empty()
-    if filteredArray.length
+    if filteredItems.length
       @setError(null)
 
-      for i in [0...Math.min(filteredArray.length, @maxItems)]
-        item = filteredArray[i]
+      for i in [0...Math.min(filteredItems.length, @maxItems)]
+        item = filteredItems[i]
         view = @viewForItem(item)
         view.data('select-list-item', item)
         @list.append(item)
 
       @selectItemView(@list.find('li:first'))
     else
-      @setError(@getEmptyMessage(@items.length, filteredArray.length))
+      @setError(@getEmptyMessage(@items.length, filteredItems.length))
 
   # Public: Get the message to display when there are no items.
   #
