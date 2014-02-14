@@ -250,7 +250,7 @@ class SelectListView extends View
   # Returns the property name to fuzzy filter by.
   getFilterKey: ->
 
-  # Public: Focus the fuzzy filter editor.
+  # Public: Focus the fuzzy filter editor view.
   focusFilterEditor: ->
     @filterEditorView.focus()
 
@@ -269,7 +269,10 @@ class SelectListView extends View
     @filterEditorView.getEditor().setText('')
     @filterEditorView.updateDisplay()
 
-  # Public: Cancel and close the select list dialog.
+  # Public: Cancel and close this select list view.
+  #
+  # This restores focus to the previously focused element if
+  # {.storeFocusedElement} was called prior to this view being attached.
   cancel: ->
     @list.empty()
     @cancelling = true
