@@ -136,7 +136,7 @@ class SelectListView extends View
 
     filterQuery = @getFilterQuery()
     if filterQuery.length
-      filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
+      filteredArray = fuzzyFilter(@array, filterQuery, key: @getFilterKey())
     else
       filteredArray = @array
 
@@ -213,6 +213,19 @@ g
   #
   # item - The selected model item.
   confirmed: (item) ->
+
+  # Public: Get the property name to use when filtering items.
+  #
+  # This method may be overridden by classes to allow fuzzy filtering based
+  # on a specific property of the item objects.
+  #
+  # For example if the objects you pass to {.setItems} are of the type
+  # `{"id": 3, "name": "Atom"}` then you would return `"name"` from this method
+  # to fuzzy filter by that property when text is entered into this view's
+  # editor.
+  #
+  # Returns a {String} property name to fuzzy filter by.
+  getFilterKey: ->
 
   attach: ->
     @storeFocusedElement()
