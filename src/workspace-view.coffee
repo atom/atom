@@ -290,8 +290,3 @@ class WorkspaceView extends View
   # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
-
-  # Destroys everything.
-  remove: ->
-    editorView.remove() for editorView in @getEditorViews()
-    super
