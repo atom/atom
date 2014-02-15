@@ -35,14 +35,20 @@ module.exports =
 
     commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
-    symlinkCommand commandPath, destinationPath, (error) =>
-      if askForPrivilege and error?.code is 'EACCES'
-        try
-          error = null
-          symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
-        catch error
 
-      callback?(error)
+    fs.readlink destinationPath, (error, realpath) ->
+      if realpath == commandPath
+        callback()
+        return
+
+      symlinkCommand commandPath, destinationPath, (error) =>
+        if askForPrivilege and error?.code is 'EACCES'
+          try
+            error = null
+            symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
+          catch error
+
+        callback?(error)
 
   installAtomCommand: (resourcePath, askForPrivilege, callback) ->
     commandPath = path.join(resourcePath, 'atom.sh')
