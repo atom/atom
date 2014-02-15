@@ -10,12 +10,12 @@ describe "install(commandPath, callback)", ->
   installationFilePath = path.join(installationPath, commandName)
 
   beforeEach ->
+    fs.chmodSync(commandFilePath, '755')
     spyOn(installer, 'getInstallDirectory').andReturn installationPath
 
   describe "on #darwin", ->
     it "symlinks the command and makes it executable", ->
       expect(fs.isFileSync(commandFilePath)).toBeTruthy()
-      expect(fs.isExecutableSync(commandFilePath)).toBeFalsy()
       expect(fs.isFileSync(installationFilePath)).toBeFalsy()
 
       installDone = false
