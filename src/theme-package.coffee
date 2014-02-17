@@ -8,17 +8,17 @@ class ThemePackage extends AtomPackage
   getStylesheetType: -> 'theme'
 
   enable: ->
-    atom.config.unshiftAtKeyPath('core.themes', @metadata.name)
+    atom.config.unshiftAtKeyPath('core.themes', @name)
 
   disable: ->
-    atom.config.removeAtKeyPath('core.themes', @metadata.name)
+    atom.config.removeAtKeyPath('core.themes', @name)
 
   load: ->
     @measure 'loadTime', =>
       try
         @metadata ?= Package.loadMetadata(@path)
-      catch e
-        console.warn "Failed to load theme named '#{@name}'", e.stack ? e
+      catch error
+        console.warn "Failed to load theme named '#{@name}'", error.stack ? error
     this
 
   activate: ->
