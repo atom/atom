@@ -1,11 +1,14 @@
 path = require 'path'
 CSON = require 'season'
 
+AtomPackage = null
+ThemePackage = null
+
 module.exports =
 class Package
   @build: (packagePath) ->
-    AtomPackage = require './atom-package'
-    ThemePackage = require './theme-package'
+    AtomPackage ?= require './atom-package'
+    ThemePackage ?= require './theme-package'
 
     try
       metadata = @loadMetadata(packagePath)
