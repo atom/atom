@@ -92,7 +92,7 @@ class Package
         else
           @activateNow()
 
-    @grammarsPromise.then(@scopedPropertiesPromise).then(@activationDeferred.promise)
+    Q.all([@grammarsPromise, @scopedPropertiesPromise, @activationDeferred.promise])
 
   activateNow: ->
     try
