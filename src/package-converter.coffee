@@ -3,6 +3,7 @@ url = require 'url'
 zlib = require 'zlib'
 
 _ = require 'underscore-plus'
+CSON = require 'season'
 plist = require 'plist'
 request = require 'request'
 tar = require 'tar'
@@ -97,7 +98,11 @@ class PackageConverter
     destinationPath = path.join(destinationDir, destinationName)
 
     if _.contains(@plistExtensions, path.extname(sourcePath))
-      contents = plist.parseFileSync(sourcePath) ? {}
+      contents = plist.parseFileSync(sourcePath)
+    else if _.contains(['.json', '.cson'], path.extname(sourcePath))
+      contents = CSON.readFileSync(sourcePath)
+
+    if contents?
       @filterObject(contents)
 
       if path.basename(path.dirname(sourcePath)) is 'Preferences'
