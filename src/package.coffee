@@ -4,21 +4,17 @@ CSON = require 'season'
 module.exports =
 class Package
   @build: (path) ->
-    TextMatePackage = require './text-mate-package'
     AtomPackage = require './atom-package'
     ThemePackage = require './theme-package'
 
-    if TextMatePackage.testName(path)
-      pack = new TextMatePackage(path)
-    else
-      try
-        metadata = @loadMetadata(path)
-        if metadata.theme
-          pack = new ThemePackage(path, {metadata})
-        else
-          pack = new AtomPackage(path, {metadata})
-      catch e
-        console.warn "Failed to load package.json '#{basename(path)}'", e.stack ? e
+    try
+      metadata = @loadMetadata(path)
+      if metadata.theme
+        pack = new ThemePackage(path, {metadata})
+      else
+        pack = new AtomPackage(path, {metadata})
+    catch e
+      console.warn "Failed to load package.json '#{basename(path)}'", e.stack ? e
 
     pack
 
