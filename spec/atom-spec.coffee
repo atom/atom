@@ -277,7 +277,7 @@ describe "the `atom` global", ->
             runs ->
               expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
-      describe "textmate packages", ->
+      describe "converted textmate packages", ->
         it "loads the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
@@ -287,7 +287,7 @@ describe "the `atom` global", ->
           runs ->
             expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
-        it "translates the package's scoped properties to Atom terms", ->
+        it "loads the translated scoped properties", ->
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
           waitsForPromise ->
@@ -295,17 +295,6 @@ describe "the `atom` global", ->
 
           runs ->
             expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
-
-        describe "when the package has no grammars but does have preferences", ->
-          it "loads the package's preferences as scoped properties", ->
-            jasmine.unspy(window, 'setTimeout')
-            spyOn(atom.syntax, 'addProperties').andCallThrough()
-
-            waitsForPromise ->
-              atom.packages.activatePackage('package-with-preferences-tmbundle')
-
-            runs ->
-              expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
