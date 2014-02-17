@@ -13,8 +13,8 @@ class Package
         pack = new ThemePackage(packagePath, {metadata})
       else
         pack = new AtomPackage(packagePath, {metadata})
-    catch e
-      console.warn "Failed to load package.json '#{path.basename(packagePath)}'", e.stack ? e
+    catch error
+      console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
 
     pack
 
@@ -27,8 +27,8 @@ class Package
     if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
       try
         metadata = CSON.readFileSync(metadataPath)
-      catch e
-        throw e unless ignoreErrors
+      catch error
+        throw error unless ignoreErrors
     metadata ?= {}
     metadata.name = basename(packagePath)
     metadata
