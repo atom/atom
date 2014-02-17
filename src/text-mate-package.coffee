@@ -72,18 +72,10 @@ class TextMatePackage extends Package
   getGrammars: -> @grammars
 
   getSyntaxesPath: ->
-    syntaxesPath = path.join(@path, "syntaxes")
-    if fs.isDirectorySync(syntaxesPath)
-      syntaxesPath
-    else
-      path.join(@path, "Syntaxes")
+    path.join(@path, "syntaxes")
 
   getPreferencesPath: ->
-    preferencesPath = path.join(@path, "preferences")
-    if fs.isDirectorySync(preferencesPath)
-      preferencesPath
-    else
-      path.join(@path, "Preferences")
+    path.join(@path, "preferences")
 
   loadScopedProperties: ->
     scopedProperties = []
