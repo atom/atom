@@ -21,5 +21,5 @@ module.exports = (grunt) ->
           console.error "#{name}"
           console.error "  License: #{summary[name].license}"
           console.error "  Repository: #{summary[name].repository}"
-        exit 1
+        process.exit 1
       done()
