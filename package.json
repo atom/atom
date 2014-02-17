@@ -107,7 +107,7 @@
     "whitespace": "0.13.0",
     "wrap-guide": "0.14.0",
     "language-c": "0.5.0",
-    "language-clojure": "0.1.0",
+    "language-clojure": "0.2.0",
     "language-coffee-script": "0.7.0",
     "language-css": "0.3.0",
     "language-gfm": "0.16.0",
