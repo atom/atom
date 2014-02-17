@@ -26,7 +26,7 @@
     "delegato": "1.x",
     "emissary": "1.x",
     "first-mate": ">=1.1.4 <2.0",
-    "fs-plus": "1.x",
+    "fs-plus": "2.x",
     "fstream": "0.1.24",
     "fuzzaldrin": "1.x",
     "git-utils": "1.x",

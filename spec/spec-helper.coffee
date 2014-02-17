@@ -41,7 +41,7 @@ specProjectPath = null
 if specDirectory
   specPackagePath = path.resolve(specDirectory, '..')
   try
-    specPackageName = fs.readObjectSync(path.join(specPackagePath, 'package.json'))?.name
+    specPackageName = JSON.parse(fs.readFileSync(path.join(specPackagePath, 'package.json')))?.name
   specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
