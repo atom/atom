@@ -87,9 +87,13 @@ describe "the `atom` global", ->
 
           it "assigns config defaults from the module", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
-            atom.packages.activatePackage('package-with-config-defaults')
-            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
+
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-config-defaults')
+
+            runs ->
+              expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
+              expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
           describe "when the package metadata includes activation events", ->
             [mainModule, promise] = []
@@ -258,9 +262,12 @@ describe "the `atom` global", ->
 
         describe "grammar loading", ->
           it "loads the package's grammars", ->
-            atom.packages.activatePackage('package-with-grammars')
-            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
-            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-grammars')
+
+            runs ->
+              expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
+              expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
