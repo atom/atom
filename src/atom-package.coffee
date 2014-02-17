@@ -6,6 +6,7 @@ Q = require 'q'
 {$} = require './space-pen-extensions'
 CSON = require 'season'
 {Emitter} = require 'emissary'
+ScopedProperties = require './scoped-properties'
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
@@ -105,8 +106,8 @@ class AtomPackage extends Package
     grammar.activate() for grammar in @grammars
     @grammarsActivated = true
 
-    for [scopedPropertiesPath, selector, properties] in @scopedProperties
-      atom.syntax.addProperties(scopedPropertiesPath, selector, properties)
+    scopedProperties.activate() for scopedProperties in @scopedProperties
+    @scopedPropertiesActivated = true
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
@@ -149,24 +150,34 @@ class AtomPackage extends Package
 
   loadGrammars: ->
     @grammars = []
-    grammarsDirPath = path.join(@path, 'grammars')
-    fs.list grammarsDirPath, ['.json', '.cson'], (error, grammarPaths=[]) =>
-      @loadGrammar(grammarPath) for grammarPath in grammarPaths
 
-  loadGrammar: (grammarPath) ->
-    atom.syntax.readGrammar grammarPath, (error, grammar) =>
-      if error?
-        console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
-      else
-        @grammars.push(grammar)
-        grammar.activate() if @grammarsActivated
+    loadGrammar = (grammarPath) =>
+      atom.syntax.readGrammar grammarPath, (error, grammar) =>
+        if error?
+          console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+        else
+          @grammars.push(grammar)
+          grammar.activate() if @grammarsActivated
+
+    grammarsDirPath = path.join(@path, 'grammars')
+    fs.list grammarsDirPath, ['.json', '.cson'], (error, grammarPaths=[]) ->
+      loadGrammar(grammarPath) for grammarPath in grammarPaths
 
   loadScopedProperties: ->
     @scopedProperties = []
-    scopedPropertiessDirPath = path.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fs.listSync(scopedPropertiessDirPath, ['.json', '.cson'])
-      for selector, properties of fs.readObjectSync(scopedPropertiesPath)
-        @scopedProperties.push([scopedPropertiesPath, selector, properties])
+
+    loadScopedPropertiesFile = (scopedPropertiesPath) =>
+      ScopedProperties.load scopedPropertiesPath, (error, scopedProperties) =>
+        if error?
+          console.warn("Failed to load scoped properties: #{scopedPropertiesPath}", error.stack ? error)
+        else
+          @scopedProperties.push(scopedProperties)
+          scopedProperties.activate() if @scopedPropertiesActivated
+
+    scopedPropertiesDirPath = path.join(@path, 'scoped-properties')
+    fs.list scopedPropertiesDirPath, ['.json', '.cson'], (error, scopedPropertiesPaths=[]) ->
+      for scopedPropertiesPath in scopedPropertiesPaths
+        loadScopedPropertiesFile(scopedPropertiesPath)
 
   serialize: ->
     if @mainActivated
@@ -190,11 +201,12 @@ class AtomPackage extends Package
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
-    atom.syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
+    scopedProperties.deactivate() for scopedProperties in @scopedProperties
     atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false
     @grammarsActivated = false
+    @scopedPropertiesActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
