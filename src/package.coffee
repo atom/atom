@@ -1,43 +1,40 @@
+path = require 'path'
 CSON = require 'season'
-{basename, join} = require 'path'
 
 module.exports =
 class Package
-  @build: (path) ->
+  @build: (packagePath) ->
     AtomPackage = require './atom-package'
     ThemePackage = require './theme-package'
 
     try
-      metadata = @loadMetadata(path)
+      metadata = @loadMetadata(packagePath)
       if metadata.theme
-        pack = new ThemePackage(path, {metadata})
+        pack = new ThemePackage(packagePath, {metadata})
       else
-        pack = new AtomPackage(path, {metadata})
+        pack = new AtomPackage(packagePath, {metadata})
     catch e
-      console.warn "Failed to load package.json '#{basename(path)}'", e.stack ? e
+      console.warn "Failed to load package.json '#{path.basename(packagePath)}'", e.stack ? e
 
     pack
 
-  @load: (path) ->
-    pack = @build(path)
+  @load: (packagePath) ->
+    pack = @build(packagePath)
     pack?.load()
     pack
 
-  @loadMetadata: (path, ignoreErrors=false) ->
-    if metadataPath = CSON.resolve(join(path, 'package'))
+  @loadMetadata: (packagePath, ignoreErrors=false) ->
+    if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
       try
         metadata = CSON.readFileSync(metadataPath)
       catch e
         throw e unless ignoreErrors
     metadata ?= {}
-    metadata.name = basename(path)
+    metadata.name = basename(packagePath)
     metadata
 
-  name: null
-  path: null
-
   constructor: (@path) ->
-    @name = basename(@path)
+    @name = path.basename(@path)
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
