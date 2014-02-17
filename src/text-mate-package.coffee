@@ -15,7 +15,7 @@ class TextMatePackage extends Package
     @activationPromise = @activationPromise.then =>
       pack.loadGrammars()
         .then -> pack.loadScopedProperties()
-        .fail (error) -> console.log pack.name, error
+        .fail (error) -> console.log pack.name, error.stack ? error
 
   constructor: ->
     super
@@ -29,8 +29,9 @@ class TextMatePackage extends Package
     @measure 'loadTime', =>
       @metadata = Package.loadMetadata(@path, true)
 
-  activate: ({sync, immediate}={})->
-    TextMatePackage.addToActivationPromise(this)
+  activate: ->
+    @measure 'activateTime', =>
+      TextMatePackage.addToActivationPromise(this)
 
   activateSync: ->
     @loadGrammarsSync()
