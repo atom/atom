@@ -25,11 +25,11 @@ class PackageConverter
       '.tmSnippet'
     ]
 
-    @directoryNames = [
-      'Preferences'
-      'Snippets'
-      'Syntaxes'
-    ]
+    @directoryMappings = {
+      'Preferences': 'scoped-properties'
+      'Snippets': 'snippets'
+      'Syntaxes': 'grammars'
+    }
 
   convert: (callback) ->
     {protocol} = url.parse(@sourcePath)
@@ -57,12 +57,37 @@ class PackageConverter
         @copyDirectories(sourcePath, callback)
 
   copyDirectories: (sourcePath, callback) ->
-    for directoryName in @directoryNames
-      @convertDirectory(sourcePath, directoryName)
+    for source, target of @directoryMappings
+      @convertDirectory(path.join(sourcePath, source), target)
     callback()
 
   filterObject: (object) ->
     delete object.uuid
+
+  convertSettings: (settings) ->
+    if settings.shellVariables
+      shellVariables = {}
+      for {name, value} in settings.shellVariables
+        shellVariables[name] = value
+      settings.shellVariables = shellVariables
+
+    editorProperties = _.compactObject(
+      commentStart: _.valueForKeyPath(settings, 'shellVariables.TM_COMMENT_START')
+      commentEnd: _.valueForKeyPath(settings, 'shellVariables.TM_COMMENT_END')
+      increaseIndentPattern: settings.increaseIndentPattern
+      decreaseIndentPattern: settings.decreaseIndentPattern
+      foldEndPattern: settings.foldingStopMarker
+      completions: settings.completions
+    )
+    {editor: editorProperties} unless _.isEmpty(editorProperties)
+
+  convertPreferences: ({scope, settings}={}) ->
+    return unless scope and settings
+
+    if properties = @convertSettings(settings)
+      preferences = {}
+      preferences[scope] = properties
+      preferences
 
   convertFile: (sourcePath, destinationDir) ->
     extension = path.extname(sourcePath)
@@ -71,11 +96,18 @@ class PackageConverter
     destinationPath = path.join(destinationDir, destinationName)
 
     if _.contains(@plistExtensions, path.extname(sourcePath))
-      contents = plist.parseFileSync(sourcePath)
+      contents = plist.parseFileSync(sourcePath) ? {}
       @filterObject(contents)
+
+      if path.basename(path.dirname(sourcePath)) is 'Preferences'
+        contents = @convertPreferences(contents)
+        return unless contents
+
       fs.writeFileSync(destinationPath, JSON.stringify(contents, null, 2))
 
   normalizeFilenames: (directoryPath) ->
+    return unless fs.isDirectorySync(directoryPath)
+
     for child in fs.readdirSync(directoryPath)
       childPath = path.join(directoryPath, child)
 
@@ -93,13 +125,10 @@ class PackageConverter
         suffix++
       fs.renameSync(childPath, convertedPath)
 
-  convertDirectory: (sourcePath, directoryName) ->
-    source = path.join(sourcePath, directoryName)
+  convertDirectory: (source, targetName) ->
     return unless fs.isDirectorySync(source)
 
-    destination = path.join(@destinationPath, directoryName.toLowerCase())
-    fs.makeTreeSync(destination)
-
+    destination = path.join(@destinationPath, targetName)
     for child in fs.readdirSync(source)
       childPath = path.join(source, child)
       @convertFile(childPath, destination) if fs.isFileSync(childPath)
