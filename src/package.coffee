@@ -30,7 +30,7 @@ class Package
       catch error
         throw error unless ignoreErrors
     metadata ?= {}
-    metadata.name = basename(packagePath)
+    metadata.name = path.basename(packagePath)
     metadata
 
   constructor: (@path) ->
