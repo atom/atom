@@ -145,8 +145,8 @@ class PackageManager
       return pack if pack = @getLoadedPackage(name)
 
       try
-        metadata = Package.loadMetadata(packagePath)
-        if metadata?.theme
+        metadata = Package.loadMetadata(packagePath) ? {}
+        if metadata.theme
           pack = new ThemePackage(packagePath, metadata)
         else
           pack = new Package(packagePath, metadata)
