@@ -33,10 +33,6 @@ class TextMatePackage extends Package
     @measure 'activateTime', =>
       TextMatePackage.addToActivationPromise(this)
 
-  activateSync: ->
-    @loadGrammarsSync()
-    @loadScopedPropertiesSync()
-
   activateConfig: -> # noop
 
   deactivate: ->
@@ -147,24 +143,3 @@ class TextMatePackage extends Package
       completions: textMateSettings.completions
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
-
-  # Deprecated
-  loadGrammarsSync: ->
-    for grammarPath in fs.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
-      @addGrammar(atom.syntax.readGrammarSync(grammarPath))
-
-  # Deprecated
-  loadScopedPropertiesSync: ->
-    for grammar in @getGrammars()
-      if properties = @propertiesFromTextMateSettings(grammar)
-        selector = atom.syntax.cssSelectorFromScopeSelector(grammar.scopeName)
-        @scopedProperties.push({selector, properties})
-
-    for preferencePath in fs.listSync(@getPreferencesPath())
-      {scope, settings} = fs.readObjectSync(preferencePath)
-      if properties = @propertiesFromTextMateSettings(settings)
-        selector = atom.syntax.cssSelectorFromScopeSelector(scope) if scope?
-        @scopedProperties.push({selector, properties})
-
-    for {selector, properties} in @scopedProperties
-      atom.syntax.addProperties(@path, selector, properties)
