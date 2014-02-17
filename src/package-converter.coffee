@@ -6,6 +6,7 @@ _ = require 'underscore-plus'
 CSON = require 'season'
 plist = require 'plist'
 request = require 'request'
+{ScopeSelector} = require 'first-mate'
 tar = require 'tar'
 temp = require 'temp'
 
@@ -88,7 +89,8 @@ class PackageConverter
 
     if properties = @convertSettings(settings)
       preferences = {}
-      preferences[scope] = properties
+      selector = new ScopeSelector(scope).toCssSelector()
+      preferences[selector] = properties
       preferences
 
   convertFile: (sourcePath, destinationDir) ->
