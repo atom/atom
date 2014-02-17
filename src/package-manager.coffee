@@ -150,6 +150,7 @@ class PackageManager
           pack = new ThemePackage(packagePath, metadata)
         else
           pack = new Package(packagePath, metadata)
+        pack.load()
         @loadedPackages[pack.name] = pack
         pack
       catch error
