@@ -1,11 +1,13 @@
-Package = require './package'
-fs = require 'fs-plus'
 path = require 'path'
+
 _ = require 'underscore-plus'
-Q = require 'q'
-{$} = require './space-pen-extensions'
 CSON = require 'season'
+fs = require 'fs-plus'
 {Emitter} = require 'emissary'
+Q = require 'q'
+
+{$} = require './space-pen-extensions'
+Package = require './package'
 ScopedProperties = require './scoped-properties'
 
 # Loads and activates a package's main module and resources such as
