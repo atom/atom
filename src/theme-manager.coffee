@@ -6,7 +6,7 @@ fs = require 'fs-plus'
 Q = require 'q'
 
 {$} = require './space-pen-extensions'
-AtomPackage = require './atom-package'
+Package = require './package'
 File = require './file'
 
 # Public: Handles loading and activating available themes.
@@ -93,7 +93,7 @@ class ThemeManager
       themePaths = []
       for themeName in @getEnabledThemeNames()
         if themePath = @packageManager.resolvePackagePath(themeName)
-          themePaths.push(path.join(themePath, AtomPackage.stylesheetsDir))
+          themePaths.push(path.join(themePath, Package.stylesheetsDir))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
 

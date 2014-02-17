@@ -1,8 +1,8 @@
 {$} = require 'atom'
 path = require 'path'
-Package = require '../src/package'
+ThemePackage = require '../src/theme-package'
 
-describe "AtomPackage", ->
+describe "Package", ->
   describe "theme", ->
     theme = null
 
@@ -16,14 +16,14 @@ describe "AtomPackage", ->
       it "loads and applies css", ->
         expect($(".editor").css("padding-bottom")).not.toBe "1234px"
         themePath = atom.project.resolve('packages/theme-with-index-css')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "1234px"
 
       it "parses, loads and applies less", ->
         expect($(".editor").css("padding-bottom")).not.toBe "1234px"
         themePath = atom.project.resolve('packages/theme-with-index-less')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "4321px"
 
@@ -34,7 +34,7 @@ describe "AtomPackage", ->
         expect($(".editor").css("padding-bottom")).not.toBe("103px")
 
         themePath = atom.project.resolve('packages/theme-with-package-file')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe("101px")
         expect($(".editor").css("padding-right")).toBe("102px")
@@ -47,7 +47,7 @@ describe "AtomPackage", ->
         expect($(".editor").css("padding-bottom")).not.toBe "30px"
 
         themePath = atom.project.resolve('packages/theme-without-package-file')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
         expect($(".editor").css("padding-top")).toBe "10px"
         expect($(".editor").css("padding-right")).toBe "20px"
@@ -56,7 +56,7 @@ describe "AtomPackage", ->
     describe "reloading a theme", ->
       beforeEach ->
         themePath = atom.project.resolve('packages/theme-with-package-file')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
 
       it "reloads without readding to the stylesheets list", ->
@@ -67,7 +67,7 @@ describe "AtomPackage", ->
     describe "events", ->
       beforeEach ->
         themePath = atom.project.resolve('packages/theme-with-package-file')
-        theme = Package.load(themePath)
+        theme = new ThemePackage(themePath)
         theme.activate()
 
       it "deactivated event fires on .deactivate()", ->

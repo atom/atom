@@ -1,8 +1,8 @@
 Q = require 'q'
-AtomPackage = require './atom-package'
+Package = require './package'
 
 module.exports =
-class ThemePackage extends AtomPackage
+class ThemePackage extends Package
   getType: -> 'theme'
 
   getStylesheetType: -> 'theme'

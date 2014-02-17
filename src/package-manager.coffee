@@ -144,9 +144,17 @@ class PackageManager
       name = path.basename(nameOrPath)
       return pack if pack = @getLoadedPackage(name)
 
-      pack = Package.load(packagePath)
-      @loadedPackages[pack.name] = pack if pack?
-      pack
+      try
+        metadata = Package.loadMetadata(packagePath)
+        if metadata?.theme
+          pack = new ThemePackage(packagePath, metadata)
+        else
+          pack = new Package(packagePath, metadata)
+        @loadedPackages[pack.name] = pack
+        pack
+      catch error
+        console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
+
     else
       throw new Error("Could not resolve '#{nameOrPath}' to a package path")
 

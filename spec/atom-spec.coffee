@@ -1,7 +1,7 @@
 {$, $$, fs, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
-AtomPackage = require '../src/atom-package'
+Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
@@ -50,7 +50,7 @@ describe "the `atom` global", ->
       describe "atom packages", ->
         describe "when called multiple times", ->
           it "it only calls activate on the package once", ->
-            spyOn(AtomPackage.prototype, 'activateNow').andCallThrough()
+            spyOn(Package.prototype, 'activateNow').andCallThrough()
             atom.packages.activatePackage('package-with-index')
             atom.packages.activatePackage('package-with-index')
 
@@ -58,7 +58,7 @@ describe "the `atom` global", ->
               atom.packages.activatePackage('package-with-index')
 
             runs ->
-              expect(AtomPackage.prototype.activateNow.callCount).toBe 1
+              expect(Package.prototype.activateNow.callCount).toBe 1
 
         describe "when the package has a main module", ->
           describe "when the metadata specifies a main module path˜", ->
@@ -97,8 +97,7 @@ describe "the `atom` global", ->
             beforeEach ->
               mainModule = require './fixtures/packages/package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
-              AtomPackage = require '../src/atom-package'
-              spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
+              spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
               promise = atom.packages.activatePackage('package-with-activation-events')
 
