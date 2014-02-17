@@ -1,6 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
+async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter} = require 'emissary'
@@ -43,8 +44,8 @@ class AtomPackage extends Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @loadGrammars()
-        @loadScopedProperties()
+        @grammarsPromise = @loadGrammars()
+        @scopedPropertiesPromise = @loadScopedProperties()
         @requireMainModule() unless @metadata.activationEvents?
 
       catch e
@@ -59,17 +60,16 @@ class AtomPackage extends Package
     @scopedProperties = []
 
   activate: ->
-    return @activationDeferred.promise if @activationDeferred?
+    unless @activationDeferred?
+      @activationDeferred = Q.defer()
+      @measure 'activateTime', =>
+        @activateResources()
+        if @metadata.activationEvents?
+          @subscribeToActivationEvents()
+        else
+          @activateNow()
 
-    @activationDeferred = Q.defer()
-    @measure 'activateTime', =>
-      @activateResources()
-      if @metadata.activationEvents?
-        @subscribeToActivationEvents()
-      else
-        @activateNow()
-
-    @activationDeferred.promise
+    @grammarsPromise.then(@scopedPropertiesPromise).then(@activationDeferred.promise)
 
   activateNow: ->
     try
@@ -153,33 +153,38 @@ class AtomPackage extends Package
   loadGrammars: ->
     @grammars = []
 
-    loadGrammar = (grammarPath) =>
+    loadGrammar = (grammarPath, callback) =>
       atom.syntax.readGrammar grammarPath, (error, grammar) =>
         if error?
           console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
         else
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
+        callback()
 
+    deferred = Q.defer()
     grammarsDirPath = path.join(@path, 'grammars')
-    fs.list grammarsDirPath, ['.json', '.cson'], (error, grammarPaths=[]) ->
-      loadGrammar(grammarPath) for grammarPath in grammarPaths
+    fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+      async.each grammarPaths, loadGrammar, -> deferred.resolve()
+    deferred.promise
 
   loadScopedProperties: ->
     @scopedProperties = []
 
-    loadScopedPropertiesFile = (scopedPropertiesPath) =>
+    loadScopedPropertiesFile = (scopedPropertiesPath, callback) =>
       ScopedProperties.load scopedPropertiesPath, (error, scopedProperties) =>
         if error?
           console.warn("Failed to load scoped properties: #{scopedPropertiesPath}", error.stack ? error)
         else
           @scopedProperties.push(scopedProperties)
           scopedProperties.activate() if @scopedPropertiesActivated
+        callback()
 
+    deferred = Q.defer()
     scopedPropertiesDirPath = path.join(@path, 'scoped-properties')
-    fs.list scopedPropertiesDirPath, ['.json', '.cson'], (error, scopedPropertiesPaths=[]) ->
-      for scopedPropertiesPath in scopedPropertiesPaths
-        loadScopedPropertiesFile(scopedPropertiesPath)
+    fs.list scopedPropertiesDirPath, ['json', 'cson'], (error, scopedPropertiesPaths=[]) ->
+      async.each scopedPropertiesPaths, loadScopedPropertiesFile, -> deferred.resolve()
+    deferred.promise
 
   serialize: ->
     if @mainActivated
@@ -191,6 +196,10 @@ class AtomPackage extends Package
   deactivate: ->
     @activationDeferred?.reject()
     @activationDeferred = null
+    @grammarPromise?.reject()
+    @grammarPromise = null
+    @scopedPropertiesPromise?.reject()
+    @scopedPropertiesPromise = null
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
