@@ -15,7 +15,6 @@ class AtomPackage extends Package
 
   @stylesheetsDir: 'stylesheets'
 
-  metadata: null
   keymaps: null
   menus: null
   stylesheets: null
@@ -25,8 +24,7 @@ class AtomPackage extends Package
   resolvedMainModulePath: false
   mainModule: null
 
-  constructor: (path, {@metadata}) ->
-    super(path)
+  constructor: ->
     @reset()
 
   getType: -> 'atom'

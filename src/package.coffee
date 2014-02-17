@@ -10,9 +10,9 @@ class Package
     try
       metadata = @loadMetadata(packagePath)
       if metadata.theme
-        pack = new ThemePackage(packagePath, {metadata})
+        pack = new ThemePackage(packagePath, metadata)
       else
-        pack = new AtomPackage(packagePath, {metadata})
+        pack = new AtomPackage(packagePath, metadata)
     catch error
       console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
 
@@ -33,8 +33,8 @@ class Package
     metadata.name = path.basename(packagePath)
     metadata
 
-  constructor: (@path) ->
-    @name = path.basename(@path)
+  constructor: (@path, @metadata) ->
+    @name = @metadata?.name ? path.basename(@path)
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @metadata.name)
