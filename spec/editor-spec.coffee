@@ -2782,12 +2782,13 @@ describe "Editor", ->
         expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
         expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-injection-selector')
 
-        atom.packages.activatePackage('package-with-injection-selector')
-
-        {tokens} = editor.lineForScreenRow(0)
-        expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+        runs ->
+          {tokens} = editor.lineForScreenRow(0)
+          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
         waitsForPromise ->
           atom.packages.activatePackage('language-sql')
