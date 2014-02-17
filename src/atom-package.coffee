@@ -101,7 +101,10 @@ class AtomPackage extends Package
     atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
+
     grammar.activate() for grammar in @grammars
+    @grammarsActivated = true
+
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       atom.syntax.addProperties(scopedPropertiesPath, selector, properties)
 
@@ -147,8 +150,16 @@ class AtomPackage extends Package
   loadGrammars: ->
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
-    for grammarPath in fs.listSync(grammarsDirPath, ['.json', '.cson'])
-      @grammars.push(atom.syntax.readGrammarSync(grammarPath))
+    fs.list grammarsDirPath, ['.json', '.cson'], (error, grammarPaths=[]) =>
+      @loadGrammar(grammarPath) for grammarPath in grammarPaths
+
+  loadGrammar: (grammarPath) ->
+    atom.syntax.readGrammar grammarPath, (error, grammar) =>
+      if error?
+        console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+      else
+        @grammars.push(grammar)
+        grammar.activate() if @grammarsActivated
 
   loadScopedProperties: ->
     @scopedProperties = []
@@ -183,6 +194,7 @@ class AtomPackage extends Package
     atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false
+    @grammarsActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
