@@ -219,8 +219,8 @@ class Package
   deactivate: ->
     @activationDeferred?.reject()
     @activationDeferred = null
-    @grammarPromise?.reject()
-    @grammarPromise = null
+    @grammarsPromise?.reject()
+    @grammarsPromise = null
     @scopedPropertiesPromise?.reject()
     @scopedPropertiesPromise = null
     @unsubscribeFromActivationEvents()
