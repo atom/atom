@@ -9,6 +9,7 @@ module.exports =
        * Copyright(c) 2010 LearnBoost <dev@learnboost.com>
        * MIT Licensed
        */
+      <content omitted>
     """
   'bufferjs@2.0.0':
     repository: 'https://github.com/coolaj86/node-bufferjs'
