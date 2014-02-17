@@ -1,7 +1,0 @@
-{
-  "name": "my preferences",
-  "scope": "source.pref",
-  "settings": {
-    "increaseIndentPattern": "^abc$"
-  }
-}

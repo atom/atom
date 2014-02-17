@@ -4,7 +4,7 @@ path = require 'path'
 temp = require 'temp'
 
 ThemeManager = require '../src/theme-manager'
-AtomPackage = require '../src/atom-package'
+Package = require '../src/package'
 
 describe "ThemeManager", ->
   themeManager = null

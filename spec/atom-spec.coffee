@@ -1,7 +1,7 @@
 {$, $$, fs, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
-AtomPackage = require '../src/atom-package'
+Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
@@ -50,7 +50,7 @@ describe "the `atom` global", ->
       describe "atom packages", ->
         describe "when called multiple times", ->
           it "it only calls activate on the package once", ->
-            spyOn(AtomPackage.prototype, 'activateNow').andCallThrough()
+            spyOn(Package.prototype, 'activateNow').andCallThrough()
             atom.packages.activatePackage('package-with-index')
             atom.packages.activatePackage('package-with-index')
 
@@ -58,7 +58,7 @@ describe "the `atom` global", ->
               atom.packages.activatePackage('package-with-index')
 
             runs ->
-              expect(AtomPackage.prototype.activateNow.callCount).toBe 1
+              expect(Package.prototype.activateNow.callCount).toBe 1
 
         describe "when the package has a main module", ->
           describe "when the metadata specifies a main module path˜", ->
@@ -87,9 +87,13 @@ describe "the `atom` global", ->
 
           it "assigns config defaults from the module", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
-            atom.packages.activatePackage('package-with-config-defaults')
-            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
+
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-config-defaults')
+
+            runs ->
+              expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
+              expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
           describe "when the package metadata includes activation events", ->
             [mainModule, promise] = []
@@ -97,8 +101,7 @@ describe "the `atom` global", ->
             beforeEach ->
               mainModule = require './fixtures/packages/package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
-              AtomPackage = require '../src/atom-package'
-              spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
+              spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
               promise = atom.packages.activatePackage('package-with-activation-events')
 
@@ -259,9 +262,12 @@ describe "the `atom` global", ->
 
         describe "grammar loading", ->
           it "loads the package's grammars", ->
-            atom.packages.activatePackage('package-with-grammars')
-            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
-            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-grammars')
+
+            runs ->
+              expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
+              expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
         describe "scoped-property loading", ->
           it "loads the scoped properties", ->
@@ -271,7 +277,7 @@ describe "the `atom` global", ->
             runs ->
               expect(atom.syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
-      describe "textmate packages", ->
+      describe "converted textmate packages", ->
         it "loads the package's grammars", ->
           expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
@@ -281,7 +287,7 @@ describe "the `atom` global", ->
           runs ->
             expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
-        it "translates the package's scoped properties to Atom terms", ->
+        it "loads the translated scoped properties", ->
           expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
           waitsForPromise ->
@@ -289,17 +295,6 @@ describe "the `atom` global", ->
 
           runs ->
             expect(atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
-
-        describe "when the package has no grammars but does have preferences", ->
-          it "loads the package's preferences as scoped properties", ->
-            jasmine.unspy(window, 'setTimeout')
-            spyOn(atom.syntax, 'addProperties').andCallThrough()
-
-            waitsForPromise ->
-              atom.packages.activatePackage('package-with-preferences-tmbundle')
-
-            runs ->
-              expect(atom.syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
