@@ -1,9 +1,12 @@
+path = require 'path'
+
+_ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
-_ = require 'underscore-plus'
 Q = require 'q'
+
 Package = require './package'
-path = require 'path'
+ThemePackage = require './theme-package'
 
 # Public: Package manager for coordinating the lifecycle of Atom packages.
 #
