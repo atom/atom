@@ -109,7 +109,8 @@ class PackageConverter
         contents = @convertPreferences(contents)
         return unless contents
 
-      fs.writeFileSync(destinationPath, JSON.stringify(contents, null, 2))
+      json = "#{JSON.stringify(contents, null, 2)}\n"
+      fs.writeFileSync(destinationPath, json)
 
   normalizeFilenames: (directoryPath) ->
     return unless fs.isDirectorySync(directoryPath)
