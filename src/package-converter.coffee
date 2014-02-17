@@ -57,6 +57,7 @@ class PackageConverter
         @copyDirectories(sourcePath, callback)
 
   copyDirectories: (sourcePath, callback) ->
+    sourcePath = path.resolve(sourcePath)
     for source, target of @directoryMappings
       @convertDirectory(path.join(sourcePath, source), target)
     callback()
