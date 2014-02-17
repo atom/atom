@@ -39,14 +39,12 @@ class TextMatePackage extends Package
     grammar.deactivate() for grammar in @grammars
     atom.syntax.removeProperties(@path)
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json', 'cson']
-
   loadGrammars: ->
     deferred = Q.defer()
     fs.isDirectory @getSyntaxesPath(), (isDirectory) =>
       return deferred.resolve() unless isDirectory
 
-      fs.list @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
+      fs.list @getSyntaxesPath(), ['json', 'cson'], (error, paths) =>
         if error?
           console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
           deferred.resolve()
