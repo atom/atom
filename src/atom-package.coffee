@@ -25,6 +25,7 @@ class AtomPackage extends Package
   mainModule: null
 
   constructor: ->
+    super
     @reset()
 
   getType: -> 'atom'
