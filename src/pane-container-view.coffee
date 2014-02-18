@@ -91,22 +91,22 @@ class PaneContainerView extends View
   paneForUri: (uri) ->
     @viewForModel(@model.paneForUri(uri))
 
-  focusNextPane: ->
+  focusNextPaneView: ->
     @model.activateNextPane()
 
-  focusPreviousPane: ->
+  focusPreviousPaneView: ->
     @model.activatePreviousPane()
 
-  focusPaneAbove: ->
+  focusPaneViewAbove: ->
     @nearestPaneInDirection('above')?.focus()
 
-  focusPaneBelow: ->
+  focusPaneViewBelow: ->
     @nearestPaneInDirection('below')?.focus()
 
-  focusPaneOnLeft: ->
+  focusPaneViewOnLeft: ->
     @nearestPaneInDirection('left')?.focus()
 
-  focusPaneOnRight: ->
+  focusPaneViewOnRight: ->
     @nearestPaneInDirection('right')?.focus()
 
   nearestPaneInDirection: (direction) ->
