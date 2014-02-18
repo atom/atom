@@ -45,10 +45,10 @@ describe "PaneContainerView", ->
       expect(container.getFocusedPane()).toBe pane3
       expect(container.getActivePane()).toBe pane3
 
-  describe ".eachPane(callback)", ->
+  describe ".eachPaneView(callback)", ->
     it "runs the callback with all current and future panes until the subscription is cancelled", ->
       panes = []
-      subscription = container.eachPane (pane) -> panes.push(pane)
+      subscription = container.eachPaneView (pane) -> panes.push(pane)
       expect(panes).toEqual [pane1, pane2, pane3]
 
       panes = []

@@ -70,7 +70,7 @@ class PaneContainerView extends View
   paneAtIndex: (index) ->
     @getPanes()[index]
 
-  eachPane: (callback) ->
+  eachPaneView: (callback) ->
     callback(pane) for pane in @getPanes()
     paneAttached = (e) -> callback($(e.target).view())
     @on 'pane:attached', paneAttached

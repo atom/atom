@@ -269,8 +269,8 @@ class WorkspaceView extends View
   getFocusedPane: -> @panes.getFocusedPane()
 
   # Public: Fires a callback on each open {PaneView}.
-  eachPane: (callback) ->
-    @panes.eachPane(callback)
+  eachPaneView: (callback) ->
+    @panes.eachPaneView(callback)
 
   # Public: Returns an Array of all open {PaneView}s.
   getPanes: ->
@@ -290,3 +290,7 @@ class WorkspaceView extends View
   # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
+
+  # Deprecated:
+  eachPane: (callback) ->
+    @eachPaneView(callback)
