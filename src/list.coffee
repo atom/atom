@@ -30,7 +30,7 @@ class List
       List all the installed packages and also the packages bundled with Atom.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('t', 'themes').describe('themes', 'Only list themes')
+    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 

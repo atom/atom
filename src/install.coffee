@@ -36,7 +36,7 @@ class Install extends Command
       directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('d', 'dev').describe('dev', 'Install dev dependencies of atom packages being installed')
+    options.alias('d', 'dev').boolean('dev').describe('dev', 'Install dev dependencies of atom packages being installed')
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
 
