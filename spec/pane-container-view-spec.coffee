@@ -66,7 +66,7 @@ describe "PaneContainerView", ->
 
       container.saveAll()
 
-      for pane in container.getPanes()
+      for pane in container.getPaneViews()
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
@@ -255,7 +255,7 @@ describe "PaneContainerView", ->
   describe ".focusPreviousPane()", ->
     it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
       container.attachToDom()
-      container.getPanes()[0].focus() # activate first pane
+      container.getPaneViews()[0].focus() # activate first pane
 
       container.focusPreviousPane()
       expect(pane3.activeItem).toMatchSelector ':focus'

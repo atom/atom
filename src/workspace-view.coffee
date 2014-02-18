@@ -272,8 +272,8 @@ class WorkspaceView extends View
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
 
-  # Public: Returns an Array of all open {PaneView}s.
-  getPanes: ->
+  # Returns an Array of all open {PaneView}s.
+  getPaneViews: ->
     @panes.getPanes()
 
   # Public: Return the id of the given a {PaneView}
@@ -294,3 +294,7 @@ class WorkspaceView extends View
   # Deprecated:
   eachPane: (callback) ->
     @eachPaneView(callback)
+
+  # Deprecated:
+  getPanes: ->
+    @getPaneViews()
