@@ -267,10 +267,6 @@ class WorkspaceView extends View
   getPaneViews: ->
     @panes.getPanes()
 
-  # Public: Return the id of the given a {PaneView}
-  indexOfPane: (pane) ->
-    @panes.indexOfPane(pane)
-
   # Public: Fires a callback on each open {EditorView}.
   eachEditorView: (callback) ->
     callback(editor) for editor in @getEditorViews()
