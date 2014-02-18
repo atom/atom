@@ -20,7 +20,7 @@ class Unpublish extends Command
 
       Remove a published package from the atom.io registry. The package in the
       current working directory will be unpublished if no package name is
-      specified
+      specified.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('f', 'force').boolean('force').describe('force', 'Do not prompt for confirmation.')
