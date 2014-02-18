@@ -502,7 +502,7 @@ class Atom extends Model
   requireUserInitScript: ->
     if userInitScriptPath = @getUserInitScriptPath()
       try
-        require userInitScriptPath
+        require(userInitScriptPath) if fs.isFileSync(userInitScriptPath)
       catch error
         console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
