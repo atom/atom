@@ -233,10 +233,6 @@ class WorkspaceView extends View
   getActivePaneView: ->
     @panes.getActivePane()
 
-  # Deprecated: Returns the currently focused {PaneView}.
-  getActivePane: ->
-    @getActivePaneView()
-
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
     @model.activePaneItem
@@ -291,10 +287,14 @@ class WorkspaceView extends View
   beforeRemove: ->
     @model.destroy()
 
-  # Deprecated:
+  # Deprecated
   eachPane: (callback) ->
     @eachPaneView(callback)
 
-  # Deprecated:
+  # Deprecated
   getPanes: ->
     @getPaneViews()
+
+  # Deprecated
+  getActivePane: ->
+    @getActivePaneView()
