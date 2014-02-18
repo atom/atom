@@ -259,11 +259,6 @@ class WorkspaceView extends View
   # Public: Focuses the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
-  # Public:
-  #
-  # FIXME: Difference between active and focused pane?
-  getFocusedPane: -> @panes.getFocusedPane()
-
   # Public: Fires a callback on each open {PaneView}.
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
