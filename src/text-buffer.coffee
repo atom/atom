@@ -10,8 +10,8 @@ File = require './file'
 
 # Represents the contents of a file.
 #
-# The `TextBuffer` is often associated with a {File}. However, this is not always
-# the case, as a `TextBuffer` could be an unsaved chunk of text.
+# The `TextBuffer` is often associated with a {File}. However, this is not
+# always the case, as a `TextBuffer` could contain an unsaved chunk of text.
 module.exports =
 class TextBuffer extends TextBufferCore
   atom.deserializers.add(this)
