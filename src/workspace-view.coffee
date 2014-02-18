@@ -158,13 +158,13 @@ class WorkspaceView extends View
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  handleFocus: (e) ->
+  handleFocus: ->
     if @getActivePane()
       @getActivePane().focus()
       false
     else
       @updateTitle()
-      focusableChild = this.find("[tabindex=-1]:visible:first")
+      focusableChild = @find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
         false
