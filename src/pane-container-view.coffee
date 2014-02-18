@@ -144,5 +144,6 @@ class PaneContainerView extends View
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
 
+  # Deprecated
   getPanes: ->
     @getPaneViews()
