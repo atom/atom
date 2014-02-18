@@ -157,6 +157,11 @@ class Workspace extends Model
   getActivePane: ->
     @paneContainer.activePane
 
+  # Public: Returns the first pane {Pane} with an item for the given uri or
+  # undefined if none exists.
+  paneForUri: (uri) ->
+    @paneContainer.paneForUri(uri)
+
   # Public: save the active item.
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
