@@ -153,6 +153,10 @@ class Workspace extends Model
   getOpeners: ->
     atom.project.openers
 
+  # Public: Returns the active {Pane}.
+  getActivePane: ->
+    @paneContainer.activePane
+
   # Public: save the active item.
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
