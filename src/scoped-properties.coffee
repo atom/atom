@@ -1,9 +1,9 @@
-fs = require 'fs-plus'
+CSON = require 'season'
 
 module.exports =
 class ScopedProperties
   @load: (scopedPropertiesPath, callback) ->
-    fs.readObject scopedPropertiesPath, (error, scopedProperties={}) ->
+    CSON.readFile scopedPropertiesPath, (error, scopedProperties={}) ->
       if error?
         callback(error)
       else
