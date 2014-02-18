@@ -35,3 +35,7 @@ module.exports =
 
       MIT/X11
     """
+  'specificity@0.1.3':
+    repository: 'https://github.com/keeganstreet/specificity'
+    license: 'MIT'
+    source: 'package.json in repository'
