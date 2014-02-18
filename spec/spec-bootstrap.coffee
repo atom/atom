@@ -5,7 +5,11 @@ try
   require '../src/window'
   Atom = require '../src/atom'
   window.atom = Atom.loadOrCreate('spec')
-  window.atom.show() unless atom.getLoadSettings().exitWhenDone
+
+  # Show window synchronously so a focusout doesn't fire on input elements
+  # that are focused in the very first spec run.
+  atom.getCurrentWindow().show() unless atom.getLoadSettings().exitWhenDone
+
   {runSpecSuite} = require './jasmine-helper'
 
   document.title = "Spec Suite"
