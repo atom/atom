@@ -43,6 +43,7 @@
     "pegjs": "0.8.0",
     "property-accessors": "1.x",
     "q": "1.0.x",
+    "random-words": "0.0.1",
     "runas": "0.5.x",
     "scandal": "0.14.0",
     "season": "1.x",
@@ -144,8 +145,5 @@
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
     "test": "node script/test"
-  },
-  "devDependencies": {
-    "random-words": "0.0.1"
   }
 }
