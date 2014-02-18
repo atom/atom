@@ -77,16 +77,14 @@ class Workspace extends Model
     split = options.split
     uri = atom.project.relativize(uri) ? ''
 
-    pane = switch split
+    pane = @paneContainer.paneForUri(uri) if searchAllPanes
+    pane ?= switch split
       when 'left'
         @activePane.findLeftmostSibling()
       when 'right'
         @activePane.findOrCreateRightmostSibling()
       else
-        if searchAllPanes
-          @paneContainer.paneForUri(uri) ? @activePane
-        else
-          @activePane
+        @activePane
 
     @openUriInPane(uri, pane, options)
 
