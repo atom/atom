@@ -54,10 +54,6 @@ class SelectListView extends View
     @filterEditorView.getEditor().getBuffer().on 'changed', =>
       @schedulePopulateList()
     @filterEditorView.hiddenInput.on 'focusout', =>
-      try
-        throw new Error()
-      catch error
-        console.error(error.stack)
       @cancel() unless @cancelling
 
     @on 'core:move-up', =>
