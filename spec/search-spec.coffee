@@ -33,3 +33,14 @@ describe 'apm search', ->
       expect(console.log.argsForCall[1][0]).toContain 'duckberg'
       expect(console.log.argsForCall[2][0]).toContain 'duckblur'
       expect(console.log.argsForCall[3][0]).toContain 'ducktales'
+
+  it "logs an error if the query is missing or empty", ->
+    callback = jasmine.createSpy('callback')
+    apm.run(['search'], callback)
+
+    waitsFor 'waiting for command to complete', ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.error).toHaveBeenCalled()
+      expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
