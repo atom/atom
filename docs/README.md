@@ -23,9 +23,7 @@ You can also require many of these classes in your package via:
 The classes available from `require 'atom'` are:
   * [BufferedProcess][BufferedProcess]
   * [BufferedNodeProcess][BufferedNodeProcess]
-  * [Directory][Directory]
   * [EditorView][EditorView]
-  * [File][File]
   * [Git][Git]
   * [Point][Point]
   * [Range][Range]
@@ -47,10 +45,8 @@ Atom ships with node 0.11.10 and the comprehensive node API docs are available
 [Atom]: ../classes/Atom.html
 [BufferedProcess]: ../classes/BufferedProcess.html
 [BufferedNodeProcess]: ../classes/BufferedNodeProcess.html
-[Directory]: ../classes/Directory.html
 [Editor]: ../classes/Editor.html
 [EditorView]: ../classes/EditorView.html
-[File]: ../classes/File.html
 [Git]: ../classes/Git.html
 [Point]: ../classes/Point.html
 [Range]: ../classes/Range.html

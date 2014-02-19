@@ -1,12 +1,9 @@
 {Point, Range} = require 'text-buffer'
-{File, Directory} = require 'pathwatcher'
 
 module.exports =
   _: require 'underscore-plus'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
-  Directory: Directory
-  File: File
   fs: require 'fs-plus'
   Git: require '../src/git'
   Point: Point
