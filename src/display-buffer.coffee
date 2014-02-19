@@ -308,7 +308,6 @@ class DisplayBuffer extends Model
           screenColumn = Infinity
         break
 
-    new Point(screenRow, screenColumn)
     @clipScreenPosition([screenRow, screenColumn], options)
 
   # Given a buffer position, this converts it into a screen position.
