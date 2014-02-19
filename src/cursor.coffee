@@ -19,12 +19,19 @@ class Cursor
 
   # Instantiated by an {Editor}
   constructor: ({@editor, @marker}) ->
+    unless @editor.mini
+      console.log 'adding cursor', @marker.id
+
     @updateVisibility()
     @marker.on 'changed', (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
       {textChanged} = e
+
+      unless @editor.mini
+        console.log 'marker changed', @editor.getCursorBufferPosition(), @marker.id
+
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
       @needsAutoscroll ?= @isLastCursor() and !textChanged
@@ -40,6 +47,7 @@ class Cursor
       @emit 'moved', movedEvent
       @editor.emit 'cursor-moved', movedEvent
     @marker.on 'destroyed', =>
+      console.log 'destroyed'
       @destroyed = true
       @editor.removeCursor(this)
       @emit 'destroyed'

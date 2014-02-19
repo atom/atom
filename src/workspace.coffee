@@ -72,10 +72,10 @@ class Workspace extends Model
   #                     if the uri is already open (default: false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (uri, options={}) ->
+  open: (uri='', options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.relativize(uri) ? ''
+    uri = atom.project.resolve(uri)
 
     pane = switch split
       when 'left'
@@ -91,15 +91,15 @@ class Workspace extends Model
     @openUriInPane(uri, pane, options)
 
   # Only used in specs
-  openSync: (uri, options={}) ->
+  openSync: (uri='', options={}) ->
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
-    uri = atom.project.relativize(uri) ? ''
+    uri = atom.project.resolve(uri)
 
     item = @activePane.itemForUri(uri)
     if uri
-      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.openSync(uri, {initialLine})
 
     @activePane.activateItem(item)

@@ -46,7 +46,7 @@ describe "Workspace", ->
               workspace.open('a').then (o) -> editor = o
 
             runs ->
-              expect(editor.getUri()).toBe 'a'
+              expect(editor.getUri()).toBe atom.project.resolve('a')
               expect(workspace.activePaneItem).toBe editor
               expect(workspace.activePane.items).toEqual [editor]
               expect(workspace.activePane.activate).toHaveBeenCalled()
@@ -199,23 +199,23 @@ describe "Workspace", ->
       expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
 
       # destroy all items
-      expect(workspace.activePaneItem.getUri()).toBe 'file1'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
       pane.destroyActiveItem()
-      expect(workspace.activePaneItem.getUri()).toBe 'b'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
       pane.destroyActiveItem()
-      expect(workspace.activePaneItem.getUri()).toBe 'a'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
       pane.destroyActiveItem()
 
       # reopens items with uris
       expect(workspace.activePaneItem).toBeUndefined()
       workspace.reopenItemSync()
-      expect(workspace.activePaneItem.getUri()).toBe 'a'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
 
       # does not reopen items that are already open
       workspace.openSync('b')
-      expect(workspace.activePaneItem.getUri()).toBe 'b'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
       workspace.reopenItemSync()
-      expect(workspace.activePaneItem.getUri()).toBe 'file1'
+      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->
