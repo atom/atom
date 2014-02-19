@@ -5,8 +5,7 @@ Serializable = require 'serializable'
 TextBufferCore = require 'text-buffer'
 {Point, Range} = TextBufferCore
 {Subscriber, Emitter} = require 'emissary'
-
-File = require './file'
+{File} = require 'pathwatcher'
 
 # Represents the contents of a file.
 #
