@@ -42,8 +42,9 @@
     "read": "~1.0.5",
     "q": "~0.9.7",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "first-mate": "~1.x",
-    "tar": "~0.1.19"
+    "first-mate": "1.x",
+    "tar": "~0.1.19",
+    "git-utils": "1.x"
   },
   "devDependencies": {
     "jasmine-focused": "1.x",

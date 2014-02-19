@@ -2,6 +2,7 @@ path = require 'path'
 url = require 'url'
 
 optimist = require 'optimist'
+Git = require 'git-utils'
 request = require 'request'
 
 auth = require './auth'
@@ -209,6 +210,26 @@ class Publish extends Command
 
     process.stdout.write "\nCheck it out at https://atom.io/packages/#{pack.name}\n"
 
+  loadMetadata: ->
+    metadataPath = path.resolve('package.json')
+    unless fs.isFileSync(metadataPath)
+      throw new Error("No package.json file found at #{process.cwd()}/package.json")
+
+    try
+      pack = JSON.parse(fs.readFileSync(metadataPath))
+    catch error
+      throw new Error("Error parsing package.json file: #{error.message}")
+
+  loadRepository: ->
+    currentDirectory = process.cwd()
+
+    repo = Git.open(currentDirectory)
+    if repo?.getWorkingDirectory() isnt currentDirectory
+      throw new Error('Package must be in a Git repository before publishing: https://help.github.com/articles/create-a-repo')
+
+    unless repo.getUpstreamBranch()
+      throw new Error('Package must pushed up to GitHub before publishing: https://help.github.com/articles/create-a-repo')
+
   # Run the publish command with the given options
   run: (options) ->
     {callback} = options
@@ -216,14 +237,15 @@ class Publish extends Command
     {tag} = options.argv
     [version] = options.argv._
 
-    metadataPath = path.resolve('package.json')
-    unless fs.isFileSync(metadataPath)
-      return callback("No package.json file found at #{process.cwd()}/package.json")
+    try
+      pack = @loadMetadata()
+    catch error
+      return callback(error)
 
     try
-      pack = JSON.parse(fs.readFileSync(metadataPath))
+      @loadRepository()
     catch error
-      return callback("Error parsing package.json file: #{error.message}")
+      return callback(error)
 
     if version?.length > 0
       @registerPackage pack, (error, firstTimePublishing) =>
