@@ -39,7 +39,7 @@
     "nslog": "0.5.0",
     "oniguruma": "1.x",
     "optimist": "0.4.0",
-    "pathwatcher": "0.15.0",
+    "pathwatcher": "0.16.0",
     "pegjs": "0.8.0",
     "property-accessors": "1.x",
     "q": "1.0.x",
