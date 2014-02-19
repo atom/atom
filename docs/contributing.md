@@ -100,6 +100,8 @@ dependencies up to date by running `apm update` after pulling upstream changes.
     * :racehorse: when improving performance
     * :non-potable_water: when plugging memory leaks
     * :memo: when writing docs
+    * :bulb: Check out the [Emoji Cheat Sheet](http://www.emoji-cheat-sheet.com)
+      for more ideas.
 
 ## CoffeeScript Styleguide
 
