@@ -161,7 +161,8 @@ class Atom extends Model
     @subscribe @packages, 'activated', => @watchThemes()
 
     Project = require './project'
-    TextBuffer = require './text-buffer'
+    TextBuffer = require 'text-buffer'
+    @deserializers.add(TextBuffer)
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
     Editor = require './editor'

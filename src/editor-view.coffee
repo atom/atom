@@ -1,5 +1,4 @@
 {View, $, $$$} = require './space-pen-extensions'
-TextBuffer = require './text-buffer'
 GutterView = require './gutter-view'
 {Point, Range} = require 'text-buffer'
 Editor = require './editor'
@@ -7,6 +6,7 @@ CursorView = require './cursor-view'
 SelectionView = require './selection-view'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
+TextBuffer = require 'text-buffer'
 
 MeasureRange = document.createRange()
 TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
