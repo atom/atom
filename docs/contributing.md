@@ -34,6 +34,9 @@ Installing modules ✓
 ~/.atom/dev/packages/tree-view -> ~/github/tree-view
 ```
 
+This clones the `tree-view` repository to `~/github`. If you prefer a different
+path, specify it via the `ATOM_REPOS_HOME` environment variable.
+
 ### Running in Development Mode
 
 Editing a package in Atom is a bit of a circular experience: you're using Atom
