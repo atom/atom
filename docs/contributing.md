@@ -119,7 +119,7 @@ dependencies up to date by running `apm update` after pulling upstream changes.
 * Use [TomDoc](http://tomdoc.org).
 * Use [Markdown](https://daringfireball.net/projects/markdown).
 * Reference classes with the custom `{ClassName}` notation.
-* Reference methods with the custom `{ClassName::methodName}` notation.
+* Reference methods with the custom `{ClassName.methodName}` notation.
 
 ### Example
 
