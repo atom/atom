@@ -92,7 +92,7 @@ dependencies up to date by running `apm update` after pulling upstream changes.
 
 ### Commit Message Guidelines
   * Use the present tense ("Add feature" not "Added feature")
-  * Use the imperative mood ("Fix bug" not "Fixes bug")
+  * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
   * Limit the first line to 72 characters or less
   * Reference issues and pull requests liberally
   * Consider starting the commit message with an applicable emoji:
