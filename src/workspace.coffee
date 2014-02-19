@@ -48,7 +48,7 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
-  # Public: Calls callback for every existing {Editor} and for all new {Editors}
+  # Public: Calls callback for every existing {Editor} and for all new {Editor}s.
   # that are created.
   #
   # callback - A {Function} with an {Editor} as its only argument
