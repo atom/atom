@@ -7,7 +7,7 @@ Q = require 'q'
 
 {$} = require './space-pen-extensions'
 Package = require './package'
-File = require './file'
+{File} = require 'pathwatcher'
 
 # Public: Handles loading and activating available themes.
 #
