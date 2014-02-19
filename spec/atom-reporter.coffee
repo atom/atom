@@ -27,7 +27,7 @@ formatStackTrace = (message='', stackTrace) ->
     lines[index] = "at #{prefixMatch[1]}" if prefixMatch
 
   lines = lines.map (line) -> line.trim()
-  lines.join('\n')
+  lines.join('\n').trim()
 
 module.exports =
 class AtomReporter extends View
