@@ -6,7 +6,8 @@
     },
     "metadata": {
       "name": "beverly-hills",
-      "version": "9.0.2.1.0"
+      "version": "9.0.2.1.0",
+      "description": "Home of the peach pit after dark"
     }
   },
   {
@@ -21,14 +22,15 @@
     }
   },
   {
-    "name": "blossom",
+    "name": "duckblur",
     "releases": {
       "latest": "19.92"
     },
     "metadata": {
-      "name": "blossom",
+      "name": "duckblur",
       "version": "19.92",
-      "theme": true
+      "theme": true,
+      "description": "Racecars, lasers, airplanes"
     }
   }
 ]

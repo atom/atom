@@ -3,7 +3,7 @@ express = require 'express'
 http = require 'http'
 apm = require '../lib/apm-cli'
 
-describe 'apm available', ->
+describe 'apm featured', ->
   server = null
 
   beforeEach ->
@@ -11,36 +11,36 @@ describe 'apm available', ->
     spyOnToken()
 
     app = express()
-    app.get '/available', (request, response) ->
+    app.get '/featured', (request, response) ->
       response.sendfile path.join(__dirname, 'fixtures', 'available.json')
     server =  http.createServer(app)
     server.listen(3000)
 
-    process.env.ATOM_PACKAGES_URL = "http://localhost:3000/available"
+    process.env.ATOM_PACKAGES_URL = "http://localhost:3000"
 
   afterEach ->
     server.close()
 
-  it 'lists the available packages', ->
+  it 'lists the featured packages', ->
     callback = jasmine.createSpy('callback')
-    apm.run(['available'], callback)
+    apm.run(['featured'], callback)
 
     waitsFor 'waiting for command to complete', ->
       callback.callCount > 0
 
     runs ->
       expect(console.log).toHaveBeenCalled()
-      expect(console.log.argsForCall[1][0]).toContain 'beverly-hills@9.0.2.1.0'
+      expect(console.log.argsForCall[1][0]).toContain 'beverly-hills'
 
   describe 'when the theme flag is specified', ->
     it "only lists themes", ->
       callback = jasmine.createSpy('callback')
-      apm.run(['available', '--themes'], callback)
+      apm.run(['featured', '--themes'], callback)
 
       waitsFor 'waiting for command to complete', ->
         callback.callCount > 0
 
       runs ->
         expect(console.log).toHaveBeenCalled()
-        expect(console.log.argsForCall[1][0]).toContain 'blossom@19.92'
-        expect(console.log.argsForCall[1][0]).not.toContain 'beverly-hills@9.0.2.1.0'
+        expect(console.log.argsForCall[1][0]).toContain 'duckblur'
+        expect(console.log.argsForCall[1][0]).not.toContain 'beverly-hills'

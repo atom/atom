@@ -4,10 +4,10 @@ optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
 commandClasses = [
-  require './available'
   require './clean'
   require './dedupe'
   require './develop'
+  require './featured'
   require './init'
   require './install'
   require './links'
