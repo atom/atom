@@ -144,10 +144,13 @@ downloadIncludes = (callback) ->
   includes = [
     {repo: 'first-mate',  file: 'src/grammar.coffee'}
     {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
+    {repo: 'node-pathwatcher', file: 'src/directory.coffee'}
+    {repo: 'node-pathwatcher', file: 'src/file.coffee'}
     {repo: 'space-pen',   file: 'src/space-pen.coffee'}
     {repo: 'text-buffer', file: 'src/marker.coffee'}
     {repo: 'text-buffer', file: 'src/point.coffee'}
     {repo: 'text-buffer', file: 'src/range.coffee'}
+    {repo: 'text-buffer', file: 'src/text-buffer.coffee'}
     {repo: 'theorist',    file: 'src/model.coffee'}
   ]
 
