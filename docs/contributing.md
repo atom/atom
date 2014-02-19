@@ -74,8 +74,6 @@ dependencies up to date by running `apm update` after pulling upstream changes.
   [Jasmine](http://pivotal.github.com/jasmine) specs.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
-* Avoid placing files in `vendor`. 3rd-party packages should be added as
-  dependencies in `package.json`.
 * End files with a newline.
 * Place requires in the following order:
   * Built in Node Modules (such as `path`)
