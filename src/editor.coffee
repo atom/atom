@@ -104,6 +104,7 @@ class Editor extends Model
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
       @emit "path-changed"
+    @subscribe @buffer, "will-be-saved", => @emit "will-be-saved"
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
@@ -451,6 +452,14 @@ class Editor extends Model
       @moveCursorLeft()
       @insertNewline()
       @moveCursorUp() if onFirstLine
+
+  # {Delegates to: TextBuffer.append}
+  appendText: (text, normalizeLineEndings) ->
+    @buffer.append(text, normalizeLineEndings)
+
+  # {Delegates to: TextBuffer.deleteRow}
+  deleteBufferRow: (bufferRow) ->
+    @buffer.deleteRow(bufferRow)
 
   # Public: Indents the current line.
   #
