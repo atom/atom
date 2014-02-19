@@ -23,6 +23,7 @@ commandClasses = [
   require './unlink'
   require './unpublish'
   require './update'
+  require './view'
 ]
 
 commands = {}

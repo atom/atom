@@ -4,6 +4,7 @@ module.exports = (items, options={}, callback) ->
   if _.isFunction(options)
     callback = options
     options = {}
+  callback ?= (item) -> item
 
   if items.length is 0
     emptyMessage = options.emptyMessage ? '(empty)'

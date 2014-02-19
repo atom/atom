@@ -70,7 +70,7 @@ class Search extends Command
 
         tree packages, ({name, version, description}) ->
           label = name.yellow
-          label += " #{description.replace(/[\r\n\t ]+/g, ' ')}" if description
+          label += " #{description.replace(/\s+/g, ' ')}" if description
           label
 
         console.log()
