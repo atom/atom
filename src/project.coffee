@@ -94,7 +94,7 @@ class Project extends Model
   #
   # uri - The {String} name of the path to convert.
   #
-  # Returns a String.
+  # Returns a {String} or undefined if the uri is not missing or empty.
   resolve: (uri) ->
     return unless uri
 
@@ -102,7 +102,7 @@ class Project extends Model
       uri
     else
       uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
-      fs.absolute uri
+      fs.absolute(uri)
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
