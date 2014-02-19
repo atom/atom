@@ -8,9 +8,9 @@ Q = require 'q'
 {Emitter, Subscriber} = require 'emissary'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
+{Directory} = require 'pathwatcher'
 
 Editor = require './editor'
-Directory = require './directory'
 Task = require './task'
 Git = require './git'
 
