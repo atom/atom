@@ -20,7 +20,7 @@ class Search extends Command
       Search for Atom packages/themes on the atom.io registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.boolean('json').describe('json', 'Output featured packages as JSON array')
+    options.boolean('json').describe('json', 'Output matching packages as JSON array')
 
   searchPackages: (query, callback) ->
     auth.getToken (error, token) ->
