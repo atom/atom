@@ -38,7 +38,9 @@ class Search extends Command
           if error?
             callback(error)
           else if response.statusCode is 200
-            callback(null, body)
+            {metadata, readme, repository} = body
+            pack = _.extend({}, metadata, {readme})
+            callback(null, pack)
           else
             message = body.message ? body.error ? body
             callback("Requesting package failed: #{message}")
@@ -61,13 +63,11 @@ class Search extends Command
         console.log(JSON.stringify(pack, null, 2))
       else
         console.log "#{pack.name.cyan}"
-        if version = pack.releases?.latest
-          items = []
-          items.push(version.yellow)
-          items.push(pack.repository.url.underline) if pack.repository.url
-          {description} = pack.versions?[version] ? {}
-          items.push(description.replace(/\s+/g, ' ')) if description
-          tree(items)
+        items = []
+        items.push(pack.version.yellow) if pack.version
+        items.push(pack.repository.underline) if pack.repository
+        items.push(pack.description.replace(/\s+/g, ' ')) if pack.description
+        tree(items)
 
         console.log()
         console.log "Run `apm install #{pack.name}` to install this package."
