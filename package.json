@@ -120,7 +120,7 @@
     "language-javascript": "0.10.0",
     "language-json": "0.7.0",
     "language-less": "0.4.0",
-    "language-make": "0.4.0",
+    "language-make": "0.6.0",
     "language-mustache": "0.3.0",
     "language-objective-c": "0.5.0",
     "language-pegjs": "0.3.0",
