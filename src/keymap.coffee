@@ -135,9 +135,16 @@ class Keymap
     userKeymapPath = @getUserKeymapPath()
     if fs.isFileSync(userKeymapPath)
       @userKeymapPath = userKeymapPath
-      @load(userKeymapPath)
       @userKeymapFile = new File(userKeymapPath)
       @userKeymapFile.on 'contents-changed moved removed', => @loadUserKeymap()
+      @add(@userKeymapPath, @readUserKeymap())
+
+  readUserKeymap: ->
+    try
+      CSON.readFileSync(@userKeymapPath) ? {}
+    catch error
+      console.warn("Failed to load your keymap file: #{@userKeymapPath}", error.stack ? error)
+      {}
 
   loadDirectory: (directoryPath) ->
     platforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32']
