@@ -36,12 +36,12 @@ describe "WorkspaceView", ->
         editorView1 = atom.workspaceView.getActiveView()
         buffer = editorView1.getEditor().getBuffer()
         editorView1.splitRight()
-        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPanes()[1]
+        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPaneViews()[1]
 
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 2
-        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPanes()[1]
+        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPaneViews()[1]
         expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->

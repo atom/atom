@@ -45,10 +45,10 @@ describe "PaneContainerView", ->
       expect(container.getFocusedPane()).toBe pane3
       expect(container.getActivePane()).toBe pane3
 
-  describe ".eachPane(callback)", ->
+  describe ".eachPaneView(callback)", ->
     it "runs the callback with all current and future panes until the subscription is cancelled", ->
       panes = []
-      subscription = container.eachPane (pane) -> panes.push(pane)
+      subscription = container.eachPaneView (pane) -> panes.push(pane)
       expect(panes).toEqual [pane1, pane2, pane3]
 
       panes = []
@@ -66,7 +66,7 @@ describe "PaneContainerView", ->
 
       container.saveAll()
 
-      for pane in container.getPanes()
+      for pane in container.getPaneViews()
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
@@ -240,30 +240,30 @@ describe "PaneContainerView", ->
         pane2.remove()
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
-  describe ".focusNextPane()", ->
+  describe ".focusNextPaneView()", ->
     it "focuses the pane following the focused pane or the first pane if no pane has focus", ->
       container.attachToDom()
-      container.focusNextPane()
+      container.focusNextPaneView()
       expect(pane1.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
+      container.focusNextPaneView()
       expect(pane2.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
+      container.focusNextPaneView()
       expect(pane3.activeItem).toMatchSelector ':focus'
-      container.focusNextPane()
+      container.focusNextPaneView()
       expect(pane1.activeItem).toMatchSelector ':focus'
 
-  describe ".focusPreviousPane()", ->
+  describe ".focusPreviousPaneView()", ->
     it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
       container.attachToDom()
-      container.getPanes()[0].focus() # activate first pane
+      container.getPaneViews()[0].focus() # activate first pane
 
-      container.focusPreviousPane()
+      container.focusPreviousPaneView()
       expect(pane3.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
+      container.focusPreviousPaneView()
       expect(pane2.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
+      container.focusPreviousPaneView()
       expect(pane1.activeItem).toMatchSelector ':focus'
-      container.focusPreviousPane()
+      container.focusPreviousPaneView()
       expect(pane3.activeItem).toMatchSelector ':focus'
 
   describe "changing focus directionally between panes", ->
@@ -300,54 +300,54 @@ describe "PaneContainerView", ->
       container.width(400)
       container.attachToDom()
 
-    describe ".focusPaneAbove()", ->
+    describe ".focusPaneViewAbove()", ->
       describe "when there are multiple rows above the focused pane", ->
         it "focuses up to the adjacent row", ->
           pane8.focus()
-          container.focusPaneAbove()
+          container.focusPaneViewAbove()
           expect(pane5.activeItem).toMatchSelector ':focus'
 
       describe "when there are no rows above the focused pane", ->
         it "keeps the current pane focused", ->
           pane2.focus()
-          container.focusPaneAbove()
+          container.focusPaneViewAbove()
           expect(pane2.activeItem).toMatchSelector ':focus'
 
-    describe ".focusPaneBelow()", ->
+    describe ".focusPaneViewBelow()", ->
       describe "when there are multiple rows below the focused pane", ->
         it "focuses down to the adjacent row", ->
           pane2.focus()
-          container.focusPaneBelow()
+          container.focusPaneViewBelow()
           expect(pane5.activeItem).toMatchSelector ':focus'
 
       describe "when there are no rows below the focused pane", ->
         it "keeps the current pane focused", ->
           pane8.focus()
-          container.focusPaneBelow()
+          container.focusPaneViewBelow()
           expect(pane8.activeItem).toMatchSelector ':focus'
 
-    describe ".focusPaneOnLeft()", ->
+    describe ".focusPaneViewOnLeft()", ->
       describe "when there are multiple columns to the left of the focused pane", ->
         it "focuses left to the adjacent column", ->
           pane6.focus()
-          container.focusPaneOnLeft()
+          container.focusPaneViewOnLeft()
           expect(pane5.activeItem).toMatchSelector ':focus'
 
       describe "when there are no columns to the left of the focused pane", ->
         it "keeps the current pane focused", ->
           pane4.focus()
-          container.focusPaneOnLeft()
+          container.focusPaneViewOnLeft()
           expect(pane4.activeItem).toMatchSelector ':focus'
 
-    describe ".focusPaneOnRight()", ->
+    describe ".focusPaneViewOnRight()", ->
       describe "when there are multiple columns to the right of the focused pane", ->
         it "focuses right to the adjacent column", ->
           pane4.focus()
-          container.focusPaneOnRight()
+          container.focusPaneViewOnRight()
           expect(pane5.activeItem).toMatchSelector ':focus'
 
       describe "when there are no columns to the right of the focused pane", ->
         it "keeps the current pane focused", ->
           pane6.focus()
-          container.focusPaneOnRight()
+          container.focusPaneViewOnRight()
           expect(pane6.activeItem).toMatchSelector ':focus'
