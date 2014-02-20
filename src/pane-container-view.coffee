@@ -54,24 +54,24 @@ class PaneContainerView extends View
 
   confirmClose: ->
     saved = true
-    for pane in @getPanes()
+    for pane in @getPaneViews()
       for item in pane.getItems()
         if not pane.promptToSaveItem(item)
           saved = false
           break
     saved
 
-  getPanes: ->
+  getPaneViews: ->
     @find('.pane').views()
 
   indexOfPane: (pane) ->
-    @getPanes().indexOf(pane.view())
+    @getPaneViews().indexOf(pane.view())
 
   paneAtIndex: (index) ->
-    @getPanes()[index]
+    @getPaneViews()[index]
 
-  eachPane: (callback) ->
-    callback(pane) for pane in @getPanes()
+  eachPaneView: (callback) ->
+    callback(pane) for pane in @getPaneViews()
     paneAttached = (e) -> callback($(e.target).view())
     @on 'pane:attached', paneAttached
     off: => @off 'pane:attached', paneAttached
@@ -91,22 +91,22 @@ class PaneContainerView extends View
   paneForUri: (uri) ->
     @viewForModel(@model.paneForUri(uri))
 
-  focusNextPane: ->
+  focusNextPaneView: ->
     @model.activateNextPane()
 
-  focusPreviousPane: ->
+  focusPreviousPaneView: ->
     @model.activatePreviousPane()
 
-  focusPaneAbove: ->
+  focusPaneViewAbove: ->
     @nearestPaneInDirection('above')?.focus()
 
-  focusPaneBelow: ->
+  focusPaneViewBelow: ->
     @nearestPaneInDirection('below')?.focus()
 
-  focusPaneOnLeft: ->
+  focusPaneViewOnLeft: ->
     @nearestPaneInDirection('left')?.focus()
 
-  focusPaneOnRight: ->
+  focusPaneViewOnRight: ->
     @nearestPaneInDirection('right')?.focus()
 
   nearestPaneInDirection: (direction) ->
@@ -117,7 +117,7 @@ class PaneContainerView extends View
 
     pane = @getActivePane()
     box = @boundingBoxForPane(pane)
-    panes = @getPanes()
+    panes = @getPaneViews()
       .filter (otherPane) =>
         otherBox = @boundingBoxForPane(otherPane)
         switch direction
@@ -143,3 +143,7 @@ class PaneContainerView extends View
     right: {x: boundingBox.right, y: boundingBox.top}
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
+
+  # Deprecated
+  getPanes: ->
+    @getPaneViews()

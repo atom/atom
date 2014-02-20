@@ -117,7 +117,7 @@ class PaneView extends View
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
-    panes = @container?.getPanes()
+    panes = @container?.getPaneViews()
     return unless panes.length > 1
     nextIndex = (panes.indexOf(this) + 1) % panes.length
     panes[nextIndex]

@@ -61,7 +61,14 @@ class ThemeManager
       @deactivateThemes()
 
       @refreshLessCache() # Update cache for packages in core.themes config
-      promises = @getEnabledThemeNames().map (themeName) => @packageManager.activatePackage(themeName)
+
+      promises = []
+      for themeName in @getEnabledThemeNames()
+        if @packageManager.resolvePackagePath(themeName)
+          promises.push(@packageManager.activatePackage(themeName))
+        else
+          console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
+
       Q.all(promises).then =>
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()

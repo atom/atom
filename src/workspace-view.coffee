@@ -119,12 +119,12 @@ class WorkspaceView extends View
     @command 'window:decrease-font-size', => @decreaseFontSize()
     @command 'window:reset-font-size', => @model.resetFontSize()
 
-    @command 'window:focus-next-pane', => @focusNextPane()
-    @command 'window:focus-previous-pane', => @focusPreviousPane()
-    @command 'window:focus-pane-above', => @focusPaneAbove()
-    @command 'window:focus-pane-below', => @focusPaneBelow()
-    @command 'window:focus-pane-on-left', => @focusPaneOnLeft()
-    @command 'window:focus-pane-on-right', => @focusPaneOnRight()
+    @command 'window:focus-next-pane', => @focusNextPaneView()
+    @command 'window:focus-previous-pane', => @focusPreviousPaneView()
+    @command 'window:focus-pane-above', => @focusPaneViewAbove()
+    @command 'window:focus-pane-below', => @focusPaneViewBelow()
+    @command 'window:focus-pane-on-left', => @focusPaneViewOnLeft()
+    @command 'window:focus-pane-on-right', => @focusPaneViewOnRight()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       atom.config.toggle("editor.showInvisibles")
@@ -233,10 +233,6 @@ class WorkspaceView extends View
   getActivePaneView: ->
     @panes.getActivePane()
 
-  # Deprecated: Returns the currently focused {PaneView}.
-  getActivePane: ->
-    @getActivePaneView()
-
   # Public: Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
     @model.activePaneItem
@@ -246,39 +242,30 @@ class WorkspaceView extends View
     @panes.getActiveView()
 
   # Public: Focuses the previous pane by id.
-  focusPreviousPane: -> @model.activatePreviousPane()
+  focusPreviousPaneView: -> @model.activatePreviousPane()
 
   # Public: Focuses the next pane by id.
-  focusNextPane: -> @model.activateNextPane()
+  focusNextPaneView: -> @model.activateNextPane()
 
   # Public: Focuses the pane directly above the active pane.
-  focusPaneAbove: -> @panes.focusPaneAbove()
+  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
 
   # Public: Focuses the pane directly below the active pane.
-  focusPaneBelow: -> @panes.focusPaneBelow()
+  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
 
   # Public: Focuses the pane directly to the left of the active pane.
-  focusPaneOnLeft: -> @panes.focusPaneOnLeft()
+  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
 
   # Public: Focuses the pane directly to the right of the active pane.
-  focusPaneOnRight: -> @panes.focusPaneOnRight()
-
-  # Public:
-  #
-  # FIXME: Difference between active and focused pane?
-  getFocusedPane: -> @panes.getFocusedPane()
+  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
   # Public: Fires a callback on each open {PaneView}.
-  eachPane: (callback) ->
-    @panes.eachPane(callback)
+  eachPaneView: (callback) ->
+    @panes.eachPaneView(callback)
 
-  # Public: Returns an Array of all open {PaneView}s.
-  getPanes: ->
+  # Returns an Array of all open {PaneView}s.
+  getPaneViews: ->
     @panes.getPanes()
-
-  # Public: Return the id of the given a {PaneView}
-  indexOfPane: (pane) ->
-    @panes.indexOfPane(pane)
 
   # Public: Fires a callback on each open {EditorView}.
   eachEditorView: (callback) ->
@@ -290,3 +277,15 @@ class WorkspaceView extends View
   # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
+
+  # Deprecated
+  eachPane: (callback) ->
+    @eachPaneView(callback)
+
+  # Deprecated
+  getPanes: ->
+    @getPaneViews()
+
+  # Deprecated
+  getActivePane: ->
+    @getActivePaneView()

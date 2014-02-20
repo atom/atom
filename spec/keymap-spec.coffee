@@ -399,3 +399,32 @@ describe "Keymap", ->
       runs ->
         keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
         expect(keyBinding).toBeUndefined()
+
+    it "logs a warning when it can't be parsed", ->
+      keymapFilePath = path.join(configDirPath, "keymap.json")
+      fs.writeFileSync(keymapFilePath, '')
+      keymap.loadUserKeymap()
+
+      spyOn(keymap, 'loadUserKeymap').andCallThrough()
+      fs.writeFileSync(keymapFilePath, '}{')
+      spyOn(console, 'warn')
+
+      waitsFor ->
+        keymap.loadUserKeymap.callCount > 0
+
+      runs ->
+        expect(console.warn.callCount).toBe 1
+        expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+
+  describe "when adding a binding with an invalid selector", ->
+    it "logs a warning and does not add it", ->
+      spyOn(console, 'warn')
+      keybinding =
+        '##selector':
+          'cmd-a': 'invalid-command'
+      keymap.add('test', keybinding)
+
+      expect(console.warn.callCount).toBe 1
+      expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+      expect(-> keymap.keyBindingsMatchingElement(document.body)).not.toThrow()
+      expect(keymap.keyBindingsForCommand('invalid:command')).toEqual []

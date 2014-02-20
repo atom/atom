@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "0.51.0",
+  "version": "0.52.0",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
@@ -74,7 +74,7 @@
     "command-palette": "0.17.0",
     "dev-live-reload": "0.26.0",
     "exception-reporting": "0.13.0",
-    "feedback": "0.23.0",
+    "feedback": "0.24.0",
     "find-and-replace": "0.83.0",
     "fuzzy-finder": "0.35.0",
     "gists": "0.17.0",
@@ -85,7 +85,7 @@
     "image-view": "0.24.0",
     "keybinding-resolver": "0.10.0",
     "link": "0.17.0",
-    "markdown-preview": "0.32.0",
+    "markdown-preview": "0.33.0",
     "metrics": "0.26.0",
     "open-on-github": "0.20.0",
     "package-generator": "0.26.0",

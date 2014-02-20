@@ -77,16 +77,14 @@ class Workspace extends Model
     split = options.split
     uri = atom.project.resolve(uri)
 
-    pane = switch split
+    pane = @paneContainer.paneForUri(uri) if searchAllPanes
+    pane ?= switch split
       when 'left'
         @activePane.findLeftmostSibling()
       when 'right'
         @activePane.findOrCreateRightmostSibling()
       else
-        if searchAllPanes
-          @paneContainer.paneForUri(uri) ? @activePane
-        else
-          @activePane
+        @activePane
 
     @openUriInPane(uri, pane, options)
 
@@ -154,6 +152,15 @@ class Workspace extends Model
 
   getOpeners: ->
     atom.project.openers
+
+  # Public: Returns the active {Pane}.
+  getActivePane: ->
+    @paneContainer.activePane
+
+  # Public: Returns the first pane {Pane} with an item for the given uri or
+  # undefined if none exists.
+  paneForUri: (uri) ->
+    @paneContainer.paneForUri(uri)
 
   # Public: save the active item.
   saveActivePaneItem: ->
