@@ -159,7 +159,12 @@ class Keymap
 
   bindKeys: (source, selector, keyMappings) ->
     for keystroke, command of keyMappings
-      @keyBindings.push new KeyBinding(source, command, keystroke, selector)
+      keyBinding = new KeyBinding(source, command, keystroke, selector)
+      try
+        $(keyBinding.selector) # Verify selector is valid before registering
+        @keyBindings.push(keyBinding)
+      catch
+        console.warn("Keybinding '#{keystroke}': '#{command}' in #{source} has an invalid selector: '#{selector}'")
 
   handleKeyEvent: (event) ->
     element = event.target

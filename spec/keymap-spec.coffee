@@ -399,3 +399,16 @@ describe "Keymap", ->
       runs ->
         keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
         expect(keyBinding).toBeUndefined()
+
+  describe "when adding a binding with an invalid selector", ->
+    it "logs a warning and does not add it", ->
+      spyOn(console, 'warn')
+      keybinding =
+        '##selector':
+          'cmd-a': 'invalid-command'
+      keymap.add('test', keybinding)
+
+      expect(console.warn.callCount).toBe 1
+      expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+      expect(-> keymap.keyBindingsMatchingElement(document.body)).not.toThrow()
+      expect(keymap.keyBindingsForCommand('invalid:command')).toEqual []
