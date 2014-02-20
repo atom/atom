@@ -1,7 +1,7 @@
 {times, random} = require 'underscore-plus'
 randomWords = require 'random-words'
+TextBuffer = require 'text-buffer'
 Editor = require '../src/editor'
-TextBuffer = require '../src/text-buffer'
 
 describe "Editor", ->
   [editor, tokenizedBuffer, buffer, steps, previousSteps] = []

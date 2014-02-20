@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 {View, $, $$} = require '../src/space-pen-extensions'
 
 sourceMaps = {}
-formatStackTrace = (message='', stackTrace) ->
+formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
 
   jasminePattern = /^\s*at\s+.*\(?.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
@@ -21,13 +21,16 @@ formatStackTrace = (message='', stackTrace) ->
   errorMatch = lines[0]?.match(/^Error: (.*)/)
   lines.shift() if message.trim() is errorMatch?[1]?.trim()
 
-  # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
   for line, index in lines
+    # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
     prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^\)]+)\)/)
-    lines[index] = "at #{prefixMatch[1]}" if prefixMatch
+    line = "at #{prefixMatch[1]}" if prefixMatch
+
+    # Relativize locations to spec directory
+    lines[index] = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
 
   lines = lines.map (line) -> line.trim()
-  lines.join('\n')
+  lines.join('\n').trim()
 
 module.exports =
 class AtomReporter extends View
@@ -209,7 +212,7 @@ class SpecResultView extends View
     @description.text(description)
 
     for result in @spec.results().getItems() when not result.passed()
-      stackTrace = formatStackTrace(result.message, result.trace.stack)
+      stackTrace = formatStackTrace(@spec, result.message, result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'result-message fail'
         @pre stackTrace, class: 'stack-trace padded' if stackTrace

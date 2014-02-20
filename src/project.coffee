@@ -7,10 +7,10 @@ Q = require 'q'
 {Model} = require 'theorist'
 {Emitter, Subscriber} = require 'emissary'
 Serializable = require 'serializable'
+TextBuffer = require 'text-buffer'
+{Directory} = require 'pathwatcher'
 
-TextBuffer = require './text-buffer'
 Editor = require './editor'
-Directory = require './directory'
 Task = require './task'
 Git = require './git'
 
@@ -94,7 +94,7 @@ class Project extends Model
   #
   # uri - The {String} name of the path to convert.
   #
-  # Returns a String.
+  # Returns a {String} or undefined if the uri is not missing or empty.
   resolve: (uri) ->
     return unless uri
 
@@ -102,7 +102,7 @@ class Project extends Model
       uri
     else
       uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
-      fs.absolute uri
+      fs.absolute(uri)
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
@@ -189,6 +189,9 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
+    if fs.getSizeSync(absoluteFilePath) >= 1048576 # 1MB
+      throw new Error("Atom can only handle files < 1MB, for now.")
+
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()

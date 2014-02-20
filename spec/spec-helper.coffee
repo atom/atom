@@ -4,7 +4,7 @@ atom.restoreWindowDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
-{_, $, File, WorkspaceView, fs} = require 'atom'
+{_, $, WorkspaceView, fs} = require 'atom'
 Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
@@ -88,7 +88,7 @@ beforeEach ->
   spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
-  spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
+  spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(Editor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous

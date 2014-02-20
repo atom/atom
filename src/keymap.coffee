@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 path = require 'path'
 CSON = require 'season'
 KeyBinding = require './key-binding'
-File = require './file'
+{File} = require 'pathwatcher'
 {Emitter} = require 'emissary'
 
 Modifiers = ['alt', 'control', 'ctrl', 'shift', 'cmd']

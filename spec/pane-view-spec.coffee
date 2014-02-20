@@ -164,7 +164,7 @@ describe "PaneView", ->
       expect(pane.items).toHaveLength(5)
 
       fs.removeSync(filePath)
-      waitsFor ->
+      waitsFor 30000, ->
         pane.items.length == 4
 
   describe "when a pane is destroyed", ->
