@@ -229,7 +229,7 @@ class WorkspaceView extends View
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
 
-  # Returns an Array of all open {PaneView}s.
+  # Public: Returns an Array of all open {PaneView}s.
   getPaneViews: ->
     @panes.getPanes()
 
