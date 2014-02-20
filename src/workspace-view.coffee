@@ -175,7 +175,7 @@ class WorkspaceView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
+  # Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
     @panes.confirmClose()
 
@@ -229,34 +229,34 @@ class WorkspaceView extends View
   appendToRight: (element) ->
     @horizontal.append(element)
 
-  # Public: Returns the currently focused {PaneView}.
+  # Returns the currently focused {PaneView}.
   getActivePaneView: ->
     @panes.getActivePane()
 
-  # Public: Returns the currently focused item from within the focused {PaneView}
+  # Returns the currently focused item from within the focused {PaneView}
   getActivePaneItem: ->
     @model.activePaneItem
 
-  # Public: Returns the view of the currently focused item.
+  # Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
 
-  # Public: Focuses the previous pane by id.
+  # Focuses the previous pane by id.
   focusPreviousPaneView: -> @model.activatePreviousPane()
 
-  # Public: Focuses the next pane by id.
+  # Focuses the next pane by id.
   focusNextPaneView: -> @model.activateNextPane()
 
-  # Public: Focuses the pane directly above the active pane.
+  # Focuses the pane directly above the active pane.
   focusPaneViewAbove: -> @panes.focusPaneViewAbove()
 
-  # Public: Focuses the pane directly below the active pane.
+  # Focuses the pane directly below the active pane.
   focusPaneViewBelow: -> @panes.focusPaneViewBelow()
 
-  # Public: Focuses the pane directly to the left of the active pane.
+  # Focuses the pane directly to the left of the active pane.
   focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
 
-  # Public: Focuses the pane directly to the right of the active pane.
+  # Focuses the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
   # Public: Fires a callback on each open {PaneView}.
