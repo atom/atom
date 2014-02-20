@@ -175,10 +175,6 @@ class WorkspaceView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  # Shows a dialog asking if the pane was _really_ meant to be closed.
-  confirmClose: ->
-    @panes.confirmClose()
-
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
@@ -229,6 +225,29 @@ class WorkspaceView extends View
   appendToRight: (element) ->
     @horizontal.append(element)
 
+  # Public: Fires a callback on each open {PaneView}.
+  eachPaneView: (callback) ->
+    @panes.eachPaneView(callback)
+
+  # Returns an Array of all open {PaneView}s.
+  getPaneViews: ->
+    @panes.getPanes()
+
+  # Public: Fires a callback on each open {EditorView}.
+  eachEditorView: (callback) ->
+    callback(editor) for editor in @getEditorViews()
+    attachedCallback = (e, editor) -> callback(editor)
+    @on('editor:attached', attachedCallback)
+    off: => @off('editor:attached', attachedCallback)
+
+  # Called by SpacePen
+  beforeRemove: ->
+    @model.destroy()
+
+  # Shows a dialog asking if the pane was _really_ meant to be closed.
+  confirmClose: ->
+    @panes.confirmClose()
+
   # Returns the currently focused {PaneView}.
   getActivePaneView: ->
     @panes.getActivePane()
@@ -258,25 +277,6 @@ class WorkspaceView extends View
 
   # Focuses the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
-
-  # Public: Fires a callback on each open {PaneView}.
-  eachPaneView: (callback) ->
-    @panes.eachPaneView(callback)
-
-  # Returns an Array of all open {PaneView}s.
-  getPaneViews: ->
-    @panes.getPanes()
-
-  # Public: Fires a callback on each open {EditorView}.
-  eachEditorView: (callback) ->
-    callback(editor) for editor in @getEditorViews()
-    attachedCallback = (e, editor) -> callback(editor)
-    @on('editor:attached', attachedCallback)
-    off: => @off('editor:attached', attachedCallback)
-
-  # Called by SpacePen
-  beforeRemove: ->
-    @model.destroy()
 
   # Deprecated
   eachPane: (callback) ->
