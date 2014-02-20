@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "biscotto": "0.6.0",
+    "biscotto": "git://github.com/atom/biscotto.git#ns-coffee-script-link-syntax",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",
