@@ -222,7 +222,7 @@ class Editor extends Model
 
   # Public: Returns that String used to indicate a tab.
   #
-  # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
+  # If soft tabs are enabled, this is a space (`" "`) times the {::getTabLength} value.
   # Otherwise, it's a tab (`\t`).
   getTabText: -> @buildIndentString(1)
 
@@ -427,7 +427,7 @@ class Editor extends Model
   # Public: Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection::insertText}.
   insertText: (text, options={}) ->
     options.autoIndentNewline ?= @shouldAutoIndent()
     options.autoDecreaseIndent ?= @shouldAutoIndent()
@@ -454,7 +454,7 @@ class Editor extends Model
 
   # Public: Indents the current line.
   #
-  # options - A set of options equivalent to {Selection.indent}.
+  # options - A set of options equivalent to {Selection::indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
@@ -513,7 +513,7 @@ class Editor extends Model
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
-  # Public: Converts all indents to the current {.getTabText} given a {Range}.
+  # Public: Converts all indents to the current {::getTabText} given a {Range}.
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
@@ -542,7 +542,7 @@ class Editor extends Model
 
   # Public: Pastes the text in the clipboard.
   #
-  # options - A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection::insertText}.
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
@@ -867,7 +867,7 @@ class Editor extends Model
   # Public: Given a buffer range, this adds a new selection for it.
   #
   # bufferRange - A {Range} in the buffer.
-  # options - An options {Object} for {.markBufferRange}.
+  # options - An options {Object} for {::markBufferRange}.
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
@@ -878,7 +878,7 @@ class Editor extends Model
   # creates a new selection for it.
   #
   # bufferRange - A {Range} in the buffer.
-  # options - An options {Object} for {.setSelectedBufferRanges}.
+  # options - An options {Object} for {::setSelectedBufferRanges}.
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
@@ -886,7 +886,7 @@ class Editor extends Model
   # selections and creates new selections for them.
   #
   # bufferRange - A {Range} in the buffer.
-  # options - An options {Object} for {.setSelectedBufferRanges}.
+  # options - An options {Object} for {::setSelectedBufferRanges}.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
@@ -961,7 +961,7 @@ class Editor extends Model
   # Public: Moves every local cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options  - An {Object} with properties based on {Cursor.setScreenPosition}.
+  # options  - An {Object} with properties based on {Cursor::setScreenPosition}.
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
@@ -981,7 +981,7 @@ class Editor extends Model
   # Public: Moves every cursor to a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor.setBufferPosition}.
+  # options - An object with properties based on {Cursor::setBufferPosition}.
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
@@ -1025,7 +1025,7 @@ class Editor extends Model
   # Public: Returns the word under the most recently added local {Cursor}.
   #
   # options - An object with properties based on
-  #           {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  #           {Cursor::getBeginningOfCurrentWordBufferPosition}.
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 

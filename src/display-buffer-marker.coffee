@@ -37,7 +37,7 @@ class DisplayBufferMarker
   # Modifies the screen range of the display marker.
   #
   # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {Marker.setRange}
+  # options - A hash of options matching those found in {Marker::setRange}
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@displayBuffer.bufferRangeForScreenRange(screenRange), options)
 
@@ -50,7 +50,7 @@ class DisplayBufferMarker
   # Modifies the buffer range of the display marker.
   #
   # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {Marker.setRange}
+  # options - A hash of options matching those found in {Marker::setRange}
   setBufferRange: (bufferRange, options) ->
     @bufferMarker.setRange(bufferRange, options)
 
@@ -63,7 +63,7 @@ class DisplayBufferMarker
   # Sets the screen position of the marker's head.
   #
   # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # options - A hash of options matching those found in {DisplayBuffer::bufferPositionForScreenPosition}
   setHeadScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
     @setHeadBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, options))
@@ -77,7 +77,7 @@ class DisplayBufferMarker
   # Sets the buffer position of the marker's head.
   #
   # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # options - A hash of options matching those found in {DisplayBuffer::bufferPositionForScreenPosition}
   setHeadBufferPosition: (bufferPosition) ->
     @bufferMarker.setHeadPosition(bufferPosition)
 
@@ -90,7 +90,7 @@ class DisplayBufferMarker
   # Sets the screen position of the marker's tail.
   #
   # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # options - A hash of options matching those found in {DisplayBuffer::bufferPositionForScreenPosition}
   setTailScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
     @setTailBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, options))
@@ -104,7 +104,7 @@ class DisplayBufferMarker
   # Sets the buffer position of the marker's tail.
   #
   # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # options - A hash of options matching those found in {DisplayBuffer::bufferPositionForScreenPosition}
   setTailBufferPosition: (bufferPosition) ->
     @bufferMarker.setTailPosition(bufferPosition)
 
@@ -135,7 +135,7 @@ class DisplayBufferMarker
   # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
   # can be invalid without being destroyed, in which case undoing the invalidating
   # operation would restore the marker. Once a marker is destroyed by calling
-  # {Marker.destroy}, no undo/redo operation can ever bring it back.
+  # {Marker::destroy}, no undo/redo operation can ever bring it back.
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 

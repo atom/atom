@@ -37,7 +37,7 @@ class Task
   #
   # It receives the same arguments that were passed to the task.
   #
-  # If subclassed, this is intended to be overridden. However if {.start}
+  # If subclassed, this is intended to be overridden. However if {::start}
   # receives a completion callback, this is overridden.
   callback: null
 
