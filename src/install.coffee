@@ -268,11 +268,10 @@ class Install extends Command
               @installModule(options, pack, packagePath, callback)
 
             async.waterfall commands, (error) ->
-              unless installGlobally
-                if error?
-                  process.stdout.write '\u2717\n'.red
-                else
-                  process.stdout.write '\u2713\n'.green
+              if error?
+                process.stdout.write '\u2717\n'.red
+              else
+                process.stdout.write '\u2713\n'.green
               callback(error)
 
   # Install all the package dependencies found in the package.json file.
