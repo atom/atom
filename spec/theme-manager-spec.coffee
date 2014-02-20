@@ -224,3 +224,14 @@ describe "ThemeManager", ->
 
       runs ->
         expect($(document.body).css('border-style')).toBe 'none'
+
+  describe "when a non-existent theme is present in the config", ->
+    it "logs a warning but does not throw an exception (regression)", ->
+      waitsForPromise ->
+        themeManager.activateThemes()
+
+      runs ->
+        spyOn(console, 'warn')
+        expect(-> atom.config.set('core.themes', ['atom-light-ui', 'theme-really-does-not-exist'])).not.toThrow()
+        expect(console.warn.callCount).toBe 1
+        expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
