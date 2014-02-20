@@ -19,29 +19,32 @@ class Uninstall
       Delete the installed package(s) from the ~/.atom/packages directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('d', 'dev').boolean('dev').describe('dev', 'Uninstall from ~/.atom/dev/packages')
+    options.boolean('hard').describe('hard', 'Uninstall from ~/.atom/packages and ~/.atom/dev/packages')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
+    packageNames = options.argv._
 
-    if options.argv._.length is 0
+    if packageNames.length is 0
       callback("Must specify a package name to uninstall")
       return
 
     packagesDirectory = path.join(config.getAtomDirectory(), 'packages')
-    packages = fs.list(packagesDirectory)
-    for packageName in options.argv._
-      process.stdout.write "Uninstalling #{packageName} "
-      unless _.contains(packages, packageName)
-        process.stdout.write '\u2717\n'.red
-        callback("#{packageName} does not exist in #{packagesDirectory}")
-        return
+    devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
 
+    for packageName in packageNames
+      process.stdout.write "Uninstalling #{packageName} "
       try
-        packagePath = path.join(packagesDirectory, packageName)
-        fs.removeSync(packagePath)
+        unless options.argv.dev
+          fs.removeSync(path.join(packagesDirectory, packageName))
+
+        if options.argv.hard or options.argv.dev
+          fs.removeSync(path.join(devPackagesDirectory, packageName))
+
         process.stdout.write '\u2713\n'.green
       catch error
         process.stdout.write '\u2717\n'.red

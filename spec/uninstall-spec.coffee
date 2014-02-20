@@ -21,7 +21,7 @@ describe 'apm uninstall', ->
         expect(process.exit.mostRecentCall.args[0]).toBe 1
 
   describe 'when the package is not installed', ->
-    it 'logs an error and exits', ->
+    it 'ignores the package', ->
       callback = jasmine.createSpy('callback')
       apm.run(['uninstall', 'a-package-that-does-not-exist'], callback)
 
@@ -29,8 +29,7 @@ describe 'apm uninstall', ->
         callback.callCount > 0
 
       runs ->
-        expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
-        expect(process.exit.mostRecentCall.args[0]).toBe 1
+        expect(console.error.callCount).toBe 0
 
   describe 'when the package is installed', ->
     it 'deletes the package', ->
@@ -49,3 +48,47 @@ describe 'apm uninstall', ->
 
       runs ->
         expect(fs.existsSync(packagePath)).toBeFalsy()
+
+    describe "--dev", ->
+      it "deletes the packages from the dev packages folder", ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        packagePath = path.join(atomHome, 'packages', 'test-package')
+        fs.makeTreeSync(path.join(packagePath, 'lib'))
+        fs.writeFileSync(path.join(packagePath, 'package.json'), "{}")
+        devPackagePath = path.join(atomHome, 'dev', 'packages', 'test-package')
+        fs.makeTreeSync(path.join(devPackagePath, 'lib'))
+        fs.writeFileSync(path.join(devPackagePath, 'package.json'), "{}")
+        process.env.ATOM_HOME = atomHome
+
+        expect(fs.existsSync(packagePath)).toBeTruthy()
+        callback = jasmine.createSpy('callback')
+        apm.run(['uninstall', 'test-package', '--dev'], callback)
+
+        waitsFor 'waiting for command to complete', ->
+          callback.callCount > 0
+
+        runs ->
+          expect(fs.existsSync(devPackagePath)).toBeFalsy()
+          expect(fs.existsSync(packagePath)).toBeTruthy()
+
+    describe "--hard", ->
+      it "deletes the packages from the both packages folders", ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        packagePath = path.join(atomHome, 'packages', 'test-package')
+        fs.makeTreeSync(path.join(packagePath, 'lib'))
+        fs.writeFileSync(path.join(packagePath, 'package.json'), "{}")
+        devPackagePath = path.join(atomHome, 'dev', 'packages', 'test-package')
+        fs.makeTreeSync(path.join(devPackagePath, 'lib'))
+        fs.writeFileSync(path.join(devPackagePath, 'package.json'), "{}")
+        process.env.ATOM_HOME = atomHome
+
+        expect(fs.existsSync(packagePath)).toBeTruthy()
+        callback = jasmine.createSpy('callback')
+        apm.run(['uninstall', 'test-package', '--hard'], callback)
+
+        waitsFor 'waiting for command to complete', ->
+          callback.callCount > 0
+
+        runs ->
+          expect(fs.existsSync(devPackagePath)).toBeFalsy()
+          expect(fs.existsSync(packagePath)).toBeFalsy()
