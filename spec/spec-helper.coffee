@@ -75,6 +75,7 @@ beforeEach ->
   spyOn(config, 'save')
   config.setDefaults('core', WorkspaceView.configDefaults)
   config.setDefaults('editor', EditorView.configDefaults)
+  config.set "core.destroyEmptyPanes", false
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
