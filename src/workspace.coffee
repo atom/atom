@@ -1,4 +1,5 @@
 {remove, last} = require 'underscore-plus'
+{join} = require 'path'
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
@@ -87,6 +88,9 @@ class Workspace extends Model
         @activePane
 
     @openUriInPane(uri, pane, options)
+
+  openLicense: ->
+    @open(join(atom.getLoadSettings().resourcePath, 'LICENSE'))
 
   # Only used in specs
   openSync: (uri='', options={}) ->
