@@ -79,6 +79,43 @@ class Publish extends Command
         process.stdout.write '\u2717\n'.red
         callback("#{stdout}\n#{stderr}")
 
+  # Check for the tag being available from the GitHub API before notifying
+  # atom.io about the new version.
+  #
+  # The tag is checked for 5 times at 1 second intervals.
+  #
+  # pack - The package metadata.
+  # tag - The tag that was pushed.
+  # callback - The callback function to invoke when either the tag is available
+  #            or the maximum numbers of requests for the tag have been made.
+  #            No arguments are passed to the callback when it is invoked.
+  waitForTagToBeAvailable: (pack, tag, callback) ->
+    @getToken (error, token) =>
+      if error?
+        callback(error)
+        return
+
+      retryCount = 5
+      interval = 1000
+      requestSettings =
+        url: "https://api.github.com/repos/#{@getRepository(pack)}/tags"
+        json: true
+        proxy: process.env.http_proxy || process.env.https_proxy
+        headers:
+          'User-Agent': "AtomApm/#{require('../package.json').version}"
+          authorization: "token #{token}"
+
+      requestTags = ->
+        request.get requestSettings, (error, response, tags=[]) ->
+          if response.statusCode is 200
+            for {name}, index in tags when name is tag
+              return callback()
+          if --retryCount <= 0
+            callback()
+          else
+            setTimeout(requestTags, interval)
+      requestTags()
+
   # Does the given package already exist in the registry?
   #
   # packageName - The string package name to check.
@@ -257,10 +294,12 @@ class Publish extends Command
           @pushVersion tag, (error) =>
             return callback(error) if error?
 
-            @publishPackage pack, tag, (error) =>
-              if firstTimePublishing and not error?
-                @logFirstTimePublishMessage(pack)
-              callback(error)
+            @waitForTagToBeAvailable pack, tag, =>
+
+              @publishPackage pack, tag, (error) =>
+                if firstTimePublishing and not error?
+                  @logFirstTimePublishMessage(pack)
+                callback(error)
     else if tag?.length > 0
       @registerPackage pack, (error, firstTimePublishing) =>
         return callback(error) if error?
