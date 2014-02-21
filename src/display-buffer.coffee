@@ -308,7 +308,6 @@ class DisplayBuffer extends Model
           screenColumn = Infinity
         break
 
-    new Point(screenRow, screenColumn)
     @clipScreenPosition([screenRow, screenColumn], options)
 
   # Given a buffer position, this converts it into a screen position.
@@ -509,7 +508,7 @@ class DisplayBuffer extends Model
 
   # Finds the first marker satisfying the given attributes
   #
-  # Refer to {DisplayBuffer.findMarkers} for details.
+  # Refer to {DisplayBuffer::findMarkers} for details.
   #
   # Returns a {DisplayBufferMarker} or null
   findMarker: (attributes) ->

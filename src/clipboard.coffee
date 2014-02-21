@@ -20,7 +20,7 @@ class Clipboard
   # Public: Write the given text to the clipboard.
   #
   # The metadata associated with the text is available by calling
-  # {.readWithMetadata}.
+  # {::readWithMetadata}.
   #
   # text - The {String} to store.
   # metadata - The additional info to associate with the text.
@@ -40,7 +40,7 @@ class Clipboard
   #
   # Returns an {Object} with the following keys:
   #   :text - The {String} clipboard text.
-  #   :metadata - The metadata stored by an earlier call to {.write}.
+  #   :metadata - The metadata stored by an earlier call to {::write}.
   readWithMetadata: ->
     text = @read()
     if @signatureForMetadata is @md5(text)

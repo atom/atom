@@ -110,7 +110,7 @@ class Git
   # path - A {String} repository-relative path.
   #
   # Returns a {Number} representing the status. This value can be passed to
-  # {.isStatusModified} or {.isStatusNew} to get more information.
+  # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
     currentPathStatus = @statuses[path] ? 0
     pathStatus = @getRepo().getStatus(@relativize(path)) ? 0
@@ -208,7 +208,7 @@ class Git
   # path - The {String} path to check.
   #
   # Returns a {Number} representing the status. This value can be passed to
-  # {.isStatusModified} or {.isStatusNew} to get more information.
+  # {::isStatusModified} or {::isStatusNew} to get more information.
   getDirectoryStatus: (directoryPath)  ->
     {sep} = require 'path'
     directoryPath = "#{directoryPath}#{sep}"

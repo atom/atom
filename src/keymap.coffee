@@ -135,9 +135,16 @@ class Keymap
     userKeymapPath = @getUserKeymapPath()
     if fs.isFileSync(userKeymapPath)
       @userKeymapPath = userKeymapPath
-      @load(userKeymapPath)
       @userKeymapFile = new File(userKeymapPath)
       @userKeymapFile.on 'contents-changed moved removed', => @loadUserKeymap()
+      @add(@userKeymapPath, @readUserKeymap())
+
+  readUserKeymap: ->
+    try
+      CSON.readFileSync(@userKeymapPath) ? {}
+    catch error
+      console.warn("Failed to load your keymap file: #{@userKeymapPath}", error.stack ? error)
+      {}
 
   loadDirectory: (directoryPath) ->
     platforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32']
@@ -159,7 +166,12 @@ class Keymap
 
   bindKeys: (source, selector, keyMappings) ->
     for keystroke, command of keyMappings
-      @keyBindings.push new KeyBinding(source, command, keystroke, selector)
+      keyBinding = new KeyBinding(source, command, keystroke, selector)
+      try
+        $(keyBinding.selector) # Verify selector is valid before registering
+        @keyBindings.push(keyBinding)
+      catch
+        console.warn("Keybinding '#{keystroke}': '#{command}' in #{source} has an invalid selector: '#{selector}'")
 
   handleKeyEvent: (event) ->
     element = event.target

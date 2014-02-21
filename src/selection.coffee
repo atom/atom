@@ -56,7 +56,7 @@ class Selection
   # Public: Modifies the screen range for the selection.
   #
   # screenRange - The new {Range} to use.
-  # options - A hash of options matching those found in {.setBufferRange}.
+  # options - A hash of options matching those found in {::setBufferRange}.
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editor.bufferRangeForScreenRange(screenRange), options)
 
@@ -338,7 +338,7 @@ class Selection
   #
   # options - A {Object} with the keys:
   #   :autoIndent - If `true`, the indentation is performed appropriately.
-  #                 Otherwise, {Editor.getTabText} is used.
+  #                 Otherwise, {Editor::getTabText} is used.
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
@@ -543,7 +543,7 @@ class Selection
   # the given selection.
   #
   # otherSelection - A {Selection} to merge with.
-  # options - A hash of options matching those found in {.setBufferRange}.
+  # options - A hash of options matching those found in {::setBufferRange}.
   merge: (otherSelection, options) ->
     myGoalBufferRange = @getGoalBufferRange()
     otherGoalBufferRange = otherSelection.getGoalBufferRange()
@@ -557,7 +557,7 @@ class Selection
   # Public: Compare this selection's buffer range to another selection's buffer
   # range.
   #
-  # See {Range.compare} for more details.
+  # See {Range::compare} for more details.
   #
   # otherSelection - A {Selection} to compare against.
   compare: (otherSelection) ->

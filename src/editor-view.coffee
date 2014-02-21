@@ -609,7 +609,7 @@ class EditorView extends View
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {.scrollToPixelPosition}
+  # options - A hash matching the options available to {::scrollToPixelPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
 
@@ -617,7 +617,7 @@ class EditorView extends View
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {.scrollToPixelPosition}
+  # options - A hash matching the options available to {::scrollToPixelPosition}
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
 

@@ -46,7 +46,11 @@ class MenuManager
   #
   # Returns true to include the selector, false otherwise.
   includeSelector: (selector) ->
-    return true if document.body.webkitMatchesSelector(selector)
+    try
+      return true if document.body.webkitMatchesSelector(selector)
+    catch error
+      # Selector isn't valid
+      return false
 
     # Simulate an .editor element attached to a .workspace element attached to
     # a body element that has the same classes as the current body element.
