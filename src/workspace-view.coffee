@@ -111,6 +111,7 @@ class WorkspaceView extends View
     @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
     @command 'application:open-your-snippets', -> ipc.sendChannel('command', 'application:open-your-snippets')
     @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
+    @command 'application:open-license', => @model.openLicense()
 
     @command 'window:install-shell-commands', => @installShellCommands()
 

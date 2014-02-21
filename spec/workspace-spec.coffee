@@ -230,3 +230,8 @@ describe "Workspace", ->
       expect(atom.config.get('editor.fontSize')).toBe 1
       workspace.decreaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe 1
+
+  describe "::openLicense()", ->
+    it "opens the license as plain-text in a buffer", ->
+      waitsForPromise -> workspace.openLicense()
+      runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
