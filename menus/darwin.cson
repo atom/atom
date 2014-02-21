@@ -3,6 +3,7 @@
     label: 'Atom'
     submenu: [
       { label: 'About Atom', command: 'application:about' }
+      { label: 'View License', command: 'application:open-license' }
       { label: "VERSION", enabled: false }
       { label: "Restart and Install Update", command: 'application:install-update', visible: false}
       { label: "Check for Update", command: 'application:check-for-update', visible: false}
