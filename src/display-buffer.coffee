@@ -508,7 +508,7 @@ class DisplayBuffer extends Model
 
   # Finds the first marker satisfying the given attributes
   #
-  # Refer to {DisplayBuffer.findMarkers} for details.
+  # Refer to {DisplayBuffer::findMarkers} for details.
   #
   # Returns a {DisplayBufferMarker} or null
   findMarker: (attributes) ->

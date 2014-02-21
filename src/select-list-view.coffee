@@ -8,8 +8,8 @@ fuzzyFilter = require('fuzzaldrin').filter
 #
 # Subclasses must implement the following methods:
 #
-# * {.viewForItem}
-# * {.confirmed}
+# * {::viewForItem}
+# * {::confirmed}
 #
 # ## Requiring in packages
 #
@@ -88,7 +88,7 @@ class SelectListView extends View
 
   # Public: Set the array of items to display in the list.
   #
-  # This should be model items not actual views. {.viewForItem} will be
+  # This should be model items not actual views. {::viewForItem} will be
   # called to render the item when it is being appended to the list view.
   #
   # items - The {Array} of model items to display in the list (default: []).
@@ -130,7 +130,7 @@ class SelectListView extends View
     @filterEditorView.getEditor().getText()
 
   # Public: Populate the list view with the model items previously set by
-  # calling {.setItems}.
+  # calling {::setItems}.
   #
   # Subclasses may override this method but should always call `super`.
   populateList: ->
@@ -160,7 +160,7 @@ class SelectListView extends View
   #
   # Subclasses may override this method to customize the message.
   #
-  # itemCount - The {Number} of items in the array specified to {.setItems}
+  # itemCount - The {Number} of items in the array specified to {::setItems}
   # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
   #
   # Returns a {String} message (default: 'No matches found').
@@ -220,7 +220,7 @@ class SelectListView extends View
   # This is called when the item is about to appended to the list view.
   #
   # item - The model item being rendered. This will always be one of the items
-  #        previously passed to {.setItems}.
+  #        previously passed to {::setItems}.
   #
   # Returns a String of HTML, DOM element, jQuery object, or View.
   viewForItem: (item) ->
@@ -231,7 +231,7 @@ class SelectListView extends View
   # This method must be overridden by subclasses.
   #
   # item - The selected model item. This will always be one of the items
-  #        previously passed to {.setItems}.
+  #        previously passed to {::setItems}.
   #
   # Returns a DOM element, jQuery object, or {View}.
   confirmed: (item) ->
@@ -242,7 +242,7 @@ class SelectListView extends View
   # This method may be overridden by classes to allow fuzzy filtering based
   # on a specific property of the item objects.
   #
-  # For example if the objects you pass to {.setItems} are of the type
+  # For example if the objects you pass to {::setItems} are of the type
   # `{"id": 3, "name": "Atom"}` then you would return `"name"` from this method
   # to fuzzy filter by that property when text is entered into this view's
   # editor.
@@ -255,7 +255,7 @@ class SelectListView extends View
     @filterEditorView.focus()
 
   # Public: Store the currently focused element. This element will be given
-  # back focus when {.cancel} is called.
+  # back focus when {::cancel} is called.
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
 
@@ -272,7 +272,7 @@ class SelectListView extends View
   # Public: Cancel and close this select list view.
   #
   # This restores focus to the previously focused element if
-  # {.storeFocusedElement} was called prior to this view being attached.
+  # {::storeFocusedElement} was called prior to this view being attached.
   cancel: ->
     @list.empty()
     @cancelling = true

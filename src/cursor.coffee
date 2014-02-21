@@ -311,7 +311,7 @@ class Cursor
   #
   # options - An {Object} with the following keys:
   #   :wordRegex - A {RegExp} indicating what constitutes a "word"
-  #                (default: {.wordRegExp}).
+  #                (default: {::wordRegExp}).
   #   :includeNonWordCharacters - A {Boolean} indicating whether to include
   #                               non-word characters in the default word regex.
   #                               Has no effect if wordRegex is set.
@@ -379,7 +379,7 @@ class Cursor
   #
   # options - An {Object} with the following keys:
   #   :wordRegex - A {RegExp} indicating what constitutes a "word"
-  #                (default: {.wordRegExp})
+  #                (default: {::wordRegExp})
   #   :includeNonWordCharacters - A Boolean indicating whether to include
   #                               non-word characters in the default word regex.
   #                               Has no effect if wordRegex is set.
@@ -403,7 +403,7 @@ class Cursor
   #
   # options -
   #   :wordRegex - A {RegExp} indicating what constitutes a "word"
-  #                (default: {.wordRegExp}).
+  #                (default: {::wordRegExp}).
   #
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
@@ -422,7 +422,7 @@ class Cursor
   #
   # options -
   #   :wordRegex - A {RegExp} indicating what constitutes a "word"
-  #                (default: {.wordRegExp}).
+  #                (default: {::wordRegExp}).
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
     endOptions = _.extend(_.clone(options), allowNext: false)
