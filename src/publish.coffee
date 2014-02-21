@@ -49,9 +49,9 @@ class Publish extends Command
 
   # Create a new version and tag use the `npm version` command.
   #
-  #  * version: The new version or version increment.
-  #  * callback: The callback function to invoke with an error as the first
-  #    argument and a the generated tag string as the second argument.
+  # version  - The new version or version increment.
+  # callback - The callback function to invoke with an error as the first
+  #            argument and a the generated tag string as the second argument.
   versionPackage: (version, callback) ->
     process.stdout.write 'Preparing and tagging a new version '
     versionArgs = ['version', version, '-m', 'Prepare %s release']
@@ -65,9 +65,9 @@ class Publish extends Command
 
   # Push a tag to the remote repository.
   #
-  #  * tag: The tag to push.
-  #  * callback: The callback function to invoke with an error as the first
-  #    argument.
+  #  tag - The tag to push.
+  #  callback - The callback function to invoke with an error as the first
+  #             argument.
   pushVersion: (tag, callback) ->
     process.stdout.write "Pushing #{tag} tag "
     pushArgs = ['push', 'origin', 'HEAD', tag]
@@ -81,9 +81,9 @@ class Publish extends Command
 
   # Does the given package already exist in the registry?
   #
-  #  * packageName: The string package name to check.
-  #  * callback: The callback function invoke with an error as the first
-  #    argument and true/false as the second argument.
+  # packageName - The string package name to check.
+  # callback    - The callback function invoke with an error as the first
+  #               argument and true/false as the second argument.
   packageExists: (packageName, callback) ->
     @getToken (error, token) ->
       if error?
@@ -114,8 +114,8 @@ class Publish extends Command
 
   # Register the current repository with the package registry.
   #
-  #  * pack: The package metadata.
-  #  * callback: The callback function.
+  # pack - The package metadata.
+  # callback - The callback function.
   registerPackage: (pack, callback) ->
     unless pack.name
       callback('Required name field in package.json not found')
@@ -158,10 +158,10 @@ class Publish extends Command
 
   # Create a new package version at the given Git tag.
   #
-  #  * packageName: The string name of the package.
-  #  * tag: The string Git tag of the new version.
-  #  * callback: The callback function to invoke with an error as the first
-  #    argument.
+  # packageName - The string name of the package.
+  # tag - The string Git tag of the new version.
+  # callback - The callback function to invoke with an error as the first
+  #            argument.
   createPackageVersion: (packageName, tag, callback) ->
     @getToken (error, token) ->
       if error?
@@ -188,10 +188,10 @@ class Publish extends Command
 
   # Publish the version of the package associated with the given tag.
   #
-  #  * pack: The package metadata.
-  #  * tag: The Git tag string of the package version to publish.
-  #  * callback: The callback function to invoke when done with an error as the
-  #    first argument.
+  # pack - The package metadata.
+  # tag - The Git tag string of the package version to publish.
+  # callback - The callback function to invoke when done with an error as the
+  #            first argument.
   publishPackage: (pack, tag, callback) ->
     process.stdout.write "Publishing #{pack.name}@#{tag} "
     @createPackageVersion pack.name, tag, (error) ->
