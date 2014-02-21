@@ -27,7 +27,10 @@ module.exports =
     process.env.ATOM_NODE_VERSION ? '0.11.10'
 
   getNodeArch: ->
-    if process.platform is 'darwin' then 'x64' else 'ia32'
+    switch process.platform
+      when 'darwin' then 'x64'
+      when 'win32' then 'ia32'
+      else process.arch  # On BSD and Linux we use current machine's arch.
 
   getUserConfigPath: ->
     path.resolve(__dirname, '..', '.apmrc')
