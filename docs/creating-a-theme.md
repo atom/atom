@@ -22,6 +22,8 @@ a few things before starting:
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
   is used to help distribute your theme to Atom users.
+* Your theme's _package.json_ must contain a `"theme"` key with a value
+  of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
 * You can find existing themes to install or fork on [atom.io](atomio).
 
 ## Creating a Syntax Theme
