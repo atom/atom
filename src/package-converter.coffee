@@ -157,6 +157,7 @@ class PackageConverter
       snippetsBySelector[selector][name] = {prefix: tabTrigger, body: content}
 
     @writeFileSync(path.join(destination, "#{packageName}.cson"), snippetsBySelector)
+    @normalizeFilenames(destination)
 
   convertPreferences: (packageName, source) ->
     sourcePreferences = path.join(source, 'preferences')
@@ -177,6 +178,7 @@ class PackageConverter
           preferencesBySelector[selector][key] = value
 
     @writeFileSync(path.join(destination, "#{packageName}.cson"), preferencesBySelector)
+    @normalizeFilenames(destination)
 
   convertGrammars: (source) ->
     sourceSyntaxes = path.join(source, 'syntaxes')
