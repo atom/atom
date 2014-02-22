@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>content</key>
-	<string>attach(${1:frame})</string>
+	<string>attach(${1:${TM_FILENAME/.*?(\\w+).*|.*/(?1:$1:NSObject)/}})${TM_C_POINTER: *}outlet</string>
 	<key>name</key>
 	<string>Attach</string>
 	<key>scope</key>
-	<string>source.r, source.rd.console</string>
+	<string>source.rd.tm</string>
 	<key>tabTrigger</key>
 	<string>att</string>
 	<key>uuid</key>

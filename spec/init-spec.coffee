@@ -1,6 +1,6 @@
 path = require 'path'
 temp = require 'temp'
-
+CSON = require 'season'
 apm = require '../lib/apm-cli'
 fs = require '../lib/fs'
 
@@ -8,7 +8,7 @@ describe "apm init", ->
   [packagePath, themePath] = []
 
   beforeEach ->
-    silenceOutput()
+    # silenceOutput()
     spyOnToken()
 
     currentDir = temp.mkdirSync('apm-init-')
@@ -56,6 +56,10 @@ describe "apm init", ->
           expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'LICENSE.md'))).toBeFalsy()
+          expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.rd.tm']['Attach']).toEqual {
+            body: 'attach($1) *outlet'
+            prefix: 'att'
+          }
 
   describe "when creating a theme", ->
     it "generates the proper file structure", ->

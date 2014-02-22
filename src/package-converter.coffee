@@ -145,7 +145,14 @@ class PackageConverter
     for child in fs.readdirSync(sourceSnippets)
       snippet = @readFileSync(path.join(sourceSnippets, child)) ? {}
       {scope, name, content, tabTrigger} = snippet
-      continue unless tabTrigger
+      continue unless tabTrigger and content
+
+      # Replace things like '${TM_C_POINTER: *}' with ' *'
+      content = content.replace(/\$\{TM_[A-Z_]+:([^}]+)}/g, '$1')
+
+      # Replace things like '${1:${TM_FILENAME/(\\w+)*/(?1:$1:NSObject)/}}'
+      # with '$1'
+      content = content.replace(/\$\{(\d)+:\s*\$\{TM_[^}]+\s*\}\s*\}/g, '$$1')
 
       unless name?
         extension = path.extname(child)
