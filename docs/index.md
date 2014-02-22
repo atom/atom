@@ -5,6 +5,7 @@
 * [Creating a Package](creating-a-package.md)
 * [Creating a Theme](creating-a-theme.md)
 * [Publishing a Package](publishing-a-package.md)
+* [Contributing](contributing.md)
 
 ### Advanced Topics
 
