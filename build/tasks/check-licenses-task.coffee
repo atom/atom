@@ -15,12 +15,6 @@ module.exports = (grunt) ->
         console.error(err)
         exit 1
 
-      # Omit failure for coffee-script bundle for now. It seems to be intended
-      # to be open source but has no license.
-      for dependencyName in keys(summary)
-        if dependencyName.match /^language-coffee-script@/
-          delete summary[dependencyName]
-
       if size(summary)
         console.error "Found dependencies without permissive licenses:"
         for name in keys(summary).sort()
