@@ -45,8 +45,8 @@ Open up _stylesheets/colors.less_ to change the various colors variables which
 have been already been defined. For example, turn `@red` into `#f4c2c1`.
 
 Then open _stylesheets/base.less_ and modify the various selectors that have
-been already been defined. Each of these selectors styles different parts of
-code in the editor such as comments, strings and the line numbers in the gutter.
+been already been defined. These selectors style different parts of code in the
+editor such as comments, strings and the line numbers in the gutter.
 
 As an example, let's make the `.gutter` `background-color` into `@red`.
 
