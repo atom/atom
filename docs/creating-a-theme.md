@@ -32,7 +32,7 @@ Let's create your first theme.
 
 To get started, hit `cmd-shift-P`, and start typing "Generate Syntax Theme" to
 generate a new theme package. Select "Generate Syntax Theme," and you'll be
-asked for the path where you theme will be created. Let's call ours _motif_.
+asked for the path where your theme will be created. Let's call ours _motif_.
 
 Atom will pop open a new window, showing the _motif_ theme, with a default set
 of folders and files created for us. If you open the settings view (`cmd-,`)
