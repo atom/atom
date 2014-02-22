@@ -49,9 +49,9 @@ describe "apm init", ->
 
         runs ->
           expect(fs.existsSync(packagePath)).toBeTruthy()
-          expect(fs.isFileSync(path.join(packagePath, 'scoped-properties', 'comments.json'))).toBe true
-          expect(fs.isFileSync(path.join(packagePath, 'snippets', 'density.json'))).toBe true
-          expect(fs.isFileSync(path.join(packagePath, 'grammars', 'r.json'))).toBe true
+          expect(fs.isFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))).toBe true
+          expect(fs.isFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))).toBe true
+          expect(fs.isFileSync(path.join(packagePath, 'grammars', 'r.cson'))).toBe true
           expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
           expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()

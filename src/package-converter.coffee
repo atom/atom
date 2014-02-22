@@ -60,8 +60,13 @@ class PackageConverter
 
   copyDirectories: (sourcePath, callback) ->
     sourcePath = path.resolve(sourcePath)
-    for source, target of @directoryMappings
-      @convertDirectory(path.join(sourcePath, source), target)
+    try
+      packageName = JSON.parse(fs.readFileSync(path.join(sourcePath, 'package.json')))?.packageName
+    packageName ?= path.basename(@destinationPath)
+
+    @convertSnippets(packageName, sourcePath)
+    @convertPreferences(packageName, sourcePath)
+    @convertGrammars(sourcePath)
     callback()
 
   filterObject: (object) ->
@@ -84,18 +89,20 @@ class PackageConverter
     )
     {editor: editorProperties} unless _.isEmpty(editorProperties)
 
-  convertPreferences: ({scope, settings}={}) ->
-    return unless scope and settings
+  readFileSync: (filePath) ->
+    if _.contains(@plistExtensions, path.extname(filePath))
+      plist.parseFileSync(filePath)
+    else if _.contains(['.json', '.cson'], path.extname(filePath))
+      CSON.readFileSync(filePath)
 
-    if properties = @convertSettings(settings)
-      preferences = {}
-      selector = new ScopeSelector(scope).toCssSelector()
-      preferences[selector] = properties
-      preferences
+  writeFileSync: (filePath, object={}) ->
+    @filterObject(object)
+    if Object.keys(object).length > 0
+      CSON.writeFileSync(filePath, object)
 
   convertFile: (sourcePath, destinationDir) ->
     extension = path.extname(sourcePath)
-    destinationName = "#{path.basename(sourcePath, extension)}.json"
+    destinationName = "#{path.basename(sourcePath, extension)}.cson"
     destinationName = destinationName.toLowerCase()
     destinationPath = path.join(destinationDir, destinationName)
 
@@ -104,15 +111,7 @@ class PackageConverter
     else if _.contains(['.json', '.cson'], path.extname(sourcePath))
       contents = CSON.readFileSync(sourcePath)
 
-    if contents?
-      @filterObject(contents)
-
-      if path.basename(path.dirname(sourcePath)) is 'Preferences'
-        contents = @convertPreferences(contents)
-        return unless contents
-
-      json = "#{JSON.stringify(contents, null, 2)}\n"
-      fs.writeFileSync(destinationPath, json)
+    @writeFileSync(destinationPath, contents)
 
   normalizeFilenames: (directoryPath) ->
     return unless fs.isDirectorySync(directoryPath)
@@ -134,12 +133,60 @@ class PackageConverter
         suffix++
       fs.renameSync(childPath, convertedPath)
 
-  convertDirectory: (source, targetName) ->
-    return unless fs.isDirectorySync(source)
+  convertSnippets: (packageName, source) ->
+    sourceSnippets = path.join(source, 'snippets')
+    unless fs.isDirectorySync(sourceSnippets)
+      sourceSnippets = path.join(source, 'Snippets')
+    return unless fs.isDirectorySync(sourceSnippets)
 
-    destination = path.join(@destinationPath, targetName)
-    for child in fs.readdirSync(source)
-      childPath = path.join(source, child)
+    snippetsBySelector = {}
+    destination = path.join(@destinationPath, 'snippets')
+    for child in fs.readdirSync(sourceSnippets)
+      snippet = @readFileSync(path.join(sourceSnippets, child)) ? {}
+      {scope, name, content, tabTrigger} = snippet
+      continue unless tabTrigger
+
+      unless name?
+        extension = path.extname(child)
+        name = path.basename(child, extension)
+
+      selector = new ScopeSelector(scope).toCssSelector() if scope
+      selector ?= '*'
+
+      snippetsBySelector[selector] ?= {}
+      snippetsBySelector[selector][name] = {prefix: tabTrigger, body: content}
+
+    @writeFileSync(path.join(destination, "#{packageName}.cson"), snippetsBySelector)
+
+  convertPreferences: (packageName, source) ->
+    sourcePreferences = path.join(source, 'preferences')
+    unless fs.isDirectorySync(sourcePreferences)
+      sourcePreferences = path.join(source, 'Preferences')
+    return unless fs.isDirectorySync(sourcePreferences)
+
+    preferencesBySelector = {}
+    destination = path.join(@destinationPath, 'scoped-properties')
+    for child in fs.readdirSync(sourcePreferences)
+      {scope, settings} = @readFileSync(path.join(sourcePreferences, child)) ? {}
+      continue unless scope and settings
+
+      if properties = @convertSettings(settings)
+        selector = new ScopeSelector(scope).toCssSelector()
+        for key, value of properties
+          preferencesBySelector[selector] ?= {}
+          preferencesBySelector[selector][key] = value
+
+    @writeFileSync(path.join(destination, "#{packageName}.cson"), preferencesBySelector)
+
+  convertGrammars: (source) ->
+    sourceSyntaxes = path.join(source, 'syntaxes')
+    unless fs.isDirectorySync(sourceSyntaxes)
+      sourceSyntaxes = path.join(source, 'Syntaxes')
+    return unless fs.isDirectorySync(sourceSyntaxes)
+
+    destination = path.join(@destinationPath, 'grammars')
+    for child in fs.readdirSync(sourceSyntaxes)
+      childPath = path.join(sourceSyntaxes, child)
       @convertFile(childPath, destination) if fs.isFileSync(childPath)
 
     @normalizeFilenames(destination)
