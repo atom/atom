@@ -71,6 +71,7 @@ class PackageConverter
 
   filterObject: (object) ->
     delete object.uuid
+    delete object.keyEquivalent
 
   convertSettings: (settings) ->
     if settings.shellVariables
