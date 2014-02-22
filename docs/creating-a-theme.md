@@ -63,16 +63,16 @@ To create an interface UI theme, do the following:
 1. Fork one of the following repositories:
   * [atom-dark-ui]
   * [atom-light-ui]
-2. Cloned your forked themed repository to the local filesystem
-2. Open a terminal in the forked theme's directory
-3. Open your new theme in a Dev Mode Atom window run `atom --dev .` in the
+2. Clone the forked repository to the local filesystem
+3. Open a terminal in the forked theme's directory
+4. Open your new theme in a Dev Mode Atom window run `atom --dev .` in the
    terminal or use the _View > Developer > Open in Dev Mode_ menu)
-4. Change the name of the theme in the theme's `package.json` file
-5. Run `apm link` to symlink your repository to `~/.atom/packages`
-6. Reload Atom using `cmd-alt-ctrl-L`
-7. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
+5. Change the name of the theme in the theme's `package.json` file
+6. Run `apm link` to symlink your repository to `~/.atom/packages`
+7. Reload Atom using `cmd-alt-ctrl-L`
+8. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
    settings view
-8. Make changes! Since you opened the theme in a Dev Mode window, changes will
+9. Make changes! Since you opened the theme in a Dev Mode window, changes will
    be instantly reflected in the editor without having to reload.
 
 ## Development workflow
