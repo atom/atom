@@ -15,7 +15,7 @@ to propose changes to this document in a pull request.
 
 This is the repository for the core Atom editor only. Atom comes bundled with
 many packages and themes that are stored in other repos under the
-[atom org](https://github.com/atom) such as [tabs](https://github.com/atom/tabs),
+[atom organization](https://github.com/atom) such as [tabs](https://github.com/atom/tabs),
 [find-and-replace](https://github.com/atom/find-and-replace),
 [language-javascript](https://github.com/atom/language-javascript),
 and [atom-light-ui](http://github.com/atom/atom-light-ui).
