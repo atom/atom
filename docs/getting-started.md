@@ -22,7 +22,7 @@ bindings][key-bindings] section.
 Atom windows are scoped to a single directory on disk. If you launch Atom from
 the command line via the `atom` command and don't specify a path, Atom opens a
 window for the current working directory. The current window's directory will be
-visible as the root of the tree view at the left, and also serve as the context
+visible as the root of the tree view on the left, and also serve as the context
 for all file-related operations.
 
 #### Finding Files
