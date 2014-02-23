@@ -39,11 +39,10 @@ the tree view, press `ctrl-0`. The tree view can be toggled open and closed with
 
 #### Adding, Moving, Deleting Files
 
-Currently, all file modification is performed via the tree view. Add, move, or
-delete a file by right-clicking in the tree view and selecting the desired
-operation from the context menu. You can also perform these operations from the
-keyboard by selecting a file or directory and using `a` to add, `m` to move, and
-`delete` to delete.
+You can add, move, and delete files and folders by right-clicking them in the
+tree view and selecting the desired operation from the context menu. You can
+also perform these operations from the keyboard by selecting a file or folder
+and using `a` to add, `m` to move, and `delete` to delete.
 
 ### Searching
 
