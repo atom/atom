@@ -1,33 +1,56 @@
 # Customizing Atom
 
 To change a setting, configure a theme, or install a package just open the
-Settings pane in the current window by pressing `cmd+,`.
+Settings view in the current window by pressing `cmd+,`.
 
 ## Changing The Theme
 
-Because Atom themes are based on CSS, it's possible (and encouraged) to have
-multiple themes active at the same time. Atom comes with both light and dark
-interface themes as well as several syntax themes (you can also [create your
-own][create-theme]).
+Atom comes with both light and dark UI themes as well as several syntax themes.
+You are also encouraged to [create or fork][create-theme] your own theme.
 
-To change the active themes just open the Settings pane (`cmd-,`) and select the
-`Themes` tab. You can install non-bundled themes by going to the `Available
-Themes` section on the `Packages` tab within the Settings panel.
+To change the active theme just open the Settings view (`cmd-,`) and select the
+`Themes` section from the left hand side. You will see a drop-down menu to
+change the active _Syntax_ and _UI_ themes.
+
+You can also install more themes from here by browsing the featured themes or
+searching for a specific theme.
 
 ## Installing Packages
 
-You can install non-bundled packages by going to the `Available Packages`
-section on the `Packages` tab within the Settings panel (`cmd-,`).
+You can install non-bundled packages by going to the `Packages` section on left
+hand side of the Settings view (`cmd-,`). You will see several featured packages
+and you can also search for packages from here. The packages listed here have
+been published to [atom.io](http://atom.io/packages) which is the official
+registry for Atom packages.
 
-You can also install packages from the command line using the
-[apm](https://github.com/atom/apm) command:
+You can also install packages from the command line using `apm`.
 
-`apm install <package_name>` to install the latest version.
+Check that you have `apm` installed by running the following command in your
+terminal:
 
-`apm install <package_name>@<package_version>` to install a specific version.
+```sh
+apm help install
+```
+
+You should see a message print out with details about the `apm install` command.
+
+If you do not, launch Atom and run the _Atom > Install Shell Commmands_ menu
+to install the `apm` and `atom` commands.
+
+You can also install packages by using the `apm install` command:
+
+* `apm install <package_name>` to install the latest version.
+
+* `apm install <package_name>@<package_version>` to install a specific version.
 
 For example `apm install emmet@0.1.5` installs the `0.1.5` release of the
 [Emmet](https://github.com/atom/emmet) package into `~/.atom/packages`.
+
+You can also use `apm` to find new packages to install:
+
+* `apm search coffee` to search for CoffeeScript packages.
+
+* `apm view emmet` to see more information about a specific package.
 
 ## Customizing Key Bindings
 
@@ -36,13 +59,13 @@ to apply styles to elements, Atom keymaps use selectors to associate keystrokes
 with events in specific contexts. Here's a small example, excerpted from Atom's
 built-in keymaps:
 
-```coffee-script
+```coffee
 '.editor':
   'enter': 'editor:newline'
 
 'body':
-  'ctrl-P': 'core:move-up'
-  'ctrl-p': 'core:move-down'
+  'ctrl-b': 'core:move-left'
+  'ctrl-f': 'core:move-right'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
@@ -64,11 +87,11 @@ currently in use.
 Atom loads configuration settings from the `config.cson` file in your _~/.atom_
 directory, which contains CoffeeScript-style JSON:
 
-```coffeescript
-core:
-  excludeVcsIgnoredPaths: true
-editor:
-  fontSize: 18
+```coffee
+'core':
+  'excludeVcsIgnoredPaths': true
+'editor':
+  'fontSize': 18
 ```
 
 The configuration itself is grouped by the package name or one of the two core
@@ -108,7 +131,7 @@ namespaces: `core` and `editor`.
   - `removeTrailingWhitespace`: Enable/disable striping of whitespace at the end of lines (defaults to `true`)
 - `wrap-guide`
   - `columns`: Array of hashes with a `pattern` and `column` key to match the
-             the path of the current editor to a column position.
+     the path of the current editor to a column position.
 
 ### Quick Personal Hacks
 
@@ -117,8 +140,7 @@ namespaces: `core` and `editor`.
 When Atom finishes loading, it will evaluate _init.coffee_ in your _~/.atom_
 directory, giving you a chance to run arbitrary personal CoffeeScript code to
 make customizations. You have full access to Atom's API from code in this file.
-If customizations become extensive, consider [creating a
-package][create-a-package].
+If customizations become extensive, consider [creating a package][create-a-package].
 
 This file can also be named _init.js_ and contain JavaScript code.
 
