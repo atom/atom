@@ -78,6 +78,8 @@ By default, `~/.atom/keymap.cson` is loaded when Atom is started. It will always
 be loaded last, giving you the chance to override bindings that are defined by
 Atom's core keymaps or third-party packages.
 
+You can open this file in an editor from the _Atom > Open Your Keymap_ menu.
+
 You'll want to know all the commands available to you. Open the Settings panel
 (`cmd-,`) and select the _Keybindings_ tab. It will show you all the keybindings
 currently in use.
@@ -96,6 +98,8 @@ directory, which contains CoffeeScript-style JSON:
 
 The configuration itself is grouped by the package name or one of the two core
 namespaces: `core` and `editor`.
+
+You can open this file in an editor from the _Atom > Open Your Config_ menu.
 
 ### Configuration Key Reference
 
@@ -142,13 +146,18 @@ directory, giving you a chance to run arbitrary personal CoffeeScript code to
 make customizations. You have full access to Atom's API from code in this file.
 If customizations become extensive, consider [creating a package][create-a-package].
 
+You can open this file in an editor from the _Atom > Open Your Init Script_
+menu.
+
 This file can also be named _init.js_ and contain JavaScript code.
 
 ### styles.css
 
 If you want to apply quick-and-dirty personal styling changes without creating
-an entire theme that you intend to distribute, you can add styles to
-_styles.css_ in your _~/.atom_ directory.
+an entire theme that you intend to publish, you can add styles to _styles.css_
+in your _~/.atom_ directory.
+
+You can open this file in an editor from the _Atom > Open Your Stylesheet_ menu.
 
 For example, to change the color of the highlighted line number for the line
 that contains the cursor, you could add the following style to _styles.css_:
