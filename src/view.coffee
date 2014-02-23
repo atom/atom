@@ -22,6 +22,10 @@ class Search extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.boolean('json').describe('json', 'Output featured packages as JSON array')
 
+  getRepository: (pack) ->
+    if repository = pack.repository?.url ? pack.repository
+      repository.replace(/\.git$/, '')
+
   getPackage: (packageName, callback) ->
     auth.getToken (error, token) ->
       if error?
@@ -54,7 +58,7 @@ class Search extends Command
       callback("Missing required package name")
       return
 
-    @getPackage packageName, (error, pack) ->
+    @getPackage packageName, (error, pack) =>
       if error?
         callback(error)
         return
@@ -65,7 +69,8 @@ class Search extends Command
         console.log "#{pack.name.cyan}"
         items = []
         items.push(pack.version.yellow) if pack.version
-        items.push(pack.repository.underline) if pack.repository
+        if repository = @getRepository(pack)
+          items.push(repository.underline)
         items.push(pack.description.replace(/\s+/g, ' ')) if pack.description
         tree(items)
 
