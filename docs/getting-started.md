@@ -100,4 +100,4 @@ For more advanced configuration see the [customization guide][customization].
 [customization]: customizing-atom.md
 [key-bindings]: customizing-atom.md#customizing-key-bindings
 [command palette]: https://f.cloud.github.com/assets/1424/1091618/ee7c3554-166a-11e3-9955-aaa61bb5509c.png
-[ctags]: https://github.com/kevinsawicki/dotfiles/blob/master/.ctags
+[ctags]: https://github.com/atom/symbols-view/blob/master/lib/.ctags
