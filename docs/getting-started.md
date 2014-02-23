@@ -30,7 +30,8 @@ for all file-related operations.
 The fastest way to find a file is to use the fuzzy finder. Press `cmd-t` and
 begin typing the name of the file you're looking for. If you are looking for a
 file that is already open press `cmd-b` to bring up a searchable list of open
-files.
+files. If you are using Git you can use `cmd-shift-b` to search the list of
+files modified and untracked in your project's repository.
 
 You can also use the tree view to navigate to a file. To open and focus the
 the tree view, press `ctrl-0`. The tree view can be toggled open and closed with
