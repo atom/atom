@@ -1,18 +1,16 @@
 # Creating a Theme
 
 Atom's interface is rendered using HTML, and it's styled via [LESS] (a superset
-of CSS). Don't worry if you haven't heard of LESS before; it's just like CSS, but
-with a few handy extensions.
+of CSS). Don't worry if you haven't heard of LESS before; it's just like CSS,
+but with a few handy extensions.
 
-Since CSS is the basis of the theming system, we can load multiple themes within
-Atom, and the themes behave just as they would on a website. Themes loaded first
-are overridden by themes which are loaded later. The order of theme loading is
-controlled within the Settings/Themes pane.
+Atom supports two types of themes _UI_ and _syntax_.  UI themes style
+elements such as the tree view, the tabs, drop-down lists, and the status bar.
+Syntax themes style the code inside the editor.
 
-This flexibility is helpful for users that prefer a light interface with a dark
-syntax theme. Atom currently has only interface and syntax themes, but it is
-possible to create a theme to style something specific &mdash; say, changing
-the colors in the tree view or creating a language specific syntax theme.
+Themes can be installed and changed from the settings view which you can open
+by selecting the _Atom > Preferences..._ menu and navigating to the _Themes_
+section on the left hand side.
 
 ## Getting Started
 
@@ -23,90 +21,94 @@ a few things before starting:
   variables. If you aren't familiar with its syntax take a few minutes
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
-is used to help distribute your theme to Atom users.
-
-There are two types of themes you can create: syntax themes and interface themes.
-The differences between them are simply a matter of what they target and what
-they provide. Syntax themes focus on the entire editor pane, while interface themes
-target elements which are outside of the editor.
+  is used to help distribute your theme to Atom users.
+* Your theme's _package.json_ must contain a `"theme"` key with a value
+  of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
+* You can find existing themes to install or fork on [atom.io](atomio).
 
 ## Creating a Syntax Theme
 
 Let's create your first theme.
 
-To get started, hit `cmd-shift-P`, and start typing "Generate Theme" to generate
-a package. Select "Generate Theme," and you'll be asked for a theme name. Let's
-call ours _motif_.
+To get started, hit `cmd-shift-P`, and start typing "Generate Syntax Theme" to
+generate a new theme package. Select "Generate Syntax Theme," and you'll be
+asked for the path where your theme will be created. Let's call ours _motif_.
 
-Atom will pop open a new window, showing the _motif_ theme, with a default set of
-folders and files created for us. If you hit `cmd-,` and navigate to the Themes
-menu option, you'll see the `motif` theme already available. Drag it over from
-"Enabled Themes" to "Available Themes."
+Atom will pop open a new window, showing the _motif_ theme, with a default set
+of folders and files created for us. If you open the settings view (`cmd-,`)
+and navigate to the _Themes_ section on the left, you'll see the _Motif_ theme
+listed in the _Syntax Theme_ drop-down. Select it from the menu to activate it,
+now when you open an editor you should see that your new _motif_ theme in
+action.
 
 Open up _stylesheets/colors.less_ to change the various colors variables which
 have been already been defined. For example, turn `@red` into `#f4c2c1`.
 
-Then, open _stylesheets/base.less_, and modify the various syntax CSS selectors
-that have been already been defined. Each of these selectors represents a different
-part of the Atom window. Themes that don't need to modify a particular region
-can simply remove the selectors they don't need.
+Then open _stylesheets/base.less_ and modify the various selectors that have
+been already been defined. These selectors style different parts of code in the
+editor such as comments, strings and the line numbers in the gutter.
 
 As an example, let's make the `.gutter` `background-color` into `@red`.
 
-Reload Atom by hitting `cmd-r` to see the changes you made reflected in your Atom
-window. Pretty neat!
+Reload Atom by pressing `cmd-alt-option-L` to see the changes you made reflected
+in your Atom window. Pretty neat!
 
 ## Creating an Interface Theme
 
-Interface themes  **must** provide a `ui-variables.less` file which contains all
+Interface themes **must** provide a `ui-variables.less` file which contains all
 of the variables provided by the [core themes][ui-variables].
 
 To create an interface UI theme, do the following:
 
-1. Fork one of the following repos
-  1. [atom-dark-ui]
-  1. [atom-light-ui]
-1. Open a terminal in the forked theme's directory
-1. Open your new theme in a Dev Mode Atom window (run `atom -d .` in the terminal or use the __View > Developer > Open in Dev Mode__ menu)
-1. Change the name of the theme in the theme's `package.json` file
-1. Run `apm link` to tell Atom about your new theme
-1. Reload Atom (`cmd-r`)
-1. Enable the theme via the themes panel in settings
-1. Make changes! Since you opened the theme in a Dev Mode window, changes will
+1. Fork one of the following repositories:
+  * [atom-dark-ui]
+  * [atom-light-ui]
+2. Clone the forked repository to the local filesystem
+3. Open a terminal in the forked theme's directory
+4. Open your new theme in a Dev Mode Atom window run `atom --dev .` in the
+   terminal or use the _View > Developer > Open in Dev Mode_ menu)
+5. Change the name of the theme in the theme's `package.json` file
+6. Run `apm link` to symlink your repository to `~/.atom/packages`
+7. Reload Atom using `cmd-alt-ctrl-L`
+8. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
+   settings view
+9. Make changes! Since you opened the theme in a Dev Mode window, changes will
    be instantly reflected in the editor without having to reload.
 
 ## Development workflow
 
-There are a few of tools to help make theme development faster.
+There are a few of tools to help make theme development faster and easier
 
 ### Live Reload
 
-Reloading by hitting `cmd-r` after you make changes to your theme is less than ideal.
-Atom supports [live updating][livereload] of styles on Dev Mode Atom windows.
+Reloading by hitting `cmd-alt-ctrl-L` after you make changes to your theme is
+less than ideal. Atom supports [live updating][livereload] of styles on Dev Mode
+Atom windows.
 
 To enable a Dev Mode window:
 
 1. Open your theme directory in a dev window by either going to the
-__View > Developer > Open in Dev Mode__ menu or by hitting the `cmd-shift-o`
-shortcut
-1. Make a change to your theme file and save it. Your change should be
-immediately applied!
+   __View > Developer > Open in Dev Mode__ menu or by hitting the `cmd-shift-o`
+  shortcut
+2. Make a change to your theme file and save it. Your change should be
+   immediately applied!
 
 If you'd like to reload all the styles at any time, you can use the shortcut
-`cmd-ctrl-R`.
+`cmd-ctrl-shift-r`.
 
 ### Developer Tools
 
 Atom is based on the Chrome browser, and supports Chrome's Developer Tools. You
-can open them by selecting the __View > Toggle Developer Tools__ menu, or by using
-the `cmd-option-i` shortcut.
+can open them by selecting the _View > Toggle Developer Tools_ menu, or by
+using the `cmd-alt-i` shortcut.
 
 The dev tools allow you to inspect elements and take a look at their CSS
 properties.
 
 ![devtools-img]
 
-Check out Google's [extensive tutorial][devtools-tutorial] for a short introduction.
+Check out Google's [extensive tutorial][devtools-tutorial] for a short
+introduction.
 
 ### Atom Styleguide
 
@@ -119,6 +121,7 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]
 
+[atomio]: http://atom.io/packages
 [less]: http://lesscss.org/
 [git]: http://git-scm.com/
 [atom]: https://atom.io/
