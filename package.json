@@ -86,7 +86,7 @@
     "keybinding-resolver": "0.11.0",
     "link": "0.18.0",
     "markdown-preview": "0.35.0",
-    "metrics": "0.26.0",
+    "metrics": "0.28.0",
     "open-on-github": "0.20.0",
     "package-generator": "0.27.0",
     "release-notes": "0.22.0",
