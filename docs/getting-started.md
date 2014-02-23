@@ -89,9 +89,8 @@ in preferences.
 
 ## Configuration
 
-Press `cmd-,` to display the preferences pane. This serves as the primary
-interface for adjusting config settings, installing packages and changing
-themes.
+Press `cmd-,` to open the Settings view. This is the place to change settings
+install packages, and change the theme.
 
 For more advanced configuration see the [customization guide][customization].
 
