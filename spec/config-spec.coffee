@@ -217,7 +217,7 @@ describe "Config", ->
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
+      fs.removeSync(dotAtomPath)
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
@@ -243,7 +243,7 @@ describe "Config", ->
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
+      fs.removeSync(dotAtomPath)
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
@@ -286,7 +286,7 @@ describe "Config", ->
 
     afterEach ->
       atom.config.unobserveUserConfig()
-      fs.removeSync(dotAtomPath) if fs.existsSync(dotAtomPath)
+      fs.removeSync(dotAtomPath)
 
     describe "when the config file changes to contain valid cson", ->
       it "updates the config data", ->
