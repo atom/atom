@@ -1,6 +1,7 @@
 path = require 'path'
 
-{$, $$, fs, WorkspaceView} = require 'atom'
+{$, $$, WorkspaceView} = require 'atom'
+fs = require 'fs-plus'
 temp = require 'temp'
 
 ThemeManager = require '../src/theme-manager'

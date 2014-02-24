@@ -1,7 +1,7 @@
-{fs} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 CSON = require 'season'
+fs = require 'fs-plus'
 
 describe "Config", ->
   dotAtomPath = path.join(temp.dir, 'dot-atom-dir')
