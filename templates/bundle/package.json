@@ -4,12 +4,6 @@
   "private": true,
   "description": "A short description of your package",
   "repository": "https://github.com/atom/__package-name__",
-  "licenses": [
-    {
-      "type": "Apache",
-      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
-    }
-  ],
   "engines": {
     "atom": ">0.39.0"
   },
