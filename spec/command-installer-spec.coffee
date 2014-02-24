@@ -1,5 +1,5 @@
-{fs} = require 'atom'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 installer = require '../src/command-installer'
 

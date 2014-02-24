@@ -1,5 +1,5 @@
-{fs} = require 'atom'
 path = require 'path'
+fs = require 'fs-plus'
 temp = require 'temp'
 
 describe "the `syntax` global", ->

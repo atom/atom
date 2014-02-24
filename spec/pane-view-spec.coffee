@@ -1,6 +1,7 @@
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
-{fs, $, View} = require 'atom'
+fs = require 'fs-plus'
+{$, View} = require 'atom'
 path = require 'path'
 temp = require 'temp'
 

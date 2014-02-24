@@ -1,4 +1,4 @@
-{$, $$, fs, WorkspaceView, View} = require 'atom'
+{$, $$, WorkspaceView, View} = require 'atom'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'

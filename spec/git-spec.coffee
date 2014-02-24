@@ -1,6 +1,6 @@
 temp = require 'temp'
 Git = require '../src/git'
-{fs} = require 'atom'
+fs = require 'fs-plus'
 path = require 'path'
 Task = require '../src/task'
 

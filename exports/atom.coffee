@@ -1,10 +1,8 @@
 {Point, Range} = require 'text-buffer'
 
 module.exports =
-  _: require 'underscore-plus'
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
-  fs: require 'fs-plus'
   Git: require '../src/git'
   Point: Point
   Range: Range

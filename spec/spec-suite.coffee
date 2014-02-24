@@ -1,4 +1,6 @@
-{_, fs, Git} = require 'atom'
+_ = require 'underscore-plus'
+fs = require 'fs-plus'
+{Git} = require 'atom'
 path = require 'path'
 require './spec-helper'
 

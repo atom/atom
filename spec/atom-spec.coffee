@@ -1,4 +1,4 @@
-{$, $$, fs, WorkspaceView}  = require 'atom'
+{$, $$, WorkspaceView}  = require 'atom'
 Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'

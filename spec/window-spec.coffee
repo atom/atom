@@ -1,4 +1,4 @@
-{$, $$, fs} = require 'atom'
+{$, $$} = require 'atom'
 path = require 'path'
 Editor = require '../src/editor'
 WindowEventHandler = require '../src/window-event-handler'
