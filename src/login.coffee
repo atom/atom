@@ -30,6 +30,7 @@ class Login extends Command
       .then(@getUser)
       .then(@getPassword)
       .then(@getTwoFactorCode)
+      .then(@getExistingToken)
       .then(@createToken)
       .then(@saveToken)
       .then (token) -> callback(null, token)
@@ -86,8 +87,57 @@ class Login extends Command
         deferred.reject(new Error(message))
     deferred.promise
 
-  createToken: (state) =>
+  getExistingToken: (state) =>
     {user, password, authCode} = state
+    targetAuthorization = @getAuthorization()
+    deferred = Q.defer()
+
+    getAuthorizations = (uri) =>
+      requestOptions =
+        uri: uri
+        method: 'GET'
+        auth:
+          user: user
+          password: password
+          sendImmediately: true
+        json: true
+        proxy: process.env.http_proxy || process.env.https_proxy
+        headers:
+          'User-Agent': @getUserAgent()
+      requestOptions.headers['x-github-otp'] = authCode if authCode
+
+      request requestOptions, (error, {headers, statusCode}={}, body={}) ->
+        if statusCode is 200
+          for authorization in body
+            {token} = authorization
+            authorization = _.pick(authorization, Object.keys(targetAuthorization)...)
+            if _.isEqual(authorization, targetAuthorization)
+              state.token = token
+              deferred.resolve(state)
+              return
+
+          {link} = headers
+          if nextPage = link?.match(/<([^>]+)>;\s*rel\s*=\s*"next"/)?[1]
+            getAuthorizations(nextPage)
+          else
+            deferred.resolve(state)
+        else
+          {message} = body
+          message ?= error.message ? error.code if error
+          deferred.reject(new Error(message))
+
+    getAuthorizations('https://api.github.com/authorizations?per_page=100')
+    deferred.promise
+
+  getAuthorization: ->
+    scopes: ['user', 'repo', 'gist']
+    note: 'Atom Editor'
+    note_url: 'https://atom.io'
+
+  createToken: (state) =>
+    {user, password, authCode, token} = state
+    return Q(state) if token
+
     requestOptions =
       uri: 'https://api.github.com/authorizations'
       method: 'POST'
@@ -95,10 +145,7 @@ class Login extends Command
         user: user
         password: password
         sendImmediately: true
-      json:
-        scopes: ['user', 'repo', 'gist']
-        note: 'GitHub Atom'
-        note_url: 'https://atom.io'
+      json: @getAuthorization()
       proxy: process.env.http_proxy || process.env.https_proxy
       headers:
         'User-Agent': @getUserAgent()
@@ -116,5 +163,7 @@ class Login extends Command
     deferred.promise
 
   saveToken: ({token}) =>
+    process.stdout.write('Saving token to Keychain ')
     keytar.replacePassword('Atom GitHub API Token', 'github', token)
+    process.stdout.write '\u2713\n'.green
     Q(token)
