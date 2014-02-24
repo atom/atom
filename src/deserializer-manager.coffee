@@ -11,6 +11,11 @@
 #
 #   @deserialize: (state) ->
 #     new MyPackageView(state)
+#
+#   constructor: (@state) ->
+#
+#   serialize: ->
+#     @state
 # ```
 module.exports =
 class DeserializerManager
