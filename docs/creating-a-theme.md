@@ -4,7 +4,7 @@ Atom's interface is rendered using HTML, and it's styled via [LESS] (a superset
 of CSS). Don't worry if you haven't heard of LESS before; it's just like CSS,
 but with a few handy extensions.
 
-Atom supports two types of themes _UI_ and _syntax_.  UI themes style
+Atom supports two types of themes: _UI_ and _syntax_.  UI themes style
 elements such as the tree view, the tabs, drop-down lists, and the status bar.
 Syntax themes style the code inside the editor.
 
@@ -14,11 +14,11 @@ section on the left hand side.
 
 ## Getting Started
 
-Themes are pretty straight forward but it's still helpful to be familiar with
+Themes are pretty straightforward but it's still helpful to be familiar with
 a few things before starting:
 
 * LESS is a superset of CSS, but it has some really handy features like
-  variables. If you aren't familiar with its syntax take a few minutes
+  variables. If you aren't familiar with its syntax, take a few minutes
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
   is used to help distribute your theme to Atom users.
@@ -77,7 +77,7 @@ To create an interface UI theme, do the following:
 
 ## Development workflow
 
-There are a few of tools to help make theme development faster and easier
+There are a few of tools to help make theme development faster and easier.
 
 ### Live Reload
 
@@ -113,8 +113,8 @@ introduction.
 ### Atom Styleguide
 
 If you are creating an interface theme, you'll want a way to see how your theme
-changes affect all the components in the system. The [styleguide] is a page with
-every component Atom supports rendered.
+changes affect all the components in the system. The [styleguide] is a page that
+renders every component Atom supports.
 
 To open the styleguide, open the command palette (`cmd-shift-P`) and search for
 _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
