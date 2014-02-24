@@ -5,12 +5,7 @@
   "private": true,
   "description": "A short description of your theme",
   "repository": "https://github.com/atom/__package-name__",
-  "licenses": [
-    {
-      "type": "Apache",
-      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
-    }
-  ],
+  "license": "MIT",
   "engines": {
     "atom": ">0.39.0"
   }

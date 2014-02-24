@@ -4,6 +4,7 @@
   "private": true,
   "description": "A short description of your package",
   "repository": "https://github.com/atom/__package-name__",
+  "license": "MIT",
   "engines": {
     "atom": ">0.39.0"
   },
