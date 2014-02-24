@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Git} = require 'atom'
 path = require 'path'
-require './spec-helper'
+require './spec-helper'
 
 requireSpecs = (specDirectory, specType) ->
   for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
