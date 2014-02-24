@@ -10,20 +10,19 @@ Cursor = require './cursor'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
-# Public: The core model of Atom.
+# Public: Represents all essential editing state for a single {TextBuffer},
+# including cursor and selection positions, folds, and soft wraps. If you're
+# manipulating the state of an {Editor}, use this class. If you're interested in
+# the visual appearance of editors, use {EditorView} instead.
 #
-# An {Editor} represents a unique view of each document, with its own
-# {Cursor}s and scroll position.
+# A single {TextBuffer} can belong to multiple {Editor}s. For example, if the
+# same file is open in two different panes, Atom creates a separate {Editor} for
+# each pane. If the buffer is manipulated the changes are reflected in both
+# editors, but each maintains its own cursor position, folded lines, etc.
 #
-# For instance if a user creates a split, Atom creates a second {Editor}
-# but both {Editor}s interact with the same buffer underlying buffer. So
-# if you type in either buffer it immediately appears in both but if you scroll
-# in one it doesn't scroll the other.
-#
-# Almost all packages will interact primiarily with this class as it provides
-# access to objects you'll most commonly interact with. To access it you'll
-# want to register a callback on {WorkspaceView} which will be fired once for every
-# existing {Editor} as well as any future {Editor}s.
+# The easiest way to gain access to {Editor} objects is by registering a
+# callback on the `atom.workspace` global to be called with all current and
+# future {Editor}s:
 #
 # ## Example
 # ```coffeescript
