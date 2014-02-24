@@ -166,7 +166,7 @@ class Editor extends Model
     else
       'untitled'
 
-  # Public: Compares two `Editor`s to determine equality.
+  # Compares two `Editor`s to determine equality.
   #
   # Equality is based on the condition that:
   #
@@ -590,7 +590,7 @@ class Editor extends Model
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
-  # Public: Removes any {Fold}s found that intersect the given buffer row.
+  # Removes any {Fold}s found that intersect the given buffer row.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
@@ -799,7 +799,7 @@ class Editor extends Model
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Public: {Delegates to: DisplayBuffer.destroyMarker}
+  # {Delegates to: DisplayBuffer.destroyMarker}
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
@@ -830,8 +830,7 @@ class Editor extends Model
     @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor
 
-  # Public: Adds and returns a cursor at the given {DisplayBufferMarker}
-  # position.
+  # Adds and returns a cursor based on the given {DisplayBufferMarker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
@@ -842,7 +841,7 @@ class Editor extends Model
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
-  # Public: Creates a new selection at the given marker.
+  # Adds and returns a {Selection} based on the given {DisplayBufferMarker}.
   #
   # marker  - The {DisplayBufferMarker} to highlight
   # options - An {Object} that pertains to the {Selection} constructor.
