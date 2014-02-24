@@ -98,7 +98,7 @@ class Login extends Command
       json:
         scopes: ['user', 'repo', 'gist']
         note: 'GitHub Atom'
-        note_url: 'https://github.com/github/atom'
+        note_url: 'https://atom.io'
       proxy: process.env.http_proxy || process.env.https_proxy
       headers:
         'User-Agent': @getUserAgent()
