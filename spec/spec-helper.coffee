@@ -4,7 +4,9 @@ atom.restoreWindowDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
-{_, $, WorkspaceView, fs} = require 'atom'
+_ = require 'underscore-plus'
+fs = require 'fs-plus'
+{$, WorkspaceView} = require 'atom'
 Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'text-buffer'

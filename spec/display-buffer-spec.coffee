@@ -1,5 +1,5 @@
 DisplayBuffer = require '../src/display-buffer'
-{_} = require 'atom'
+_ = require 'underscore-plus'
 
 describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []

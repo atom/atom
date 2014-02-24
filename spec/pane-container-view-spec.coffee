@@ -2,7 +2,7 @@ path = require 'path'
 temp = require 'temp'
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
-{_, $, View, $$} = require 'atom'
+{$, View, $$} = require 'atom'
 
 describe "PaneContainerView", ->
   [TestView, container, pane1, pane2, pane3] = []
