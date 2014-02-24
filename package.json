@@ -31,7 +31,7 @@
     "fuzzaldrin": "1.x",
     "git-utils": "1.x",
     "guid": "0.0.10",
-    "jasmine-tagged": "1.x",
+    "jasmine-tagged": ">=1.1.1 <2.0",
     "mkdirp": "0.3.5",
     "keytar": "0.15.1",
     "less-cache": "0.12.0",
