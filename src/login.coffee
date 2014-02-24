@@ -61,7 +61,7 @@ class Login extends Command
 
   getTwoFactorCode: (state) =>
     {user, password} = state
-    requestOptions = _.extend {}, @defaultRequestOptions,
+    requestOptions =
       uri: 'https://api.github.com/user'
       method: 'GET'
       auth:
