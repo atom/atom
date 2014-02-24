@@ -182,7 +182,7 @@ class Editor extends Model
       @getScrollLeft() == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
-  # Public: Controls visiblity based on the given Boolean.
+  # Controls visiblity based on the given Boolean.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
   # Deprecated: Use the ::scrollTop property directly
