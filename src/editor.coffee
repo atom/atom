@@ -69,10 +69,9 @@ class Editor extends Model
   selections: null
   suppressSelectionMerging: false
 
-  @delegatesMethods 'foldAll', 'unfoldAll', 'foldAllAtIndentLevel', 'foldBufferRow',
-    'unfoldBufferRow', 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
+  @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
-    'isFoldableAtBufferRow', toProperty: 'languageMode'
+    toProperty: 'languageMode'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
@@ -681,11 +680,57 @@ class Editor extends Model
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
 
-  # Public: For each selection, fold all rows it intersects.
+  # For each selection, fold all rows it intersects.
+  #
+  # TODO: Rename to foldSelectedLines?
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
-  # {Delegates to: DisplayBuffer.createFold}
+  # Public: Fold all foldable lines.
+  foldAll: ->
+    @languageMode.foldAll()
+
+  # Public: Unfold all existing folds.
+  unfoldAll: ->
+    @languageMode.unfoldAll()
+
+  # Public: Fold all foldable lines at the given indent level.
+  #
+  # level - A {Number}.
+  foldAllAtIndentLevel: (level) ->
+    @languageMode.foldAllAtIndentLevel(level)
+
+  # Fold the given row in buffer coordinates based on its indentation level.
+  #
+  # If the given row is foldable, the fold will begin there. Otherwise, it will
+  # begin at the first foldable row preceding the given row.
+  #
+  # bufferRow - A {Number}.
+  #
+  # TODO: Make public when ::unfoldBufferRow goes public
+  foldBufferRow: (bufferRow) ->
+    @languageMode.foldBufferRow(bufferRow)
+
+  # Destroy the largest fold containing the given row in buffer
+  # coordinates.
+  #
+  # bufferRow - A {Number}
+  #
+  # TODO: Should this destroy all folds containing the given buffer row?
+  unfoldBufferRow: (bufferRow) ->
+    @languageMode.unfoldBufferRow(bufferRow)
+
+  # Public: Determine whether the given row in buffer coordinates is foldable.
+  #
+  # A *foldable* row is a row that *starts* a row range that can be folded.
+  #
+  # bufferRow - A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldableAtBufferRow: (bufferRow) ->
+    @languageMode.isFoldableAtBufferRow(bufferRow)
+
+  # TODO: Rename to foldRowRange?
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
