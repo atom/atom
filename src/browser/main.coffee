@@ -68,7 +68,7 @@ parseCommandLine = ->
   version = app.getVersion()
   options = optimist(process.argv[1..])
   options.usage """
-    Atom #{version}
+    Atom Editor v#{version}
 
     Usage: atom [options] [file ...]
   """
