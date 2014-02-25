@@ -16,9 +16,6 @@ ChildProcess = require 'child_process'
 # ```
 module.exports =
 class BufferedProcess
-  process: null
-  killed: false
-
   # Public: Runs the given command by spawning a new child process.
   #
   # options - An {Object} with the following keys:
@@ -43,6 +40,7 @@ class BufferedProcess
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     @process = ChildProcess.spawn(command, args, options)
+    @killed = false
 
     stdoutClosed = true
     stderrClosed = true
