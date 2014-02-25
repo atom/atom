@@ -10,25 +10,46 @@ Cursor = require './cursor'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
-# Public: Represents all essential editing state for a single {TextBuffer},
-# including cursor and selection positions, folds, and soft wraps. If you're
-# manipulating the state of an {Editor}, use this class. If you're interested in
-# the visual appearance of editors, use {EditorView} instead.
+# Public: This class represents all essential editing state for a single
+# {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
+# If you're manipulating the state of an {Editor}, use this class. If you're
+# interested in the visual appearance of editors, use {EditorView} instead.
 #
 # A single {TextBuffer} can belong to multiple {Editor}s. For example, if the
 # same file is open in two different panes, Atom creates a separate {Editor} for
 # each pane. If the buffer is manipulated the changes are reflected in both
 # editors, but each maintains its own cursor position, folded lines, etc.
 #
-# The easiest way to gain access to {Editor} objects is by registering a
-# callback on the `atom.workspace` global to be called with all current and
-# future {Editor}s:
+# ## Accessing Editor Instances
+#
+# The easiest way to get hold of {Editor} objects is by registering a callback
+# with `::eachEditor` on the `atom.workspace` global. Your callback will then
+# be called with all current editor instances and also when any editor is
+# created in the future.
 #
 # ## Example
 # ```coffeescript
 #   atom.workspace.eachEditor (editor) ->
 #     editor.insertText('Hello World')
 # ```
+#
+# ## Buffer vs. Screen Coordinates
+#
+# Because editors support folds and soft-wrapping, the lines on screen don't
+# always match the lines in the buffer. For example, a long line that soft wraps
+# twice renders as three lines on screen, but only represents one line in the
+# buffer. Similarly, if rows 5-10 are folded, then row 6 on screen corresponds
+# to row 11 in the buffer.
+#
+# Your choice of coordinates systems will depend on what you're trying to
+# achieve. For example, if you're writing a command that jumps the cursor up or
+# down by 10 lines, you'll want to use screen coordinates because the user
+# probably wants to skip lines *on screen*. However, if you're writing a package
+# that jumps between method definitions, you'll want to work in buffer
+# coordinates.
+#
+# **When in doubt, just default to buffer coordinates**, then experiment with
+# soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
