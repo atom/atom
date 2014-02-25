@@ -166,7 +166,6 @@
     label: 'Help'
     submenu: [
       { label: 'Documentation', command: 'application:open-documentation' }
-      { label: 'Report an Issue', command: 'application:report-issue' }
       { type: 'separator' }
     ]
   }
