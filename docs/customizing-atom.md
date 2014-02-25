@@ -151,25 +151,26 @@ menu.
 
 This file can also be named _init.js_ and contain JavaScript code.
 
-### styles.css
+### styles.less
 
 If you want to apply quick-and-dirty personal styling changes without creating
-an entire theme that you intend to publish, you can add styles to _styles.css_
-in your _~/.atom_ directory.
+an entire theme that you intend to publish, you can add styles to the
+_styles.less_ file in your _~/.atom_ directory.
 
 You can open this file in an editor from the _Atom > Open Your Stylesheet_ menu.
 
-For example, to change the color of the highlighted line number for the line
-that contains the cursor, you could add the following style to _styles.css_:
+For example, to change the color of the cursor, you could add the following
+rule to your _~/.atom/styles.less_ file:
 
-```css
+```less
 .editor .cursor {
   border-color: pink;
 }
 ```
 
-You can also name the file _styles.less_ if you want to style Atom using
-[LESS][LESS].
+Unfamiliar with LESS? Read more about it [here][LESS].
+
+This file can also be named _styles.css_ and contain CSS.
 
 [create-a-package]: creating-packages.md
 [create-theme]: creating-a-theme.md
