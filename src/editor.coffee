@@ -1130,7 +1130,7 @@ class Editor extends Model
 
   # Public: Get current {Selection}s.
   #
-  # Returns: An {Array} of {Seletions}s.
+  # Returns: An {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
 
   # Public: Get the most recent {Selection} or the selection at the given
@@ -1151,7 +1151,7 @@ class Editor extends Model
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Gets all {Selections}, ordered by their position in the buffer
+  # Public: Get all {Selection}s, ordered by their position in the buffer
   # instead of the order in which they were added.
   #
   # Returns an {Array} of {Selection}s.
@@ -1566,7 +1566,7 @@ class Editor extends Model
   #
   # marker - A {DisplayBufferMarker}
   #
-  # Returns the selected {Range} or {undefined} if the marker is invalid.
+  # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
     if marker.isValid()
       range = marker.getBufferRange()
