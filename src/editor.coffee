@@ -337,7 +337,7 @@ class Editor extends Model
   # number of the editor.
   getLastBufferRow: -> @buffer.getLastRow()
 
-  # Public: Returns the range for the given buffer row.
+  # Returns the range for the given buffer row.
   #
   # row - A row {Number}.
   # options - An options hash with an `includeNewline` key.
