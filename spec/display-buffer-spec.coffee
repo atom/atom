@@ -37,7 +37,7 @@ describe "DisplayBuffer", ->
       expect(displayBuffer2.isFoldedAtBufferRow(3)).toBeTruthy()
 
       # can diverge from origin
-      displayBuffer2.destroyFoldsContainingBufferRow(3)
+      displayBuffer2.unfoldBufferRow(3)
       expect(displayBuffer2.isFoldedAtBufferRow(3)).not.toBe displayBuffer.isFoldedAtBufferRow(3)
 
   describe "when the buffer changes", ->
@@ -495,7 +495,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([5, 0])).toEqual [5, 0]
         expect(displayBuffer.bufferPositionForScreenPosition([9, 2])).toEqual [9, 2]
 
-    describe ".destroyFoldsContainingBufferRow(row)", ->
+    describe ".unfoldBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
         displayBuffer.createFold(2, 4)
         displayBuffer.createFold(2, 6)
@@ -506,7 +506,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.lineForRow(1).text).toBe '1'
         expect(displayBuffer.lineForRow(2).text).toBe '10'
 
-        displayBuffer.destroyFoldsContainingBufferRow(2)
+        displayBuffer.unfoldBufferRow(2)
         expect(displayBuffer.lineForRow(1).text).toBe '1'
         expect(displayBuffer.lineForRow(2).text).toBe '2'
         expect(displayBuffer.lineForRow(7).fold).toBeDefined()
@@ -684,7 +684,7 @@ describe "DisplayBuffer", ->
         }
         markerChangedHandler.reset()
 
-        displayBuffer.destroyFoldsContainingBufferRow(4)
+        displayBuffer.unfoldBufferRow(4)
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 23]
@@ -867,7 +867,7 @@ describe "DisplayBuffer", ->
           expect(marker.getHeadScreenPosition()).toEqual [8, 10]
           expect(marker.getTailScreenPosition()).toEqual [8, 4]
 
-        displayBuffer.destroyFoldsContainingBufferRow(4)
+        displayBuffer.unfoldBufferRow(4)
 
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()

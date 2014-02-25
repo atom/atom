@@ -169,7 +169,7 @@ class DisplayBuffer extends Model
   # Removes any folds found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
-  destroyFoldsContainingBufferRow: (bufferRow) ->
+  unfoldBufferRow: (bufferRow) ->
     fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
 
   # Given a buffer row, this returns the largest fold that starts there.

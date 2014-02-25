@@ -788,14 +788,11 @@ class Editor extends Model
   foldBufferRow: (bufferRow) ->
     @languageMode.foldBufferRow(bufferRow)
 
-  # Destroy the largest fold containing the given row in buffer
-  # coordinates.
+  # Public: Unfold all folds containing the given row in buffer coordinates.
   #
   # bufferRow - A {Number}
-  #
-  # TODO: Should this destroy all folds containing the given buffer row?
   unfoldBufferRow: (bufferRow) ->
-    @languageMode.unfoldBufferRow(bufferRow)
+    @displayBuffer.unfoldBufferRow(bufferRow)
 
   # Public: Determine whether the given row in buffer coordinates is foldable.
   #
@@ -815,14 +812,10 @@ class Editor extends Model
   destroyFoldWithId: (id) ->
     @displayBuffer.destroyFoldWithId(id)
 
-  # {Delegates to: DisplayBuffer.destroyFoldsContainingBufferRow}
-  destroyFoldsContainingBufferRow: (bufferRow) ->
-    @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
-
   # Remove any {Fold}s found that intersect the given buffer row.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     for row in [bufferRange.start.row..bufferRange.end.row]
-      @destroyFoldsContainingBufferRow(row)
+      @unfoldBufferRow(row)
 
   # Public: Fold the given buffer row if it isn't currently folded, and unfold
   # it otherwise.
@@ -904,7 +897,7 @@ class Editor extends Model
 
         # Make sure the inserted text doesn't go into an existing fold
         if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
-          @destroyFoldsContainingBufferRow(insertPosition.row)
+          @unfoldBufferRow(insertPosition.row)
           foldedRows.push(insertPosition.row + endRow - startRow + fold.getBufferRange().getRowCount())
 
         @buffer.insert(insertPosition, lines)
@@ -960,7 +953,7 @@ class Editor extends Model
 
         # Make sure the inserted text doesn't go into an existing fold
         if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
-          @destroyFoldsContainingBufferRow(insertPosition.row)
+          @unfoldBufferRow(insertPosition.row)
           foldedRows.push(insertPosition.row + fold.getBufferRange().getRowCount())
 
         @buffer.insert(insertPosition, lines)

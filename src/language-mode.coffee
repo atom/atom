@@ -121,12 +121,6 @@ class LanguageMode
       fold = @editor.displayBuffer.largestFoldStartingAtBufferRow(startRow)
       return @editor.createFold(startRow, endRow) unless fold
 
-  # Given a buffer row, this unfolds it.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  unfoldBufferRow: (bufferRow) ->
-    @editor.displayBuffer.largestFoldContainingBufferRow(bufferRow)?.destroy()
-
   # Find the row range for a fold at a given bufferRow. Will handle comments
   # and code.
   #

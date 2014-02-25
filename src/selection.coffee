@@ -282,7 +282,7 @@ class Selection
   #   :undo - if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
-    @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
+    @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
@@ -334,11 +334,15 @@ class Selection
 
     normalizedLines.join('\n')
 
-  # Public: Indents the selection.
+  # Indent the current line(s).
+  #
+  # If the selection is empty, indents the current line if the cursor precedes
+  # non-whitespace characters, and otherwise inserts a tab. If the selection is
+  # non empty, calls {::indentSelectedRows}.
   #
   # options - A {Object} with the keys:
-  #   :autoIndent - If `true`, the indentation is performed appropriately.
-  #                 Otherwise, {Editor::getTabText} is used.
+  #   :autoIndent - If `true`, the line is indented to an automatically-inferred
+  #                 level. Otherwise, {Editor::getTabText} is inserted.
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
