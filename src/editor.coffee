@@ -1599,10 +1599,6 @@ class Editor extends Model
   joinLine: ->
     @mutateSelectedText (selection) -> selection.joinLine()
 
-  # TODO: Remove unused method?
-  expandLastSelectionOverLine: ->
-    @getLastSelection().expandOverLine()
-
   # Public: Expand selections to the beginning of their containing word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the
@@ -1627,10 +1623,6 @@ class Editor extends Model
   # Public: Select the word containing each cursor.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
-
-  # TODO: Remove unused method?
-  expandLastSelectionOverWord: ->
-    @getLastSelection().expandOverWord()
 
   # Public: Select the range of the given marker if it is valid.
   #
