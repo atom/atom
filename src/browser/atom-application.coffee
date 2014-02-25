@@ -159,7 +159,7 @@ class AtomApplication
         type: 'info'
         buttons: ['OK']
         message: 'Update available.'
-        detail: 'A new update is being downloading.'
+        detail: 'A new update is being downloaded.'
 
     autoUpdater.once 'update-not-available', =>
       dialog.showMessageBox
