@@ -80,7 +80,7 @@
   'ctrl-up': 'editor:move-line-up'
   'ctrl-down': 'editor:move-line-down'
   'ctrl-/': 'editor:toggle-line-comments'
-  'ctrl-j': 'editor:join-line'
+  'ctrl-j': 'editor:join-lines'
   'ctrl-D': 'editor:duplicate-line'
 
   'ctrl-alt-[': 'editor:fold-current-row'

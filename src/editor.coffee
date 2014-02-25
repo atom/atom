@@ -1593,10 +1593,8 @@ class Editor extends Model
   #
   # Joining a line means that multiple lines are converted to a single line with
   # the contents of each of the original non-empty lines separated by a space.
-  #
-  # TODO: Rename to joinLines?
-  joinLine: ->
-    @mutateSelectedText (selection) -> selection.joinLine()
+  joinLines: ->
+    @mutateSelectedText (selection) -> selection.joinLines()
 
   # Public: Expand selections to the beginning of their containing word.
   #

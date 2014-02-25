@@ -210,7 +210,7 @@ class EditorView extends View
         'editor:move-line-up': => @editor.moveLineUp()
         'editor:move-line-down': => @editor.moveLineDown()
         'editor:duplicate-line': => @editor.duplicateLine()
-        'editor:join-line': => @editor.joinLine()
+        'editor:join-lines': => @editor.joinLines()
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': => @scrollToCursorPosition()

@@ -133,7 +133,7 @@
   'ctrl-cmd-up': 'editor:move-line-up'
   'ctrl-cmd-down': 'editor:move-line-down'
   'cmd-/': 'editor:toggle-line-comments'
-  'cmd-j': 'editor:join-line'
+  'cmd-j': 'editor:join-lines'
   'cmd-D': 'editor:duplicate-line'
   'cmd-L': 'editor:split-selections-into-lines'
 

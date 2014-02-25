@@ -437,7 +437,7 @@ class Selection
   # Public: Joins the current line with the one below it.
   #
   # If there selection spans more than one line, all the lines are joined together.
-  joinLine: ->
+  joinLines: ->
     selectedRange = @getBufferRange()
     if selectedRange.isEmpty()
       return if selectedRange.start.row is @editor.buffer.getLastRow()

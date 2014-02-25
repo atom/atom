@@ -2635,18 +2635,18 @@ describe "Editor", ->
         editor.destroy()
         expect(buffer.getMarkerCount()).toBe 0
 
-    describe ".joinLine()", ->
+    describe ".joinLines()", ->
       describe "when no text is selected", ->
         describe "when the line below isn't empty", ->
           it "joins the line below with the current line separated by a space and moves the cursor to the start of line that was moved up", ->
-            editor.joinLine()
+            editor.joinLines()
             expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
             expect(editor.getCursorBufferPosition()).toEqual [0, 30]
 
         describe "when the line below is empty", ->
           it "deletes the line below and moves the cursor to the end of the line", ->
             editor.setCursorBufferPosition([9])
-            editor.joinLine()
+            editor.joinLines()
             expect(editor.lineForBufferRow(9)).toBe '  };'
             expect(editor.lineForBufferRow(10)).toBe '  return sort(Array.apply(this, arguments));'
             expect(editor.getCursorBufferPosition()).toEqual [9, 4]
@@ -2654,21 +2654,21 @@ describe "Editor", ->
         describe "when the cursor is on the last row", ->
           it "does nothing", ->
             editor.setCursorBufferPosition([Infinity, Infinity])
-            editor.joinLine()
+            editor.joinLines()
             expect(editor.lineForBufferRow(12)).toBe '};'
 
       describe "when text is selected", ->
         describe "when the selection does not span multiple lines", ->
           it "joins the line below with the current line separated by a space and retains the selected text", ->
             editor.setSelectedBufferRange([[0, 1], [0, 3]])
-            editor.joinLine()
+            editor.joinLines()
             expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
             expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [0, 3]]
 
         describe "when the selection spans multiple lines", ->
           it "joins all selected lines separated by a space and retains the selected text", ->
             editor.setSelectedBufferRange([[9, 3], [12, 1]])
-            editor.joinLine()
+            editor.joinLines()
             expect(editor.lineForBufferRow(9)).toBe '  }; return sort(Array.apply(this, arguments)); };'
             expect(editor.getSelectedBufferRange()).toEqual [[9, 3], [9, 49]]
 
