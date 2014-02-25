@@ -1,38 +1,45 @@
 ChildProcess = require 'child_process'
 
-# Public: A wrapper which provides line buffering for Node's ChildProcess.
+# Public: A wrapper which provides standard error/output line buffering for
+# Node's ChildProcess.
 #
 # ## Requiring in packages
 #
 # ```coffee
-#   {BufferedProcess} = require 'atom'
+# {BufferedProcess} = require 'atom'
+#
+# command = 'ps'
+# args = ['-ef']
+# stdout = (output) -> console.log(output)
+# exit = (code) -> console.log("ps -ef exited with #{code}")
+# process = new BufferredProcess({command, args, stdout, exit})
 # ```
 module.exports =
 class BufferedProcess
   process: null
   killed: false
 
-  # Public: Executes the given executable.
+  # Public: Runs the given command by spawning a new child process.
   #
   # options - An {Object} with the following keys:
   #   :command - The {String} command to execute.
-  #   :args - The {String}} of arguments to pass to the script (optional).
+  #   :args - The {Array} of arguments to pass to the command (optional).
   #   :options - The options {Object} to pass to Node's `ChildProcess.spawn`
-  #              (optional).
-  #   :stdout - The callback that receives a single argument which contains the
-  #             standard output of the script. The callback is called as data is
-  #             received but it's buffered to ensure only complete lines are
-  #             passed until the source stream closes. After the source stream
-  #             has closed all remaining data is sent in a final call
-  #             (optional).
-  #   :stderr - The callback that receives a single argument which contains the
-  #             standard error of the script. The callback is called as data is
-  #             received but it's buffered to ensure only complete lines are
-  #             passed until the source stream closes. After the source stream
-  #             has closed all remaining data is sent in a final call
-  #             (optional).
-  #   :exit - The callback which receives a single argument containing the exit
-  #           status (optional).
+  #              method (optional).
+  #   :stdout - The callback {Function} that receives a single argument which
+  #             contains the standard output from the command. The callback is
+  #             called as data is received but it's buffered to ensure only
+  #             complete lines are passed until the source stream closes. After
+  #             the source stream has closed all remaining data is sent in a
+  #             final call (optional).
+  #   :stderr - The callback {Function} that receives a single argument which
+  #             contains the standard error output from the command. The
+  #             callback is called as data is received but it's buffered to
+  #             ensure only complete lines are passed until the source stream
+  #             closes. After the source stream has closed all remaining data
+  #             is sent in a final call (optional).
+  #   :exit - The callback {Function} which receives a single argument
+  #           containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     @process = ChildProcess.spawn(command, args, options)
@@ -67,12 +74,9 @@ class BufferedProcess
 
   # Helper method to pass data line by line.
   #
-  # * stream:
-  #   The Stream to read from.
-  # * onLines:
-  #   The callback to call with each line of data.
-  # * onDone:
-  #   The callback to call when the stream has closed.
+  # stream - The Stream to read from.
+  # onLines - The callback to call with each line of data.
+  # onDone - The callback to call when the stream has closed.
   bufferStream: (stream, onLines, onDone) ->
     stream.setEncoding('utf8')
     buffered = ''
