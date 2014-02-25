@@ -777,14 +777,13 @@ class Editor extends Model
   foldAllAtIndentLevel: (level) ->
     @languageMode.foldAllAtIndentLevel(level)
 
-  # Fold the given row in buffer coordinates based on its indentation level.
+  # Public: Fold the given row in buffer coordinates based on its indentation
+  # level.
   #
   # If the given row is foldable, the fold will begin there. Otherwise, it will
   # begin at the first foldable row preceding the given row.
   #
   # bufferRow - A {Number}.
-  #
-  # TODO: Make public when ::unfoldBufferRow goes public
   foldBufferRow: (bufferRow) ->
     @languageMode.foldBufferRow(bufferRow)
 
