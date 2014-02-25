@@ -8,7 +8,7 @@ request = require 'request'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  baseUrl = "https://www.atom.io/api/packages"
+  baseUrl = "https://atom.io/api/packages"
 
   packageExists = (packageName, token, callback) ->
     requestSettings =

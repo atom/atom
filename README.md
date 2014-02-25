@@ -2,7 +2,7 @@
 
 ![Atom](http://i.imgur.com/OrTvUAD.png)
 
-Check out our [guides and API documentation](https://www.atom.io/docs/latest/).
+Check out our [guides and API documentation](https://atom.io/docs/latest).
 
 ## Installing
 

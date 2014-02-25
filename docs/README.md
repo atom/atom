@@ -54,5 +54,5 @@ Atom ships with node 0.11.10 and the comprehensive node API docs are available
 [SelectListView]: ../classes/SelectListView.html
 [View]: ../classes/View.html
 [WorkspaceView]: ../classes/WorkspaceView.html
-[creating-a-package]: https://www.atom.io/docs/latest/creating-a-package
+[creating-a-package]: https://atom.io/docs/latest/creating-a-package
 [node-docs]: http://nodejs.org/docs/v0.11.10/api

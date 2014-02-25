@@ -194,7 +194,7 @@ class AtomApplication
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
-    @on 'application:open-documentation', -> shell.openExternal('https://www.atom.io/docs/latest/?app')
+    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:install-update', -> autoUpdater.quitAndInstall()
     @on 'application:check-for-update', => @checkForUpdate()
 
