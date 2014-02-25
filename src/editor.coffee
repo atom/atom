@@ -27,7 +27,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # be called with all current editor instances and also when any editor is
 # created in the future.
 #
-# ## Example
 # ```coffeescript
 #   atom.workspace.eachEditor (editor) ->
 #     editor.insertText('Hello World')
