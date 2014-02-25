@@ -759,10 +759,8 @@ class Editor extends Model
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
 
-  # For each selection, fold all rows it intersects.
-  #
-  # TODO: Rename to foldSelectedLines?
-  foldSelection: ->
+  # Public: For each selection, fold the rows it intersects.
+  foldSelectedLines: ->
     selection.fold() for selection in @getSelections()
 
   # Public: Fold all foldable lines.

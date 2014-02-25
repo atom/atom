@@ -193,7 +193,7 @@ class EditorView extends View
         'editor:unfold-all': => @editor.unfoldAll()
         'editor:fold-current-row': => @editor.foldCurrentRow()
         'editor:unfold-current-row': => @editor.unfoldCurrentRow()
-        'editor:fold-selection': => @editor.foldSelection()
+        'editor:fold-selection': => @editor.foldSelectedLines()
         'editor:fold-at-indent-level-1': => @editor.foldAllAtIndentLevel(0)
         'editor:fold-at-indent-level-2': => @editor.foldAllAtIndentLevel(1)
         'editor:fold-at-indent-level-3': => @editor.foldAllAtIndentLevel(2)
