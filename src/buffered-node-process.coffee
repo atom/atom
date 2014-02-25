@@ -1,43 +1,39 @@
 BufferedProcess = require './buffered-process'
 path = require 'path'
 
-# Public: Like {BufferedProcess}, but accepts a Node script instead of an
-# executable.
+# Public: Like {BufferedProcess}, but accepts a Node script as the command
+# to run.
 #
-# This may seem unnecessary but on Windows we have to have separate executables
-# for each script without this since Windows doesn't support shebang strings.
+# This is necessary on Windows since it doesn't support shebang `#!` lines.
 #
 # ## Requiring in packages
 #
 # ```coffee
-#   {BufferedNodeProcess} = require 'atom'
+# {BufferedNodeProcess} = require 'atom'
 # ```
 module.exports =
 class BufferedNodeProcess extends BufferedProcess
-  # Executes the given Node script.
+  # Public: Runs the given Node script by spawning a new child process.
   #
-  # * options
-  #    + command:
-  #      The path to the Javascript script to execute.
-  #    + args:
-  #      The array of arguments to pass to the script (optional).
-  #    + options:
-  #      The options Object to pass to Node's `ChildProcess.spawn` (optional).
-  #    + stdout:
-  #      The callback that receives a single argument which contains the
-  #      standard output of the script. The callback is called as data is
-  #      received but it's buffered to ensure only complete lines are passed
-  #      until the source stream closes. After the source stream has closed
-  #      all remaining data is sent in a final call (optional).
-  #    + stderr:
-  #      The callback that receives a single argument which contains the
-  #      standard error of the script. The callback is called as data is
-  #      received but it's buffered to ensure only complete lines are passed
-  #      until the source stream closes. After the source stream has closed
-  #      all remaining data is sent in a final call (optional).
-  #    + exit:
-  #      The callback which receives a single argument containing the exit
-  #      status (optional).
+  # options - An {Object} with the following keys:
+  #   :command - The {String} path to the JavaScript script to execute.
+  #   :args - The {Array} of arguments to pass to the script (optional).
+  #   :options - The options {Object} to pass to Node's `ChildProcess.spawn`
+  #              method (optional).
+  #   :stdout - The callback {Function} that receives a single argument which
+  #             contains the standard output from the command. The callback is
+  #             called as data is received but it's buffered to ensure only
+  #             complete lines are passed until the source stream closes. After
+  #             the source stream has closed all remaining data is sent in a
+  #             final call (optional).
+  #   :stderr - The callback {Function} that receives a single argument which
+  #             contains the standard error output from the command. The
+  #             callback is called as data is received but it's buffered to
+  #             ensure only complete lines are passed until the source stream
+  #             closes. After the source stream has closed all remaining data
+  #             is sent in a final call (optional).
+  #   :exit - The callback {Function} which receives a single argument
+  #           containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}) ->
     node =
       if process.platform is 'darwin'
