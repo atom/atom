@@ -49,6 +49,86 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
+#
+# ## Common Tasks
+#
+# This is a subset of methods on this class. Refer to the complete summary for
+# its full capabilities.
+#
+# ### Cursors
+# - {::setCursorBufferPosition}
+# - {::setCursorScreenPosition}
+# - {::moveCursorUp}
+# - {::moveCursorDown}
+# - {::moveCursorLeft}
+# - {::moveCursorRight}
+# - {::moveCursorToBeginningOfWord}
+# - {::moveCursorToEndOfWord}
+# - {::moveCursorToPreviousWordBoundary}
+# - {::moveCursorToNextWordBoundary}
+# - {::moveCursorToBeginningOfNextWord}
+# - {::moveCursorToBeginningOfLine}
+# - {::moveCursorToEndOfLine}
+# - {::moveCursorToFirstCharacterOfLine}
+# - {::moveCursorToTop}
+# - {::moveCursorToBottom}
+#
+# ### Selections
+# - {::getSelectedBufferRange}
+# - {::getSelectedBufferRanges}
+# - {::setSelectedBufferRange}
+# - {::setSelectedBufferRanges}
+# - {::selectUp}
+# - {::selectDown}
+# - {::selectLeft}
+# - {::selectRight}
+# - {::selectToBeginningOfWord}
+# - {::selectToEndOfWord}
+# - {::selectToPreviousWordBoundary}
+# - {::selectToNextWordBoundary}
+# - {::selectWord}
+# - {::selectToBeginningOfLine}
+# - {::selectToEndOfLine}
+# - {::selectToFirstCharacterOfLine}
+# - {::selectToTop}
+# - {::selectToBottom}
+# - {::selectAll}
+# - {::addSelectionForBufferRange}
+# - {::addSelectionAbove}
+# - {::addSelectionBelow}
+# - {::splitSelectionsIntoLines}
+#
+# ### Manipulating Text
+# - {::getText}
+# - {::getSelectedText}
+# - {::setText}
+# - {::setTextInBufferRange}
+# - {::insertText}
+# - {::insertNewline}
+# - {::insertNewlineAbove}
+# - {::insertNewlineBelow}
+# - {::backspace}
+# - {::backspaceToBeginningOfWord}
+# - {::backspaceToBeginningOfLine}
+# - {::delete}
+# - {::deleteToEndOfWord}
+# - {::deleteLine}
+# - {::cutSelectedText}
+# - {::cutToEndOfLine}
+# - {::copySelectedText}
+# - {::pasteText}
+#
+# ### Undo, Redo, and Transactions
+# - {::undo}
+# - {::redo}
+# - {::transact}
+# - {::abortTransaction}
+#
+# ### Markers
+# - {::markBufferRange}
+# - {::markScreenRange}
+# - {::getMarker}
+# - {::findMarkers}
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
