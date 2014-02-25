@@ -12,17 +12,17 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
-# If you're manipulating the state of an {Editor}, use this class. If you're
+# If you're manipulating the state of an editor, use this class. If you're
 # interested in the visual appearance of editors, use {EditorView} instead.
 #
-# A single {TextBuffer} can belong to multiple {Editor}s. For example, if the
-# same file is open in two different panes, Atom creates a separate {Editor} for
+# A single {TextBuffer} can belong to multiple editors. For example, if the
+# same file is open in two different panes, Atom creates a separate editor for
 # each pane. If the buffer is manipulated the changes are reflected in both
 # editors, but each maintains its own cursor position, folded lines, etc.
 #
 # ## Accessing Editor Instances
 #
-# The easiest way to get hold of {Editor} objects is by registering a callback
+# The easiest way to get hold of `Editor` objects is by registering a callback
 # with `::eachEditor` on the `atom.workspace` global. Your callback will then
 # be called with all current editor instances and also when any editor is
 # created in the future.
