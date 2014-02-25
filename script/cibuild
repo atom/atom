@@ -36,7 +36,7 @@ cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
   var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
   var tasks = [
     cp.safeExec.bind(global, 'git clean -dff'),
-    cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
+    cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color --verbose'),
   ]
   async.series(tasks, function(error) {
     process.exit(error ? 1 : 0);
