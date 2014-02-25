@@ -35,7 +35,7 @@ class Unpublish extends Command
         return
 
       options =
-        uri: "https://www.atom.io/api/packages/#{packageName}"
+        uri: "https://atom.io/api/packages/#{packageName}"
         headers:
           authorization: token
         method: 'DELETE'
