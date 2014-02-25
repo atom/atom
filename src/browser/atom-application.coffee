@@ -321,14 +321,6 @@ class AtomApplication
   #    + initialSize:
   #      Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, initialSize}={}) ->
-    if devMode and not fs.existsSync(global.devResourcePath)
-      dialog.showMessageBox
-        type: 'warning'
-        buttons: ['OK']
-        message: 'Atom source directory not found.'
-        detail: 'To run a window in dev mode you need to have the atom/atom repo cloned to ~/github/atom'
-      return
-
     if pathToOpen
       [basename, initialLine] = path.basename(pathToOpen).split(':')
       if initialLine
@@ -342,11 +334,12 @@ class AtomApplication
       openedWindow.openPath(pathToOpen, initialLine)
     else
       if devMode
-        resourcePath = global.devResourcePath
-        bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
-      else
-        resourcePath = @resourcePath
-        bootstrapScript = require.resolve('../window-bootstrap')
+        try
+          bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
+          resourcePath = global.devResourcePath
+
+      bootstrapScript ?= require.resolve('../window-bootstrap')
+      resourcePath ?= @resourcePath
       openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, initialSize})
 
     if pidToKillWhenClosed?

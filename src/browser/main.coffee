@@ -109,8 +109,7 @@ parseCommandLine = ->
 
   try
     fs.statSync resourcePath
-  catch e
-    devMode = false
+  catch
     resourcePath = path.dirname(path.dirname(__dirname))
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}
