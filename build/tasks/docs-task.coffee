@@ -25,6 +25,7 @@ module.exports = (grunt) ->
           '--title', 'Atom API Documentation'
           '-o', 'docs/output/api'
           '-r', 'docs/README.md'
+          '--stability', '1'
           'src/'
           includePaths...
         ]
