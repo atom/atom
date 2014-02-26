@@ -185,8 +185,8 @@ class Install extends Command
 
   # Get the path to the package from the local cache.
   #
-  #  * packageName: The string name of the package.
-  #  * packageVersion: The string version of the package.
+  #  packageName - The string name of the package.
+  #  packageVersion - The string version of the package.
   #
   # Returns a path to the cached tarball or undefined when not in the cache.
   getPackageCachePath: (packageName, packageVersion) ->
