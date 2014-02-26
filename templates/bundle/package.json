@@ -6,7 +6,7 @@
   "repository": "https://github.com/atom/__package-name__",
   "license": "MIT",
   "engines": {
-    "atom": ">0.39.0"
+    "atom": ">0.50.0"
   },
   "dependencies": {
   }
