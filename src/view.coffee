@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
 
-auth = require './auth'
 Command = require './command'
 config = require './config'
 tree = require './tree'
@@ -27,27 +26,20 @@ class Search extends Command
       repository.replace(/\.git$/, '')
 
   getPackage: (packageName, callback) ->
-    auth.getToken (error, token) ->
+    requestSettings =
+      url: "#{config.getAtomPackagesUrl()}/#{packageName}"
+      json: true
+      proxy: process.env.http_proxy || process.env.https_proxy
+    request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
+      else if response.statusCode is 200
+        {metadata, readme, repository} = body
+        pack = _.extend({}, metadata, {readme})
+        callback(null, pack)
       else
-        requestSettings =
-          url: "#{config.getAtomPackagesUrl()}/#{packageName}"
-          json: true
-          proxy: process.env.http_proxy || process.env.https_proxy
-          headers:
-            authorization: token
-
-        request.get requestSettings, (error, response, body={}) ->
-          if error?
-            callback(error)
-          else if response.statusCode is 200
-            {metadata, readme, repository} = body
-            pack = _.extend({}, metadata, {readme})
-            callback(null, pack)
-          else
-            message = body.message ? body.error ? body
-            callback("Requesting package failed: #{message}")
+        message = body.message ? body.error ? body
+        callback("Requesting package failed: #{message}")
 
   run: (options) ->
     {callback} = options

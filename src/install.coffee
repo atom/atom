@@ -7,7 +7,6 @@ request = require 'request'
 CSON = require 'season'
 temp = require 'temp'
 
-auth = require './auth'
 config = require './config'
 Command = require './command'
 fs = require './fs'
@@ -95,7 +94,6 @@ class Install extends Command
 
         callback("#{stdout}\n#{stderr}")
 
-  # Private
   getVisualStudioFlags: ->
     return null unless config.isWin32()
 
@@ -134,17 +132,14 @@ class Install extends Command
 
   # Request package information from the atom.io API for a given package name.
   #
-  #  * packageName: The string name of the package to request.
-  #  * token: The string authorization token.
-  #  * callback: The function to invoke when the request completes with an error
-  #    as the first argument and an object as the second.
-  requestPackage: (packageName, token, callback) ->
+  # packageName - The string name of the package to request.
+  # callback - The function to invoke when the request completes with an error
+  #            as the first argument and an object as the second.
+  requestPackage: (packageName, callback) ->
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/#{packageName}"
       json: true
       proxy: process.env.http_proxy || process.env.https_proxy
-      headers:
-        authorization: token
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback("Request for package information failed: #{error.message}")
@@ -159,18 +154,14 @@ class Install extends Command
 
   # Download a package tarball.
   #
-  #  * packageUrl: The string tarball URL to request
-  #  * token: The string authorization token.
-  #  * callback: The function to invoke when the request completes with an error
-  #    as the first argument and a string path to the downloaded file as the
-  #    second.
-  downloadPackage: (packageUrl, token, callback) ->
+  # packageUrl - The string tarball URL to request
+  # callback - The function to invoke when the request completes with an error
+  #            as the first argument and a string path to the downloaded file
+  #            as the second.
+  downloadPackage: (packageUrl, callback) ->
     requestSettings =
       url: packageUrl
       proxy: process.env.http_proxy || process.env.https_proxy
-      headers:
-        authorization: token
-
     readStream = request.get(requestSettings)
     readStream.on 'error', (error) ->
       callback("Unable to download #{packageUrl}: #{error.message}")
@@ -217,11 +208,12 @@ class Install extends Command
 
   # Install the package with the given name and optional version
   #
-  #  * metadata: The package metadata object with at least a name key. A version
-  #    key is also supported. The version defaults to the latest if unspecified.
-  #  * options: The installation options object.
-  #  * callback: The function to invoke when installation completes with an
-  #    error as the first argument.
+  # metadata - The package metadata object with at least a name key. A version
+  #            key is also supported. The version defaults to the latest if
+  #            unspecified.
+  # options - The installation options object.
+  # callback - The function to invoke when installation completes with an
+  #            error as the first argument.
   installPackage: (metadata, options, callback) ->
     packageName = metadata.name
     packageVersion = metadata.version
@@ -238,47 +230,43 @@ class Install extends Command
     if installGlobally
       process.stdout.write "to #{@atomPackagesDirectory} "
 
-    auth.getToken (error, token) =>
+    @requestPackage packageName, (error, pack) =>
       if error?
+        process.stdout.write '\u2717\n'.red
         callback(error)
       else
-        @requestPackage packageName, token, (error, pack) =>
+        commands = []
+        packageVersion ?= pack.releases.latest
+        {tarball} = pack.versions[packageVersion]?.dist ? {}
+        unless tarball
+          process.stdout.write '\u2717\n'.red
+          callback("Package version: #{packageVersion} not found")
+          return
+
+        commands.push (callback) =>
+          if packagePath = @getPackageCachePath(packageName, packageVersion)
+            callback(null, packagePath)
+          else
+            @downloadPackage(tarball, callback)
+        installNode = options.installNode ? true
+        if installNode
+          commands.push (packagePath, callback) =>
+            @installNode (error) -> callback(error, packagePath)
+        commands.push (packagePath, callback) =>
+          @installModule(options, pack, packagePath, callback)
+
+        async.waterfall commands, (error) ->
           if error?
             process.stdout.write '\u2717\n'.red
-            callback(error)
           else
-            commands = []
-            packageVersion ?= pack.releases.latest
-            {tarball} = pack.versions[packageVersion]?.dist ? {}
-            unless tarball
-              process.stdout.write '\u2717\n'.red
-              callback("Package version: #{packageVersion} not found")
-              return
-
-            commands.push (callback) =>
-              if packagePath = @getPackageCachePath(packageName, packageVersion)
-                callback(null, packagePath)
-              else
-                @downloadPackage(tarball, token, callback)
-            installNode = options.installNode ? true
-            if installNode
-              commands.push (packagePath, callback) =>
-                @installNode (error) -> callback(error, packagePath)
-            commands.push (packagePath, callback) =>
-              @installModule(options, pack, packagePath, callback)
-
-            async.waterfall commands, (error) ->
-              if error?
-                process.stdout.write '\u2717\n'.red
-              else
-                process.stdout.write '\u2713\n'.green
-              callback(error)
+            process.stdout.write '\u2713\n'.green
+          callback(error)
 
   # Install all the package dependencies found in the package.json file.
   #
-  #  * options: The installation options
-  #  * callback: The callback function to invoke when done with an error as the
-  #    first argument.
+  # options - The installation options
+  # callback - The callback function to invoke when done with an error as the
+  #            first argument.
   installPackageDependencies: (options, callback) ->
     options = _.extend({}, options, installGlobally: false, installNode: false)
     commands = []

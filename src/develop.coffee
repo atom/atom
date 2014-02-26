@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
 
-auth = require './auth'
 config = require './config'
 Command = require './command'
 Install = require './install'
@@ -38,29 +37,21 @@ class Develop extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   getRepositoryUrl: (packageName, callback) ->
-    auth.getToken (error, token) ->
+    requestSettings =
+      url: "#{config.getAtomPackagesUrl()}/#{packageName}"
+      json: true
+      proxy: process.env.http_proxy || process.env.https_proxy
+    request.get requestSettings, (error, response, body={}) ->
       if error?
-        callback(error)
-        return
-
-      requestSettings =
-        url: "#{config.getAtomPackagesUrl()}/#{packageName}"
-        json: true
-        proxy: process.env.http_proxy || process.env.https_proxy
-        headers:
-          authorization: token
-      request.get requestSettings, (error, response, body={}) ->
-        if error?
-          callback("Request for package information failed: #{error.message}")
-        else if response.statusCode is 200
-          if repositoryUrl = body.repository.url
-            callback(null, repositoryUrl)
-          else
-            callback("No repository URL found for package: #{packageName}")
+        callback("Request for package information failed: #{error.message}")
+      else if response.statusCode is 200
+        if repositoryUrl = body.repository.url
+          callback(null, repositoryUrl)
         else
-          message = body.message ? body.error ? body
-          callback("Request for package information failed: #{message}")
-
+          callback("No repository URL found for package: #{packageName}")
+      else
+        message = body.message ? body.error ? body
+        callback("Request for package information failed: #{message}")
 
   cloneRepository: (repoUrl, packageDirectory, options) ->
     command = "git"

@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
 
-auth = require './auth'
 Command = require './command'
 config = require './config'
 tree = require './tree'
@@ -30,29 +29,23 @@ class Featured extends Command
   getFeaturedPackages: (atomVersion, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 
-    auth.getToken (error, token) ->
+    requestSettings =
+      url: "#{config.getAtomPackagesUrl()}/featured"
+      json: true
+      proxy: process.env.http_proxy || process.env.https_proxy
+    requestSettings.qs = engine: atomVersion if atomVersion
+
+    request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
+      else if response.statusCode is 200
+        packages = body.filter (pack) -> pack.releases?.latest?
+        packages = packages.map ({readme, metadata}) -> _.extend({}, metadata, {readme})
+        packages = _.sortBy(packages, 'name')
+        callback(null, packages)
       else
-        requestSettings =
-          url: "#{config.getAtomPackagesUrl()}/featured"
-          json: true
-          proxy: process.env.http_proxy || process.env.https_proxy
-          headers:
-            authorization: token
-        requestSettings.qs = engine: atomVersion if atomVersion
-
-        request.get requestSettings, (error, response, body={}) ->
-          if error?
-            callback(error)
-          else if response.statusCode is 200
-            packages = body.filter (pack) -> pack.releases?.latest?
-            packages = packages.map ({readme, metadata}) -> _.extend({}, metadata, {readme})
-            packages = _.sortBy(packages, 'name')
-            callback(null, packages)
-          else
-            message = body.message ? body.error ? body
-            callback("Requesting packages failed: #{message}")
+        message = body.message ? body.error ? body
+        callback("Requesting packages failed: #{message}")
 
   run: (options) ->
     {callback} = options
