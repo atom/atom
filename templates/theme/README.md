@@ -1,3 +1,3 @@
-## __package-name__ Theme
+# __package-name__ theme
 
 A short description of your theme.
