@@ -35,7 +35,6 @@ class Install extends Command
       directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('d', 'dev').boolean('dev').describe('dev', 'Install dev dependencies of atom packages being installed')
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
 
@@ -283,8 +282,6 @@ class Install extends Command
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
     commands.push (callback) => @installPackageDependencies(options, callback)
-    if options.argv.dev
-      commands.push (callback) => @installDevDependencies(options, callback)
 
     async.waterfall commands, callback
 
@@ -296,32 +293,6 @@ class Install extends Command
       packageDependencies ? {}
     catch error
       {}
-
-  # Is the given path an atom package with one or more dev dependencies?
-  isAtomPackageWithDevDependencies: (packagePath) ->
-    try
-      metadata = fs.readFileSync(path.join(packagePath, 'package.json'), 'utf8')
-      {engines, devDependencies} = JSON.parse(metadata) ? {}
-      engines?.atom? and devDependencies and Object.keys(devDependencies).length > 0
-    catch error
-      false
-
-  installDevDependencies: (options, callback) ->
-    commands = []
-    modulesDirectory = path.resolve('node_modules')
-    for child in fs.readdirSync(modulesDirectory)
-      packagePath = path.join(modulesDirectory, child)
-      continue unless @isAtomPackageWithDevDependencies(packagePath)
-      do (child, packagePath) =>
-        commands.push (callback) =>
-          options.cwd = packagePath
-          @forkInstallCommand options, (code, stderr='', stdout='') =>
-            if code is 0
-              callback()
-            else
-              callback("#{stdout}\n#{stderr}")
-
-    async.waterfall commands, callback
 
   createAtomDirectories: ->
     fs.makeTreeSync(@atomDirectory)
