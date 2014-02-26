@@ -133,25 +133,20 @@ class AtomApplication
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
-      console.log "-------checking for update"
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(false)
 
     autoUpdater.on 'update-not-available', =>
-      console.log "-------update-not-available"
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
-      console.log "-------update-downloaded"
       atomWindow.sendCommand('window:update-available', releaseName) for atomWindow in @windows
       @applicationMenu.showInstallUpdateItem(true)
       @applicationMenu.showCheckForUpdateItem(false)
       @updateVersion = releaseName
 
     autoUpdater.on 'error', (event, message) =>
-      console.log "-------error"
-      console.log event, message
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
@@ -160,7 +155,6 @@ class AtomApplication
 
   checkForUpdate: ->
     autoUpdater.once 'update-available', ->
-      console.log "-------update-available!"
       dialog.showMessageBox
         type: 'info'
         buttons: ['OK']
