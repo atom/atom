@@ -154,10 +154,11 @@ class Install extends Command
   # Download a package tarball.
   #
   # packageUrl - The string tarball URL to request
+  # installGlobally - `true` if this package is being installed globally.
   # callback - The function to invoke when the request completes with an error
   #            as the first argument and a string path to the downloaded file
   #            as the second.
-  downloadPackage: (packageUrl, callback) ->
+  downloadPackage: (packageUrl, installGlobally, callback) ->
     requestSettings =
       url: packageUrl
       proxy: process.env.http_proxy || process.env.https_proxy
@@ -179,8 +180,10 @@ class Install extends Command
           try
             error = JSON.parse(Buffer.concat(chunks))
             message = error.message ? error.error ? error
+            process.stdout.write('\u2717\n'.red) if installGlobally
             callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode} #{message}")
           catch parseError
+            process.stdout.write('\u2717\n'.red) if installGlobally
             callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode}")
 
   # Get the path to the package from the local cache.
@@ -246,7 +249,7 @@ class Install extends Command
           if packagePath = @getPackageCachePath(packageName, packageVersion)
             callback(null, packagePath)
           else
-            @downloadPackage(tarball, callback)
+            @downloadPackage(tarball, installGlobally, callback)
         installNode = options.installNode ? true
         if installNode
           commands.push (packagePath, callback) =>
