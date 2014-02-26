@@ -29,7 +29,10 @@ class Clean extends Command
       @getDependencies(path.join(modulesPath, installedModule), allDependencies)
 
   getModulesToRemove: ->
-    {devDependencies, dependencies, packageDependencies} = CSON.readFileSync(CSON.resolve('package')) ? {}
+    packagePath = CSON.resolve('package')
+    return [] unless packagePath
+
+    {devDependencies, dependencies, packageDependencies} = CSON.readFileSync(packagePath) ? {}
     devDependencies ?= {}
     dependencies ?= {}
     packageDependencies ?= {}
