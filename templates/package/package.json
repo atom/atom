@@ -6,12 +6,7 @@
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
   "repository": "https://github.com/atom/__package-name__",
-  "licenses": [
-    {
-      "type": "Apache",
-      "url": "http://github.com/atom/__package-name__/raw/master/LICENSE.md"
-    }
-  ],
+  "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
   },
