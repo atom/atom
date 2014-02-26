@@ -74,7 +74,7 @@ You can split any editor pane horizontally or vertically by using `cmd-k right`
 or `cmd-k down`. Once you have a split pane, you can move focus between them
 with `cmd-k cmd-right` or `cmd-k cmd-down`. To close a pane, close all its
 editors with `meta-w`, then press `meta-w` one more time to close the pane. You
-can configure panes to auto-close with empty in the preferences.
+can configure panes to auto-close when empty in the Settings view.
 
 ### Folding
 
