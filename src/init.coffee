@@ -33,7 +33,7 @@ class Init extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    if options.argv.package?
+    if options.argv.package?.length > 0
       if options.argv.convert
         @convertPackage(options.argv.convert, options.argv.package, callback)
       else
@@ -41,7 +41,7 @@ class Init extends Command
         templatePath = path.resolve(__dirname, '..', 'templates', 'package')
         @generateFromTemplate(packagePath, templatePath)
         callback()
-    else if options.argv.theme?
+    else if options.argv.theme?.length > 0
       if options.argv.convert
         @convertTheme(options.argv.convert, options.argv.theme, callback)
       else
@@ -49,6 +49,10 @@ class Init extends Command
         templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(themePath, templatePath)
         callback()
+    else if options.argv.package?
+      callback('You must specify a path after the --package argument')
+    else if options.argv.theme?
+      callback('You must specify a path after the --theme argument')
     else
       callback('You must specify either --package or --theme to `apm init`')
 
