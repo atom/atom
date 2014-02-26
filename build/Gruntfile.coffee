@@ -11,9 +11,6 @@ _ = require 'underscore-plus'
 
 packageJson = require '../package.json'
 
-# OAuth token for atom-bot, needed to download grunt-download-atom-shell
-process.env.ATOM_ACCESS_TOKEN ?= '467bac80a0017b96fb5be5cfc686f5e0cc607b10'
-
 # Shim harmony collections in case grunt was invoked without harmony
 # collections enabled
 _.extend(global, require('harmony-collections')) unless global.WeakMap?
