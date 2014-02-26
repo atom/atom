@@ -27,7 +27,7 @@ class EditorView extends View
   @characterWidthCache: {}
   @configDefaults:
     fontFamily: ''
-    fontSize: 20
+    fontSize: 16
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
