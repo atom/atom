@@ -18,7 +18,6 @@ commandClasses = [
   require './rebuild'
   require './search'
   require './test'
-  require './travis'
   require './uninstall'
   require './unlink'
   require './unpublish'
