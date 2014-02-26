@@ -325,23 +325,16 @@ Your package **should** have tests, and if they're placed in the _spec_
 directory, they can be run by Atom.
 
 Under the hood, [Jasmine] executes your tests, so you can assume that any DSL
-available there is available to your package as well.
-
-**FIXME: Explain the following**
-
-* jasmine
-* jasmine-focused
-* `spec/fixtures` and global.project
-* setTimeout
-* whatever else is different in spec-helper
+available there is also available to your package.
 
 ## Running Tests
 
-TODO: Probably use the menu option now.
+Once you've got your test suite written, you can run it by pressing
+`cmd-alt-ctrl-p` or via the _Developer > Run Package Specs_ menu.
 
-Once you've got your test suite written, the recommended way to run it is `apm
-test`. `apm test` prints its output to the console and returns the proper status
-code depending on whether tests passed or failed.
+You can also use the `apm test` command to run them from the command line. It
+prints the test output and results to the console and returns the proper status
+code depending on whether the tests passed or failed.
 
 ## Publishing
 
@@ -391,7 +384,7 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [path]: http://nodejs.org/docs/latest/api/path.html
 [jquery]: http://jquery.com/
 [underscore]: http://underscorejs.org/
-[jasmine]: https://github.com/pivotal/jasmine
+[jasmine]: http://jasmine.github.io
 [cson]: https://github.com/atom/season
 [less]: http://lesscss.org
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
