@@ -5,6 +5,8 @@
 * [Creating a Package](creating-a-package.md)
 * [Creating a Theme](creating-a-theme.md)
 * [Publishing a Package](publishing-a-package.md)
+* [Converting a TextMate Bundle](converting-a-text-mate-bundle.md)
+* [Converting a TextMate Theme](converting-a-text-mate-bundle.md)
 * [Contributing](contributing.md)
 
 ### Advanced Topics

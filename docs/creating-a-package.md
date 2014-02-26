@@ -24,6 +24,9 @@ Not every package will have (or need) all of these directories.
 
 We have [a tutorial on creating your first package][first-package].
 
+There are also guides for converting [TextMate bundles][convert-bundle] and
+[TextMate themes][convert-theme] so they work in Atom.
+
 ## package.json
 
 Similar to [npm packages][npm], Atom packages contain a _package.json_ file
@@ -393,3 +396,5 @@ Additional libraries can be found by browsing Atom's *node_modules* folder.
 [less]: http://lesscss.org
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 [first-package]: your-first-package.html
+[convert-bundle]: converting-a-text-mate-bundle.html
+[convert-theme]: converting-a-text-mate-theme.html
