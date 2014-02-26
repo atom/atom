@@ -3,10 +3,9 @@ var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
 
-// OAuth token for atom-bot
-// TODO Remove once all repositories are public
+// OAuth token for atom-bot, needed to download grunt-download-atom-shell
 if (!process.env.ATOM_ACCESS_TOKEN)
-  process.env.ATOM_ACCESS_TOKEN = '362295be4c5258d3f7b967bbabae662a455ca2a7';
+  process.env.ATOM_ACCESS_TOKEN ?= '467bac80a0017b96fb5be5cfc686f5e0cc607b10'
 
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
