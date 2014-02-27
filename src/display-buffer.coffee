@@ -293,10 +293,9 @@ class DisplayBuffer extends Model
     for screenRow in [startScreenRow...endScreenRow]
       unless screenLine = @screenLines[screenRow]
         throw new Error """
-          No screen line exists for screen row #{screenRow}, converted from buffer position (#{row}, #{column})
-          Soft wrap enabled: #{@getSoftWrap()}
-          Fold count: #{@findFoldMarkers().length}
-          Last buffer row: #{@getLastRow()}
+          No screen line exists when converting a buffer row to a screen row
+          Soft wrap enabled?: #{@getSoftWrap()}
+          Folds exist?: #{@findFoldMarkers().length > 0}
         """
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
