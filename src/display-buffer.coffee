@@ -297,6 +297,7 @@ class DisplayBuffer extends Model
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
       screenLine = @screenLines[screenRow]
+
       unless screenLine?
         throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
           softWrapEnabled: @getSoftWrap()
