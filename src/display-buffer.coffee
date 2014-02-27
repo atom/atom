@@ -13,7 +13,7 @@ DisplayBufferMarker = require './display-buffer-marker'
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
     super
-    Error.captureStackTrace(this, arguments.callee)
+    Error.captureStackTrace(this, BufferToScreenConversionError)
 
 module.exports =
 class DisplayBuffer extends Model
