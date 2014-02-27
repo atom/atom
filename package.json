@@ -100,7 +100,7 @@
     "update-package-dependencies": "0.4.0",
     "welcome": "0.10.0",
     "whitespace": "0.15.0",
-    "wrap-guide": "0.15.0",
+    "wrap-guide": "0.16.0",
     "language-c": "0.12.0",
     "language-coffee-script": "0.14.0",
     "language-css": "0.10.0",
