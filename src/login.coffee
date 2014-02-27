@@ -78,10 +78,13 @@ class Login extends Command
       if statusCode is 200
         deferred.resolve(state)
       else if statusCode is 401 and headers['x-github-otp']
-        @prompt({prompt: 'Two-Factor Authentication Code>', edit: true})
-          .spread (authCode) ->
-            state.authCode = authCode
-            deferred.resolve(state)
+        promptPromise = @prompt({prompt: 'Two-Factor Authentication Code>', edit: true}).spread (authCode) ->
+          state.authCode = authCode
+          deferred.resolve(state)
+        if headers['x-github-otp'].indexOf('sms') is -1
+          promptPromise
+        else
+          @createToken(state).then(promptPromise)
       else
         message ?= error.message ? error.code if error
         deferred.reject(new Error(message))
