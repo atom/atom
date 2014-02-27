@@ -78,7 +78,7 @@
     "find-and-replace": "0.85.0",
     "fuzzy-finder": "0.37.0",
     "git-diff": "0.25.0",
-    "go-to-line": "0.17.0",
+    "go-to-line": "0.18.0",
     "grammar-selector": "0.21.0",
     "image-view": "0.25.0",
     "keybinding-resolver": "0.11.0",
