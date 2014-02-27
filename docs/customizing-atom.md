@@ -144,7 +144,7 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
 When Atom finishes loading, it will evaluate _init.coffee_ in your _~/.atom_
 directory, giving you a chance to run arbitrary personal CoffeeScript code to
 make customizations. You have full access to Atom's API from code in this file.
-If customizations become extensive, consider [creating a package][create-a-package].
+If customizations become extensive, consider [creating a package][creating-a-package].
 
 You can open this file in an editor from the _Atom > Open Your Init Script_
 menu.
@@ -172,6 +172,6 @@ Unfamiliar with LESS? Read more about it [here][LESS].
 
 This file can also be named _styles.css_ and contain CSS.
 
-[create-a-package]: creating-packages.md
+[creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
 [LESS]: http://www.lesscss.org
