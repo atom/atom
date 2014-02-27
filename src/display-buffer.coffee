@@ -10,6 +10,11 @@ Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
 
+class BufferToScreenConversionError extends Error
+  constructor: (@message, @metadata) ->
+    super
+    Error.captureStackTrace(this, BufferToScreenConversionError)
+
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
@@ -291,12 +296,15 @@ class DisplayBuffer extends Model
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
-      unless screenLine = @screenLines[screenRow]
-        throw new Error """
-          No screen line exists when converting a buffer row to a screen row
-          Soft wrap enabled?: #{@getSoftWrap()}
-          Folds exist?: #{@findFoldMarkers().length > 0}
-        """
+      screenLine = @screenLines[screenRow]
+
+      unless screenLine?
+        throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
+          softWrapEnabled: @getSoftWrap()
+          foldCount: @findFoldMarkers().length
+          lastBufferRow: @buffer.getLastRow()
+          lastScreenRow: @getLastRow()
+
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
         continue
