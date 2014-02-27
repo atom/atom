@@ -111,6 +111,7 @@ class Login extends Command
           for authorization in body
             {token} = authorization
             authorization = _.pick(authorization, Object.keys(targetAuthorization)...)
+            authorization.scopes?.sort?()
             if _.isEqual(authorization, targetAuthorization)
               state.token = token
               deferred.resolve(state)
@@ -129,8 +130,9 @@ class Login extends Command
     getAuthorizations('https://api.github.com/authorizations?per_page=100')
     deferred.promise
 
+
   getAuthorization: ->
-    scopes: ['user', 'repo', 'gist']
+    scopes: ['gist', 'repo', 'user']
     note: 'Atom Editor'
     note_url: 'https://atom.io'
 
