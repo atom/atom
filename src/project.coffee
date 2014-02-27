@@ -251,6 +251,7 @@ class Project extends Model
 
     for buffer in @getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
+      continue unless @contains(filePath)
       matches = []
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0

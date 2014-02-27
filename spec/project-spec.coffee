@@ -491,6 +491,16 @@ describe "Project", ->
           expect(resultForA.matches).toHaveLength 1
           expect(resultForA.matches[0].matchText).toBe 'Elephant'
 
+      it "ignores buffers outside the project", ->
+        editor = atom.project.openSync(temp.openSync().path)
+        editor.setText("Elephant")
+        results = []
+        waitsForPromise ->
+          atom.project.scan /Elephant/, (result) -> results.push result
+
+        runs ->
+          expect(results).toHaveLength 0
+
   describe ".eachBuffer(callback)", ->
     beforeEach ->
       atom.project.bufferForPathSync('a')
