@@ -57,7 +57,7 @@ __Syntax Theme__ dropdown menu to enable your new theme.
 
 ### Further Reading
 
-* Check out [Publishing a Package](publish-a-package.html) for more information
+* Check out [Publishing a Package](publishing-a-package.html) for more information
   on publishing the theme you just created to [atom.io][atomio].
 
 [atomio]: https://atom.io

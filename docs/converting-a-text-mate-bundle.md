@@ -40,7 +40,7 @@ the editor to see it in action!
 
 ### Further Reading
 
-* Check out [Publishing a Package](publish-a-package.html) for more information
+* Check out [Publishing a Package](publishing-a-package.html) for more information
   on publishing the package you just created to [atom.io][atomio].
 
 [atomio]: https://atom.io
