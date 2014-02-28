@@ -32,13 +32,14 @@ Let's create your first theme.
 
 To get started, hit `cmd-shift-P`, and start typing "Generate Syntax Theme" to
 generate a new theme package. Select "Generate Syntax Theme," and you'll be
-asked for the path where your theme will be created. Let's call ours _motif_.
+asked for the path where your theme will be created. Let's call ours
+_motif-syntax_. Please suffix syntax themes with _-syntax_ and ui themes with _-ui_.
 
-Atom will pop open a new window, showing the _motif_ theme, with a default set
+Atom will pop open a new window, showing the _motif-syntax_ theme, with a default set
 of folders and files created for us. If you open the settings view (`cmd-,`)
-and navigate to the _Themes_ section on the left, you'll see the _Motif_ theme
+and navigate to the _Themes_ section on the left, you'll see the _Motif_
 listed in the _Syntax Theme_ drop-down. Select it from the menu to activate it,
-now when you open an editor you should see that your new _motif_ theme in
+now when you open an editor you should see that your new _motif-syntax_ theme in
 action.
 
 Open up _stylesheets/colors.less_ to change the various colors variables which
