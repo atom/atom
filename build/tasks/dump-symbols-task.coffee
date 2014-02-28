@@ -36,5 +36,4 @@ module.exports = (grunt) ->
       true
     fs.traverseTreeSync 'node_modules', onFile, onDirectory
 
-    async.parallel tasks, (error, results) ->
-      console.log error, results
+    async.parallel tasks, done

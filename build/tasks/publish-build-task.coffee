@@ -8,8 +8,10 @@ request = require 'request'
 
 grunt = null
 maxReleases = 10
-assetName = 'atom-mac.zip'
-assetPath = "/tmp/atom-build/#{assetName}"
+assets = [
+  name: 'atom-mac.zip', source: 'Atom.app'
+  name: 'atom-mac-symbols.zip', source: 'Atom.breakpad.syms'
+]
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
@@ -18,38 +20,44 @@ defaultHeaders =
 
 module.exports = (gruntObject) ->
   grunt = gruntObject
+
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return unless process.platform is 'darwin'
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
+    buildDir = grunt.config.get('atom.buildDir')
 
     createBuildRelease (error, release) ->
       return done(error) if error?
-      zipApp (error) ->
-        return done(error) if error?
-        uploadAsset release, (error) ->
+
+      for {name, source} in assets
+        assetPath = path.join(buildDir, name)
+        zipApp buildDir, source, name, (error) ->
           return done(error) if error?
-          publishRelease release, (error) ->
+          uploadAsset release, assetName, assetPath, (error) ->
             return done(error) if error?
-            getAtomDraftRelease (error, release) ->
+            publishRelease release, (error) ->
               return done(error) if error?
-              deleteExistingAsset release, (error) ->
+              getAtomDraftRelease (error, release) ->
                 return done(error) if error?
-                uploadAsset(release, done)
+                deleteExistingAsset release, assetName, (error) ->
+                  return done(error) if error?
+                  uploadAsset(release, assetName, assetPath, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
   grunt.log.error(error.message ? error) if error?
   grunt.log.error(details) if details
 
-zipApp = (callback) ->
+zipApp = (buildDir, sourceName, assetName, callback) ->
+  assetPath = path.join(buildDir, assetName)
   fs.removeSync(assetPath)
 
   options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
-  child_process.exec "zip -r --symlinks #{assetName} Atom.app", options, (error, stdout, stderr) ->
+  child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
     if error?
-      logError('Zipping Atom.app failed', error, stderr)
+      logError("Zipping #{sourceName} failed", error, stderr)
     callback(error)
 
 getRelease = (callback) ->
@@ -93,7 +101,7 @@ deleteRelease = (release) ->
     if error? or response.statusCode isnt 204
       logError('Deleting release failed', error, body)
 
-deleteExistingAsset = (release, callback) ->
+deleteExistingAsset = (release, assetName, callback) ->
   for asset in release.assets when asset.name is assetName
     options =
       uri: asset.url
@@ -139,7 +147,7 @@ createBuildRelease = (callback) ->
       else
         callback(null, release)
 
-uploadAsset = (release, callback) ->
+uploadAsset = (release, assetName, assetPath, callback) ->
   options =
     uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
     method: 'POST'
