@@ -45,7 +45,7 @@
           { label: 'Move Line &Down', command: 'editor:move-line-down' }
           { label: 'Du&plicate Line', command: 'editor:duplicate-line' }
           { label: 'D&elete Line', command: 'editor:delete-line' }
-          { label: '&Join Lines', command: 'editor:join-line' }
+          { label: '&Join Lines', command: 'editor:join-lines' }
         ]
       }
       {

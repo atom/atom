@@ -285,21 +285,6 @@ describe "LanguageMode", ->
           expect(fold.getStartRow()).toBe 0
           expect(fold.getEndRow()).toBe 13
 
-    describe ".unfoldBufferRow(bufferRow)", ->
-      describe "when bufferRow can be unfolded", ->
-        it "destroys a fold based on the syntactic region starting at the given row", ->
-          languageMode.foldBufferRow(1)
-          expect(editor.lineForScreenRow(1).fold).toBeDefined()
-
-          languageMode.unfoldBufferRow(1)
-          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
-
-      describe "when bufferRow can't be unfolded", ->
-        it "does not throw an error", ->
-          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
-          languageMode.unfoldBufferRow(1)
-          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
-
     describe ".isFoldableAtBufferRow(bufferRow)", ->
       it "returns true if the line starts a foldable row range", ->
         expect(languageMode.isFoldableAtBufferRow(0)).toBe true
