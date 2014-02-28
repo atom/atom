@@ -200,6 +200,12 @@ describe "DisplayBuffer", ->
         expect(tokensText displayBuffer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
+      it "only allows positive widths to be assigned", ->
+        displayBuffer.setEditorWidthInChars(0)
+        expect(displayBuffer.editorWidthInChars).not.toBe 0
+        displayBuffer.setEditorWidthInChars(-1)
+        expect(displayBuffer.editorWidthInChars).not.toBe -1
+
   describe "primitive folding", ->
     beforeEach ->
       displayBuffer.destroy()
