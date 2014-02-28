@@ -9,8 +9,8 @@ request = require 'request'
 grunt = null
 maxReleases = 10
 assets = [
-  name: 'atom-mac.zip', source: 'Atom.app'
-  name: 'atom-mac-symbols.zip', source: 'Atom.breakpad.syms'
+  {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
+  {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
 ]
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
@@ -31,9 +31,9 @@ module.exports = (gruntObject) ->
     createBuildRelease (error, release) ->
       return done(error) if error?
 
-      for {name, source} in assets
-        assetPath = path.join(buildDir, name)
-        zipApp buildDir, source, name, (error) ->
+      for {assetName, sourceName} in assets
+        assetPath = path.join(buildDir, assetName)
+        zipApp sourceName, assetName, assetPath, (error) ->
           return done(error) if error?
           uploadAsset release, assetName, assetPath, (error) ->
             return done(error) if error?
@@ -50,8 +50,7 @@ logError = (message, error, details) ->
   grunt.log.error(error.message ? error) if error?
   grunt.log.error(details) if details
 
-zipApp = (buildDir, sourceName, assetName, callback) ->
-  assetPath = path.join(buildDir, assetName)
+zipApp = (sourceName, assetName, assetPath, callback) ->
   fs.removeSync(assetPath)
 
   options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
