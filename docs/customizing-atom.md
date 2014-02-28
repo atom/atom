@@ -63,9 +63,8 @@ built-in keymaps:
 '.editor':
   'enter': 'editor:newline'
 
-'body':
-  'ctrl-b': 'core:move-left'
-  'ctrl-f': 'core:move-right'
+'.mini.editor input':
+  'enter': 'core:confirm'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
