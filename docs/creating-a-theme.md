@@ -32,14 +32,15 @@ Let's create your first theme.
 
 To get started, hit `cmd-shift-P`, and start typing "Generate Syntax Theme" to
 generate a new theme package. Select "Generate Syntax Theme," and you'll be
-asked for the path where your theme will be created. Let's call ours _motif_.
+asked for the path where your theme will be created. Let's call ours
+_motif-syntax_. __Tip:__ syntax themes should end with _-syntax_.
 
-Atom will pop open a new window, showing the _motif_ theme, with a default set
-of folders and files created for us. If you open the settings view (`cmd-,`)
-and navigate to the _Themes_ section on the left, you'll see the _Motif_ theme
-listed in the _Syntax Theme_ drop-down. Select it from the menu to activate it,
-now when you open an editor you should see that your new _motif_ theme in
-action.
+Atom will pop open a new window, showing the _motif-syntax_ theme, with a
+default set of folders and files created for us. If you open the settings view
+(`cmd-,`) and navigate to the _Themes_ section on the left, you'll see the
+_Motif_ theme listed in the _Syntax Theme_ drop-down. Select it from the menu to
+activate it, now when you open an editor you should see that your new
+_motif-syntax_ theme in action.
 
 Open up _stylesheets/colors.less_ to change the various colors variables which
 have been already been defined. For example, turn `@red` into `#f4c2c1`.
@@ -52,6 +53,11 @@ As an example, let's make the `.gutter` `background-color` into `@red`.
 
 Reload Atom by pressing `cmd-alt-option-L` to see the changes you made reflected
 in your Atom window. Pretty neat!
+
+__Tip:__ You can avoid reloading to see changes you make by opening an atom
+window in dev mode. To open a Dev Mode Atom window run `atom --dev .` in the
+terminal, use `cmd-shift-o` or use the _View > Developer > Open in Dev Mode_
+menu. When you edit your theme, changes will instantly be reflected!
 
 ## Creating an Interface Theme
 
@@ -66,13 +72,14 @@ To create an interface UI theme, do the following:
 2. Clone the forked repository to the local filesystem
 3. Open a terminal in the forked theme's directory
 4. Open your new theme in a Dev Mode Atom window run `atom --dev .` in the
-   terminal or use the _View > Developer > Open in Dev Mode_ menu)
+   terminal or use the _View > Developer > Open in Dev Mode_ menu
 5. Change the name of the theme in the theme's `package.json` file
-6. Run `apm link` to symlink your repository to `~/.atom/packages`
-7. Reload Atom using `cmd-alt-ctrl-L`
-8. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
+6. Name your theme end with a `-ui`. i.e. `super-white-ui`
+7. Run `apm link` to symlink your repository to `~/.atom/packages`
+8. Reload Atom using `cmd-alt-ctrl-L`
+9. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
    settings view
-9. Make changes! Since you opened the theme in a Dev Mode window, changes will
+10. Make changes! Since you opened the theme in a Dev Mode window, changes will
    be instantly reflected in the editor without having to reload.
 
 ## Development workflow
