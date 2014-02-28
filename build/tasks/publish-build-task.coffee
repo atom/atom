@@ -2,6 +2,7 @@ child_process = require 'child_process'
 path = require 'path'
 
 _ = require 'underscore-plus'
+async = require 'async'
 fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
@@ -31,33 +32,37 @@ module.exports = (gruntObject) ->
     createBuildRelease (error, release) ->
       return done(error) if error?
 
-      for {assetName, sourceName} in assets
-        assetPath = path.join(buildDir, assetName)
-        zipApp sourceName, assetName, assetPath, (error) ->
+      zipApps buildDir, assets, (error) ->
+        return done(error) if error?
+        uploadAssets release, buildDir, assets, (error) ->
           return done(error) if error?
-          uploadAsset release, assetName, assetPath, (error) ->
+          publishRelease release, (error) ->
             return done(error) if error?
-            publishRelease release, (error) ->
+            getAtomDraftRelease (error, release) ->
               return done(error) if error?
-              getAtomDraftRelease (error, release) ->
+              assetNames = (asset.assetName for asset in assets)
+              deleteExistingAssets release, assetNames, (error) ->
                 return done(error) if error?
-                deleteExistingAsset release, assetName, (error) ->
-                  return done(error) if error?
-                  uploadAsset(release, assetName, assetPath, done)
+                uploadAssets(release, buildDir, assets, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
   grunt.log.error(error.message ? error) if error?
   grunt.log.error(details) if details
 
-zipApp = (sourceName, assetName, assetPath, callback) ->
-  fs.removeSync(assetPath)
+zipApps = (buildDir, assets, callback) ->
+  zip = (directory, sourceName, assetName, callback) ->
+    options = {cwd: directory, maxBuffer: Infinity}
+    child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
+      if error?
+        logError("Zipping #{sourceName} failed", error, stderr)
+      callback(error)
 
-  options = {cwd: path.dirname(assetPath), maxBuffer: Infinity}
-  child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
-    if error?
-      logError("Zipping #{sourceName} failed", error, stderr)
-    callback(error)
+  tasks = []
+  for {assetName, sourceName} in assets
+    fs.removeSync(path.join(buildDir, assetName))
+    tasks.push(zip.bind(this, buildDir, sourceName, assetName))
+  async.parallel(tasks, callback)
 
 getRelease = (callback) ->
   options =
@@ -100,10 +105,12 @@ deleteRelease = (release) ->
     if error? or response.statusCode isnt 204
       logError('Deleting release failed', error, body)
 
-deleteExistingAsset = (release, assetName, callback) ->
-  for asset in release.assets when asset.name is assetName
+deleteExistingAssets = (release, assetNames, callback) ->
+  [callback, assetNames] = [assetNames, callback] if not callback?
+
+  deleteAsset = (url, callback) ->
     options =
-      uri: asset.url
+      uri: url
       method: 'DELETE'
       headers: defaultHeaders
     request options, (error, response, body='') ->
@@ -113,9 +120,10 @@ deleteExistingAsset = (release, assetName, callback) ->
       else
         callback()
 
-    return
-
-  callback()
+  tasks = []
+  for asset in release.assets when not assetNames? or asset.name in assetNames
+    tasks.push(deleteAsset.bind(this, asset.url))
+  async.parallel(tasks, callback)
 
 createBuildRelease = (callback) ->
   getRelease (error, release) ->
@@ -124,7 +132,7 @@ createBuildRelease = (callback) ->
       return
 
     if release?
-      deleteExistingAsset release, (error) ->
+      deleteExistingAssets release, (error) ->
         callback(error, release)
       return
 
@@ -146,23 +154,30 @@ createBuildRelease = (callback) ->
       else
         callback(null, release)
 
-uploadAsset = (release, assetName, assetPath, callback) ->
-  options =
-    uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
-    method: 'POST'
-    headers: _.extend({
-      'Content-Type': 'application/zip'
-      'Content-Length': fs.getSizeSync(assetPath)
-      }, defaultHeaders)
+uploadAssets = (release, buildDir, assets, callback) ->
+  upload = (release, assetName, assetPath, callback) ->
+    options =
+      uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
+      method: 'POST'
+      headers: _.extend({
+        'Content-Type': 'application/zip'
+        'Content-Length': fs.getSizeSync(assetPath)
+        }, defaultHeaders)
 
-  assetRequest = request options, (error, response, body='') ->
-    if error? or response.statusCode >= 400
-      logError('Upload release asset failed', error, body)
-      callback(error ? new Error(response.statusCode))
-    else
-      callback(null, release)
+    assetRequest = request options, (error, response, body='') ->
+      if error? or response.statusCode >= 400
+        logError("Upload release asset #{assetName} failed", error, body)
+        callback(error ? new Error(response.statusCode))
+      else
+        callback(null, release)
 
-  fs.createReadStream(assetPath).pipe(assetRequest)
+    fs.createReadStream(assetPath).pipe(assetRequest)
+
+  tasks = []
+  for {assetName, sourceName} in assets
+    assetPath = path.join(buildDir, assetName)
+    tasks.push(upload.bind(this, release, assetName, assetPath))
+  async.parallel(tasks, callback)
 
 publishRelease = (release, callback) ->
   options =
