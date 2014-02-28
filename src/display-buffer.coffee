@@ -584,6 +584,7 @@ class DisplayBuffer extends Model
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
+    endBufferRow = @rowMap.bufferRowRangeForBufferRow(endBufferRow - 1)[1]
     startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
     endScreenRow = @rowMap.screenRowRangeForBufferRow(endBufferRow - 1)[1]
 
