@@ -41,6 +41,7 @@ module.exports = (grunt) ->
     tmpDir = os.tmpdir()
     installRoot = process.env.ProgramFiles
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
@@ -50,6 +51,7 @@ module.exports = (grunt) ->
     tmpDir = '/tmp'
     installRoot = '/Applications'
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
@@ -123,7 +125,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    atom: {appDir, appName, buildDir, contentsDir, installDir, shellAppDir}
+    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir}
 
     coffee: coffeeConfig
 
