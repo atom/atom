@@ -33,7 +33,9 @@ class Publish extends Command
       it is published to the apm registry. The HEAD branch and the new tag are
       pushed up to the remote repository automatically using this option.
 
-      Run `apm available` to see all the currently published packages.
+      Run `apm featured` to see all the featured packages or
+      `apm view <packagename>` to see information about your package after you
+      have published it.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'tag').string('tag').describe('tag', 'Specify a tag to publish')

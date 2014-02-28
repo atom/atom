@@ -18,5 +18,5 @@ Run `apm help` to see all the supported commands and `apm help <command>` to
 learn more about a specific command.
 
 The common commands are `apm install <package_name>` to install a new package,
-`apm available` to see all the published packages, and `apm publish` to publish
+`apm featured` to see all the featured packages, and `apm publish` to publish
 a package to the apm registry.
