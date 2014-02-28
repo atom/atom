@@ -10,12 +10,6 @@
   "bugs": {
     "url": "https://github.com/atom/atom/issues"
   },
-  "licenses": [
-    {
-      "type": "Apache",
-      "url": "http://github.com/atom/atom/raw/master/LICENSE.md"
-    }
-  ],
   "atomShellVersion": "0.10.3",
   "dependencies": {
     "async": "0.2.6",
