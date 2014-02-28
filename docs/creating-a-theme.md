@@ -53,6 +53,11 @@ As an example, let's make the `.gutter` `background-color` into `@red`.
 Reload Atom by pressing `cmd-alt-option-L` to see the changes you made reflected
 in your Atom window. Pretty neat!
 
+__Tip:__ You can avoid reloading to see changes you make by opening an atom
+window in dev mode. To open a Dev Mode Atom window run `atom --dev .` in the
+terminal or use the _View > Developer > Open in Dev Mode_ menu. When you edit
+your theme, changes will instantly be reflected!
+
 ## Creating an Interface Theme
 
 Interface themes **must** provide a `ui-variables.less` file which contains all
