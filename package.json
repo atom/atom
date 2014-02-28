@@ -10,6 +10,7 @@
   "bugs": {
     "url": "https://github.com/atom/atom/issues"
   },
+  "license": "All Rights Reserved",
   "atomShellVersion": "0.10.3",
   "dependencies": {
     "async": "0.2.6",
