@@ -99,10 +99,11 @@ class DisplayBuffer extends Model
   #
   # editorWidthInChars - A {Number} of characters.
   setEditorWidthInChars: (editorWidthInChars) ->
-    previousWidthInChars = @editorWidthInChars
-    @editorWidthInChars = editorWidthInChars
-    if editorWidthInChars isnt previousWidthInChars and @softWrap
-      @updateWrappedScreenLines()
+    if editorWidthInChars > 0
+      previousWidthInChars = @editorWidthInChars
+      @editorWidthInChars = editorWidthInChars
+      if editorWidthInChars isnt previousWidthInChars and @softWrap
+        @updateWrappedScreenLines()
 
   getSoftWrapColumn: ->
     if atom.config.get('editor.softWrapAtPreferredLineLength')
