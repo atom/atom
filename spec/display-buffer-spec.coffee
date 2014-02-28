@@ -460,6 +460,12 @@ describe "DisplayBuffer", ->
 
           expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 3, screenDelta: 1, bufferDelta: 1)
 
+      describe "when the change starts at the beginning of a fold but does not extend to the end (regression)", ->
+        it "preserves a proper mapping between buffer and screen coordinates", ->
+          expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [4, 0]
+          buffer.setTextInRange([[2, 0], [3, 0]], "\n")
+          expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [4, 0]
+
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
         fold = displayBuffer.createFold(4, 7)
