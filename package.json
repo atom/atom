@@ -12,7 +12,7 @@
   },
   "licenses": [
     {
-      "type": "Apache",
+      "type": "Copyright 2014 GitHub, Inc.",
       "url": "http://github.com/atom/atom/raw/master/LICENSE.md"
     }
   ],
