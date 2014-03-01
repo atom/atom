@@ -355,3 +355,39 @@ registry.
 
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
+
+## Included Libraries
+
+FIXME: Describe `require 'atom'
+
+In addition to core node.js modules, all packages can `require` the following
+popular libraries into their packages:
+
+* [SpacePen] (as `require 'space-pen'`)
+* [jQuery] (as `require 'jquery'`)
+* [Underscore] (as `require 'underscore'`)
+
+Additional libraries can be found by browsing Atom's *node_modules* folder.
+
+[file-tree]: https://github.com/atom/tree-view
+[status-bar]: https://github.com/atom/status-bar
+[cs-syntax]: https://github.com/atom/language-coffee-script
+[npm]: http://en.wikipedia.org/wiki/Npm_(software)
+[npm-keys]: https://npmjs.org/doc/json.html
+[apm]: https://github.com/atom/apm
+[git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
+[wrap-guide]: https://github.com/atom/wrap-guide/
+[keymaps]: advanced/keymaps.md
+[theme-variables]: theme-variables.md
+[tm-tokens]: http://manual.macromates.com/en/language_grammars.html
+[spacepen]: https://github.com/nathansobo/space-pen
+[path]: http://nodejs.org/docs/latest/api/path.html
+[jquery]: http://jquery.com/
+[underscore]: http://underscorejs.org/
+[jasmine]: http://jasmine.github.io
+[cson]: https://github.com/atom/season
+[less]: http://lesscss.org
+[ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
+[first-package]: your-first-package.html
+[convert-bundle]: converting-a-text-mate-bundle.html
+[convert-theme]: converting-a-text-mate-theme.html
