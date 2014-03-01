@@ -14,14 +14,24 @@ describe "Workspace", ->
     describe "when the 'searchAllPanes' option is false (default)", ->
       describe "when called without a uri", ->
         it "adds and activates an empty editor on the active pane", ->
-          editor = null
+          [editor1, editor2] = []
+
           waitsForPromise ->
-            workspace.open().then (o) -> editor = o
+            workspace.open().then (editor) -> editor1 = editor
 
           runs ->
-            expect(editor.getPath()).toBeUndefined()
-            expect(workspace.activePane.items).toEqual [editor]
-            expect(workspace.activePaneItem).toBe editor
+            expect(editor1.getPath()).toBeUndefined()
+            expect(workspace.activePane.items).toEqual [editor1]
+            expect(workspace.activePaneItem).toBe editor1
+            expect(workspace.activePane.activate).toHaveBeenCalled()
+
+          waitsForPromise ->
+            workspace.open().then (editor) -> editor2 = editor
+
+          runs ->
+            expect(editor2.getPath()).toBeUndefined()
+            expect(workspace.activePane.items).toEqual [editor1, editor2]
+            expect(workspace.activePaneItem).toBe editor2
             expect(workspace.activePane.activate).toHaveBeenCalled()
 
       describe "when called with a uri", ->

@@ -267,22 +267,6 @@ class Editor extends Model
     else
       'untitled'
 
-  # Compares two `Editor`s to determine equality.
-  #
-  # Equality is based on whether:
-  # * the two {TextBuffer}s are the same
-  # * the two `scrollTop` and `scrollLeft` property are the same
-  # * the most recent {Cursor}s are in the same position.
-  #
-  # Returns a {Boolean}.
-  isEqual: (other) ->
-    return false unless other instanceof Editor
-    @isAlive() == other.isAlive() and
-      @buffer.getPath() == other.buffer.getPath() and
-      @getScrollTop() == other.getScrollTop() and
-      @getScrollLeft() == other.getScrollLeft() and
-      @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
-
   # Controls visiblity based on the given {Boolean}.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
