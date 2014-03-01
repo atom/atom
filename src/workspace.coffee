@@ -73,7 +73,7 @@ class Workspace extends Model
   #                     if the uri is already open (default: false)
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
-  open: (uri='', options={}) ->
+  open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
     uri = atom.project.resolve(uri)
@@ -112,8 +112,8 @@ class Workspace extends Model
   openUriInPane: (uri, pane, options={}) ->
     changeFocus = options.changeFocus ? true
 
-    item = pane.itemForUri(uri)
-    if uri
+    if uri?
+      item = pane.itemForUri(uri)
       item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
     item ?= atom.project.open(uri, options)
 
