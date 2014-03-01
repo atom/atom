@@ -356,19 +356,6 @@ registry.
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
 
-## Included Libraries
-
-FIXME: Describe `require 'atom'
-
-In addition to core node.js modules, all packages can `require` the following
-popular libraries into their packages:
-
-* [SpacePen] (as `require 'space-pen'`)
-* [jQuery] (as `require 'jquery'`)
-* [Underscore] (as `require 'underscore'`)
-
-Additional libraries can be found by browsing Atom's *node_modules* folder.
-
 [file-tree]: https://github.com/atom/tree-view
 [status-bar]: https://github.com/atom/status-bar
 [cs-syntax]: https://github.com/atom/language-coffee-script
