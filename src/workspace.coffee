@@ -7,10 +7,12 @@ Delegator = require 'delegato'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
-# Public: Represents the view state of the entire window, including the panes at
-# the center and panels around the periphery.
+# Public: Represents the state of the user interface for the entire window.
+# An instance of this class is available via the `atom.workspace` global.
 #
-# An instance of this class is always available as the `atom.workspace` global.
+# Interact with this object to open files, be notified of current and future
+# editors, and manipulate panes. To add panels, you'll need to use the
+# {WorkspaceView} class for now until we establish APIs at the model layer.
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
@@ -49,28 +51,38 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
-  # Public: Calls callback for every existing {Editor} and for all new {Editor}s.
-  # that are created.
+  # Public: Register a function to be called for every current and future
+  # {Editor} in the workspace.
   #
-  # callback - A {Function} with an {Editor} as its only argument
+  # callback - A {Function} with an {Editor} as its only argument.
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
   eachEditor: (callback) ->
     atom.project.eachEditor(callback)
 
-  # Public: Returns an {Array} of all open {Editor}s.
+  # Public: Get all current editors in the workspace.
+  #
+  # Returns an {Array} of {Editor}s.
   getEditors: ->
     atom.project.getEditors()
 
-  # Public: Asynchronously opens a given a filepath in Atom.
+  # Public: Open a given a URI in Atom asynchronously.
   #
-  # uri - A {String} uri.
-  # options  - An options {Object} (default: {}).
-  #   :initialLine - A {Number} indicating which line number to open to.
-  #   :split - A {String} ('left' or 'right') that opens the filePath in a new
-  #            pane or an existing one if it exists.
-  #   :changeFocus - A {Boolean} that allows the filePath to be opened without
-  #                  changing focus.
-  #   :searchAllPanes - A {Boolean} that will open existing editors from any pane
-  #                     if the uri is already open (default: false)
+  # uri - A {String} containing a URI.
+  # options  - An optional options {Object}
+  #   :initialLine - A {Number} indicating which row to move the cursor to
+  #                  initially. Defaults to `0`.
+  #   :split - Either 'left' or 'right'. If 'left', the item will be opened in
+  #            leftmost pane of the current active pane's row. If 'right', the
+  #            item will be opened in the rightmost pane of the current active
+  #            pane's row.
+  #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
+  #                   the containing pane. Defaults to `true`.
+  #   :searchAllPanes - A {Boolean}. If `true`, the workspace will attempt to
+  #                     activate an existing item for the given URI on any pane.
+  #                     If `false`, only the active pane will be searched for
+  #                     an existing item for the same URI. Defaults to `false`.
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (uri, options={}) ->
@@ -89,10 +101,20 @@ class Workspace extends Model
 
     @openUriInPane(uri, pane, options)
 
+  # Public: Open Atom's license in the active pane.
   openLicense: ->
     @open(join(atom.getLoadSettings().resourcePath, 'LICENSE'))
 
-  # Only used in specs
+  # Public: Synchronously open the given URI in the active pane. **Only use this
+  # method in tests. Calling this in production code will block the UI thread
+  # and everyone will be mad at you.**
+  #
+  # uri - A {String} containing a URI.
+  # options  - An optional options {Object}
+  #   :initialLine - A {Number} indicating which row to move the cursor to
+  #                  initially. Defaults to `0`.
+  #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
+  #                   the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
@@ -130,7 +152,8 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
+  # Public: Reopen the last-closed item's URI if it hasn't already been
+  # reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
@@ -150,50 +173,70 @@ class Workspace extends Model
   registerOpener: (opener) ->
     atom.project.registerOpener(opener)
 
-  # Public: Remove a registered opener.
+  # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
     atom.project.unregisterOpener(opener)
 
   getOpeners: ->
     atom.project.openers
 
-  # Public: Returns the active {Pane}.
+  # Public: Get the active {Pane}.
+  #
+  # Returns a {Pane}.
   getActivePane: ->
     @paneContainer.activePane
 
-  # Public: Returns the first pane {Pane} with an item for the given uri or
-  # undefined if none exists.
+  # Public: Get the first pane {Pane} with an item for the given URI.
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
 
-  # Public: save the active item.
+  # Public: Save the active pane item.
+  #
+  # If the active pane item currently has a URI according to the item's
+  # `.getUri` method, calls `.save` on the item. Otherwise {::saveActiveItemAs}
+  # will be called instead. This method does nothing if the active item does not
+  # implement a `.save` method.
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
 
-  # Public: save the active item as.
+  # Public: Prompt the user for a path and save the active pane item to it.
+  #
+  # Opens a native dialog where the user selects a path on disk, then calls
+  # `.saveAs` on the item with the selected path. This method does nothing if
+  # the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs: ->
     @activePane?.saveActiveItemAs()
 
-  # Public: destroy/close the active item.
+  # Public: Destroy (close) the active pane item.
+  #
+  # Removes the active pane item and calls the `.destroy` method on it if one is
+  # defined.
   destroyActivePaneItem: ->
     @activePane?.destroyActiveItem()
 
-  # Public: destroy/close the active pane.
+  # Public: Destroy (close) the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
 
-  # Public: Returns an {Editor} if the active pane item is an {Editor},
-  # or null otherwise.
+  # Public: Get the active item if it is an {Editor}.
+  #
+  # Returns an {Editor} or `undefined` if the current active item is not an
+  # {Editor}.
   getActiveEditor: ->
     @activePane?.getActiveEditor()
 
+  # Public: Increase the editor font size by 1px.
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
+  # Public: Decrease the editor font size by 1px.
   decreaseFontSize: ->
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
+  # Public: Restore to a default editor font size.
   resetFontSize: ->
     atom.config.restoreDefault("editor.fontSize")
 
