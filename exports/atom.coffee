@@ -21,3 +21,4 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
   module.exports.View = View
   module.exports.WorkspaceView = require '../src/workspace-view'
+  module.exports.Workspace = require '../src/workspace'
