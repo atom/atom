@@ -87,7 +87,14 @@ module.exports =
     args = options.argv
     command = options.command
     if args.version
-      console.log require('../package.json').version
+      apmVersion =  require('../package.json').version
+      npmVersion = require('../node_modules/npm/package.json').version
+      nodeVersion = process.versions.node
+      console.log """
+        apm  #{apmVersion}
+        npm  #{npmVersion}
+        node #{nodeVersion}
+      """
     else if args.help
       if Command = commands[options.command]
         new Command().showHelp(options.command)
