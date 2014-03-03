@@ -96,7 +96,7 @@ describe "apm init", ->
             @syntax-gutter-background-color: #F5F5F5;
             @syntax-gutter-background-color-selected: #F5F5F5;
           """
-          expect(fs.readFileSync(path.join(themePath, 'index.less'), 'utf8')).toContain """
+          expect(fs.readFileSync(path.join(themePath, 'stylesheets', 'base.less'), 'utf8')).toContain """
             @import "syntax-variables";
 
             .editor {
