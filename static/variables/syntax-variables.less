@@ -1,8 +1,29 @@
-// This file has fallback variables. It specifies the syntax variables that
-// themes must implement.
+// This file has fallback variables. It specifies all syntax variables that
+// themes must implement if they include a syntax-variables.less file.
 
-// Colors
+// General colors
+@syntax-text-color: #333;
+@syntax-cursor-color: #333;
+@syntax-selection-color: #69c;
+@syntax-background-color: #fff;
 
-@syntax-color-added: #5293d8;
-@syntax-color-modified: #f78a46;
-@syntax-color-removed: #c00;
+// Guide colors
+@syntax-wrap-guide-color: #ccc;
+@syntax-indent-guide-color: #ccc;
+@syntax-invisible-character-color: #ccc;
+
+// For find and replace markers
+@syntax-result-marker-color: #444;
+@syntax-result-marker-color-selected: #000;
+
+// Gutter colors
+@syntax-gutter-text-color: #333;
+@syntax-gutter-text-color-selected: #000;
+@syntax-gutter-background-color: #ccc;
+@syntax-gutter-background-color-selected: #eee;
+
+// For git diff info. i.e. in the gutter
+@syntax-color-added: green;
+@syntax-color-modified: orange;
+@syntax-color-removed: red;
+@syntax-color-renamed: blue;
