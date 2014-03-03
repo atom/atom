@@ -1,5 +1,20 @@
 #!/bin/sh
 
 set -e
-binDir=$(dirname $0)
-$binDir/node --harmony_collections $binDir/../lib/cli.js $@
+
+initialCwd=`pwd -P`
+
+apmPath=$0
+cd "`dirname "$apmPath"`"
+binDir=`basename "$apmPath"`
+
+while [ -L "$binDir" ]
+do
+  binDir=`readlink "$binDir"`
+  cd "`dirname "$binDir"`"
+  binDir=`basename "$binDir"`
+done
+
+binDir=`pwd -P`
+cd "$initialCwd"
+"$binDir/node" --harmony_collections "$binDir/../lib/cli.js" $@
