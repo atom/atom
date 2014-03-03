@@ -34,5 +34,6 @@ class ThemeConverter
       return callback(error) if error?
 
       theme = new TextMateTheme(themeContents)
-      fs.writeFileSync(path.join(@destinationPath, 'index.less'), theme.getStylesheet())
+      fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'base.less'), theme.getStylesheet())
+      fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'syntax-variables.less'), theme.getSyntaxVariables())
       callback()

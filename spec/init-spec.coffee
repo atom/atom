@@ -73,6 +73,7 @@ describe "apm init", ->
         expect(fs.existsSync(themePath)).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'stylesheets'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'stylesheets', 'base.less'))).toBeTruthy()
+        expect(fs.existsSync(path.join(themePath, 'stylesheets', 'syntax-variables.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'index.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
@@ -88,11 +89,24 @@ describe "apm init", ->
 
         runs ->
           expect(fs.existsSync(themePath)).toBeTruthy()
-          expect(fs.existsSync(path.join(themePath, 'stylesheets'))).toBeFalsy()
-          expect(fs.readFileSync(path.join(themePath, 'index.less'), 'utf8')).toContain """
-            .editor, .editor .gutter {
-              background-color: #F5F5F5;
-              color: #080808;
+          expect(fs.existsSync(path.join(themePath, 'stylesheets'))).toBeTruthy()
+          expect(fs.readFileSync(path.join(themePath, 'stylesheets', 'syntax-variables.less'), 'utf8')).toContain """
+            @syntax-gutter-text-color: #080808;
+            @syntax-gutter-text-color-selected: #080808;
+            @syntax-gutter-background-color: #F5F5F5;
+            @syntax-gutter-background-color-selected: rgba(92, 108, 125, 0.07);
+          """
+          expect(fs.readFileSync(path.join(themePath, 'stylesheets', 'base.less'), 'utf8')).toContain """
+            @import "syntax-variables";
+
+            .editor {
+              background-color: @syntax-background-color;
+              color: @syntax-text-color;
+            }
+
+            .editor .gutter {
+              background-color: @syntax-gutter-background-color;
+              color: @syntax-gutter-text-color;
             }
           """
           expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
