@@ -88,7 +88,7 @@ module.exports =
     command = options.command
     if args.version
       apmVersion =  require('../package.json').version
-      npmVersion = require('../node_modules/npm/package.json').version
+      npmVersion = require('npm/package.json').version
       nodeVersion = process.versions.node
       console.log """
         apm  #{apmVersion}
