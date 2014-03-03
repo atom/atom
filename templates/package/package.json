@@ -2,10 +2,10 @@
   "name": "__package-name__",
   "main": "./lib/__package-name__",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
-  "repository": "https://github.com/atom/__package-name__",
+  "repository": "https://github.com/myusername/__package-name__",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
