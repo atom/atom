@@ -25,6 +25,7 @@ if (!fs.existsSync(apmInstallPath))
 if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
   fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
+var apmPath = 'apm/node_modules/atom-package-manager/bin/apm'
 var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
 var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
@@ -35,11 +36,11 @@ var commands = [
   {command: 'npm --strict-ssl=false install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
   {command: 'npm --strict-ssl=false install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
   {command: 'npm --strict-ssl=false install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},
-  {command: 'node ../../apm/node_modules/atom-package-manager/bin/apm rebuild', options: {cwd: path.resolve('node_modules', 'atom-package-manager'), ignoreStdout: true}},
+  {command: '../../' + apmPath + ' rebuild', options: {cwd: path.resolve('node_modules', 'atom-package-manager'), ignoreStdout: true}},
   echoNewLine,
-  'node apm/node_modules/atom-package-manager/bin/apm clean ' + apmFlags,
-  'node apm/node_modules/atom-package-manager/bin/apm install --quiet ' + apmFlags,
-  'node apm/node_modules/atom-package-manager/bin/apm dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
+  apmPath + ' clean ' + apmFlags,
+  apmPath + ' install --quiet ' + apmFlags,
+  apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
 ];
 
 process.chdir(path.dirname(__dirname));

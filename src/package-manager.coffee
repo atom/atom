@@ -41,7 +41,7 @@ class PackageManager
 
   # Public: Get the path to the apm command
   getApmPath: ->
-    @apmPath ?= require.resolve('atom-package-manager/bin/apm')
+    @apmPath ?= require.resolve('atom-package-manager/lib/cli')
 
   # Public: Get the paths being used to look for packages.
   #
