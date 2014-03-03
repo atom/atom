@@ -10,11 +10,15 @@ class TextMateTheme
 
   buildRulesets: ->
     {settings} = plist.parseStringSync(@contents)
+    @buildSyntaxVariables(settings[0])
     @buildGlobalSettingsRulesets(settings[0])
     @buildScopeSelectorRulesets(settings[1..])
 
   getStylesheet: ->
-    lines = []
+    lines = [
+      '@import "syntax-variables";'
+      ''
+    ]
     for {selector, properties} in @getRulesets()
       lines.push("#{selector} {")
       lines.push "  #{name}: #{value};" for name, value of properties
@@ -23,24 +27,76 @@ class TextMateTheme
 
   getRulesets: -> @rulesets
 
+  getSyntaxVariables: -> @syntaxVariables
+
+  buildSyntaxVariables: ({settings}) ->
+    @syntaxVariables = SyntaxVariablesTemplate
+    for key, value of settings
+      replaceRegex = new RegExp("\\{\\{#{key}-color\\}\\}", 'g')
+      @syntaxVariables = @syntaxVariables.replace(replaceRegex, @translateColor(value))
+    @syntaxVariables
+
   buildGlobalSettingsRulesets: ({settings}) ->
     {background, foreground, caret, selection, lineHighlight} = settings
 
     @rulesets.push
-      selector: '.editor, .editor .gutter'
+      selector: '.editor'
       properties:
-        'background-color': @translateColor(background)
-        'color': @translateColor(foreground)
+        'background-color': '@syntax-background-color'
+        'color': '@syntax-text-color'
+
+    @rulesets.push
+      selector: '.editor .gutter'
+      properties:
+        'background-color': '@syntax-gutter-background-color'
+        'color': '@syntax-gutter-text-color'
+
+    @rulesets.push
+      selector: '.editor .gutter .line-number.cursor-line'
+      properties:
+        'background-color': '@syntax-gutter-background-color-selected'
+        'color': '@syntax-gutter-text-color-selected'
+
+    @rulesets.push
+      selector: '.editor .gutter .line-number.cursor-line-no-selection'
+      properties:
+        'color': '@syntax-gutter-text-color-selected'
+
+    @rulesets.push
+      selector: '.editor .wrap-guide'
+      properties:
+        'background-color': '@syntax-wrap-guide-color'
+
+    @rulesets.push
+      selector: '.editor .indent-guide'
+      properties:
+        'background-color': '@syntax-indent-guide-color'
+
+    @rulesets.push
+      selector: '.editor .invisible-character'
+      properties:
+        'background-color': '@syntax-invisible-character-color'
+
+    @rulesets.push
+      selector: '.editor .search-results .marker .region'
+      properties:
+        'background-color': 'transparent'
+        'border': '@syntax-result-marker-color'
+
+    @rulesets.push
+      selector: '.editor .search-results .marker.current-result .region'
+      properties:
+        'border': '@syntax-result-marker-color-selected'
 
     @rulesets.push
       selector: '.editor.is-focused .cursor'
       properties:
-        'border-color': @translateColor(caret)
+        'border-color': '@syntax-cursor-color'
 
     @rulesets.push
       selector: '.editor.is-focused .selection .region'
       properties:
-        'background-color': @translateColor(selection)
+        'background-color': '@syntax-selection-color'
 
     @rulesets.push
       selector: '.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line'
@@ -82,3 +138,36 @@ class TextMateTheme
       a = Math.round((a / 255.0) * 100) / 100
 
       "rgba(#{r}, #{g}, #{b}, #{a})"
+
+SyntaxVariablesTemplate = """
+  // This defines all syntax variables that syntax themes must implement when they
+  // include a syntax-variables.less file.
+
+  // General colors
+  @syntax-text-color: {{foreground-color}};
+  @syntax-cursor-color: {{caret-color}};
+  @syntax-selection-color: {{selection-color}};
+  @syntax-background-color: {{background-color}};
+
+  // Guide colors
+  @syntax-wrap-guide-color: {{invisibles-color}};
+  @syntax-indent-guide-color: {{invisibles-color}};
+  @syntax-invisible-character-color: {{invisibles-color}};
+
+  // For find and replace markers
+  @syntax-result-marker-color: {{invisibles-color}};
+  @syntax-result-marker-color-selected: {{foreground-color}};
+
+  // Gutter colors
+  @syntax-gutter-text-color: {{foreground-color}};
+  @syntax-gutter-text-color-selected: {{foreground-color}};
+  @syntax-gutter-background-color: {{background-color}};
+  @syntax-gutter-background-color-selected: {{background-color}};
+
+  // For git diff info. i.e. in the gutter
+  // These are static and were not extracted from your textmate theme
+  @syntax-color-renamed: #96CBFE;
+  @syntax-color-added: #A8FF60;
+  @syntax-color-modified: #E9C062;
+  @syntax-color-removed: #CC6666;
+"""
