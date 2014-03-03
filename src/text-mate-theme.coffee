@@ -32,7 +32,7 @@ class TextMateTheme
   buildSyntaxVariables: ({settings}) ->
     @syntaxVariables = SyntaxVariablesTemplate
     for key, value of settings
-      replaceRegex = new RegExp("\\{\\{#{key}-color\\}\\}", 'g')
+      replaceRegex = new RegExp("\\{\\{#{key}\\}\\}", 'g')
       @syntaxVariables = @syntaxVariables.replace(replaceRegex, @translateColor(value))
     @syntaxVariables
 
@@ -144,25 +144,25 @@ SyntaxVariablesTemplate = """
   // include a syntax-variables.less file.
 
   // General colors
-  @syntax-text-color: {{foreground-color}};
-  @syntax-cursor-color: {{caret-color}};
-  @syntax-selection-color: {{selection-color}};
-  @syntax-background-color: {{background-color}};
+  @syntax-text-color: {{foreground}};
+  @syntax-cursor-color: {{caret}};
+  @syntax-selection-color: {{selection}};
+  @syntax-background-color: {{background}};
 
   // Guide colors
-  @syntax-wrap-guide-color: {{invisibles-color}};
-  @syntax-indent-guide-color: {{invisibles-color}};
-  @syntax-invisible-character-color: {{invisibles-color}};
+  @syntax-wrap-guide-color: {{invisibles}};
+  @syntax-indent-guide-color: {{invisibles}};
+  @syntax-invisible-character-color: {{invisibles}};
 
   // For find and replace markers
-  @syntax-result-marker-color: {{invisibles-color}};
-  @syntax-result-marker-color-selected: {{foreground-color}};
+  @syntax-result-marker-color: {{invisibles}};
+  @syntax-result-marker-color-selected: {{foreground}};
 
   // Gutter colors
-  @syntax-gutter-text-color: {{foreground-color}};
-  @syntax-gutter-text-color-selected: {{foreground-color}};
-  @syntax-gutter-background-color: {{background-color}};
-  @syntax-gutter-background-color-selected: {{background-color}};
+  @syntax-gutter-text-color: {{foreground}};
+  @syntax-gutter-text-color-selected: {{foreground}};
+  @syntax-gutter-background-color: {{background}};
+  @syntax-gutter-background-color-selected: {{lineHighlight}};
 
   // For git diff info. i.e. in the gutter
   // These are static and were not extracted from your textmate theme
