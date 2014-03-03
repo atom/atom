@@ -2,9 +2,8 @@
   "name": "__package-name__",
   "theme": "syntax",
   "version": "0.0.0",
-  "private": false,
   "description": "A short description of your syntax theme",
-  "repository": "https://github.com/myusername/__package-name__",
+  "repository": "https://github.com/atom/__package-name__",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
