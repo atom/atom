@@ -1733,3 +1733,7 @@ class Editor extends Model
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
+
+  # Deprecated: Call {::joinLines} instead.
+  joinLine: ->
+    @joinLines()
