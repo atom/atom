@@ -25,7 +25,10 @@ describe 'apm command line interface', ->
       apm.run(['-v'])
       expect(console.error).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
-      expect(console.log.argsForCall[0][0]).toBe JSON.parse(fs.readFileSync('package.json')).version
+      lines = console.log.argsForCall[0][0].split('\n')
+      expect(lines[0]).toBe "apm  #{require('../package.json').version}"
+      expect(lines[1]).toBe "npm  #{require('npm/package.json').version}"
+      expect(lines[2]).toBe "node #{process.versions.node}"
 
   describe 'when an unrecognized command is specified', ->
     it 'prints an error message and exits', ->
