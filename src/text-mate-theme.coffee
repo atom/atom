@@ -65,17 +65,17 @@ class TextMateTheme
     @rulesets.push
       selector: '.editor .wrap-guide'
       properties:
-        'background-color': '@syntax-wrap-guide-color'
+        'color': '@syntax-wrap-guide-color'
 
     @rulesets.push
       selector: '.editor .indent-guide'
       properties:
-        'background-color': '@syntax-indent-guide-color'
+        'color': '@syntax-indent-guide-color'
 
     @rulesets.push
       selector: '.editor .invisible-character'
       properties:
-        'background-color': '@syntax-invisible-character-color'
+        'color': '@syntax-invisible-character-color'
 
     @rulesets.push
       selector: '.editor .search-results .marker .region'
