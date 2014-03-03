@@ -176,10 +176,6 @@ class WorkspaceView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
-  confirmClose: ->
-    @panes.confirmClose()
-
   # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
@@ -230,41 +226,11 @@ class WorkspaceView extends View
   appendToRight: (element) ->
     @horizontal.append(element)
 
-  # Public: Returns the currently focused {PaneView}.
-  getActivePaneView: ->
-    @panes.getActivePane()
-
-  # Public: Returns the currently focused item from within the focused {PaneView}
-  getActivePaneItem: ->
-    @model.activePaneItem
-
-  # Public: Returns the view of the currently focused item.
-  getActiveView: ->
-    @panes.getActiveView()
-
-  # Public: Focuses the previous pane by id.
-  focusPreviousPaneView: -> @model.activatePreviousPane()
-
-  # Public: Focuses the next pane by id.
-  focusNextPaneView: -> @model.activateNextPane()
-
-  # Public: Focuses the pane directly above the active pane.
-  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
-
-  # Public: Focuses the pane directly below the active pane.
-  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
-
-  # Public: Focuses the pane directly to the left of the active pane.
-  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
-
-  # Public: Focuses the pane directly to the right of the active pane.
-  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
-
   # Public: Fires a callback on each open {PaneView}.
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
 
-  # Returns an Array of all open {PaneView}s.
+  # Public: Returns an Array of all open {PaneView}s.
   getPaneViews: ->
     @panes.getPanes()
 
@@ -278,6 +244,40 @@ class WorkspaceView extends View
   # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
+
+  # Shows a dialog asking if the pane was _really_ meant to be closed.
+  confirmClose: ->
+    @panes.confirmClose()
+
+  # Returns the currently focused {PaneView}.
+  getActivePaneView: ->
+    @panes.getActivePane()
+
+  # Returns the currently focused item from within the focused {PaneView}
+  getActivePaneItem: ->
+    @model.activePaneItem
+
+  # Returns the view of the currently focused item.
+  getActiveView: ->
+    @panes.getActiveView()
+
+  # Focuses the previous pane by id.
+  focusPreviousPaneView: -> @model.activatePreviousPane()
+
+  # Focuses the next pane by id.
+  focusNextPaneView: -> @model.activateNextPane()
+
+  # Focuses the pane directly above the active pane.
+  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
+
+  # Focuses the pane directly below the active pane.
+  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
+
+  # Focuses the pane directly to the left of the active pane.
+  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
+
+  # Focuses the pane directly to the right of the active pane.
+  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
   # Deprecated
   eachPane: (callback) ->

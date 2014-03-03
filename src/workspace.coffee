@@ -17,7 +17,7 @@ class Workspace extends Model
   Serializable.includeInto(this)
 
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
-  @delegatesMethod 'getPanes', 'saveAll', 'activateNextPane', 'activatePreviousPane',
+  @delegatesMethod 'saveAll', 'activateNextPane', 'activatePreviousPane',
     toProperty: 'paneContainer'
 
   @properties
@@ -130,7 +130,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Public: Reopens the last-closed item uri if it hasn't already been reopened.
+  # Reopens the last-closed item uri if it hasn't already been reopened.
   reopenItemSync: ->
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
@@ -157,6 +157,10 @@ class Workspace extends Model
   getOpeners: ->
     atom.project.openers
 
+  # Public: Returns an Array of all {Pane}s.
+  getPanes: ->
+    @paneContainer.getPanes()
+
   # Public: Returns the active {Pane}.
   getActivePane: ->
     @paneContainer.activePane
@@ -166,19 +170,19 @@ class Workspace extends Model
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
 
-  # Public: save the active item.
+  # Save the active item.
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
 
-  # Public: save the active item as.
+  # Save the active item as.
   saveActivePaneItemAs: ->
     @activePane?.saveActiveItemAs()
 
-  # Public: destroy/close the active item.
+  # Destroy/close the active item.
   destroyActivePaneItem: ->
     @activePane?.destroyActiveItem()
 
-  # Public: destroy/close the active pane.
+  # Destroy/close the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
 
