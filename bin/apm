@@ -1,4 +1,5 @@
-#!/usr/bin/env node --harmony_collections
+#!/bin/sh
 
-var path = require('path');
-require(path.join(__dirname, '../lib/apm-cli')).run(process.argv.slice(2));
+set -e
+binDir=$(dirname $0)
+$binDir/node --harmony_collections $binDir/../lib/cli.js $@
