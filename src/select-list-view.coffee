@@ -56,6 +56,11 @@ class SelectListView extends View
     @filterEditorView.hiddenInput.on 'focusout', =>
       @cancel() unless @cancelling
 
+    # This prevents the focusout event from firing on the filter editor view
+    # when the list is scrolled by clicking the scrollbar and dragging.
+    @list.on 'mousedown', ({target}) =>
+      false if target is @list[0]
+
     @on 'core:move-up', =>
       @selectPreviousItemView()
     @on 'core:move-down', =>
