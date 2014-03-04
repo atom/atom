@@ -1,9 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 os = require 'os'
-def test(arg: Type) = {
 
-}
 # Add support for obselete APIs of vm module so we can make some third-party
 # modules work under node v0.11.x.
 require 'vm-compatibility-layer'
