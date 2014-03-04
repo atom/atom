@@ -86,7 +86,7 @@ currently in use.
 ## Advanced Configuration
 
 Atom loads configuration settings from the `config.cson` file in your _~/.atom_
-directory, which contains CoffeeScript-style JSON:
+directory, which contains [CoffeeScript-style JSON][CSON] (CSON):
 
 ```coffee
 'core':
@@ -174,3 +174,4 @@ This file can also be named _styles.css_ and contain CSS.
 [creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
 [LESS]: http://www.lesscss.org
+[CSON]: https://github.com/bevry/cson
