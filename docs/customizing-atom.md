@@ -148,6 +148,14 @@ If customizations become extensive, consider [creating a package][creating-a-pac
 You can open this file in an editor from the _Atom > Open Your Init Script_
 menu.
 
+For example, if you have the Audio Beep configuration setting enabled, you
+could add the following code to your _~/.atom/init.coffee_ file to have Atom
+greet you with an audio beep every time it loads:
+
+```coffee
+atom.beep()
+```
+
 This file can also be named _init.js_ and contain JavaScript code.
 
 ### styles.less
