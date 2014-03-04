@@ -45,7 +45,7 @@
     "first-mate": "1.x",
     "tar": "~0.1.19",
     "git-utils": "1.x",
-    "semver": "^2.2.1"
+    "semver": "~2.2.1"
   },
   "devDependencies": {
     "jasmine-focused": "1.x",
