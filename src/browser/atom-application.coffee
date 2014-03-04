@@ -154,27 +154,27 @@ class AtomApplication
     setTimeout((-> autoUpdater.checkForUpdates()), 5000)
 
   checkForUpdate: ->
-    autoUpdater.once 'update-available', ->
-      dialog.showMessageBox
-        type: 'info'
-        buttons: ['OK']
-        message: 'Update available.'
-        detail: 'A new update is being downloaded.'
+    removeListeners = =>
+      autoUpdater.removeListener 'update-available', @onUpdateAvailable
+      autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
+      autoUpdater.removeListener 'error', @onUpdateError
 
-    autoUpdater.once 'update-not-available', =>
-      dialog.showMessageBox
-        type: 'info'
-        buttons: ['OK']
-        message: 'No update available.'
-        detail: "Version #{@version} is the latest version."
+    @onUpdateAvailable ?= =>
+      removeListeners()
+      dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'Update available.', detail: 'A new update is being downloaded.'
 
-    autoUpdater.once 'error', (event, message)->
-      dialog.showMessageBox
-        type: 'warning'
-        buttons: ['OK']
-        message: 'There was an error checking for updates.'
-        detail: message
+    @onUpdateNotAvailable ?= =>
+      removeListeners()
+      dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
 
+    @onUpdateError ?= (event, message) =>
+      removeListeners()
+      dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
+
+    autoUpdater.on 'update-available', @onUpdateAvailable
+    autoUpdater.on 'update-not-available', @onUpdateNotAvailable
+    autoUpdater.on 'error', @onUpdateError
+    @applicationMenu.showCheckForUpdateItem(false)
     autoUpdater.checkForUpdates()
 
   # Registers basic application commands, non-idempotent.
