@@ -105,9 +105,9 @@ class Workspace extends Model
   openLicense: ->
     @open(join(atom.getLoadSettings().resourcePath, 'LICENSE'))
 
-  # Public: Synchronously open the given URI in the active pane. **Only use this
-  # method in tests. Calling this in production code will block the UI thread
-  # and everyone will be mad at you.**
+  # Synchronously open the given URI in the active pane. **Only use this method
+  # in specs. Calling this in production code will block the UI thread and
+  # everyone will be mad at you.**
   #
   # uri - A {String} containing a URI.
   # options  - An optional options {Object}
