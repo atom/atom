@@ -77,7 +77,14 @@ class List
   listBundledPackages: (options) ->
     nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
     packages = @listPackages(nodeModulesDirectory, options)
-    packages.filter (manifest) -> manifest.engines?.atom?
+
+    try
+      metadataPath = path.join(config.getResourcePath(), 'package.json')
+      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+    packageDependencies ?= {}
+
+    packages = packages.filter ({name}) ->
+      packageDependencies.hasOwnProperty(name)
 
     if options.argv.themes
       console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
