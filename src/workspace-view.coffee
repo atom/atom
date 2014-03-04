@@ -82,7 +82,7 @@ class WorkspaceView extends View
 
     @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
 
-    @subscribe scrollbarStyle.onValue (style) =>
+    @subscribe scrollbarStyle, (style) =>
       @removeClass('scrollbar-style-legacy')
       @removeClass('scrollbar-style-overlay')
       @addClass("scrollbar-style-#{style}")
