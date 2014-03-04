@@ -77,3 +77,16 @@ fdescribe "apm upgrade", ->
     runs ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'multi-module 0.1.0 -> 0.3.0'
+
+  it "does not display updates for packages already up to date", ->
+    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.3.0'}))
+
+    callback = jasmine.createSpy('callback')
+    apm.run(['upgrade', '--list', '--no-color'], callback)
+
+    waitsFor 'waiting for upgrade to complete', 600000, ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'empty'
