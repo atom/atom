@@ -83,9 +83,12 @@ class WorkspaceView extends View
     @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
 
     @subscribe scrollbarStyle, (style) =>
-      @removeClass('scrollbar-style-legacy')
-      @removeClass('scrollbar-style-overlay')
-      @addClass("scrollbar-style-#{style}")
+      @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
+      switch style
+        when 'legacy'
+          @addClass("scrollbars-visible-always")
+        when 'overlay'
+          @addClass("scrollbars-visible-when-scrolling")
 
     @updateTitle()
 

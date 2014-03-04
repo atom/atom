@@ -242,10 +242,10 @@ describe "WorkspaceView", ->
       atom.workspaceView.trigger('core:close')
       expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 0
 
-  describe "the scrollbar style class", ->
+  describe "the scrollbar visibility class", ->
     it "has a class based on the style of the scrollbar", ->
       scrollbarStyle = require 'scrollbar-style'
       scrollbarStyle.emitValue 'legacy'
-      expect(atom.workspaceView).toHaveClass 'scrollbar-style-legacy'
+      expect(atom.workspaceView).toHaveClass 'scrollbars-visible-always'
       scrollbarStyle.emitValue 'overlay'
-      expect(atom.workspaceView).toHaveClass 'scrollbar-style-overlay'
+      expect(atom.workspaceView).toHaveClass 'scrollbars-visible-when-scrolling'
