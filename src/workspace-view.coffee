@@ -3,6 +3,7 @@ path = require 'path'
 Q = require 'q'
 _ = require 'underscore-plus'
 Delegator = require 'delegato'
+scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Workspace = require './workspace'
@@ -80,6 +81,14 @@ class WorkspaceView extends View
     @panes = panes
 
     @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
+
+    @subscribe scrollbarStyle, (style) =>
+      @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
+      switch style
+        when 'legacy'
+          @addClass("scrollbars-visible-always")
+        when 'overlay'
+          @addClass("scrollbars-visible-when-scrolling")
 
     @updateTitle()
 
