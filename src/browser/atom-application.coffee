@@ -165,7 +165,6 @@ class AtomApplication
 
     autoUpdater.on 'update-not-available', @onUpdateNotAvailable
     autoUpdater.on 'error', @onUpdateError
-    @applicationMenu.showCheckForUpdateItem(false)
     autoUpdater.checkForUpdates()
 
   # Registers basic application commands, non-idempotent.
