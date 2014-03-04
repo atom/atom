@@ -1,7 +1,7 @@
 # Customizing Atom
 
 To change a setting, configure a theme, or install a package just open the
-Settings view in the current window by pressing `cmd+,`.
+Settings view in the current window by pressing `cmd-,`.
 
 ## Changing The Theme
 
@@ -86,7 +86,7 @@ currently in use.
 ## Advanced Configuration
 
 Atom loads configuration settings from the `config.cson` file in your _~/.atom_
-directory, which contains CoffeeScript-style JSON:
+directory, which contains [CoffeeScript-style JSON][CSON] (CSON):
 
 ```coffee
 'core':
@@ -141,12 +141,20 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
 ### init.coffee
 
 When Atom finishes loading, it will evaluate _init.coffee_ in your _~/.atom_
-directory, giving you a chance to run arbitrary personal CoffeeScript code to
+directory, giving you a chance to run arbitrary personal [CoffeeScript][] code to
 make customizations. You have full access to Atom's API from code in this file.
 If customizations become extensive, consider [creating a package][creating-a-package].
 
 You can open this file in an editor from the _Atom > Open Your Init Script_
 menu.
+
+For example, if you have the Audio Beep configuration setting enabled, you
+could add the following code to your _~/.atom/init.coffee_ file to have Atom
+greet you with an audio beep every time it loads:
+
+```coffee
+atom.beep()
+```
 
 This file can also be named _init.js_ and contain JavaScript code.
 
@@ -174,3 +182,5 @@ This file can also be named _styles.css_ and contain CSS.
 [creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
 [LESS]: http://www.lesscss.org
+[CSON]: https://github.com/bevry/cson
+[CoffeeScript]: http://coffeescript.org/
