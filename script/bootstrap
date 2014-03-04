@@ -28,14 +28,15 @@ if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
 var apmPath = 'apm/node_modules/atom-package-manager/bin/apm'
 var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
 var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
+var npmCommand = 'npm --userconfig=' + path.resolve('.npmrc') + ' ';
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 var commands = [
   'git submodule --quiet sync',
   'git submodule --quiet update --recursive --init',
-  {command: 'npm --strict-ssl=false install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-  {command: 'npm --strict-ssl=false install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
-  {command: 'npm --strict-ssl=false install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
-  {command: 'npm --strict-ssl=false install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},
+  {command: npmCommand + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+  {command: npmCommand + 'install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
+  {command: npmCommand + 'install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
+  {command: npmCommand + 'install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},
   {command: '../../' + apmPath + ' rebuild', options: {cwd: path.resolve('node_modules', 'atom-package-manager'), ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
