@@ -138,25 +138,17 @@ class AtomApplication
       @applicationMenu.showCheckForUpdateItem(false)
 
     autoUpdater.on 'update-not-available', =>
-      @applicationMenu.showDownloadingUpdateItem(false)
-      @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
     autoUpdater.on 'update-available', =>
       @applicationMenu.showDownloadingUpdateItem(true)
-      @applicationMenu.showInstallUpdateItem(false)
-      @applicationMenu.showCheckForUpdateItem(false)
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
       atomWindow.sendCommand('window:update-available', [releaseName, releaseNotes]) for atomWindow in @windows
-      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(true)
-      @applicationMenu.showCheckForUpdateItem(false)
       @updateVersion = releaseName
 
     autoUpdater.on 'error', (event, message) =>
-      @applicationMenu.showDownloadingUpdateItem(false)
-      @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
     # Check for update after Atom has fully started and the menus are created

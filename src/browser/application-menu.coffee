@@ -71,16 +71,28 @@ class ApplicationMenu
 
   # Toggles Install Update Item
   showInstallUpdateItem: (visible=true) ->
+    if visible
+      @showDownloadingUpdateItem(false)
+      @showCheckForUpdateItem(false)
+
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update'))
       item.visible = visible
 
   # Toggles Downloading Update Item
   showDownloadingUpdateItem: (visible=true) ->
+    if visible
+      @showInstallUpdateItem(false)
+      @showCheckForUpdateItem(false)
+
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Downloading Update'))
       item.visible = visible
 
   # Toggles Check For Update Item
   showCheckForUpdateItem: (visible=true) ->
+    if visible
+      @showDownloadingUpdateItem(false)
+      @showInstallUpdateItem(false)
+
     if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update'))
       item.visible = visible
 
