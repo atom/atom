@@ -62,6 +62,7 @@ module.exports =
         green: 'stripColors'
         red: 'stripColors'
         yellow: 'stripColors'
+        rainbow: 'stripColors'
 
     callbackCalled = false
     options.callback = (error) ->
