@@ -3,12 +3,14 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 optimist = require 'optimist'
+read = require 'read'
 request = require 'request'
 semver = require 'semver'
 
 Command = require './command'
 config = require './config'
 fs = require './fs'
+Install = require './install'
 tree = require './tree'
 
 module.exports =
@@ -23,27 +25,30 @@ class Upgrade extends Command
     options = optimist(argv)
     options.usage """
 
-      Usage: apm upgrade [<package_name>...]
+      Usage: apm upgrade
 
-      Upgrade packages installed to ~/.atom/packages.
+      Upgrade out of date packages installed to ~/.atom/packages
 
-      All packages are upgraded if no package names are passed as arguments.
+      This command lists the out of date packages and then prompts to install
+      available updates.
     """
+    options.alias('c', 'confirm').boolean('confirm').default('confirm', true).describe('confirm', 'Confirm before installing updates')
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('c', 'confirm').boolean('confirm').default('confirm', true).describe('confirm', 'Confirm before install updates')
-    options.alias('l', 'list').boolean('list').describe('list', 'List the packages that have updates available')
-    options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
+    options.alias('l', 'list').boolean('list').describe('list', 'List but don\'t install the outdated packages')
 
   getInstalledPackages: ->
     packages = []
-    for child in fs.list(@atomPackagesDirectory)
-      continue if fs.isSymbolicLinkSync(path.join(@atomPackagesDirectory, child))
-      try
-        metadata = JSON.parse(fs.readFileSync(path.join(@atomPackagesDirectory, child, 'package.json')))
-        packages.push(metadata)
-    packages = packages.filter ({name, version}={}) ->
-      name and semver.valid(version)
+    for name in fs.list(@atomPackagesDirectory)
+      if pack = @getIntalledPackage(name)
+        packages.push(pack)
     packages
+
+  getIntalledPackage: (name) ->
+    packageDirectory = path.join(@atomPackagesDirectory, name)
+    return if fs.isSymbolicLinkSync(packageDirectory)
+    try
+      metadata = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json')))
+      return metadata if metadata?.name and metadata?.version
 
   getInstalledAtomVersion: ->
     try
@@ -80,6 +85,33 @@ class Upgrade extends Command
         else
           callback()
 
+  getAvailableUpdates: (packages, callback) ->
+    async.map packages, @getLatestVersion.bind(this), (error, updates) =>
+      return callback(error) if error?
+
+      updates = _.compact(updates)
+      updates.sort (updateA, updateB) ->
+        updateA.pack.name.localeCompare(updateB.pack.name)
+
+      callback(null, updates)
+
+  promptForConfirmation: (callback) ->
+    read {prompt: 'Would you like to install these updates? (yes)', edit: true}, (error, answer) ->
+      answer = if answer then answer.trim().toLowerCase() else 'yes'
+      callback(error, answer is 'y' or answer is 'yes')
+
+  installUpdates: (updates, callback) ->
+    installCommands = []
+    for {pack, latestVersion} in updates
+      do (pack, latestVersion) ->
+        installCommands.push (callback) ->
+          options =
+            callback: callback
+            commandArgs: ["#{pack.name}@#{latestVersion}"]
+          new Install().run(options)
+
+    async.waterfall(installCommands, callback)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -87,15 +119,26 @@ class Upgrade extends Command
     unless @getInstalledAtomVersion()
       return callback('Could not determine current Atom version installed')
 
-    if options.argv.list
-      packages = @getInstalledPackages()
-      async.map packages, @getLatestVersion.bind(this), (error, updates) ->
-        return callback(error) if error?
+    packages = @getInstalledPackages()
+    @getAvailableUpdates packages, (error, updates) =>
+      return callback(error) if error?
 
-        updates = _.compact(updates)
-        updates.sort (updateA, updateB) ->
-          updateA.name.localeCompare(updateB.name)
+      console.log "Package Updates Available".cyan + " (#{updates.length})"
+      tree updates, ({pack, latestVersion}) ->
+        "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
 
-        console.log "Package Updates Available".cyan + " (#{updates.length})"
-        tree updates, ({pack, latestVersion}) ->
-          "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
+      return callback() if options.argv.list
+      return callback() if updates.length is 0
+
+      console.log()
+      if options.argv.confirm
+        @promptForConfirmation (error, confirmed) =>
+          return callback(error) if error?
+
+          if confirmed
+            console.log()
+            @installUpdates(updates, callback)
+          else
+            callback()
+      else
+        @installUpdates(updates, callback)
