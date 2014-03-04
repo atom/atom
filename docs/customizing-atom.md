@@ -1,7 +1,7 @@
 # Customizing Atom
 
 To change a setting, configure a theme, or install a package just open the
-Settings view in the current window by pressing `cmd+,`.
+Settings view in the current window by pressing `cmd-,`.
 
 ## Changing The Theme
 
