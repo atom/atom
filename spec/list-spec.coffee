@@ -12,11 +12,12 @@ describe 'apm list', ->
     spyOnToken()
 
     resourcePath = temp.mkdirSync('apm-resource-path-')
+    fs.writeFileSync(path.join(resourcePath, 'package.json'), JSON.stringify({packageDependencies:{'test-module': '1.0'}}))
     process.env.ATOM_RESOURCE_PATH = resourcePath
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
 
-  it 'lists the packages included in node_modules with an atom engine specified', ->
+  it 'lists the packages included the packageDependencies section of the package.json', ->
     packagesPath = path.join(resourcePath, 'node_modules')
     fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
