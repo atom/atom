@@ -338,7 +338,7 @@ code depending on whether the tests passed or failed.
 
 ## Publishing
 
-Atom bundles a command line utility called [apm] which can be used to publish
+Atom bundles a command line utility called apm which can be used to publish
 Atom packages to the public registry.
 
 Once your package is written and ready for distribution you can run the
@@ -361,7 +361,6 @@ all the other available commands.
 [cs-syntax]: https://github.com/atom/language-coffee-script
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
 [npm-keys]: https://npmjs.org/doc/json.html
-[apm]: https://github.com/atom/apm
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
 [keymaps]: advanced/keymaps.md
