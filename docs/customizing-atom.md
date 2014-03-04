@@ -182,5 +182,5 @@ This file can also be named _styles.css_ and contain CSS.
 [creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
 [LESS]: http://www.lesscss.org
-[CSON]: https://github.com/bevry/cson
+[CSON]: https://github.com/atom/season
 [CoffeeScript]: http://coffeescript.org/
