@@ -667,10 +667,14 @@ class EditorView extends View
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
   calculateWidthInChars: ->
-    Math.floor(@scrollView.width() / @charWidth)
+    Math.floor((@scrollView.width() - @getScrollbarWidth()) / @charWidth)
 
   calculateHeightInLines: ->
     Math.ceil($(window).height() / @lineHeight)
+
+  getScrollbarWidth: ->
+    scrollbarElement = @verticalScrollbar[0]
+    scrollbarElement.offsetWidth - scrollbarElement.clientWidth
 
   # Public: Enables/disables soft wrap on the editor.
   #
