@@ -1806,6 +1806,17 @@ describe "EditorView", ->
         runs ->
           expect(editor.getSoftWrapColumn()).toBeLessThan previousSoftWrapColumn
 
+      it "accounts for the width of the scrollbar if there is one", ->
+        # force the scrollbar to always be visible, regardless of OS visibility setting
+        $('#jasmine-content').prepend """
+          <style>
+            ::-webkit-scrollbar { width: 15px; }
+          </style>
+        """
+        setEditorHeightInLines(editorView, 5)
+        setEditorWidthInChars(editorView, 40)
+        expect(editor.lineForScreenRow(2).text.length).toBe 34
+
   describe "gutter rendering", ->
     beforeEach ->
       editorView.attachToDom(heightInLines: 5.5)
