@@ -22,6 +22,7 @@ commandClasses = [
   require './unlink'
   require './unpublish'
   require './update'
+  require './upgrade'
   require './view'
 ]
 
@@ -62,6 +63,7 @@ module.exports =
         green: 'stripColors'
         red: 'stripColors'
         yellow: 'stripColors'
+        rainbow: 'stripColors'
 
     callbackCalled = false
     options.callback = (error) ->
