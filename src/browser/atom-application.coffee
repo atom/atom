@@ -133,48 +133,38 @@ class AtomApplication
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
+      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(false)
 
     autoUpdater.on 'update-not-available', =>
-      @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
+
+    autoUpdater.on 'update-available', =>
+      @applicationMenu.showDownloadingUpdateItem(true)
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
       atomWindow.sendCommand('window:update-available', [releaseName, releaseNotes]) for atomWindow in @windows
       @applicationMenu.showInstallUpdateItem(true)
-      @applicationMenu.showCheckForUpdateItem(false)
       @updateVersion = releaseName
 
     autoUpdater.on 'error', (event, message) =>
-      @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
     # Check for update after Atom has fully started and the menus are created
     setTimeout((-> autoUpdater.checkForUpdates()), 5000)
 
   checkForUpdate: ->
-    autoUpdater.once 'update-available', ->
-      dialog.showMessageBox
-        type: 'info'
-        buttons: ['OK']
-        message: 'Update available.'
-        detail: 'A new update is being downloaded.'
+    @onUpdateNotAvailable ?= =>
+      autoUpdater.removeListener 'error', @onUpdateError
+      dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
 
-    autoUpdater.once 'update-not-available', =>
-      dialog.showMessageBox
-        type: 'info'
-        buttons: ['OK']
-        message: 'No update available.'
-        detail: "Version #{@version} is the latest version."
+    @onUpdateError ?= (event, message) =>
+      autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
+      dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
 
-    autoUpdater.once 'error', (event, message)->
-      dialog.showMessageBox
-        type: 'warning'
-        buttons: ['OK']
-        message: 'There was an error checking for updates.'
-        detail: message
-
+    autoUpdater.on 'update-not-available', @onUpdateNotAvailable
+    autoUpdater.on 'error', @onUpdateError
     autoUpdater.checkForUpdates()
 
   # Registers basic application commands, non-idempotent.
