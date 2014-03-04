@@ -15,38 +15,42 @@ PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
-# Public: The container for the entire Atom application.
+# Public: The top-level view for the entire window. An instance of this class is
+# available via the `atom.workspaceView` global.
 #
-# An instance of this class is always available as the `atom.workspaceView`
-# global.
+# It is backed by a model object, an instance of {Workspace}, which is available
+# via the `atom.workspace` global or {::getModel}. You should prefer to interact
+# with the model object when possible, but it won't always be possible with the
+# current API.
 #
-# ## Commands
+# ## Adding Perimiter Panels
 #
-#  * `application:about` - Opens the about dialog.
-#  * `application:show-settings` - Opens the preference pane in the currently
-#    focused editor.
-#  * `application:quit` - Quits the entire application.
-#  * `application:hide` - Hides the entire application.
-#  * `application:hide-other-applications` - Hides other applications
-#    running on the system.
-#  * `application:unhide-other-applications` - Shows other applications
-#    that were previously hidden.
-#  * `application:new-window` - Opens a new {AtomWindow} with no {Project}
-#    path.
-#  * `application:new-file` - Creates a new file within the focused window.
-#    Note: only one new file may exist within an {AtomWindow} at a time.
-#  * `application:open` - Prompts the user for a path to open in a new {AtomWindow}
-#  * `application:minimize` - Minimizes the currently focused {AtomWindow}
-#  * `application:zoom` - Expands the window to fill the screen or returns it to
-#    it's original unzoomed size.
-#  * `application:bring-all-windows-to-front` - Brings all {AtomWindow}s to the
-#    the front.
+# Use the following methods if possible to attach panels to the perimiter of the
+# workspace rather than manipulating the DOM directly to better insulate you to
+# changes in the workspace markup:
+#
+# * {::prependToTop}
+# * {::appendToTop}
+# * {::prependToBottom}
+# * {::appendToBottom}
+# * {::prependToLeft}
+# * {::appendToLeft}
+# * {::prependToRight}
+# * {::appendToRigt}
 #
 # ## Requiring in package specs
+#
+# If you need a `WorkspaceView` instance to test your package, require it via
+# the built-in `atom` module.
 #
 # ```coffee
 #   {WorkspaceView} = require 'atom'
 # ```
+#
+# You can assign it to the `atom.workspaceView` global in the spec or just use
+# it as a local, depending on what you're trying to accomplish. Building the
+# `WorkspaceView` is currently expensive, so you should try build a {Workspace}
+# instead if possible.
 module.exports =
 class WorkspaceView extends View
   Delegator.includeInto(this)
@@ -148,6 +152,12 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
+  # Public: Get the underlying model object.
+  #
+  # Returns a {Workspace}.
+  getModel: -> @model
+
+  # Public: Install the Atom shell commands on the user's system.
   installShellCommands: ->
     showErrorDialog = (error) ->
       installDirectory = CommandInstaller.getInstallDirectory()
@@ -185,11 +195,11 @@ class WorkspaceView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
+  # Prompts to save all unsaved items
   confirmClose: ->
     @panes.confirmClose()
 
-  # Public: Updates the application's title, based on whichever file is open.
+  # Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
       if item = @getActivePaneItem()
@@ -199,85 +209,119 @@ class WorkspaceView extends View
     else
       @setTitle('untitled')
 
-  # Public: Sets the application's title.
+  # Sets the application's title.
   setTitle: (title) ->
     document.title = title
 
-  # Returns an Array of  all of the application's {EditorView}s.
+  # Get all editor views.
+  #
+  # You should prefer {Workspace::getEditors} unless you absolutely need access
+  # to the view objects. Also consider using {::eachEditorView}, which will call
+  # a callback for all current and *future* editor views.
+  #
+  # Returns an {Array} of {EditorView}s.
   getEditorViews: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
-  # Public: Prepends the element to the top of the window.
+  # Public: Prepend an element or view to the panels at the top of the
+  # workspace.
   prependToTop: (element) ->
     @vertical.prepend(element)
 
-  # Public: Appends the element to the top of the window.
+  # Public: Append an element or view to the panels at the top of the workspace.
   appendToTop: (element) ->
     @panes.before(element)
 
-  # Public: Prepends the element to the bottom of the window.
+  # Public: Prepend an element or view to the panels at the bottom of the
+  # workspace.
   prependToBottom: (element) ->
     @panes.after(element)
 
-  # Public: Appends the element to bottom of the window.
+  # Public: Append an element or view to the panels at the bottom of the
+  # workspace.
   appendToBottom: (element) ->
     @vertical.append(element)
 
-  # Public: Prepends the element to the left side of the window.
+  # Public: Prepend an element or view to the panels at the left of the
+  # workspace.
   prependToLeft: (element) ->
     @horizontal.prepend(element)
 
-  # Public: Appends the element to the left side of the window.
+  # Public: Append an element or view to the panels at the left of the
+  # workspace.
   appendToLeft: (element) ->
     @vertical.before(element)
 
-  # Public: Prepends the element to the right side of the window.
+  # Public: Prepend an element or view to the panels at the right of the
+  # workspace.
   prependToRight: (element) ->
     @vertical.after(element)
 
-  # Public: Appends the element to the right side of the window.
+  # Public: Append an element or view to the panels at the right of the
+  # workspace.
   appendToRight: (element) ->
     @horizontal.append(element)
 
-  # Public: Returns the currently focused {PaneView}.
+  # Public: Get the active pane view.
+  #
+  # Prefer {Workspace::getActivePane} if you don't actually need access to the
+  # view.
+  #
+  # Returns a {PaneView}.
   getActivePaneView: ->
     @panes.getActivePane()
 
-  # Public: Returns the currently focused item from within the focused {PaneView}
-  getActivePaneItem: ->
-    @model.activePaneItem
-
-  # Public: Returns the view of the currently focused item.
+  # Public: Get the view associated with the active pane item.
+  #
+  # Returns a view.
   getActiveView: ->
     @panes.getActiveView()
 
-  # Public: Focuses the previous pane by id.
+  # Focus the previous pane by id.
   focusPreviousPaneView: -> @model.activatePreviousPane()
 
-  # Public: Focuses the next pane by id.
+  # Focus the next pane by id.
   focusNextPaneView: -> @model.activateNextPane()
 
-  # Public: Focuses the pane directly above the active pane.
+  # Public: Focus the pane directly above the active pane.
   focusPaneViewAbove: -> @panes.focusPaneViewAbove()
 
-  # Public: Focuses the pane directly below the active pane.
+  # Public: Focus the pane directly below the active pane.
   focusPaneViewBelow: -> @panes.focusPaneViewBelow()
 
-  # Public: Focuses the pane directly to the left of the active pane.
+  # Public: Focus the pane directly to the left of the active pane.
   focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
 
-  # Public: Focuses the pane directly to the right of the active pane.
+  # Public: Focus the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
-  # Public: Fires a callback on each open {PaneView}.
+  # Public: Register a function to be called for every current and future
+  # pane view in the workspace.
+  #
+  # callback - A {Function} with a {PaneView} as its only argument.
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
 
+  # Public: Get all existing pane views.
+  #
+  # Prefer {Workspace::getPanes} if you don't need access to the view objects.
+  # Also consider using {::eachPaneView} or {Workspace::eachPane} if you want
+  # to register a callback for all current and *future* pane views or panes.
+  #
   # Returns an Array of all open {PaneView}s.
   getPaneViews: ->
     @panes.getPanes()
 
-  # Public: Fires a callback on each open {EditorView}.
+  # Public: Register a function to be called for every current and future
+  # editor view in the workspace.
+  #
+  # callback - A {Function} with an {EditorView} as its only argument.
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
   eachEditorView: (callback) ->
     callback(editor) for editor in @getEditorViews()
     attachedCallback = (e, editor) -> callback(editor)
@@ -299,3 +343,7 @@ class WorkspaceView extends View
   # Deprecated
   getActivePane: ->
     @getActivePaneView()
+
+  # Deprecated: Call {Workspace::getActivePaneItem} instead.
+  getActivePaneItem: ->
+    @model.activePaneItem
