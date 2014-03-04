@@ -133,20 +133,29 @@ class AtomApplication
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
+      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(false)
 
     autoUpdater.on 'update-not-available', =>
+      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
+    autoUpdater.on 'update-available', =>
+      @applicationMenu.showDownloadingUpdateItem(true)
+      @applicationMenu.showInstallUpdateItem(false)
+      @applicationMenu.showCheckForUpdateItem(false)
+
     autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
       atomWindow.sendCommand('window:update-available', [releaseName, releaseNotes]) for atomWindow in @windows
+      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(true)
       @applicationMenu.showCheckForUpdateItem(false)
       @updateVersion = releaseName
 
     autoUpdater.on 'error', (event, message) =>
+      @applicationMenu.showDownloadingUpdateItem(false)
       @applicationMenu.showInstallUpdateItem(false)
       @applicationMenu.showCheckForUpdateItem(true)
 
@@ -155,13 +164,8 @@ class AtomApplication
 
   checkForUpdate: ->
     removeListeners = =>
-      autoUpdater.removeListener 'update-available', @onUpdateAvailable
       autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
       autoUpdater.removeListener 'error', @onUpdateError
-
-    @onUpdateAvailable ?= =>
-      removeListeners()
-      dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'Update available.', detail: 'A new update is being downloaded.'
 
     @onUpdateNotAvailable ?= =>
       removeListeners()
@@ -171,7 +175,6 @@ class AtomApplication
       removeListeners()
       dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
 
-    autoUpdater.on 'update-available', @onUpdateAvailable
     autoUpdater.on 'update-not-available', @onUpdateNotAvailable
     autoUpdater.on 'error', @onUpdateError
     @applicationMenu.showCheckForUpdateItem(false)
