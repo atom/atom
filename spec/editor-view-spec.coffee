@@ -2430,51 +2430,11 @@ describe "EditorView", ->
       editorView.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 
-  # TODO: Move to editor-spec
-  describe ".reloadGrammar()", ->
-    [filePath] = []
-
-    beforeEach ->
-      tmpdir = fs.absolute(temp.dir)
-      filePath = path.join(tmpdir, "grammar-change.txt")
-      fs.writeFileSync(filePath, "var i;")
-
-    afterEach ->
-      fs.removeSync(filePath) if fs.existsSync(filePath)
-
-    it "updates all the rendered lines when the grammar changes", ->
-      editor = atom.project.openSync(filePath)
-      editorView.edit(editor)
-      expect(editor.getGrammar().name).toBe 'Plain Text'
-      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
-      editor.reloadGrammar()
-      expect(editor.getGrammar().name).toBe 'JavaScript'
-
-      tokenizedBuffer = editorView.editor.displayBuffer.tokenizedBuffer
-      line0 = tokenizedBuffer.lineForScreenRow(0)
-      expect(line0.tokens.length).toBe 3
-      expect(line0.tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
-
-    it "doesn't update the rendered lines when the grammar doesn't change", ->
-      expect(editor.getGrammar().name).toBe 'JavaScript'
-      spyOn(editorView, 'updateDisplay').andCallThrough()
-      editor.reloadGrammar()
-      expect(editor.reloadGrammar()).toBeFalsy()
-      expect(editorView.updateDisplay).not.toHaveBeenCalled()
-      expect(editor.getGrammar().name).toBe 'JavaScript'
-
-    it "emits an editor:grammar-changed event when updated", ->
-      editor = atom.project.openSync(filePath)
-      editorView.edit(editor)
-
+  describe "when the editor's grammar is changed", ->
+    it "emits an editor:grammar-changed event", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on('editor:grammar-changed', eventHandler)
-      editor.reloadGrammar()
-
-      expect(eventHandler).not.toHaveBeenCalled()
-
-      atom.syntax.setGrammarOverrideForPath(filePath, 'source.js')
-      editor.reloadGrammar()
+      editor.setGrammar(atom.syntax.selectGrammar('.coffee'))
       expect(eventHandler).toHaveBeenCalled()
 
   describe ".replaceSelectedText()", ->

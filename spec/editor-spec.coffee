@@ -2733,6 +2733,17 @@ describe "Editor", ->
           editor.setIndentationForBufferRow(0, 2)
           expect(editor.getText()).toBe("    1\n	2")
 
+    describe ".reloadGrammar()", ->
+      beforeEach ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+      it "updates the grammar based on grammar overrides", ->
+        expect(editor.getGrammar().name).toBe 'JavaScript'
+        atom.syntax.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+        editor.reloadGrammar()
+        expect(editor.getGrammar().name).toBe 'CoffeeScript'
+
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
 
