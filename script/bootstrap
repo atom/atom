@@ -36,8 +36,6 @@ var commands = [
   {command: npmCommand + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: npmCommand + 'install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
   {command: npmCommand + 'install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
-  {command: npmCommand + 'install --quiet ' + apmVendorPath, options: {ignoreStdout: true}},
-  {command: '../../' + apmPath + ' rebuild', options: {cwd: path.resolve('node_modules', 'atom-package-manager'), ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
   apmPath + ' install --quiet ' + apmFlags,
