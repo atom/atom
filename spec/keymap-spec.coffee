@@ -254,7 +254,7 @@ describe "Keymap", ->
         it "favors the more specific complete match", ->
 
   describe ".bindKeys(name, selector, bindings)", ->
-    it "normalizes bindings that use shift with lower case alpha chars", ->
+    it "normalizes bindings that use shift with lower case alpha char", ->
       fooHandler = jasmine.createSpy('fooHandler')
       fragment.on 'foo', fooHandler
       keymap.bindKeys 'name', '*', 'ctrl-shift-l': 'foo'
@@ -262,7 +262,7 @@ describe "Keymap", ->
       expect(result).toBe(false)
       expect(fooHandler).toHaveBeenCalled()
 
-    it "normalizes bindings that use shift with upper case alpha chars", ->
+    it "normalizes bindings that use shift with upper case alpha char", ->
       fooHandler = jasmine.createSpy('fooHandler')
       fragment.on 'foo', fooHandler
       keymap.bindKeys 'name', '*', 'ctrl-shift-L': 'foo'
