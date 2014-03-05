@@ -36,7 +36,7 @@ Editor = require './editor'
 # * {::prependToLeft}
 # * {::appendToLeft}
 # * {::prependToRight}
-# * {::appendToRigt}
+# * {::appendToRight}
 #
 # ## Requiring in package specs
 #
