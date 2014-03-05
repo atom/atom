@@ -6,7 +6,7 @@ http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
-fdescribe "apm upgrade", ->
+describe "apm upgrade", ->
   [atomHome, packagesDir, server] = []
 
   beforeEach ->
