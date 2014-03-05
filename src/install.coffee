@@ -67,6 +67,11 @@ class Install extends Command
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
+    nodeBinFolder = path.resolve(__dirname, '..', 'bin')
+    if env.PATH
+      env.PATH = "#{nodeBinFolder}#{path.delimiter}#{env.PATH}"
+    else
+      env.PATH = nodeBinFolder
     installOptions = {env}
 
     installGlobally = options.installGlobally ? true
