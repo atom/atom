@@ -31,7 +31,7 @@ class KeyBinding
       catch
         keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
         PEG = require 'pegjs'
-        @parser = PEG.buildParser(keystrokePattern)
+        atom.allowUnsafeEval => @parser = PEG.buildParser(keystrokePattern)
 
     @parser.parse(keystroke)
 

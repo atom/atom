@@ -1,3 +1,4 @@
+vm = require 'vm'
 crypto = require 'crypto'
 ipc = require 'ipc'
 keytar = require 'keytar'
@@ -527,3 +528,11 @@ class Atom extends Model
         delete window[key]
       else
         window[key] = value
+
+  allowUnsafeEval: (fn) ->
+    oldEval = global.eval
+    try
+      global.eval = (source) -> vm.runInThisContext(source)
+      fn()
+    finally
+      global.eval = oldEval
