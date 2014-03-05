@@ -23,9 +23,9 @@ class KeyBinding
       modifiers.sort()
       key = _.last(keys)
 
-      # Uppercase alpha chars if the shift modifer is pressed
-      if 'shift' in modifiers and /^[a-z]$/i.test(key)
-        modifiers = _.without(modifiers, 'shift')
+      # Add the shift modifier if the key is an uppercased alpha char
+      if /^[A-Z]$/.test(key) or 'shift' in modifiers
+        modifiers.push 'shift' unless 'shift' in modifiers
         key = key.toUpperCase()
       [modifiers..., key].join('-')
 
