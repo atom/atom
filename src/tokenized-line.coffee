@@ -6,6 +6,7 @@ class TokenizedLine
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
+    @bufferDelta = _.sum(_.pluck(@tokens, 'bufferDelta'))
 
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
@@ -55,7 +56,7 @@ class TokenizedLine
       @text.length
 
   getMaxBufferColumn: ->
-    @startBufferColumn + @getMaxScreenColumn()
+    @startBufferColumn + @bufferDelta
 
   softWrapAt: (column) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
@@ -78,7 +79,7 @@ class TokenizedLine
     )
     rightFragment = new TokenizedLine(
       tokens: rightTokens
-      startBufferColumn: @startBufferColumn + column
+      startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       lineEnding: @lineEnding
     )

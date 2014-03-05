@@ -600,6 +600,13 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, 2]
       expect(displayBuffer.bufferPositionForScreenPosition([0, 2])).toEqual [0, 1]
 
+    it "correctly translates positions on soft wrapped lines containing tabs", ->
+      buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
+      displayBuffer.setSoftWrap(true)
+      displayBuffer.setEditorWidthInChars(10)
+      expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 0]
+      expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]
+
   describe ".getMaxLineLength()", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.getMaxLineLength()).toBe 65
