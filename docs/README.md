@@ -31,6 +31,7 @@ The classes available from `require 'atom'` are:
   * [SelectListView][SelectListView]
   * [View][View]
   * [WorkspaceView][WorkspaceView]
+  * [Workspace][Workspace]
 
 ### How do I create a package?
 
@@ -54,5 +55,6 @@ Atom ships with node 0.11.10 and the comprehensive node API docs are available
 [SelectListView]: ../classes/SelectListView.html
 [View]: ../classes/View.html
 [WorkspaceView]: ../classes/WorkspaceView.html
+[Workspace]: ../classes/Workspace.html
 [creating-a-package]: https://atom.io/docs/latest/creating-a-package
 [node-docs]: http://nodejs.org/docs/v0.11.10/api
