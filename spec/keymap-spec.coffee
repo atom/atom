@@ -254,6 +254,30 @@ describe "Keymap", ->
         it "favors the more specific complete match", ->
 
   describe ".bindKeys(name, selector, bindings)", ->
+    it "normalizes bindings that use shift with lower case alpha char", ->
+      fooHandler = jasmine.createSpy('fooHandler')
+      fragment.on 'foo', fooHandler
+      keymap.bindKeys 'name', '*', 'ctrl-shift-l': 'foo'
+      result = keymap.handleKeyEvent(keydownEvent('l', ctrlKey: true, altKey: false, shiftKey: true, target: fragment[0]))
+      expect(result).toBe(false)
+      expect(fooHandler).toHaveBeenCalled()
+
+    it "normalizes bindings that use shift with upper case alpha char", ->
+      fooHandler = jasmine.createSpy('fooHandler')
+      fragment.on 'foo', fooHandler
+      keymap.bindKeys 'name', '*', 'ctrl-shift-L': 'foo'
+      result = keymap.handleKeyEvent(keydownEvent('l', ctrlKey: true, altKey: false, shiftKey: true, target: fragment[0]))
+      expect(result).toBe(false)
+      expect(fooHandler).toHaveBeenCalled()
+
+    it "normalizes bindings that use an upper case alpha char without shift", ->
+      fooHandler = jasmine.createSpy('fooHandler')
+      fragment.on 'foo', fooHandler
+      keymap.bindKeys 'name', '*', 'ctrl-L': 'foo'
+      result = keymap.handleKeyEvent(keydownEvent('l', ctrlKey: true, altKey: false, shiftKey: true, target: fragment[0]))
+      expect(result).toBe(false)
+      expect(fooHandler).toHaveBeenCalled()
+
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
       fooHandler = jasmine.createSpy('fooHandler')
       fragment.on 'foo', fooHandler
@@ -306,7 +330,7 @@ describe "Keymap", ->
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
-        expect(keymap.keystrokeStringForEvent(keydownEvent('A', shiftKey: true))).toBe 'A'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('A', shiftKey: true))).toBe 'shift-A'
         expect(keymap.keystrokeStringForEvent(keydownEvent('{', shiftKey: true))).toBe '{'
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'

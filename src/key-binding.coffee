@@ -21,7 +21,13 @@ class KeyBinding
       keys = @parseKeystroke(keystroke)
       modifiers = keys[0...-1]
       modifiers.sort()
-      [modifiers..., _.last(keys)].join('-')
+      key = _.last(keys)
+
+      modifiers.push 'shift' if /^[A-Z]$/.test(key) and 'shift' not in modifiers
+      key = key.toUpperCase() if /^[a-z]$/.test(key) and 'shift' in modifiers
+
+      [modifiers..., key].join('-')
+
     normalizedKeystroke.join(' ')
 
   @parseKeystroke: (keystroke) ->
