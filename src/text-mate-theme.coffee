@@ -24,7 +24,17 @@ class TextMateTheme
         break
 
     unless variableSettings?
-      throw new Error('Could not find color settings in theme to convert')
+      throw new Error """
+        Could not find color settings in theme to convert.
+
+        Theme must contain a settings array with all of the following keys:
+          * background
+          * caret
+          * foreground
+          * invisibles
+          * lineHighlight
+          * selection
+      """
 
     @buildSyntaxVariables(variableSettings)
     @buildGlobalSettingsRulesets(variableSettings)
