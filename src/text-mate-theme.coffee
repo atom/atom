@@ -9,7 +9,8 @@ class TextMateTheme
     @buildRulesets()
 
   buildRulesets: ->
-    {settings} = plist.parseStringSync(@contents)
+    {settings} = plist.parseStringSync(@contents) ? {}
+    settings ?= []
 
     for setting in settings
       {scope, name} = setting.settings
