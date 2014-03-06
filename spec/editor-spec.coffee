@@ -2673,7 +2673,7 @@ describe "Editor", ->
     it "for each selection, duplicates all buffer lines intersected by the selection", ->
       editor.foldBufferRow(4)
       editor.setCursorBufferPosition([2, 5])
-      editor.addSelectionForBufferRange([[3, 0], [8, 0]])
+      editor.addSelectionForBufferRange([[3, 0], [8, 0]], preserveFolds: true)
 
       editor.duplicateLine()
 
@@ -2692,6 +2692,12 @@ describe "Editor", ->
             }
       """
       expect(editor.getSelectedBufferRanges()).toEqual [[[3, 5], [3, 5]], [[9, 0], [14, 0]]]
+
+      # folds are also duplicated
+      expect(editor.lineForScreenRow(5).fold).toBeDefined()
+      expect(editor.lineForScreenRow(7).fold).toBeDefined()
+      expect(editor.lineForScreenRow(7).text).toBe "    while(items.length > 0) {"
+      expect(editor.lineForScreenRow(8).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
     it "duplicates all folded lines for empty selections on folded lines", ->
       editor.foldBufferRow(4)
