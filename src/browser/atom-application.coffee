@@ -129,6 +129,8 @@ class AtomApplication
 
   # Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
+    return if /\w{7}/.test(@version) # Only released versions should check for updates.
+
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
