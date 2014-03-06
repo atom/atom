@@ -20,7 +20,8 @@ The final package can be viewed at
 To begin, press `cmd-shift-P` to bring up the [Command
 Palette](https://github.com/atom/command-palette). Type "generate package" and
 select the "Package Generator: Generate Package" command. Now we need to name
-the package. Let's call it _ascii-art_.
+the package. Try to avoid naming your package with the *atom-* prefix, for
+example we are going to call this package _ascii-art_. 
 
 Atom will open a new window with the contents of our new _ascii-art_ package
 displayed in the Tree View. Because this window is opened **after** the package
