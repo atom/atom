@@ -533,21 +533,16 @@ class DisplayBuffer extends Model
   #   satisfy. Unreserved keys will be compared against the markers' custom
   #   properties. There are also the following reserved keys with special
   #   meaning for the query:
-  #   :startBufferRow -
-  #     A {Number}. Only returns markers starting at this row in buffer
-  #     coordinates.
-  #   :endBufferRow -
-  #     A {Number}. Only returns markers ending at this row in buffer
-  #     coordinates.
-  #   :containsBufferRange -
-  #     A {Range} or range-compatible {Array}. Only returns markers containing
-  #     this range in buffer coordinates.
-  #   :containsBufferPosition -
-  #     A {Point} or point-compatible {Array}. Only returns markers containing
-  #     this position in buffer coordinates.
-  #   :containedInBufferRange -
-  #     A {Range} or range-compatible {Array}. Only returns markers contained
-  #     within this range.
+  #   :startBufferRow - A {Number}. Only returns markers starting at this row in
+  #     buffer coordinates.
+  #   :endBufferRow - A {Number}. Only returns markers ending at this row in
+  #     buffer coordinates.
+  #   :containsBufferRange - A {Range} or range-compatible {Array}. Only returns
+  #     markers containing this range in buffer coordinates.
+  #   :containsBufferPosition - A {Point} or point-compatible {Array}. Only
+  #     returns markers containing this position in buffer coordinates.
+  #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
+  #     returns markers contained within this range.
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (params) ->
