@@ -2693,6 +2693,26 @@ describe "Editor", ->
       """
       expect(editor.getSelectedBufferRanges()).toEqual [[[3, 5], [3, 5]], [[9, 0], [14, 0]]]
 
+    it "duplicates all folded lines for empty selections on folded lines", ->
+      editor.foldBufferRow(4)
+      editor.setCursorBufferPosition([4, 0])
+
+      editor.duplicateLine()
+
+      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe  """
+        \    if (items.length <= 1) return items;
+            var pivot = items.shift(), current, left = [], right = [];
+            while(items.length > 0) {
+              current = items.shift();
+              current < pivot ? left.push(current) : right.push(current);
+            }
+            while(items.length > 0) {
+              current = items.shift();
+              current < pivot ? left.push(current) : right.push(current);
+            }
+      """
+      expect(editor.getSelectedBufferRange()).toEqual [[8, 0], [8, 0]]
+
   describe ".shouldPromptToSave()", ->
     it "returns false when an edit session's buffer is in use by more than one session", ->
       jasmine.unspy(editor, 'shouldPromptToSave')

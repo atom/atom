@@ -952,6 +952,10 @@ class Editor extends Model
     @transact =>
       for selection in @getSelectionsOrderedByBufferPosition().reverse()
         selectedBufferRange = selection.getBufferRange()
+        if selection.isEmpty()
+          {start} = selection.getScreenRange()
+          selection.selectToScreenPosition([start.row + 1, 0])
+
         [startRow, endRow] = selection.getBufferRowRange()
         endRow++
         rangeToDuplicate = [[startRow, 0], [endRow, 0]]
