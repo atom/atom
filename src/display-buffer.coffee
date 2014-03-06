@@ -519,8 +519,8 @@ class DisplayBuffer extends Model
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
   # Returns a {DisplayBufferMarker} or null
-  findMarker: (attributes) ->
-    @findMarkers(attributes)[0]
+  findMarker: (params) ->
+    @findMarkers(params)[0]
 
   # Public: Find all markers satisfying a set of parameters.
   #
@@ -546,13 +546,13 @@ class DisplayBuffer extends Model
   #     within this range.
   #
   # Returns an {Array} of {DisplayBufferMarker}s
-  findMarkers: (attributes) ->
-    attributes = @translateToBufferMarkerAttributes(attributes)
-    @buffer.findMarkers(attributes).map (stringMarker) => @getMarker(stringMarker.id)
+  findMarkers: (params) ->
+    params = @translateToBufferMarkerParams(params)
+    @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
 
-  translateToBufferMarkerAttributes: (attributes) ->
-    stringMarkerAttributes = {}
-    for key, value of attributes
+  translateToBufferMarkerParams: (params) ->
+    bufferMarkerParams = {}
+    for key, value of params
       switch key
         when 'startBufferRow'
           key = 'startRow'
@@ -562,8 +562,10 @@ class DisplayBuffer extends Model
           key = 'containsRange'
         when 'containsBufferPosition'
           key = 'containsPosition'
-      stringMarkerAttributes[key] = value
-    stringMarkerAttributes
+        when 'containedInBufferRange'
+          key = 'containedInRange'
+      bufferMarkerParams[key] = value
+    bufferMarkerParams
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
