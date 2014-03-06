@@ -2719,6 +2719,17 @@ describe "Editor", ->
       """
       expect(editor.getSelectedBufferRange()).toEqual [[8, 0], [8, 0]]
 
+    it "can duplicate the last line of the buffer", ->
+      editor.setSelectedBufferRange([[11, 0], [12, 2]])
+      editor.duplicateLines()
+      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe """
+        \  return sort(Array.apply(this, arguments));
+        };
+          return sort(Array.apply(this, arguments));
+        };
+      """
+      expect(editor.getSelectedBufferRange()).toEqual [[13, 0], [14, 2]]
+
   describe ".shouldPromptToSave()", ->
     it "returns false when an edit session's buffer is in use by more than one session", ->
       jasmine.unspy(editor, 'shouldPromptToSave')

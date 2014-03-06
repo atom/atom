@@ -969,6 +969,7 @@ class Editor extends Model
 
         rangeToDuplicate = [[startRow, 0], [endRow, 0]]
         textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
+        textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
         @buffer.insert([endRow, 0], textToDuplicate)
 
         delta = endRow - startRow
