@@ -20,7 +20,7 @@
     "coffeestack": "0.7.0",
     "delegato": "1.x",
     "emissary": "1.x",
-    "first-mate": ">=1.1.5 <2.0",
+    "first-mate": ">=1.2 <2.0",
     "fs-plus": "2.x",
     "fstream": "0.1.24",
     "fuzzaldrin": "~1.1",
