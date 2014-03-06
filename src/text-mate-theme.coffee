@@ -17,8 +17,8 @@ class TextMateTheme
 
       # Require all of these or invalid LESS will be generated if any required
       # variable value is missing
-      {background, foreground, caret, selection, lineHighlight} = setting.settings
-      if background and foreground and caret and selection and lineHighlight
+      {background, foreground, caret, selection, invisibles, lineHighlight} = setting.settings
+      if background and foreground and caret and selection and lineHighlight and invisibles
         variableSettings = setting.settings
         break
 
