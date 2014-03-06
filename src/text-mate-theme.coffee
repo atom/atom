@@ -25,9 +25,9 @@ class TextMateTheme
 
     unless variableSettings?
       throw new Error """
-        Could not find color settings in theme to convert.
+        Could not find the required color settings in the theme.
 
-        Theme must contain a settings array with all of the following keys:
+        The theme being converted must contain a settings array with all of the following keys:
           * background
           * caret
           * foreground
