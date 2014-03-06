@@ -65,7 +65,7 @@
           { type: 'separator' }
           { label: 'Move Line Up', command: 'editor:move-line-up' }
           { label: 'Move Line Down', command: 'editor:move-line-down' }
-          { label: 'Duplicate Line', command: 'editor:duplicate-lines' }
+          { label: 'Duplicate Lines', command: 'editor:duplicate-lines' }
           { label: 'Delete Line', command: 'editor:delete-line' }
           { label: 'Join Lines', command: 'editor:join-lines' }
         ]
