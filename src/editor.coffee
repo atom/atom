@@ -838,6 +838,10 @@ class Editor extends Model
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
+  # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
+  outermostFoldsInBufferRowRange: (startRow, endRow) ->
+    @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
   moveLineUp: ->
@@ -958,11 +962,19 @@ class Editor extends Model
 
         [startRow, endRow] = selection.getBufferRowRange()
         endRow++
+
+        foldedRowRanges =
+          @outermostFoldsInBufferRowRange(startRow, endRow)
+            .map (fold) -> fold.getBufferRowRange()
+
         rangeToDuplicate = [[startRow, 0], [endRow, 0]]
         textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
         @buffer.insert([endRow, 0], textToDuplicate)
 
-        selection.setBufferRange(selectedBufferRange.translate([endRow - startRow, 0]))
+        delta = endRow - startRow
+        selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
+        for [foldStartRow, foldEndRow] in foldedRowRanges
+          @createFold(foldStartRow + delta, foldEndRow + delta)
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
