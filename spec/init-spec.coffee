@@ -8,7 +8,7 @@ describe "apm init", ->
   [packagePath, themePath] = []
 
   beforeEach ->
-    # silenceOutput()
+    silenceOutput()
     spyOnToken()
 
     currentDir = temp.mkdirSync('apm-init-')
@@ -112,3 +112,14 @@ describe "apm init", ->
           expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'LICENSE.md'))).toBeFalsy()
+
+      it "logs an error if it doesn't have all the required color settings", ->
+        callback = jasmine.createSpy('callback')
+        textMateThemePath = path.join(__dirname, 'fixtures', 'Bad.tmTheme')
+        apm.run(['init', '--theme', 'fake-theme', '--convert', textMateThemePath], callback)
+
+        waitsFor 'waiting for init to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.argsForCall[0][0].message.length).toBeGreaterThan 0

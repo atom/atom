@@ -9,10 +9,36 @@ class TextMateTheme
     @buildRulesets()
 
   buildRulesets: ->
-    {settings} = plist.parseStringSync(@contents)
-    @buildSyntaxVariables(settings[0])
-    @buildGlobalSettingsRulesets(settings[0])
-    @buildScopeSelectorRulesets(settings[1..])
+    {settings} = plist.parseStringSync(@contents) ? {}
+    settings ?= []
+
+    for setting in settings
+      {scope, name} = setting.settings
+      continue if scope or name
+
+      # Require all of these or invalid LESS will be generated if any required
+      # variable value is missing
+      {background, foreground, caret, selection, invisibles, lineHighlight} = setting.settings
+      if background and foreground and caret and selection and lineHighlight and invisibles
+        variableSettings = setting.settings
+        break
+
+    unless variableSettings?
+      throw new Error """
+        Could not find the required color settings in the theme.
+
+        The theme being converted must contain a settings array with all of the following keys:
+          * background
+          * caret
+          * foreground
+          * invisibles
+          * lineHighlight
+          * selection
+      """
+
+    @buildSyntaxVariables(variableSettings)
+    @buildGlobalSettingsRulesets(variableSettings)
+    @buildScopeSelectorRulesets(settings)
 
   getStylesheet: ->
     lines = [
@@ -29,16 +55,14 @@ class TextMateTheme
 
   getSyntaxVariables: -> @syntaxVariables
 
-  buildSyntaxVariables: ({settings}) ->
+  buildSyntaxVariables: (settings) ->
     @syntaxVariables = SyntaxVariablesTemplate
     for key, value of settings
       replaceRegex = new RegExp("\\{\\{#{key}\\}\\}", 'g')
       @syntaxVariables = @syntaxVariables.replace(replaceRegex, @translateColor(value))
     @syntaxVariables
 
-  buildGlobalSettingsRulesets: ({settings}) ->
-    {background, foreground, caret, selection, lineHighlight} = settings
-
+  buildGlobalSettingsRulesets: (settings) ->
     @rulesets.push
       selector: '.editor'
       properties:
@@ -101,7 +125,7 @@ class TextMateTheme
     @rulesets.push
       selector: '.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line'
       properties:
-        'background-color': @translateColor(lineHighlight)
+        'background-color': @translateColor(settings.lineHighlight)
 
   buildScopeSelectorRulesets: (scopeSelectorSettings) ->
     for {name, scope, settings} in scopeSelectorSettings
