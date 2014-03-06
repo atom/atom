@@ -143,10 +143,10 @@ class AtomApplication
     autoUpdater.on 'update-available', =>
       @applicationMenu.showDownloadingUpdateItem(true)
 
-    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
-      atomWindow.sendCommand('window:update-available', [releaseName, releaseNotes]) for atomWindow in @windows
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
       @applicationMenu.showInstallUpdateItem(true)
-      @updateVersion = releaseName
+      @updateVersion = releaseVersion
+      atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes]) for atomWindow in @windows
 
     autoUpdater.on 'error', (event, message) =>
       @applicationMenu.showCheckForUpdateItem(true)
