@@ -99,6 +99,7 @@ class EditorView extends View
     @handleInputEvents()
     @cursorViews = []
     @selectionViews = []
+    @markerViews = {}
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
@@ -524,6 +525,9 @@ class EditorView extends View
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
+    @editor.on 'marker-created', (marker) =>
+      @requestDisplayUpdate()
+
     @editor.on 'screen-lines-changed.editor', (e) =>
       @handleScreenLinesChange(e)
 
@@ -923,6 +927,7 @@ class EditorView extends View
     @highlightCursorLine()
     @updateCursorViews()
     @updateSelectionViews()
+    @updateMarkerViews()
     @autoscroll(options)
     @trigger 'editor:display-updated'
 
@@ -966,6 +971,15 @@ class EditorView extends View
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
       do (cursorView) -> cursorView.resetBlinking()
+
+  updateMarkerViews: ->
+    for marker in @editor.getVisibleMarkers()
+      @addMarkerView(marker)
+
+  addMarkerView: (marker) ->
+    markerView = new MarkerView(marker, this)
+    @markerViews[marker.id] = markerView
+    @underlayer.append(markerView.element)
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews()
@@ -1515,5 +1529,6 @@ class EditorView extends View
     @editor.logScreenLines(start, end)
 
   logRenderedLines: ->
+    gutter = @gutter
     @renderedLines.find('.line').each (n) ->
-      console.log n, $(this).text()
+      console.log n, gutter.find(".line-number:eq(#{n})").text() + " |" + $(this).text()

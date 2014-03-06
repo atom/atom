@@ -1711,6 +1711,40 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
           expect(editorView.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
 
+  describe "marker rendering", ->
+    describe "individual marker view rendering", ->
+      beforeEach ->
+        editorView.attachToDom()
+
+      fit "renders one region for markers spanning a single line", ->
+        marker = editor.markBufferRange([[2, 7], [2, 25]])
+        markerView = editorView.markerViews[marker.id]
+        expect(markerView.regions.length).toBe 1
+        [region] = markerView.regions
+        expect(region.position().top).toBe(2 * lineHeight)
+        expect(region.position().left).toBe(7 * charWidth)
+        expect(region.height()).toBe lineHeight
+        expect(region.width()).toBe((25 - 7) * charWidth)
+
+      it "renders two regions for markers spanning two lines", ->
+
+      it "renders three regions for markers spanning more than two lines", ->
+
+
+    describe "multiple marker rendering", ->
+      [marker1, marker2, marker3, marker4, marker5] = []
+
+      beforeEach ->
+        editorView.lineOverdraw = 1
+        editorView.attachToDom(heightInLines: 2.5)
+        editorView.scrollTop(editorView.lineHeight * 5)
+
+        marker1 = editor.markScreenRange([[1, 1], [2, 2]], class: 'a') # above rendered lines
+        marker2 = editor.markScreenRange([[2, 5], [5, 1]], class: 'a') # overlaps first rendered line
+        marker3 = editor.markScreenRange([[6, 0], [7, 0]], class: 'a') # within rendered lines
+        marker4 = editor.markScreenRange([[8, 9], [10, 11]], class: 'a') # overlaps last rendered line
+        marker5 = editor.markScreenRange([[11, 5], [12, 0]], class: 'a') # overlaps last rendered line
+
   describe "when soft-wrap is enabled", ->
     beforeEach ->
       jasmine.unspy(window, 'setTimeout')

@@ -139,11 +139,22 @@ class DisplayBufferMarker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
-  getAttributes: ->
-    @bufferMarker.getAttributes()
+  getProperties: ->
+    @bufferMarker.getProperties()
 
+  setProperties: (properties) ->
+    @bufferMarker.setProperties(properties)
+
+  # Deprecated: Call {::getProperties} instead
+  getAttributes: ->
+    @getProperties()
+
+  # Deprecated: Call {::setProperties} instead
   setAttributes: (attributes) ->
-    @bufferMarker.setAttributes(attributes)
+    @setProperties(attributes)
+
+  isVisible: ->
+    @getProperties().htmlClass?
 
   matchesAttributes: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)

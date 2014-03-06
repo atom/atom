@@ -1003,6 +1003,12 @@ class Editor extends Model
   getMarkers: ->
     @displayBuffer.getMarkers()
 
+  # Public: Get markers that are visible on screen.
+  #
+  # Returns an {Array} of {DisplayBufferMarker}s.
+  getVisibleMarkers: ->
+    @getMarkers().filter (marker) -> marker.isVisible()
+
   # Public: Find all {DisplayBufferMarker}s that match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
@@ -1738,8 +1744,8 @@ class Editor extends Model
     @emit 'grammar-changed'
 
   handleMarkerCreated: (marker) =>
-    if marker.matchesAttributes(@getSelectionMarkerAttributes())
-      @addSelection(marker)
+    @addSelection(marker) if marker.matchesAttributes(@getSelectionMarkerAttributes())
+    @emit 'marker-created', marker
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
