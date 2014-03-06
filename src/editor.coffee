@@ -949,27 +949,16 @@ class Editor extends Model
 
   # Duplicate the most recent cursor's current line.
   duplicateLine: ->
-    return unless @getSelection().isEmpty()
-
     @transact =>
-      cursorPosition = @getCursorBufferPosition()
-      cursorRowFolded = @isFoldedAtCursorRow()
-      if cursorRowFolded
-        screenRow = @screenPositionForBufferPosition(cursorPosition).row
-        bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
-      else
-        bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
+      for selection in @getSelectionsOrderedByBufferPosition().reverse()
+        selectedBufferRange = selection.getBufferRange()
+        [startRow, endRow] = selection.getBufferRowRange()
+        endRow++
+        rangeToDuplicate = [[startRow, 0], [endRow, 0]]
+        textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
+        @buffer.insert([endRow, 0], textToDuplicate)
 
-      insertPosition = new Point(bufferRange.end.row)
-      if insertPosition.row > @buffer.getLastRow()
-        @unfoldCurrentRow() if cursorRowFolded
-        @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
-        @foldCurrentRow() if cursorRowFolded
-      else
-        @buffer.insert(insertPosition, @getTextInBufferRange(bufferRange))
-
-      @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
-      @foldCurrentRow() if cursorRowFolded
+        selection.setBufferRange(selectedBufferRange.translate([endRow - startRow, 0]))
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
