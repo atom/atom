@@ -215,6 +215,8 @@ class DisplayBuffer extends Model
   largestFoldContainingBufferRow: (bufferRow) ->
     @foldsContainingBufferRow(bufferRow)[0]
 
+  # Returns the folds in the given row range (exclusive of end row) that are
+  # not contained by any other folds.
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
     @findFoldMarkers(containedInRange: [[startRow, 0], [endRow, 0]])
       .map (marker) => @foldForMarker(marker)
