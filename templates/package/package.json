@@ -2,7 +2,6 @@
   "name": "__package-name__",
   "main": "./lib/__package-name__",
   "version": "0.0.0",
-  "private": true,
   "description": "A short description of your package",
   "activationEvents": ["__package-name__:toggle"],
   "repository": "https://github.com/atom/__package-name__",
