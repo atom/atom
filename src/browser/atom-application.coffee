@@ -30,7 +30,6 @@ socketPath =
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype
-  updateVersion: null
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
@@ -130,6 +129,8 @@ class AtomApplication
 
   # Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
+    return if /\w{7}/.test(@version) # Only released versions should check for updates.
+
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
@@ -143,10 +144,9 @@ class AtomApplication
     autoUpdater.on 'update-available', =>
       @applicationMenu.showDownloadingUpdateItem(true)
 
-    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseName, releaseDate, releaseURL) =>
-      atomWindow.sendCommand('window:update-available', [releaseName, releaseNotes]) for atomWindow in @windows
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
+      atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes]) for atomWindow in @windows
       @applicationMenu.showInstallUpdateItem(true)
-      @updateVersion = releaseName
 
     autoUpdater.on 'error', (event, message) =>
       @applicationMenu.showCheckForUpdateItem(true)
@@ -417,8 +417,3 @@ class AtomApplication
   promptForPath: ({devMode}={}) ->
     dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory'], (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode})
-
-  # Public: If an update is available, it returns the new version string
-  # otherwise it returns null.
-  getUpdateVersion: ->
-    @updateVersion
