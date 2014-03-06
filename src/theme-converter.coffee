@@ -33,7 +33,11 @@ class ThemeConverter
     @readTheme (error, themeContents) =>
       return callback(error) if error?
 
-      theme = new TextMateTheme(themeContents)
+      try
+        theme = new TextMateTheme(themeContents)
+      catch error
+        return callback(error)
+
       fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'base.less'), theme.getStylesheet())
       fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'syntax-variables.less'), theme.getSyntaxVariables())
       callback()
