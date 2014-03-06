@@ -216,7 +216,7 @@ class DisplayBuffer extends Model
     @foldsContainingBufferRow(bufferRow)[0]
 
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @findFoldMarkers(containedInRange: [[startRow, 0], [endRow + 1, 0]])
+    @findFoldMarkers(containedInRange: [[startRow, 0], [endRow, 0]])
       .map (marker) => @foldForMarker(marker)
       .filter (fold) -> not fold.isInsideLargerFold()
 
