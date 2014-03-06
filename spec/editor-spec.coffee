@@ -2675,7 +2675,7 @@ describe "Editor", ->
       editor.setCursorBufferPosition([2, 5])
       editor.addSelectionForBufferRange([[3, 0], [8, 0]], preserveFolds: true)
 
-      editor.duplicateLine()
+      editor.duplicateLines()
 
       expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe  """
         \    if (items.length <= 1) return items;
@@ -2703,7 +2703,7 @@ describe "Editor", ->
       editor.foldBufferRow(4)
       editor.setCursorBufferPosition([4, 0])
 
-      editor.duplicateLine()
+      editor.duplicateLines()
 
       expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe  """
         \    if (items.length <= 1) return items;

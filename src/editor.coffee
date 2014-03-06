@@ -952,7 +952,7 @@ class Editor extends Model
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
 
   # Duplicate the most recent cursor's current line.
-  duplicateLine: ->
+  duplicateLines: ->
     @transact =>
       for selection in @getSelectionsOrderedByBufferPosition().reverse()
         selectedBufferRange = selection.getBufferRange()
@@ -975,6 +975,10 @@ class Editor extends Model
         selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
         for [foldStartRow, foldEndRow] in foldedRowRanges
           @createFold(foldStartRow + delta, foldEndRow + delta)
+
+  # Deprecated: Use {::duplicateLines} instead.
+  duplicateLine: ->
+    @duplicateLines()
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

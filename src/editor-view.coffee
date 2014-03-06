@@ -209,7 +209,7 @@ class EditorView extends View
         'editor:copy-path': => @copyPathToClipboard()
         'editor:move-line-up': => @editor.moveLineUp()
         'editor:move-line-down': => @editor.moveLineDown()
-        'editor:duplicate-line': => @editor.duplicateLine()
+        'editor:duplicate-lines': => @editor.duplicateLines()
         'editor:join-lines': => @editor.joinLines()
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')

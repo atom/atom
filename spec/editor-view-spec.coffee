@@ -2781,12 +2781,12 @@ describe "EditorView", ->
           expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
           expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
 
-  describe "when editor:duplicate-line is triggered", ->
+  describe "when editor:duplicate-lines is triggered", ->
     describe "where there is no selection", ->
       describe "when the cursor isn't on a folded line", ->
         it "duplicates the current line below and moves the cursor down one row", ->
           editor.setCursorBufferPosition([0, 5])
-          editorView.trigger 'editor:duplicate-line'
+          editorView.trigger 'editor:duplicate-lines'
           expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
           expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
           expect(editor.getCursorBufferPosition()).toEqual [1, 5]
@@ -2795,7 +2795,7 @@ describe "EditorView", ->
         it "duplicates the entire fold before and moves the cursor to the new fold", ->
           editor.setCursorBufferPosition([4])
           editor.foldCurrentRow()
-          editorView.trigger 'editor:duplicate-line'
+          editorView.trigger 'editor:duplicate-lines'
           expect(editor.getCursorScreenPosition()).toEqual [5]
           expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
           expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
@@ -2807,7 +2807,7 @@ describe "EditorView", ->
       describe "when the cursor is on the last line and it doesn't have a trailing newline", ->
         it "inserts a newline and the duplicated line", ->
           editor.moveCursorToBottom()
-          editorView.trigger 'editor:duplicate-line'
+          editorView.trigger 'editor:duplicate-lines'
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
           expect(buffer.lineForRow(14)).toBeUndefined()
@@ -2818,7 +2818,7 @@ describe "EditorView", ->
           editor.moveCursorToBottom()
           editor.insertNewline()
           editor.moveCursorToBottom()
-          editorView.trigger 'editor:duplicate-line'
+          editorView.trigger 'editor:duplicate-lines'
           expect(buffer.lineForRow(13)).toBe ''
           expect(buffer.lineForRow(14)).toBe ''
           expect(buffer.lineForRow(15)).toBeUndefined()
@@ -2829,7 +2829,7 @@ describe "EditorView", ->
           editor.moveCursorToBottom()
           editor.insertNewline()
           editor.setCursorBufferPosition([12])
-          editorView.trigger 'editor:duplicate-line'
+          editorView.trigger 'editor:duplicate-lines'
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
           expect(buffer.lineForRow(14)).toBe ''
