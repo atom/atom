@@ -529,11 +529,10 @@ class DisplayBuffer extends Model
 
   # Public: Find all markers satisfying a set of parameters.
   #
-  # params -
-  #   An {Object} containing parameters that all returned markers must satisfy.
-  #   Unreserved keys will be compared against the markers' custom properties.
-  #   There are also the following reserved keys with special meaning for the
-  #   query:
+  # params - An {Object} containing parameters that all returned markers must
+  #   satisfy. Unreserved keys will be compared against the markers' custom
+  #   properties. There are also the following reserved keys with special
+  #   meaning for the query:
   #   :startBufferRow -
   #     A {Number}. Only returns markers starting at this row in buffer
   #     coordinates.
