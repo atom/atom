@@ -163,8 +163,8 @@ class AtomApplication
       autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
       dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
 
-    autoUpdater.on 'update-not-available', @onUpdateNotAvailable
-    autoUpdater.on 'error', @onUpdateError
+    autoUpdater.once 'update-not-available', @onUpdateNotAvailable
+    autoUpdater.once 'error', @onUpdateError
     autoUpdater.checkForUpdates()
 
   # Registers basic application commands, non-idempotent.

@@ -215,6 +215,13 @@ class DisplayBuffer extends Model
   largestFoldContainingBufferRow: (bufferRow) ->
     @foldsContainingBufferRow(bufferRow)[0]
 
+  # Returns the folds in the given row range (exclusive of end row) that are
+  # not contained by any other folds.
+  outermostFoldsInBufferRowRange: (startRow, endRow) ->
+    @findFoldMarkers(containedInRange: [[startRow, 0], [endRow, 0]])
+      .map (marker) => @foldForMarker(marker)
+      .filter (fold) -> not fold.isInsideLargerFold()
+
   # Public: Given a buffer row, this returns folds that include it.
   #
   #
@@ -519,24 +526,34 @@ class DisplayBuffer extends Model
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
   # Returns a {DisplayBufferMarker} or null
-  findMarker: (attributes) ->
-    @findMarkers(attributes)[0]
+  findMarker: (params) ->
+    @findMarkers(params)[0]
 
-  # Finds all valid markers satisfying the given attributes
+  # Public: Find all markers satisfying a set of parameters.
   #
-  # attributes - The attributes against which to compare the markers' attributes
-  #   There are some reserved keys that match against derived marker properties:
-  #   startBufferRow - The buffer row at which the marker starts
-  #   endBufferRow - The buffer row at which the marker ends
+  # params - An {Object} containing parameters that all returned markers must
+  #   satisfy. Unreserved keys will be compared against the markers' custom
+  #   properties. There are also the following reserved keys with special
+  #   meaning for the query:
+  #   :startBufferRow - A {Number}. Only returns markers starting at this row in
+  #     buffer coordinates.
+  #   :endBufferRow - A {Number}. Only returns markers ending at this row in
+  #     buffer coordinates.
+  #   :containsBufferRange - A {Range} or range-compatible {Array}. Only returns
+  #     markers containing this range in buffer coordinates.
+  #   :containsBufferPosition - A {Point} or point-compatible {Array}. Only
+  #     returns markers containing this position in buffer coordinates.
+  #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
+  #     returns markers contained within this range.
   #
   # Returns an {Array} of {DisplayBufferMarker}s
-  findMarkers: (attributes) ->
-    attributes = @translateToBufferMarkerAttributes(attributes)
-    @buffer.findMarkers(attributes).map (stringMarker) => @getMarker(stringMarker.id)
+  findMarkers: (params) ->
+    params = @translateToBufferMarkerParams(params)
+    @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
 
-  translateToBufferMarkerAttributes: (attributes) ->
-    stringMarkerAttributes = {}
-    for key, value of attributes
+  translateToBufferMarkerParams: (params) ->
+    bufferMarkerParams = {}
+    for key, value of params
       switch key
         when 'startBufferRow'
           key = 'startRow'
@@ -546,8 +563,10 @@ class DisplayBuffer extends Model
           key = 'containsRange'
         when 'containsBufferPosition'
           key = 'containsPosition'
-      stringMarkerAttributes[key] = value
-    stringMarkerAttributes
+        when 'containedInBufferRange'
+          key = 'containedInRange'
+      bufferMarkerParams[key] = value
+    bufferMarkerParams
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
