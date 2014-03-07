@@ -99,10 +99,12 @@ class Keymap
       modifiers.push 'cmd'
     if event.ctrlKey and key not in Modifiers
       modifiers.push 'ctrl'
-
     if event.shiftKey and key not in Modifiers
-      isNamedKey = key.length > 1
-      modifiers.push 'shift' if isNamedKey
+      # Don't push the shift modifier on single letter non-alpha keys (e.g. { or ')
+      modifiers.push 'shift' unless /^[^a-z]$/i.test(key)
+
+    if 'shift' in modifiers and /^[a-z]$/i.test(key)
+      key = key.toUpperCase()
     else
       key = key.toLowerCase()
 

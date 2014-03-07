@@ -230,7 +230,7 @@ class Atom extends Model
 
   deserializeProject: ->
     Project = require './project'
-    @project ?= @deserializers.deserialize(@project) ? new Project(path: @getLoadSettings().initialPath)
+    @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
 
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
@@ -281,6 +281,7 @@ class Atom extends Model
     return if not @project and not @workspaceView
 
     @state.syntax = @syntax.serialize()
+    @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates

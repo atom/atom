@@ -308,8 +308,8 @@ class WorkspaceView extends View
   # Public: Get all existing pane views.
   #
   # Prefer {Workspace::getPanes} if you don't need access to the view objects.
-  # Also consider using {::eachPaneView} or {Workspace::eachPane} if you want
-  # to register a callback for all current and *future* pane views or panes.
+  # Also consider using {::eachPaneView} if you want to register a callback for
+  # all current and *future* pane views.
   #
   # Returns an Array of all open {PaneView}s.
   getPaneViews: ->

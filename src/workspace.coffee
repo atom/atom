@@ -19,8 +19,6 @@ class Workspace extends Model
   Serializable.includeInto(this)
 
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
-  @delegatesMethod 'getPanes', 'saveAll', 'activateNextPane', 'activatePreviousPane',
-    toProperty: 'paneContainer'
 
   @properties
     paneContainer: -> new PaneContainer
@@ -186,6 +184,24 @@ class Workspace extends Model
   getActivePane: ->
     @paneContainer.activePane
 
+  # Public: Get all {Pane}s.
+  #
+  # Returns an {Array} of {Pane}s.
+  getPanes: ->
+    @paneContainer.getPanes()
+
+  # Public: Save all pane items.
+  saveAll: ->
+    @paneContainer.saveAll()
+
+  # Public: Make the next pane active.
+  activateNextPane: ->
+    @paneContainer.activateNext()
+
+  # Public: Make the previous pane active.
+  activatePreviousPane: ->
+    @paneContainer.activatePreviousPane()
+
   # Public: Get the first pane {Pane} with an item for the given URI.
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
@@ -195,9 +211,9 @@ class Workspace extends Model
   # Public: Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
-  # `.getUri` method, calls `.save` on the item. Otherwise {::saveActiveItemAs}
-  # will be called instead. This method does nothing if the active item does not
-  # implement a `.save` method.
+  # `.getUri` method, calls `.save` on the item. Otherwise
+  # {::saveActivePaneItemAs} # will be called instead. This method does nothing
+  # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
 
