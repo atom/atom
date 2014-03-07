@@ -110,7 +110,6 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
   - `themes`: An array of theme names to load, in cascading order
 - `editor`
   - `autoIndent`: Enable/disable basic auto-indent (defaults to `true`)
-  - `autoIndentOnPaste`: Enable/disable auto-indented pasted text (defaults to `false`)
   - `nonWordCharacters`: A string of non-word characters to define word boundaries
   - `fontSize`: The editor font size
   - `fontFamily`: The editor font family
