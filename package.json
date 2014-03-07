@@ -30,6 +30,7 @@
     "mkdirp": "0.3.5",
     "keytar": "0.15.1",
     "less-cache": "0.12.0",
+    "loophole": "^0.1.0",
     "mixto": "1.x",
     "nslog": "0.5.0",
     "oniguruma": "1.x",
