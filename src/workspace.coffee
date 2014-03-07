@@ -196,7 +196,7 @@ class Workspace extends Model
 
   # Public: Make the next pane active.
   activateNextPane: ->
-    @paneContainer.activateNext()
+    @paneContainer.activateNextPane()
 
   # Public: Make the previous pane active.
   activatePreviousPane: ->
