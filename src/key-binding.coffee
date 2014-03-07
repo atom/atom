@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
-{allowUnsafeEval} = require 'loophole'
 
 module.exports =
 class KeyBinding
@@ -36,6 +35,7 @@ class KeyBinding
       try
         @parser = require './keystroke-pattern'
       catch
+        {allowUnsafeEval} = require 'loophole'
         keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
         PEG = require 'pegjs'
         allowUnsafeEval => @parser = PEG.buildParser(keystrokePattern)
