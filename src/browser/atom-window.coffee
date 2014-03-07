@@ -121,7 +121,6 @@ class AtomWindow
     if @loaded
       @focus()
       @sendCommand('window:open-path', {pathToOpen, initialLine})
-      @sendCommand('window:update-available', global.atomApplication.getUpdateVersion()) if global.atomApplication.getUpdateVersion()
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
