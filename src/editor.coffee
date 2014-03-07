@@ -838,6 +838,10 @@ class Editor extends Model
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
+  # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
+  outermostFoldsInBufferRowRange: (startRow, endRow) ->
+    @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
   moveLineUp: ->
@@ -948,28 +952,34 @@ class Editor extends Model
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
 
   # Duplicate the most recent cursor's current line.
-  duplicateLine: ->
-    return unless @getSelection().isEmpty()
-
+  duplicateLines: ->
     @transact =>
-      cursorPosition = @getCursorBufferPosition()
-      cursorRowFolded = @isFoldedAtCursorRow()
-      if cursorRowFolded
-        screenRow = @screenPositionForBufferPosition(cursorPosition).row
-        bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
-      else
-        bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
+      for selection in @getSelectionsOrderedByBufferPosition().reverse()
+        selectedBufferRange = selection.getBufferRange()
+        if selection.isEmpty()
+          {start} = selection.getScreenRange()
+          selection.selectToScreenPosition([start.row + 1, 0])
 
-      insertPosition = new Point(bufferRange.end.row)
-      if insertPosition.row > @buffer.getLastRow()
-        @unfoldCurrentRow() if cursorRowFolded
-        @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
-        @foldCurrentRow() if cursorRowFolded
-      else
-        @buffer.insert(insertPosition, @getTextInBufferRange(bufferRange))
+        [startRow, endRow] = selection.getBufferRowRange()
+        endRow++
 
-      @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
-      @foldCurrentRow() if cursorRowFolded
+        foldedRowRanges =
+          @outermostFoldsInBufferRowRange(startRow, endRow)
+            .map (fold) -> fold.getBufferRowRange()
+
+        rangeToDuplicate = [[startRow, 0], [endRow, 0]]
+        textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
+        textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
+        @buffer.insert([endRow, 0], textToDuplicate)
+
+        delta = endRow - startRow
+        selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
+        for [foldStartRow, foldEndRow] in foldedRowRanges
+          @createFold(foldStartRow + delta, foldEndRow + delta)
+
+  # Deprecated: Use {::duplicateLines} instead.
+  duplicateLine: ->
+    @duplicateLines()
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

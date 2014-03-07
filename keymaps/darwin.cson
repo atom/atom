@@ -134,7 +134,7 @@
   'ctrl-cmd-down': 'editor:move-line-down'
   'cmd-/': 'editor:toggle-line-comments'
   'cmd-j': 'editor:join-lines'
-  'cmd-D': 'editor:duplicate-line'
+  'cmd-D': 'editor:duplicate-lines'
   'cmd-L': 'editor:split-selections-into-lines'
 
   'cmd-alt-[': 'editor:fold-current-row'

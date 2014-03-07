@@ -41,6 +41,10 @@ class Fold
       range.end.column = 0
     range
 
+  getBufferRowRange: ->
+    {start, end} = @getBufferRange()
+    [start.row, end.row]
+
   # Returns the fold's start row as a {Number}.
   getStartRow: ->
     @getBufferRange().start.row

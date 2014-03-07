@@ -525,6 +525,17 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
         expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
+    describe ".outermostFoldsInBufferRowRange(startRow, endRow)", ->
+      it "returns the outermost folds entirely contained in the given row range, exclusive of end row", ->
+        fold1 = displayBuffer.createFold(4, 7)
+        fold2 = displayBuffer.createFold(5, 6)
+        fold3 = displayBuffer.createFold(11, 15)
+        fold4 = displayBuffer.createFold(12, 13)
+        fold5 = displayBuffer.createFold(16, 17)
+
+        expect(displayBuffer.outermostFoldsInBufferRowRange(3, 18)).toEqual [fold1, fold3, fold5]
+        expect(displayBuffer.outermostFoldsInBufferRowRange(5, 16)).toEqual [fold3]
+
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       displayBuffer.setSoftWrap(true)

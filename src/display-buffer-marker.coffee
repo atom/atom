@@ -146,7 +146,7 @@ class DisplayBufferMarker
     @bufferMarker.setAttributes(attributes)
 
   matchesAttributes: (attributes) ->
-    attributes = @displayBuffer.translateToBufferMarkerAttributes(attributes)
+    attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesAttributes(attributes)
 
   # Destroys the marker
