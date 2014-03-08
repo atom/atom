@@ -11,8 +11,14 @@ _ = require 'underscore-plus'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
 
+# this prevents CSP-related warnings for q's feature detection
+{allowUnsafeNewFunction} = require 'loophole'
+allowUnsafeNewFunction -> require 'q'
+
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
+
+
 
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
