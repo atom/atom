@@ -35,9 +35,10 @@ class KeyBinding
       try
         @parser = require './keystroke-pattern'
       catch
+        {allowUnsafeEval} = require 'loophole'
         keystrokePattern = fs.readFileSync(require.resolve('./keystroke-pattern.pegjs'), 'utf8')
         PEG = require 'pegjs'
-        @parser = PEG.buildParser(keystrokePattern)
+        allowUnsafeEval => @parser = PEG.buildParser(keystrokePattern)
 
     @parser.parse(keystroke)
 
