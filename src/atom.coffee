@@ -18,8 +18,6 @@ allowUnsafeNewFunction -> require 'q'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 
-
-
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
