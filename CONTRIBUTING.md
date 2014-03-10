@@ -10,7 +10,7 @@ to propose changes to this document in a pull request.
     that behavior such as Emacs, vi, Xcode, etc.
   * Check the Console app for stack traces to include if reporting a crash.
   * Check the Dev tools (`alt-cmd-i`) for errors and stack traces to include.
-  
+
 ### Package Repositories
 
 This is the repository for the core Atom editor only. Atom comes bundled with
