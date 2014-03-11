@@ -246,7 +246,26 @@ class AtomApplication
   #   The optional arguments to pass along.
   sendCommand: (command, args...) ->
     unless @emit(command, args...)
-      @focusedWindow()?.sendCommand(command, args...)
+      focusedWindow = @focusedWindow()
+      if focusedWindow?
+        focusedWindow.sendCommand(command, args...)
+      else
+        @sendCommandToFirstResponder(command)
+
+  # Translates the command into OS X action and sends it to application's first
+  # responder.
+  sendCommandToFirstResponder: (command) ->
+    return false unless process.platform is 'darwin'
+
+    switch command
+      when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
+      when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
+      when 'core:copy' then Menu.sendActionToFirstResponder('copy:')
+      when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
+      when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
+      when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
+      else return false
+    true
 
   # Public: Open the given path in the focused window when the event is
   # triggered.

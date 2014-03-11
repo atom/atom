@@ -1,5 +1,4 @@
 BrowserWindow = require 'browser-window'
-Menu = require 'menu'
 ContextMenu = require './context-menu'
 app = require 'app'
 dialog = require 'dialog'
@@ -126,7 +125,7 @@ class AtomWindow
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
-      unless @sendCommandToFirstResponder(command)
+      unless global.atomApplication.sendCommandToFirstResponder(command)
         switch command
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
@@ -134,23 +133,12 @@ class AtomWindow
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else
-      unless @sendCommandToFirstResponder(command)
+      unless global.atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
 
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
-
-  sendCommandToFirstResponder: (command) ->
-    switch command
-      when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
-      when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
-      when 'core:copy' then Menu.sendActionToFirstResponder('copy:')
-      when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
-      when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
-      when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
-      else return false
-    true
 
   close: -> @browserWindow.close()
 
