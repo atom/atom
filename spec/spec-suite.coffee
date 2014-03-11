@@ -5,7 +5,7 @@ path = require 'path'
 require './spec-helper'
 
 requireSpecs = (specDirectory, specType) ->
-  for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
+  for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.(coffee|js)$/.test specFilePath
     require specFilePath
 
     # Set spec directory on spec for setting up the project in spec-helper
