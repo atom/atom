@@ -679,7 +679,7 @@ class Editor extends Model
   # {Range}.
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
-    @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
+    @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
 
   # Public: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected

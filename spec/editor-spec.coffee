@@ -2866,3 +2866,19 @@ describe "Editor", ->
             {tokens} = editor.lineForScreenRow(0)
             expect(tokens[2].value).toBe "SELECT"
             expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
+
+  describe ".normalizeTabsInBufferRange()", ->
+    fit "normalizes tabs depending on the editor's soft tab/tab length settings", ->
+      editor.setTabLength(1)
+      editor.setSoftTabs(true)
+      editor.setText('\t\t\t')
+      editor.normalizeTabsInBufferRange([[0, 0], [0, 1]])
+      expect(editor.getText()).toBe ' \t\t'
+
+      editor.setTabLength(2)
+      editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
+      expect(editor.getText()).toBe '     '
+
+      editor.setSoftTabs(false)
+      editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
+      expect(editor.getText()).toBe '     '
