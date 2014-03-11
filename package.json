@@ -38,7 +38,7 @@
     "pathwatcher": "0.17.0",
     "pegjs": "0.8.0",
     "property-accessors": "1.x",
-    "q": "1.0.x",
+    "q": "^1.0.1",
     "random-words": "0.0.1",
     "runas": "0.5.x",
     "scandal": "0.15.0",
