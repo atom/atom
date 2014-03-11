@@ -11,7 +11,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "All Rights Reserved",
-  "atomShellVersion": "0.10.6",
+  "atomShellVersion": "0.10.7",
   "dependencies": {
     "async": "0.2.6",
     "bootstrap": "git://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
