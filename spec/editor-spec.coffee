@@ -2868,7 +2868,7 @@ describe "Editor", ->
             expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
   describe ".normalizeTabsInBufferRange()", ->
-    fit "normalizes tabs depending on the editor's soft tab/tab length settings", ->
+    it "normalizes tabs depending on the editor's soft tab/tab length settings", ->
       editor.setTabLength(1)
       editor.setSoftTabs(true)
       editor.setText('\t\t\t')
