@@ -2552,7 +2552,7 @@ describe "Editor", ->
               expect(editor.lineForBufferRow(13)).toBe "}; # too many closing brackets!"
 
         describe "when inserted text does not match a decrease indent pattern", ->
-          it "does not the indentation", ->
+          it "does not decrease the indentation", ->
             editor.setCursorBufferPosition([12, 0])
             editor.insertText('  ')
             expect(editor.lineForBufferRow(12)).toBe '  };'
@@ -2786,10 +2786,18 @@ describe "Editor", ->
     describe "when the editor uses soft tabs but the row has hard tabs", ->
       it "only replaces whitespace charachters", ->
         editor.setSoftWrap(true)
-        editor.setText("	1\n	2")
+        editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])
         editor.setIndentationForBufferRow(0, 2)
-        expect(editor.getText()).toBe("    1\n	2")
+        expect(editor.getText()).toBe("    1\n\t2")
+
+    describe "when the indentation level is a non-integer", ->
+      it "does not throw an exception", ->
+        editor.setSoftWrap(true)
+        editor.setText("\t1\n\t2")
+        editor.setCursorBufferPosition([0, 0])
+        editor.setIndentationForBufferRow(0, 2.1)
+        expect(editor.getText()).toBe("    1\n\t2")
 
   describe ".reloadGrammar()", ->
     beforeEach ->

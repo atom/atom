@@ -400,7 +400,7 @@ class Editor extends Model
   # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @getSoftTabs()
-      _.multiplyString(" ", number * @getTabLength())
+      _.multiplyString(" ", Math.floor(number * @getTabLength()))
     else
       _.multiplyString("\t", Math.floor(number))
 
