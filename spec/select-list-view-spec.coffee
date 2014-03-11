@@ -43,6 +43,15 @@ describe "SelectListView", ->
       expect(list.find('li:eq(0)')).toHaveClass 'A'
       expect(selectList.getSelectedItem()).toBe items[0]
 
+    it "allows raw HTML to be returned", ->
+      selectList.viewForItem = (item) ->
+        "<li>#{item}</li>"
+
+      selectList.setItems(['Bermuda', 'Bahama'])
+
+      expect(list.find('li:eq(0)')).toHaveText 'Bermuda'
+      expect(selectList.getSelectedItem()).toBe 'Bermuda'
+
   describe "when the text of the mini editor changes", ->
     beforeEach ->
       selectList.attachToDom()

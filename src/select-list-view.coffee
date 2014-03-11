@@ -153,8 +153,8 @@ class SelectListView extends View
 
       for i in [0...Math.min(filteredItems.length, @maxItems)]
         item = filteredItems[i]
-        itemView = @viewForItem(item)
-        $(itemView).data('select-list-item', item)
+        itemView = $(@viewForItem(item))
+        itemView.data('select-list-item', item)
         @list.append(itemView)
 
       @selectItemView(@list.find('li:first'))
