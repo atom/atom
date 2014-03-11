@@ -31,10 +31,10 @@ while getopts ":wtfvhs-:" opt; do
 done
 
 if [ $EXPECT_OUTPUT ]; then
-  $ATOM_BINARY --executed-from="$(pwd)" --pid=$$ $@
+  $ATOM_BINARY --executed-from="$(pwd)" --pid=$$ "$@"
   exit $?
 else
-  open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ $@
+  open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ "$@"
 fi
 
 # Used to exit process when atom is used as $EDITOR
