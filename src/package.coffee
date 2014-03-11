@@ -69,7 +69,7 @@ class Package
         @loadStylesheets()
         @grammarsPromise = @loadGrammars()
         @scopedPropertiesPromise = @loadScopedProperties()
-        @requireMainModule() unless @metadata.activationEvents?
+        @requireMainModule() unless @hasActivationEvents()
 
       catch error
         console.warn "Failed to load package named '#{@name}'", error.stack ? error
@@ -87,7 +87,7 @@ class Package
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
         @activateResources()
-        if @metadata.activationEvents?
+        if @hasActivationEvents()
           @subscribeToActivationEvents()
         else
           @activateNow()
@@ -261,6 +261,18 @@ class Package
       else
         path.join(@path, 'index')
     @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+
+  hasActivationEvents: ->
+    if _.isArray(@metadata.activationEvents)
+      return @metadata.activationEvents.some (activationEvent) ->
+        activationEvent?.length > 0
+    else if _.isString(@metadata.activationEvents)
+      return @metadata.activationEvents.length > 0
+    else if _.isObject(@metadata.activationEvents)
+      for event, selector of @metadata.activationEvents
+        return true if event.length > 0 and selector.length > 0
+
+    false
 
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?

@@ -126,6 +126,16 @@ describe "the `atom` global", ->
               expect(eventHandler.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
 
+            it "activates the package immediately when the events are empty", ->
+              mainModule = require './fixtures/packages/package-with-empty-activation-events/index'
+              spyOn(mainModule, 'activate').andCallThrough()
+
+              waitsForPromise ->
+                atom.packages.activatePackage('package-with-empty-activation-events')
+
+              runs ->
+                expect(mainModule.activate.callCount).toBe 1
+
         describe "when the package has no main module", ->
           it "does not throw an exception", ->
             spyOn(console, "error")
