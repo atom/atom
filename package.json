@@ -33,7 +33,7 @@
     "loophole": "^0.3.0",
     "mixto": "1.x",
     "nslog": "0.5.0",
-    "oniguruma": "1.x",
+    "oniguruma": ">=1.0.3 <2.0",
     "optimist": "0.4.0",
     "pathwatcher": "0.17.0",
     "pegjs": "0.8.0",
