@@ -75,7 +75,9 @@ class PaneView extends View
     @command 'pane:split-right', => @splitRight(@copyActiveItem())
     @command 'pane:split-up', => @splitUp(@copyActiveItem())
     @command 'pane:split-down', => @splitDown(@copyActiveItem())
-    @command 'pane:close', => @model.destroy()
+    @command 'pane:close', =>
+      @model.destroyItems()
+      @model.destroy()
     @command 'pane:close-other-items', => @destroyInactiveItems()
 
   # Deprecated: Use ::destroyItem
