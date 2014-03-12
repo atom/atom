@@ -20,7 +20,23 @@ LongLineLength = 1000
 # ## Requiring in packages
 #
 # ```coffee
-#   {EditorView} = require 'atom'
+# {EditorView} = require 'atom'
+#
+# miniEditorView = new EditorView(mini: true)
+# ```
+#
+# ## Iterating over the open editor views
+#
+# ```coffee
+# for editorView in atom.workspace.getEditorViews()
+#   console.log(editorView.getEditor().getPath())
+# ```
+#
+# ## Subscribing to every current and future editor
+#
+# ```coffee
+# atom.workspace.eachEditorView (editorView) ->
+#   console.log(editorView.getEditor().getPath())
 # ```
 module.exports =
 class EditorView extends View
