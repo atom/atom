@@ -1,4 +1,4 @@
-{Range} = require 'text-buffer'
+{Point, Range} = require 'text-buffer'
 {Emitter} = require 'emissary'
 {pick} = require 'underscore-plus'
 
@@ -141,6 +141,8 @@ class Selection
   #
   # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
+    position = Point.fromObject(position)
+
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
