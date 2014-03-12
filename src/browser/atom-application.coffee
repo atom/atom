@@ -198,8 +198,13 @@ class AtomApplication
     app.on 'window-all-closed', ->
       app.quit() if process.platform is 'win32'
 
-    app.on 'will-quit', => @deleteSocketFile()
-    app.on 'will-exit', => @deleteSocketFile()
+    app.on 'will-quit', =>
+      @killAllProcesses()
+      @deleteSocketFile()
+
+    app.on 'will-exit', =>
+      @killAllProcesses()
+      @deleteSocketFile()
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
@@ -354,13 +359,25 @@ class AtomApplication
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
 
     openedWindow.browserWindow.on 'destroyed', =>
-      for pid, trackedWindow of @pidsToOpenWindows when trackedWindow is openedWindow
-        try
-          process.kill(pid)
-        catch error
-          if error.code isnt 'ESRCH'
-            console.log("Killing process #{pid} failed: #{error.code}")
-        delete @pidsToOpenWindows[pid]
+      @killProcessForWindow(openedWindow)
+
+  # Kill all processes associated with opened windows.
+  killAllProcesses: ->
+    @killProcess(pid) for pid of @pidsToOpenWindows
+
+  # Kill process associated with the given opened window.
+  killProcessForWindow: (openedWindow) ->
+    for pid, trackedWindow of @pidsToOpenWindows
+      @killProcess(pid) if trackedWindow is openedWindow
+
+  # Kill the process with the given pid.
+  killProcess: (pid) ->
+    try
+      process.kill(pid)
+    catch error
+      if error.code isnt 'ESRCH'
+        console.log("Killing process #{pid} failed: #{error.code}")
+    delete @pidsToOpenWindows[pid]
 
   # Open an atom:// url.
   #
