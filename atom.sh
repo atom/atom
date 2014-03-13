@@ -1,13 +1,9 @@
 #!/bin/sh
+ATOM_PATH=${ATOM_PATH:-/Applications}
 ATOM_APP_NAME=Atom.app
 
-if [ -z "$ATOM_PATH" ]; then
-  for i in /Applications ~/Applications /Applications/Utilities ~/Applications/Utilities/ ~/Downloads ~/Desktop; do
-    if [ -x "$i/$ATOM_APP_NAME" ]; then
-      ATOM_PATH="$i"
-      break
-    fi
-  done
+if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
+  ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | head -1 | xargs dirname)
 fi
 
 if [ -z "$ATOM_PATH" ]; then
