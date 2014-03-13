@@ -654,6 +654,25 @@ describe "EditorView", ->
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 4, column: 10})
 
+      describe "when the editor is hidden", ->
+        it "stops scrolling the editor", ->
+          editorView.vScrollMargin = 0
+          editorView.attachToDom(heightInLines: 5)
+          editorView.scrollToBottom()
+
+          spyOn(window, 'setInterval').andCallFake ->
+
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [12, 0])
+          originalScrollTop = editorView.scrollTop()
+
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+
+          editorView.hide()
+
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 100000, pageY: -1, which: 1)
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
