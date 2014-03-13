@@ -38,7 +38,6 @@ if [ $EXPECT_OUTPUT ]; then
   "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
   exit $?
 else
-  echo "$ATOM_PATH/$ATOM_APP_NAME"
   open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
 fi
 
