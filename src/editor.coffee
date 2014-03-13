@@ -404,13 +404,19 @@ class Editor extends Model
     else
       _.multiplyString("\t", Math.floor(number))
 
-  # {Delegates to: TextBuffer.save}
+  # Public: Saves the editor's text buffer.
+  #
+  # See {TextBuffer::save} for more details.
   save: -> @buffer.save()
 
-  # {Delegates to: TextBuffer.saveAs}
-  saveAs: (path) -> @buffer.saveAs(path)
+  # Public: Saves the editor's text buffer as the given path.
+  #
+  # See {TextBuffer::saveAs} for more details.
+  #
+  # filePath - A {String} path.
+  saveAs: (filePath) -> @buffer.saveAs(filePath)
 
-  # {Delegates to: TextBuffer.getPath}
+  # Public: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
 
   # Public: Returns a {String} representing the entire contents of the editor.
