@@ -988,8 +988,7 @@ class EditorView extends View
       (startRow <= @firstRenderedScreenRow and endRow >= @lastRenderedScreenRow) # selection surrounds the rendered items
 
   syncCursorAnimations: ->
-    for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetBlinking()
+    cursorView.resetBlinking() for cursorView in @getCursorViews()
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews()
