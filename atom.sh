@@ -1,11 +1,17 @@
 #!/bin/sh
-ATOM_PATH=${ATOM_PATH-/Applications/Atom.app}
-ATOM_BINARY=$ATOM_PATH/Contents/MacOS/Atom
+ATOM_APP_NAME=Atom.app
 
-if [ ! -d $ATOM_PATH ]; then sleep 5; fi # Wait for Atom to reappear, Sparkle may be replacing it.
+if [ -z "$ATOM_PATH" ]; then
+  for i in /Applications ~/Applications /Applications/Utilities ~/Applications/Utilities/ ~/Downloads; do
+    if [ -x "$i/$ATOM_APP_NAME" ]; then
+      ATOM_PATH="$i"
+      break
+    fi
+  done
+fi
 
-if [ ! -d $ATOM_PATH ]; then
-  echo "Atom application not found at '$ATOM_PATH'" >&2
+if [ -z "$ATOM_PATH" ]; then
+  echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
   exit 1
 fi
 
@@ -31,10 +37,11 @@ while getopts ":wtfvhs-:" opt; do
 done
 
 if [ $EXPECT_OUTPUT ]; then
-  $ATOM_BINARY --executed-from="$(pwd)" --pid=$$ "$@"
+  "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
   exit $?
 else
-  open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ "$@"
+  echo "$ATOM_PATH/$ATOM_APP_NAME"
+  open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
 fi
 
 # Used to exit process when atom is used as $EDITOR
