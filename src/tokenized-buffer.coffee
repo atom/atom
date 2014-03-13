@@ -20,7 +20,7 @@ class TokenizedBuffer extends Model
   visible: false
 
   constructor: ({@buffer, @tabLength}) ->
-    @tabLength ?= atom.config.get('editor.tabLength') ? 2
+    @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
@@ -40,7 +40,7 @@ class TokenizedBuffer extends Model
       @emit "changed", { start: 0, end: lastRow, delta: 0 }
 
     @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
-      @setTabLength(atom.config.getPositiveInt('editor.tabLength'))
+      @setTabLength(atom.config.getPositiveInt('editor.tabLength', 2))
 
     @reloadGrammar()
 

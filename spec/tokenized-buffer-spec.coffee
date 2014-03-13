@@ -452,3 +452,14 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '      '
+
+    it "does not allow the tab length to be less than 1", ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      buffer.setText('\ttest')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      atom.config.set('editor.tabLength', 1)
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      atom.config.set('editor.tabLength', 0)
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
