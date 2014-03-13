@@ -587,7 +587,7 @@ describe "EditorView", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -617,12 +617,12 @@ describe "EditorView", ->
         originalScrollTop = editorView.scrollTop()
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+        $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
         expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
 
         # every mouse move selects more text
         for x in [0..10]
-          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
 
         expect(editorView.scrollTop()).toBe 0
 
@@ -633,7 +633,7 @@ describe "EditorView", ->
         event = mousedownEvent(editorView: editorView, point: [4, 10])
         event.originalEvent.which = 2
         editorView.renderedLines.trigger(event)
-        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         $(document).trigger 'mouseup'
 
         range = editor.getSelection().getScreenRange()
@@ -654,6 +654,25 @@ describe "EditorView", ->
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 4, column: 10})
 
+      describe "when the editor is hidden", ->
+        it "stops scrolling the editor", ->
+          editorView.vScrollMargin = 0
+          editorView.attachToDom(heightInLines: 5)
+          editorView.scrollToBottom()
+
+          spyOn(window, 'setInterval').andCallFake ->
+
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [12, 0])
+          originalScrollTop = editorView.scrollTop()
+
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+
+          editorView.hide()
+
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 100000, pageY: -1, which: 1)
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
@@ -662,11 +681,11 @@ describe "EditorView", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
         expect(editor.getSelectedText()).toBe "quicksort"
 
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [1, 8])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [1, 8], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [1, 10]]
         expect(editor.getCursorBufferPosition()).toEqual [1, 10]
 
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [0, 1])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [0, 1], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
@@ -691,12 +710,12 @@ describe "EditorView", ->
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
 
         # moving changes selection linewise
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [6, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [6, 0]
 
         # moving changes selection linewise
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [2, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [2, 27], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[2, 0], [5, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [2, 0]
 
@@ -706,11 +725,11 @@ describe "EditorView", ->
     describe "meta-click and drag", ->
       it "adds an additional selection", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         editorView.renderedLines.trigger 'mouseup'
 
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [6, 10], metaKey: true)
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 27], metaKey: true)
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 27], metaKey: true, which: 1)
         editorView.renderedLines.trigger 'mouseup'
 
         selections = editor.getSelections()

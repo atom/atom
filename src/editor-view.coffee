@@ -461,20 +461,28 @@ class EditorView extends View
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
-    moveHandler = (event = lastMoveEvent) =>
-      if event
-        @editor.selectToScreenPosition(@screenPositionFromMouseEvent(event))
-        lastMoveEvent = event
 
-    $(document).on "mousemove.editor-#{@id}", moveHandler
-    interval = setInterval(moveHandler, 20)
-
-    $(document).one "mouseup.editor-#{@id}", =>
+    finalizeSelections = =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
+      $(document).off 'mouseup', finalizeSelections
+
       @editor.mergeIntersectingSelections(isReversed: @editor.getLastSelection().isReversed())
       @editor.finalizeSelections()
       @syncCursorAnimations()
+
+    moveHandler = (event = lastMoveEvent) =>
+      return unless event?
+
+      if event.which is 1 and @[0].style.display isnt 'none'
+        @editor.selectToScreenPosition(@screenPositionFromMouseEvent(event))
+        lastMoveEvent = event
+      else
+        finalizeSelections()
+
+    $(document).on "mousemove.editor-#{@id}", moveHandler
+    interval = setInterval(moveHandler, 20)
+    $(document).one "mouseup.editor-#{@id}", finalizeSelections
 
   afterAttach: (onDom) ->
     return unless onDom
@@ -980,8 +988,7 @@ class EditorView extends View
       (startRow <= @firstRenderedScreenRow and endRow >= @lastRenderedScreenRow) # selection surrounds the rendered items
 
   syncCursorAnimations: ->
-    for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetBlinking()
+    cursorView.resetBlinking() for cursorView in @getCursorViews()
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews()
