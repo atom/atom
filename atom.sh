@@ -2,7 +2,7 @@
 ATOM_APP_NAME=Atom.app
 
 if [ -z "$ATOM_PATH" ]; then
-  for i in /Applications ~/Applications /Applications/Utilities ~/Applications/Utilities/ ~/Downloads; do
+  for i in /Applications ~/Applications /Applications/Utilities ~/Applications/Utilities/ ~/Downloads ~/Desktop; do
     if [ -x "$i/$ATOM_APP_NAME" ]; then
       ATOM_PATH="$i"
       break
