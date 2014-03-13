@@ -587,7 +587,7 @@ describe "EditorView", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -617,12 +617,12 @@ describe "EditorView", ->
         originalScrollTop = editorView.scrollTop()
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+        $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
         expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
 
         # every mouse move selects more text
         for x in [0..10]
-          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1)
+          $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
 
         expect(editorView.scrollTop()).toBe 0
 
@@ -633,7 +633,7 @@ describe "EditorView", ->
         event = mousedownEvent(editorView: editorView, point: [4, 10])
         event.originalEvent.which = 2
         editorView.renderedLines.trigger(event)
-        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        $(document).trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         $(document).trigger 'mouseup'
 
         range = editor.getSelection().getScreenRange()
