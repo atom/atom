@@ -292,7 +292,7 @@ describe "Pane", ->
         pane.activeItem.path = __filename
         pane.activeItem.saveAs = jasmine.createSpy("saveAs")
         pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(__dirname)
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(__filename)
         expect(pane.activeItem.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->

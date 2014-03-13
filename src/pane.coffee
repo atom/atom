@@ -1,5 +1,4 @@
 {find, compact, extend, last} = require 'underscore-plus'
-{dirname} = require 'path'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
@@ -265,10 +264,9 @@ class Pane extends Model
     return unless item?.saveAs?
 
     itemPath = item.getPath?()
-    itemPath = dirname(itemPath) if itemPath
-    path = atom.showSaveDialogSync(itemPath)
-    if path
-      item.saveAs(path)
+    newItemPath = atom.showSaveDialogSync(itemPath)
+    if newItemPath
+      item.saveAs(newItemPath)
       nextAction?()
 
   # Public: Saves all items.
