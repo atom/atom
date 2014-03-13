@@ -662,11 +662,11 @@ describe "EditorView", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
         expect(editor.getSelectedText()).toBe "quicksort"
 
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [1, 8])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [1, 8], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [1, 10]]
         expect(editor.getCursorBufferPosition()).toEqual [1, 10]
 
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [0, 1])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [0, 1], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
@@ -691,12 +691,12 @@ describe "EditorView", ->
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
 
         # moving changes selection linewise
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [6, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [6, 0]
 
         # moving changes selection linewise
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [2, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [2, 27], which: 1)
         expect(editor.getSelectedBufferRange()).toEqual [[2, 0], [5, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [2, 0]
 
@@ -706,11 +706,11 @@ describe "EditorView", ->
     describe "meta-click and drag", ->
       it "adds an additional selection", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [4, 10])
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [5, 27], which: 1)
         editorView.renderedLines.trigger 'mouseup'
 
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [6, 10], metaKey: true)
-        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 27], metaKey: true)
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [8, 27], metaKey: true, which: 1)
         editorView.renderedLines.trigger 'mouseup'
 
         selections = editor.getSelections()
