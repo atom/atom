@@ -14,6 +14,7 @@
   "atomShellVersion": "0.10.7",
   "dependencies": {
     "async": "0.2.6",
+    "atom-keymap": "^0.4.0",
     "bootstrap": "git://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.7.0",
@@ -35,7 +36,7 @@
     "nslog": "0.5.0",
     "oniguruma": ">=1.0.3 <2.0",
     "optimist": "0.4.0",
-    "pathwatcher": "0.19.0",
+    "pathwatcher": "1.0.0",
     "pegjs": "0.8.0",
     "property-accessors": "1.x",
     "q": "^1.0.1",
