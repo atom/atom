@@ -187,7 +187,7 @@ window.keydownEvent = (key, properties={}) ->
   nativeProperties.alt = properties.altKey
   nativeProperties.shift = properties.shiftKey
   nativeProperties.cmd = properties.metaKey
-  nativeProperties.target = properties.target
+  nativeProperties.target = properties.target?[0] ? properties.target
   nativeProperties.which = properties.which
   originalEvent = nativeKeydownEvent(key, nativeProperties)
   properties = $.extend({originalEvent}, properties)
