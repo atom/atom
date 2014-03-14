@@ -236,6 +236,7 @@ class Atom extends Model
     WorkspaceView = require './workspace-view'
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
+    @keymap.defaultTarget = @workspaceView[0]
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   deserializePackageStates: ->
