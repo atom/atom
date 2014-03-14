@@ -1,7 +1,8 @@
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
-Keymap = require '../src/keymap'
+Keymap = require 'atom-keymap'
+require '../src/keymap-extensions'
 {$, $$, WorkspaceView} = require 'atom'
 
 describe "Keymap", ->
@@ -12,7 +13,10 @@ describe "Keymap", ->
 
   beforeEach ->
     configDirPath = temp.mkdirSync('atom')
-    keymap = new Keymap({configDirPath, resourcePath})
+    keymap = new Keymap
+    keymap.configDirPath = configDirPath
+    keymap.resourcePath = resourcePath
+
     fragment = $ """
       <div class="command-mode">
         <div class="child-node">
@@ -386,7 +390,9 @@ describe "Keymap", ->
 
     beforeEach ->
       resourcePath = temp.mkdirSync('atom')
-      customKeymap = new Keymap({configDirPath, resourcePath})
+      customKeymap = new Keymap
+      customKeymap.configDirPath = configDirPath
+      customKeymap.resourcePath = resourcePath
 
     afterEach ->
       customKeymap.destroy()
