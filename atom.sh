@@ -20,7 +20,11 @@ while getopts ":wtfvhs-:" opt; do
         wait)
           WAIT=1
           ;;
-        help|version|foreground|test)
+        help|version)
+          REDIRECT_STDERR=1
+          EXPECT_OUTPUT=1
+          ;;
+        foreground|test)
           EXPECT_OUTPUT=1
           ;;
       esac
@@ -28,11 +32,19 @@ while getopts ":wtfvhs-:" opt; do
     w)
       WAIT=1
       ;;
-    h|v|f|t)
+    h|v)
+      REDIRECT_STDERR=1
+      EXPECT_OUTPUT=1
+      ;;
+    f|t)
       EXPECT_OUTPUT=1
       ;;
   esac
 done
+
+if [ $REDIRECT_STDERR ]; then
+  exec 2> /dev/null
+fi
 
 if [ $EXPECT_OUTPUT ]; then
   "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
