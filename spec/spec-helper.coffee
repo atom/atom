@@ -179,8 +179,18 @@ window.keyIdentifierForKey = (key) ->
     charCode = key.toUpperCase().charCodeAt(0)
     "U+00" + charCode.toString(16)
 
+nativeKeydownEvent = require('atom-keymap').keydownEvent
+
 window.keydownEvent = (key, properties={}) ->
-  properties = $.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
+  nativeProperties = {}
+  nativeProperties.ctrl = properties.ctrlKey
+  nativeProperties.alt = properties.altKey
+  nativeProperties.shift = properties.shiftKey
+  nativeProperties.cmd = properties.metaKey
+  nativeProperties.target = properties.target
+  nativeProperties.which = properties.which
+  originalEvent = nativeKeydownEvent(key, nativeProperties)
+  properties = $.extend({originalEvent}, properties)
   $.Event("keydown", properties)
 
 window.mouseEvent = (type, properties) ->

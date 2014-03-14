@@ -164,9 +164,10 @@ describe "Keymap", ->
             expect(bazHandler).toHaveBeenCalled()
 
       describe "when the event's target is the document body", ->
-        it "triggers the mapped event on the workspaceView", ->
+        xit "triggers the mapped event on the workspaceView", ->
           atom.workspaceView = new WorkspaceView
           atom.workspaceView.attachToDom()
+          keymap.defaultTarget = atom.workspaceView[0]
           keymap.bindKeys 'name', 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
           atom.workspaceView.on 'foo', fooHandler
@@ -204,11 +205,13 @@ describe "Keymap", ->
       describe "when the event's target node matches a selector with a partially matching multi-stroke binding", ->
         describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
           it "triggers the event associated with the matched multi-stroke binding", ->
+            expect(keymap.handleKeyEvent(keydownEvent('ctrl', target: fragment[0]))).toBeTruthy() # This simulates actual key event behavior
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
             expect(keymap.handleKeyEvent(keydownEvent('ctrl', target: fragment[0]))).toBeFalsy() # This simulates actual key event behavior
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0], ctrlKey: true))).toBeFalsy()
 
             expect(quitHandler).toHaveBeenCalled()
+
             expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
             quitHandler.reset()
 
@@ -221,7 +224,7 @@ describe "Keymap", ->
         describe "when a second keystroke added to the first doesn't match any bindings", ->
           it "clears the queued keystroke without triggering any events", ->
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBe false
-            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBe false
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBe true
             expect(quitHandler).not.toHaveBeenCalled()
             expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
 
@@ -326,7 +329,7 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
         expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'cmd-['
         expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
-        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-cmd-ctrl-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'ctrl-alt-cmd-left'
 
     describe "when shift is pressed when a non-modifer key", ->
       it "returns a string that identifies the key pressed", ->
@@ -401,24 +404,23 @@ describe "Keymap", ->
 
   describe "when the user keymap file is changed", ->
     it "is reloaded", ->
+      jasmine.unspy(global, 'setTimeout')
       keymapFilePath = path.join(configDirPath, "keymap.cson")
       fs.writeFileSync(keymapFilePath, '"body": "ctrl-l": "core:move-left"')
       keymap.loadUserKeymap()
 
-      spyOn(keymap, 'loadUserKeymap').andCallThrough()
       fs.writeFileSync(keymapFilePath, "'body': 'ctrl-l': 'core:move-right'")
 
-      waitsFor ->
-        keymap.loadUserKeymap.callCount > 0
+      waitsFor 300, (done) ->
+        keymap.once 'reloaded-key-bindings', done
 
       runs ->
         keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
         expect(keyBinding.command).toBe 'core:move-right'
-        keymap.loadUserKeymap.reset()
         fs.removeSync(keymapFilePath)
 
-      waitsFor ->
-        keymap.loadUserKeymap.callCount > 0
+      waitsFor 300, (done) ->
+        keymap.once 'unloaded-key-bindings', done
 
       runs ->
         keyBinding = keymap.keyBindingsForKeystroke('ctrl-l')[0]
@@ -427,14 +429,16 @@ describe "Keymap", ->
     it "logs a warning when it can't be parsed", ->
       keymapFilePath = path.join(configDirPath, "keymap.json")
       fs.writeFileSync(keymapFilePath, '')
+      spyOn(console, 'warn')
+
       keymap.loadUserKeymap()
 
       spyOn(keymap, 'loadUserKeymap').andCallThrough()
       fs.writeFileSync(keymapFilePath, '}{')
-      spyOn(console, 'warn')
+      console.warn.reset()
 
       waitsFor ->
-        keymap.loadUserKeymap.callCount > 0
+        console.warn.callCount > 0
 
       runs ->
         expect(console.warn.callCount).toBe 1
