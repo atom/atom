@@ -32,6 +32,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>AtomApplication</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<true/>
 	<key>SUPublicDSAKeyFile</key>
 	<string>speakeasy.pem</string>
 	<key>SUScheduledCheckInterval</key>
