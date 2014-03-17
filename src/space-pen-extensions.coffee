@@ -69,7 +69,4 @@ jQuery(document.body).on 'show.bs.tooltip', ({target}) ->
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.humanizeKeystrokes = humanizeKeystrokes
 
-jQuery.Event::abortKeyBinding = ->
-  @originalEvent?.abortKeyBinding?()
-
 module.exports = spacePen
