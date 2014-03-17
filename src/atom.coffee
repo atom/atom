@@ -149,9 +149,7 @@ class Atom extends Model
     configDirPath = @getConfigDirPath()
 
     @config = new Config({configDirPath, resourcePath})
-    @keymap = new Keymap
-    @keymap.configDirPath = configDirPath
-    @keymap.resourcePath = resourcePath
+    @keymap = new Keymap({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
