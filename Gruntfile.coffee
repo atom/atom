@@ -1,4 +1,6 @@
 module.exports = (grunt) ->
+  grunt.loadTasks('tasks')
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
@@ -20,6 +22,9 @@ module.exports = (grunt) ->
       src: ['src/**/*.coffee']
       test: ['spec/*.coffee']
       gruntfile: ['Gruntfile.coffee']
+
+    node:
+      version: 'v0.10.26'
 
     shell:
       test:
