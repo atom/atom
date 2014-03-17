@@ -17,3 +17,5 @@ Keymap::loadUserKeymap = ->
   userKeymapPath = @getUserKeymapPath()
   if fs.isFileSync(userKeymapPath)
     @loadKeyBindings(userKeymapPath, watch: true, suppressErrors: true)
+
+module.exports = Keymap

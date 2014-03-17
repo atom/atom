@@ -138,8 +138,7 @@ class Atom extends Model
     @loadTime = null
 
     Config = require './config'
-    Keymap = require 'atom-keymap'
-    require './keymap-extensions'
+    Keymap = require './keymap-extensions'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     Syntax = require './syntax'
