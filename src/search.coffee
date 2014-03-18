@@ -20,12 +20,21 @@ class Search extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.boolean('json').describe('json', 'Output matching packages as JSON array')
+    options.boolean('packages').describe('packages', 'Search only non-theme packages').alias('p', 'packages')
+    options.boolean('themes').describe('themes', 'Search only themes').alias('t', 'themes')
 
-  searchPackages: (query, callback) ->
+  searchPackages: (query, opts, callback) ->
+    qs =
+      q: query
+
+    if opts.packages
+      qs.filter = 'package'
+    else if opts.themes
+      qs.filter = 'theme'
+
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/search"
-      qs:
-        q: query
+      qs: qs
       json: true
       proxy: process.env.http_proxy || process.env.https_proxy
 
@@ -50,7 +59,11 @@ class Search extends Command
       callback("Missing required search query")
       return
 
-    @searchPackages query, (error, packages) ->
+    searchOptions =
+      packages: options.argv.packages
+      themes: options.argv.themes
+
+    @searchPackages query, searchOptions, (error, packages) ->
       if error?
         callback(error)
         return
