@@ -745,14 +745,24 @@ class EditorView extends View
 
     @redraw()
 
-  setEditorLineHeight: (editorLineHeight) ->
-    @css('line-height', editorLineHeight)
-    @redraw()
-
   # Public: Gets the font family for the editor.
   #
   # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: -> @css("font-family")
+
+  # Public: Sets the line height of the editor
+  #
+  # editorLineHeight - A {Number} without a unit suffix identifying the CSS
+  # `line-height`.
+  setEditorLineHeight: (editorLineHeight) ->
+    @css('line-height', editorLineHeight)
+    @redraw()
+
+  # Public: Gets the line height for the editor
+  #
+  # Returns a {Float} identifying the CSS line-height.
+  getLineHeight: ->
+    parseFloat(@css('line-height'))
 
   # Public: Redraw the editor
   redraw: ->
