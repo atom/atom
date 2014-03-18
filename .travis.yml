@@ -5,3 +5,5 @@ notifications:
 
 node_js:
   - 0.10
+
+before_install: sudo apt-get install libgnome-keyring-dev
