@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -7,6 +7,26 @@ initialCwd=`pwd -P`
 apmPath=$0
 cd "`dirname "$apmPath"`"
 binDir=`basename "$apmPath"`
+
+# Detect CPU arch.
+archs=`uname -m`
+case "$archs" in
+  i?86) archs='x86' ;;
+  x86_64) archs='x64' ;;
+  *) archs='other' ;;
+esac
+
+# Detect current OS, see http://stackoverflow.com/q/3466166/682252.
+if [ "`uname`" == 'Darwin' ]; then
+  nodeBin="node_darwin_$archs"
+elif [ "`expr substr $(uname -s) 1 5`" == 'Linux' ]; then
+  nodeBin="node_linux_$archs"
+elif [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
+  nodeBin="node_win32_$archs.exe"
+else
+  echo "Your platform (`uname -a`) is not supported."
+  exit 1
+fi
 
 while [ -L "$binDir" ]
 do
@@ -17,4 +37,4 @@ done
 
 binDir=`pwd -P`
 cd "$initialCwd"
-"$binDir/node" --harmony_collections "$binDir/../lib/cli.js" $@
+"$binDir/$nodeBin" --harmony_collections "$binDir/../lib/cli.js" $@

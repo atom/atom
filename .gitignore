@@ -1,4 +1,5 @@
 node_modules/
+bin/node_*
 *.js
 .DS_Store
 npm-debug.log
