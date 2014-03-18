@@ -28,7 +28,7 @@
     "guid": "0.0.10",
     "jasmine-tagged": ">=1.1.1 <2.0",
     "mkdirp": "0.3.5",
-    "keytar": "0.15.1",
+    "keytar": "1.x",
     "less-cache": "0.12.0",
     "loophole": "^0.3.0",
     "mixto": "1.x",
