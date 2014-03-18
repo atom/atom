@@ -1,0 +1,156 @@
+'menu': [
+  {
+    label: '&File'
+    submenu: [
+      { label: 'New &Window', command: 'application:new-window' }
+      { label: '&New File', command: 'application:new-file' }
+      { label: '&Open...', command: 'application:open' }
+      { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
+      { type: 'separator' }
+      { label: '&Preferences...', command: 'application:show-settings' }
+      { type: 'separator' }
+      { label: '&Save', command: 'core:save' }
+      { label: 'Save &As...', command: 'core:save-as' }
+      { label: 'Save A&ll', command: 'window:save-all' }
+      { type: 'separator' }
+      { label: '&Close Buffer', command: 'core:close' }
+      { label: 'Close All &Buffers', command: 'pane:close' }
+      { label: 'Clos&e Window', command: 'window:close' }
+      { type: 'separator' }
+      { label: 'E&xit', command: 'application:quit' }
+    ]
+  }
+
+  {
+    label: '&Edit'
+    submenu: [
+      { label: '&Undo', command: 'core:undo' }
+      { label: '&Redo', command: 'core:redo' }
+      { type: 'separator' }
+      { label: '&Cut', command: 'core:cut' }
+      { label: 'C&opy', command: 'core:copy' }
+      { label: 'Copy Pat&h', command: 'editor:copy-path' }
+      { label: '&Paste', command: 'core:paste' }
+      { label: 'Select &All', command: 'core:select-all' }
+      { type: 'separator' }
+      { label: '&Toggle Comments', command: 'editor:toggle-line-comments' }
+      {
+        label: 'Lines',
+        submenu: [
+          { label: '&Indent', command: 'editor:indent-selected-rows' }
+          { label: '&Outdent', command: 'editor:outdent-selected-rows' }
+          { label: '&Auto Indent', command: 'editor:auto-indent' }
+          { type: 'separator' }
+          { label: 'Move Line &Up', command: 'editor:move-line-up' }
+          { label: 'Move Line &Down', command: 'editor:move-line-down' }
+          { label: 'Du&plicate Lines', command: 'editor:duplicate-lines' }
+          { label: 'D&elete Line', command: 'editor:delete-line' }
+          { label: '&Join Lines', command: 'editor:join-lines' }
+        ]
+      }
+      {
+        label: 'Text',
+        submenu: [
+          { label: '&Upper Case', command: 'editor:upper-case' }
+          { label: '&Lower Case', command: 'editor:lower-case' }
+          { type: 'separator' }
+          { label: 'Delete to End of &Word', command: 'editor:delete-to-end-of-word' }
+          { label: '&Delete Line', command: 'editor:delete-line' }
+          { type: 'separator' }
+          { label: '&Transpose', command: 'editor:transpose' }
+        ]
+      }
+      {
+        label: 'Folding',
+        submenu: [
+          { label: '&Fold', command: 'editor:fold-current-row' }
+          { label: '&Unfold', command: 'editor:unfold-current-row' }
+          { label: 'Unfold &All', command: 'editor:unfold-all' }
+          { type: 'separator' }
+          { label: 'Fol&d All', command: 'editor:fold-all' }
+          { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
+          { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
+          { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }
+          { label: 'Fold Level 4', command: 'editor:fold-at-indent-level-4' }
+          { label: 'Fold Level 5', command: 'editor:fold-at-indent-level-5' }
+          { label: 'Fold Level 6', command: 'editor:fold-at-indent-level-6' }
+          { label: 'Fold Level 7', command: 'editor:fold-at-indent-level-7' }
+          { label: 'Fold Level 8', command: 'editor:fold-at-indent-level-8' }
+          { label: 'Fold Level 9', command: 'editor:fold-at-indent-level-9' }
+        ]
+      }
+    ]
+  }
+
+  {
+    label: '&View'
+    submenu: [
+      { label: '&Reload', command: 'window:reload' }
+      { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
+      {
+        label: 'Developer'
+        submenu: [
+          { label: 'Open In &Dev Mode...', command: 'application:open-dev' }
+          { label: 'Run &Atom Specs', command: 'application:run-all-specs' }
+          { label: 'Run Package &Specs', command: 'window:run-package-specs' }
+          { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
+        ]
+      }
+      { type: 'separator' }
+      { label: 'Toggle Soft &Wrap', command: 'editor:toggle-soft-wrap' }
+    ]
+  }
+
+  {
+    label: '&Selection'
+    submenu: [
+      { label: 'Add Selection &Above', command: 'editor:add-selection-above' }
+      { label: 'Add Selection &Below', command: 'editor:add-selection-below' }
+      { label: 'S&plit into Lines', command: 'editor:split-selections-into-lines'}
+      { type: 'separator' }
+      { label: 'Select to &Top', command: 'core:select-to-top' }
+      { label: 'Select to Botto&m', command: 'core:select-to-bottom' }
+      { type: 'separator' }
+      { label: 'Select &Line', command: 'editor:select-line' }
+      { label: 'Select &Word', command: 'editor:select-word' }
+      { label: 'Select to Beginning of W&ord', command: 'editor:select-to-beginning-of-word' }
+      { label: 'Select to Beginning of L&ine', command: 'editor:select-to-beginning-of-line' }
+      { label: 'Select to First &Character of Line', command: 'editor:select-to-first-character-of-line' }
+      { label: 'Select to End of Wor&d', command: 'editor:select-to-end-of-word' }
+      { label: 'Select to End of Lin&e', command: 'editor:select-to-end-of-line' }
+    ]
+  }
+
+  {
+    label: 'F&ind'
+    submenu: []
+  }
+
+  {
+    label: '&Packages'
+    submenu: []
+  }
+
+  {
+    label: '&Window'
+    submenu: [
+      { label: 'Mi&nimize', command: 'application:minimize' }
+      { label: 'Ma&ximize', command: 'application:zoom' }
+      { type: 'separator' }
+      { label: 'Bring &All to Front', command: 'application:bring-all-windows-to-front' }
+    ]
+  }
+
+  {
+    label: '&Help'
+    submenu: [
+      { label: '&About Atom...', command: 'application:about' }
+      { label: 'View &License', command: 'application:open-license' }
+      { label: "VERSION", enabled: false }
+      { label: "Install &update", command: 'application:install-update', visible: false }
+      { type: 'separator' }
+      { label: '&Documentation', command: 'application:open-documentation' }
+      { type: 'separator' }
+    ]
+  }
+]
