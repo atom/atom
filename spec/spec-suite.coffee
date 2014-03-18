@@ -27,12 +27,6 @@ setSpecDirectory = (specDirectory) ->
 runAllSpecs = ->
   {resourcePath} = atom.getLoadSettings()
 
-  # Add 'src/exports' to module search path.
-  exportsPath = path.resolve(resourcePath, 'exports')
-  require('module').globalPaths.push(exportsPath)
-  # Still set NODE_PATH since tasks may need it.
-  process.env.NODE_PATH = exportsPath
-
   # Only run core specs when resource path is the Atom repository
   if Git.exists(resourcePath)
     requireSpecs(path.join(resourcePath, 'spec'))
