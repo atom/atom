@@ -6,8 +6,8 @@ require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+Keymap = require '../src/keymap-extensions'
 {$, WorkspaceView} = require 'atom'
-Keymap = require '../src/keymap'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
@@ -180,7 +180,15 @@ window.keyIdentifierForKey = (key) ->
     "U+00" + charCode.toString(16)
 
 window.keydownEvent = (key, properties={}) ->
-  properties = $.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
+  originalEventProperties = {}
+  originalEventProperties.ctrl = properties.ctrlKey
+  originalEventProperties.alt = properties.altKey
+  originalEventProperties.shift = properties.shiftKey
+  originalEventProperties.cmd = properties.metaKey
+  originalEventProperties.target = properties.target?[0] ? properties.target
+  originalEventProperties.which = properties.which
+  originalEvent = Keymap.keydownEvent(key, originalEventProperties)
+  properties = $.extend({originalEvent}, properties)
   $.Event("keydown", properties)
 
 window.mouseEvent = (type, properties) ->

@@ -138,7 +138,7 @@ class Atom extends Model
     @loadTime = null
 
     Config = require './config'
-    Keymap = require './keymap'
+    Keymap = require './keymap-extensions'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     Syntax = require './syntax'
@@ -236,6 +236,7 @@ class Atom extends Model
     WorkspaceView = require './workspace-view'
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
+    @keymap.defaultTarget = @workspaceView[0]
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   deserializePackageStates: ->

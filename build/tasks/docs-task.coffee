@@ -143,6 +143,8 @@ downloadFileFromRepo = ({repo, file}, callback) ->
 
 downloadIncludes = (callback) ->
   includes = [
+    {repo: 'atom-keymap', file: 'src/keymap.coffee'}
+    {repo: 'atom-keymap', file: 'src/key-binding.coffee'}
     {repo: 'first-mate',  file: 'src/grammar.coffee'}
     {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
     {repo: 'node-pathwatcher', file: 'src/directory.coffee'}
