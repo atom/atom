@@ -1,0 +1,107 @@
+'body':
+  # Atom Specific
+  'enter': 'core:confirm'
+  'escape': 'core:cancel'
+  'up': 'core:move-up'
+  'down': 'core:move-down'
+  'left': 'core:move-left'
+  'right': 'core:move-right'
+  'ctrl-alt-r': 'window:reload'
+  'ctrl-alt-i': 'window:toggle-dev-tools'
+  'ctrl-alt-p': 'window:run-package-specs'
+  'ctrl-alt-s': 'application:run-all-specs'
+
+  # Sublime Parity
+  'ctrl-N': 'application:new-window'
+  'ctrl-W': 'window:close'
+  'ctrl-o': 'application:open'
+  'ctrl-T': 'pane:reopen-closed-item'
+  'ctrl-n': 'application:new-file'
+  'ctrl-s': 'core:save'
+  'ctrl-S': 'core:save-as'
+  'ctrl-w': 'core:close'
+  'ctrl-z': 'core:undo'
+  'ctrl-y': 'core:redo'
+  'ctrl-x': 'core:cut'
+  'ctrl-c': 'core:copy'
+  'ctrl-v': 'core:paste'
+  'shift-up': 'core:select-up'
+  'shift-down': 'core:select-down'
+  'shift-left': 'core:select-left'
+  'shift-right': 'core:select-right'
+  'delete': 'core:delete'
+  'pageup': 'core:page-up'
+  'pagedown': 'core:page-down'
+  'backspace': 'core:backspace'
+  'ctrl-tab': 'pane:show-next-item'
+  'ctrl-shift-tab': 'pane:show-previous-item'
+  'ctrl-shift-up': 'core:move-up'
+  'ctrl-shift-down': 'core:move-down'
+  'ctrl-=': 'window:increase-font-size'
+  'ctrl-+': 'window:increase-font-size'
+  'ctrl--': 'window:decrease-font-size'
+  'ctrl-_': 'window:decrease-font-size'
+  'ctrl-0': 'window:reset-font-size'
+
+  'ctrl-k up': 'pane:split-up' # Atom Specific
+  'ctrl-k down': 'pane:split-down' # Atom Specific
+  'ctrl-k left': 'pane:split-left' # Atom Specific
+  'ctrl-k right': 'pane:split-right' # Atom Specific
+  'ctrl-k ctrl-w': 'pane:close' # Atom Specific
+  'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
+  'ctrl-k ctrl-p': 'window:focus-previous-pane'
+  'ctrl-k ctrl-n': 'window:focus-next-pane'
+  'ctrl-k ctrl-up':    'window:focus-pane-above'
+  'ctrl-k ctrl-down':  'window:focus-pane-below'
+  'ctrl-k ctrl-left':  'window:focus-pane-on-left'
+  'ctrl-k ctrl-right': 'window:focus-pane-on-right'
+
+'.workspace .editor':
+  # Windows specific
+  'ctrl-delete': 'editor:backspace-to-beginning-of-word'
+
+  # Sublime Parity
+  'ctrl-a': 'core:select-all'
+  'ctrl-alt-p': 'editor:log-cursor-scope'
+  'ctrl-k ctrl-u': 'editor:upper-case'
+  'ctrl-k ctrl-l': 'editor:lower-case'
+
+'.workspace .editor:not(.mini)':
+  # Atom specific
+  'alt-ctrl-z': 'editor:checkout-head-revision'
+  'ctrl-<': 'editor:scroll-to-cursor'
+  'alt-ctrl-f': 'editor:fold-selection'
+
+  # Sublime Parity
+  'ctrl-enter': 'editor:newline-below'
+  'ctrl-shift-enter': 'editor:newline-above'
+  'ctrl-]': 'editor:indent-selected-rows'
+  'ctrl-[': 'editor:outdent-selected-rows'
+  'ctrl-up': 'editor:move-line-up'
+  'ctrl-down': 'editor:move-line-down'
+  'ctrl-/': 'editor:toggle-line-comments'
+  'ctrl-j': 'editor:join-lines'
+  'ctrl-D': 'editor:duplicate-lines'
+
+  'ctrl-alt-[': 'editor:fold-current-row'
+  'ctrl-alt-]': 'editor:unfold-current-row'
+  'ctrl-alt-{': 'editor:fold-all' # Atom Specific
+  'ctrl-alt-}': 'editor:unfold-all' # Atom Specific
+  'ctrl-k ctrl-0': 'editor:unfold-all'
+  'ctrl-k ctrl-1': 'editor:fold-at-indent-level-1'
+  'ctrl-k ctrl-2': 'editor:fold-at-indent-level-2'
+  'ctrl-k ctrl-3': 'editor:fold-at-indent-level-3'
+  'ctrl-k ctrl-4': 'editor:fold-at-indent-level-4'
+  'ctrl-k ctrl-5': 'editor:fold-at-indent-level-5'
+  'ctrl-k ctrl-6': 'editor:fold-at-indent-level-6'
+  'ctrl-k ctrl-7': 'editor:fold-at-indent-level-7'
+  'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
+  'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
+
+# allow standard input fields to work correctly
+'body .native-key-bindings':
+  'ctrl-z': 'native!'
+  'ctrl-Z': 'native!'
+  'ctrl-x': 'native!'
+  'ctrl-c': 'native!'
+  'ctrl-v': 'native!'
