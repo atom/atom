@@ -148,6 +148,9 @@ class Atom extends Model
     {devMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
+    # Add 'src/exports' to module search path.
+    require('module').globalPaths.push(path.resolve(resourcePath, 'exports'))
+
     @config = new Config({configDirPath, resourcePath})
     @keymap = new Keymap({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})

@@ -21,12 +21,7 @@ class AtomWindow
     {@resourcePath, pathToOpen, initialLine, @isSpec, @exitWhenDone} = settings
     global.atomApplication.addWindow(this)
 
-    @setupNodePath(@resourcePath)
     @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
-    @browserWindow.restart = _.wrap _.bind(@browserWindow.restart, @browserWindow), (restart) =>
-      @setupNodePath(@resourcePath)
-      restart()
-
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
@@ -48,9 +43,6 @@ class AtomWindow
     @browserWindow.focusOnWebView() if @isSpec
 
     @openPath(pathToOpen, initialLine)
-
-  setupNodePath: (resourcePath) ->
-    process.env['NODE_PATH'] = path.resolve(resourcePath, 'exports')
 
   getUrl: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
