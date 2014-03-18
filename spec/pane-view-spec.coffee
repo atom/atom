@@ -159,14 +159,14 @@ describe "PaneView", ->
 
   describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->
+      jasmine.unspy(window, 'setTimeout')
       filePath = temp.openSync('atom').path
       editor = atom.project.openSync(filePath)
       pane.activateItem(editor)
       expect(pane.items).toHaveLength(5)
 
       fs.removeSync(filePath)
-      waitsFor 30000, ->
-        pane.items.length == 4
+      waitsFor -> pane.items.length == 4
 
   describe "when a pane is destroyed", ->
     [pane2, pane2Model] = []
