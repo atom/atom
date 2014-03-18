@@ -44,6 +44,7 @@ class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
+    editorLineHeight: 1
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
@@ -340,6 +341,8 @@ class EditorView extends View
     @subscribe atom.config.observe 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @subscribe atom.config.observe 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
+    @subscribe atom.config.observe 'editor.editorLineHeight', (editorLineHeight) => @setEditorLineHeight(editorLineHeight)
+
 
   handleEvents: ->
     @on 'focus', =>
@@ -740,6 +743,10 @@ class EditorView extends View
 
     @clearCharacterWidthCache()
 
+    @redraw()
+
+  setEditorLineHeight: (editorLineHeight) ->
+    @css('line-height', editorLineHeight)
     @redraw()
 
   # Public: Gets the font family for the editor.
