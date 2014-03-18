@@ -44,7 +44,7 @@ class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
-    editorLineHeight: 1
+    editorLineHeight: 1.3
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
