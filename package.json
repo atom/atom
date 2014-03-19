@@ -122,7 +122,7 @@
     "language-source": "0.7.0",
     "language-sql": "0.7.0",
     "language-text": "0.6.0",
-    "language-todo": "0.8.0",
+    "language-todo": "0.9.0",
     "language-toml": "0.11.0",
     "language-xml": "0.8.0",
     "language-yaml": "0.6.0"
