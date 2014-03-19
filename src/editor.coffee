@@ -374,10 +374,10 @@ class Editor extends Model
   # bufferRow - A {Number} indicating the buffer row.
   # newLevel - A {Number} indicating the new indentation level.
   # options - An {Object} with the following keys:
-  #   :ignoreLeadingWhitespace - true to not replace any of the leading
-  #                              whitespace already on the line (default: false)
-  setIndentationForBufferRow: (bufferRow, newLevel, {ignoreLeadingWhitespace}={}) ->
-    if ignoreLeadingWhitespace
+  #   :preserveLeadingWhitespace - true to preserve any whitespace already on
+  #                                the line (default: false).
+  setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
+    if preserveLeadingWhitespace
       endColumn = 0
     else
       endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
