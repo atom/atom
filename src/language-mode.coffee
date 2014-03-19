@@ -39,13 +39,13 @@ class LanguageMode
     return unless commentStartString
 
     buffer = @editor.buffer
-    commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
+    commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString
       if shouldUncomment
-        commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
+        commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
         startMatch =  commentStartRegex.search(buffer.lineForRow(start))
         endMatch = commentEndRegex.search(buffer.lineForRow(end))
