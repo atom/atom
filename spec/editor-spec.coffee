@@ -2506,7 +2506,7 @@ describe "Editor", ->
 
           describe "when the line preceding the newline does't add a level of indentation", ->
             it "indents the new line to the same level a as the preceding line", ->
-              editor.setCursorBufferPosition([5, 13])
+              editor.setCursorBufferPosition([5, 14])
               editor.insertText('\n')
               expect(editor.indentationForBufferRow(6)).toBe editor.indentationForBufferRow(5)
 
