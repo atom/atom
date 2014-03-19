@@ -374,8 +374,8 @@ class Editor extends Model
   # bufferRow - A {Number} indicating the buffer row.
   # newLevel - A {Number} indicating the new indentation level.
   # options - An {Object} with the following keys:
-  #   :preserveLeadingWhitespace - true to preserve any whitespace already on
-  #                                the line (default: false).
+  #   :preserveLeadingWhitespace - true to preserve any whitespace already at
+  #                                the beginning of the line (default: false).
   setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
     if preserveLeadingWhitespace
       endColumn = 0
