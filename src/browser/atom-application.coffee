@@ -196,7 +196,7 @@ class AtomApplication
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
 
     app.on 'window-all-closed', ->
-      app.quit() if process.platform is 'win32'
+      app.quit() if process.platform in ['win32', 'linux']
 
     app.on 'will-quit', =>
       @killAllProcesses()

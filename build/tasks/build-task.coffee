@@ -14,7 +14,7 @@ module.exports = (grunt) ->
 
     if process.platform is 'darwin'
       cp 'atom-shell/Atom.app', shellAppDir
-    else if process.platform is 'win32'
+    else
       cp 'atom-shell', shellAppDir
 
     mkdir appDir
