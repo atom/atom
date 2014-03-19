@@ -2529,6 +2529,16 @@ describe "Editor", ->
             expect(editor.indentationForBufferRow(1)).toBe 1
             expect(editor.indentationForBufferRow(2)).toBe 1
 
+          describe "when the cursor is before whitespace", ->
+            it "indents that whitespace properly in the next line", ->
+              editor.setText("  var sort = function() {}")
+              editor.setCursorScreenPosition([0, 23])
+              editor.insertNewline()
+
+              expect(buffer.lineForRow(0)).toBe '  var sort = function()'
+              expect(buffer.lineForRow(1)).toBe '   {}'
+              expect(editor.getCursorScreenPosition()).toEqual [1, 2]
+
         describe "when inserted text matches a decrease indent pattern", ->
           describe "when the preceding line matches an increase indent pattern", ->
             it "decreases the indentation to match that of the preceding line", ->

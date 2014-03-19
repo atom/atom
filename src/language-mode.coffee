@@ -265,10 +265,11 @@ class LanguageMode
 
   # Given a buffer row, this indents it.
   #
-  # bufferRow - The row {Number}
-  autoIndentBufferRow: (bufferRow) ->
+  # bufferRow - The row {Number}.
+  # options - An options {Object} to pass to {Editor::setIndentationForBufferRow}.
+  autoIndentBufferRow: (bufferRow, options) ->
     indentLevel = @suggestedIndentForBufferRow(bufferRow)
-    @editor.setIndentationForBufferRow(bufferRow, indentLevel)
+    @editor.setIndentationForBufferRow(bufferRow, indentLevel, options)
 
   # Given a buffer row, this decreases the indentation.
   #

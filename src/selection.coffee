@@ -301,7 +301,7 @@ class Selection
     if options.autoIndent
       @editor.autoIndentBufferRow(row) for row in newBufferRange.getRows()
     else if options.autoIndentNewline and text == '\n'
-      @editor.autoIndentBufferRow(newBufferRange.end.row)
+      @editor.autoIndentBufferRow(newBufferRange.end.row, ignoreLeadingWhitespace: true)
     else if options.autoDecreaseIndent and /\S/.test text
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
