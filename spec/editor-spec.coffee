@@ -2530,7 +2530,7 @@ describe "Editor", ->
             expect(editor.indentationForBufferRow(2)).toBe 1
 
           describe "when the cursor is before whitespace", ->
-            it "indents that whitespace properly in the next line", ->
+            it "indents the whitespace properly on the new line", ->
               editor.setText("  var sort = function() {}")
               editor.setCursorScreenPosition([0, 23])
               editor.insertNewline()
