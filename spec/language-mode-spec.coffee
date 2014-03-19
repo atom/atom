@@ -208,6 +208,20 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
         expect(buffer.lineForRow(0)).toBe "// @color: #4D926F;"
 
+  describe "xml", ->
+    beforeEach ->
+      editor = atom.project.openSync('sample.xml', autoIndent: false)
+      editor.setText("<!-- test -->")
+      {buffer, languageMode} = editor
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-xml')
+
+    describe "when uncommenting lines", ->
+      it "removes the leading whitespace from the comment end pattern match", ->
+        languageMode.toggleLineCommentsForBufferRows(0, 0)
+        expect(buffer.lineForRow(0)).toBe "test"
+
   describe "folding", ->
     beforeEach ->
       editor = atom.project.openSync('sample.js', autoIndent: false)

@@ -46,7 +46,7 @@ module.exports = (grunt) ->
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
-  else
+  else if process.platform is 'darwin'
     appName = 'Atom.app'
     tmpDir = '/tmp'
     installRoot = '/Applications'
@@ -55,6 +55,16 @@ module.exports = (grunt) ->
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
+    atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
+  else
+    appName = 'Atom'
+    tmpDir = '/tmp'
+    installRoot = '/opt'
+    buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+    symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
+    shellAppDir = path.join(buildDir, appName)
+    contentsDir = shellAppDir
+    appDir = path.join(shellAppDir, 'resources', 'app')
     atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
 
   installDir = path.join(installRoot, appName)
@@ -227,4 +237,7 @@ module.exports = (grunt) ->
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
   grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
-  grunt.registerTask('default', ['download-atom-shell', 'build', 'set-version', 'install'])
+
+  defaultTasks = ['download-atom-shell', 'build', 'set-version']
+  defaultTasks.push 'install' unless process.platform is 'linux'
+  grunt.registerTask('default', defaultTasks)

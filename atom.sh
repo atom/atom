@@ -1,15 +1,13 @@
-#!/bin/sh
-ATOM_PATH=${ATOM_PATH:-/Applications} # Set ATOM_PATH unless it is already set
-ATOM_APP_NAME=Atom.app
+#!/bin/bash
 
-# If ATOM_PATH isn't a executable file, use spotlight to search for Atom
-if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-  ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | head -1 | xargs dirname)
-fi
-
-# Exit if Atom can't be found
-if [ -z "$ATOM_PATH" ]; then
-  echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+if [ "`uname`" == 'Darwin' ]; then
+  OS='Mac'
+elif [ "`expr substr $(uname -s) 1 5`" == 'Linux' ]; then
+  OS='Linux'
+elif [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
+  OS='Cygwin'
+else
+  echo "Your platform (`uname -a`) is not supported."
   exit 1
 fi
 
@@ -46,11 +44,37 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-if [ $EXPECT_OUTPUT ]; then
-  "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
-  exit $?
-else
-  open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
+if [ $OS == 'Mac' ]; then
+  ATOM_PATH=${ATOM_PATH:-/Applications} # Set ATOM_PATH unless it is already set
+  ATOM_APP_NAME=Atom.app
+
+  # If ATOM_PATH isn't a executable file, use spotlight to search for Atom
+  if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
+    ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | head -1 | xargs dirname)
+  fi
+
+  # Exit if Atom can't be found
+  if [ -z "$ATOM_PATH" ]; then
+    echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+    exit 1
+  fi
+
+  if [ $EXPECT_OUTPUT ]; then
+    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
+    exit $?
+  else
+    open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
+  fi
+elif [ $OS == 'Linux' ]; then
+  ATOM_PATH='/opt/Atom/atom'
+  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/Atom/atom'
+
+  if [ $EXPECT_OUTPUT ]; then
+    "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
+    exit $?
+  else
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /dev/null &
+  fi
 fi
 
 # Exits this process when Atom is used as $EDITOR

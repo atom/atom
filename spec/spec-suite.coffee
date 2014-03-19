@@ -26,6 +26,7 @@ setSpecDirectory = (specDirectory) ->
 
 runAllSpecs = ->
   {resourcePath} = atom.getLoadSettings()
+
   # Only run core specs when resource path is the Atom repository
   if Git.exists(resourcePath)
     requireSpecs(path.join(resourcePath, 'spec'))

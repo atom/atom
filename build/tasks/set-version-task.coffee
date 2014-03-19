@@ -48,3 +48,5 @@ module.exports = (grunt) ->
 
         rcedit = require('rcedit')
         rcedit(shellExePath, {'version-string': strings}, done)
+      else
+        done()
