@@ -373,10 +373,16 @@ class Editor extends Model
   #
   # bufferRow - A {Number} indicating the buffer row.
   # newLevel - A {Number} indicating the new indentation level.
-  setIndentationForBufferRow: (bufferRow, newLevel) ->
-    currentIndentLength = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
+  # options - An {Object} with the following keys:
+  #   :preserveLeadingWhitespace - true to preserve any whitespace already at
+  #                                the beginning of the line (default: false).
+  setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
+    if preserveLeadingWhitespace
+      endColumn = 0
+    else
+      endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
-    @buffer.change([[bufferRow, 0], [bufferRow, currentIndentLength]], newIndentString)
+    @buffer.change([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
   # Public: Get the indentation level of the given line of text.
   #

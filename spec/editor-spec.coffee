@@ -2506,7 +2506,7 @@ describe "Editor", ->
 
           describe "when the line preceding the newline does't add a level of indentation", ->
             it "indents the new line to the same level a as the preceding line", ->
-              editor.setCursorBufferPosition([5, 13])
+              editor.setCursorBufferPosition([5, 14])
               editor.insertText('\n')
               expect(editor.indentationForBufferRow(6)).toBe editor.indentationForBufferRow(5)
 
@@ -2528,6 +2528,16 @@ describe "Editor", ->
             editor.insertText('\n')
             expect(editor.indentationForBufferRow(1)).toBe 1
             expect(editor.indentationForBufferRow(2)).toBe 1
+
+          describe "when the cursor is before whitespace", ->
+            it "retains the whitespace following the cursor on the new line", ->
+              editor.setText("  var sort = function() {}")
+              editor.setCursorScreenPosition([0, 23])
+              editor.insertNewline()
+
+              expect(buffer.lineForRow(0)).toBe '  var sort = function()'
+              expect(buffer.lineForRow(1)).toBe '   {}'
+              expect(editor.getCursorScreenPosition()).toEqual [1, 2]
 
         describe "when inserted text matches a decrease indent pattern", ->
           describe "when the preceding line matches an increase indent pattern", ->
