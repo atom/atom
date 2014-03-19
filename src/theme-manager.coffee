@@ -191,6 +191,7 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     @stylesheetElementForId(@stringToId(fullPath)).remove()
+    @emit 'stylesheets-changed'
 
   applyStylesheet: (path, text, ttype = 'bundled', htmlElement=$('html')) ->
     styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
@@ -201,3 +202,4 @@ class ThemeManager
         htmlElement.find("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
       else
         htmlElement.find("head").append "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
+    @emit 'stylesheets-changed'

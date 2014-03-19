@@ -170,8 +170,11 @@ describe "ThemeManager", ->
       expect($(document.body).css('font-weight')).not.toBe("bold")
       themeManager.requireStylesheet(cssPath)
       expect($(document.body).css('font-weight')).toBe("bold")
+
+      themeManager.on 'stylesheets-changed', stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
       themeManager.removeStylesheet(cssPath)
       expect($(document.body).css('font-weight')).not.toBe("bold")
+      expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
   describe "base stylesheet loading", ->
     beforeEach ->
@@ -204,12 +207,15 @@ describe "ThemeManager", ->
       fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
 
       spyOn(themeManager, 'getUserStylesheetPath').andReturn userStylesheetPath
+      themeManager.on 'stylesheets-changed', stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
 
       waitsForPromise ->
         themeManager.activateThemes()
 
       runs ->
         expect($(document.body).css('border-style')).toBe 'dotted'
+        expect(stylesheetsChangedHandler).toHaveBeenCalled()
+        stylesheetsChangedHandler.reset()
         spyOn(themeManager, 'loadUserStylesheet').andCallThrough()
         fs.writeFileSync(userStylesheetPath, 'body {border-style: dashed}')
 
@@ -218,6 +224,8 @@ describe "ThemeManager", ->
 
       runs ->
         expect($(document.body).css('border-style')).toBe 'dashed'
+        expect(stylesheetsChangedHandler).toHaveBeenCalled()
+        stylesheetsChangedHandler.reset()
         fs.removeSync(userStylesheetPath)
 
       waitsFor ->
@@ -225,6 +233,7 @@ describe "ThemeManager", ->
 
       runs ->
         expect($(document.body).css('border-style')).toBe 'none'
+        expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
   describe "when a non-existent theme is present in the config", ->
     it "logs a warning but does not throw an exception (regression)", ->
