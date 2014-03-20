@@ -88,7 +88,7 @@ window.mousemoveEvent = (properties={}) ->
 
 window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
-  top = editorView.lines.offset().top + point.row * editorView.lineHeight
+  top = editorView.lines.offset().top + point.row * editorView.calculatedLineHeight
   left = editorView.lines.offset().left + point.column * editorView.charWidth - editorView.lines.scrollLeft()
   { top, left }
 
