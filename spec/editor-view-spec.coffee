@@ -2922,6 +2922,26 @@ describe "EditorView", ->
         editorView.pixelPositionForScreenPosition([1, 5])
         expect(editorView.measureToColumn.callCount).toBe 0
 
+  describe "when stylesheets are changed", ->
+    it "updates the editor if the line height or character width changes due to a stylesheet change", ->
+      editorView.attachToDom()
+      editor.setCursorScreenPosition([1, 3])
+      expect(editorView.pixelPositionForScreenPosition([1, 3])).toEqual {top: 20, left: 30}
+      expect(editorView.getCursorView().position()).toEqual {top: 20, left: 30}
+
+      atom.themes.applyStylesheet 'line-height', """
+        .editor { line-height: 2; }
+      """
+
+      expect(editorView.pixelPositionForScreenPosition([1, 3])).toEqual {top: 32, left: 30}
+      expect(editorView.getCursorView().position()).toEqual {top: 32, left: 30}
+
+      atom.themes.applyStylesheet 'char-width', """
+        .editor { letter-spacing: 2px; }
+      """
+      expect(editorView.pixelPositionForScreenPosition([1, 3])).toEqual {top: 32, left: 36}
+      expect(editorView.getCursorView().position()).toEqual {top: 32, left: 36}
+
   describe "when the editor contains hard tabs", ->
     it "correctly calculates the the position left for a column", ->
       editor.setText('\ttest')

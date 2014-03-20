@@ -419,6 +419,8 @@ class EditorView extends View
     @scrollView.on 'overflowchanged', =>
       updateWidthInChars() if @[0].classList.contains('soft-wrap')
 
+    @subscribe atom.themes, 'stylesheets-changed', => @recalculateDimensions()
+
   handleInputEvents: ->
     @on 'cursor:moved', =>
       return unless @isFocused
@@ -880,6 +882,16 @@ class EditorView extends View
     @charHeight = charRect.height
     fragment.remove()
     @setHeightInLines()
+
+  recalculateDimensions: ->
+    oldCharWidth = @charWidth
+    oldLineHeight = @lineHeight
+
+    @calculateDimensions()
+
+    unless @charWidth is oldCharWidth and @lineHeight is oldLineHeight
+      @clearCharacterWidthCache()
+      @requestDisplayUpdate()
 
   updateLayerDimensions: ->
     height = @lineHeight * @editor.getScreenLineCount()
