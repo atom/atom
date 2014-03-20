@@ -257,18 +257,18 @@ window.advanceClock = (delta=1) ->
 
 window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
-  top = editorView.renderedLines.offset().top + point.row * editorView.lineHeight
-  left = editorView.renderedLines.offset().left + point.column * editorView.charWidth - editorView.renderedLines.scrollLeft()
+  top = editorView.renderedLines.offset().top + point.row * editorView.calculatedLineHeight
+  left = editorView.renderedLines.offset().left + point.column * editorView.calculatedCharWidth - editorView.renderedLines.scrollLeft()
   { top, left }
 
 window.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
-window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
+window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.calculatedCharWidth) ->
   editorView.width(charWidth * widthInChars + editorView.gutter.outerWidth())
   $(window).trigger 'resize' # update width of editor view's on-screen lines
 
-window.setEditorHeightInLines = (editorView, heightInChars, charHeight=editorView.lineHeight) ->
+window.setEditorHeightInLines = (editorView, heightInChars, charHeight=editorView.calculatedLineHeight) ->
   editorView.height(charHeight * heightInChars + editorView.renderedLines.position().top)
   $(window).trigger 'resize' # update editor view's on-screen lines
 
