@@ -102,10 +102,10 @@ class Git
 
   # Returns the corresponding {Repository}
   getRepo: (path) ->
-    unless @repo?
+    if @repo?
+      @repo.submoduleForPath(path) ? @repo
+    else
       throw new Error("Repository has been destroyed")
-
-    @repo.submoduleForPath(path) ? @repo
 
   # Reread the index to update any values that have changed since the
   # last time the index was read.
