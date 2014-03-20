@@ -17,7 +17,7 @@ describe "EditorView", ->
     editorView.isFocused = true
     editorView.enableKeymap()
     editorView.calculateHeightInLines = ->
-      Math.ceil(@height() / @lineHeight)
+      Math.ceil(@height() / @calculatedLineHeight)
     editorView.attachToDom = ({ heightInLines, widthInChars } = {}) ->
       heightInLines ?= @getEditor().getBuffer().getLineCount()
       @height(getLineHeight() * heightInLines)
@@ -43,7 +43,7 @@ describe "EditorView", ->
   calcDimensions = ->
     editorForMeasurement = new EditorView(editor: atom.project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
-    cachedLineHeight = editorForMeasurement.lineHeight
+    cachedLineHeight = editorForMeasurement.calculatedLineHeight
     cachedCharWidth = editorForMeasurement.charWidth
     editorForMeasurement.remove()
 
@@ -53,13 +53,13 @@ describe "EditorView", ->
 
   describe "when the editor view view is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
-      expect(editorView.lineHeight).toBeNull()
+      expect(editorView.calculatedLineHeight).toBeNull()
       expect(editorView.charWidth).toBeNull()
       editor.setCursorScreenPosition(row: 2, column: 2)
 
       editorView.attachToDom()
 
-      expect(editorView.lineHeight).not.toBeNull()
+      expect(editorView.calculatedLineHeight).not.toBeNull()
       expect(editorView.charWidth).not.toBeNull()
       expect(editorView.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editorView, [2, 2])
 
@@ -154,7 +154,7 @@ describe "EditorView", ->
       expect(editorView.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editorView.lastRenderedScreenRow)
       expect(editorView.scrollTop()).toBe 900
       expect(editorView.scrollLeft()).toBe 0
-      expect(editorView.getSelectionView().regions[0].position().top).toBe 40 * editorView.lineHeight
+      expect(editorView.getSelectionView().regions[0].position().top).toBe 40 * editorView.calculatedLineHeight
       newEditor.insertText("hello")
       expect(editorView.lineElementForScreenRow(40).text()).toBe "hello3"
 
@@ -165,7 +165,7 @@ describe "EditorView", ->
       expect(editorView.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editorView.scrollTop()).toBe previousScrollTop
       expect(editorView.scrollLeft()).toBe previousScrollLeft
-      expect(editorView.getCursorView().position()).toEqual { top: 6 * editorView.lineHeight, left: 13 * editorView.charWidth }
+      expect(editorView.getCursorView().position()).toEqual { top: 6 * editorView.calculatedLineHeight, left: 13 * editorView.charWidth }
       editor.insertText("goodbye")
       expect(editorView.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
@@ -326,14 +326,14 @@ describe "EditorView", ->
 
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editorView.attachToDom(12)
-        lineHeightBefore = editorView.lineHeight
+        calculatedLineHeightBefore = editorView.calculatedLineHeight
         charWidthBefore = editorView.charWidth
         editor.setCursorScreenPosition [5, 6]
 
         atom.config.set("editor.fontFamily", fontFamily)
         expect(editorView.css('font-family')).toBe fontFamily
         expect(editorView.charWidth).not.toBe charWidthBefore
-        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.lineHeight, left: 6 * editorView.charWidth }
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.charWidth }
 
         newEditor = new EditorView(editorView.editor.copy())
         newEditor.attachToDom()
@@ -351,17 +351,17 @@ describe "EditorView", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         atom.config.set("editor.fontSize", 10)
         editorView.attachToDom()
-        lineHeightBefore = editorView.lineHeight
+        calculatedLineHeightBefore = editorView.calculatedLineHeight
         charWidthBefore = editorView.charWidth
         editor.setCursorScreenPosition [5, 6]
 
         atom.config.set("editor.fontSize", 30)
         expect(editorView.css('font-size')).toBe '30px'
-        expect(editorView.lineHeight).toBeGreaterThan lineHeightBefore
+        expect(editorView.calculatedLineHeight).toBeGreaterThan calculatedLineHeightBefore
         expect(editorView.charWidth).toBeGreaterThan charWidthBefore
-        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.lineHeight, left: 6 * editorView.charWidth }
-        expect(editorView.renderedLines.outerHeight()).toBe buffer.getLineCount() * editorView.lineHeight
-        expect(editorView.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editorView.lineHeight
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.charWidth }
+        expect(editorView.renderedLines.outerHeight()).toBe buffer.getLineCount() * editorView.calculatedLineHeight
+        expect(editorView.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editorView.calculatedLineHeight
 
         newEditor = new EditorView(editorView.editor.copy())
         editorView.remove()
@@ -375,9 +375,9 @@ describe "EditorView", ->
 
         atom.config.set("editor.fontSize", 30)
         selectionRegion = editorView.find('.region')
-        expect(selectionRegion.position().top).toBe 5 * editorView.lineHeight
+        expect(selectionRegion.position().top).toBe 5 * editorView.calculatedLineHeight
         expect(selectionRegion.position().left).toBe 2 * editorView.charWidth
-        expect(selectionRegion.height()).toBe editorView.lineHeight
+        expect(selectionRegion.height()).toBe editorView.calculatedLineHeight
         expect(selectionRegion.width()).toBe 5 * editorView.charWidth
 
       it "updates lines if there are unrendered lines", ->
@@ -392,18 +392,18 @@ describe "EditorView", ->
         it "redraws the editor view view according to the new font size when it is reattached", ->
           editor.setCursorScreenPosition([4, 2])
           editorView.attachToDom()
-          initialLineHeight = editorView.lineHeight
+          initialLineHeight = editorView.calculatedLineHeight
           initialCharWidth = editorView.charWidth
           initialCursorPosition = editorView.getCursorView().position()
           initialScrollbarHeight = editorView.verticalScrollbarContent.height()
           editorView.detach()
 
           atom.config.set("editor.fontSize", 10)
-          expect(editorView.lineHeight).toBe initialLineHeight
+          expect(editorView.calculatedLineHeight).toBe initialLineHeight
           expect(editorView.charWidth).toBe initialCharWidth
 
           editorView.attachToDom()
-          expect(editorView.lineHeight).not.toBe initialLineHeight
+          expect(editorView.calculatedLineHeight).not.toBe initialLineHeight
           expect(editorView.charWidth).not.toBe initialCharWidth
           expect(editorView.getCursorView().position()).not.toEqual initialCursorPosition
           expect(editorView.verticalScrollbarContent.height()).not.toBe initialScrollbarHeight
@@ -567,15 +567,15 @@ describe "EditorView", ->
         editorView.attachToDom()
         setEditorHeightInLines(editorView, 5)
         editor.setCursorBufferPosition([3, 0])
-        editorView.scrollTop(editorView.lineHeight * 6)
+        editorView.scrollTop(editorView.calculatedLineHeight * 6)
 
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [6, 0], metaKey: true)
-        expect(editorView.scrollTop()).toBe editorView.lineHeight * (6 - editorView.vScrollMargin)
+        expect(editorView.scrollTop()).toBe editorView.calculatedLineHeight * (6 - editorView.vScrollMargin)
 
         [cursor1, cursor2] = editorView.getCursorViews()
-        expect(cursor1.position()).toEqual(top: 3 * editorView.lineHeight, left: 0)
+        expect(cursor1.position()).toEqual(top: 3 * editorView.calculatedLineHeight, left: 0)
         expect(cursor1.getBufferPosition()).toEqual [3, 0]
-        expect(cursor2.position()).toEqual(top: 6 * editorView.lineHeight, left: 0)
+        expect(cursor2.position()).toEqual(top: 6 * editorView.calculatedLineHeight, left: 0)
         expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
     describe "click and drag", ->
@@ -618,7 +618,7 @@ describe "EditorView", ->
 
         # moving changes selection
         $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
-        expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+        expect(editorView.scrollTop()).toBe originalScrollTop - editorView.calculatedLineHeight
 
         # every mouse move selects more text
         for x in [0..10]
@@ -666,12 +666,12 @@ describe "EditorView", ->
           originalScrollTop = editorView.scrollTop()
 
           $(document).trigger mousemoveEvent(editorView: editorView, pageX: 0, pageY: -1, which: 1)
-          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.calculatedLineHeight
 
           editorView.hide()
 
           $(document).trigger mousemoveEvent(editorView: editorView, pageX: 100000, pageY: -1, which: 1)
-          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.lineHeight
+          expect(editorView.scrollTop()).toBe originalScrollTop - editorView.calculatedLineHeight
 
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
@@ -760,12 +760,12 @@ describe "EditorView", ->
       expect(editorView.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
   describe "selection rendering", ->
-    [charWidth, lineHeight, selection, selectionView] = []
+    [charWidth, calculatedLineHeight, selection, selectionView] = []
 
     beforeEach ->
       editorView.attachToDom()
       editorView.width(500)
-      { charWidth, lineHeight } = editorView
+      { charWidth, calculatedLineHeight } = editorView
       selection = editor.getSelection()
       selectionView = editorView.getSelectionView()
 
@@ -776,9 +776,9 @@ describe "EditorView", ->
         expect(selectionViews.length).toBe 2
         expect(selectionViews[1].regions.length).toBe 1
         region = selectionViews[1].regions[0]
-        expect(region.position().top).toBeCloseTo(2 * lineHeight)
+        expect(region.position().top).toBeCloseTo(2 * calculatedLineHeight)
         expect(region.position().left).toBeCloseTo(7 * charWidth)
-        expect(region.height()).toBeCloseTo lineHeight
+        expect(region.height()).toBeCloseTo calculatedLineHeight
         expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
 
     describe "when a selection changes", ->
@@ -788,9 +788,9 @@ describe "EditorView", ->
 
           expect(selectionView.regions.length).toBe 1
           region = selectionView.regions[0]
-          expect(region.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region.position().top).toBeCloseTo(2 * calculatedLineHeight)
           expect(region.position().left).toBeCloseTo(7 * charWidth)
-          expect(region.height()).toBeCloseTo lineHeight
+          expect(region.height()).toBeCloseTo calculatedLineHeight
           expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
 
       describe "when the selection spans 2 lines", ->
@@ -800,15 +800,15 @@ describe "EditorView", ->
           expect(selectionView.regions.length).toBe 2
 
           region1 = selectionView.regions[0]
-          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().top).toBeCloseTo(2 * calculatedLineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
-          expect(region1.height()).toBeCloseTo lineHeight
+          expect(region1.height()).toBeCloseTo calculatedLineHeight
 
           expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
           region2 = selectionView.regions[1]
-          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().top).toBeCloseTo(3 * calculatedLineHeight)
           expect(region2.position().left).toBeCloseTo(0)
-          expect(region2.height()).toBeCloseTo lineHeight
+          expect(region2.height()).toBeCloseTo calculatedLineHeight
           expect(region2.width()).toBeCloseTo(25 * charWidth)
 
       describe "when the selection spans more than 2 lines", ->
@@ -818,15 +818,15 @@ describe "EditorView", ->
           expect(selectionView.regions.length).toBe 3
 
           region1 = selectionView.regions[0]
-          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().top).toBeCloseTo(2 * calculatedLineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
-          expect(region1.height()).toBeCloseTo lineHeight
+          expect(region1.height()).toBeCloseTo calculatedLineHeight
 
           expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
           region2 = selectionView.regions[1]
-          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().top).toBeCloseTo(3 * calculatedLineHeight)
           expect(region2.position().left).toBeCloseTo(0)
-          expect(region2.height()).toBeCloseTo(3 * lineHeight)
+          expect(region2.height()).toBeCloseTo(3 * calculatedLineHeight)
           expect(region2.width()).toBeCloseTo(editorView.renderedLines.outerWidth())
 
           # resizes with the editorView
@@ -838,9 +838,9 @@ describe "EditorView", ->
           expect(region2.width()).toBe(editorView.renderedLines.outerWidth())
 
           region3 = selectionView.regions[2]
-          expect(region3.position().top).toBeCloseTo(6 * lineHeight)
+          expect(region3.position().top).toBeCloseTo(6 * calculatedLineHeight)
           expect(region3.position().left).toBeCloseTo(0)
-          expect(region3.height()).toBeCloseTo lineHeight
+          expect(region3.height()).toBeCloseTo calculatedLineHeight
           expect(region3.width()).toBeCloseTo(25 * charWidth)
 
       it "clears previously drawn regions before creating new ones", ->
@@ -901,7 +901,7 @@ describe "EditorView", ->
           expect(editorView.scrollTop()).toBe 0
 
           editor.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
-          expect(editorView.scrollTop()).toBe 5 * editorView.lineHeight
+          expect(editorView.scrollTop()).toBe 5 * editorView.calculatedLineHeight
 
         it "highlights the selection if autoscroll is true", ->
           editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
@@ -946,7 +946,7 @@ describe "EditorView", ->
 
       it "repositions the cursor's view on screen", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
-        expect(editorView.getCursorView().position()).toEqual(top: 2 * editorView.lineHeight, left: 2 * editorView.charWidth)
+        expect(editorView.getCursorView().position()).toEqual(top: 2 * editorView.calculatedLineHeight, left: 2 * editorView.charWidth)
 
       it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
         cursorView = editorView.getCursorView()
@@ -972,16 +972,16 @@ describe "EditorView", ->
         describe "on #darwin or #linux", ->
           it "correctly positions the cursor", ->
             editor.setCursorBufferPosition([3, 30])
-            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 178}
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.calculatedLineHeight, left: 178}
             editor.setCursorBufferPosition([3, Infinity])
-            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 353}
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.calculatedLineHeight, left: 353}
 
         describe "on #win32", ->
           it "correctly positions the cursor", ->
             editor.setCursorBufferPosition([3, 30])
-            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 175}
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.calculatedLineHeight, left: 175}
             editor.setCursorBufferPosition([3, Infinity])
-            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.lineHeight, left: 346}
+            expect(editorView.getCursorView().position()).toEqual {top: 3 * editorView.calculatedLineHeight, left: 346}
 
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
@@ -1039,15 +1039,15 @@ describe "EditorView", ->
               expect(editorView.scrollTop()).toBe(0)
 
               editor.moveCursorDown()
-              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+              expect(editorView.scrollTop()).toBe(editorView.calculatedLineHeight)
 
               editor.moveCursorDown()
-              expect(editorView.scrollTop()).toBe(editorView.lineHeight * 2)
+              expect(editorView.scrollTop()).toBe(editorView.calculatedLineHeight * 2)
 
               _.times 3, -> editor.moveCursorUp()
 
               editor.moveCursorUp()
-              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+              expect(editorView.scrollTop()).toBe(editorView.calculatedLineHeight)
 
               editor.moveCursorUp()
               expect(editorView.scrollTop()).toBe(0)
@@ -1058,7 +1058,7 @@ describe "EditorView", ->
 
               _.times 3, -> editor.moveCursorDown()
 
-              expect(editorView.scrollTop()).toBe(editorView.lineHeight)
+              expect(editorView.scrollTop()).toBe(editorView.calculatedLineHeight)
 
               editor.moveCursorUp()
               expect(editorView.renderedLines.css('top')).toBe "0px"
@@ -1148,7 +1148,7 @@ describe "EditorView", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
         editorView.attachToDom()
-        expect(editorView.trueHeight()).toBeCloseTo buffer.getLineCount() * editorView.lineHeight
+        expect(editorView.trueHeight()).toBeCloseTo buffer.getLineCount() * editorView.calculatedLineHeight
 
       it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
         expect(editorView.renderedLines.find('.line').length).toEqual(buffer.getLineCount())
@@ -1225,7 +1225,7 @@ describe "EditorView", ->
 
       it "only renders the visible lines plus the overdrawn lines, setting the padding-bottom of the lines element to account for the missing lines", ->
         expect(editorView.renderedLines.find('.line').length).toBe 8
-        expectedPaddingBottom = (buffer.getLineCount() - 8) * editorView.lineHeight
+        expectedPaddingBottom = (buffer.getLineCount() - 8) * editorView.calculatedLineHeight
         expect(editorView.renderedLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
         expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
@@ -1249,7 +1249,7 @@ describe "EditorView", ->
         expect(editorView.renderedLines.find('.line:eq(0)').text()).toBe editor.lineForBufferRow(0)
         expect(editorView.renderedLines.find('.line:eq(5)').text()).toBe editor.lineForBufferRow(5)
 
-        editorView.scrollTop(3 * editorView.lineHeight)
+        editorView.scrollTop(3 * editorView.calculatedLineHeight)
         expect(editorView.renderedLines.find('.line:first').text()).toBe editor.lineForBufferRow(1)
         expect(editorView.renderedLines.find('.line:last').text()).toBe editor.lineForBufferRow(10)
 
@@ -1267,7 +1267,7 @@ describe "EditorView", ->
             expect(editorView.gutter.find('.line-number').length).toBe 8
             expect(editorView.gutter.find('.line-number:last').intValue()).toBe 8
 
-            editorView.scrollTop(4 * editorView.lineHeight)
+            editorView.scrollTop(4 * editorView.calculatedLineHeight)
             expect(editorView.renderedLines.find('.line').length).toBe 10
             expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
@@ -1283,7 +1283,7 @@ describe "EditorView", ->
             expect(editorView.gutter.find('.line-number').length).toBe 8
             expect(editorView.gutter.find('.line-number:last').text()).toBe '13'
 
-            editorView.scrollTop(4 * editorView.lineHeight)
+            editorView.scrollTop(4 * editorView.calculatedLineHeight)
 
             expect(editorView.renderedLines.find('.line').length).toBe 10
             expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
@@ -1293,12 +1293,12 @@ describe "EditorView", ->
           it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
             expect(editorView.renderedLines.find('.line').length).toBe 8
 
-            editorView.scrollTop(editorView.lineHeight * 1.5)
+            editorView.scrollTop(editorView.calculatedLineHeight * 1.5)
             expect(editorView.renderedLines.find('.line').length).toBe 8
             expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
             expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editorView.scrollTop(editorView.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            editorView.scrollTop(editorView.calculatedLineHeight * 3.5) # first visible row will be 3, last will be 8
             expect(editorView.renderedLines.find('.line').length).toBe 10
             expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
@@ -1306,19 +1306,19 @@ describe "EditorView", ->
             expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
 
             # here we don't scroll far enough to trigger additional rendering
-            editorView.scrollTop(editorView.lineHeight * 5.5) # first visible row will be 5, last will be 10
+            editorView.scrollTop(editorView.calculatedLineHeight * 5.5) # first visible row will be 5, last will be 10
             expect(editorView.renderedLines.find('.line').length).toBe 10
             expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
             expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
             expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
 
-            editorView.scrollTop(editorView.lineHeight * 7.5) # first visible row is 7, last will be 12
+            editorView.scrollTop(editorView.calculatedLineHeight * 7.5) # first visible row is 7, last will be 12
             expect(editorView.renderedLines.find('.line').length).toBe 8
             expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
             expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
-            editorView.scrollTop(editorView.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            editorView.scrollTop(editorView.calculatedLineHeight * 3.5) # first visible row will be 3, last will be 8
             expect(editorView.renderedLines.find('.line').length).toBe 10
             expect(editorView.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editorView.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
@@ -1342,21 +1342,21 @@ describe "EditorView", ->
             expect(editorView.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
-          editorView.scrollTop(editorView.lineHeight * 3)
+          editorView.scrollTop(editorView.calculatedLineHeight * 3)
           firstVisibleBufferRow = 3
-          expectedPaddingTop = (firstVisibleBufferRow - editorView.lineOverdraw) * editorView.lineHeight
+          expectedPaddingTop = (firstVisibleBufferRow - editorView.lineOverdraw) * editorView.calculatedLineHeight
           expect(editorView.renderedLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
 
           lastVisibleBufferRow = Math.ceil(3 + 5.5) # scroll top in lines + height in lines
           lastOverdrawnRow = lastVisibleBufferRow + editorView.lineOverdraw
-          expectedPaddingBottom = ((buffer.getLineCount() - lastOverdrawnRow) * editorView.lineHeight)
+          expectedPaddingBottom = ((buffer.getLineCount() - lastOverdrawnRow) * editorView.calculatedLineHeight)
           expect(editorView.renderedLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
           editorView.scrollToBottom()
           # scrolled to bottom, first visible row is 5 and first rendered row is 3
           firstVisibleBufferRow = Math.floor(buffer.getLineCount() - 5.5)
           firstOverdrawnBufferRow = firstVisibleBufferRow - editorView.lineOverdraw
-          expectedPaddingTop = firstOverdrawnBufferRow * editorView.lineHeight
+          expectedPaddingTop = firstOverdrawnBufferRow * editorView.calculatedLineHeight
           expect(editorView.renderedLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
           expect(editorView.renderedLines.css('padding-bottom')).toBe "0px"
 
@@ -1846,12 +1846,12 @@ describe "EditorView", ->
       expect(editorView.gutter.find('.line-number:last').html()).toMatch /^&nbsp;8/
 
       # here we don't scroll far enough to trigger additional rendering
-      editorView.scrollTop(editorView.lineHeight * 1.5)
+      editorView.scrollTop(editorView.calculatedLineHeight * 1.5)
       expect(editorView.renderedLines.find('.line').length).toBe 8
       expect(editorView.gutter.find('.line-number:first').html()).toMatch /^&nbsp;1/
       expect(editorView.gutter.find('.line-number:last').html()).toMatch /^&nbsp;8/
 
-      editorView.scrollTop(editorView.lineHeight * 3.5)
+      editorView.scrollTop(editorView.calculatedLineHeight * 3.5)
       expect(editorView.renderedLines.find('.line').length).toBe 10
       expect(editorView.gutter.find('.line-number:first').html()).toMatch /^&nbsp;2/
       expect(editorView.gutter.find('.line-number:last').html()).toMatch /^11/
@@ -1880,7 +1880,7 @@ describe "EditorView", ->
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
-        editorView.scrollTop(3 * editorView.lineHeight)
+        editorView.scrollTop(3 * editorView.calculatedLineHeight)
         expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
         expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
 
@@ -1952,9 +1952,9 @@ describe "EditorView", ->
 
     describe "when the editor view is scrolled vertically", ->
       it "adjusts the padding-top to account for non-rendered line numbers", ->
-        editorView.scrollTop(editorView.lineHeight * 3.5)
-        expect(editorView.gutter.lineNumbers.css('padding-top')).toBe "#{editorView.lineHeight * 1}px"
-        expect(editorView.gutter.lineNumbers.css('padding-bottom')).toBe "#{editorView.lineHeight * 2}px"
+        editorView.scrollTop(editorView.calculatedLineHeight * 3.5)
+        expect(editorView.gutter.lineNumbers.css('padding-top')).toBe "#{editorView.calculatedLineHeight * 1}px"
+        expect(editorView.gutter.lineNumbers.css('padding-bottom')).toBe "#{editorView.calculatedLineHeight * 2}px"
         expect(editorView.renderedLines.find('.line').length).toBe 10
         expect(editorView.gutter.find('.line-number:first').intValue()).toBe 2
         expect(editorView.gutter.find('.line-number:last').intValue()).toBe 11
