@@ -940,7 +940,7 @@ class EditorView extends View
     @setSoftWrap(@editor.getSoftWrap())
     @newCursors = @editor.getCursors()
     @newSelections = @editor.getSelections()
-    @updateDisplay(suppressAutoScroll: true)
+    @updateDisplay(suppressAutoscroll: true)
 
   requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
@@ -950,7 +950,7 @@ class EditorView extends View
       @updateDisplay()
       @pendingDisplayUpdate = false
 
-  updateDisplay: (options={}) ->
+  updateDisplay: (options) ->
     return unless @attached and @editor
     return if @editor.isDestroyed()
     unless @isOnDom() and @isVisible()
@@ -962,7 +962,7 @@ class EditorView extends View
     @highlightCursorLine()
     @updateCursorViews()
     @updateSelectionViews()
-    @autoscroll(options)
+    @autoscroll(options?.suppressAutoscroll ? false)
     @trigger 'editor:display-updated'
 
   updateCursorViews: ->
@@ -1005,14 +1005,14 @@ class EditorView extends View
   syncCursorAnimations: ->
     cursorView.resetBlinking() for cursorView in @getCursorViews()
 
-  autoscroll: (options={}) ->
+  autoscroll: (suppressAutoscroll) ->
     for cursorView in @getCursorViews()
-      if !options.suppressAutoScroll and cursorView.needsAutoscroll()
+      if !suppressAutoscroll and cursorView.needsAutoscroll()
         @scrollToPixelPosition(cursorView.getPixelPosition())
       cursorView.clearAutoscroll()
 
     for selectionView in @getSelectionViews()
-      if !options.suppressAutoScroll and selectionView.needsAutoscroll()
+      if !suppressAutoscroll and selectionView.needsAutoscroll()
         @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
         selectionView.highlight()
       selectionView.clearAutoscroll()
