@@ -15,7 +15,14 @@ module.exports = (grunt) ->
 
       createShortcut = path.resolve 'script', 'create-shortcut.cmd'
       runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), 'Atom'])
-    else
+    else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
       cp shellAppDir, installDir
+    else
+      binDir = path.join(installDir, 'bin')
+      shareDir = path.join(installDir, 'share')
+
+      mkdir binDir
+      cp 'atom.sh', path.join(binDir, 'atom')
+      cp shellAppDir, shareDir

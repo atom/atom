@@ -66,8 +66,8 @@ if [ $OS == 'Mac' ]; then
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
   fi
 elif [ $OS == 'Linux' ]; then
-  ATOM_PATH='/opt/Atom/atom'
-  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/Atom/atom'
+  ATOM_PATH='/opt/atom/atom'
+  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/atom/atom'
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
