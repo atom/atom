@@ -66,14 +66,17 @@ if [ $OS == 'Mac' ]; then
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
   fi
 elif [ $OS == 'Linux' ]; then
-  ATOM_PATH='/opt/atom/atom'
-  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/atom/atom'
+  SCRIPT=`readlink -f "$0"`
+  USR_DIRECTORY=`readlink -f $(dirname $SCRIPT)/..`
+  ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
+
+  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/Atom/atom'
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
-    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /dev/null &
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /dev/null 2>&1 &
   fi
 fi
 
