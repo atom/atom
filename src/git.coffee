@@ -306,7 +306,7 @@ class Git
   getAheadBehindCount: (reference, path) ->
     @getRepo(path).getAheadBehindCount(reference)
 
-  # Public: Get the cache ahead/behind commit counts for the current branch's
+  # Public: Get the cached ahead/behind commit counts for the current branch's
   # upstream branch.
   #
   # path - An optional {String} path in the repository to get this information
