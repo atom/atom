@@ -167,8 +167,8 @@ class Git
   # `refs/remotes`.  It also shortens the SHA-1 of a detached `HEAD` to 7
   # characters.
   #
-  # path - An optional {String} path in the repository to get HEAD information
-  #        about. Only needed if the repository contains submodules.
+  # path - An optional {String} path in the repository to get this information
+  #        for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
   getShortHead: (path) -> @getRepo(path).getShortHead()
@@ -266,8 +266,8 @@ class Git
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
-  # path - An optional {String} path in the repo to get branch information for.
-  #        Only needed if the repository contains submodules.
+  # path - An optional {String} path in the repo to get this information for,
+  #        only needed if the repository contains submodules.
   #
   # Returns a {String} branch name such as `refs/remotes/origin/master`.
   getUpstreamBranch: (path) -> @getRepo(path).getUpstreamBranch()
@@ -290,11 +290,22 @@ class Git
   # its upstream remote branch.
   #
   # reference - The {String} branch reference name.
-  # path      - The {String} path in the repository to get ahead/behind branch
-  #             information for. Only needed if the repository contains
-  #             submodules.
+  # path      - The {String} path in the repository to get this information for,
+  #             only needed if the repository contains submodules.
   getAheadBehindCount: (reference, path) ->
     @getRepo(path).getAheadBehindCount(reference)
+
+  # Public: Get the cache ahead/behind commit counts for the current branch's
+  # upstream branch.
+  #
+  # path - An optional {String} path in the repository to get this information
+  #        for, only needed if the repository has submodules.
+  #
+  # Returns an {Object} with the following keys:
+  #   :ahead  - The {Number} of commits ahead.
+  #   :behind - The {Number} of commits behind.
+  getCachedUpstreamAheadBehindCount: (path) ->
+    @getRepo(path).upstream ? @upstream
 
   # Public: Returns true if the given branch exists.
   hasBranch: (branch) -> @getReferenceTarget("refs/heads/#{branch}")?
@@ -302,9 +313,19 @@ class Git
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
-    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream, branch}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream) and _.isEqual(branch, @branch)
+    handlerPath = require.resolve('./repository-status-handler')
+    @statusTask = Task.once handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
+      statusesUnchanged = _.isEqual(statuses, @statuses) and
+                          _.isEqual(upstream, @upstream) and
+                          _.isEqual(branch, @branch) and
+                          _.isEqual(submodules, @submodules)
+
       @statuses = statuses
       @upstream = upstream
       @branch = branch
+      @submodules = submodules
+
+      for submodulePath, submoduleRepo of @getRepo().submodules
+        submoduleRepo.upstream = submodules[submodulePath].upstream
+
       @emit 'statuses-changed' unless statusesUnchanged
