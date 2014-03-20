@@ -2923,6 +2923,10 @@ describe "EditorView", ->
         expect(editorView.measureToColumn.callCount).toBe 0
 
   describe "when stylesheets are changed", ->
+    afterEach ->
+      atom.themes.removeStylesheet 'line-height'
+      atom.themes.removeStylesheet 'char-width'
+
     it "updates the editor if the line height or character width changes due to a stylesheet change", ->
       editorView.attachToDom()
       editor.setCursorScreenPosition([1, 3])
