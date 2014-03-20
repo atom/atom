@@ -469,9 +469,10 @@ class EditorView extends View
       $(document).off 'mousemove', moveHandler
       $(document).off 'mouseup', finalizeSelections
 
-      @editor.mergeIntersectingSelections(isReversed: @editor.getLastSelection().isReversed())
-      @editor.finalizeSelections()
-      @syncCursorAnimations()
+      unless @editor.isDestroyed()
+        @editor.mergeIntersectingSelections(isReversed: @editor.getLastSelection().isReversed())
+        @editor.finalizeSelections()
+        @syncCursorAnimations()
 
     moveHandler = (event = lastMoveEvent) =>
       return unless event?
