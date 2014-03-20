@@ -1,4 +1,4 @@
-#!/usr/bin/env node --harmony_collections
+#!/usr/bin/env node
 
 var nodeMinorVersion = process.versions.node.split('.')[1]
 if (nodeMinorVersion !== '10') {
