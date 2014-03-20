@@ -1,4 +1,11 @@
 #!/usr/bin/env node --harmony_collections
+
+var nodeMinorVersion = process.versions.node.split('.')[1]
+if (nodeMinorVersion !== '10') {
+  console.warn("You must run script/bootstrap and script/build with node v0.10.x");
+  process.exit(1);
+}
+
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
