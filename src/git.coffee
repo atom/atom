@@ -212,14 +212,18 @@ class Git
   # Returns an {Object} with the following keys:
   #   :added - The {Number} of added lines.
   #   :deleted - The {Number} of deleted lines.
-  getDiffStats: (path) -> @getRepo().getDiffStats(@relativize(path))
+  getDiffStats: (path) ->
+    repo = @getRepo(path)
+    repo.getDiffStats(repo.relativize(path))
 
   # Public: Is the given path a submodule in the repository?
   #
   # path - The {String} path to check.
   #
   # Returns a {Boolean}.
-  isSubmodule: (path) -> @getRepo().isSubmodule(@relativize(path))
+  isSubmodule: (path) ->
+    repo = @getRepo(path)
+    repo.isSubmodule(repo.relativize(path))
 
   # Public: Get the status of a directory in the repository's working directory.
   #
