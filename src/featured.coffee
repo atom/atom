@@ -40,7 +40,7 @@ class Featured extends Command
         callback(error)
       else if response.statusCode is 200
         packages = body.filter (pack) -> pack.releases?.latest?
-        packages = packages.map ({readme, metadata}) -> _.extend({}, metadata, {readme})
+        packages = packages.map ({readme, metadata, downloads}) -> _.extend({}, metadata, {readme, downloads})
         packages = _.sortBy(packages, 'name')
         callback(null, packages)
       else
