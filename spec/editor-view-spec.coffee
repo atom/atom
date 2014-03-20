@@ -44,7 +44,7 @@ describe "EditorView", ->
     editorForMeasurement = new EditorView(editor: atom.project.openSync('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.calculatedLineHeight
-    cachedCharWidth = editorForMeasurement.charWidth
+    cachedCharWidth = editorForMeasurement.calculatedCharWidth
     editorForMeasurement.remove()
 
   describe "construction", ->
@@ -54,13 +54,13 @@ describe "EditorView", ->
   describe "when the editor view view is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
       expect(editorView.calculatedLineHeight).toBeNull()
-      expect(editorView.charWidth).toBeNull()
+      expect(editorView.calculatedCharWidth).toBeNull()
       editor.setCursorScreenPosition(row: 2, column: 2)
 
       editorView.attachToDom()
 
       expect(editorView.calculatedLineHeight).not.toBeNull()
-      expect(editorView.charWidth).not.toBeNull()
+      expect(editorView.calculatedCharWidth).not.toBeNull()
       expect(editorView.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editorView, [2, 2])
 
     it "is focused", ->
@@ -165,7 +165,7 @@ describe "EditorView", ->
       expect(editorView.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editorView.scrollTop()).toBe previousScrollTop
       expect(editorView.scrollLeft()).toBe previousScrollLeft
-      expect(editorView.getCursorView().position()).toEqual { top: 6 * editorView.calculatedLineHeight, left: 13 * editorView.charWidth }
+      expect(editorView.getCursorView().position()).toEqual { top: 6 * editorView.calculatedLineHeight, left: 13 * editorView.calculatedCharWidth }
       editor.insertText("goodbye")
       expect(editorView.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
@@ -327,13 +327,13 @@ describe "EditorView", ->
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editorView.attachToDom(12)
         calculatedLineHeightBefore = editorView.calculatedLineHeight
-        charWidthBefore = editorView.charWidth
+        calculatedCharWidthBefore = editorView.calculatedCharWidth
         editor.setCursorScreenPosition [5, 6]
 
         atom.config.set("editor.fontFamily", fontFamily)
         expect(editorView.css('font-family')).toBe fontFamily
-        expect(editorView.charWidth).not.toBe charWidthBefore
-        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.charWidth }
+        expect(editorView.calculatedCharWidth).not.toBe calculatedCharWidthBefore
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.calculatedCharWidth }
 
         newEditor = new EditorView(editorView.editor.copy())
         newEditor.attachToDom()
@@ -352,14 +352,14 @@ describe "EditorView", ->
         atom.config.set("editor.fontSize", 10)
         editorView.attachToDom()
         calculatedLineHeightBefore = editorView.calculatedLineHeight
-        charWidthBefore = editorView.charWidth
+        calculatedCharWidthBefore = editorView.calculatedCharWidth
         editor.setCursorScreenPosition [5, 6]
 
         atom.config.set("editor.fontSize", 30)
         expect(editorView.css('font-size')).toBe '30px'
         expect(editorView.calculatedLineHeight).toBeGreaterThan calculatedLineHeightBefore
-        expect(editorView.charWidth).toBeGreaterThan charWidthBefore
-        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.charWidth }
+        expect(editorView.calculatedCharWidth).toBeGreaterThan calculatedCharWidthBefore
+        expect(editorView.getCursorView().position()).toEqual { top: 5 * editorView.calculatedLineHeight, left: 6 * editorView.calculatedCharWidth }
         expect(editorView.renderedLines.outerHeight()).toBe buffer.getLineCount() * editorView.calculatedLineHeight
         expect(editorView.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editorView.calculatedLineHeight
 
@@ -376,9 +376,9 @@ describe "EditorView", ->
         atom.config.set("editor.fontSize", 30)
         selectionRegion = editorView.find('.region')
         expect(selectionRegion.position().top).toBe 5 * editorView.calculatedLineHeight
-        expect(selectionRegion.position().left).toBe 2 * editorView.charWidth
+        expect(selectionRegion.position().left).toBe 2 * editorView.calculatedCharWidth
         expect(selectionRegion.height()).toBe editorView.calculatedLineHeight
-        expect(selectionRegion.width()).toBe 5 * editorView.charWidth
+        expect(selectionRegion.width()).toBe 5 * editorView.calculatedCharWidth
 
       it "updates lines if there are unrendered lines", ->
         editorView.attachToDom(heightInLines: 5)
@@ -393,18 +393,18 @@ describe "EditorView", ->
           editor.setCursorScreenPosition([4, 2])
           editorView.attachToDom()
           initialLineHeight = editorView.calculatedLineHeight
-          initialCharWidth = editorView.charWidth
+          initialCharWidth = editorView.calculatedCharWidth
           initialCursorPosition = editorView.getCursorView().position()
           initialScrollbarHeight = editorView.verticalScrollbarContent.height()
           editorView.detach()
 
           atom.config.set("editor.fontSize", 10)
           expect(editorView.calculatedLineHeight).toBe initialLineHeight
-          expect(editorView.charWidth).toBe initialCharWidth
+          expect(editorView.calculatedCharWidth).toBe initialCharWidth
 
           editorView.attachToDom()
           expect(editorView.calculatedLineHeight).not.toBe initialLineHeight
-          expect(editorView.charWidth).not.toBe initialCharWidth
+          expect(editorView.calculatedCharWidth).not.toBe initialCharWidth
           expect(editorView.getCursorView().position()).not.toEqual initialCursorPosition
           expect(editorView.verticalScrollbarContent.height()).not.toBe initialScrollbarHeight
 
@@ -760,12 +760,12 @@ describe "EditorView", ->
       expect(editorView.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
   describe "selection rendering", ->
-    [charWidth, calculatedLineHeight, selection, selectionView] = []
+    [calculatedCharWidth, calculatedLineHeight, selection, selectionView] = []
 
     beforeEach ->
       editorView.attachToDom()
       editorView.width(500)
-      { charWidth, calculatedLineHeight } = editorView
+      { calculatedCharWidth, calculatedLineHeight } = editorView
       selection = editor.getSelection()
       selectionView = editorView.getSelectionView()
 
@@ -777,9 +777,9 @@ describe "EditorView", ->
         expect(selectionViews[1].regions.length).toBe 1
         region = selectionViews[1].regions[0]
         expect(region.position().top).toBeCloseTo(2 * calculatedLineHeight)
-        expect(region.position().left).toBeCloseTo(7 * charWidth)
+        expect(region.position().left).toBeCloseTo(7 * calculatedCharWidth)
         expect(region.height()).toBeCloseTo calculatedLineHeight
-        expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
+        expect(region.width()).toBeCloseTo((25 - 7) * calculatedCharWidth)
 
     describe "when a selection changes", ->
       describe "when the selection is within a single line", ->
@@ -789,9 +789,9 @@ describe "EditorView", ->
           expect(selectionView.regions.length).toBe 1
           region = selectionView.regions[0]
           expect(region.position().top).toBeCloseTo(2 * calculatedLineHeight)
-          expect(region.position().left).toBeCloseTo(7 * charWidth)
+          expect(region.position().left).toBeCloseTo(7 * calculatedCharWidth)
           expect(region.height()).toBeCloseTo calculatedLineHeight
-          expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
+          expect(region.width()).toBeCloseTo((25 - 7) * calculatedCharWidth)
 
       describe "when the selection spans 2 lines", ->
         it "covers the selection's range with 2 regions", ->
@@ -801,7 +801,7 @@ describe "EditorView", ->
 
           region1 = selectionView.regions[0]
           expect(region1.position().top).toBeCloseTo(2 * calculatedLineHeight)
-          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.position().left).toBeCloseTo(7 * calculatedCharWidth)
           expect(region1.height()).toBeCloseTo calculatedLineHeight
 
           expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
@@ -809,7 +809,7 @@ describe "EditorView", ->
           expect(region2.position().top).toBeCloseTo(3 * calculatedLineHeight)
           expect(region2.position().left).toBeCloseTo(0)
           expect(region2.height()).toBeCloseTo calculatedLineHeight
-          expect(region2.width()).toBeCloseTo(25 * charWidth)
+          expect(region2.width()).toBeCloseTo(25 * calculatedCharWidth)
 
       describe "when the selection spans more than 2 lines", ->
         it "covers the selection's range with 3 regions", ->
@@ -819,7 +819,7 @@ describe "EditorView", ->
 
           region1 = selectionView.regions[0]
           expect(region1.position().top).toBeCloseTo(2 * calculatedLineHeight)
-          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.position().left).toBeCloseTo(7 * calculatedCharWidth)
           expect(region1.height()).toBeCloseTo calculatedLineHeight
 
           expect(region1.width()).toBeCloseTo(editorView.renderedLines.outerWidth() - region1.position().left)
@@ -841,7 +841,7 @@ describe "EditorView", ->
           expect(region3.position().top).toBeCloseTo(6 * calculatedLineHeight)
           expect(region3.position().left).toBeCloseTo(0)
           expect(region3.height()).toBeCloseTo calculatedLineHeight
-          expect(region3.width()).toBeCloseTo(25 * charWidth)
+          expect(region3.width()).toBeCloseTo(25 * calculatedCharWidth)
 
       it "clears previously drawn regions before creating new ones", ->
         selection.setBufferRange([[2,7],[4,25]])
@@ -936,17 +936,17 @@ describe "EditorView", ->
 
   describe "cursor rendering", ->
     describe "when the cursor moves", ->
-      charWidth = null
+      calculatedCharWidth = null
 
       beforeEach ->
         editorView.attachToDom()
         editorView.vScrollMargin = 3
         editorView.hScrollMargin = 5
-        {charWidth} = editorView
+        {calculatedCharWidth} = editorView
 
       it "repositions the cursor's view on screen", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
-        expect(editorView.getCursorView().position()).toEqual(top: 2 * editorView.calculatedLineHeight, left: 2 * editorView.charWidth)
+        expect(editorView.getCursorView().position()).toEqual(top: 2 * editorView.calculatedLineHeight, left: 2 * editorView.calculatedCharWidth)
 
       it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
         cursorView = editorView.getCursorView()
@@ -1074,17 +1074,17 @@ describe "EditorView", ->
                 expect(editorView.scrollLeft()).toBe 0
 
                 editor.setCursorScreenPosition([2, 25])
-                expect(editorView.scrollLeft()).toBe charWidth
+                expect(editorView.scrollLeft()).toBe calculatedCharWidth
 
                 editor.setCursorScreenPosition([2, 28])
-                expect(editorView.scrollLeft()).toBe charWidth * 4
+                expect(editorView.scrollLeft()).toBe calculatedCharWidth * 4
 
                 # moving left
                 editor.setCursorScreenPosition([2, 9])
-                expect(editorView.scrollLeft()).toBe charWidth * 4
+                expect(editorView.scrollLeft()).toBe calculatedCharWidth * 4
 
                 editor.setCursorScreenPosition([2, 8])
-                expect(editorView.scrollLeft()).toBe charWidth * 3
+                expect(editorView.scrollLeft()).toBe calculatedCharWidth * 3
 
                 editor.setCursorScreenPosition([2, 5])
                 expect(editorView.scrollLeft()).toBe 0
@@ -1100,7 +1100,7 @@ describe "EditorView", ->
 
                 editor.setCursorScreenPosition([2, 4])
                 window.advanceClock()
-                expect(editorView.scrollLeft()).toBe(charWidth)
+                expect(editorView.scrollLeft()).toBe(calculatedCharWidth)
 
                 editor.setCursorScreenPosition([2, 3])
                 window.advanceClock()
@@ -1111,7 +1111,7 @@ describe "EditorView", ->
               editor.setSoftWrap(true)
 
             it "does not scroll the buffer horizontally", ->
-              editorView.width(charWidth * 30)
+              editorView.width(calculatedCharWidth * 30)
 
               # moving right
               editor.setCursorScreenPosition([2, 24])
@@ -1139,7 +1139,7 @@ describe "EditorView", ->
         editorView.attachToDom(heightInLines: 30, widthInChars: 30)
         editorView.setWidthInChars(100)
         editor.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
-        editorView.scrollLeft(editorView.charWidth * 30)
+        editorView.scrollLeft(editorView.calculatedCharWidth * 30)
         editorView.trigger "editor:toggle-soft-wrap"
         expect(editorView.scrollLeft()).toBe 0
         expect(editorView.editor.getSoftWrapColumn()).not.toBe 100
