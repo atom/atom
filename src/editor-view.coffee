@@ -44,7 +44,7 @@ class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
-    editorLineHeight: 1.3
+    editorLineHeight: -Infinity
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
@@ -754,8 +754,9 @@ class EditorView extends View
   # editorLineHeight - A {Number} without a unit suffix identifying the CSS
   # `line-height`.
   setEditorLineHeight: (editorLineHeight) ->
-    @css('line-height', editorLineHeight)
-    @redraw()
+    if editorLineHeight > -Infinity
+      @css('line-height', editorLineHeight)
+      @redraw()
 
   # Public: Gets the line height for the editor
   #
