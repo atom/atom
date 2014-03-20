@@ -10,6 +10,18 @@ GitUtils = require 'git-utils'
 # `atom.project` global and calling `getRepo()`. Note that this will only be
 # available when the project is backed by a Git repository.
 #
+# This class handles submodules automically by taking a `path` argument to many
+# of the methods.  This `path` argument will determine which underlying
+# repository is used.
+#
+# For a repository with submodules this would have the following outcome:
+#
+# ```coffee
+# repo = atom.project.getRepo()
+# repo.getShortHead() # 'master'
+# repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
+# ```
+#
 # ## Example
 #
 # ```coffeescript
@@ -89,10 +101,11 @@ class Git
     @unsubscribe()
 
   # Returns the corresponding {Repository}
-  getRepo: ->
+  getRepo: (path) ->
     unless @repo?
       throw new Error("Repository has been destroyed")
-    @repo
+
+    @repo.submoduleForPath(path) ? @repo
 
   # Reread the index to update any values that have changed since the
   # last time the index was read.
@@ -113,7 +126,8 @@ class Git
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
     currentPathStatus = @statuses[path] ? 0
-    pathStatus = @getRepo().getStatus(@relativize(path)) ? 0
+    repo = @getRepo(path)
+    pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     if pathStatus > 0
       @statuses[path] = pathStatus
     else
@@ -153,8 +167,11 @@ class Git
   # `refs/remotes`.  It also shortens the SHA-1 of a detached `HEAD` to 7
   # characters.
   #
+  # path - An optional {String} path in the repository to get HEAD information
+  #        about. Only needed if the repository contains submodules.
+  #
   # Returns a {String}.
-  getShortHead: -> @getRepo().getShortHead()
+  getShortHead: (path) -> @getRepo(path).getShortHead()
 
   # Public: Restore the contents of a path in the working directory and index
   # to the version at `HEAD`.
@@ -170,7 +187,8 @@ class Git
   #
   # Returns a {Boolean} that's true if the method was successful.
   checkoutHead: (path) ->
-    headCheckedOut = @getRepo().checkoutHead(@relativize(path))
+    repo = @getRepo(path)
+    headCheckedOut = repo.checkoutHead(repo.relativize(path))
     @getPathStatus(path) if headCheckedOut
     headCheckedOut
 
@@ -232,7 +250,8 @@ class Git
     # Ignore eol of line differences on windows so that files checked in as
     # LF don't report every line modified when the text contains CRLF endings.
     options = ignoreEolWhitespace: process.platform is 'win32'
-    @getRepo().getLineDiffs(@relativize(path), text, options)
+    repo = @getRepo(path)
+    repo.getLineDiffs(repo.relativize(path), text, options)
 
   # Public: Returns the git configuration value specified by the key.
   getConfigValue: (key) -> @getRepo().getConfigValue(key)
@@ -243,10 +262,16 @@ class Git
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
+  # path - An optional {String} path in the repo to get branch information for.
+  #        Only needed if the repository contains submodules.
+  #
   # Returns a {String} branch name such as `refs/remotes/origin/master`.
-  getUpstreamBranch: -> @getRepo().getUpstreamBranch()
+  getUpstreamBranch: (path) -> @getRepo(path).getUpstreamBranch()
 
   # Public: Returns the current SHA for the given reference.
+  #
+  # path - An optional {String} path in the repo to get the reference target
+  #        for. Only needed if the repository contains submodules.
   getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
 
   # Public: Gets all the local and remote references.
@@ -259,7 +284,13 @@ class Git
 
   # Public: Returns the number of commits behind the current branch is from the
   # its upstream remote branch.
-  getAheadBehindCount: (reference) -> @getRepo().getAheadBehindCount(reference)
+  #
+  # reference - The {String} branch reference name.
+  # path      - The {String} path in the repository to get ahead/behind branch
+  #             information for. Only needed if the repository contains
+  #             submodules.
+  getAheadBehindCount: (reference, path) ->
+    @getRepo(path).getAheadBehindCount(reference)
 
   # Public: Returns true if the given branch exists.
   hasBranch: (branch) -> @getReferenceTarget("refs/heads/#{branch}")?
