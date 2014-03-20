@@ -2,6 +2,7 @@
   "name": "atom",
   "productName": "Atom",
   "version": "0.77.0",
+  "description": "A hackable text editor for the 21st Century.",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
