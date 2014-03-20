@@ -34,6 +34,8 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.workspaceView` - A {WorkspaceView} instance
 module.exports =
 class Atom extends Model
+  @version: 1  # Increment this when the serialization format changes
+
   # Public: Load or create the Atom environment in the given mode.
   #
   # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
@@ -41,11 +43,11 @@ class Atom extends Model
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    @deserialize(@loadState(mode)) ? new this({mode, version: @getVersion()})
+    @deserialize(@loadState(mode)) ? new this({mode, @version})
 
   # Deserializes the Atom environment from a state object
   @deserialize: (state) ->
-    new this(state) if state?.version is @getVersion()
+    new this(state) if state?.version is @version
 
   # Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
@@ -110,7 +112,7 @@ class Atom extends Model
 
   # Get the version of the Atom application.
   @getVersion: ->
-    @version ?= @getLoadSettings().appVersion
+    @appVersion ?= @getLoadSettings().appVersion
 
   # Determine whether the current version is an official release.
   @isReleasedVersion: ->
