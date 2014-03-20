@@ -21,8 +21,10 @@ module.exports = (grunt) ->
       cp shellAppDir, installDir
     else
       binDir = path.join(installDir, 'bin')
-      shareDir = path.join(installDir, 'share')
+      shareDir = path.join(installDir, 'share', 'atom')
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
+      rm shareDir
+      mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir

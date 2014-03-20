@@ -57,7 +57,7 @@ module.exports = (grunt) ->
     atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
     installDir = path.join('/Applications', appName)
   else
-    appName = 'atom'
+    appName = 'Atom'
     tmpDir = '/tmp'
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
