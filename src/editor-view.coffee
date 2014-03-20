@@ -80,7 +80,7 @@ class EditorView extends View
   vScrollMargin: 2
   hScrollMargin: 10
   lineHeight: null
-  charWidth: null
+  calculatedCharWidth: null
   charHeight: null
   cursorViews: null
   selectionViews: null
@@ -696,7 +696,7 @@ class EditorView extends View
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
   calculateWidthInChars: ->
-    Math.floor((@scrollView.width() - @getScrollbarWidth()) / @charWidth)
+    Math.floor((@scrollView.width() - @getScrollbarWidth()) / @calculatedCharWidth)
 
   calculateHeightInLines: ->
     Math.ceil($(window).height() / @lineHeight)
@@ -876,11 +876,11 @@ class EditorView extends View
   scrollHorizontally: (pixelPosition) ->
     return if @editor.getSoftWrap()
 
-    charsInView = @scrollView.width() / @charWidth
+    charsInView = @scrollView.width() / @calculatedCharWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @charWidth
-    desiredRight = pixelPosition.left + @charWidth + margin
+    margin = scrollMargin * @calculatedCharWidth
+    desiredRight = pixelPosition.left + @calculatedCharWidth + margin
     desiredLeft = pixelPosition.left - margin
 
     if desiredRight > @scrollRight()
@@ -896,18 +896,18 @@ class EditorView extends View
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
     @lineHeight = lineRect.height
-    @charWidth = charRect.width
+    @calculatedCharWidth = charRect.width
     @charHeight = charRect.height
     fragment.remove()
     @setHeightInLines()
 
   recalculateDimensions: ->
-    oldCharWidth = @charWidth
+    oldCalculatedCharWidth = @calculatedCharWidth
     oldLineHeight = @lineHeight
 
     @calculateDimensions()
 
-    unless @charWidth is oldCharWidth and @lineHeight is oldLineHeight
+    unless @calculatedCharWidth is oldCalculatedCharWidth and @lineHeight is oldLineHeight
       @clearCharacterWidthCache()
       @requestDisplayUpdate()
 
@@ -921,7 +921,7 @@ class EditorView extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = Math.max(@charWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
+    minWidth = Math.max(@calculatedCharWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -1375,10 +1375,10 @@ class EditorView extends View
         oldLeft = left
 
         scopes = tokenizedLine.tokenAtBufferColumn(index)?.scopes
-        cachedCharWidth = @getCharacterWidthCache(scopes, char)
+        cachedCalculatedCharWidth = @getCharacterWidthCache(scopes, char)
 
-        if cachedCharWidth?
-          left = oldLeft + cachedCharWidth
+        if cachedCalculatedCharWidth?
+          left = oldLeft + cachedCalculatedCharWidth
         else
           # i + 1 to measure to the end of the current character
           MeasureRange.setEnd(textNode, i + 1)
@@ -1388,12 +1388,12 @@ class EditorView extends View
           left = rects[0].left - Math.floor(offsetLeft) + Math.floor(@scrollLeft()) - paddingLeft
 
           if scopes?
-            cachedCharWidth = left - oldLeft
-            @setCharacterWidthCache(scopes, char, cachedCharWidth)
+            cachedCalculatedCharWidth = left - oldLeft
+            @setCharacterWidthCache(scopes, char, cachedCalculatedCharWidth)
 
         # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
-        return screenColumn * cachedCharWidth if index > LongLineLength
+        return screenColumn * cachedCalculatedCharWidth if index > LongLineLength
 
         index++
 
