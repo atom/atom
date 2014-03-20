@@ -87,7 +87,7 @@ class Task
     if _.isFunction(callback)
       @callback = callback
     else
-      args = arguments
+      args.push(callback)
     @send({event: 'start', args})
 
   # Public: Send message to the task.
