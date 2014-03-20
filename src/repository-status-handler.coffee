@@ -18,8 +18,8 @@ module.exports = (repoPath) ->
     # Statuses in submodules
     for submodulePath, submoduleRepo of repo.submodules
       submodules[submodulePath] =
-        upstream: submoduleRepo.getAheadBehindCount()
         branch: submoduleRepo.getHead()
+        upstream: submoduleRepo.getAheadBehindCount()
 
       workingDirectoryPath = submoduleRepo.getWorkingDirectory()
       for filePath, status of submoduleRepo.getStatus()
