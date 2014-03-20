@@ -884,6 +884,8 @@ class EditorView extends View
     @setHeightInLines()
 
   recalculateDimensions: ->
+    return unless @attached
+
     oldCharWidth = @charWidth
     oldLineHeight = @lineHeight
 
