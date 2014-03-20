@@ -258,10 +258,16 @@ class Git
     repo.getLineDiffs(repo.relativize(path), text, options)
 
   # Public: Returns the git configuration value specified by the key.
-  getConfigValue: (key) -> @getRepo().getConfigValue(key)
+  #
+  # path - An optional {String} path in the repository to get this information
+  #        for, only needed if the repository has submodules.
+  getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
 
   # Public: Returns the origin url of the repository.
-  getOriginUrl: -> @getConfigValue('remote.origin.url')
+  #
+  # path - An optional {String} path in the repository to get this information
+  #        for, only needed if the repository has submodules.
+  getOriginUrl: (path) -> @getConfigValue('remote.origin.url', path)
 
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
@@ -274,17 +280,22 @@ class Git
 
   # Public: Returns the current SHA for the given reference.
   #
+  # reference - The {String} reference to get the target of.
   # path - An optional {String} path in the repo to get the reference target
   #        for. Only needed if the repository contains submodules.
-  getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
+  getReferenceTarget: (reference, path) ->
+    @getRepo(path).getReferenceTarget(reference)
 
   # Public: Gets all the local and remote references.
+  #
+  # path - An optional {String} path in the repository to get this information
+  #        for, only needed if the repository has submodules.
   #
   # Returns an {Object} with the following keys:
   #  :heads - An {Array} of head reference names.
   #  :remotes - An {Array} of remote reference names.
   #  :tags - An {Array} of tag reference names.
-  getReferences: -> @getRepo().getReferences()
+  getReferences: (path) -> @getRepo(path).getReferences()
 
   # Public: Returns the number of commits behind the current branch is from the
   # its upstream remote branch.
