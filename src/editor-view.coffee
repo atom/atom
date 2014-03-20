@@ -44,7 +44,7 @@ class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
-    editorLineHeight: -Infinity
+    lineHeight: -Infinity
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
@@ -79,8 +79,8 @@ class EditorView extends View
 
   vScrollMargin: 2
   hScrollMargin: 10
-  lineHeight: null
-  charWidth: null
+  calculatedLineHeight: null
+  calculatedCharWidth: null
   charHeight: null
   cursorViews: null
   selectionViews: null
@@ -282,7 +282,7 @@ class EditorView extends View
   #
   # Returns a {Number}.
   getPageRows: ->
-    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
+    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @calculatedLineHeight))
 
   # Public: Set whether invisible characters are shown.
   #
@@ -341,7 +341,7 @@ class EditorView extends View
     @subscribe atom.config.observe 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @subscribe atom.config.observe 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
-    @subscribe atom.config.observe 'editor.editorLineHeight', (editorLineHeight) => @setEditorLineHeight(editorLineHeight)
+    @subscribe atom.config.observe 'editor.lineHeight', (lineHeight) => @setLineHeight(lineHeight)
 
 
   handleEvents: ->
@@ -625,7 +625,7 @@ class EditorView extends View
 
   # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
-    @scrollBottom(@editor.getScreenLineCount() * @lineHeight)
+    @scrollBottom(@editor.getScreenLineCount() * @calculatedLineHeight)
 
   # Public: Scrolls the editor to the position of the most recently added
   # cursor.
@@ -696,10 +696,10 @@ class EditorView extends View
     @editor.setSoftWrap(not @editor.getSoftWrap())
 
   calculateWidthInChars: ->
-    Math.floor((@scrollView.width() - @getScrollbarWidth()) / @charWidth)
+    Math.floor((@scrollView.width() - @getScrollbarWidth()) / @calculatedCharWidth)
 
   calculateHeightInLines: ->
-    Math.ceil($(window).height() / @lineHeight)
+    Math.ceil($(window).height() / @calculatedLineHeight)
 
   getScrollbarWidth: ->
     scrollbarElement = @verticalScrollbar[0]
@@ -751,11 +751,11 @@ class EditorView extends View
 
   # Public: Sets the line height of the editor
   #
-  # editorLineHeight - A {Number} without a unit suffix identifying the CSS
+  # lineHeight - A {Number} without a unit suffix identifying the CSS
   # `line-height`.
-  setEditorLineHeight: (editorLineHeight) ->
-    if editorLineHeight > -Infinity
-      @css('line-height', editorLineHeight)
+  setLineHeight: (lineHeight) ->
+    if lineHeight > -Infinity
+      @css('line-height', lineHeight)
       @redraw()
 
   # Public: Gets the line height for the editor
@@ -861,12 +861,12 @@ class EditorView extends View
       unless scrollTop < pixelPosition.top < scrollBottom
         @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
     else
-      linesInView = @scrollView.height() / @lineHeight
+      linesInView = @scrollView.height() / @calculatedLineHeight
       maxScrollMargin = Math.floor((linesInView - 1) / 2)
       scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
-      margin = scrollMargin * @lineHeight
+      margin = scrollMargin * @calculatedLineHeight
       desiredTop = pixelPosition.top - margin
-      desiredBottom = pixelPosition.top + @lineHeight + margin
+      desiredBottom = pixelPosition.top + @calculatedLineHeight + margin
       if desiredBottom > scrollBottom
         @scrollTop(desiredBottom - scrollViewHeight)
       else if desiredTop < scrollTop
@@ -876,11 +876,11 @@ class EditorView extends View
   scrollHorizontally: (pixelPosition) ->
     return if @editor.getSoftWrap()
 
-    charsInView = @scrollView.width() / @charWidth
+    charsInView = @scrollView.width() / @calculatedCharWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @charWidth
-    desiredRight = pixelPosition.left + @charWidth + margin
+    margin = scrollMargin * @calculatedCharWidth
+    desiredRight = pixelPosition.left + @calculatedCharWidth + margin
     desiredLeft = pixelPosition.left - margin
 
     if desiredRight > @scrollRight()
@@ -895,24 +895,24 @@ class EditorView extends View
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
-    @lineHeight = lineRect.height
-    @charWidth = charRect.width
+    @calculatedLineHeight = lineRect.height
+    @calculatedCharWidth = charRect.width
     @charHeight = charRect.height
     fragment.remove()
     @setHeightInLines()
 
   recalculateDimensions: ->
-    oldCharWidth = @charWidth
-    oldLineHeight = @lineHeight
+    oldcalculatedCharWidth = @calculatedCharWidth
+    oldcalculatedLineHeight = @calculatedLineHeight
 
     @calculateDimensions()
 
-    unless @charWidth is oldCharWidth and @lineHeight is oldLineHeight
+    unless @calculatedCharWidth is oldcalculatedCharWidth and @calculatedLineHeight is oldcalculatedLineHeight
       @clearCharacterWidthCache()
       @requestDisplayUpdate()
 
   updateLayerDimensions: ->
-    height = @lineHeight * @editor.getScreenLineCount()
+    height = @calculatedLineHeight * @editor.getScreenLineCount()
     unless @layerHeight == height
       @layerHeight = height
       @underlayer.height(@layerHeight)
@@ -921,7 +921,7 @@ class EditorView extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = Math.max(@charWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
+    minWidth = Math.max(@calculatedCharWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -1188,11 +1188,11 @@ class EditorView extends View
         row++
 
   updatePaddingOfRenderedLines: ->
-    paddingTop = @firstRenderedScreenRow * @lineHeight
+    paddingTop = @firstRenderedScreenRow * @calculatedLineHeight
     @renderedLines.css('padding-top', paddingTop)
     @gutter.lineNumbers.css('padding-top', paddingTop)
 
-    paddingBottom = (@editor.getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    paddingBottom = (@editor.getLastScreenRow() - @lastRenderedScreenRow) * @calculatedLineHeight
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
@@ -1201,7 +1201,7 @@ class EditorView extends View
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    screenRow = Math.floor(@scrollTop() / @lineHeight)
+    screenRow = Math.floor(@scrollTop() / @calculatedLineHeight)
     screenRow = 0 if isNaN(screenRow)
     screenRow
 
@@ -1210,7 +1210,7 @@ class EditorView extends View
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @calculatedLineHeight) - 1
     screenRow = Math.max(0, Math.min(@editor.getScreenLineCount() - 1, calculatedRow))
     screenRow = 0 if isNaN(screenRow)
     screenRow
@@ -1332,7 +1332,7 @@ class EditorView extends View
     left = @positionLeftForLineAndColumn(lineElement, actualRow, column)
     unless existingLineElement
       @renderedLines[0].removeChild(lineElement)
-    { top: row * @lineHeight, left }
+    { top: row * @calculatedLineHeight, left }
 
   positionLeftForLineAndColumn: (lineElement, screenRow, screenColumn) ->
     return 0 if screenColumn == 0
@@ -1375,10 +1375,10 @@ class EditorView extends View
         oldLeft = left
 
         scopes = tokenizedLine.tokenAtBufferColumn(index)?.scopes
-        cachedCharWidth = @getCharacterWidthCache(scopes, char)
+        cachedcalculatedCharWidth = @getCharacterWidthCache(scopes, char)
 
-        if cachedCharWidth?
-          left = oldLeft + cachedCharWidth
+        if cachedcalculatedCharWidth?
+          left = oldLeft + cachedcalculatedCharWidth
         else
           # i + 1 to measure to the end of the current character
           MeasureRange.setEnd(textNode, i + 1)
@@ -1388,12 +1388,12 @@ class EditorView extends View
           left = rects[0].left - Math.floor(offsetLeft) + Math.floor(@scrollLeft()) - paddingLeft
 
           if scopes?
-            cachedCharWidth = left - oldLeft
-            @setCharacterWidthCache(scopes, char, cachedCharWidth)
+            cachedcalculatedCharWidth = left - oldLeft
+            @setCharacterWidthCache(scopes, char, cachedcalculatedCharWidth)
 
         # Assume all the characters are the same width when dealing with long
         # lines :racehorse:
-        return screenColumn * cachedCharWidth if index > LongLineLength
+        return screenColumn * cachedcalculatedCharWidth if index > LongLineLength
 
         index++
 
@@ -1428,7 +1428,7 @@ class EditorView extends View
     offset = @scrollView.offset()
 
     editorRelativeTop = pageY - offset.top + @scrollTop()
-    row = Math.floor(editorRelativeTop / @lineHeight)
+    row = Math.floor(editorRelativeTop / @calculatedLineHeight)
     column = 0
 
     if pageX > offset.left and lineElement = @lineElementForScreenRow(row)[0]
