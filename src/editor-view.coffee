@@ -896,7 +896,7 @@ class EditorView extends View
       @clearCharacterWidthCache()
       @requestDisplayUpdate()
 
-  updateLayerDimensions: ->
+  updateLayerDimensions: (scrollViewWidth) ->
     height = @lineHeight * @editor.getScreenLineCount()
     unless @layerHeight == height
       @layerHeight = height
@@ -906,7 +906,7 @@ class EditorView extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = Math.max(@charWidth * @editor.getMaxScreenLineLength() + 20, @scrollView.width())
+    minWidth = Math.max(@charWidth * @editor.getMaxScreenLineLength() + 20, scrollViewWidth)
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -940,7 +940,7 @@ class EditorView extends View
     @setSoftWrap(@editor.getSoftWrap())
     @newCursors = @editor.getCursors()
     @newSelections = @editor.getSelections()
-    @updateDisplay(suppressAutoScroll: true)
+    @updateDisplay(suppressAutoscroll: true)
 
   requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
@@ -950,19 +950,20 @@ class EditorView extends View
       @updateDisplay()
       @pendingDisplayUpdate = false
 
-  updateDisplay: (options={}) ->
+  updateDisplay: (options) ->
     return unless @attached and @editor
     return if @editor.isDestroyed()
     unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
 
-    @updateRenderedLines()
+    scrollViewWidth = @scrollView.width()
+    @updateRenderedLines(scrollViewWidth)
     @updatePlaceholderText()
     @highlightCursorLine()
     @updateCursorViews()
     @updateSelectionViews()
-    @autoscroll(options)
+    @autoscroll(options?.suppressAutoscroll ? false)
     @trigger 'editor:display-updated'
 
   updateCursorViews: ->
@@ -1005,14 +1006,14 @@ class EditorView extends View
   syncCursorAnimations: ->
     cursorView.resetBlinking() for cursorView in @getCursorViews()
 
-  autoscroll: (options={}) ->
+  autoscroll: (suppressAutoscroll) ->
     for cursorView in @getCursorViews()
-      if !options.suppressAutoScroll and cursorView.needsAutoscroll()
+      if !suppressAutoscroll and cursorView.needsAutoscroll()
         @scrollToPixelPosition(cursorView.getPixelPosition())
       cursorView.clearAutoscroll()
 
     for selectionView in @getSelectionViews()
-      if !options.suppressAutoScroll and selectionView.needsAutoscroll()
+      if !suppressAutoscroll and selectionView.needsAutoscroll()
         @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
         selectionView.highlight()
       selectionView.clearAutoscroll()
@@ -1028,7 +1029,7 @@ class EditorView extends View
       else
         @underlayer.append($('<span/>', class: 'placeholder-text', text: @placeholderText))
 
-  updateRenderedLines: ->
+  updateRenderedLines: (scrollViewWidth) ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastScreenRowToRender = firstVisibleScreenRow + @heightInLines - 1
     lastScreenRow = @editor.getLastScreenRow()
@@ -1052,7 +1053,7 @@ class EditorView extends View
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
     @firstRenderedScreenRow = renderFrom
     @lastRenderedScreenRow = renderTo
-    @updateLayerDimensions()
+    @updateLayerDimensions(scrollViewWidth)
     @updatePaddingOfRenderedLines()
 
   computeSurroundingEmptyLineChanges: (change) ->
