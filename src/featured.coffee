@@ -66,9 +66,10 @@ class Featured extends Command
           console.log "#{'Featured Atom Packages'.cyan} (#{packages.length})"
 
 
-        tree packages, ({name, version, description}) ->
+        tree packages, ({name, version, description, downloads}) ->
           label = name.yellow
           label += " #{description.replace(/\s+/g, ' ')}" if description
+          label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
           label
 
         console.log()
