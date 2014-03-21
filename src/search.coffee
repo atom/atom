@@ -74,9 +74,10 @@ class Search extends Command
         heading = "Search Results For '#{query}'".cyan
         console.log "#{heading} (#{packages.length})"
 
-        tree packages, ({name, version, description}) ->
+        tree packages, ({name, version, description, downloads}) ->
           label = name.yellow
           label += " #{description.replace(/\s+/g, ' ')}" if description
+          label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
           label
 
         console.log()
