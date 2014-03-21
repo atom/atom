@@ -54,7 +54,7 @@
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.15.0",
-    "atom-dark-ui": "0.25.0",
+    "atom-dark-ui": "0.26.0",
     "atom-light-syntax": "0.16.0",
     "atom-light-ui": "0.23.0",
     "base16-tomorrow-dark-theme": "0.13.0",
