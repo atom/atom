@@ -23,7 +23,7 @@ class Featured extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
-    options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatitle with this Atom version')
+    options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.boolean('json').describe('json', 'Output featured packages as JSON array')
 
   getFeaturedPackages: (atomVersion, callback) ->
