@@ -190,7 +190,7 @@ class Publish extends Command
           else if response.statusCode isnt 201
             message = body.message ? body.error ? body
             process.stdout.write '\u2717\n'.red
-            callback("Registering package failed: #{message}")
+            callback("Registering package in #{repository} repository failed: #{message}")
           else
             process.stdout.write '\u2713\n'.green
             callback(null, true)
