@@ -88,11 +88,11 @@ window.mousemoveEvent = (properties={}) ->
 
 window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
-  top = editorView.lines.offset().top + point.row * editorView.lineHeight
-  left = editorView.lines.offset().left + point.column * editorView.charWidth - editorView.lines.scrollLeft()
+  top = editorView.lines.offset().top + point.row * editorView.calculatedLineHeight
+  left = editorView.lines.offset().left + point.column * editorView.calculatedCharWidth - editorView.lines.scrollLeft()
   { top, left }
 
-window.seteditorViewWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
+window.seteditorViewWidthInChars = (editorView, widthInChars, charWidth=editorView.calculatedCharWidth) ->
   editorView.width(charWidth * widthInChars + editorView.lines.position().left)
 
 $.fn.resultOfTrigger = (type) ->
