@@ -28,10 +28,10 @@
     "git-utils": "^1.1.1",
     "guid": "0.0.10",
     "jasmine-tagged": ">=1.1.1 <2.0",
-    "mkdirp": "0.3.5",
     "keytar": "1.x",
     "less-cache": "0.12.0",
     "mixto": "1.x",
+    "mkdirp": "0.3.5",
     "nslog": "0.5.0",
     "oniguruma": "^1.0.4",
     "optimist": "0.4.0",
@@ -41,6 +41,7 @@
     "random-words": "0.0.1",
     "runas": "0.5.x",
     "scandal": "0.15.0",
+    "scoped-property-store": "^0.3.0",
     "scrollbar-style": "^0.1.0",
     "season": ">=1.0.2 <2.0",
     "semver": "1.1.4",
@@ -49,7 +50,7 @@
     "temp": "0.5.0",
     "text-buffer": "^1.4.4",
     "theorist": "1.x",
-    "underscore-plus": ">=1.0.5 <2.0",
+    "underscore-plus": "^1.1.0",
     "vm-compatibility-layer": "0.1.0"
   },
   "packageDependencies": {
