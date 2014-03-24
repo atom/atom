@@ -44,7 +44,7 @@ class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
-    editorLineHeight: 1.3
+    lineHeight: 1.3
     showInvisibles: false
     showIndentGuide: false
     showLineNumbers: true
@@ -341,7 +341,7 @@ class EditorView extends View
     @subscribe atom.config.observe 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @subscribe atom.config.observe 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
-    @subscribe atom.config.observe 'editor.editorLineHeight', (editorLineHeight) => @setEditorLineHeight(editorLineHeight)
+    @subscribe atom.config.observe 'editor.lineHeight', (lineHeight) => @setLineHeight(lineHeight)
 
 
   handleEvents: ->
@@ -752,10 +752,10 @@ class EditorView extends View
 
   # Public: Sets the line height of the editor
   #
-  # editorLineHeight - A {Number} without a unit suffix identifying the CSS
+  # lineHeight - A {Number} without a unit suffix identifying the CSS
   # `line-height`.
-  setEditorLineHeight: (editorLineHeight) ->
-    @css('line-height', editorLineHeight)
+  setLineHeight: (lineHeight) ->
+    @css('line-height', lineHeight)
     @redraw()
 
   # Public: Gets the line height for the editor
