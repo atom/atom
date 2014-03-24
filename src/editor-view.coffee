@@ -760,6 +760,10 @@ class EditorView extends View
 
   # Public: Gets the line height for the editor
   #
+  # Note that this is different from `lineHeight`, which is the computed
+  # height of a line using the bounding box.  This is the property value of
+  # CSS `line-height`. 
+  #
   # Returns a {Float} identifying the CSS line-height.
   getLineHeight: ->
     parseFloat(@css('line-height'))
