@@ -20,5 +20,5 @@ module.exports = (grunt) ->
     fs.writeFileSync(control, filled)
 
     cmd = path.join('script', 'mkdeb')
-    args = [version, control]
+    args = [version, control, grunt.config.get('atom.buildDir')]
     spawn({cmd, args}, done)

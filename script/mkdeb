@@ -1,5 +1,5 @@
 #!/bin/bash
-# mkdeb version control-file-path
+# mkdeb version control-file-path deb-file-path
 
 SCRIPT=`readlink -f "$0"`
 ROOT=`readlink -f $(dirname $SCRIPT)/..`
@@ -7,6 +7,8 @@ cd $ROOT
 
 VERSION="$1"
 CONTROL_FILE="$2"
+DEB_PATH="$3"
+
 TARGET_ROOT="`mktemp -d`"
 TARGET="$TARGET_ROOT/atom-$VERSION"
 
@@ -17,5 +19,5 @@ mkdir -p "$TARGET/DEBIAN"
 mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
 
 dpkg-deb -b "$TARGET"
-mv "$TARGET_ROOT/atom-$VERSION.deb" /tmp/atom-build/
+mv "$TARGET_ROOT/atom-$VERSION.deb" "$DEB_PATH"
 rm -rf $TARGET_ROOT
