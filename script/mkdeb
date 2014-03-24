@@ -8,7 +8,8 @@ cd $ROOT
 VERSION="$1"
 CONTROL_FILE="$2"
 DESKTOP_FILE="$3"
-DEB_PATH="$4"
+ICON_FILE="$4"
+DEB_PATH="$5"
 
 TARGET_ROOT="`mktemp -d`"
 TARGET="$TARGET_ROOT/atom-$VERSION"
@@ -21,6 +22,9 @@ mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
 
 mkdir -p "$TARGET/usr/share/applications"
 mv "$DESKTOP_FILE" "$TARGET/usr/share/applications"
+
+mkdir -p "$TARGET/usr/share/pixmaps"
+cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 dpkg-deb -b "$TARGET"
 mv "$TARGET_ROOT/atom-$VERSION.deb" "$DEB_PATH"

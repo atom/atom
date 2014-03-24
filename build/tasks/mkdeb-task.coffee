@@ -23,7 +23,9 @@ module.exports = (grunt) ->
     fillTemplate(control, data)
     desktop = path.join('resources', 'linux', 'Atom.desktop')
     fillTemplate(desktop, data)
+    icon = path.join('resources', 'atom.png')
+    buildDir = grunt.config.get('atom.buildDir')
 
     cmd = path.join('script', 'mkdeb')
-    args = [version, control, desktop, grunt.config.get('atom.buildDir')]
+    args = [version, control, desktop, icon, buildDir]
     spawn({cmd, args}, done)
