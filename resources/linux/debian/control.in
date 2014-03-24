@@ -1,0 +1,8 @@
+Package: <%= name %>
+Version: <%= version %>
+Section: <%= section %>
+Priority: optional
+Architecture: <%= arch %>
+Installed-Size: `du -ks usr|cut -f 1`
+Maintainer: <%= maintainer %>
+Description: <%= description %>

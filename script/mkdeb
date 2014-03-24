@@ -1,0 +1,21 @@
+#!/bin/bash
+# mkdeb version control-file-path
+
+SCRIPT=`readlink -f "$0"`
+ROOT=`readlink -f $(dirname $SCRIPT)/..`
+cd $ROOT
+
+VERSION="$1"
+CONTROL_FILE="$2"
+TARGET_ROOT="`mktemp -d`"
+TARGET="$TARGET_ROOT/atom-$VERSION"
+
+mkdir -p "$TARGET/usr"
+env INSTALL_PREFIX="$TARGET/usr" script/grunt install
+
+mkdir -p "$TARGET/DEBIAN"
+mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
+
+dpkg-deb -b "$TARGET"
+mv "$TARGET_ROOT/atom-$VERSION.deb" /tmp/atom-build/
+rm -rf $TARGET_ROOT
