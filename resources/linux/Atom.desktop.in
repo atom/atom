@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Atom
+Comment=<%= description %>
+Exec=/usr/share/atom/atom %U
+Icon=atom
+Type=Application
+Categories=GNOME;GTK;Utility;TextEditor;

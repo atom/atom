@@ -7,7 +7,8 @@ cd $ROOT
 
 VERSION="$1"
 CONTROL_FILE="$2"
-DEB_PATH="$3"
+DESKTOP_FILE="$3"
+DEB_PATH="$4"
 
 TARGET_ROOT="`mktemp -d`"
 TARGET="$TARGET_ROOT/atom-$VERSION"
@@ -17,6 +18,9 @@ env INSTALL_PREFIX="$TARGET/usr" script/grunt install
 
 mkdir -p "$TARGET/DEBIAN"
 mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
+
+mkdir -p "$TARGET/usr/share/applications"
+mv "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 
 dpkg-deb -b "$TARGET"
 mv "$TARGET_ROOT/atom-$VERSION.deb" "$DEB_PATH"
