@@ -762,7 +762,7 @@ class EditorView extends View
   #
   # Note that this is different from `lineHeight`, which is the computed
   # height of a line using the bounding box.  This is the property value of
-  # CSS `line-height`. 
+  # CSS `line-height`.
   #
   # Returns a {Float} identifying the CSS line-height.
   getLineHeight: ->
