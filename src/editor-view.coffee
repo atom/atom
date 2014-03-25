@@ -750,11 +750,14 @@ class EditorView extends View
   # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: -> @css("font-family")
 
-  # Public: Sets the line height of the editor
+  # Public: Sets the line height of the editor.
+  #
+  # Calling this method has no effect when called on a mini editor.
   #
   # lineHeight - A {Number} without a unit suffix identifying the CSS
   # `line-height`.
   setLineHeight: (lineHeight) ->
+    return if @mini
     @css('line-height', lineHeight)
     @redraw()
 
