@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {Subscriber} = require 'emissary'
 {GrammarRegistry, ScopeSelector} = require 'first-mate'
 ScopedPropertyStore = require 'scoped-property-store'
+PropertyAccessors = require 'property-accessors'
 
 {$, $$} = require './space-pen-extensions'
 Token = require './token'
@@ -15,6 +16,7 @@ Token = require './token'
 # language-specific comment regexes.
 module.exports =
 class Syntax extends GrammarRegistry
+  PropertyAccessors.includeInto(this)
   Subscriber.includeInto(this)
   atom.deserializers.add(this)
 
@@ -25,25 +27,28 @@ class Syntax extends GrammarRegistry
 
   constructor: ->
     super
-    @scopedProperties = new ScopedPropertyStore
+    @propertyStore = new ScopedPropertyStore
 
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
+  # Deprecated: Used by settings-view to display snippets for packages
+  @::accessor 'scopedProperties', -> @propertyStore.propertySets
+
   addProperties: (args...) ->
     name = args.shift() if args.length > 2
     [selector, properties] = args
     propertiesBySelector = {}
     propertiesBySelector[selector] = properties
-    @scopedProperties.addProperties(name, propertiesBySelector)
+    @propertyStore.addProperties(name, propertiesBySelector)
 
   removeProperties: (name) ->
-    @scopedProperties.removeProperties(name)
+    @propertyStore.removeProperties(name)
 
   clearProperties: ->
-    @scopedProperties = new ScopedPropertyStore
+    @propertyStore = new ScopedPropertyStore
 
   # Public: Get a property for the given scope and key path.
   #
@@ -63,7 +68,7 @@ class Syntax extends GrammarRegistry
         scope = ".#{scope}" unless scope.indexOf('.') is 0
         scope
       .join(' ')
-    @scopedProperties.getPropertyValue(scopeChain, keyPath)
+    @propertyStore.getPropertyValue(scopeChain, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
     scopeChain = scope
@@ -72,7 +77,7 @@ class Syntax extends GrammarRegistry
         scope
       .join(' ')
 
-    @scopedProperties.getProperties(scopeChain, keyPath)
+    @propertyStore.getProperties(scopeChain, keyPath)
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
     new ScopeSelector(scopeSelector).toCssSelector()
