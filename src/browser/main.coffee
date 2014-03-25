@@ -9,12 +9,7 @@ optimist = require 'optimist'
 nslog = require 'nslog'
 dialog = require 'dialog'
 
-console.log = (args...) ->
-  # TODO: Make NSLog work as expected
-  output = args.map((arg) -> JSON.stringify(arg)).join(" ")
-  nslog(output)
-  if process.platform isnt 'darwin'
-    fs.writeFileSync('debug.log', output, flag: 'a')
+console.log = nslog
 
 process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?

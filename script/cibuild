@@ -1,4 +1,4 @@
-#!/usr/bin/env node --harmony_collections
+#!/usr/bin/env node
 var cp = require('./utils/child-process-wrapper.js');
 var fs = require('fs');
 var path = require('path');

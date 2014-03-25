@@ -39,35 +39,33 @@ module.exports = (grunt) ->
   if process.platform is 'win32'
     appName = 'Atom'
     tmpDir = os.tmpdir()
-    installRoot = process.env.ProgramFiles
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
+    installDir = path.join(process.env.ProgramFiles, appName)
   else if process.platform is 'darwin'
     appName = 'Atom.app'
     tmpDir = '/tmp'
-    installRoot = '/Applications'
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
+    installDir = path.join('/Applications', appName)
   else
     appName = 'Atom'
     tmpDir = '/tmp'
-    installRoot = '/opt'
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
-
-  installDir = path.join(installRoot, appName)
+    installDir = process.env.INSTALL_PREFIX ? '/usr/local'
 
   coffeeConfig =
     options:

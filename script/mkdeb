@@ -1,0 +1,31 @@
+#!/bin/bash
+# mkdeb version control-file-path deb-file-path
+
+SCRIPT=`readlink -f "$0"`
+ROOT=`readlink -f $(dirname $SCRIPT)/..`
+cd $ROOT
+
+VERSION="$1"
+CONTROL_FILE="$2"
+DESKTOP_FILE="$3"
+ICON_FILE="$4"
+DEB_PATH="$5"
+
+TARGET_ROOT="`mktemp -d`"
+TARGET="$TARGET_ROOT/atom-$VERSION"
+
+mkdir -p "$TARGET/usr"
+env INSTALL_PREFIX="$TARGET/usr" script/grunt install
+
+mkdir -p "$TARGET/DEBIAN"
+mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
+
+mkdir -p "$TARGET/usr/share/applications"
+mv "$DESKTOP_FILE" "$TARGET/usr/share/applications"
+
+mkdir -p "$TARGET/usr/share/pixmaps"
+cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
+
+dpkg-deb -b "$TARGET"
+mv "$TARGET_ROOT/atom-$VERSION.deb" "$DEB_PATH"
+rm -rf $TARGET_ROOT
