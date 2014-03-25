@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "0.76.0",
+  "version": "0.77.0",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
@@ -11,10 +11,10 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "All Rights Reserved",
-  "atomShellVersion": "0.11.1",
+  "atomShellVersion": "0.11.2",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "^0.10.0",
+    "atom-keymap": "^0.11.0",
     "bootstrap": "git://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.7.0",
@@ -86,9 +86,9 @@
     "package-generator": "0.30.0",
     "release-notes": "0.26.0",
     "settings-view": "0.97.0",
-    "snippets": "0.37.0",
+    "snippets": "0.38.0",
     "spell-check": "0.28.0",
-    "status-bar": "0.36.0",
+    "status-bar": "0.37.0",
     "styleguide": "0.26.0",
     "symbols-view": "0.44.0",
     "tabs": "0.31.0",
@@ -101,7 +101,7 @@
     "language-c": "0.13.0",
     "language-coffee-script": "0.16.0",
     "language-css": "0.13.0",
-    "language-gfm": "0.24.0",
+    "language-gfm": "0.25.0",
     "language-git": "0.9.0",
     "language-go": "0.7.0",
     "language-html": "0.15.0",
@@ -125,7 +125,7 @@
     "language-text": "0.6.0",
     "language-todo": "0.9.0",
     "language-toml": "0.12.0",
-    "language-xml": "0.8.0",
+    "language-xml": "0.9.0",
     "language-yaml": "0.6.0"
   },
   "private": true,

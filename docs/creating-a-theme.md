@@ -51,7 +51,7 @@ editor such as comments, strings and the line numbers in the gutter.
 
 As an example, let's make the `.gutter` `background-color` into `@red`.
 
-Reload Atom by pressing `cmd-alt-option-L` to see the changes you made reflected
+Reload Atom by pressing `cmd-alt-ctrl-l` to see the changes you made reflected
 in your Atom window. Pretty neat!
 
 __Tip:__ You can avoid reloading to see changes you make by opening an atom

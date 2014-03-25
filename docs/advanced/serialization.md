@@ -19,7 +19,7 @@ module.exports =
   activate: (state) ->
     @myObject =
       if state
-        deserialize(state)
+        atom.deserializers.deserialize(state)
       else
         new MyObject("Hello")
 
@@ -31,7 +31,8 @@ module.exports =
 
 ```coffee-script
 class MyObject
-  registerDeserializer(this)
+  atom.deserializers.add(this)
+
   @deserialize: ({data}) -> new MyObject(data)
   constructor: (@data) ->
   serialize: -> { deserializer: 'MyObject', data: @data }
@@ -50,8 +51,8 @@ class-level method on the same class that implements `serialize`. This method's
 job is to convert a state object returned from a previous call `serialize` back
 into a genuine object.
 
-#### registerDeserializer(klass)
-You need to call the global `registerDeserializer` method with your class in
+#### atom.deserializers.add(klass)
+You need to call the `atom.deserializers.add` method with your class in
 order to make it available to the deserialization system. Now you can call the
 global `deserialize` method with state returned from `serialize`, and your
 class's `deserialize` method will be selected automatically.
@@ -60,14 +61,15 @@ class's `deserialize` method will be selected automatically.
 
 ```coffee-script
 class MyObject
+  atom.deserializers.add(this)
+
   @version: 2
   @deserialize: (state) -> ...
-  serialize: -> { version: MyObject.version, ... }
+  serialize: -> { version: @constructor.version, ... }
 ```
 
 Your serializable class can optionally have a class-level `@version` property
 and include a `version` key in its serialized state. When deserializing, Atom
 will only attempt to call deserialize if the two versions match, and otherwise
 return undefined. We plan on implementing a migration system in the future, but
-this at least protects you from improperly deserializing old state. If you find
-yourself in dire need of the migration system, let us know.
+this at least protects you from improperly deserializing old state.
