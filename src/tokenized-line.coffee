@@ -134,3 +134,31 @@ class TokenizedLine
     for token in @tokens
       return column if token is targetToken
       column += token.bufferDelta
+
+  getScopeTree: ->
+    @scopeTree ?= new ScopeTree(@tokens)
+
+class ScopeTree
+  constructor: (@tokens, @scope, @depth=0) ->
+    @scope ?= @tokens[0].scopes[@depth]
+    @children = []
+    childDepth = @depth + 1
+    currentChildScope = null
+    currentChildTokens = []
+
+    for token in @tokens
+      tokenScope = token.scopes[childDepth]
+
+      if tokenScope is currentChildScope
+        currentChildTokens.push(token)
+      else
+        if currentChildScope?
+          @children.push(new ScopeTree(currentChildTokens, currentChildScope, childDepth))
+          currentChildScope = null
+          currentChildTokens = []
+
+        if tokenScope?
+          currentChildScope = tokenScope
+          currentChildTokens.push(token)
+        else
+          @children.push(token)

@@ -4,6 +4,8 @@ GutterView = require './gutter-view'
 Editor = require './editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
+EditorContentsComponent = require './editor-contents-component'
+
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -121,6 +123,9 @@ class EditorView extends View
     @newSelections = []
 
     @setPlaceholderText(placeholderText) if placeholderText
+
+    @contentsComponent = new EditorContentsComponent({editor})
+    @renderedLines.replaceWith(@contentsComponent.element)
 
     if editor?
       @edit(editor)
@@ -969,6 +974,8 @@ class EditorView extends View
     unless @isOnDom() and @isVisible()
       @redrawOnReattach = true
       return
+
+    return
 
     scrollViewWidth = @scrollView.width()
     @updateRenderedLines(scrollViewWidth)
