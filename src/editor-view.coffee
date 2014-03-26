@@ -1338,14 +1338,17 @@ class EditorView extends View
     return 0 if screenColumn == 0
 
     tokenizedLine = @editor.displayBuffer.lineForRow(screenRow)
+    textContent = lineElement.textContent
 
     left = 0
     index = 0
     for token in tokenizedLine.tokens
-      for char in token.value
+      for bufferChar in token.value
         return left if index >= screenColumn
 
-        val = @getCharacterWidthCache(token.scopes, char)
+        # Invisibles might cause renderedChar to be different than bufferChar
+        renderedChar = textContent[index]
+        val = @getCharacterWidthCache(token.scopes, renderedChar)
         if val?
           left += val
         else

@@ -2894,6 +2894,20 @@ describe "EditorView", ->
       for rowNumber in [1..5]
         expect(editorView.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
 
+    it "correctly calculates the position left for non-monospaced invisibles", ->
+      editorView.setShowInvisibles(true)
+      editorView.setInvisibles tab: '♘'
+      editor.setText('\tx')
+
+      editorView.setFontFamily('serif')
+      editorView.setFontSize(10)
+      editorView.attachToDom()
+      editorView.setWidthInChars(5)
+
+      expect(editorView.pixelPositionForScreenPosition([0, 0]).left).toEqual 0
+      expect(editorView.pixelPositionForScreenPosition([0, 1]).left).toEqual 10
+      expect(editorView.pixelPositionForScreenPosition([0, 2]).left).toEqual 13
+
   describe "when the window is resized", ->
     it "updates the active edit session with the current soft wrap column", ->
       editorView.attachToDom()
