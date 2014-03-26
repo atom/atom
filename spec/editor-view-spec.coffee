@@ -2895,7 +2895,6 @@ describe "EditorView", ->
         expect(editorView.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
 
     it "correctly calculates the position left for non-monospaced invisibles", ->
-      window.debugContent = true
       editorView.setShowInvisibles(true)
       editorView.setInvisibles tab: '♘'
       editor.setText('\tx')
