@@ -2,6 +2,8 @@ _ = require 'underscore-plus'
 {specificity} = require 'clear-cut'
 {Subscriber} = require 'emissary'
 {GrammarRegistry, ScopeSelector} = require 'first-mate'
+ScopedPropertyStore = require 'scoped-property-store'
+PropertyAccessors = require 'property-accessors'
 
 {$, $$} = require './space-pen-extensions'
 Token = require './token'
@@ -14,6 +16,7 @@ Token = require './token'
 # language-specific comment regexes.
 module.exports =
 class Syntax extends GrammarRegistry
+  PropertyAccessors.includeInto(this)
   Subscriber.includeInto(this)
   atom.deserializers.add(this)
 
@@ -24,34 +27,28 @@ class Syntax extends GrammarRegistry
 
   constructor: ->
     super
-
-    @scopedPropertiesIndex = 0
-    @scopedProperties = []
+    @propertyStore = new ScopedPropertyStore
 
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
+  # Deprecated: Used by settings-view to display snippets for packages
+  @::accessor 'scopedProperties', -> @propertyStore.propertySets
+
   addProperties: (args...) ->
     name = args.shift() if args.length > 2
     [selector, properties] = args
-
-    @scopedProperties.unshift(
-      name: name
-      selector: selector,
-      properties: properties,
-      specificity: specificity(selector),
-      index: @scopedPropertiesIndex++
-    )
+    propertiesBySelector = {}
+    propertiesBySelector[selector] = properties
+    @propertyStore.addProperties(name, propertiesBySelector)
 
   removeProperties: (name) ->
-    for properties in @scopedProperties.filter((properties) -> properties.name is name)
-      _.remove(@scopedProperties, properties)
+    @propertyStore.removeProperties(name)
 
   clearProperties: ->
-    @scopedProperties = []
-    @scopedPropertiesIndex = 0
+    @propertyStore = new ScopedPropertyStore
 
   # Public: Get a property for the given scope and key path.
   #
@@ -66,48 +63,21 @@ class Syntax extends GrammarRegistry
   #
   # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->
-    for object in @propertiesForScope(scope, keyPath)
-      value = _.valueForKeyPath(object, keyPath)
-      return value if value?
-    undefined
+    scopeChain = scope
+      .map (scope) ->
+        scope = ".#{scope}" unless scope.indexOf('.') is 0
+        scope
+      .join(' ')
+    @propertyStore.getPropertyValue(scopeChain, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
-    matchingProperties = []
-    candidates = @scopedProperties.filter ({properties}) -> _.valueForKeyPath(properties, keyPath)?
-    if candidates.length
-      element = @buildScopeElement(scope)
-      while element
-        matchingProperties.push(@matchingPropertiesForElement(element, candidates)...)
-        element = element.parentNode
-    matchingProperties
+    scopeChain = scope
+      .map (scope) ->
+        scope = ".#{scope}" unless scope.indexOf('.') is 0
+        scope
+      .join(' ')
 
-  matchingPropertiesForElement: (element, candidates) ->
-    matchingScopedProperties = candidates.filter ({selector}) ->
-      $.find.matchesSelector(element, selector)
-    matchingScopedProperties.sort (a, b) ->
-      if a.specificity == b.specificity
-        b.index - a.index
-      else
-        b.specificity - a.specificity
-    _.pluck matchingScopedProperties, 'properties'
-
-  buildScopeElement: (scope) ->
-    scope = scope.slice()
-    element = $$ ->
-      elementsForRemainingScopes = =>
-        classString = scope.shift()
-        classes = classString.replace(/^\./, '').replace(/\./g, ' ')
-        if scope.length
-          @div class: classes, elementsForRemainingScopes
-        else
-          @div class: classes
-      elementsForRemainingScopes()
-
-    deepestChild = element.find(":not(:has(*))")
-    if deepestChild.length
-      deepestChild[0]
-    else
-      element[0]
+    @propertyStore.getProperties(scopeChain, keyPath)
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
     new ScopeSelector(scopeSelector).toCssSelector()
