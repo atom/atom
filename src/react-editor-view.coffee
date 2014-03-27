@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 {$$} = require 'space-pencil'
-{React} = require 'reactionary'
+React = require 'react'
 EditorContentsComponent = require './editor-contents-component'
 
 module.exports =
@@ -13,11 +13,15 @@ class ReactEditorView extends View
     super
     @scrollView = @scrollView.element
     @contents = React.renderComponent(EditorContentsComponent({@editor}), @scrollView)
+    @subscribe @editor, 'screen-lines-changed', (change) => @contents.onScreenLinesChanged(change)
 
   afterAttach: (onDom) ->
-    @measureLineHeight()
+    return unless onDom
 
-    @contents.setState
+    @editor.setVisible(true)
+
+    @measureLineHeight()
+    @contents.setProps
       height: @scrollView.clientHeight
       scrollTop: @scrollView.scrollTop
       lineHeight: @lineHeight
@@ -28,8 +32,8 @@ class ReactEditorView extends View
         @div class: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
 
     @scrollView.appendChild(fragment)
-    lineRect = fragment.getBoundingClientRect()
-    charRect = fragment.firstChild.getBoundingClientRect()
+    lineRect = fragment.firstChild.getBoundingClientRect()
+    charRect = fragment.firstChild.firstChild.getBoundingClientRect()
     @lineHeight = lineRect.height
     @charWidth = charRect.width
     @charHeight = charRect.height
