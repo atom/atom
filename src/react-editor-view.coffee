@@ -26,6 +26,9 @@ class ReactEditorView extends View
       scrollTop: @scrollView.scrollTop
       lineHeight: @lineHeight
 
+  setScrollTop: (scrollTop) ->
+    @contents.setProps({scrollTop})
+
   measureLineHeight: ->
     fragment = $$ ->
       @div class: 'lines', ->
