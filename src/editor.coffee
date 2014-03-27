@@ -217,7 +217,7 @@ class Editor extends Model
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
   getViewClass: ->
-    require './editor-view'
+    require './react-editor-view'
 
   destroyed: ->
     @unsubscribe()

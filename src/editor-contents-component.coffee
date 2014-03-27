@@ -1,28 +1,48 @@
-{React, div, span} = require 'reactionary'
+React = require 'react'
+{div, span} = React.DOM
 {last} = require 'underscore-plus'
 
 module.exports =
 React.createClass
   render: ->
+    div className: 'lines', @renderVisibleLines()
+
+  renderVisibleLines: ->
+    return [] unless @props.lineHeight > 0
+
     [startRow, endRow] = @getVisibleRowRange()
-    div className: 'lines',
-      for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        div className: 'line', @renderScopeTree(tokenizedLine.getScopeTree())
+    for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
+      LineComponent({tokenizedLine, key: tokenizedLine.id})
 
-  renderScopeTree: (scopeTree) ->
-    if scopeTree.scope?
-      span className: ".#{scopeTree.scope}",
-        @renderScopeTree(child) for child in scopeTree.children
-    else
-      scopeTree.value
-
-  getInitialState: ->
+  getDefaultProps: ->
     height: 0
     lineHeight: 0
     scrollTop: 0
 
   getVisibleRowRange: ->
-    heightInLines = @state.height / @state.lineHeight
-    startRow = Math.floor(@state.scrollTop / @state.lineHeight)
-    endRow = startRow + heightInLines
+    heightInLines = @props.height / @props.lineHeight
+    startRow = Math.floor(@props.scrollTop / @props.lineHeight)
+    endRow = Math.ceil(startRow + heightInLines)
     [startRow, endRow]
+
+  onScreenLinesChanged: ({start, end}) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    @forceUpdate() unless end < visibleStart or visibleEnd <= start
+
+LineComponent = React.createClass
+  render: ->
+    {tokenizedLine} = @props
+    div className: 'line',
+      if tokenizedLine.text.length is 0
+        span {}, String.fromCharCode(160) # non-breaking space; bypasses escaping
+      else
+        @renderScopeTree(tokenizedLine.getScopeTree())
+
+  renderScopeTree: (scopeTree) ->
+    if scopeTree.scope?
+      span className: scopeTree.scope.split('.').join(' '),
+        scopeTree.children.map (child) => @renderScopeTree(child)
+    else
+      span {}, scopeTree.value
+
+key = 0
