@@ -47,7 +47,8 @@ module.exports = (grunt) ->
       path.join('less', 'test')
       path.join('bootstrap', 'docs')
       path.join('bootstrap', 'examples')
-      path.join('spellchecker', 'vendor')
+      # Add .* to avoid matching hunspell_dictionaries.
+      path.join('spellchecker', 'vendor', 'hunspell', '.*')
       path.join('xmldom', 'test')
       path.join('jasmine-reporters', 'ext')
       path.join('build', 'Release', 'obj.target')
@@ -56,6 +57,9 @@ module.exports = (grunt) ->
       path.join('resources', 'mac')
       path.join('resources', 'win')
     ]
+    # Hunspell dictionaries are only not needed on OS X.
+    if process.platform is 'darwin'
+      ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
