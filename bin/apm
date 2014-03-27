@@ -11,9 +11,9 @@ binDir=`basename "$apmPath"`
 # Detect CPU arch.
 archs=`uname -m`
 case "$archs" in
-  i?86) archs='x86' ;;
+  i?86) archs='ia32' ;;
   x86_64) archs='x64' ;;
-  *) archs='other' ;;
+  *) archs='arm' ;;
 esac
 
 # Detect current OS, see http://stackoverflow.com/q/3466166/682252.
