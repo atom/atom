@@ -1,11 +1,10 @@
-React = require 'react'
-{div, span} = React.DOM
+{React, div, span} = require 'reactionary'
 {last} = require 'underscore-plus'
 
 module.exports =
 React.createClass
   render: ->
-    div className: 'lines', @renderVisibleLines()
+    div class: 'lines', @renderVisibleLines()
 
   renderVisibleLines: ->
     return [] unless @props.lineHeight > 0
@@ -32,7 +31,7 @@ React.createClass
 LineComponent = React.createClass
   render: ->
     {tokenizedLine} = @props
-    div className: 'line',
+    div class: 'line',
       if tokenizedLine.text.length is 0
         span {}, String.fromCharCode(160) # non-breaking space; bypasses escaping
       else
@@ -40,9 +39,7 @@ LineComponent = React.createClass
 
   renderScopeTree: (scopeTree) ->
     if scopeTree.scope?
-      span className: scopeTree.scope.split('.').join(' '),
+      span class: scopeTree.scope.split('.').join(' '),
         scopeTree.children.map (child) => @renderScopeTree(child)
     else
-      span {}, scopeTree.value
-
-key = 0
+      span scopeTree.value

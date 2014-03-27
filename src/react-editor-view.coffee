@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 {$$} = require 'space-pencil'
-React = require 'react'
+{React} = require 'reactionary'
 EditorContentsComponent = require './editor-contents-component'
 
 module.exports =
