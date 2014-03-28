@@ -9,9 +9,6 @@ _ = require 'underscore-plus'
 # and maintain the state of all menu items.
 module.exports =
 class ApplicationMenu
-  version: null
-  menu: null
-
   constructor: (@version) ->
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
@@ -103,12 +100,15 @@ class ApplicationMenu
     [
       label: "Atom"
       submenu: [
-          { label: 'Reload', accelerator: 'Command+R', click: -> @focusedWindow()?.reload() }
-          { label: 'Close Window', accelerator: 'Command+Shift+W', click: -> @focusedWindow()?.close() }
-          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: -> @focusedWindow()?.toggleDevTools() }
+          { label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload() }
+          { label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close() }
+          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools() }
           { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
     ]
+
+  focusedWindow: ->
+    _.find global.atomApplication.windows, (atomWindow) -> atomWindow.isFocused()
 
   # Combines a menu template with the appropriate keystroke.
   #
