@@ -1,4 +1,5 @@
-{React, div, span} = require 'reactionary'
+punycode = require 'punycode'
+{React, div, span, input} = require 'reactionary'
 {last} = require 'underscore-plus'
 {$$} = require 'space-pencil'
 
@@ -24,6 +25,7 @@ React.createClass
     followingHeight = (lineCount - endRow) * @state.lineHeight
 
     div className: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
+      InputComponent ref: 'hiddenInput', onInput: @onInput
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
         LineComponent({tokenizedLine, key: tokenizedLine.id}))...
@@ -41,6 +43,7 @@ React.createClass
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
     @updateAllDimensions()
     @props.editor.setVisible(true)
+    @refs.hiddenInput.focus()
 
   componentWillUnmount: ->
     @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
@@ -57,6 +60,11 @@ React.createClass
   onMousewheel: (event) ->
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
     event.preventDefault()
+
+  onInput: (char, replaceLastChar) ->
+    console.log char, replaceLastChar
+
+    @props.editor.insertText(char)
 
   onScreenLinesChanged: ({start, end}) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
@@ -109,3 +117,37 @@ LineComponent = React.createClass
       "<span>#{scopeTree.value}</span>"
 
   shouldComponentUpdate: -> false
+
+InputComponent = React.createClass
+  render: ->
+    input @props.className, ref: 'input'
+
+  getInitialState: ->
+    {lastChar: ''}
+
+  componentDidMount: ->
+    @getDOMNode().addEventListener 'input', @onInput
+    @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
+
+  # Don't let text accumulate in the input forever, but avoid excessive reflows
+  componentDidUpdate: ->
+    if @lastValueLength > 500 and not @isPressAndHoldCharacter(@state.lastChar)
+      @getDOMNode().value = ''
+      @lastValueLength = 0
+
+  # This should actually consult the property lists in /System/Library/Input Methods/PressAndHold.app
+  isPressAndHoldCharacter: (char) ->
+    @state.lastChar.match /[aeiouAEIOU]/
+
+  shouldComponentUpdate: -> false
+
+  onInput: (e) ->
+    valueCharCodes = punycode.ucs2.decode(@getDOMNode().value)
+    valueLength = valueCharCodes.length
+    replaceLastChar = valueLength is @lastValueLength
+    @lastValueLength = valueLength
+    lastChar = String.fromCharCode(last(valueCharCodes))
+    @props.onInput?(lastChar, replaceLastChar)
+
+  focus: ->
+    @getDOMNode().focus()
