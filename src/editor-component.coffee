@@ -10,7 +10,8 @@ React.createClass
   render: ->
     div class: 'editor',
       div class: 'scroll-view', ref: 'scrollView',
-        div @renderVisibleLines()
+        div class: 'overlayer'
+        @renderVisibleLines()
       div class: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: @getScrollHeight()}
 
@@ -20,11 +21,12 @@ React.createClass
     lineCount = @props.editor.getScreenLineCount()
     followingHeight = (lineCount - endRow) * @state.lineHeight
 
-    div class: 'lines', ref: 'lines', style: {top: -@state.scrollTop},
-      div class: 'spacer', style: {height: precedingHeight}
-      for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({tokenizedLine, key: tokenizedLine.id})
-      div class: 'spacer', style: {height: followingHeight}
+    div class: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
+      div class: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
+      (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
+        LineComponent({tokenizedLine, key: tokenizedLine.id}))...
+      div class: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
+    ]
 
   getInitialState: ->
     height: 0
@@ -34,10 +36,12 @@ React.createClass
 
   componentDidMount: ->
     @props.editor.on 'screen-lines-changed', @onScreenLinesChanged
+    @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
     @updateAllDimensions()
 
   componentWillUnmount: ->
     @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
+    @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
 
   componentWilUpdate: (nextProps, nextState) ->
     if nextState.scrollTop?
@@ -46,6 +50,10 @@ React.createClass
   onVerticalScroll: ->
     scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
     @setState({scrollTop})
+
+  onMousewheel: (event) ->
+    @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
+    event.preventDefault()
 
   onScreenLinesChanged: ({start, end}) =>
     [visibleStart, visibleEnd] = @getVisibleRowRange()
@@ -65,8 +73,6 @@ React.createClass
   updateAllDimensions: ->
     lineHeight = @measureLineHeight()
     {height, width} = @measureScrollViewDimensions()
-
-    console.log "updating dimensions", {lineHeight, height, width}
 
     @setState({lineHeight, height, width})
 
@@ -92,6 +98,8 @@ LineComponent = React.createClass
   renderScopeTree: (scopeTree) ->
     if scopeTree.scope?
       span class: scopeTree.scope.split('.').join(' '),
-        scopeTree.children.map (child) => @renderScopeTree(child)
+        scopeTree.children.map((child) => @renderScopeTree(child))...
     else
       span scopeTree.value
+
+  shouldComponentUpdate: -> false
