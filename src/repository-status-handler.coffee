@@ -13,7 +13,7 @@ module.exports = (repoPath) ->
     # Statuses in main repo
     workingDirectoryPath = repo.getWorkingDirectory()
     for filePath, status of repo.getStatus()
-      statuses[path.join(workingDirectoryPath, filePath)] = status
+      statuses[filePath] = status
 
     # Statuses in submodules
     for submodulePath, submoduleRepo of repo.submodules
@@ -23,7 +23,7 @@ module.exports = (repoPath) ->
 
       workingDirectoryPath = submoduleRepo.getWorkingDirectory()
       for filePath, status of submoduleRepo.getStatus()
-        statuses[path.join(workingDirectoryPath, filePath)] = status
+        statuses[repo.relativize(path.join(workingDirectoryPath, filePath))] = status
 
     upstream = repo.getAheadBehindCount()
     branch = repo.getHead()
