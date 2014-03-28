@@ -139,32 +139,31 @@ class TokenizedLine
       column += token.bufferDelta
 
   getScopeTree: ->
-    @scopeTree ?= new ScopeTree(@tokens)
+    return @scopeTree if @scopeTree?
 
-class ScopeTree
-  constructor: (@tokens, @scope, @depth=0) ->
-    @scope ?= @tokens[0].scopes[@depth]
-    @children = []
-    childDepth = @depth + 1
-    currentChildScope = null
-    currentChildTokens = []
-
+    scopeStack = []
     for token in @tokens
-      tokenScope = token.scopes[childDepth]
+      @updateScopeStack(scopeStack, token.scopes)
+      _.last(scopeStack).children.push(token)
 
-      if tokenScope is currentChildScope
-        currentChildTokens.push(token)
-      else
-        if currentChildScope?
-          @children.push(new ScopeTree(currentChildTokens, currentChildScope, childDepth))
-          currentChildScope = null
-          currentChildTokens = []
+    @scopeTree = scopeStack[0]
+    @updateScopeStack(scopeStack, [])
+    @scopeTree
 
-        if tokenScope?
-          currentChildScope = tokenScope
-          currentChildTokens.push(token)
-        else
-          @children.push(token)
+  updateScopeStack: (scopeStack, desiredScopes) ->
+    # Find a common prefix
+    for scope, i in desiredScopes
+      break unless scopeStack[i]?.scope is desiredScopes[i]
 
-    if currentChildScope?
-      @children.push(new ScopeTree(currentChildTokens, currentChildScope, childDepth))
+    # Pop scopes until we're at the common prefx
+    until scopeStack.length is i
+      poppedScope = scopeStack.pop()
+      _.last(scopeStack)?.children.push(poppedScope)
+
+    # Push onto common prefix until scopeStack equals desiredScopes
+    for j in [i...desiredScopes.length]
+      scopeStack.push(new Scope(scope))
+
+class Scope
+  constructor: (@scope) ->
+    @children = []
