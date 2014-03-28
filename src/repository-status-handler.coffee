@@ -23,7 +23,10 @@ module.exports = (repoPath) ->
 
       workingDirectoryPath = submoduleRepo.getWorkingDirectory()
       for filePath, status of submoduleRepo.getStatus()
-        statuses[repo.relativize(path.join(workingDirectoryPath, filePath))] = status
+        absolutePath = path.join(workingDirectoryPath, filePath)
+        # Make path relative to parent repository
+        relativePath = repo.relativize(absolutePath)
+        statuses[relativePath] = status
 
     upstream = repo.getAheadBehindCount()
     branch = repo.getHead()
