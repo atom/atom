@@ -162,7 +162,7 @@ class TokenizedLine
 
     # Push onto common prefix until scopeStack equals desiredScopes
     for j in [i...desiredScopes.length]
-      scopeStack.push(new Scope(scope))
+      scopeStack.push(new Scope(desiredScopes[j]))
 
 class Scope
   constructor: (@scope) ->
