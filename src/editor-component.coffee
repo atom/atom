@@ -3,18 +3,18 @@
 {$$} = require 'space-pencil'
 
 DummyLineNode = $$ ->
-  @div class: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
+  @div className: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
 
 module.exports =
 React.createClass
   pendingScrollTop: null
 
   render: ->
-    div class: 'editor',
-      div class: 'scroll-view', ref: 'scrollView',
-        div class: 'overlayer'
+    div className: 'editor',
+      div className: 'scroll-view', ref: 'scrollView',
+        div className: 'overlayer'
         @renderVisibleLines()
-      div class: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
+      div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: @getScrollHeight()}
 
   renderVisibleLines: ->
@@ -23,11 +23,11 @@ React.createClass
     lineCount = @props.editor.getScreenLineCount()
     followingHeight = (lineCount - endRow) * @state.lineHeight
 
-    div class: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
-      div class: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
+    div className: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
+      div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
         LineComponent({tokenizedLine, key: tokenizedLine.id}))...
-      div class: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
+      div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
 
   getInitialState: ->
@@ -92,7 +92,7 @@ React.createClass
 
 LineComponent = React.createClass
   render: ->
-    div class: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    div className: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
     if @props.tokenizedLine.text.length is 0
