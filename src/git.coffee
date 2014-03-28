@@ -1,8 +1,11 @@
+{join, sep} = require 'path'
+
 _ = require 'underscore-plus'
-fs = require 'fs-plus'
-Task = require './task'
 {Emitter, Subscriber} = require 'emissary'
+fs = require 'fs-plus'
 GitUtils = require 'git-utils'
+
+Task = require './task'
 
 # Public: Represents the underlying git operations performed by Atom.
 #
@@ -125,13 +128,14 @@ class Git
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
-    currentPathStatus = @statuses[path] ? 0
     repo = @getRepo(path)
+    relativePath = @relativize(path)
+    currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     if pathStatus > 0
-      @statuses[path] = pathStatus
+      @statuses[relativePath] = pathStatus
     else
-      delete @statuses[path]
+      delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
       @emit 'status-changed', path, pathStatus
     pathStatus
@@ -236,8 +240,7 @@ class Git
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getDirectoryStatus: (directoryPath)  ->
-    {sep} = require 'path'
-    directoryPath = "#{directoryPath}#{sep}"
+    directoryPath = "#{@relativize(directoryPath)}#{sep}"
     directoryStatus = 0
     for path, status of @statuses
       directoryStatus |= status if path.indexOf(directoryPath) is 0
@@ -321,6 +324,14 @@ class Git
   #   :behind - The {Number} of commits behind.
   getCachedUpstreamAheadBehindCount: (path) ->
     @getRepo(path).upstream ? @upstream
+
+  # Public: Get the cached status for the given path.
+  #
+  # path - A {String} path in the repository, relative or absolute.
+  #
+  # Returns a status {Number} or null if the path is not in the cache.
+  getCachedPathStatus: (path) ->
+    @statuses[@relativize(path)]
 
   # Public: Returns true if the given branch exists.
   hasBranch: (branch) -> @getReferenceTarget("refs/heads/#{branch}")?
