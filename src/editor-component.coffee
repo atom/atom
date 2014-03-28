@@ -38,6 +38,7 @@ React.createClass
     @props.editor.on 'screen-lines-changed', @onScreenLinesChanged
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
     @updateAllDimensions()
+    @props.editor.setVisible(true)
 
   componentWillUnmount: ->
     @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
@@ -55,7 +56,7 @@ React.createClass
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
     event.preventDefault()
 
-  onScreenLinesChanged: ({start, end}) =>
+  onScreenLinesChanged: ({start, end}) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
     @forceUpdate() unless end < visibleStart or visibleEnd <= start
 
