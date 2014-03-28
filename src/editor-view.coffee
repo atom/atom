@@ -4,7 +4,6 @@ GutterView = require './gutter-view'
 Editor = require './editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
-EditorContentsComponent = require './editor-contents-component'
 
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
