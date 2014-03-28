@@ -330,7 +330,7 @@ class Git
   #
   # path - A {String} path in the repository, relative or absolute.
   #
-  # Returns a status {Number} or null if path is not in the cache.
+  # Returns a status {Number} or null if the path is not in the cache.
   getCachedPathStatus: (path) ->
     @statuses[@relativize(path)]
 
