@@ -177,6 +177,24 @@ describe "Git", ->
       status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
 
+  describe ".getDirectoryStatus(path)", ->
+    [directoryPath, filePath, originalPathText] = []
+
+    beforeEach ->
+      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
+      directoryPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'dir')
+      filePath = require.resolve('./fixtures/git/working-dir/dir/b.txt')
+      originalPathText = fs.readFileSync(filePath, 'utf8')
+
+    afterEach ->
+      fs.writeFileSync(filePath, originalPathText)
+
+    it "gets the status based on the files inside the directory", ->
+      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe false
+      fs.writeFileSync(filePath, 'abc')
+      repo.getPathStatus(filePath)
+      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe true
+
   describe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
