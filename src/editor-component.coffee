@@ -7,6 +7,8 @@ DummyLineNode = $$ ->
 
 module.exports =
 React.createClass
+  pendingScrollTop: null
+
   render: ->
     div class: 'editor',
       div class: 'scroll-view', ref: 'scrollView',
@@ -44,13 +46,13 @@ React.createClass
     @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
 
-  componentWilUpdate: (nextProps, nextState) ->
-    if nextState.scrollTop?
-      @refs.verticalScrollbar.getDOMNode().scrollTop = nextState.scrollTop
-
   onVerticalScroll: ->
-    scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
-    @setState({scrollTop})
+    animationFramePending = @pendingScrollTop?
+    @pendingScrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
+    unless animationFramePending
+      requestAnimationFrame =>
+        @setState({scrollTop: @pendingScrollTop})
+        @pendingScrollTop = null
 
   onMousewheel: (event) ->
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
@@ -90,17 +92,20 @@ React.createClass
 
 LineComponent = React.createClass
   render: ->
-    div class: 'line',
-      if @props.tokenizedLine.text.length is 0
-        span String.fromCharCode(160) # non-breaking space; bypasses escaping
-      else
-        @renderScopeTree(@props.tokenizedLine.getScopeTree())
+    div class: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
-  renderScopeTree: (scopeTree) ->
-    if scopeTree.scope?
-      span class: scopeTree.scope.split('.').join(' '),
-        scopeTree.children.map((child) => @renderScopeTree(child))...
+  buildInnerHTML: ->
+    if @props.tokenizedLine.text.length is 0
+      "<span>&nbsp;</span>"
     else
-      span scopeTree.value
+      @buildScopeTreeHTML(@props.tokenizedLine.getScopeTree())
+
+  buildScopeTreeHTML: (scopeTree) ->
+    if scopeTree.children?
+      html = "<span class='#{scopeTree.scope.replace(/\./g, ' ')}'>"
+      html += @buildScopeTreeHTML(child) for child in scopeTree.children
+      html
+    else
+      "<span>#{scopeTree.value}</span>"
 
   shouldComponentUpdate: -> false

@@ -25,9 +25,10 @@ describe "EditorComponent", ->
     expect(lines[4].textContent).toBe editor.lineForScreenRow(4).text
 
     node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeight
+    spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> fn()
     component.onVerticalScroll()
 
-    expect(node.querySelector('.lines').offsetTop).toBe  -2.5 * lineHeight
+    expect(node.querySelector('.lines').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeight}px)"
 
     lines = node.querySelectorAll('.line')
     expect(lines.length).toBe 5
