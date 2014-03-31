@@ -226,12 +226,14 @@ class Git
   #
   # Returns a {Boolean}.
   isSubmodule: (path) ->
+    return false unless path
+
     repo = @getRepo(path)
     if repo.isSubmodule(repo.relativize(path))
       true
     else
       # Check if the path is a working directory in a repo that isn't the root.
-      path is repo.getWorkingDirectory() and repo isnt @getRepo()
+      repo isnt @getRepo() and repo.relativize(join(path, 'dir')) is 'dir'
 
   # Public: Get the status of a directory in the repository's working directory.
   #
