@@ -42,7 +42,7 @@
     "random-words": "0.0.1",
     "runas": "0.5.x",
     "scandal": "0.15.2",
-    "scoped-property-store": "^0.6.0",
+    "scoped-property-store": "^0.7.0",
     "scrollbar-style": "^0.1.0",
     "season": ">=1.0.2 <2.0",
     "semver": "1.1.4",
