@@ -24,7 +24,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.config`        - A {Config} instance
 #  * `atom.contextMenu`   - A {ContextMenuManager} instance
 #  * `atom.deserializers` - A {DeserializerManager} instance
-#  * `atom.keymap`        - A {Keymap} instance
+#  * `atom.keymaps`        - A {Keymap} instance
 #  * `atom.menu`          - A {MenuManager} instance
 #  * `atom.packages`      - A {PackageManager} instance
 #  * `atom.project`       - A {Project} instance
@@ -157,7 +157,8 @@ class Atom extends Model
     process.env.NODE_PATH = exportsPath
 
     @config = new Config({configDirPath, resourcePath})
-    @keymap = new KeymapManager({configDirPath, resourcePath})
+    @keymaps = new KeymapManager({configDirPath, resourcePath})
+    @keymap = @keymaps # Deprecated
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
@@ -244,7 +245,7 @@ class Atom extends Model
     WorkspaceView = require './workspace-view'
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
-    @keymap.defaultTarget = @workspaceView[0]
+    @keymaps.defaultTarget = @workspaceView[0]
     $(@workspaceViewParentSelector).append(@workspaceView)
 
   deserializePackageStates: ->
@@ -269,12 +270,12 @@ class Atom extends Model
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
-    @keymap.loadBundledKeymaps()
+    @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
     @deserializeEditorWindow()
     @packages.activate()
-    @keymap.loadUserKeymap()
+    @keymaps.loadUserKeymap()
     @requireUserInitScript()
     @menu.update()
 
@@ -298,7 +299,7 @@ class Atom extends Model
     @workspaceView = null
     @project.destroy()
     @windowEventHandler?.unsubscribe()
-    @keymap.destroy()
+    @keymaps.destroy()
     @windowState = null
 
   loadThemes: ->

@@ -22,8 +22,8 @@ atom.themes.requireStylesheet '../static/jasmine'
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
-atom.keymap.loadBundledKeymaps()
-keyBindingsToRestore = atom.keymap.getKeyBindings()
+atom.keymaps.loadBundledKeymaps()
+keyBindingsToRestore = atom.keymaps.getKeyBindings()
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->
@@ -50,7 +50,7 @@ beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
-  atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
+  atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
@@ -278,7 +278,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => atom.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) => atom.keymaps.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   @appendTo($('#jasmine-content'))
