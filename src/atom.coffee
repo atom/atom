@@ -140,7 +140,7 @@ class Atom extends Model
     @loadTime = null
 
     Config = require './config'
-    Keymap = require './keymap-extensions'
+    KeymapManager = require './keymap-extensions'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     Syntax = require './syntax'
@@ -157,7 +157,7 @@ class Atom extends Model
     process.env.NODE_PATH = exportsPath
 
     @config = new Config({configDirPath, resourcePath})
-    @keymap = new Keymap({configDirPath, resourcePath})
+    @keymap = new KeymapManager({configDirPath, resourcePath})
     @packages = new PackageManager({devMode, configDirPath, resourcePath})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)

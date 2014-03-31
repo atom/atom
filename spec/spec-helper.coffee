@@ -6,7 +6,7 @@ require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-Keymap = require '../src/keymap-extensions'
+KeymapManager = require '../src/keymap-extensions'
 {$, WorkspaceView} = require 'atom'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
@@ -187,7 +187,7 @@ window.keydownEvent = (key, properties={}) ->
   originalEventProperties.cmd = properties.metaKey
   originalEventProperties.target = properties.target?[0] ? properties.target
   originalEventProperties.which = properties.which
-  originalEvent = Keymap.keydownEvent(key, originalEventProperties)
+  originalEvent = KeymapManager.keydownEvent(key, originalEventProperties)
   properties = $.extend({originalEvent}, properties)
   $.Event("keydown", properties)
 
