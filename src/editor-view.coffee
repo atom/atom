@@ -335,8 +335,7 @@ class EditorView extends View
 
   # Checkout the HEAD revision of this editor's file.
   checkoutHead: ->
-    if path = @editor.getPath()
-      atom.project.getRepo()?.checkoutHead(path)
+    @editor.checkoutHead()
 
   configure: ->
     @subscribe atom.config.observe 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)

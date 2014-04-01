@@ -301,6 +301,9 @@ class Editor extends Model
   # softTabs - A {Boolean}
   setSoftTabs: (@softTabs) -> @softTabs
 
+  # Public: Toggle soft tabs for this editor
+  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
+
   # Public: Get whether soft wrap is enabled for this editor.
   getSoftWrap: -> @displayBuffer.getSoftWrap()
 
@@ -308,6 +311,9 @@ class Editor extends Model
   #
   # softWrap - A {Boolean}
   setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
+
+  # Public: Toggle soft wrap for this editor
+  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
 
   # Public: Get the text representing a single level of indent.
   #
@@ -420,6 +426,15 @@ class Editor extends Model
   #
   # filePath - A {String} path.
   saveAs: (filePath) -> @buffer.saveAs(filePath)
+
+  checkoutHead: ->
+    if path = @getPath()
+      atom.project.getRepo()?.checkoutHead(path)
+
+  # Copies the current file path to the native clipboard.
+  copyPathToClipboard: ->
+    path = @getPath()
+    atom.clipboard.write(path) if path?
 
   # Public: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
@@ -598,6 +613,9 @@ class Editor extends Model
   #
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
+
+  logCursorScope: ->
+    console.log @getCursorScopes()
 
   # Public: For each selection, replace the selected text with the given text.
   #
