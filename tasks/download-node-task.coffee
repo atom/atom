@@ -22,7 +22,8 @@ downloadTarballAndExtract = (url, location, callback) ->
   request(url).pipe(zlib.createGunzip()).pipe(stream)
 
 copyNodeBinToLocation = (callback, version, targetFilename, fromDirectory) ->
-  subDir = "node-#{version}-#{process.platform}-#{process.arch}"
+  arch = if process.arch == 'ia32' then 'x86' else process.arch
+  subDir = "node-#{version}-#{process.platform}-#{arch}"
   fromPath = path.join(fromDirectory, subDir, 'bin', 'node')
   fs.rename(fromPath, targetFilename, callback)
 
@@ -37,7 +38,8 @@ module.exports = (grunt) ->
       downloadURL = "http://nodejs.org/dist/#{version}/#{arch}node.exe"
       filename = path.join('bin', "node_win32_#{process.arch}.exe")
     else
-      downloadURL = "http://nodejs.org/dist/#{version}/node-#{version}-#{process.platform}-#{process.arch}.tar.gz"
+      arch = if process.arch == 'ia32' then 'x86' else process.arch
+      downloadURL = "http://nodejs.org/dist/#{version}/node-#{version}-#{process.platform}-#{arch}.tar.gz"
       filename = path.join('bin', "node_#{process.platform}_#{process.arch}")
 
     if fs.existsSync(filename)
