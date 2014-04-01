@@ -13,7 +13,8 @@ React.createClass
   render: ->
     div className: 'editor',
       div className: 'scroll-view', ref: 'scrollView',
-        div className: 'overlayer'
+        div className: 'overlayer',
+          InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
         @renderVisibleLines()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: @getScrollHeight()}
@@ -25,7 +26,6 @@ React.createClass
     followingHeight = (lineCount - endRow) * @state.lineHeight
 
     div className: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
-      InputComponent ref: 'hiddenInput', onInput: @onInput
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
         LineComponent({tokenizedLine, key: tokenizedLine.id}))...
@@ -120,7 +120,7 @@ LineComponent = React.createClass
 
 InputComponent = React.createClass
   render: ->
-    input @props.className, ref: 'input'
+    input className: @props.className, ref: 'input'
 
   getInitialState: ->
     {lastChar: ''}
