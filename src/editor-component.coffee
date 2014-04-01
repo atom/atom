@@ -4,6 +4,7 @@
 SelectionComponent = require './selection-component'
 InputComponent = require './input-component'
 CustomEventMixin = require './custom-event-mixin'
+SubscriberMixin = require './subscriber-mixin'
 
 DummyLineNode = $$ ->
   @div className: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
@@ -14,7 +15,7 @@ EditorCompont = React.createClass
 
   statics: {DummyLineNode}
 
-  mixins: [CustomEventMixin]
+  mixins: [CustomEventMixin, SubscriberMixin]
 
   render: ->
     div className: 'editor',
@@ -36,7 +37,7 @@ EditorCompont = React.createClass
     {lineHeight, charWidth} = @state
 
     div className: 'overlayer',
-      for selection in @props.editor.getSelections()
+      for selection in @props.editor.getSelections() when @selectionIntersectsVisibleRowRange(selection)
         SelectionComponent({selection, lineHeight, charWidth})
 
   renderVisibleLines: ->
@@ -59,8 +60,12 @@ EditorCompont = React.createClass
 
   componentDidMount: ->
     @listenForCustomEvents()
-    @props.editor.on 'screen-lines-changed', @onScreenLinesChanged
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
+
+    {editor} = @props
+    @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
+    @subscribe editor, 'selection-added', @onSelectionAdded
+
     @updateAllDimensions()
     @props.editor.setVisible(true)
     @refs.hiddenInput.focus()
@@ -95,7 +100,10 @@ EditorCompont = React.createClass
 
   onScreenLinesChanged: ({start, end}) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
-    @forceUpdate() unless end < visibleStart or visibleEnd <= start
+    @forceUpdate() if @intersectsVisibleRowRange(start, end + 1) # TODO: Use closed-open intervals for change events
+
+  onSelectionAdded: (selection) ->
+    @forceUpdate() if @selectionIntersectsVisibleRowRange(selection)
 
   getVisibleRowRange: ->
     return [0, 0] unless @state.lineHeight > 0
@@ -104,6 +112,14 @@ EditorCompont = React.createClass
     startRow = Math.floor(@state.scrollTop / @state.lineHeight)
     endRow = Math.ceil(startRow + heightInLines)
     [startRow, endRow]
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
 
   getScrollHeight: ->
     @props.editor.getLineCount() * @state.lineHeight
