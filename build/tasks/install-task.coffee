@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+fs = require 'fs-plus'
 runas = null
 
 module.exports = (grunt) ->
@@ -26,6 +27,7 @@ module.exports = (grunt) ->
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
+      fs.chmodSync(path.join(binDir, 'atom'), "777")
       rm shareDir
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
