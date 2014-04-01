@@ -1,16 +1,20 @@
-punycode = require 'punycode'
-{React, div, span, input} = require 'reactionary'
-{last} = require 'underscore-plus'
+{React, div, span} = require 'reactionary'
 {$$} = require 'space-pencil'
+
+SelectionComponent = require './selection-component'
+InputComponent = require './input-component'
+CustomEventMixin = require './custom-event-mixin'
 
 DummyLineNode = $$ ->
   @div className: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
 
 module.exports =
-React.createClass
+EditorCompont = React.createClass
   pendingScrollTop: null
 
   statics: {DummyLineNode}
+
+  mixins: [CustomEventMixin]
 
   render: ->
     div className: 'editor',
@@ -54,6 +58,7 @@ React.createClass
     scrollTop: 0
 
   componentDidMount: ->
+    @listenForCustomEvents()
     @props.editor.on 'screen-lines-changed', @onScreenLinesChanged
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
     @updateAllDimensions()
@@ -63,6 +68,15 @@ React.createClass
   componentWillUnmount: ->
     @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
+
+  listenForCustomEvents: ->
+    {editor} = @props
+
+    @addCustomEventListeners
+      'core:move-left': => editor.moveCursorLeft()
+      'core:move-right': => editor.moveCursorRight()
+      'core:move-up': => editor.moveCursorUp()
+      'core:move-down': => editor.moveCursorDown()
 
   onVerticalScroll: ->
     animationFramePending = @pendingScrollTop?
@@ -130,60 +144,3 @@ LineComponent = React.createClass
       "<span>#{scopeTree.value}</span>"
 
   shouldComponentUpdate: -> false
-
-InputComponent = React.createClass
-  render: ->
-    input className: @props.className, ref: 'input'
-
-  getInitialState: ->
-    {lastChar: ''}
-
-  componentDidMount: ->
-    @getDOMNode().addEventListener 'input', @onInput
-    @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
-
-  # Don't let text accumulate in the input forever, but avoid excessive reflows
-  componentDidUpdate: ->
-    if @lastValueLength > 500 and not @isPressAndHoldCharacter(@state.lastChar)
-      @getDOMNode().value = ''
-      @lastValueLength = 0
-
-  # This should actually consult the property lists in /System/Library/Input Methods/PressAndHold.app
-  isPressAndHoldCharacter: (char) ->
-    @state.lastChar.match /[aeiouAEIOU]/
-
-  shouldComponentUpdate: -> false
-
-  onInput: (e) ->
-    valueCharCodes = punycode.ucs2.decode(@getDOMNode().value)
-    valueLength = valueCharCodes.length
-    replaceLastChar = valueLength is @lastValueLength
-    @lastValueLength = valueLength
-    lastChar = String.fromCharCode(last(valueCharCodes))
-    @props.onInput?(lastChar, replaceLastChar)
-
-  focus: ->
-    @getDOMNode().focus()
-
-SelectionComponent = React.createClass
-  render: ->
-    console.log "render selection component"
-
-    {selection, lineHeight, charWidth} = @props
-    {cursor} = selection
-    div className: 'selection',
-      CursorComponent({cursor, lineHeight, charWidth})
-
-CursorComponent = React.createClass
-  render: ->
-    {cursor, lineHeight, charWidth} = @props
-    {row, column} = cursor.getScreenPosition()
-
-    console.log "char width", charWidth
-
-    div className: 'cursor', style: {
-      height: lineHeight,
-      width: charWidth
-      top: row * lineHeight
-      left: column * charWidth
-    }
