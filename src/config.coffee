@@ -1,5 +1,6 @@
-path = require 'path'
+child_process = require 'child_process'
 fs = require 'fs'
+path = require 'path'
 
 module.exports =
   getHomeDirectory: ->
@@ -11,8 +12,16 @@ module.exports =
   getPackageCacheDirectory: ->
     path.join(@getAtomDirectory(), '.node-gyp', '.atom', '.apm')
 
-  getResourcePath: ->
-    process.env.ATOM_RESOURCE_PATH ? '/Applications/Atom.app/Contents/Resources/app'
+  getResourcePath: (callback) ->
+    if process.env.ATOM_RESOURCE_PATH
+      process.nextTick -> callback(process.env.ATOM_RESOURCE_PATH)
+    else
+      if process.platform is 'darwin'
+        child_process.exec 'mdfind "kMDItemCFBundleIdentifier == \'com.github.atom\'"', (error, stdout='', stderr) ->
+          appLocation = stdout.split('\n')[0] ? '/Applications/Atom.app'
+          callback("#{appLocation}/Contents/Resources/app")
+      else
+        process.nextTick -> callback('/usr/local/share/atom/resources/app')
 
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')

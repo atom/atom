@@ -4,6 +4,14 @@ temp = require 'temp'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
+listPackages = (callback) ->
+  callback = jasmine.createSpy('callback')
+  apm.run(['list'], callback)
+
+  waitsFor -> callback.callCount is 1
+
+  runs(callback)
+
 describe 'apm list', ->
   [resourcePath, atomHome] = []
 
@@ -22,18 +30,18 @@ describe 'apm list', ->
     fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
-    apm.run(['list'])
-    expect(console.log).toHaveBeenCalled()
-    expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0'
+    listPackages ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0'
 
   it 'lists the installed packages', ->
     packagesPath = path.join(atomHome, 'packages')
     fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
 
-    apm.run(['list'])
-    expect(console.log).toHaveBeenCalled()
-    expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
+    listPackages ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
 
   it 'labels disabled packages', ->
     packagesPath = path.join(atomHome, 'packages')
@@ -42,6 +50,6 @@ describe 'apm list', ->
     configPath = path.join(atomHome, 'config.cson')
     fs.writeFileSync(configPath, 'core: disabledPackages: ["test-module"]')
 
-    apm.run(['list'])
-    expect(console.log).toHaveBeenCalled()
-    expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0 (disabled)'
+    listPackages ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0 (disabled)'

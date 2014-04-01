@@ -50,9 +50,11 @@ class Upgrade extends Command
       metadata = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json')))
       return metadata if metadata?.name and metadata?.version
 
-  getInstalledAtomVersion: ->
-    try
-      @installedAtomVerson ?= JSON.parse(fs.readFileSync(path.join(config.getResourcePath(), 'package.json')))?.version
+  loadInstalledAtomVersion: (callback) ->
+    config.getResourcePath (resourcePath) =>
+      try
+        @installedAtomVersion ?= JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
+      callback()
 
   getLatestVersion: (pack, callback) ->
     requestSettings =
@@ -68,7 +70,7 @@ class Upgrade extends Command
         message = body.message ? body.error ? body
         callback("Request for package information failed: #{message}")
       else
-        atomVersion = @getInstalledAtomVersion()
+        atomVersion = @installedAtomVersion
         latestVersion = pack.version
         for version, metadata of body.versions ? {}
           continue unless semver.valid(version)
@@ -116,9 +118,13 @@ class Upgrade extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    unless @getInstalledAtomVersion()
-      return callback('Could not determine current Atom version installed')
+    @loadInstalledAtomVersion =>
+      if @installedAtomVersion
+        @upgradePackages(options, callback)
+      else
+        callback('Could not determine current Atom version installed')
 
+  upgradePackages: (options, callback) ->
     packages = @getInstalledPackages()
     @getAvailableUpdates packages, (error, updates) =>
       return callback(error) if error?
