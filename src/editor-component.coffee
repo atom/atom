@@ -71,7 +71,6 @@ EditorCompont = React.createClass
     @refs.hiddenInput.focus()
 
   componentWillUnmount: ->
-    @props.editor.off 'screen-lines-changed', @onScreenLinesChanged
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
 
   listenForCustomEvents: ->
