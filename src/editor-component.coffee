@@ -10,22 +10,37 @@ module.exports =
 React.createClass
   pendingScrollTop: null
 
+  statics: {DummyLineNode}
+
   render: ->
     div className: 'editor',
       div className: 'scroll-view', ref: 'scrollView',
-        div className: 'overlayer',
-          InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
-        @renderVisibleLines()
+        InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
+        @renderScrollableContent()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: @getScrollHeight()}
+
+  renderScrollableContent: ->
+    height = @props.editor.getScreenLineCount() * @state.lineHeight
+    WebkitTransform = "translateY(#{-@state.scrollTop}px)"
+
+    div className: 'scrollable-content', style: {height, WebkitTransform},
+      @renderOverlayer()
+      @renderVisibleLines()
+
+  renderOverlayer: ->
+    {lineHeight, charWidth} = @state
+
+    div className: 'overlayer',
+      for selection in @props.editor.getSelections()
+        SelectionComponent({selection, lineHeight, charWidth})
 
   renderVisibleLines: ->
     [startRow, endRow] = @getVisibleRowRange()
     precedingHeight = startRow * @state.lineHeight
-    lineCount = @props.editor.getScreenLineCount()
-    followingHeight = (lineCount - endRow) * @state.lineHeight
+    followingHeight = (@props.editor.getScreenLineCount() - endRow) * @state.lineHeight
 
-    div className: 'lines', ref: 'lines', style: {WebkitTransform: "translateY(#{-@state.scrollTop}px)"}, [
+    div className: 'lines', ref: 'lines', [
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
         LineComponent({tokenizedLine, key: tokenizedLine.id}))...
@@ -62,8 +77,6 @@ React.createClass
     event.preventDefault()
 
   onInput: (char, replaceLastChar) ->
-    console.log char, replaceLastChar
-
     @props.editor.insertText(char)
 
   onScreenLinesChanged: ({start, end}) ->
@@ -82,21 +95,21 @@ React.createClass
     @props.editor.getLineCount() * @state.lineHeight
 
   updateAllDimensions: ->
-    lineHeight = @measureLineHeight()
     {height, width} = @measureScrollViewDimensions()
-
-    @setState({lineHeight, height, width})
+    {lineHeight, charWidth} = @measureLineDimensions()
+    @setState({height, width, lineHeight, charWidth})
 
   measureScrollViewDimensions: ->
     scrollViewNode = @refs.scrollView.getDOMNode()
     {height: scrollViewNode.clientHeight, width: scrollViewNode.clientWidth}
 
-  measureLineHeight: ->
+  measureLineDimensions: ->
     linesNode = @refs.lines.getDOMNode()
     linesNode.appendChild(DummyLineNode)
     lineHeight = DummyLineNode.getBoundingClientRect().height
+    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
     linesNode.removeChild(DummyLineNode)
-    lineHeight
+    {lineHeight, charWidth}
 
 LineComponent = React.createClass
   render: ->
@@ -151,3 +164,26 @@ InputComponent = React.createClass
 
   focus: ->
     @getDOMNode().focus()
+
+SelectionComponent = React.createClass
+  render: ->
+    console.log "render selection component"
+
+    {selection, lineHeight, charWidth} = @props
+    {cursor} = selection
+    div className: 'selection',
+      CursorComponent({cursor, lineHeight, charWidth})
+
+CursorComponent = React.createClass
+  render: ->
+    {cursor, lineHeight, charWidth} = @props
+    {row, column} = cursor.getScreenPosition()
+
+    console.log "char width", charWidth
+
+    div className: 'cursor', style: {
+      height: lineHeight,
+      width: charWidth
+      top: row * lineHeight
+      left: column * charWidth
+    }
