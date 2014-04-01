@@ -53,8 +53,8 @@ describe "EditorComponent", ->
     expect(cursorNodes[0].offsetTop).toBe 0
     expect(cursorNodes[0].offsetLeft).toBe 5 * charWidth
 
-    cursor3 = editor.addCursorAtScreenPosition([6, 11])
-    cursor2 = editor.addCursorAtScreenPosition([4, 10])
+    cursor2 = editor.addCursorAtScreenPosition([6, 11])
+    cursor3 = editor.addCursorAtScreenPosition([4, 10])
 
     cursorNodes = node.querySelectorAll('.cursor')
     expect(cursorNodes.length).toBe 2
@@ -72,3 +72,9 @@ describe "EditorComponent", ->
     expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
     expect(cursorNodes[1].offsetTop).toBe 4 * lineHeight
     expect(cursorNodes[1].offsetLeft).toBe 10 * charWidth
+
+    cursor3.destroy()
+    cursorNodes = node.querySelectorAll('.cursor')
+    expect(cursorNodes.length).toBe 1
+    expect(cursorNodes[0].offsetTop).toBe 6 * lineHeight
+    expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
