@@ -6,7 +6,7 @@ require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-Keymap = require '../src/keymap-extensions'
+KeymapManager = require '../src/keymap-extensions'
 {$, WorkspaceView} = require 'atom'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
@@ -22,8 +22,8 @@ atom.themes.requireStylesheet '../static/jasmine'
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
-atom.keymap.loadBundledKeymaps()
-keyBindingsToRestore = atom.keymap.getKeyBindings()
+atom.keymaps.loadBundledKeymaps()
+keyBindingsToRestore = atom.keymaps.getKeyBindings()
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'unload', ->
@@ -50,7 +50,7 @@ beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
-  atom.keymap.keyBindings = _.clone(keyBindingsToRestore)
+  atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
@@ -187,7 +187,7 @@ window.keydownEvent = (key, properties={}) ->
   originalEventProperties.cmd = properties.metaKey
   originalEventProperties.target = properties.target?[0] ? properties.target
   originalEventProperties.which = properties.which
-  originalEvent = Keymap.keydownEvent(key, originalEventProperties)
+  originalEvent = KeymapManager.keydownEvent(key, originalEventProperties)
   properties = $.extend({originalEvent}, properties)
   $.Event("keydown", properties)
 
@@ -278,7 +278,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => atom.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) => atom.keymaps.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   @appendTo($('#jasmine-content'))
