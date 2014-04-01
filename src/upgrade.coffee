@@ -53,7 +53,7 @@ class Upgrade extends Command
   loadInstalledAtomVersion: (callback) ->
     config.getResourcePath (resourcePath) =>
       try
-        @installedAtomVersion ?= JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
+        @installedAtomVersion = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
       callback()
 
   getLatestVersion: (pack, callback) ->
