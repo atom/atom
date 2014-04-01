@@ -78,3 +78,8 @@ describe "EditorComponent", ->
     expect(cursorNodes.length).toBe 1
     expect(cursorNodes[0].offsetTop).toBe 6 * lineHeight
     expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
+
+  it "transfers focus to the hidden input", ->
+    expect(document.activeElement).toBe document.body
+    node.focus()
+    expect(document.activeElement).toBe node.querySelector('.hidden-input')

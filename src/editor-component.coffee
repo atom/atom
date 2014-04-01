@@ -18,7 +18,7 @@ EditorCompont = React.createClass
   mixins: [CustomEventMixin, SubscriberMixin]
 
   render: ->
-    div className: 'editor',
+    div className: 'editor', tabIndex: -1,
       div className: 'scroll-view', ref: 'scrollView',
         InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
         @renderScrollableContent()
@@ -61,6 +61,7 @@ EditorCompont = React.createClass
   componentDidMount: ->
     @listenForCustomEvents()
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
+    @getDOMNode().addEventListener 'focus', @onFocus
 
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
@@ -69,7 +70,6 @@ EditorCompont = React.createClass
 
     @updateAllDimensions()
     @props.editor.setVisible(true)
-    @refs.hiddenInput.focus()
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
@@ -82,6 +82,9 @@ EditorCompont = React.createClass
       'core:move-right': => editor.moveCursorRight()
       'core:move-up': => editor.moveCursorUp()
       'core:move-down': => editor.moveCursorDown()
+
+  onFocus: ->
+    @refs.hiddenInput.focus()
 
   onVerticalScroll: ->
     animationFramePending = @pendingScrollTop?
