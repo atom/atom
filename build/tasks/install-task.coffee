@@ -27,7 +27,6 @@ module.exports = (grunt) ->
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
-      fs.chmodSync(path.join(binDir, 'atom'), "777")
       rm shareDir
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
@@ -35,3 +34,5 @@ module.exports = (grunt) ->
       # Create relative symbol link for apm.
       process.chdir(binDir)
       fs.symlinkSync(path.join('..', '..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
+
+      fs.chmodSync(path.join(shareDir, 'atom'), "777")
