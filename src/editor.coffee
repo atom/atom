@@ -1202,6 +1202,7 @@ class Editor extends Model
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
+    @emit 'selection-removed', selection
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.

@@ -65,6 +65,7 @@ EditorCompont = React.createClass
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
+    @subscribe editor, 'selection-removed', @onSelectionAdded
 
     @updateAllDimensions()
     @props.editor.setVisible(true)
@@ -102,6 +103,9 @@ EditorCompont = React.createClass
     @forceUpdate() if @intersectsVisibleRowRange(start, end + 1) # TODO: Use closed-open intervals for change events
 
   onSelectionAdded: (selection) ->
+    @forceUpdate() if @selectionIntersectsVisibleRowRange(selection)
+
+  onSelectionRemoved: (selection) ->
     @forceUpdate() if @selectionIntersectsVisibleRowRange(selection)
 
   getVisibleRowRange: ->
