@@ -1,3 +1,4 @@
+{deprecate} = require 'grim'
 {remove, last} = require 'underscore-plus'
 {join} = require 'path'
 {Model} = require 'theorist'
@@ -114,6 +115,8 @@ class Workspace extends Model
   #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
   #                   the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
+    deprecate("Don't use the `changeFocus` option") if options.changeFocus?
+
     {initialLine} = options
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true

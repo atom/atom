@@ -1,3 +1,4 @@
+{deprecate} = require 'grim'
 Delegator = require 'delegato'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
@@ -146,4 +147,5 @@ class PaneContainerView extends View
 
   # Deprecated
   getPanes: ->
+    deprecate("Use PaneContainerView::getPaneViews() instead.")
     @getPaneViews()

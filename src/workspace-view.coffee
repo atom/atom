@@ -3,6 +3,7 @@ path = require 'path'
 Q = require 'q'
 _ = require 'underscore-plus'
 Delegator = require 'delegato'
+{deprecate} = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
@@ -334,16 +335,20 @@ class WorkspaceView extends View
 
   # Deprecated
   eachPane: (callback) ->
+    deprecate("Use WorkSpaceView::eachPaneView instead")
     @eachPaneView(callback)
 
   # Deprecated
   getPanes: ->
+    deprecate("Use WorkSpaceView::getPaneViews instead")
     @getPaneViews()
 
   # Deprecated
   getActivePane: ->
+    deprecate("Use WorkSpaceView::getActivePaneView instead")
     @getActivePaneView()
 
   # Deprecated: Call {Workspace::getActivePaneItem} instead.
   getActivePaneItem: ->
+    deprecate("Use Workspace::getActivePaneItem instead")
     @model.activePaneItem
