@@ -39,6 +39,9 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
+  destroy: ->
+    @unsubscribe()
+
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
