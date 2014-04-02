@@ -9,9 +9,6 @@
   'shift-home': 'editor:select-to-first-character-of-line'
   'shift-end': 'editor:select-to-end-of-line'
 
-  # Sublime Parity
-  'ctrl-t': 'editor:transpose'
-
 '.editor:not(.mini)':
   # Atom Specific
   'ctrl-C': 'editor:copy-path'

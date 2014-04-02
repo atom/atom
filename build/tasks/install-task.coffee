@@ -33,6 +33,7 @@ module.exports = (grunt) ->
 
       # Create relative symbol link for apm.
       process.chdir(binDir)
-      fs.symlinkSync(path.join('..', '..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
+      rm('apm')
+      fs.symlinkSync(path.join('..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
 
       fs.chmodSync(path.join(shareDir, 'atom'), "755")

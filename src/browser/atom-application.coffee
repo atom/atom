@@ -125,7 +125,7 @@ class AtomApplication
 
   # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
+    app.commandLine.appendSwitch 'js-flags', '--harmony'
 
   # Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
