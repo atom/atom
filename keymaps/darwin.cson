@@ -119,6 +119,7 @@
   'cmd-k cmd-u': 'editor:upper-case'
   'cmd-k cmd-l': 'editor:lower-case'
   'cmd-l': 'editor:select-line'
+  'ctrl-t': 'editor:transpose'
 
 '.workspace .editor:not(.mini)':
   # Atom specific
