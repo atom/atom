@@ -40,9 +40,9 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
   tooltipOptions = {title: tooltipOptions} if _.isString(tooltipOptions)
 
   if commandElement
-    bindings = atom.keymap.keyBindingsForCommandMatchingElement(command, commandElement)
+    bindings = atom.keymaps.keyBindingsForCommandMatchingElement(command, commandElement)
   else if command
-    bindings = atom.keymap.keyBindingsForCommand(command)
+    bindings = atom.keymaps.keyBindingsForCommand(command)
 
   tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
 

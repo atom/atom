@@ -18,7 +18,7 @@ describe "DisplayBuffer", ->
     displayBuffer.destroy()
     buffer.release()
 
-  describe ".copy()", ->
+  describe "::copy()", ->
     it "creates a new DisplayBuffer with the same initial state", ->
       marker1 = displayBuffer.markBufferRange([[1, 2], [3, 4]], id: 1)
       marker2 = displayBuffer.markBufferRange([[2, 3], [4, 5]], isReversed: true, id: 2)
@@ -536,7 +536,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.outermostFoldsInBufferRowRange(3, 18)).toEqual [fold1, fold3, fold5]
         expect(displayBuffer.outermostFoldsInBufferRowRange(5, 16)).toEqual [fold3]
 
-  describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
+  describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       displayBuffer.setSoftWrap(true)
       displayBuffer.setEditorWidthInChars(50)
@@ -598,7 +598,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
 
-  describe ".screenPositionForBufferPosition(bufferPosition, options)", ->
+  describe "::screenPositionForBufferPosition(bufferPosition, options)", ->
     it "clips the specified buffer position", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 2])).toEqual [0, 2]
       expect(displayBuffer.screenPositionForBufferPosition([0, 100000])).toEqual [0, 29]
@@ -618,13 +618,13 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 0]
       expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]
 
-  describe ".getMaxLineLength()", ->
+  describe "::getMaxLineLength()", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.getMaxLineLength()).toBe 65
       buffer.delete([[6, 0], [6, 65]])
       expect(displayBuffer.getMaxLineLength()).toBe 62
 
-  describe ".destroy()", ->
+  describe "::destroy()", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
       marker = displayBuffer.markBufferPosition([12, 2])
       displayBuffer.destroy()
@@ -777,17 +777,17 @@ describe "DisplayBuffer", ->
           isValid: true
         }
 
-      xit "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
+      it "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
         buffer.deleteRow(8)
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
-          newHeadScreenPosition: [5, 10]
+          newHeadScreenPosition: [5, 0]
           newHeadBufferPosition: [8, 0]
           oldTailScreenPosition: [5, 4]
           oldTailBufferPosition: [8, 4]
-          newTailScreenPosition: [5, 4]
+          newTailScreenPosition: [5, 0]
           newTailBufferPosition: [8, 0]
           textChanged: true
           isValid: false
@@ -798,12 +798,12 @@ describe "DisplayBuffer", ->
 
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
-          oldHeadScreenPosition: [5, 10]
-          oldHeadBufferPosition: [8, 10]
+          oldHeadScreenPosition: [5, 0]
+          oldHeadBufferPosition: [8, 0]
           newHeadScreenPosition: [5, 10]
           newHeadBufferPosition: [8, 10]
-          oldTailScreenPosition: [5, 4]
-          oldTailBufferPosition: [8, 4]
+          oldTailScreenPosition: [5, 0]
+          oldTailBufferPosition: [8, 0]
           newTailScreenPosition: [5, 4]
           newTailBufferPosition: [8, 4]
           textChanged: true
@@ -814,7 +814,7 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(10, 11)
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
-      xit "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
+      it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
         marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
         marker2.on 'changed', marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
@@ -902,7 +902,7 @@ describe "DisplayBuffer", ->
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()
 
-    describe ".findMarkers(attributes)", ->
+    describe "::findMarkers(attributes)", ->
       it "allows the startBufferRow and endBufferRow to be specified", ->
         marker1 = displayBuffer.markBufferRange([[0, 0], [3, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[0, 0], [5, 0]], class: 'a')
@@ -932,7 +932,7 @@ describe "DisplayBuffer", ->
         buffer.getMarker(marker2.id).destroy()
         expect(destroyedHandler).toHaveBeenCalled()
 
-    describe "DisplayBufferMarker.copy(attributes)", ->
+    describe "DisplayBufferMarker::copy(attributes)", ->
       it "creates a copy of the marker with the given attributes merged in", ->
         initialMarkerCount = displayBuffer.getMarkerCount()
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]], a: 1, b: 2)

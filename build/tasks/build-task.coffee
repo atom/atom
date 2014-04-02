@@ -47,6 +47,7 @@ module.exports = (grunt) ->
       path.join('less', 'test')
       path.join('bootstrap', 'docs')
       path.join('bootstrap', 'examples')
+      path.join('pegjs', 'examples')
       # Add .* to avoid matching hunspell_dictionaries.
       path.join('spellchecker', 'vendor', 'hunspell', '.*')
       path.join('xmldom', 'test')

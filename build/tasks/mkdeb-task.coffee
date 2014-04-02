@@ -16,7 +16,7 @@ module.exports = (grunt) ->
     {name, version, description} = grunt.file.readJSON('package.json')
     section = 'devel'
     arch = 'amd64'
-    maintainer = 'GitHub <support@github.com>'
+    maintainer = 'GitHub <atom@github.com>'
     data = {name, version, description, section, arch, maintainer}
 
     control = path.join('resources', 'linux', 'debian', 'control')

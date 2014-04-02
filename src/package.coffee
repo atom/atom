@@ -124,7 +124,7 @@ class Package
     @stylesheetsActivated = true
 
   activateResources: ->
-    atom.keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
+    atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
 
@@ -232,7 +232,7 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.keymap.remove(keymapPath) for [keymapPath] in @keymaps
+    atom.keymaps.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
     @stylesheetsActivated = false
     @grammarsActivated = false

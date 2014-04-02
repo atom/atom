@@ -33,7 +33,7 @@ class Workspace extends Model
         when 'atom://.atom/stylesheet'
           @open(atom.themes.getUserStylesheetPath())
         when 'atom://.atom/keymap'
-          @open(atom.keymap.getUserKeymapPath())
+          @open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
           @open(atom.config.getUserConfigPath())
         when 'atom://.atom/init-script'
