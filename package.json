@@ -34,7 +34,7 @@
     "mixto": "1.x",
     "mkdirp": "0.3.5",
     "nslog": "0.5.0",
-    "oniguruma": "^1.0.4",
+    "oniguruma": "^1.0.6",
     "optimist": "0.4.0",
     "pathwatcher": "^1.1.1",
     "property-accessors": "1.x",
