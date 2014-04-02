@@ -17,7 +17,7 @@
       { label: 'Close All &Buffers', command: 'pane:close' }
       { label: 'Clos&e Window', command: 'window:close' }
       { type: 'separator' }
-      { label: 'E&xit', command: 'application:quit' }
+      { label: 'Quit', command: 'application:quit' }
     ]
   }
 

@@ -1,3 +1,4 @@
+fs = require 'fs'
 path = require 'path'
 runas = null
 
@@ -28,3 +29,7 @@ module.exports = (grunt) ->
       rm shareDir
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
+
+      # Create relative symbol link for apm.
+      process.chdir(binDir)
+      fs.symlinkSync(path.join('..', '..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
