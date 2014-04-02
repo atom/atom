@@ -35,4 +35,4 @@ module.exports = (grunt) ->
       process.chdir(binDir)
       fs.symlinkSync(path.join('..', '..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
 
-      fs.chmodSync(path.join(shareDir, 'atom'), "777")
+      fs.chmodSync(path.join(shareDir, 'atom'), "755")
