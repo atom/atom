@@ -1,13 +1,14 @@
 {React, div, span} = require 'reactionary'
-{$$} = require 'space-pencil'
+{$$} = require 'space-pen'
 
 SelectionComponent = require './selection-component'
 InputComponent = require './input-component'
 CustomEventMixin = require './custom-event-mixin'
 SubscriberMixin = require './subscriber-mixin'
 
-DummyLineNode = $$ ->
-  @div className: 'line', style: 'position: absolute; visibility: hidden;', -> @span 'x'
+DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
+MeasureRange = document.createRange()
+TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 
 module.exports =
 EditorCompont = React.createClass
@@ -18,7 +19,9 @@ EditorCompont = React.createClass
   mixins: [CustomEventMixin, SubscriberMixin]
 
   render: ->
-    div className: 'editor', tabIndex: -1,
+    {fontSize, lineHeight, fontFamily} = @state
+
+    div className: 'editor', tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
       div className: 'scroll-view', ref: 'scrollView',
         InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
         @renderScrollableContent()
@@ -26,7 +29,7 @@ EditorCompont = React.createClass
         div outlet: 'verticalScrollbarContent', style: {height: @getScrollHeight()}
 
   renderScrollableContent: ->
-    height = @props.editor.getScreenLineCount() * @state.lineHeight
+    height = @props.editor.getScreenLineCount() * @state.lineHeightInPixels
     WebkitTransform = "translateY(#{-@state.scrollTop}px)"
 
     div className: 'scrollable-content', style: {height, WebkitTransform},
@@ -34,16 +37,16 @@ EditorCompont = React.createClass
       @renderVisibleLines()
 
   renderOverlayer: ->
-    {lineHeight, charWidth} = @state
+    {lineHeightInPixels, charWidth} = @state
 
     div className: 'overlayer',
       for selection in @props.editor.getSelections() when @selectionIntersectsVisibleRowRange(selection)
-        SelectionComponent({selection, lineHeight, charWidth})
+        SelectionComponent({selection})
 
   renderVisibleLines: ->
     [startRow, endRow] = @getVisibleRowRange()
-    precedingHeight = startRow * @state.lineHeight
-    followingHeight = (@props.editor.getScreenLineCount() - endRow) * @state.lineHeight
+    precedingHeight = startRow * @state.lineHeightInPixels
+    followingHeight = (@props.editor.getScreenLineCount() - endRow) * @state.lineHeightInPixels
 
     div className: 'lines', ref: 'lines', [
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
@@ -55,11 +58,12 @@ EditorCompont = React.createClass
   getInitialState: ->
     height: 0
     width: 0
-    lineHeight: 0
+    lineHeightInPixels: 0
     scrollTop: 0
 
   componentDidMount: ->
-    @listenForCustomEvents()
+    @measuredLines = new WeakSet
+
     @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
     @getDOMNode().addEventListener 'focus', @onFocus
 
@@ -68,11 +72,17 @@ EditorCompont = React.createClass
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
 
+    @listenForCustomEvents()
+    @observeConfig()
+
     @updateAllDimensions()
     @props.editor.setVisible(true)
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
+
+  componentDidUpdate: ->
+    @measureNewLines()
 
   listenForCustomEvents: ->
     {editor, mini} = @props
@@ -171,6 +181,23 @@ EditorCompont = React.createClass
         # 'core:page-up': => @pageUp()
         # 'editor:scroll-to-cursor': => @scrollToCursorPosition()
 
+  observeConfig: ->
+    @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
+
+  setFontSize: (fontSize) ->
+    @clearScopedCharWidths()
+    @setState({fontSize})
+    @updateLineDimensions()
+
+  setLineHeight: (lineHeight) ->
+    @updateLineDimensions()
+    @setState({lineHeight})
+
+  setFontFamily: (fontFamily) ->
+    @clearScopedCharWidths()
+    @setState({fontFamily})
+    @updateLineDimensions()
+
   onFocus: ->
     @refs.hiddenInput.focus()
 
@@ -200,10 +227,11 @@ EditorCompont = React.createClass
     @forceUpdate() if @selectionIntersectsVisibleRowRange(selection)
 
   getVisibleRowRange: ->
-    return [0, 0] unless @state.lineHeight > 0
+    return [0, 0] unless @state.lineHeightInPixels > 0
+    return [0, @props.editor.getScreenLineCount()] if @state.height is 0
 
-    heightInLines = @state.height / @state.lineHeight
-    startRow = Math.floor(@state.scrollTop / @state.lineHeight)
+    heightInLines = @state.height / @state.lineHeightInPixels
+    startRow = Math.floor(@state.scrollTop / @state.lineHeightInPixels)
     endRow = Math.ceil(startRow + heightInLines)
     [startRow, endRow]
 
@@ -216,12 +244,20 @@ EditorCompont = React.createClass
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
   getScrollHeight: ->
-    @props.editor.getLineCount() * @state.lineHeight
+    @props.editor.getLineCount() * @state.lineHeightInPixels
 
   updateAllDimensions: ->
     {height, width} = @measureScrollViewDimensions()
-    {lineHeight, charWidth} = @measureLineDimensions()
-    @setState({height, width, lineHeight, charWidth})
+    {lineHeightInPixels, charWidth} = @measureLineDimensions()
+    @props.editor.setLineHeight(lineHeightInPixels)
+    @props.editor.setDefaultCharWidth(charWidth)
+    @setState({height, width, lineHeightInPixels, charWidth})
+
+  updateLineDimensions: ->
+    {lineHeightInPixels, charWidth} = @measureLineDimensions()
+    @props.editor.setLineHeight(lineHeightInPixels)
+    @props.editor.setDefaultCharWidth(charWidth)
+    @setState({lineHeightInPixels, charWidth})
 
   measureScrollViewDimensions: ->
     scrollViewNode = @refs.scrollView.getDOMNode()
@@ -230,10 +266,39 @@ EditorCompont = React.createClass
   measureLineDimensions: ->
     linesNode = @refs.lines.getDOMNode()
     linesNode.appendChild(DummyLineNode)
-    lineHeight = DummyLineNode.getBoundingClientRect().height
+    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
     charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
     linesNode.removeChild(DummyLineNode)
-    {lineHeight, charWidth}
+    {lineHeightInPixels, charWidth}
+
+  measureNewLines: ->
+    [visibleStartRow, visibleEndRow] = @getVisibleRowRange()
+    linesNode = @refs.lines.getDOMNode()
+
+    for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+      unless @measuredLines.has(tokenizedLine)
+        lineNode = linesNode.children[i + 1]
+        @measureCharactersInLine(tokenizedLine, lineNode)
+
+  measureCharactersInLine: (tokenizedLine, lineNode) ->
+    {editor} = @props
+    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, TextNodeFilter)
+
+    for {value, scopes} in tokenizedLine.tokens
+      textNode = iterator.nextNode()
+      charWidths = editor.getScopedCharWidths(scopes)
+      for char, i in value
+        unless charWidths[char]?
+          MeasureRange.setStart(textNode, i)
+          MeasureRange.setEnd(textNode, i + 1)
+          charWidth = MeasureRange.getBoundingClientRect().width
+          @props.editor.setScopedCharWidth(scopes, char, charWidth)
+
+    @measuredLines.add(tokenizedLine)
+
+  clearScopedCharWidths: ->
+    @measuredLines.clear()
+    @props.editor.clearScopedCharWidths()
 
 LineComponent = React.createClass
   render: ->
@@ -251,6 +316,6 @@ LineComponent = React.createClass
       html += @buildScopeTreeHTML(child) for child in scopeTree.children
       html
     else
-      "<span>#{scopeTree.value}</span>"
+      "<span>#{scopeTree.getValueAsHtml({})}</span>"
 
   shouldComponentUpdate: -> false

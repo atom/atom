@@ -1472,6 +1472,7 @@ class EditorView extends View
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
+    @editor.copyPathToClipboard()
     path = @editor.getPath()
     atom.clipboard.write(path) if path?
 

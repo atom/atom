@@ -514,6 +514,8 @@ class Editor extends Model
   # this editor.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
+  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
+
   # Public: Convert a position in buffer-coordinates to screen-coordinates.
   #
   # The position is clipped via {::clipBufferPosition} prior to the conversion.
@@ -1789,6 +1791,20 @@ class Editor extends Model
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
+
+  getLineHeight: -> @displayBuffer.getLineHeight()
+
+  setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
+
+  setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
+
+  getScopedCharWidth: (args...) -> @displayBuffer.getScopedCharWidth(args...)
+
+  getScopedCharWidths: (args...) -> @displayBuffer.getScopedCharWidths(args...)
+
+  setScopedCharWidth: (args...) -> @displayBuffer.setScopedCharWidth(args...)
+
+  clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->

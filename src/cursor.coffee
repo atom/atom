@@ -54,6 +54,14 @@ class Cursor
     unless fn()
       @emit 'autoscrolled' if @needsAutoscroll
 
+  getPixelRect: ->
+    screenPosition = @getScreenPosition()
+    {top, left} = @editor.pixelPositionForScreenPosition(screenPosition, false)
+    right = @editor.pixelPositionForScreenPosition(screenPosition.add([0, 1])).left
+    width = right - left
+    height = @editor.getLineHeight()
+    {top, left, width, height}
+
   # Public: Moves a cursor to a given screen position.
   #
   # screenPosition - An {Array} of two numbers: the screen row, and the screen
