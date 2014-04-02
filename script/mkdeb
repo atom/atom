@@ -12,7 +12,7 @@ ICON_FILE="$4"
 DEB_PATH="$5"
 
 TARGET_ROOT="`mktemp -d`"
-TARGET="$TARGET_ROOT/atom-$VERSION"
+TARGET="$TARGET_ROOT/atom-$VERSION-amd64"
 
 mkdir -p "$TARGET/usr"
 env INSTALL_PREFIX="$TARGET/usr" script/grunt install
@@ -27,5 +27,5 @@ mkdir -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 dpkg-deb -b "$TARGET"
-mv "$TARGET_ROOT/atom-$VERSION.deb" "$DEB_PATH"
+mv "$TARGET_ROOT/atom-$VERSION-amd64.deb" "$DEB_PATH"
 rm -rf $TARGET_ROOT

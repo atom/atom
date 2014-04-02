@@ -116,10 +116,10 @@ class MenuManager
   normalizeLabel: (label) ->
     return undefined unless label?
 
-    if process.platform is 'win32'
-      label.replace(/\&/g, '')
-    else
+    if process.platform is 'darwin'
       label
+    else
+      label.replace(/\&/g, '')
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
