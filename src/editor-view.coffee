@@ -4,7 +4,6 @@ GutterView = require './gutter-view'
 Editor = require './editor'
 CursorView = require './cursor-view'
 SelectionView = require './selection-view'
-
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -122,9 +121,6 @@ class EditorView extends View
     @newSelections = []
 
     @setPlaceholderText(placeholderText) if placeholderText
-
-    @contentsComponent = new EditorContentsComponent({editor})
-    @renderedLines.replaceWith(@contentsComponent.element)
 
     if editor?
       @edit(editor)
@@ -335,7 +331,8 @@ class EditorView extends View
 
   # Checkout the HEAD revision of this editor's file.
   checkoutHead: ->
-    @editor.checkoutHead()
+    if path = @editor.getPath()
+      atom.project.getRepo()?.checkoutHead(path)
 
   configure: ->
     @subscribe atom.config.observe 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -973,8 +970,6 @@ class EditorView extends View
       @redrawOnReattach = true
       return
 
-    return
-
     scrollViewWidth = @scrollView.width()
     @updateRenderedLines(scrollViewWidth)
     @updatePlaceholderText()
@@ -1472,7 +1467,6 @@ class EditorView extends View
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
-    @editor.copyPathToClipboard()
     path = @editor.getPath()
     atom.clipboard.write(path) if path?
 
