@@ -74,29 +74,31 @@ class List
       console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
       @logPackages(devPackages)
 
-  listBundledPackages: (options) ->
-    nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
-    packages = @listPackages(nodeModulesDirectory, options)
+  listBundledPackages: (options, callback) ->
+    config.getResourcePath (resourcePath) =>
+      nodeModulesDirectory = path.join(resourcePath, 'node_modules')
+      packages = @listPackages(nodeModulesDirectory, options)
 
-    try
-      metadataPath = path.join(config.getResourcePath(), 'package.json')
-      {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
-    packageDependencies ?= {}
+      try
+        metadataPath = path.join(resourcePath, 'package.json')
+        {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+      packageDependencies ?= {}
 
-    packages = packages.filter ({name}) ->
-      packageDependencies.hasOwnProperty(name)
+      packages = packages.filter ({name}) ->
+        packageDependencies.hasOwnProperty(name)
 
-    if options.argv.themes
-      console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
-    else
-      console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
-    @logPackages(packages)
+      if options.argv.themes
+        console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
+      else
+        console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
+      @logPackages(packages)
+      callback()
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    @listBundledPackages(options)
-    @listDevPackages(options)
-    @listUserPackages(options)
-    callback()
+    @listBundledPackages options, =>
+      @listDevPackages(options)
+      @listUserPackages(options)
+      callback()

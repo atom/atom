@@ -90,3 +90,15 @@ describe "apm upgrade", ->
     runs ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'empty'
+
+  it "logs an error when the installed location of Atom cannot be found", ->
+    process.env.ATOM_RESOURCE_PATH = '/tmp/atom/is/not/installed/here'
+    callback = jasmine.createSpy('callback')
+    apm.run(['upgrade', '--list', '--no-color'], callback)
+
+    waitsFor 'waiting for upgrade to complete', 600000, ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.error).toHaveBeenCalled()
+      expect(console.error.argsForCall[0][0]).toContain 'Could not determine current Atom version installed'
