@@ -144,7 +144,6 @@
   {
     label: '&Help'
     submenu: [
-      { label: '&About Atom...', command: 'application:about' }
       { label: 'View &License', command: 'application:open-license' }
       { label: "VERSION", enabled: false }
       { type: 'separator' }
