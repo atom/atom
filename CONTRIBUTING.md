@@ -56,6 +56,7 @@ in the proper package's repository.
     * :racehorse: when improving performance
     * :non-potable_water: when plugging memory leaks
     * :memo: when writing docs
+    * :penguin: when fixing something on Linux
 
 ## CoffeeScript Styleguide
 
