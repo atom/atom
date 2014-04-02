@@ -147,7 +147,6 @@ class ApplicationMenu
     modifiers = firstKeystroke.split('-')
     key = modifiers.pop()
 
-    modifiers.push("Shift") if key != key.toLowerCase()
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
               .replace(/cmd/ig, "Command")
