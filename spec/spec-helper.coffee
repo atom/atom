@@ -111,9 +111,6 @@ afterEach ->
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null
-
-  atom.workspace?.destroy()
-  atom.workspace = null
   delete atom.state.workspace
 
   atom.project?.destroy()
