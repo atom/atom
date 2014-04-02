@@ -777,17 +777,17 @@ describe "DisplayBuffer", ->
           isValid: true
         }
 
-      xit "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
+      it "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
         buffer.deleteRow(8)
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
-          newHeadScreenPosition: [5, 10]
+          newHeadScreenPosition: [5, 0]
           newHeadBufferPosition: [8, 0]
           oldTailScreenPosition: [5, 4]
           oldTailBufferPosition: [8, 4]
-          newTailScreenPosition: [5, 4]
+          newTailScreenPosition: [5, 0]
           newTailBufferPosition: [8, 0]
           textChanged: true
           isValid: false
@@ -798,12 +798,12 @@ describe "DisplayBuffer", ->
 
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
-          oldHeadScreenPosition: [5, 10]
-          oldHeadBufferPosition: [8, 10]
+          oldHeadScreenPosition: [5, 0]
+          oldHeadBufferPosition: [8, 0]
           newHeadScreenPosition: [5, 10]
           newHeadBufferPosition: [8, 10]
-          oldTailScreenPosition: [5, 4]
-          oldTailBufferPosition: [8, 4]
+          oldTailScreenPosition: [5, 0]
+          oldTailBufferPosition: [8, 0]
           newTailScreenPosition: [5, 4]
           newTailBufferPosition: [8, 4]
           textChanged: true
@@ -814,7 +814,7 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(10, 11)
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
-      xit "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
+      it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
         marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
         marker2.on 'changed', marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
