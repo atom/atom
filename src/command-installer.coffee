@@ -31,7 +31,7 @@ module.exports =
     "/usr/local/bin"
 
   install: (commandPath, askForPrivilege, callback) ->
-    return unless process.platform is 'darwin'
+    return unless process.platform in ['darwin', 'linux']
 
     commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
