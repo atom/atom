@@ -1,5 +1,4 @@
 {View} = require 'space-pen'
-{$$} = require 'space-pencil'
 {React} = require 'reactionary'
 EditorComponent = require './editor-component'
 

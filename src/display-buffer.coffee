@@ -420,6 +420,9 @@ class DisplayBuffer extends Model
   setScopedCharWidths: (scopeNames, charWidths) ->
     _.extend(@getScopedCharWidths(scopeNames), charWidths)
 
+  clearScopedCharWidths: ->
+    @charWidthsByScope = {}
+
   # Get the grammar for this buffer.
   #
   # Returns the current {Grammar} or the {NullGrammar}.

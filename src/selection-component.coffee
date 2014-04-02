@@ -7,10 +7,8 @@ SelectionComponent = React.createClass
   mixins: [SubscriberMixin]
 
   render: ->
-    {selection, lineHeight, charWidth} = @props
-    {cursor} = selection
     div className: 'selection',
-      CursorComponent({cursor, lineHeight, charWidth})
+      CursorComponent(cursor: @props.selection.cursor)
 
   componentDidMount: ->
     @subscribe @props.selection, 'screen-range-changed', => @forceUpdate()
