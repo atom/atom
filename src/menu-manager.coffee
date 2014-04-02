@@ -59,7 +59,8 @@ class MenuManager
       testBody.classList.add(@classesForElement(document.body)...)
 
       testWorkspace = document.createElement('body')
-      workspaceClasses = @classesForElement(document.body.querySelector('.workspace')) ? ['.workspace']
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace'))
+      workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
