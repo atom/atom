@@ -54,6 +54,9 @@ class DisplayBufferMarker
   setBufferRange: (bufferRange, options) ->
     @bufferMarker.setRange(bufferRange, options)
 
+  getPixelRange: ->
+    @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
+
   # Retrieves the screen position of the marker's head.
   #
   # Returns a {Point}.

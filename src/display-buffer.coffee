@@ -23,11 +23,15 @@ class DisplayBuffer extends Model
     softWrap: null
     editorWidthInChars: null
 
+  lineHeight: null
+  defaultCharWidth: null
+
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
     @softWrap ?= atom.config.get('editor.softWrap') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
     @buffer = @tokenizedBuffer.buffer
+    @charWidthsByScope = {}
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
@@ -273,6 +277,29 @@ class DisplayBuffer extends Model
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
+  pixelRangeForScreenRange: (screenRange, clip=true) ->
+    {start, end} = Range.fromObject(screenRange)
+    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
+
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+    defaultCharWidth = @defaultCharWidth
+
+    top = targetRow * @lineHeight
+    left = 0
+    column = 0
+    for token in @lineForRow(targetRow).tokens
+      charWidths = @getScopedCharWidths(token.scopes)
+      for char in token.value
+        return {top, left} if column is targetColumn
+        left += charWidths[char] ? defaultCharWidth
+        column++
+    {top, left}
+
   # Gets the number of screen lines.
   #
   # Returns a {Number}.
@@ -369,6 +396,29 @@ class DisplayBuffer extends Model
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
+
+  getLineHeight: -> @lineHeight
+
+  setLineHeight: (@lineHeight) ->
+
+  setDefaultCharWidth: (@defaultCharWidth) ->
+
+  getScopedCharWidth: (scopeNames, char) ->
+    @getScopedCharWidths(scopeNames)[char]
+
+  getScopedCharWidths: (scopeNames) ->
+    scope = @charWidthsByScope
+    for scopeName in scopeNames
+      scope[scopeName] ?= {}
+      scope = scope[scopeName]
+    scope.charWidths ?= {}
+    scope.charWidths
+
+  setScopedCharWidth: (scopeNames, char, width) ->
+    @getScopedCharWidths(scopeNames)[char] = width
+
+  setScopedCharWidths: (scopeNames, charWidths) ->
+    _.extend(@getScopedCharWidths(scopeNames), charWidths)
 
   # Get the grammar for this buffer.
   #
