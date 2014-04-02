@@ -116,7 +116,7 @@ afterEach ->
   atom.workspace = null
   delete atom.state.workspace
 
-  atom.project?.destroy?()
+  atom.project?.destroy()
   atom.project = null
 
   delete atom.state.packageStates
