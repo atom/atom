@@ -7,7 +7,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 KeymapManager = require '../src/keymap-extensions'
-{$, WorkspaceView} = require 'atom'
+{$, WorkspaceView, Workspace} = require 'atom'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
@@ -49,6 +49,7 @@ if specDirectory
 beforeEach ->
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
+  atom.workspace = new Workspace()
   atom.project = new Project(path: projectPath)
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
 
@@ -114,6 +115,9 @@ afterEach ->
 
   atom.project?.destroy?()
   atom.project = null
+
+  atom.workspace?.destroy()
+  atom.workspace = null
 
   delete atom.state.packageStates
 
