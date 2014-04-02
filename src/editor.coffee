@@ -136,10 +136,6 @@ class Editor extends Model
   atom.deserializers.add(this)
   Delegator.includeInto(this)
 
-  @properties
-    scrollTop: 0
-    scrollLeft: 0
-
   deserializing: false
   callDisplayBufferCreatedHook: false
   registerEditor: false
@@ -152,6 +148,14 @@ class Editor extends Model
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
+
+  @delegatesMethods 'setLineHeight', 'getLineHeight', 'setDefaultCharWidth', 'setHeight',
+    'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop', 'setScrollLeft',
+    'getScrollLeft', 'getScrollHeight', 'getVisibleRowRange', 'intersectsVisibleRowRange',
+    'selectionIntersectsVisibleRowRange', toProperty: 'displayBuffer'
+
+  @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
+    '$scrollTop', '$scrollLeft', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
@@ -232,8 +236,6 @@ class Editor extends Model
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
     newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
-    newEditor.setScrollTop(@getScrollTop())
-    newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -268,18 +270,6 @@ class Editor extends Model
 
   # Controls visiblity based on the given {Boolean}.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
-
-  # Called by {EditorView} when the scroll position changes so it can be
-  # persisted across reloads.
-  setScrollTop: (@scrollTop) -> @scrollTop
-
-  getScrollTop: -> @scrollTop
-
-  # Called by {EditorView} when the scroll position changes so it can be
-  # persisted across reloads.
-  setScrollLeft: (@scrollLeft) -> @scrollLeft
-
-  getScrollLeft: -> @scrollLeft
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.

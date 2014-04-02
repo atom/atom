@@ -22,9 +22,12 @@ class DisplayBuffer extends Model
   @properties
     softWrap: null
     editorWidthInChars: null
-
-  lineHeight: null
-  defaultCharWidth: null
+    lineHeight: null
+    defaultCharWidth: null
+    height: null
+    width: null
+    scrollTop: 0
+    scrollLeft: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
@@ -55,6 +58,8 @@ class DisplayBuffer extends Model
     id: @id
     softWrap: @softWrap
     editorWidthInChars: @editorWidthInChars
+    scrollTop: @scrollTop
+    scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
 
   deserializeParams: (params) ->
@@ -63,6 +68,9 @@ class DisplayBuffer extends Model
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer.setScrollTop(@getScrollTop())
+    newDisplayBuffer.setScrollLeft(@getScrollLeft())
+
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -92,6 +100,75 @@ class DisplayBuffer extends Model
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  getHeight: -> @height
+  setHeight: (@height) -> @height
+
+  getWidth: -> @width
+  setWidth: (@width) -> @width
+
+  getScrollTop: -> @scrollTop
+  setScrollTop: (@scrollTop) -> @scrollTop
+
+  getScrollLeft: -> @scrollLeft
+  setScrollLeft: (@scrollLeft) -> @scrollLeft
+
+  getLineHeight: -> @lineHeight
+  setLineHeight: (@lineHeight) -> @lineHeight
+
+  setDefaultCharWidth: (@defaultCharWidth) ->
+
+  getScopedCharWidth: (scopeNames, char) ->
+    @getScopedCharWidths(scopeNames)[char]
+
+  getScopedCharWidths: (scopeNames) ->
+    scope = @charWidthsByScope
+    for scopeName in scopeNames
+      scope[scopeName] ?= {}
+      scope = scope[scopeName]
+    scope.charWidths ?= {}
+    scope.charWidths
+
+  setScopedCharWidth: (scopeNames, char, width) ->
+    @getScopedCharWidths(scopeNames)[char] = width
+
+  setScopedCharWidths: (scopeNames, charWidths) ->
+    _.extend(@getScopedCharWidths(scopeNames), charWidths)
+
+  clearScopedCharWidths: ->
+    @charWidthsByScope = {}
+
+  getScrollHeight: ->
+    @getLineCount() * @getLineHeight()
+
+  getVisibleRowRange: ->
+    return [0, 0] unless @getLineHeight() > 0
+    return [0, @getLineCount()] if @getHeight() is 0
+
+    heightInLines = @getHeight() / @getLineHeight()
+    startRow = Math.floor(@getScrollTop() / @getLineHeight())
+    endRow = Math.ceil(startRow + heightInLines)
+    [startRow, endRow]
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  # Retrieves the current tab length.
+  #
+  # Returns a {Number}.
+  getTabLength: ->
+    @tokenizedBuffer.getTabLength()
+
+  # Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
+  setTabLength: (tabLength) ->
+    @tokenizedBuffer.setTabLength(tabLength)
 
   # Deprecated: Use the softWrap property directly
   setSoftWrap: (@softWrap) -> @softWrap
@@ -384,44 +461,6 @@ class DisplayBuffer extends Model
   # Returns a {Token}.
   tokenForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.tokenForPosition(bufferPosition)
-
-  # Retrieves the current tab length.
-  #
-  # Returns a {Number}.
-  getTabLength: ->
-    @tokenizedBuffer.getTabLength()
-
-  # Specifies the tab length.
-  #
-  # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (tabLength) ->
-    @tokenizedBuffer.setTabLength(tabLength)
-
-  getLineHeight: -> @lineHeight
-
-  setLineHeight: (@lineHeight) ->
-
-  setDefaultCharWidth: (@defaultCharWidth) ->
-
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
-
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
-
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-
-  setScopedCharWidths: (scopeNames, charWidths) ->
-    _.extend(@getScopedCharWidths(scopeNames), charWidths)
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
 
   # Get the grammar for this buffer.
   #
