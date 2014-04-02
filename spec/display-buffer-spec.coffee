@@ -943,3 +943,15 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 2
         expect(marker1.getAttributes()).toEqual a: 1, b: 2
         expect(marker2.getAttributes()).toEqual a: 1, b: 3
+
+    describe "DisplayBufferMarker::getPixelRange()", ->
+      it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->
+        marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
+
+        displayBuffer.setLineHeight(20)
+        displayBuffer.setDefaultCharWidth(10)
+        displayBuffer.setScopedCharWidths(["source.js", "keyword.control.js"], r: 11, e: 11, t: 11, u: 11, r: 11, n: 11)
+
+        {start, end} = marker.getPixelRange()
+        expect(start.top).toBe 5 * 20
+        expect(start.left).toBe (4 * 10) + (6 * 11)
