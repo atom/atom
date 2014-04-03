@@ -144,15 +144,16 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
+  verticalScrollMargin: 2
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
   @delegatesMethods 'setLineHeight', 'getLineHeight', 'setDefaultCharWidth', 'setHeight',
-    'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop', 'setScrollLeft',
-    'getScrollLeft', 'getScrollHeight', 'getVisibleRowRange', 'intersectsVisibleRowRange',
-    'selectionIntersectsVisibleRowRange', toProperty: 'displayBuffer'
+    'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop', 'getScrollBottom',
+    'setScrollBottom', 'setScrollLeft', 'getScrollLeft', 'getScrollHeight', 'getVisibleRowRange',
+    'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', toProperty: 'displayBuffer'
 
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', toProperty: 'displayBuffer'
@@ -307,6 +308,10 @@ class Editor extends Model
 
   # Public: Toggle soft wrap for this editor
   toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
+
+  getVerticalScrollMargin: -> @verticalScrollMargin
+
+  setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
   # Public: Get the text representing a single level of indent.
   #

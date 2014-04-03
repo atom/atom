@@ -27,7 +27,12 @@ class Cursor
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
+      # Supports old editor view
       @needsAutoscroll ?= @isLastCursor() and !textChanged
+
+      # Supports react editor view
+      @autoscroll() if @needsAutoscroll
+
       @goalColumn = null
 
       movedEvent =
@@ -91,6 +96,19 @@ class Cursor
   # Public: Returns the current buffer position as an Array.
   getBufferPosition: ->
     @marker.getHeadBufferPosition()
+
+  autoscroll: ->
+    scrollMarginInPixels = @editor.getVerticalScrollMargin() * @editor.getLineHeight()
+    {top, height} = @getPixelRect()
+    bottom = top + height
+
+    desiredScrollTop = top - scrollMarginInPixels
+    desiredScrollBottom = bottom + scrollMarginInPixels
+
+    if desiredScrollTop < @editor.getScrollTop()
+      @editor.setScrollTop(desiredScrollTop)
+    else if desiredScrollBottom > @editor.getScrollBottom()
+      @editor.setScrollBottom(desiredScrollBottom)
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->
