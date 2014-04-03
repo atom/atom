@@ -108,7 +108,13 @@ class DisplayBuffer extends Model
   setWidth: (@width) -> @width
 
   getScrollTop: -> @scrollTop
-  setScrollTop: (@scrollTop) -> @scrollTop
+  setScrollTop: (scrollTop) ->
+    @scrollTop = Math.min(@getScrollHeight(), Math.max(0, scrollTop))
+
+  getScrollBottom: -> @scrollTop + @height
+  setScrollBottom: (scrollBottom) ->
+    @setScrollTop(scrollBottom - @height)
+    @getScrollBottom()
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (@scrollLeft) -> @scrollLeft
