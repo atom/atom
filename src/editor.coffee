@@ -1196,6 +1196,16 @@ class Editor extends Model
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
+  # Public: Set the selected range in screen coordinates. If there are multiple
+  # selections, they are reduced to a single selection with the given range.
+  #
+  # screenRange - A {Range} or range-compatible {Array}.
+  # options - An options {Object}:
+  #   :reversed - A {Boolean} indicating whether to create the selection in a
+  #     reversed orientation.
+  setSelectedScreenRange: (screenRange, options) ->
+    @setSelectedBufferRange(@bufferRangeForScreenRange(screenRange, options), options)
+
   # Public: Set the selected ranges in buffer coordinates. If there are multiple
   # selections, they are replaced by new selections with the given ranges.
   #
