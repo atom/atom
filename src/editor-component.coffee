@@ -92,7 +92,9 @@ EditorCompont = React.createClass
     @subscribe editor.$lineHeight.changes, @requestUpdate
 
   listenForDOMEvents: ->
-    @refs.scrollView.getDOMNode().addEventListener 'mousewheel', @onMousewheel
+    scrollViewNode = @refs.scrollView.getDOMNode()
+    scrollViewNode.addEventListener 'mousewheel', @onMousewheel
+    scrollViewNode.addEventListener 'overflowchanged', @onOverflowChanged
     @getDOMNode().addEventListener 'focus', @onFocus
 
   listenForCustomEvents: ->

@@ -645,6 +645,38 @@ describe "Editor", ->
           cursor2 = editor.addCursorAtBufferPosition([1,4])
           expect(cursor2.marker).toBe cursor1.marker
 
+    describe "autoscroll", ->
+      beforeEach ->
+        editor.setVerticalScrollMargin(2)
+        editor.setLineHeight(10)
+        editor.setHeight(5.5 * 10)
+
+      it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
+        expect(editor.getScrollTop()).toBe 0
+        expect(editor.getScrollBottom()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([2, 0])
+        expect(editor.getScrollBottom()).toBe 5.5 * 10
+
+        editor.moveCursorDown()
+        expect(editor.getScrollBottom()).toBe 6 * 10
+
+        editor.moveCursorDown()
+        expect(editor.getScrollBottom()).toBe 7 * 10
+
+      it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
+        editor.setCursorScreenPosition([11, 0])
+        editor.setScrollBottom(editor.getScrollHeight())
+
+        editor.moveCursorUp()
+        expect(editor.getScrollBottom()).toBe editor.getScrollHeight()
+
+        editor.moveCursorUp()
+        expect(editor.getScrollTop()).toBe 7 * 10
+
+        editor.moveCursorUp()
+        expect(editor.getScrollTop()).toBe 6 * 10
+
   describe "selection", ->
     selection = null
 
