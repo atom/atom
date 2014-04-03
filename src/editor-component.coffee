@@ -322,6 +322,7 @@ LineComponent = React.createClass
     if scopeTree.children?
       html = "<span class='#{scopeTree.scope.replace(/\./g, ' ')}'>"
       html += @buildScopeTreeHTML(child) for child in scopeTree.children
+      html += "</span>"
       html
     else
       "<span>#{scopeTree.getValueAsHtml({})}</span>"
