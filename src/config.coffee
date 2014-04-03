@@ -86,7 +86,7 @@ class Config
       hash = hash[key]
 
     _.extend hash, defaults
-    @update()
+    @emit 'updated'
 
   # Public: Get the path to the config file being used.
   getUserConfigPath: ->
