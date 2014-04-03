@@ -179,7 +179,7 @@ class Workspace extends Model
 
   # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
-    _.remove(@openers, opener)
+    remove(@openers, opener)
 
   getOpeners: ->
     @openers
