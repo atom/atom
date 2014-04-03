@@ -1,8 +1,9 @@
 {React, div, span} = require 'reactionary'
 {$$} = require 'space-pen'
 
-SelectionComponent = require './selection-component'
 InputComponent = require './input-component'
+SelectionComponent = require './selection-component'
+CursorComponent = require './cursor-component'
 CustomEventMixin = require './custom-event-mixin'
 SubscriberMixin = require './subscriber-mixin'
 
@@ -23,7 +24,7 @@ EditorCompont = React.createClass
     {fontSize, lineHeight, fontFamily} = @state
     {editor} = @props
 
-    div className: 'editor', tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
+    div className: 'editor react', tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
       div className: 'scroll-view', ref: 'scrollView',
         InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
         @renderScrollableContent()
@@ -38,13 +39,14 @@ EditorCompont = React.createClass
     div className: 'scrollable-content', style: {height, WebkitTransform},
       @renderOverlayer()
       @renderVisibleLines()
+      @renderUnderlayer()
 
   renderOverlayer: ->
     {editor} = @props
 
     div className: 'overlayer',
-      for selection in @props.editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        SelectionComponent({selection})
+      for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
+        CursorComponent(cursor: selection.cursor)
 
   renderVisibleLines: ->
     {editor} = @props
@@ -59,6 +61,13 @@ EditorCompont = React.createClass
         LineComponent({tokenizedLine, key: tokenizedLine.id}))...
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
+
+  renderUnderlayer: ->
+    {editor} = @props
+
+    div className: 'underlayer',
+      for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
+        SelectionComponent({selection})
 
   getInitialState: -> {}
 
