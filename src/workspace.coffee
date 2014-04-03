@@ -181,7 +181,7 @@ class Workspace extends Model
     _.remove(@openers, opener)
 
   getOpeners: ->
-    atom.project.openers
+    @openers
 
   # Public: Get the active {Pane}.
   #
