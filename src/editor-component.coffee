@@ -13,6 +13,7 @@ TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 module.exports =
 EditorCompont = React.createClass
   pendingScrollTop: null
+  lastScrollTop: null
 
   statics: {DummyLineNode}
 
@@ -78,11 +79,21 @@ EditorCompont = React.createClass
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
 
   componentDidUpdate: ->
-    # React offers a scrollTop property on element descriptors but it doesn't
-    # seem to work when reloading the editor while already scrolled down.
-    # Perhaps it's trying to assign it before the element inside is tall enough?
-    @refs.verticalScrollbar.getDOMNode().scrollTop = @props.editor.getScrollTop()
+    @updateVerticalScrollbar()
     @measureNewLines()
+
+  # The React-provided scrollTop property doesn't work in this case because when
+  # initially rendering, the synthetic scrollHeight hasn't been computed yet.
+  # trying to assign it before the element inside is tall enough?
+  updateVerticalScrollbar: ->
+    {editor} = @props
+    scrollTop = editor.getScrollTop()
+
+    return if scrollTop is @lastScrollTop
+
+    scrollbarNode = @refs.verticalScrollbar.getDOMNode()
+    scrollbarNode.scrollTop = scrollTop
+    @lastScrollTop = scrollbarNode.scrollTop
 
   observeEditor: ->
     {editor} = @props
