@@ -31,7 +31,6 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
-    @openers = []
 
     for buffer in @buffers
       do (buffer) =>
@@ -321,12 +320,12 @@ class Project extends Model
   # Deprecated: delegate
   registerOpener: (opener) ->
     deprecate("Use Workspace::registerOpener instead")
-    @openers.push(opener)
+    atom.workspace.registerOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
     deprecate("Use Workspace::unregisterOpener instead")
-    _.remove(@openers, opener)
+    atom.workspace.unregisterOpener(opener)
 
   # Deprecated: delegate
   eachEditor: (callback) ->

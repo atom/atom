@@ -28,6 +28,8 @@ class Workspace extends Model
 
   constructor: ->
     super
+
+    @openers = []
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
       switch filePath
@@ -172,11 +174,11 @@ class Workspace extends Model
   #
   # opener - A {Function} to be called when a path is being opened.
   registerOpener: (opener) ->
-    atom.project.registerOpener(opener)
+    @openers.push(opener)
 
   # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
-    atom.project.unregisterOpener(opener)
+    _.remove(@openers, opener)
 
   getOpeners: ->
     atom.project.openers
