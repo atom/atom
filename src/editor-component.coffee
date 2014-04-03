@@ -223,6 +223,9 @@ EditorCompont = React.createClass
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
     event.preventDefault()
 
+  onOverflowChanged: ->
+    @props.editor.setHeight(@refs.scrollView.getDOMNode().clientHeight)
+
   onInput: (char, replaceLastChar) ->
     @props.editor.insertText(char)
 
