@@ -335,17 +335,17 @@ class WorkspaceView extends View
 
   # Deprecated
   eachPane: (callback) ->
-    deprecate("Use WorkSpaceView::eachPaneView instead")
+    deprecate("Use WorkspaceView::eachPaneView instead")
     @eachPaneView(callback)
 
   # Deprecated
   getPanes: ->
-    deprecate("Use WorkSpaceView::getPaneViews instead")
+    deprecate("Use WorkspaceView::getPaneViews instead")
     @getPaneViews()
 
   # Deprecated
   getActivePane: ->
-    deprecate("Use WorkSpaceView::getActivePaneView instead")
+    deprecate("Use WorkspaceView::getActivePaneView instead")
     @getActivePaneView()
 
   # Deprecated: Call {Workspace::getActivePaneItem} instead.

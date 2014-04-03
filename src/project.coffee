@@ -320,21 +320,21 @@ class Project extends Model
 
   # Deprecated: delegate
   registerOpener: (opener) ->
-    deprecate("Use WorkSpace::registerOpener instead")
+    deprecate("Use Workspace::registerOpener instead")
     @openers.push(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
-    deprecate("Use WorkSpace::unregisterOpener instead")
+    deprecate("Use Workspace::unregisterOpener instead")
     _.remove(@openers, opener)
 
   # Deprecated: delegate
   eachEditor: (callback) ->
-    deprecate("Use WorkSpace::eachEditor instead")
+    deprecate("Use Workspace::eachEditor instead")
     callback(editor) for editor in @getEditors()
     @on 'editor-created', (editor) -> callback(editor)
 
   # Deprecated: delegate
   getEditors: ->
-    deprecate("Use WorkSpace::getEditors instead")
+    deprecate("Use Workspace::getEditors instead")
     new Array(@editors...)
