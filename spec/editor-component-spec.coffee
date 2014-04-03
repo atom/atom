@@ -82,6 +82,16 @@ describe "EditorComponent", ->
     expect(cursorNodes[0].offsetTop).toBe 6 * lineHeightInPixels
     expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
 
+  it "updates the scroll bar when the scrollTop is changed in the model", ->
+    node.style.height = 4.5 * lineHeightInPixels + 'px'
+    component.updateAllDimensions()
+
+    scrollbarNode = node.querySelector('.vertical-scrollbar')
+    expect(scrollbarNode.scrollTop).toBe 0
+
+    editor.setScrollTop(10)
+    expect(scrollbarNode.scrollTop).toBe 10
+
   it "accounts for character widths when positioning cursors", ->
     atom.config.set('editor.fontFamily', 'sans-serif')
     editor.setCursorScreenPosition([0, 16])

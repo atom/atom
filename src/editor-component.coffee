@@ -78,6 +78,10 @@ EditorCompont = React.createClass
     @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
 
   componentDidUpdate: ->
+    # React offers a scrollTop property on element descriptors but it doesn't
+    # seem to work when reloading the editor while already scrolled down.
+    # Perhaps it's trying to assign it before the element inside is tall enough?
+    @refs.verticalScrollbar.getDOMNode().scrollTop = @props.editor.getScrollTop()
     @measureNewLines()
 
   observeEditor: ->
