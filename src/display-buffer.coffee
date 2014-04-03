@@ -109,7 +109,7 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    @scrollTop = Math.min(@getScrollHeight(), Math.max(0, scrollTop))
+    @scrollTop = Math.min(@getScrollHeight() - @getHeight(), Math.max(0, scrollTop))
 
   getScrollBottom: -> @scrollTop + @height
   setScrollBottom: (scrollBottom) ->

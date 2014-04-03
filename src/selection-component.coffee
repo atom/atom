@@ -1,6 +1,5 @@
 {React, div} = require 'reactionary'
 SubscriberMixin = require './subscriber-mixin'
-CursorComponent = require './cursor-component'
 
 module.exports =
 SelectionComponent = React.createClass
@@ -8,7 +7,8 @@ SelectionComponent = React.createClass
 
   render: ->
     div className: 'selection',
-      CursorComponent(cursor: @props.selection.cursor)
+      for regionRect, i in @props.selection.getRegionRects()
+        div className: 'region', key: i, style: regionRect
 
   componentDidMount: ->
     @subscribe @props.selection, 'screen-range-changed', => @forceUpdate()
