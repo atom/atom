@@ -330,8 +330,7 @@ class Project extends Model
   # Deprecated: delegate
   eachEditor: (callback) ->
     deprecate("Use Workspace::eachEditor instead")
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    atom.workspace.eachEditor(callback)
 
   # Deprecated: delegate
   getEditors: ->

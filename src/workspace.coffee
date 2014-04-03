@@ -60,7 +60,8 @@ class Workspace extends Model
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditor: (callback) ->
-    atom.project.eachEditor(callback)
+    callback(editor) for editor in @getEditors()
+    @on 'editor-created', (editor) -> callback(editor)
 
   # Public: Get all current editors in the workspace.
   #
