@@ -170,6 +170,13 @@ describe "Config", ->
       expect(atom.config.get("foo.quux.x")).toBe 0
       expect(atom.config.get("foo.quux.y")).toBe 1
 
+    it "emits an updated event", ->
+      updatedCallback = jasmine.createSpy('updated')
+      atom.config.observe('foo.bar.baz.a', callNow: false, updatedCallback)
+      expect(updatedCallback.callCount).toBe 0
+      atom.config.setDefaults("foo.bar.baz", a: 2)
+      expect(updatedCallback.callCount).toBe 1
+
   describe ".observe(keyPath)", ->
     [observeHandler, observeSubscription] = []
 
