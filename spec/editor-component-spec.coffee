@@ -151,7 +151,6 @@ describe "EditorComponent", ->
       expect(region3Rect.left).toBe 0
       expect(region3Rect.width).toBe 10 * charWidth
 
-
   it "updates the scroll bar when the scrollTop is changed in the model", ->
     node.style.height = 4.5 * lineHeightInPixels + 'px'
     component.updateAllDimensions()
