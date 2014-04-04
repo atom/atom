@@ -324,5 +324,4 @@ class Project extends Model
   # Deprecated: delegate
   getEditors: ->
     deprecate("Use Workspace::getEditors instead")
-    atom.getEditors()
-    new Array(@editors...)
+    atom.workspace.getEditors()
