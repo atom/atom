@@ -1596,6 +1596,11 @@ describe "Editor", ->
           expect(cursor1.getBufferPosition()).toEqual [1, 13]
           expect(cursor2.getBufferPosition()).toEqual [2, 34]
 
+          editor.setText('  var sort')
+          editor.setCursorBufferPosition([0, 2])
+          editor.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(0)).toBe 'var sort'
+
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
