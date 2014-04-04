@@ -26,7 +26,7 @@ class Syntax extends GrammarRegistry
     syntax
 
   constructor: ->
-    super
+    super(maxTokensPerLine: 100)
     @propertyStore = new ScopedPropertyStore
 
   serialize: ->
