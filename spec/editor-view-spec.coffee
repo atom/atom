@@ -2802,7 +2802,7 @@ describe "EditorView", ->
 
   describe "when the escape key is pressed on the editor view", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
-      atom.keymap.bindKeys 'name', '.editor', {'escape': 'test-event'}
+      atom.keymaps.bindKeys 'name', '.editor', {'escape': 'test-event'}
       testEventHandler = jasmine.createSpy("testEventHandler")
 
       editorView.on 'test-event', testEventHandler

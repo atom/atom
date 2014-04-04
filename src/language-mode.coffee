@@ -74,7 +74,10 @@ class LanguageMode
             columnEnd = columnStart + match[2].length
             buffer.change([[row, columnStart], [row, columnEnd]], "")
       else
-        indent = @minIndentLevelForRowRange(start, end)
+        if start is end
+          indent = @editor.indentationForBufferRow(start)
+        else
+          indent = @minIndentLevelForRowRange(start, end)
         indentString = @editor.buildIndentString(indent)
         tabLength = @editor.getTabLength()
         indentRegex = new RegExp("(\t|[ ]{#{tabLength}}){#{Math.floor(indent)}}")

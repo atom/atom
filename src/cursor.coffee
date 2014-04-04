@@ -315,12 +315,14 @@ class Cursor
   #   :includeNonWordCharacters - A {Boolean} indicating whether to include
   #                               non-word characters in the default word regex.
   #                               Has no effect if wordRegex is set.
+  #   :allowPrevious - A {Boolean} indicating whether the beginning of the
+  #                    previous word can be returned.
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row) ? 0
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
@@ -330,7 +332,12 @@ class Cursor
       if not beginningOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 
-    beginningOfWordPosition or currentBufferPosition
+    if beginningOfWordPosition?
+      beginningOfWordPosition
+    else if allowPrevious
+      new Point(0, 0)
+    else
+      currentBufferPosition
 
   # Public: Retrieves buffer position of previous word boundary. It might be on
   # the current word, or the previous word.

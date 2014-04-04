@@ -79,7 +79,7 @@ class WorkspaceView extends View
           @div class: 'panes', outlet: 'panes'
 
   initialize: (@model) ->
-    @model ?= new Workspace
+    @model = atom.workspace ? new Workspace unless @model?
 
     panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)

@@ -1424,6 +1424,26 @@ describe "Editor", ->
           editor.undo()
           expect(editor.getCursorBufferPosition()).toEqual [3,4]
 
+      it "indents the new line to the same indent level as the current line when editor.autoIndent is true", ->
+        atom.config.set('editor.autoIndent', true)
+
+        editor.setText('  var test')
+        editor.setCursorBufferPosition([0,2])
+        editor.insertNewlineAbove()
+
+        expect(editor.getCursorBufferPosition()).toEqual [0,2]
+        expect(editor.lineForBufferRow(0)).toBe '  '
+        expect(editor.lineForBufferRow(1)).toBe '  var test'
+
+        editor.setText('\n  var test')
+        editor.setCursorBufferPosition([1,2])
+        editor.insertNewlineAbove()
+
+        expect(editor.getCursorBufferPosition()).toEqual [1,2]
+        expect(editor.lineForBufferRow(0)).toBe ''
+        expect(editor.lineForBufferRow(1)).toBe '  '
+        expect(editor.lineForBufferRow(2)).toBe '  var test'
+
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null
@@ -1595,6 +1615,11 @@ describe "Editor", ->
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return ar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 13]
           expect(cursor2.getBufferPosition()).toEqual [2, 34]
+
+          editor.setText('  var sort')
+          editor.setCursorBufferPosition([0, 2])
+          editor.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(0)).toBe 'var sort'
 
       describe "when text is selected", ->
         it "deletes only selected text", ->

@@ -71,6 +71,9 @@ class Git
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
+    for submodulePath, submoduleRepo of @repo.submodules
+      submoduleRepo.upstream = {ahead: 0, behind: 0}
+
     {@project, refreshOnWindowFocus} = options
 
     refreshOnWindowFocus ?= true

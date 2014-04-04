@@ -170,28 +170,28 @@ describe "the `atom` global", ->
               element2 = $$ -> @div class: 'test-2'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)).toHaveLength 0
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
 
               atom.packages.activatePackage("package-with-keymaps")
 
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe "test-1"
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)[0].command).toBe "test-2"
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe "test-1"
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)[0].command).toBe "test-2"
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
 
           describe "when the metadata contains a 'keymaps' manifest", ->
             it "loads only the keymaps specified by the manifest, in the specified order", ->
               element1 = $$ -> @div class: 'test-1'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
 
               atom.packages.activatePackage("package-with-keymaps-manifest")
 
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe 'keymap-1'
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-n', element1)[0].command).toBe 'keymap-2'
-              expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-y', element3)).toHaveLength 0
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe 'keymap-1'
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-n', element1)[0].command).toBe 'keymap-2'
+              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-y', element3)).toHaveLength 0
 
         describe "menu loading", ->
           beforeEach ->
@@ -377,8 +377,8 @@ describe "the `atom` global", ->
 
           runs ->
             atom.packages.deactivatePackage('package-with-keymaps')
-            expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
-            expect(atom.keymap.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
+            expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
+            expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
 
         it "removes the package's stylesheets", ->
           waitsForPromise ->

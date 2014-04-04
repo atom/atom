@@ -138,6 +138,10 @@ class AtomWindow
 
   getSize: -> @browserWindow.getSize()
 
+  minimize: -> @browserWindow.minimize()
+
+  maximize: -> @browserWindow.maximize()
+
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
 

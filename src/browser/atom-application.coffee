@@ -125,7 +125,7 @@ class AtomApplication
 
   # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
-    app.commandLine.appendSwitch 'js-flags', '--harmony_collections --harmony-proxies'
+    app.commandLine.appendSwitch 'js-flags', '--harmony'
 
   # Enable updates unless running from a local build of Atom.
   setupAutoUpdater: ->
@@ -169,24 +169,29 @@ class AtomApplication
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
-    @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
-    @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
-    @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
-    @on 'application:unhide-all-applications', -> Menu.sendActionToFirstResponder('unhideAllApplications:')
     @on 'application:new-window', -> @openPath(initialSize: @getFocusedWindowSize())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPath()
     @on 'application:open-dev', -> @promptForPath(devMode: true)
-    @on 'application:minimize', -> Menu.sendActionToFirstResponder('performMiniaturize:')
-    @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
-    @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:install-update', -> autoUpdater.quitAndInstall()
     @on 'application:check-for-update', => @checkForUpdate()
+
+    if process.platform is 'darwin'
+      @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
+      @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
+      @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
+      @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
+      @on 'application:minimize', -> Menu.sendActionToFirstResponder('performMiniaturize:')
+      @on 'application:unhide-all-applications', -> Menu.sendActionToFirstResponder('unhideAllApplications:')
+      @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
+    else
+      @on 'application:minimize', -> @focusedWindow()?.minimize()
+      @on 'application:zoom', -> @focusedWindow()?.maximize()
 
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')

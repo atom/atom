@@ -111,7 +111,7 @@ describe "WorkspaceView", ->
       commandHandler = jasmine.createSpy('commandHandler')
       atom.workspaceView.on('foo-command', commandHandler)
 
-      atom.keymap.bindKeys('name', '*', 'x': 'foo-command')
+      atom.keymaps.bindKeys('name', '*', 'x': 'foo-command')
 
     describe "when a keydown event is triggered in the WorkspaceView", ->
       it "triggers matching keybindings for that event", ->

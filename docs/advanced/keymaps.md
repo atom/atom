@@ -83,6 +83,22 @@ file. For now, we've opted to handle cases where selector ordering is critical
 by breaking the keymap into two separate files, such as `snippets-1.cson` and
 `snippets-2.cson`.
 
+## Removing Bindings
+
+When the keymap system encounters a binding with the `unset!` directive as its
+command, it will treat the current element as if it had no key bindings matching
+the current keystroke sequence and continue searching from its parent. If you
+want to remove a binding from a keymap you don't control, such as keymaps in
+Atom core or in packages, use the `unset!` directive.
+
+## Forcing Chromium's Native Keystroke Handling
+
+If you want to force the native browser behavior for a given keystroke, use the
+`native!` directive as the command of a binding. This can be useful to enable
+the correct behavior in native input elements, for example. If you apply the
+`.native-key-bindings` class to an element, all the keystrokes typically handled
+by the browser will be assigned the `native!` directive.
+
 ## Overloading Key Bindings
 
 Occasionally, it makes sense to layer multiple actions on top of the same key

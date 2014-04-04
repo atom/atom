@@ -14,7 +14,7 @@ class MenuManager
   constructor: ({@resourcePath}) ->
     @pendingUpdateOperation = null
     @template = []
-    atom.keymap.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
 
   # Public: Adds the given item definition to the existing template.
   #
@@ -59,7 +59,8 @@ class MenuManager
       testBody.classList.add(@classesForElement(document.body)...)
 
       testWorkspace = document.createElement('body')
-      workspaceClasses = @classesForElement(document.body.querySelector('.workspace')) ? ['.workspace']
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace'))
+      workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
@@ -75,7 +76,7 @@ class MenuManager
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
     @pendingUpdateOperation = setImmediate =>
       keystrokesByCommand = {}
-      for binding in atom.keymap.getKeyBindings() when @includeSelector(binding.selector)
+      for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystroke
       @sendToBrowserProcess(@template, keystrokesByCommand)
@@ -116,10 +117,10 @@ class MenuManager
   normalizeLabel: (label) ->
     return undefined unless label?
 
-    if process.platform is 'win32'
-      label.replace(/\&/g, '')
-    else
+    if process.platform is 'darwin'
       label
+    else
+      label.replace(/\&/g, '')
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
