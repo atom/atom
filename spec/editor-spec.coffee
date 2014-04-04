@@ -1426,6 +1426,15 @@ describe "Editor", ->
 
       it "indents the new line to the same indent level as the current line when editor.autoIndent is true", ->
         atom.config.set('editor.autoIndent', true)
+
+        editor.setText('  var test')
+        editor.setCursorBufferPosition([0,2])
+        editor.insertNewlineAbove()
+
+        expect(editor.getCursorBufferPosition()).toEqual [0,2]
+        expect(editor.lineForBufferRow(0)).toBe '  '
+        expect(editor.lineForBufferRow(1)).toBe '  var test'
+
         editor.setText('\n  var test')
         editor.setCursorBufferPosition([1,2])
         editor.insertNewlineAbove()

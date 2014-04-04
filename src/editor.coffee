@@ -625,11 +625,15 @@ class Editor extends Model
       bufferRow = @getCursorBufferPosition().row
       indentLevel = @indentationForBufferRow(bufferRow)
       onFirstLine = bufferRow is 0
+
       @moveCursorToBeginningOfLine()
       @moveCursorLeft()
       @insertNewline()
       @setIndentationForBufferRow(bufferRow, indentLevel) if @shouldAutoIndent()
-      @moveCursorUp() if onFirstLine
+
+      if onFirstLine
+        @moveCursorUp()
+        @moveCursorToEndOfLine()
 
   # Indent all lines intersecting selections. See {Selection::indent} for more
   # information.
