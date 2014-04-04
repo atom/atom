@@ -147,5 +147,5 @@ class PaneContainerView extends View
 
   # Deprecated
   getPanes: ->
-    deprecate("Use PaneContainerView::getPaneViews() instead.")
+    deprecate("Use PaneContainerView::getPaneViews() instead")
     @getPaneViews()

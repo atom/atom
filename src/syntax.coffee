@@ -37,7 +37,7 @@ class Syntax extends GrammarRegistry
 
   # Deprecated: Used by settings-view to display snippets for packages
   @::accessor 'scopedProperties', ->
-    deprecate("Use Syntax::getProperty instead.")
+    deprecate("Use Syntax::getProperty instead")
     @propertyStore.propertySets
 
   addProperties: (args...) ->

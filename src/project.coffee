@@ -128,7 +128,7 @@ class Project extends Model
 
   # Deprecated
   openSync: (filePath, options={}) ->
-    deprecate("Use Project::open instead.")
+    deprecate("Use Project::open instead")
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
@@ -179,7 +179,7 @@ class Project extends Model
 
   # DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
-    deprecate("Use Project::buildBuffer instead.")
+    deprecate("Use Project::buildBuffer instead")
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
