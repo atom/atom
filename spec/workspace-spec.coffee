@@ -245,3 +245,15 @@ describe "Workspace", ->
     it "opens the license as plain-text in a buffer", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
+
+  describe "when an editor is destroyed", ->
+    it "removes editor", ->
+      editor = null
+
+      waitsForPromise ->
+        workspace.open("a").then (e) -> editor = e
+
+      runs ->
+        expect(workspace.getEditors()).toHaveLength 1
+        editor.destroy()
+        expect(workspace.getEditors()).toHaveLength 0

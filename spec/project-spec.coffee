@@ -33,20 +33,6 @@ describe "Project", ->
       deserializedProject.getBuffers()[0].destroy()
       expect(deserializedProject.getBuffers().length).toBe 0
 
-  describe "when an edit session is destroyed", ->
-    it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
-      editor = atom.project.openSync("a")
-      anotherEditor = atom.project.openSync("a")
-
-      expect(atom.project.editors.length).toBe 2
-      expect(editor.buffer).toBe anotherEditor.buffer
-
-      editor.destroy()
-      expect(atom.project.editors.length).toBe 1
-
-      anotherEditor.destroy()
-      expect(atom.project.editors.length).toBe 0
-
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
