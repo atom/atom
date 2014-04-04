@@ -260,7 +260,7 @@ EditorCompont = React.createClass
     # after mousewheel events stop being fired. Removing the target before then
     # will cause scrolling to stop suddenly.
     @visibleRowOverrides = @getVisibleRowRange()
-    @clearVisibleRowOverridesAfterDelay ?= debounce(@clearVisibleRowOverrides, 40)
+    @clearVisibleRowOverridesAfterDelay ?= debounce(@clearVisibleRowOverrides, 100)
     @clearVisibleRowOverridesAfterDelay()
 
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
