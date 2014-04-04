@@ -245,8 +245,11 @@ EditorCompont = React.createClass
     @refs.hiddenInput.focus()
 
   onVerticalScroll: ->
+    scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
+    return if @props.editor.getScrollTop() is scrollTop
+
     animationFramePending = @pendingScrollTop?
-    @pendingScrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
+    @pendingScrollTop = scrollTop
     unless animationFramePending
       requestAnimationFrame =>
         @props.editor.setScrollTop(@pendingScrollTop)
