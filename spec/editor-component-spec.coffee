@@ -19,28 +19,39 @@ describe "EditorComponent", ->
       {lineHeightInPixels, charWidth} = component.measureLineDimensions()
       node = component.getDOMNode()
 
-  it "renders only the currently-visible lines", ->
-    node.style.height = 4.5 * lineHeightInPixels + 'px'
-    component.updateAllDimensions()
+  describe "scrolling", ->
+    it "renders only the currently-visible lines", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.updateAllDimensions()
 
-    lines = node.querySelectorAll('.line')
-    expect(lines.length).toBe 5
-    expect(lines[0].textContent).toBe editor.lineForScreenRow(0).text
-    expect(lines[4].textContent).toBe editor.lineForScreenRow(4).text
+      lines = node.querySelectorAll('.line')
+      expect(lines.length).toBe 5
+      expect(lines[0].textContent).toBe editor.lineForScreenRow(0).text
+      expect(lines[4].textContent).toBe editor.lineForScreenRow(4).text
 
-    node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
-    component.onVerticalScroll()
+      node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
+      component.onVerticalScroll()
 
-    expect(node.querySelector('.scrollable-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
+      expect(node.querySelector('.scrollable-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
 
-    lines = node.querySelectorAll('.line')
-    expect(lines.length).toBe 5
-    expect(lines[0].textContent).toBe editor.lineForScreenRow(2).text
-    expect(lines[4].textContent).toBe editor.lineForScreenRow(6).text
+      lines = node.querySelectorAll('.line')
+      expect(lines.length).toBe 5
+      expect(lines[0].textContent).toBe editor.lineForScreenRow(2).text
+      expect(lines[4].textContent).toBe editor.lineForScreenRow(6).text
 
-    spacers = node.querySelectorAll('.spacer')
-    expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
-    expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 7) * lineHeightInPixels
+      spacers = node.querySelectorAll('.spacer')
+      expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
+      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 7) * lineHeightInPixels
+
+    it "updates the scroll bar when the scrollTop is changed in the model", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.updateAllDimensions()
+
+      scrollbarNode = node.querySelector('.vertical-scrollbar')
+      expect(scrollbarNode.scrollTop).toBe 0
+
+      editor.setScrollTop(10)
+      expect(scrollbarNode.scrollTop).toBe 10
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
@@ -150,16 +161,6 @@ describe "EditorComponent", ->
       expect(region3Rect.height).toBe 1 * lineHeightInPixels
       expect(region3Rect.left).toBe 0
       expect(region3Rect.width).toBe 10 * charWidth
-
-  it "updates the scroll bar when the scrollTop is changed in the model", ->
-    node.style.height = 4.5 * lineHeightInPixels + 'px'
-    component.updateAllDimensions()
-
-    scrollbarNode = node.querySelector('.vertical-scrollbar')
-    expect(scrollbarNode.scrollTop).toBe 0
-
-    editor.setScrollTop(10)
-    expect(scrollbarNode.scrollTop).toBe 10
 
   it "transfers focus to the hidden input", ->
     expect(document.activeElement).toBe document.body
