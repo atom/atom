@@ -33,7 +33,7 @@ describe "Project", ->
       deserializedProject.getBuffers()[0].destroy()
       expect(deserializedProject.getBuffers().length).toBe 0
 
-  describe "when an edit session is saved and the project has no path", ->
+  describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
       atom.project.setPath(undefined)
@@ -41,22 +41,6 @@ describe "Project", ->
       editor = atom.project.openSync()
       editor.saveAs(tempFile)
       expect(atom.project.getPath()).toBe path.dirname(tempFile)
-
-  describe "when an edit session is copied", ->
-    it "emits an 'editor-created' event and stores the edit session", ->
-      handler = jasmine.createSpy('editorCreatedHandler')
-      atom.project.on 'editor-created', handler
-
-      editor1 = atom.project.openSync("a")
-      expect(handler.callCount).toBe 1
-      expect(atom.project.getEditors().length).toBe 1
-      expect(atom.project.getEditors()[0]).toBe editor1
-
-      editor2 = editor1.copy()
-      expect(handler.callCount).toBe 2
-      expect(atom.project.getEditors().length).toBe 2
-      expect(atom.project.getEditors()[0]).toBe editor1
-      expect(atom.project.getEditors()[1]).toBe editor2
 
   describe ".openSync(path)", ->
     [absolutePath, newBufferHandler, newEditorHandler] = []
