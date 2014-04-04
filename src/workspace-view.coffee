@@ -3,6 +3,7 @@ path = require 'path'
 Q = require 'q'
 _ = require 'underscore-plus'
 Delegator = require 'delegato'
+{deprecate, logDeprecationWarnings} = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
@@ -140,8 +141,8 @@ class WorkspaceView extends View
     @command 'window:focus-pane-on-left', => @focusPaneViewOnLeft()
     @command 'window:focus-pane-on-right', => @focusPaneViewOnRight()
     @command 'window:save-all', => @saveAll()
-    @command 'window:toggle-invisibles', =>
-      atom.config.toggle("editor.showInvisibles")
+    @command 'window:toggle-invisibles', -> atom.config.toggle("editor.showInvisibles")
+    @command 'window:log-deprecation-warnings', -> logDeprecationWarnings()
 
     @command 'window:toggle-auto-indent', =>
       atom.config.toggle("editor.autoIndent")
@@ -334,16 +335,20 @@ class WorkspaceView extends View
 
   # Deprecated
   eachPane: (callback) ->
+    deprecate("Use WorkspaceView::eachPaneView instead")
     @eachPaneView(callback)
 
   # Deprecated
   getPanes: ->
+    deprecate("Use WorkspaceView::getPaneViews instead")
     @getPaneViews()
 
   # Deprecated
   getActivePane: ->
+    deprecate("Use WorkspaceView::getActivePaneView instead")
     @getActivePaneView()
 
   # Deprecated: Call {Workspace::getActivePaneItem} instead.
   getActivePaneItem: ->
+    deprecate("Use Workspace::getActivePaneItem instead")
     @model.activePaneItem

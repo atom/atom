@@ -1,5 +1,6 @@
 {$, View} = require './space-pen-extensions'
 Delegator = require 'delegato'
+{deprecate} = require 'grim'
 PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
@@ -81,22 +82,34 @@ class PaneView extends View
     @command 'pane:close-other-items', => @destroyInactiveItems()
 
   # Deprecated: Use ::destroyItem
-  removeItem: (item) -> @destroyItem(item)
+  removeItem: (item) ->
+    deprecate("Use PaneView::destroyItem instead")
+    @destroyItem(item)
 
   # Deprecated: Use ::activateItem
-  showItem: (item) -> @activateItem(item)
+  showItem: (item) ->
+    deprecate("Use PaneView::activateItem instead")
+    @activateItem(item)
 
   # Deprecated: Use ::activateItemForUri
-  showItemForUri: (item) -> @activateItemForUri(item)
+  showItemForUri: (item) ->
+    deprecate("Use PaneView::activateItemForUri instead")
+    @activateItemForUri(item)
 
   # Deprecated: Use ::activateItemAtIndex
-  showItemAtIndex: (index) -> @activateItemAtIndex(index)
+  showItemAtIndex: (index) ->
+    deprecate("Use PaneView::activateItemAtIndex instead")
+    @activateItemAtIndex(index)
 
   # Deprecated: Use ::activateNextItem
-  showNextItem: -> @activateNextItem()
+  showNextItem: ->
+    deprecate("Use PaneView::destroyItem instead")
+    @activateNextItem()
 
   # Deprecated: Use ::activatePreviousItem
-  showPreviousItem: -> @activatePreviousItem()
+  showPreviousItem: ->
+    deprecate("Use PaneView::activatePreviousItem instead")
+    @activatePreviousItem()
 
   afterAttach: (onDom) ->
     @focus() if @model.focused and onDom

@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{deprecate} = require 'grim'
 {specificity} = require 'clear-cut'
 {Subscriber} = require 'emissary'
 {GrammarRegistry, ScopeSelector} = require 'first-mate'
@@ -35,7 +36,9 @@ class Syntax extends GrammarRegistry
   createToken: (value, scopes) -> new Token({value, scopes})
 
   # Deprecated: Used by settings-view to display snippets for packages
-  @::accessor 'scopedProperties', -> @propertyStore.propertySets
+  @::accessor 'scopedProperties', ->
+    deprecate("Use Syntax::getProperty instead")
+    @propertyStore.propertySets
 
   addProperties: (args...) ->
     name = args.shift() if args.length > 2

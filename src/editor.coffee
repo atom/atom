@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 path = require 'path'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
+{deprecate} = require 'grim'
 {Model} = require 'theorist'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
@@ -998,6 +999,7 @@ class Editor extends Model
 
   # Deprecated: Use {::duplicateLines} instead.
   duplicateLine: ->
+    deprecate("Use Editor::duplicateLines() instead")
     @duplicateLines()
 
   mutateSelectedText: (fn) ->
@@ -1765,4 +1767,5 @@ class Editor extends Model
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
+    deprecate("Use Editor::joinLines() instead")
     @joinLines()

@@ -4,6 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
+{deprecate} = require 'grim'
 {Model} = require 'theorist'
 {Emitter, Subscriber} = require 'emissary'
 Serializable = require 'serializable'
@@ -127,6 +128,7 @@ class Project extends Model
 
   # Deprecated
   openSync: (filePath, options={}) ->
+    deprecate("Use Project::open instead")
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
@@ -177,6 +179,7 @@ class Project extends Model
 
   # DEPRECATED
   buildBufferSync: (absoluteFilePath) ->
+    deprecate("Use Project::buildBuffer instead")
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()
@@ -317,17 +320,21 @@ class Project extends Model
 
   # Deprecated: delegate
   registerOpener: (opener) ->
+    deprecate("Use Workspace::registerOpener instead")
     @openers.push(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
+    deprecate("Use Workspace::unregisterOpener instead")
     _.remove(@openers, opener)
 
   # Deprecated: delegate
   eachEditor: (callback) ->
+    deprecate("Use Workspace::eachEditor instead")
     callback(editor) for editor in @getEditors()
     @on 'editor-created', (editor) -> callback(editor)
 
   # Deprecated: delegate
   getEditors: ->
+    deprecate("Use Workspace::getEditors instead")
     new Array(@editors...)
