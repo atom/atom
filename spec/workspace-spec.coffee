@@ -5,7 +5,7 @@ describe "Workspace", ->
 
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
-    workspace = new Workspace
+    atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
     beforeEach ->
