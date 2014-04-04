@@ -343,7 +343,6 @@ class EditorView extends View
     @subscribe atom.config.observe 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
     @subscribe atom.config.observe 'editor.lineHeight', (lineHeight) => @setLineHeight(lineHeight)
 
-
   handleEvents: ->
     @on 'focus', =>
       @hiddenInput.focus()
