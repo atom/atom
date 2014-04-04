@@ -30,6 +30,8 @@ class Workspace extends Model
     super
 
     @openers = []
+    @editors = []
+
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
       switch filePath
@@ -52,6 +54,16 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
+  # Return and add the given {Editor}.
+  addEditor: (editor) ->
+    @editors.push editor
+    @emit 'editor-created', editor
+    editor
+
+  # Return and removes the given {Editor}.
+  removeEditor: (editor) ->
+    remove(@editors, editor)
+
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
@@ -61,13 +73,13 @@ class Workspace extends Model
   # unregister the callback.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
-    @subscribe atom.project, 'editor-created', (editor) -> callback(editor)
+    @subscribe this, 'editor-created', (editor) -> callback(editor)
 
   # Public: Get all current editors in the workspace.
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
-    atom.project.getEditors()
+    new Array(@editors...)
 
   # Public: Open a given a URI in Atom asynchronously.
   #
@@ -274,4 +286,5 @@ class Workspace extends Model
 
   # Called by Model superclass when destroyed
   destroyed: ->
+    editor.destroy() for editor in @getEditors()
     @paneContainer.destroy()

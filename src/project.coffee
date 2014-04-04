@@ -36,7 +36,6 @@ class Project extends Model
       do (buffer) =>
         buffer.once 'destroyed', => @removeBuffer(buffer)
 
-    @editors = []
     @setPath(path)
 
   serializeParams: ->
@@ -48,7 +47,6 @@ class Project extends Model
     params
 
   destroyed: ->
-    editor.destroy() for editor in @getEditors()
     buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -130,15 +128,6 @@ class Project extends Model
     deprecate("Use Project::open instead")
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
-
-  # Add the given {Editor}.
-  addEditor: (editor) ->
-    @editors.push editor
-    @emit 'editor-created', editor
-
-  # Return and removes the given {Editor}.
-  removeEditor: (editor) ->
-    _.remove(@editors, editor)
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -304,7 +293,7 @@ class Project extends Model
 
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new Editor(_.extend({buffer}, editorOptions))
-    @addEditor(editor)
+    atom.workspace.addEditor(editor)
     editor
 
   eachBuffer: (args...) ->
@@ -335,4 +324,5 @@ class Project extends Model
   # Deprecated: delegate
   getEditors: ->
     deprecate("Use Workspace::getEditors instead")
+    atom.getEditors()
     new Array(@editors...)
