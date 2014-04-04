@@ -622,11 +622,18 @@ class Editor extends Model
   # Public: For each cursor, insert a newline at the end of the preceding line.
   insertNewlineAbove: ->
     @transact =>
-      onFirstLine = @getCursorBufferPosition().row is 0
+      bufferRow = @getCursorBufferPosition().row
+      indentLevel = @indentationForBufferRow(bufferRow)
+      onFirstLine = bufferRow is 0
+
       @moveCursorToBeginningOfLine()
       @moveCursorLeft()
       @insertNewline()
-      @moveCursorUp() if onFirstLine
+      @setIndentationForBufferRow(bufferRow, indentLevel) if @shouldAutoIndent()
+
+      if onFirstLine
+        @moveCursorUp()
+        @moveCursorToEndOfLine()
 
   # Indent all lines intersecting selections. See {Selection::indent} for more
   # information.
