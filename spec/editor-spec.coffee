@@ -1424,6 +1424,17 @@ describe "Editor", ->
           editor.undo()
           expect(editor.getCursorBufferPosition()).toEqual [3,4]
 
+      it "indents the new line to the same indent level as the current line when editor.autoIndent is true", ->
+        atom.config.set('editor.autoIndent', true)
+        editor.setText('\n  var test')
+        editor.setCursorBufferPosition([1,2])
+        editor.insertNewlineAbove()
+
+        expect(editor.getCursorBufferPosition()).toEqual [1,2]
+        expect(editor.lineForBufferRow(0)).toBe ''
+        expect(editor.lineForBufferRow(1)).toBe '  '
+        expect(editor.lineForBufferRow(2)).toBe '  var test'
+
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null
