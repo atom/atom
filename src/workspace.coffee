@@ -61,7 +61,7 @@ class Workspace extends Model
   # unregister the callback.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    @subscribe atom.project, 'editor-created', (editor) -> callback(editor)
 
   # Public: Get all current editors in the workspace.
   #
