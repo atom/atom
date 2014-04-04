@@ -1,5 +1,6 @@
 {React, div, span} = require 'reactionary'
 {$$} = require 'space-pen'
+{debounce} = require 'underscore-plus'
 
 InputComponent = require './input-component'
 SelectionComponent = require './selection-component'
@@ -37,20 +38,13 @@ EditorCompont = React.createClass
     WebkitTransform = "translateY(#{-editor.getScrollTop()}px)"
 
     div className: 'scrollable-content', style: {height, WebkitTransform},
-      @renderOverlayer()
+      @renderCursors()
       @renderVisibleLines()
       @renderUnderlayer()
 
-  renderOverlayer: ->
-    {editor} = @props
-
-    div className: 'overlayer',
-      for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        CursorComponent(cursor: selection.cursor)
-
   renderVisibleLines: ->
     {editor} = @props
-    [startRow, endRow] = editor.getVisibleRowRange()
+    [startRow, endRow] = @getVisibleRowRange()
     lineHeightInPixels = editor.getLineHeight()
     precedingHeight = startRow * lineHeightInPixels
     followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
@@ -62,12 +56,25 @@ EditorCompont = React.createClass
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
 
+  renderCursors: ->
+    {editor} = @props
+
+    for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
+      CursorComponent(cursor: selection.cursor)
+
   renderUnderlayer: ->
     {editor} = @props
 
     div className: 'underlayer',
       for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
         SelectionComponent({selection})
+
+  getVisibleRowRange: ->
+    visibleRowRange = @props.editor.getVisibleRowRange()
+    if @visibleRowOverrides?
+      visibleRowRange[0] = Math.min(visibleRowRange[0], @visibleRowOverrides[0])
+      visibleRowRange[1] = Math.max(visibleRowRange[1], @visibleRowOverrides[1])
+    visibleRowRange
 
   getInitialState: -> {}
 
@@ -246,8 +253,21 @@ EditorCompont = React.createClass
         @pendingScrollTop = null
 
   onMousewheel: (event) ->
+    # To preserve velocity scrolling, delay removal of the event's target until
+    # after mousewheel events stop being fired. Removing the target before then
+    # will cause scrolling to stop suddenly.
+    @visibleRowOverrides = @getVisibleRowRange()
+    @clearVisibleRowOverridesAfterDelay ?= debounce(@clearVisibleRowOverrides, 40)
+    @clearVisibleRowOverridesAfterDelay()
+
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
     event.preventDefault()
+
+  clearVisibleRowOverrides: ->
+    @visibleRowOverrides = null
+    @forceUpdate()
+
+  clearVisibleRowOverridesAfterDelay: null
 
   onOverflowChanged: ->
     @props.editor.setHeight(@refs.scrollView.getDOMNode().clientHeight)
@@ -300,7 +320,7 @@ EditorCompont = React.createClass
     {lineHeightInPixels, charWidth}
 
   measureNewLines: ->
-    [visibleStartRow, visibleEndRow] = @props.editor.getVisibleRowRange()
+    [visibleStartRow, visibleEndRow] = @getVisibleRowRange()
     linesNode = @refs.lines.getDOMNode()
 
     for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
