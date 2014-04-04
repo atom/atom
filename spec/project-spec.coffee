@@ -43,56 +43,48 @@ describe "Project", ->
       expect(atom.project.getPath()).toBe path.dirname(tempFile)
 
   describe ".openSync(path)", ->
-    [absolutePath, newBufferHandler, newEditorHandler] = []
+    [absolutePath, newBufferHandler] = []
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       atom.project.on 'buffer-created', newBufferHandler
-      newEditorHandler = jasmine.createSpy('newEditorHandler')
-      atom.project.on 'editor-created', newEditorHandler
 
     describe "when given an absolute path that hasn't been opened previously", ->
-      it "returns a new edit session for the given path and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session for the given path and emits 'buffer-created'", ->
         editor = atom.project.openSync(absolutePath)
         expect(editor.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-        expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when given a relative path that hasn't been opened previously", ->
-      it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", ->
         editor = atom.project.openSync('a')
         expect(editor.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-        expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when passed the path to a buffer that has already been opened", ->
-      it "returns a new edit session containing previously opened buffer and emits a 'editor-created' event", ->
+      it "returns a new edit session containing previously opened buffer", ->
         editor = atom.project.openSync(absolutePath)
         newBufferHandler.reset()
         expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
         expect(atom.project.openSync('a').buffer).toBe editor.buffer
         expect(newBufferHandler).not.toHaveBeenCalled()
-        expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when not passed a path", ->
-      it "returns a new edit session and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session and emits 'buffer-created'", ->
         editor = atom.project.openSync()
         expect(editor.buffer.getPath()).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
-        expect(newEditorHandler).toHaveBeenCalledWith editor
 
   describe ".open(path)", ->
-    [absolutePath, newBufferHandler, newEditorHandler] = []
+    [absolutePath, newBufferHandler] = []
 
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       atom.project.on 'buffer-created', newBufferHandler
-      newEditorHandler = jasmine.createSpy('newEditorHandler')
-      atom.project.on 'editor-created', newEditorHandler
 
     describe "when given an absolute path that isn't currently open", ->
-      it "returns a new edit session for the given path and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session for the given path and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
           atom.project.open(absolutePath).then (o) -> editor = o
@@ -100,10 +92,9 @@ describe "Project", ->
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
           expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-          expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when given a relative path that isn't currently opened", ->
-      it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
           atom.project.open(absolutePath).then (o) -> editor = o
@@ -111,10 +102,9 @@ describe "Project", ->
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
           expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-          expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when passed the path to a buffer that is currently opened", ->
-      it "returns a new edit session containing currently opened buffer and emits a 'editor-created' event", ->
+      it "returns a new edit session containing currently opened buffer", ->
         editor = null
         waitsForPromise ->
           atom.project.open(absolutePath).then (o) -> editor = o
@@ -124,10 +114,9 @@ describe "Project", ->
           expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
           expect(atom.project.openSync('a').buffer).toBe editor.buffer
           expect(newBufferHandler).not.toHaveBeenCalled()
-          expect(newEditorHandler).toHaveBeenCalledWith editor
 
     describe "when not passed a path", ->
-      it "returns a new edit session and emits 'buffer-created' and 'editor-created' events", ->
+      it "returns a new edit session and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
           atom.project.open().then (o) -> editor = o
@@ -135,7 +124,6 @@ describe "Project", ->
         runs ->
           expect(editor.buffer.getPath()).toBeUndefined()
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
-          expect(newEditorHandler).toHaveBeenCalledWith editor
 
     it "returns number of read bytes as progress indicator", ->
       filePath = atom.project.resolve 'a'

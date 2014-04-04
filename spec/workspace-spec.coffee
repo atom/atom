@@ -152,6 +152,18 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
+    it "emits an 'editor-created' event", ->
+      absolutePath = require.resolve('./fixtures/dir/a')
+      newEditorHandler = jasmine.createSpy('newEditorHandler')
+      workspace.on 'editor-created', newEditorHandler
+
+      editor = null
+      waitsForPromise ->
+        workspace.open(absolutePath).then (e) -> editor = e
+
+      runs ->
+        expect(newEditorHandler).toHaveBeenCalledWith editor
+
   describe "::openSync(uri, options)", ->
     [activePane, initialItemCount] = []
 
