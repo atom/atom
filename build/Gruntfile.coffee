@@ -68,8 +68,6 @@ module.exports = (grunt) ->
     installDir = process.env.INSTALL_PREFIX ? '/usr/local'
 
   coffeeConfig =
-    options:
-      sourceMap: true
     glob_to_multiple:
       expand: true
       src: [
