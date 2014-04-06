@@ -153,7 +153,8 @@ class Editor extends Model
   @delegatesMethods 'setLineHeight', 'getLineHeight', 'setDefaultCharWidth', 'setHeight',
     'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop', 'getScrollBottom',
     'setScrollBottom', 'setScrollLeft', 'getScrollLeft', 'getScrollHeight', 'getVisibleRowRange',
-    'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', toProperty: 'displayBuffer'
+    'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', 'pixelPositionForScreenPosition',
+    'screenPositionForPixelPosition', toProperty: 'displayBuffer'
 
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', toProperty: 'displayBuffer'
@@ -511,8 +512,6 @@ class Editor extends Model
   # Public: Determine whether the user should be prompted to save before closing
   # this editor.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
-
-  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
 
   # Public: Convert a position in buffer-coordinates to screen-coordinates.
   #

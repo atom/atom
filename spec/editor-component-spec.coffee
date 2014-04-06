@@ -162,6 +162,22 @@ describe "EditorComponent", ->
       expect(region3Rect.left).toBe 0
       expect(region3Rect.width).toBe 10 * charWidth
 
+  describe "mouse interactions", ->
+    clientCoordinatesForScreenPosition = (screenPosition) ->
+      positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
+      editorClientRect = node.getBoundingClientRect()
+      clientX = editorClientRect.left + positionOffset.left
+      clientY = editorClientRect.top + positionOffset.top - editor.getScrollTop()
+      {clientX, clientY}
+
+    describe "when a non-folded line is single-clicked", ->
+      it "moves the cursor to the nearest row and column", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        component.updateAllDimensions()
+        editor.setScrollTop(3.5 * lineHeightInPixels)
+        component.onMouseDown(clientCoordinatesForScreenPosition([4, 8]))
+        expect(editor.getCursorScreenPosition()).toEqual [4, 8]
+
   it "transfers focus to the hidden input", ->
     expect(document.activeElement).toBe document.body
     node.focus()
