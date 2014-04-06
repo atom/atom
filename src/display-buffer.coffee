@@ -386,6 +386,7 @@ class DisplayBuffer extends Model
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
+    defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeight())
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)

@@ -17,6 +17,7 @@ module.exports =
 EditorCompont = React.createClass
   pendingScrollTop: null
   lastScrollTop: null
+  selectOnMouseMove: false
 
   statics: {DummyLineNode}
 
@@ -35,10 +36,11 @@ EditorCompont = React.createClass
 
   renderScrollableContent: ->
     {editor} = @props
-    height = editor.getScrollHeight()
-    WebkitTransform = "translateY(#{-editor.getScrollTop()}px)"
+    style =
+      height: editor.getScrollHeight()
+      WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
 
-    div className: 'scrollable-content', style: {height, WebkitTransform}, onMouseDown: @onMouseDown,
+    div {className: 'scrollable-content', style, @onMouseDown},
       @renderCursors()
       @renderVisibleLines()
       @renderUnderlayer()
@@ -269,13 +271,8 @@ EditorCompont = React.createClass
 
   onMouseDown: (event) ->
     {editor} = @props
-    {clientX, clientY, shiftKey, metaKey} = event
-    editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
-
-    pixelPosition =
-      top: clientY - editorClientRect.top + editor.getScrollTop()
-      left: clientX - editorClientRect.left
-    screenPosition = editor.screenPositionForPixelPosition(pixelPosition)
+    {shiftKey, metaKey} = event
+    screenPosition = @screenPositionForMouseEvent(event)
 
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
@@ -283,6 +280,51 @@ EditorCompont = React.createClass
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
+
+    @selectToMousePositionUntilMouseUp(event)
+
+  selectToMousePositionUntilMouseUp: (event) ->
+    dragging = true
+    lastMousePosition = {clientX: event.clientX, clientY: event.clientY}
+
+    onMouseMove = (event) ->
+      # Stop dragging when cursor enters dev tools because we can't detect mouseup
+      dragging = false if event.which is 0
+
+      lastMousePosition.clientX = event.clientX
+      lastMousePosition.clientY = event.clientY
+
+    onMouseUp = ->
+      dragging = false
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+
+    animationLoop = =>
+      requestAnimationFrame =>
+        if dragging
+          @selectToMousePosition(lastMousePosition)
+          animationLoop()
+
+    animationLoop()
+
+  selectToMousePosition: (event) ->
+    @props.editor.selectToScreenPosition(@screenPositionForMouseEvent(event))
+
+  screenPositionForMouseEvent: (event) ->
+    pixelPosition = @pixelPositionForMouseEvent(event)
+    @props.editor.screenPositionForPixelPosition(pixelPosition)
+
+  pixelPositionForMouseEvent: (event) ->
+    {editor} = @props
+    {clientX, clientY} = event
+
+    editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
+    top = clientY - editorClientRect.top + editor.getScrollTop()
+    left = clientX - editorClientRect.left
+    {top, left}
 
   clearVisibleRowOverrides: ->
     @visibleRowOverrides = null

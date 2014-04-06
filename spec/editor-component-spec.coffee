@@ -3,14 +3,20 @@ React = require 'react'
 EditorComponent = require '../src/editor-component'
 
 describe "EditorComponent", ->
-  [editor, component, node, lineHeightInPixels, charWidth] = []
+  [editor, component, node, lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
     runs ->
-      spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> fn()
+      delayAnimationFrames = false
+      nextAnimationFrame = null
+      spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
+        if delayAnimationFrames
+          nextAnimationFrame = fn
+        else
+          fn()
 
       editor = atom.project.openSync('sample.js')
       container = document.querySelector('#jasmine-content')
@@ -191,6 +197,36 @@ describe "EditorComponent", ->
           editor.setCursorScreenPosition([3, 4])
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
+
+    describe "when the mouse is clicked and dragged", ->
+      it "selects to the nearest screen position until the mouse button is released", ->
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([10, 0]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [10, 0]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([12, 0]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [10, 0]]
+
+      it "stops selecting if the mouse is dragged into the dev tools", ->
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([10, 0]), which: 0))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
