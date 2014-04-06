@@ -277,7 +277,7 @@ EditorCompont = React.createClass
     @props.editor.setHeight(@refs.scrollView.getDOMNode().clientHeight)
 
   onInput: (char, replaceLastChar) ->
-    @props.editor.insertText(char)
+    ReactUpdates.batchedUpdates => @props.editor.insertText(char)
 
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props
