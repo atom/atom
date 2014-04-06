@@ -269,7 +269,7 @@ EditorCompont = React.createClass
 
   onMouseDown: (event) ->
     {editor} = @props
-    {clientX, clientY, shiftKey} = event
+    {clientX, clientY, shiftKey, metaKey} = event
     editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
 
     pixelPosition =
@@ -279,6 +279,8 @@ EditorCompont = React.createClass
 
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
+    else if metaKey
+      editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
 
