@@ -9,7 +9,6 @@ CustomEventMixin = require './custom-event-mixin'
 SubscriberMixin = require './subscriber-mixin'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
-MeasureRange = document.createRange()
 TextNodeFilter = { acceptNode: -> NodeFilter.FILTER_ACCEPT }
 
 module.exports =
@@ -334,15 +333,16 @@ EditorCompont = React.createClass
   measureCharactersInLine: (tokenizedLine, lineNode) ->
     {editor} = @props
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, TextNodeFilter)
+    rangeForMeasurement = document.createRange()
 
     for {value, scopes} in tokenizedLine.tokens
       textNode = iterator.nextNode()
       charWidths = editor.getScopedCharWidths(scopes)
       for char, i in value
         unless charWidths[char]?
-          MeasureRange.setStart(textNode, i)
-          MeasureRange.setEnd(textNode, i + 1)
-          charWidth = MeasureRange.getBoundingClientRect().width
+          rangeForMeasurement.setStart(textNode, i)
+          rangeForMeasurement.setEnd(textNode, i + 1)
+          charWidth = rangeForMeasurement.getBoundingClientRect().width
           editor.setScopedCharWidth(scopes, char, charWidth)
 
     @measuredLines.add(tokenizedLine)
