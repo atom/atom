@@ -1,4 +1,4 @@
-{React} = require 'reactionary'
+React = require 'react'
 EditorComponent = require '../src/editor-component'
 
 describe "EditorComponent", ->

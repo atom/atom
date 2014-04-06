@@ -1,4 +1,6 @@
-{React, div, span} = require 'reactionary'
+React = require 'react'
+ReactUpdates = require 'react/lib/ReactUpdates'
+{div, span} = require 'reactionary'
 {$$} = require 'space-pen'
 {debounce} = require 'underscore-plus'
 
