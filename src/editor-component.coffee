@@ -38,7 +38,7 @@ EditorCompont = React.createClass
     height = editor.getScrollHeight()
     WebkitTransform = "translateY(#{-editor.getScrollTop()}px)"
 
-    div className: 'scrollable-content', style: {height, WebkitTransform},
+    div className: 'scrollable-content', style: {height, WebkitTransform}, onMouseDown: @onMouseDown,
       @renderCursors()
       @renderVisibleLines()
       @renderUnderlayer()
@@ -266,6 +266,17 @@ EditorCompont = React.createClass
 
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
     event.preventDefault()
+
+  onMouseDown: (event) ->
+    {editor} = @props
+    {clientX, clientY} = event
+    editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
+
+    pixelPosition =
+      top: clientY - editorClientRect.top + editor.getScrollTop()
+      left: clientX - editorClientRect.left
+    screenPosition = editor.screenPositionForPixelPosition(pixelPosition)
+    editor.setCursorScreenPosition(screenPosition)
 
   clearVisibleRowOverrides: ->
     @visibleRowOverrides = null

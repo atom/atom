@@ -383,6 +383,25 @@ class DisplayBuffer extends Model
         column++
     {top, left}
 
+  screenPositionForPixelPosition: (pixelPosition) ->
+    targetTop = pixelPosition.top
+    targetLeft = pixelPosition.left
+    row = Math.floor(targetTop / @getLineHeight())
+    row = Math.min(row, @getLastRow())
+    row = Math.max(0, row)
+
+    left = 0
+    column = 0
+    for token in @lineForRow(row).tokens
+      charWidths = @getScopedCharWidths(token.scopes)
+      for char in token.value
+        charWidth = charWidths[char] ? defaultCharWidth
+        break if targetLeft <= left + (charWidth / 2)
+        left += charWidth
+        column++
+
+    new Point(row, column)
+
   # Gets the number of screen lines.
   #
   # Returns a {Number}.
