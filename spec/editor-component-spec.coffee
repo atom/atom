@@ -164,6 +164,12 @@ describe "EditorComponent", ->
       expect(region3Rect.width).toBe 10 * charWidth
 
   describe "mouse interactions", ->
+    linesNode = null
+
+    beforeEach ->
+      delayAnimationFrames = true
+      linesNode = node.querySelector('.lines')
+
     describe "when a non-folded line is single-clicked", ->
       describe "when no modifier keys are held down", ->
         it "moves the cursor to the nearest screen position", ->
@@ -171,21 +177,19 @@ describe "EditorComponent", ->
           component.updateAllDimensions()
           editor.setScrollTop(3.5 * lineHeightInPixels)
 
-          component.onMouseDown(clientCoordinatesForScreenPosition([4, 8]))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
           expect(editor.getCursorScreenPosition()).toEqual [4, 8]
 
       describe "when the shift key is held down", ->
         it "selects to the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
-          event = extend(clientCoordinatesForScreenPosition([5, 6]), shiftKey: true)
-          component.onMouseDown(event)
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), shiftKey: true))
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
 
       describe "when the command key is held down", ->
         it "adds a cursor at the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
-          event = extend(clientCoordinatesForScreenPosition([5, 6]), metaKey: true)
-          component.onMouseDown(event)
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
 
     clientCoordinatesForScreenPosition = (screenPosition) ->
@@ -194,6 +198,12 @@ describe "EditorComponent", ->
       clientX = editorClientRect.left + positionOffset.left
       clientY = editorClientRect.top + positionOffset.top - editor.getScrollTop()
       {clientX, clientY}
+
+    buildMouseEvent = (type, properties...) ->
+      properties = extend({bubbles: true, cancelable: true}, properties...)
+      event = new MouseEvent(type, properties)
+      Object.defineProperty(event, 'which', get: -> properties.which) if properties.which?
+      event
 
   it "transfers focus to the hidden input", ->
     expect(document.activeElement).toBe document.body
