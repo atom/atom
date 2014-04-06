@@ -181,6 +181,13 @@ describe "EditorComponent", ->
           component.onMouseDown(event)
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
 
+      describe "when the command key is held down", ->
+        it "adds a cursor at the nearest row and column", ->
+          editor.setCursorScreenPosition([3, 4])
+          event = extend(clientCoordinatesForScreenPosition([5, 6]), metaKey: true)
+          component.onMouseDown(event)
+          expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
+
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
       editorClientRect = node.getBoundingClientRect()
