@@ -1,4 +1,5 @@
-{React, div} = require 'reactionary'
+React = require 'react'
+{div} = require 'reactionary'
 SubscriberMixin = require './subscriber-mixin'
 
 module.exports =

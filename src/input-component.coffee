@@ -1,6 +1,7 @@
 punycode = require 'punycode'
 {last} = require 'underscore-plus'
-{React, input} = require 'reactionary'
+React = require 'react'
+{input} = require 'reactionary'
 
 module.exports =
 InputComponent = React.createClass
