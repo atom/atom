@@ -93,7 +93,7 @@ EditorCompont = React.createClass
     @props.editor.setVisible(true)
 
   componentWillUnmount: ->
-    @getDOMNode().removeEventListener 'mousewheel', @onMousewheel
+    @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
 
   componentDidUpdate: ->
     @updateVerticalScrollbar()
@@ -125,7 +125,7 @@ EditorCompont = React.createClass
 
   listenForDOMEvents: ->
     scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'mousewheel', @onMousewheel
+    scrollViewNode.addEventListener 'mousewheel', @onMouseWheel
     scrollViewNode.addEventListener 'overflowchanged', @onOverflowChanged
     @getDOMNode().addEventListener 'focus', @onFocus
 
@@ -256,7 +256,7 @@ EditorCompont = React.createClass
         @props.editor.setScrollTop(@pendingScrollTop)
         @pendingScrollTop = null
 
-  onMousewheel: (event) ->
+  onMouseWheel: (event) ->
     # To preserve velocity scrolling, delay removal of the event's target until
     # after mousewheel events stop being fired. Removing the target before then
     # will cause scrolling to stop suddenly.
