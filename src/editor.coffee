@@ -1356,6 +1356,14 @@ class Editor extends Model
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
+  # Public: Get the {Range}s of all selections in screen coordinates.
+  #
+  # The ranges are sorted by their position in the buffer.
+  #
+  # Returns an {Array} of {Range}s.
+  getSelectedScreenRanges: ->
+    selection.getScreenRange() for selection in @getSelectionsOrderedByBufferPosition()
+
   # Public: Get the selected text of the most recently added selection.
   #
   # Returns a {String}.
