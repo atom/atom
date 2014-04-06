@@ -166,7 +166,7 @@ describe "EditorComponent", ->
   describe "mouse interactions", ->
     describe "when a non-folded line is single-clicked", ->
       describe "when no modifier keys are held down", ->
-        it "moves the cursor to the nearest row and column", ->
+        it "moves the cursor to the nearest screen position", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
           component.updateAllDimensions()
           editor.setScrollTop(3.5 * lineHeightInPixels)
@@ -175,14 +175,14 @@ describe "EditorComponent", ->
           expect(editor.getCursorScreenPosition()).toEqual [4, 8]
 
       describe "when the shift key is held down", ->
-        it "selects to the nearest row and column", ->
+        it "selects to the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
           event = extend(clientCoordinatesForScreenPosition([5, 6]), shiftKey: true)
           component.onMouseDown(event)
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
 
       describe "when the command key is held down", ->
-        it "adds a cursor at the nearest row and column", ->
+        it "adds a cursor at the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
           event = extend(clientCoordinatesForScreenPosition([5, 6]), metaKey: true)
           component.onMouseDown(event)
