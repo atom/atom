@@ -269,14 +269,18 @@ EditorCompont = React.createClass
 
   onMouseDown: (event) ->
     {editor} = @props
-    {clientX, clientY} = event
+    {clientX, clientY, shiftKey} = event
     editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
 
     pixelPosition =
       top: clientY - editorClientRect.top + editor.getScrollTop()
       left: clientX - editorClientRect.left
     screenPosition = editor.screenPositionForPixelPosition(pixelPosition)
-    editor.setCursorScreenPosition(screenPosition)
+
+    if shiftKey
+      editor.selectToScreenPosition(screenPosition)
+    else
+      editor.setCursorScreenPosition(screenPosition)
 
   clearVisibleRowOverrides: ->
     @visibleRowOverrides = null
