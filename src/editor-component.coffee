@@ -284,15 +284,27 @@ EditorCompont = React.createClass
     @selectToMousePositionUntilMouseUp(event)
 
   selectToMousePositionUntilMouseUp: (event) ->
-    dragging = true
-    lastMousePosition = {clientX: event.clientX, clientY: event.clientY}
+    {editor} = @props
+    dragging = false
+    lastMousePosition = {}
+
+    animationLoop = =>
+      requestAnimationFrame =>
+        if dragging
+          @selectToMousePosition(lastMousePosition)
+          animationLoop()
 
     onMouseMove = (event) ->
-      # Stop dragging when cursor enters dev tools because we can't detect mouseup
-      dragging = false if event.which is 0
-
       lastMousePosition.clientX = event.clientX
       lastMousePosition.clientY = event.clientY
+
+      # Start the animation loop when the mouse moves prior to a mouseup event
+      unless dragging
+        dragging = true
+        animationLoop()
+
+      # Stop dragging when cursor enters dev tools because we can't detect mouseup
+      onMouseUp() if event.which is 0
 
     onMouseUp = ->
       dragging = false
@@ -301,14 +313,6 @@ EditorCompont = React.createClass
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-
-    animationLoop = =>
-      requestAnimationFrame =>
-        if dragging
-          @selectToMousePosition(lastMousePosition)
-          animationLoop()
-
-    animationLoop()
 
   selectToMousePosition: (event) ->
     @props.editor.selectToScreenPosition(@screenPositionForMouseEvent(event))
