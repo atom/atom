@@ -66,7 +66,7 @@ class AtomApplication
     @windows = []
 
     @autoUpdateManager = new AutoUpdateManager()
-    @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
+    @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
 
     @listenForArgumentsFromNewProcess()
