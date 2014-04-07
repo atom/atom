@@ -32,9 +32,9 @@ describe "EditorComponent", ->
       component.updateAllDimensions()
 
       lines = node.querySelectorAll('.line')
-      expect(lines.length).toBe 5
+      expect(lines.length).toBe 6
       expect(lines[0].textContent).toBe editor.lineForScreenRow(0).text
-      expect(lines[4].textContent).toBe editor.lineForScreenRow(4).text
+      expect(lines[5].textContent).toBe editor.lineForScreenRow(5).text
 
       node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
       component.onVerticalScroll()
@@ -42,13 +42,13 @@ describe "EditorComponent", ->
       expect(node.querySelector('.scrollable-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
 
       lines = node.querySelectorAll('.line')
-      expect(lines.length).toBe 5
+      expect(lines.length).toBe 6
       expect(lines[0].textContent).toBe editor.lineForScreenRow(2).text
-      expect(lines[4].textContent).toBe editor.lineForScreenRow(6).text
+      expect(lines[5].textContent).toBe editor.lineForScreenRow(7).text
 
       spacers = node.querySelectorAll('.spacer')
       expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
-      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 7) * lineHeightInPixels
+      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
 
     it "updates the scroll bar when the scrollTop is changed in the model", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
