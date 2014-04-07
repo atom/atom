@@ -259,7 +259,7 @@ describe "Workspace", ->
       runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
 
   describe "when an editor is destroyed", ->
-    it "removes editor", ->
+    it "removes the editor", ->
       editor = null
 
       waitsForPromise ->
