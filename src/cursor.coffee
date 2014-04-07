@@ -43,7 +43,7 @@ class Cursor
         textChanged: textChanged
 
       @emit 'moved', movedEvent
-      @editor.emit 'cursor-moved', movedEvent
+      @editor.cursorMoved(movedEvent)
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeCursor(this)
