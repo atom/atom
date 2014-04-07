@@ -1,35 +1,53 @@
 autoUpdater = require 'auto-updater'
 dialog = require 'dialog'
+{Emitter} = require 'emissary'
+
+IDLE_STATE='idle'
+CHECKING_STATE='checking'
+DOWNLOADING_STATE='downloading'
+UPDATE_AVAILABLE_STATE='update-available'
+NO_UPDATE_AVAILABLE_STATE='no-update-available'
+ERROR_STATE='error'
 
 module.exports =
 class AutoUpdateManager
+  Emitter.includeInto(this)
+
   constructor: ->
+    @state = IDLE_STATE
+
     # Only released versions should check for updates.
-    return if /\w{7}/.test(@getVersion())
+    # return if /\w{7}/.test(@getVersion())
 
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@getVersion()}"
 
     autoUpdater.on 'checking-for-update', =>
-      @getMenu().showDownloadingUpdateItem(false)
-      @getMenu().showInstallUpdateItem(false)
-      @getMenu().showCheckForUpdateItem(false)
+      @setState(CHECKING_STATE)
 
     autoUpdater.on 'update-not-available', =>
-      @getMenu().showCheckForUpdateItem(true)
+      @setState(NO_UPDATE_AVAILABLE_STATE)
 
     autoUpdater.on 'update-available', =>
-      @getMenu().showDownloadingUpdateItem(true)
-
-    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
-      for atomWindow in @getWindows()
-        atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes])
-      @getMenu().showInstallUpdateItem(true)
+      @setState(DOWNLOADING_STATE)
 
     autoUpdater.on 'error', (event, message) =>
-      @getMenu().showCheckForUpdateItem(true)
+      @setState(ERROR_STATE)
+      console.error "Error Downloading Update: #{message}"
 
-    # Check for update after Atom has fully started and the menus are created
-    setTimeout((-> autoUpdater.checkForUpdates()), 5000)
+    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
+      @setState(UPDATE_AVAILABLE_STATE)
+      for atomWindow in @getWindows()
+        atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes])
+
+    @check()
+
+  setState: (state) ->
+    return unless @state != state
+    @state = state
+    @emit 'state-changed', @state
+
+  getState: ->
+    @state
 
   check: ->
     autoUpdater.once 'update-not-available', @onUpdateNotAvailable
@@ -46,9 +64,6 @@ class AutoUpdateManager
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
     dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
-
-  getMenu: ->
-    global.atomApplication.applicationMenu
 
   getVersion: ->
     global.atomApplication.version

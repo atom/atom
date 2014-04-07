@@ -65,9 +65,9 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    @applicationMenu = new ApplicationMenu(@version)
-    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
     @autoUpdateManager = new AutoUpdateManager()
+    @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
+    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
@@ -138,7 +138,7 @@ class AtomApplication
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:install-update', -> @autoUpdateManager.install()
-    @on 'application:check-for-update', => @checkForUpdate()
+    @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
       @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
