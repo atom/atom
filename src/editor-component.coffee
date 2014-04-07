@@ -280,8 +280,9 @@ EditorCompont = React.createClass
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
-      if detail is 2
-        editor.selectWord()
+      switch detail
+        when 2 then editor.selectWord()
+        when 3 then editor.selectLine()
 
     @selectToMousePositionUntilMouseUp(event)
 
