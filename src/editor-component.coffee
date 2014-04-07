@@ -84,7 +84,9 @@ EditorCompont = React.createClass
 
   getInitialState: -> {}
 
-  getDefaultProps: -> cursorBlinkPeriod: 800
+  getDefaultProps: ->
+    cursorBlinkPeriod: 800
+    cursorBlinkResumeDelay: 200
 
   componentDidMount: ->
     @measuredLines = new WeakSet
@@ -93,14 +95,14 @@ EditorCompont = React.createClass
     @listenForCustomEvents()
     @observeEditor()
     @observeConfig()
-    @blinkCursors()
+    @startBlinkingCursors()
 
     @updateAllDimensions()
     @props.editor.setVisible(true)
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
-    clearInterval(@cursorBlinkIntervalHandle)
+    @stopBlinkingCursors()
 
   componentDidUpdate: ->
     @updateVerticalScrollbar()
@@ -124,6 +126,7 @@ EditorCompont = React.createClass
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
+    @subscribe editor, 'cursors-moved', @pauseCursorBlinking
     @subscribe editor.$scrollTop.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
@@ -235,11 +238,6 @@ EditorCompont = React.createClass
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
-
-  blinkCursors: ->
-    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
-
-  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
 
   setFontSize: (fontSize) ->
     @clearScopedCharWidths()
@@ -373,6 +371,20 @@ EditorCompont = React.createClass
   onSelectionRemoved: (selection) ->
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+
+  startBlinkingCursors: ->
+    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
+
+  stopBlinkingCursors: ->
+    clearInterval(@cursorBlinkIntervalHandle)
+    @setState(blinkCursorsOff: false)
+
+  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
+
+  pauseCursorBlinking: ->
+    @stopBlinkingCursors()
+    @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
+    @startBlinkingCursorsAfterDelay()
 
   requestUpdate: ->
     @forceUpdate()
