@@ -77,7 +77,7 @@ class Workspace extends Model
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
-    new Array(@editors...)
+    _.clone(@editors...)
 
   # Public: Open a given a URI in Atom asynchronously.
   #
