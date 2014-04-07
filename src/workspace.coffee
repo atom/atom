@@ -1,5 +1,5 @@
 {deprecate} = require 'grim'
-{remove, last} = require 'underscore-plus'
+_ = require 'underscore-plus'
 {join} = require 'path'
 {Model} = require 'theorist'
 Q = require 'q'
@@ -60,7 +60,7 @@ class Workspace extends Model
     editor
 
   removeEditor: (editor) ->
-    remove(@editors, editor)
+    _.remove(@editors, editor)
 
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
@@ -189,7 +189,7 @@ class Workspace extends Model
 
   # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
-    remove(@openers, opener)
+    _.remove(@openers, opener)
 
   getOpeners: ->
     @openers
@@ -275,7 +275,7 @@ class Workspace extends Model
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
-      remove(@destroyedItemUris, uri)
+      _.remove(@destroyedItemUris, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>
