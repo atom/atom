@@ -24,12 +24,14 @@ EditorCompont = React.createClass
   mixins: [CustomEventMixin, SubscriberMixin]
 
   render: ->
-    {fontSize, lineHeight, fontFamily} = @state
+    {fontSize, lineHeight, fontFamily, focused} = @state
     {editor} = @props
+    className = 'editor react'
+    className += ' is-focused' if focused
 
-    div className: 'editor react', tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
+    div className: className, tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
       div className: 'scroll-view', ref: 'scrollView',
-        InputComponent ref: 'hiddenInput', className: 'hidden-input', onInput: @onInput
+        InputComponent ref: 'input', className: 'hidden-input', onInput: @onInput, onFocus: @onInputFocused, onBlur: @onInputBlurred
         @renderScrollableContent()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: editor.getScrollHeight()}
@@ -245,7 +247,16 @@ EditorCompont = React.createClass
     @updateLineDimensions()
 
   onFocus: ->
-    @refs.hiddenInput.focus()
+    @refs.input.focus()
+
+  onInputFocused: ->
+    @setState(focused: true)
+
+  onInputBlurred: ->
+    @setState(focused: false) unless document.activeElement is @getDOMNode()
+
+  onInput: (char, replaceLastChar) ->
+    ReactUpdates.batchedUpdates => @props.editor.insertText(char)
 
   onVerticalScroll: ->
     scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
@@ -342,9 +353,6 @@ EditorCompont = React.createClass
 
   onOverflowChanged: ->
     @props.editor.setHeight(@refs.scrollView.getDOMNode().clientHeight)
-
-  onInput: (char, replaceLastChar) ->
-    ReactUpdates.batchedUpdates => @props.editor.insertText(char)
 
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props

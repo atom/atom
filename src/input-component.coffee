@@ -6,7 +6,9 @@ React = require 'react'
 module.exports =
 InputComponent = React.createClass
   render: ->
-    input className: @props.className, ref: 'input'
+    {className, onFocus, onBlur} = @props
+
+    input {className, onFocus, onBlur}
 
   getInitialState: ->
     {lastChar: ''}
@@ -34,6 +36,12 @@ InputComponent = React.createClass
     @lastValueLength = valueLength
     lastChar = String.fromCharCode(last(valueCharCodes))
     @props.onInput?(lastChar, replaceLastChar)
+
+  onFocus: ->
+    @props.onFocus?()
+
+  onBlur: ->
+    @props.onBlur?()
 
   focus: ->
     @getDOMNode().focus()
