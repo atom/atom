@@ -54,13 +54,11 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
-  # Return and add the given {Editor}.
   addEditor: (editor) ->
     @editors.push editor
     @emit 'editor-created', editor
     editor
 
-  # Return and removes the given {Editor}.
   removeEditor: (editor) ->
     remove(@editors, editor)
 
