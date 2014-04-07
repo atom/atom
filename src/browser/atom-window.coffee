@@ -41,7 +41,7 @@ class AtomWindow
       loadSettings.initialPath = path.dirname(pathToOpen)
 
     @browserWindow.loadSettings = loadSettings
-    @browserWindow.once 'window:loaded', => 
+    @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
