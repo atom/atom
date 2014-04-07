@@ -31,12 +31,12 @@ class AutoUpdateManager
     # Check for update after Atom has fully started and the menus are created
     setTimeout((-> autoUpdater.checkForUpdates()), 5000)
 
-  checkForUpdate: ->
+  check: ->
     autoUpdater.once 'update-not-available', @onUpdateNotAvailable
     autoUpdater.once 'error', @onUpdateError
     autoUpdater.checkForUpdates()
 
-  installUpdate: ->
+  install: ->
     autoUpdater.quitAndInstall()
 
   onUpdateNotAvailable: =>
