@@ -70,7 +70,7 @@ class ApplicationMenu
     if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
       item.label = "Version #{@version}"
 
-  # Sets the proper label, command and enabled state for the update menu item
+  # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
     checkForUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update')
     downloadingUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Downloading Update')
