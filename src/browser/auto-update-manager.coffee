@@ -2,7 +2,7 @@ autoUpdater = require 'auto-updater'
 dialog = require 'dialog'
 
 module.exports =
-class AutoUpdater
+class AutoUpdateManager
   constructor: (@applicationMenu) ->
 
     # Only released versions should check for updates.
