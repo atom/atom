@@ -34,12 +34,16 @@ class AutoUpdateManager
       @setState(ERROR_STATE)
       console.error "Error Downloading Update: #{message}"
 
-    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
+    autoUpdater.on 'update-downloaded', (event, @releaseNotes, @releaseVersion) =>
       @setState(UPDATE_AVAILABLE_STATE)
-      for atomWindow in @getWindows()
-        atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes])
+      @emitUpdateAvailableEvent(@getWindows()...)
 
     @check(hidePopups: true)
+
+  emitUpdateAvailableEvent: (windows...) ->
+    return unless @releaseVersion? and @releaseNotes
+    for atomWindow in windows
+      atomWindow.sendCommand('window:update-available', [@releaseVersion, @releaseNotes])
 
   setState: (state) ->
     return unless @state != state
