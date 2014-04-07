@@ -95,7 +95,8 @@ class AtomApplication
   addWindow: (window) ->
     @windows.push window
     @applicationMenu?.enableWindowSpecificItems(true)
-    @autoUpdateManager.emitUpdateAvailableEvent(window)
+    window.once 'window:loaded', =>
+      @autoUpdateManager.emitUpdateAvailableEvent(window)
 
   # Creates server to listen for additional atom application launches.
   #
