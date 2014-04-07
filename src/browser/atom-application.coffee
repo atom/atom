@@ -219,6 +219,10 @@ class AtomApplication
       event.preventDefault()
       @openUrl({urlToOpen, @devMode})
 
+    app.on 'activate-with-no-open-windows', (event) =>
+      event.preventDefault()
+      @emit('application:new-window')
+
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
       if options?
