@@ -117,6 +117,24 @@ describe "EditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "blinks cursors", ->
+      editor.addCursorAtScreenPosition([1, 0])
+      [cursorNode1, cursorNode2] = node.querySelectorAll('.cursor')
+      expect(cursorNode1.classList.contains('blink-off')).toBe false
+      expect(cursorNode2.classList.contains('blink-off')).toBe false
+
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorNode1.classList.contains('blink-off')).toBe true
+      expect(cursorNode2.classList.contains('blink-off')).toBe true
+
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorNode1.classList.contains('blink-off')).toBe false
+      expect(cursorNode2.classList.contains('blink-off')).toBe false
+
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorNode1.classList.contains('blink-off')).toBe true
+      expect(cursorNode2.classList.contains('blink-off')).toBe true
+
   describe "selection rendering", ->
     it "renders 1 region for 1-line selections", ->
       # 1-line selection

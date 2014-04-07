@@ -63,9 +63,10 @@ EditorCompont = React.createClass
 
   renderCursors: ->
     {editor} = @props
+    {blinkCursorsOff} = @state
 
     for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-      CursorComponent(cursor: selection.cursor)
+      CursorComponent(cursor: selection.cursor, blinkOff: blinkCursorsOff)
 
   renderUnderlayer: ->
     {editor} = @props
@@ -83,7 +84,7 @@ EditorCompont = React.createClass
 
   getInitialState: -> {}
 
-  getDefaultProps: -> updateSync: true
+  getDefaultProps: -> cursorBlinkPeriod: 800
 
   componentDidMount: ->
     @measuredLines = new WeakSet
@@ -92,12 +93,14 @@ EditorCompont = React.createClass
     @listenForCustomEvents()
     @observeEditor()
     @observeConfig()
+    @blinkCursors()
 
     @updateAllDimensions()
     @props.editor.setVisible(true)
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
+    clearInterval(@cursorBlinkIntervalHandle)
 
   componentDidUpdate: ->
     @updateVerticalScrollbar()
@@ -232,6 +235,11 @@ EditorCompont = React.createClass
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
+
+  blinkCursors: ->
+    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
+
+  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
 
   setFontSize: (fontSize) ->
     @clearScopedCharWidths()

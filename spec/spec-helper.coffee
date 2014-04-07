@@ -92,6 +92,8 @@ beforeEach ->
   spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+  spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+  spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(Editor.prototype, "shouldPromptToSave").andReturn false
 
@@ -242,6 +244,15 @@ window.fakeSetTimeout = (callback, ms) ->
 
 window.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
+
+window.fakeSetInterval = (callback, ms) ->
+  action = ->
+    callback()
+    window.fakeSetTimeout(action, ms)
+  window.fakeSetTimeout(action, ms)
+
+window.fakeClearInterval = (idToClear) ->
+  window.fakeClearTimeout(idToClear)
 
 window.advanceClock = (delta=1) ->
   window.now += delta
