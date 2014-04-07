@@ -14,13 +14,13 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: ->
+  constructor: (@version) ->
     @state = IDLE_STATE
 
     # Only released versions should check for updates.
-    return if /\w{7}/.test(@getVersion())
+    return if /\w{7}/.test(@version())
 
-    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@getVersion()}"
+    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version()}"
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CHECKING_STATE)
@@ -71,9 +71,6 @@ class AutoUpdateManager
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
     dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
-
-  getVersion: ->
-    global.atomApplication.version
 
   getWindows: ->
     global.atomApplication.windows

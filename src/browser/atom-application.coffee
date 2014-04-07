@@ -65,7 +65,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    @autoUpdateManager = new AutoUpdateManager()
+    @autoUpdateManager = new AutoUpdateManager(@version)
     @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
 
