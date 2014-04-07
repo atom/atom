@@ -17,7 +17,7 @@ class AutoUpdateManager
     @state = IDLE_STATE
 
     # Only released versions should check for updates.
-    # return if /\w{7}/.test(@getVersion())
+    return if /\w{7}/.test(@getVersion())
 
     autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@getVersion()}"
 
@@ -39,7 +39,7 @@ class AutoUpdateManager
       for atomWindow in @getWindows()
         atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes])
 
-    @check()
+    @check(hidePopups: true)
 
   setState: (state) ->
     return unless @state != state
@@ -49,9 +49,11 @@ class AutoUpdateManager
   getState: ->
     @state
 
-  check: ->
-    autoUpdater.once 'update-not-available', @onUpdateNotAvailable
-    autoUpdater.once 'error', @onUpdateError
+  check: ({hidePopups}={})->
+    unless hidePopups
+      autoUpdater.once 'update-not-available', @onUpdateNotAvailable
+      autoUpdater.once 'error', @onUpdateError
+
     autoUpdater.checkForUpdates()
 
   install: ->

@@ -13,7 +13,7 @@ class ApplicationMenu
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
     global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
-      @update(@template, @keystrokesByCommand) if @template?
+      @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
@@ -23,14 +23,12 @@ class ApplicationMenu
   #   An Object where the keys are commands and the values are Arrays containing
   #   the keystroke.
   update: (template, keystrokesByCommand) ->
-    @template = _.clone(template)
-    @keystrokesByCommand = _.clone(keystrokesByCommand)
-
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
-    @setUpdateMenuItemState(template)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
+
+    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   # Flattens the given menu and submenu items into an single Array.
   #
@@ -73,27 +71,24 @@ class ApplicationMenu
       item.label = "Version #{@version}"
 
   # Sets the proper label, command and enabled state for the update menu item
-  setUpdateMenuItemState: (template) ->
-    item = _.find(@flattenMenuTemplate(template), (i) -> i.metadata.autoUpdate)
-    return unless item?
+  showUpdateMenuItem: (state) ->
+    checkForUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update')
+    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Downloading Update')
+    installUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update')
 
-    item.enabled = true
-    console.log global.atomApplication.autoUpdateManager.getState()
-    switch global.atomApplication.autoUpdateManager.getState()
+    return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
+
+    checkForUpdateItem.visible = false
+    downloadingUpdateItem.visible = false
+    installUpdateItem.visible = false
+
+    switch state
       when 'idle', 'error', 'no-update-available'
-        item.label = 'Check for Update'
-        item.command = 'application:check-for-update'
-      when 'checking'
-        item.enabled = false
-        item.label = 'Checking for Update'
-      when 'downloading'
-        item.enabled = false
-        item.label = 'Downloading Update'
+        checkForUpdateItem.visible = true
+      when 'checking', 'downloading'
+        downloadingUpdateItem.visible = true
       when 'update-available'
-        item.label = 'Restart and Install Update'
-        item.command = 'application:install-update'
-
-    console.log require('util').inspect(item)
+        installUpdateItem.visible = true
 
   # Default list of menu items.
   #
