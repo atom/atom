@@ -8,7 +8,10 @@ CursorComponent = React.createClass
 
   render: ->
     {top, left, height, width} = @props.cursor.getPixelRect()
-    div className: 'cursor', style: {top, left, height, width}
+    className = 'cursor'
+    className += ' blink-off' if @props.blinkOff
+
+    div className: className, style: {top, left, height, width}
 
   componentDidMount: ->
     @subscribe @props.cursor, 'moved', => @forceUpdate()
