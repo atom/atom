@@ -151,7 +151,7 @@ class DisplayBuffer extends Model
     return [0, 0] unless @getLineHeight() > 0
     return [0, @getLineCount()] if @getHeight() is 0
 
-    heightInLines = @getHeight() / @getLineHeight()
+    heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
     endRow = Math.ceil(startRow + heightInLines)
     [startRow, endRow]
