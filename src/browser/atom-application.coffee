@@ -1,11 +1,10 @@
 AtomWindow = require './atom-window'
 ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
+AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
-autoUpdater = require 'auto-updater'
 app = require 'app'
-dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
@@ -68,11 +67,11 @@ class AtomApplication
 
     @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
+    @autoUpdateManager = new AutoUpdateManager()
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
-    @setupAutoUpdater()
 
     @openWithOptions(options)
 
@@ -127,46 +126,6 @@ class AtomApplication
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony'
 
-  # Enable updates unless running from a local build of Atom.
-  setupAutoUpdater: ->
-    return if /\w{7}/.test(@version) # Only released versions should check for updates.
-
-    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
-
-    autoUpdater.on 'checking-for-update', =>
-      @applicationMenu.showDownloadingUpdateItem(false)
-      @applicationMenu.showInstallUpdateItem(false)
-      @applicationMenu.showCheckForUpdateItem(false)
-
-    autoUpdater.on 'update-not-available', =>
-      @applicationMenu.showCheckForUpdateItem(true)
-
-    autoUpdater.on 'update-available', =>
-      @applicationMenu.showDownloadingUpdateItem(true)
-
-    autoUpdater.on 'update-downloaded', (event, releaseNotes, releaseVersion, releaseDate, releaseURL) =>
-      atomWindow.sendCommand('window:update-available', [releaseVersion, releaseNotes]) for atomWindow in @windows
-      @applicationMenu.showInstallUpdateItem(true)
-
-    autoUpdater.on 'error', (event, message) =>
-      @applicationMenu.showCheckForUpdateItem(true)
-
-    # Check for update after Atom has fully started and the menus are created
-    setTimeout((-> autoUpdater.checkForUpdates()), 5000)
-
-  checkForUpdate: ->
-    @onUpdateNotAvailable ?= =>
-      autoUpdater.removeListener 'error', @onUpdateError
-      dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
-
-    @onUpdateError ?= (event, message) =>
-      autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
-      dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
-
-    autoUpdater.once 'update-not-available', @onUpdateNotAvailable
-    autoUpdater.once 'error', @onUpdateError
-    autoUpdater.checkForUpdates()
-
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
@@ -178,7 +137,7 @@ class AtomApplication
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
-    @on 'application:install-update', -> autoUpdater.quitAndInstall()
+    @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @checkForUpdate()
 
     if process.platform is 'darwin'
