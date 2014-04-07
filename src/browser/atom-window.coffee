@@ -7,9 +7,12 @@ path = require 'path'
 fs = require 'fs'
 url = require 'url'
 _ = require 'underscore-plus'
+{EventEmitter} = require 'events'
 
 module.exports =
 class AtomWindow
+  _.extend @prototype, EventEmitter.prototype
+
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
   @includeShellLoadTime: true
 
@@ -38,7 +41,10 @@ class AtomWindow
       loadSettings.initialPath = path.dirname(pathToOpen)
 
     @browserWindow.loadSettings = loadSettings
-    @browserWindow.once 'window:loaded', => @loaded = true
+    @browserWindow.once 'window:loaded', => 
+      @emit 'window:loaded'
+      @loaded = true
+
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
