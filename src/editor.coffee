@@ -1468,8 +1468,15 @@ class Editor extends Model
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
   moveCursors: (fn) ->
+    @movingCursors = true
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
+    @movingCursors = false
+    @emit 'cursors-moved'
+
+  cursorMoved: (event) ->
+    @emit 'cursor-moved', event
+    @emit 'cursors-moved' unless @movingCursors
 
   # Public: Select from the current cursor position to the given position in
   # screen coordinates.
