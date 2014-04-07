@@ -5,9 +5,9 @@
       { label: 'About Atom', command: 'application:about' }
       { label: 'View License', command: 'application:open-license' }
       { label: 'VERSION', enabled: false }
+      { label: 'Restart and Install Update', command: 'application:install-update', visible: false}
       { label: 'Check for Update', command: 'application:check-for-update', visible: false}
       { label: 'Downloading Update', enabled: false, visible: false}
-      { label: 'Restart and Install Update', command: 'application:install-update', enabled: false, visible: false}
       { type: 'separator' }
       { label: 'Preferences...', command: 'application:show-settings' }
       { label: 'Open Your Config', command: 'application:open-your-config' }
