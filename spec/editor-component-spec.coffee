@@ -198,6 +198,14 @@ describe "EditorComponent", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
 
+    describe "when a non-folded line is double-clicked", ->
+      it "selects the word containing the nearest screen position", ->
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [5, 13]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([6, 6]), detail: 1))
+        expect(editor.getSelectedScreenRange()).toEqual [[6, 6], [6, 6]]
+
     describe "when the mouse is clicked and dragged", ->
       it "selects to the nearest screen position until the mouse button is released", ->
         linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))

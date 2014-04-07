@@ -271,7 +271,7 @@ EditorCompont = React.createClass
 
   onMouseDown: (event) ->
     {editor} = @props
-    {shiftKey, metaKey} = event
+    {detail, shiftKey, metaKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
 
     if shiftKey
@@ -280,6 +280,8 @@ EditorCompont = React.createClass
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
+      if detail is 2
+        editor.selectWord()
 
     @selectToMousePositionUntilMouseUp(event)
 
