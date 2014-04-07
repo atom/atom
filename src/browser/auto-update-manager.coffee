@@ -1,6 +1,7 @@
 autoUpdater = require 'auto-updater'
 dialog = require 'dialog'
-{Emitter} = require 'emissary'
+_ = require 'underscore-plus'
+{EventEmitter} = require 'events'
 
 IDLE_STATE='idle'
 CHECKING_STATE='checking'
@@ -11,7 +12,7 @@ ERROR_STATE='error'
 
 module.exports =
 class AutoUpdateManager
-  Emitter.includeInto(this)
+  _.extend @prototype, EventEmitter.prototype
 
   constructor: ->
     @state = IDLE_STATE
