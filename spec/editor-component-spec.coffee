@@ -26,7 +26,7 @@ describe "EditorComponent", ->
       {lineHeightInPixels, charWidth} = component.measureLineDimensions()
       node = component.getDOMNode()
 
-  describe "scrolling", ->
+  describe "line rendering", ->
     it "renders only the currently-visible lines", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.updateAllDimensions()
@@ -49,16 +49,6 @@ describe "EditorComponent", ->
       spacers = node.querySelectorAll('.spacer')
       expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
       expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
-
-    it "updates the scroll bar when the scrollTop is changed in the model", ->
-      node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.updateAllDimensions()
-
-      scrollbarNode = node.querySelector('.vertical-scrollbar')
-      expect(scrollbarNode.scrollTop).toBe 0
-
-      editor.setScrollTop(10)
-      expect(scrollbarNode.scrollTop).toBe 10
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
@@ -328,3 +318,13 @@ describe "EditorComponent", ->
       expect(node.classList.contains('is-focused')).toBe true
       inputNode.blur()
       expect(node.classList.contains('is-focused')).toBe false
+
+  it "updates the scroll bar when the scrollTop is changed in the model", ->
+    node.style.height = 4.5 * lineHeightInPixels + 'px'
+    component.updateAllDimensions()
+
+    scrollbarNode = node.querySelector('.vertical-scrollbar')
+    expect(scrollbarNode.scrollTop).toBe 0
+
+    editor.setScrollTop(10)
+    expect(scrollbarNode.scrollTop).toBe 10
