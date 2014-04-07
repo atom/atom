@@ -122,7 +122,7 @@ class ApplicationMenu
   # Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
     template.forEach (item) =>
-      item.metadata = {}
+      item.metadata ?= {}
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = => global.atomApplication.sendCommand(item.command)
