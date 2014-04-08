@@ -16,6 +16,7 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 module.exports =
 EditorCompont = React.createClass
   pendingScrollTop: null
+  pendingScrollLeft: null
   lastScrollTop: null
   selectOnMouseMove: false
 
@@ -320,6 +321,17 @@ EditorCompont = React.createClass
         @props.editor.setScrollTop(@pendingScrollTop)
         @pendingScrollTop = null
 
+  onHorizontalScroll: ->
+    scrollLeft = @refs.horizontalScrollbar.getDOMNode().scrollLeft
+    return if @props.editor.getScrollLeft() is scrollLeft
+
+    animationFramePending = @pendingScrollLeft?
+    @pendingScrollLeft = scrollLeft
+    unless animationFramePending
+      requestAnimationFrame =>
+        @props.editor.setScrollLeft(@pendingScrollLeft)
+        @pendingScrollLeft = null
+
   onMouseWheel: (event) ->
     # To preserve velocity scrolling, delay removal of the event's target until
     # after mousewheel events stop being fired. Removing the target before then
@@ -329,6 +341,7 @@ EditorCompont = React.createClass
     @clearVisibleRowOverridesAfterDelay()
 
     @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
+    @refs.horizontalScrollbar.getDOMNode().scrollLeft -= event.wheelDeltaX
     event.preventDefault()
 
   onMouseDown: (event) ->

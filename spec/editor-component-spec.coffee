@@ -388,3 +388,13 @@ describe "EditorComponent", ->
       editor.setScrollLeft(100)
       expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(-100px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
+
+    it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
+      node.style.width = 30 * charWidth + 'px'
+      component.updateAllDimensions()
+
+      expect(editor.getScrollLeft()).toBe 0
+      node.querySelector('.horizontal-scrollbar').scrollLeft = 100
+      component.onHorizontalScroll()
+
+      expect(editor.getScrollLeft()).toBe 100
