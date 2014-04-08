@@ -40,7 +40,7 @@ class Token
   whitespaceRegexForTabLength: (tabLength) ->
     WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
-  breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
+  breakOutAtomicTokens: (tabLength, breakOutLeadingSoftTabs) ->
     if @hasSurrogatePair
       outputTokens = []
 
@@ -48,14 +48,14 @@ class Token
         if token.isAtomic
           outputTokens.push(token)
         else
-          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
-        breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
+        breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
 
       outputTokens
     else
       return [this] if @isAtomic
 
-      if breakOutLeadingWhitespace
+      if breakOutLeadingSoftTabs
         return [this] unless /^[ ]|\t/.test(@value)
       else
         return [this] unless /\t/.test(@value)
@@ -64,13 +64,13 @@ class Token
       regex = @whitespaceRegexForTabLength(tabLength)
       while match = regex.exec(@value)
         [fullMatch, softTab, hardTab] = match
-        if softTab and breakOutLeadingWhitespace
-          outputTokens.push(@buildSoftTabToken(tabLength, false))
+        if softTab and breakOutLeadingSoftTabs
+          outputTokens.push(@buildSoftTabToken(tabLength))
         else if hardTab
-          breakOutLeadingWhitespace = false
-          outputTokens.push(@buildHardTabToken(tabLength, true))
+          breakOutLeadingSoftTabs = false
+          outputTokens.push(@buildHardTabToken(tabLength))
         else
-          breakOutLeadingWhitespace = false
+          breakOutLeadingSoftTabs = false
           value = match[0]
           outputTokens.push(new Token({value, @scopes}))
 
