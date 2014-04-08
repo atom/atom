@@ -5,7 +5,7 @@ describe "Workspace", ->
 
   beforeEach ->
     atom.project.setPath(atom.project.resolve('dir'))
-    atom.workspace = workspace = new Workspace
+    workspace = new Workspace
 
   describe "::open(uri, options)", ->
     beforeEach ->
@@ -152,18 +152,6 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
-    it "emits an 'editor-created' event", ->
-      absolutePath = require.resolve('./fixtures/dir/a')
-      newEditorHandler = jasmine.createSpy('newEditorHandler')
-      workspace.on 'editor-created', newEditorHandler
-
-      editor = null
-      waitsForPromise ->
-        workspace.open(absolutePath).then (e) -> editor = e
-
-      runs ->
-        expect(newEditorHandler).toHaveBeenCalledWith editor
-
   describe "::openSync(uri, options)", ->
     [activePane, initialItemCount] = []
 
@@ -257,28 +245,3 @@ describe "Workspace", ->
     it "opens the license as plain-text in a buffer", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
-
-  describe "when an editor is destroyed", ->
-    it "removes the editor", ->
-      editor = null
-
-      waitsForPromise ->
-        workspace.open("a").then (e) -> editor = e
-
-      runs ->
-        expect(workspace.getEditors()).toHaveLength 1
-        editor.destroy()
-        expect(workspace.getEditors()).toHaveLength 0
-
-  describe "when an editor is copied", ->
-    it "emits an 'editor-created' event and stores the editor", ->
-      handler = jasmine.createSpy('editorCreatedHandler')
-      workspace.on 'editor-created', handler
-
-      editor1 = workspace.openSync("a")
-      expect(handler.callCount).toBe 1
-      expect(workspace.getEditors()).toEqual [editor1]
-
-      editor2 = editor1.copy()
-      expect(handler.callCount).toBe 2
-      expect(workspace.getEditors()).toEqual [editor1, editor2]
