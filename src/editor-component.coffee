@@ -70,7 +70,7 @@ EditorCompont = React.createClass
     {editor} = @props
     style =
       height: editor.getScrollHeight()
-      WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
+      WebkitTransform: "translate(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px)"
 
     div {className: 'scroll-view-content', style, @onMouseDown},
       @renderCursors()
@@ -158,6 +158,7 @@ EditorCompont = React.createClass
     @subscribe editor, 'selection-removed', @onSelectionAdded
     @subscribe editor, 'cursors-moved', @pauseCursorBlinking
     @subscribe editor.$scrollTop.changes, @requestUpdate
+    @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
