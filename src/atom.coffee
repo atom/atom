@@ -228,6 +228,9 @@ class Atom extends Model
     localStorage.setItem("defaultWindowDimensions", dimensions)
 
   getDefaultWindowDimensions: ->
+    {windowDimensions} = @getLoadSettings()
+    return windowDimensions if windowDimensions?
+
     try
       JSON.parse(localStorage.getItem("defaultWindowDimensions"))
     catch error
