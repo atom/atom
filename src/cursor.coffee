@@ -98,17 +98,25 @@ class Cursor
     @marker.getHeadBufferPosition()
 
   autoscroll: ->
-    scrollMarginInPixels = @editor.getVerticalScrollMargin() * @editor.getLineHeight()
-    {top, height} = @getPixelRect()
+    verticalScrollMarginInPixels = @editor.getVerticalScrollMargin() * @editor.getLineHeight()
+    horizontalScrollMarginInPixels = @editor.getHorizontalScrollMargin() * @editor.getDefaultCharWidth()
+    {top, left, height, width} = @getPixelRect()
     bottom = top + height
-
-    desiredScrollTop = top - scrollMarginInPixels
-    desiredScrollBottom = bottom + scrollMarginInPixels
+    right = left + width
+    desiredScrollTop = top - verticalScrollMarginInPixels
+    desiredScrollBottom = bottom + verticalScrollMarginInPixels
+    desiredScrollLeft = left - horizontalScrollMarginInPixels
+    desiredScrollRight = right + horizontalScrollMarginInPixels
 
     if desiredScrollTop < @editor.getScrollTop()
       @editor.setScrollTop(desiredScrollTop)
     else if desiredScrollBottom > @editor.getScrollBottom()
       @editor.setScrollBottom(desiredScrollBottom)
+
+    if desiredScrollLeft < @editor.getScrollLeft()
+      @editor.setScrollLeft(desiredScrollLeft)
+    else if desiredScrollRight > @editor.getScrollRight()
+      @editor.setScrollRight(desiredScrollRight)
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->
