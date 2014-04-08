@@ -111,10 +111,10 @@ class TokenizedLine
 
   breakOutAtomicTokens: (inputTokens, tabLength) ->
     outputTokens = []
-    breakOutLeadingWhitespace = true
+    breakOutLeadingSoftTabs = true
     for token in inputTokens
-      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
-      breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
+      breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
 
   isComment: ->
