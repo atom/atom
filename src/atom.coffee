@@ -133,6 +133,7 @@ class Atom extends Model
   initialize: ->
     window.onerror = =>
       @openDevTools()
+      @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @emit 'uncaught-error', arguments...
 
     @unsubscribe()
@@ -382,6 +383,10 @@ class Atom extends Model
   # Public: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
     ipc.sendChannel('call-window-method', 'toggleDevTools')
+
+  # Public: Execute code in dev tools.
+  executeJavaScriptInDevTools: (code) ->
+    ipc.sendChannel('call-window-method', 'executeJavaScriptInDevTools', code)
 
   # Public: Reload the current window.
   reload: ->
