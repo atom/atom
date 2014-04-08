@@ -398,3 +398,23 @@ describe "EditorComponent", ->
       component.onHorizontalScroll()
 
       expect(editor.getScrollLeft()).toBe 100
+
+    describe "when a mousewheel event occurs on the editor", ->
+      it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 20 * charWidth + 'px'
+        component.updateAllDimensions()
+
+        verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
+        horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
+
+        expect(verticalScrollbarNode.scrollTop).toBe 0
+        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
+        expect(verticalScrollbarNode.scrollTop).toBe 10
+        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
+        expect(verticalScrollbarNode.scrollTop).toBe 10
+        expect(horizontalScrollbarNode.scrollLeft).toBe 15
