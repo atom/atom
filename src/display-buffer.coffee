@@ -121,12 +121,19 @@ class DisplayBuffer extends Model
     @getScrollBottom()
 
   getScrollLeft: -> @scrollLeft
-  setScrollLeft: (@scrollLeft) -> @scrollLeft
+  setScrollLeft: (scrollLeft) ->
+    @scrollLeft = Math.min(@getScrollWidth() - @getWidth(), Math.max(0, scrollLeft))
+
+  getScrollRight: -> @scrollLeft + @width
+  setScrollRight: (scrollRight) ->
+    @setScrollLeft(scrollRight - @width)
+    @getScrollRight()
 
   getLineHeight: -> @lineHeight
   setLineHeight: (@lineHeight) -> @lineHeight
 
-  setDefaultCharWidth: (@defaultCharWidth) ->
+  getDefaultCharWidth: -> @defaultCharWidth
+  setDefaultCharWidth: (@defaultCharWidth) -> @defaultCharWidth
 
   getScopedCharWidth: (scopeNames, char) ->
     @getScopedCharWidths(scopeNames)[char]
@@ -150,6 +157,9 @@ class DisplayBuffer extends Model
 
   getScrollHeight: ->
     @getLineCount() * @getLineHeight()
+
+  getScrollWidth: ->
+    @getMaxLineLength() * @getDefaultCharWidth()
 
   getVisibleRowRange: ->
     return [0, 0] unless @getLineHeight() > 0

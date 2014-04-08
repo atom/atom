@@ -150,9 +150,10 @@ class Editor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesMethods 'setLineHeight', 'getLineHeight', 'setDefaultCharWidth', 'setHeight',
-    'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop', 'getScrollBottom',
-    'setScrollBottom', 'setScrollLeft', 'getScrollLeft', 'getScrollHeight', 'getVisibleRowRange',
+  @delegatesMethods 'setLineHeight', 'getLineHeight', 'getDefaultCharWidth', 'setDefaultCharWidth',
+    'setHeight', 'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop',
+    'getScrollBottom', 'setScrollBottom', 'getScrollLeft', 'setScrollLeft', 'getScrollRight',
+    'setScrollRight', 'getScrollHeight', 'getScrollWidth', 'getVisibleRowRange',
     'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', 'pixelPositionForScreenPosition',
     'screenPositionForPixelPosition', toProperty: 'displayBuffer'
 
@@ -313,6 +314,10 @@ class Editor extends Model
   getVerticalScrollMargin: -> @verticalScrollMargin
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
+
+  getHorizontalScrollMargin: -> @horizontalScrollMargin
+
+  setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
   # Public: Get the text representing a single level of indent.
   #
@@ -1817,8 +1822,6 @@ class Editor extends Model
   getLineHeight: -> @displayBuffer.getLineHeight()
 
   setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
-
-  setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
   getScopedCharWidth: (args...) -> @displayBuffer.getScopedCharWidth(args...)
 

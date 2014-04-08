@@ -663,8 +663,12 @@ describe "Editor", ->
     describe "autoscroll", ->
       beforeEach ->
         editor.setVerticalScrollMargin(2)
+        editor.setHorizontalScrollMargin(2)
         editor.setLineHeight(10)
+        editor.setDefaultCharWidth(10)
         editor.setHeight(5.5 * 10)
+        editor.setWidth(5.5 * 10)
+
 
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
         expect(editor.getScrollTop()).toBe 0
@@ -691,6 +695,31 @@ describe "Editor", ->
 
         editor.moveCursorUp()
         expect(editor.getScrollTop()).toBe 6 * 10
+
+      it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
+        expect(editor.getScrollLeft()).toBe 0
+        expect(editor.getScrollRight()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([0, 2])
+        expect(editor.getScrollRight()).toBe 5.5 * 10
+
+        editor.moveCursorRight()
+        expect(editor.getScrollRight()).toBe 6 * 10
+
+        editor.moveCursorRight()
+        expect(editor.getScrollRight()).toBe 7 * 10
+
+      it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
+        editor.setScrollRight(editor.getScrollWidth())
+        editor.setCursorScreenPosition([6, 62])
+
+        expect(editor.getScrollRight()).toBe editor.getScrollWidth()
+
+        editor.moveCursorLeft()
+        expect(editor.getScrollLeft()).toBe 59 * 10
+
+        editor.moveCursorLeft()
+        expect(editor.getScrollLeft()).toBe 58 * 10
 
   describe "selection", ->
     selection = null
