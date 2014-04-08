@@ -145,6 +145,7 @@ class Editor extends Model
   selections: null
   suppressSelectionMerging: false
   verticalScrollMargin: 2
+  horizontalScrollMargin: 6
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
