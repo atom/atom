@@ -39,7 +39,7 @@ describe "EditorComponent", ->
       node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
       component.onVerticalScroll()
 
-      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
+      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate(0px, #{-2.5 * lineHeightInPixels}px)"
 
       lines = node.querySelectorAll('.line')
       expect(lines.length).toBe 6
@@ -365,12 +365,22 @@ describe "EditorComponent", ->
       inputNode.blur()
       expect(node.classList.contains('is-focused')).toBe false
 
-  it "updates the scroll bar when the scrollTop is changed in the model", ->
-    node.style.height = 4.5 * lineHeightInPixels + 'px'
-    component.updateAllDimensions()
+  describe "scrolling", ->
+    it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.updateAllDimensions()
 
-    scrollbarNode = node.querySelector('.vertical-scrollbar')
-    expect(scrollbarNode.scrollTop).toBe 0
+      scrollbarNode = node.querySelector('.vertical-scrollbar')
+      expect(scrollbarNode.scrollTop).toBe 0
 
-    editor.setScrollTop(10)
-    expect(scrollbarNode.scrollTop).toBe 10
+      editor.setScrollTop(10)
+      expect(scrollbarNode.scrollTop).toBe 10
+
+    it "updates the horizontal scrollbar and scroll view content x transform based on the scrollLeft of the model", ->
+      node.style.width = 30 * charWidth + 'px'
+      component.updateAllDimensions()
+
+      scrollViewContentNode = node.querySelector('.scroll-view-content')
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(0px, 0px)"
+      editor.setScrollLeft(100)
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(-100px, 0px)"
