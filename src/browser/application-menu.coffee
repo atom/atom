@@ -67,14 +67,14 @@ class ApplicationMenu
 
   # Replaces VERSION with the current version.
   substituteVersion: (template) ->
-    if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
+    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label == 'VERSION'))
       item.label = "Version #{@version}"
 
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
-    checkForUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update')
-    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Downloading Update')
-    installUpdateItem = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update')
+    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
+    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
+    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
 
     return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
