@@ -105,7 +105,11 @@ class DisplayBuffer extends Model
   setHeight: (@height) -> @height
 
   getWidth: -> @width
-  setWidth: (@width) -> @width
+  setWidth: (newWidth) ->
+    oldWidth = @width
+    @width = newWidth
+    @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
+    @width
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
@@ -192,11 +196,18 @@ class DisplayBuffer extends Model
       if editorWidthInChars isnt previousWidthInChars and @softWrap
         @updateWrappedScreenLines()
 
-  getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', @editorWidthInChars))
+  getEditorWidthInChars: ->
+    width = @getWidth()
+    if width? and @defaultCharWidth > 0
+      Math.floor(width / @defaultCharWidth)
     else
       @editorWidthInChars
+
+  getSoftWrapColumn: ->
+    if atom.config.get('editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+    else
+      @getEditorWidthInChars()
 
   # Gets the screen line for the given screen row.
   #
