@@ -1,5 +1,5 @@
 {deprecate} = require 'grim'
-{remove, last} = require 'underscore-plus'
+_ = require 'underscore-plus'
 {join} = require 'path'
 {Model} = require 'theorist'
 Q = require 'q'
@@ -28,6 +28,10 @@ class Workspace extends Model
 
   constructor: ->
     super
+
+    @openers = []
+    @editors = []
+
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
       switch filePath
@@ -50,6 +54,14 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
+  addEditor: (editor) ->
+    @editors.push editor
+    @emit 'editor-created', editor
+    editor
+
+  removeEditor: (editor) ->
+    _.remove(@editors, editor)
+
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
@@ -58,13 +70,14 @@ class Workspace extends Model
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditor: (callback) ->
-    atom.project.eachEditor(callback)
+    callback(editor) for editor in @getEditors()
+    @subscribe this, 'editor-created', (editor) -> callback(editor)
 
   # Public: Get all current editors in the workspace.
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
-    atom.project.getEditors()
+    _.clone(@editors)
 
   # Public: Open a given a URI in Atom asynchronously.
   #
@@ -172,14 +185,14 @@ class Workspace extends Model
   #
   # opener - A {Function} to be called when a path is being opened.
   registerOpener: (opener) ->
-    atom.project.registerOpener(opener)
+    @openers.push(opener)
 
   # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
-    atom.project.unregisterOpener(opener)
+    _.remove(@openers, opener)
 
   getOpeners: ->
-    atom.project.openers
+    @openers
 
   # Public: Get the active {Pane}.
   #
@@ -262,7 +275,7 @@ class Workspace extends Model
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
-      remove(@destroyedItemUris, uri)
+      _.remove(@destroyedItemUris, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>
@@ -271,4 +284,5 @@ class Workspace extends Model
 
   # Called by Model superclass when destroyed
   destroyed: ->
+    editor.destroy() for editor in @getEditors()
     @paneContainer.destroy()

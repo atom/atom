@@ -31,13 +31,11 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
-    @openers = []
 
     for buffer in @buffers
       do (buffer) =>
         buffer.once 'destroyed', => @removeBuffer(buffer)
 
-    @editors = []
     @setPath(path)
 
   serializeParams: ->
@@ -49,7 +47,6 @@ class Project extends Model
     params
 
   destroyed: ->
-    editor.destroy() for editor in @getEditors()
     buffer.destroy() for buffer in @getBuffers()
     @destroyRepo()
 
@@ -131,15 +128,6 @@ class Project extends Model
     deprecate("Use Project::open instead")
     filePath = @resolve(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
-
-  # Add the given {Editor}.
-  addEditor: (editor) ->
-    @editors.push editor
-    @emit 'editor-created', editor
-
-  # Return and removes the given {Editor}.
-  removeEditor: (editor) ->
-    _.remove(@editors, editor)
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -305,7 +293,7 @@ class Project extends Model
 
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new Editor(_.extend({buffer}, editorOptions))
-    @addEditor(editor)
+    atom.workspace.addEditor(editor)
     editor
 
   eachBuffer: (args...) ->
@@ -321,20 +309,19 @@ class Project extends Model
   # Deprecated: delegate
   registerOpener: (opener) ->
     deprecate("Use Workspace::registerOpener instead")
-    @openers.push(opener)
+    atom.workspace.registerOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
     deprecate("Use Workspace::unregisterOpener instead")
-    _.remove(@openers, opener)
+    atom.workspace.unregisterOpener(opener)
 
   # Deprecated: delegate
   eachEditor: (callback) ->
     deprecate("Use Workspace::eachEditor instead")
-    callback(editor) for editor in @getEditors()
-    @on 'editor-created', (editor) -> callback(editor)
+    atom.workspace.eachEditor(callback)
 
   # Deprecated: delegate
   getEditors: ->
     deprecate("Use Workspace::getEditors instead")
-    new Array(@editors...)
+    atom.workspace.getEditors()
