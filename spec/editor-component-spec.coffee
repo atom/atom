@@ -39,14 +39,39 @@ describe "EditorComponent", ->
       node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
       component.onVerticalScroll()
 
-      expect(node.querySelector('.scrollable-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
+      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
 
       lines = node.querySelectorAll('.line')
       expect(lines.length).toBe 6
       expect(lines[0].textContent).toBe editor.lineForScreenRow(2).text
       expect(lines[5].textContent).toBe editor.lineForScreenRow(7).text
 
-      spacers = node.querySelectorAll('.spacer')
+      spacers = node.querySelectorAll('.lines .spacer')
+      expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
+      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
+
+  describe "gutter rendering", ->
+    it "renders the currently-visible line numbers", ->
+      nbsp = String.fromCharCode(160)
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.updateAllDimensions()
+
+      lines = node.querySelectorAll('.line-number')
+      expect(lines.length).toBe 6
+      expect(lines[0].textContent).toBe "#{nbsp}1"
+      expect(lines[5].textContent).toBe "#{nbsp}6"
+
+      node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
+      component.onVerticalScroll()
+
+      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
+
+      lines = node.querySelectorAll('.line-number')
+      expect(lines.length).toBe 6
+      expect(lines[0].textContent).toBe "#{nbsp}3"
+      expect(lines[5].textContent).toBe "#{nbsp}8"
+
+      spacers = node.querySelectorAll('.line-numbers .spacer')
       expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
       expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
 
@@ -148,6 +173,11 @@ describe "EditorComponent", ->
       expect(cursorNode2.classList.contains('blink-off')).toBe false
 
   describe "selection rendering", ->
+    scrollViewClientLeft = null
+
+    beforeEach ->
+      scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
+
     it "renders 1 region for 1-line selections", ->
       # 1-line selection
       editor.setSelectedScreenRange([[1, 6], [1, 10]])
@@ -156,7 +186,7 @@ describe "EditorComponent", ->
       regionRect = regions[0].getBoundingClientRect()
       expect(regionRect.top).toBe 1 * lineHeightInPixels
       expect(regionRect.height).toBe 1 * lineHeightInPixels
-      expect(regionRect.left).toBe 6 * charWidth
+      expect(regionRect.left).toBe scrollViewClientLeft + 6 * charWidth
       expect(regionRect.width).toBe 4 * charWidth
 
     it "renders 2 regions for 2-line selections", ->
@@ -167,13 +197,13 @@ describe "EditorComponent", ->
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
-      expect(region1Rect.left).toBe 6 * charWidth
+      expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
       expect(region1Rect.right).toBe node.clientWidth
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
       expect(region2Rect.height).toBe 1 * lineHeightInPixels
-      expect(region2Rect.left).toBe 0
+      expect(region2Rect.left).toBe scrollViewClientLeft + 0
       expect(region2Rect.width).toBe 10 * charWidth
 
     it "renders 3 regions for selections with more than 2 lines", ->
@@ -184,19 +214,19 @@ describe "EditorComponent", ->
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
-      expect(region1Rect.left).toBe 6 * charWidth
+      expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
       expect(region1Rect.right).toBe node.clientWidth
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
       expect(region2Rect.height).toBe 3 * lineHeightInPixels
-      expect(region2Rect.left).toBe 0
+      expect(region2Rect.left).toBe scrollViewClientLeft + 0
       expect(region2Rect.right).toBe node.clientWidth
 
       region3Rect = regions[2].getBoundingClientRect()
       expect(region3Rect.top).toBe 5 * lineHeightInPixels
       expect(region3Rect.height).toBe 1 * lineHeightInPixels
-      expect(region3Rect.left).toBe 0
+      expect(region3Rect.left).toBe scrollViewClientLeft + 0
       expect(region3Rect.width).toBe 10 * charWidth
 
   describe "mouse interactions", ->
@@ -290,9 +320,9 @@ describe "EditorComponent", ->
 
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
-      editorClientRect = node.getBoundingClientRect()
-      clientX = editorClientRect.left + positionOffset.left
-      clientY = editorClientRect.top + positionOffset.top - editor.getScrollTop()
+      scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
+      clientX = scrollViewClientRect.left + positionOffset.left
+      clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
       {clientX, clientY}
 
     buildMouseEvent = (type, properties...) ->
