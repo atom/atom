@@ -381,6 +381,10 @@ describe "EditorComponent", ->
       component.updateAllDimensions()
 
       scrollViewContentNode = node.querySelector('.scroll-view-content')
+      horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
       expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(0px, 0px)"
+      expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
       editor.setScrollLeft(100)
       expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(-100px, 0px)"
+      expect(horizontalScrollbarNode.scrollLeft).toBe 100
