@@ -179,10 +179,9 @@ EditorCompont = React.createClass
     @subscribe editor.$lineHeight.changes, @requestUpdate
 
   listenForDOMEvents: ->
-    scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'mousewheel', @onMouseWheel
-    scrollViewNode.addEventListener 'overflowchanged', @onOverflowChanged
+    @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
     @getDOMNode().addEventListener 'focus', @onFocus
+    @refs.scrollView.getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
 
   listenForCustomEvents: ->
     {editor, mini} = @props
@@ -340,8 +339,13 @@ EditorCompont = React.createClass
     @clearVisibleRowOverridesAfterDelay ?= debounce(@clearVisibleRowOverrides, 100)
     @clearVisibleRowOverridesAfterDelay()
 
-    @refs.verticalScrollbar.getDOMNode().scrollTop -= event.wheelDeltaY
-    @refs.horizontalScrollbar.getDOMNode().scrollLeft -= event.wheelDeltaX
+    # Only scroll in one direction at a time
+    {wheelDeltaX, wheelDeltaY} = event
+    if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+      @refs.horizontalScrollbar.getDOMNode().scrollLeft -= wheelDeltaX
+    else
+      @refs.verticalScrollbar.getDOMNode().scrollTop -= wheelDeltaY
+
     event.preventDefault()
 
   onMouseDown: (event) ->
