@@ -2,7 +2,7 @@ React = require 'react'
 ReactUpdates = require 'react/lib/ReactUpdates'
 {div, span} = require 'reactionary'
 {$$} = require 'space-pen'
-{debounce} = require 'underscore-plus'
+{debounce, multiplyString} = require 'underscore-plus'
 
 InputComponent = require './input-component'
 SelectionComponent = require './selection-component'
@@ -30,19 +30,40 @@ EditorCompont = React.createClass
     className += ' is-focused' if focused
 
     div className: className, tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
+      div className: 'gutter',
+        @renderGutterContent()
       div className: 'scroll-view', ref: 'scrollView',
         InputComponent ref: 'input', className: 'hidden-input', onInput: @onInput, onFocus: @onInputFocused, onBlur: @onInputBlurred
-        @renderScrollableContent()
+        @renderScrollViewContent()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div outlet: 'verticalScrollbarContent', style: {height: editor.getScrollHeight()}
 
-  renderScrollableContent: ->
+  renderGutterContent: ->
+    {editor} = @props
+    [startRow, endRow] = @getVisibleRowRange()
+    lineHeightInPixels = editor.getLineHeight()
+    precedingHeight = startRow * lineHeightInPixels
+    followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
+    maxDigits = editor.getLastBufferRow().toString().length
+    style =
+      height: editor.getScrollHeight()
+      WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
+
+    div className: 'line-numbers', style: style, [
+      div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
+      (for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
+        lineNumber = bufferRow + 1
+        LineNumberComponent({lineNumber, maxDigits, key: lineNumber}))...
+      div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
+    ]
+
+  renderScrollViewContent: ->
     {editor} = @props
     style =
       height: editor.getScrollHeight()
       WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
 
-    div {className: 'scrollable-content', style, @onMouseDown},
+    div {className: 'scroll-view-content', style, @onMouseDown},
       @renderCursors()
       @renderVisibleLines()
       @renderUnderlayer()
@@ -469,3 +490,18 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({})}</span>"
 
   shouldComponentUpdate: -> false
+
+LineNumberComponent = React.createClass
+  render: ->
+    div className: 'line-number', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+
+  buildInnerHTML: ->
+    {lineNumber, maxDigits} = @props
+    lineNumber = lineNumber.toString()
+    if lineNumber.length < maxDigits
+      padding = multiplyString('&nbsp;', maxDigits - lineNumber.length)
+      padding + lineNumber + @iconDivHTML
+    else
+      lineNumber + @iconDivHTML
+
+  iconDivHTML: '<div class="icon-right"></div>'
