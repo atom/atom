@@ -37,6 +37,9 @@ class WindowEventHandler
       @reloadRequested = false
       confirmed
 
+    @subscribe $(window), 'blur unload', ->
+      atom.setDefaultWindowDimensions()
+
     @subscribe $(window), 'unload', ->
       atom.storeWindowDimensions()
 

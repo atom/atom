@@ -223,6 +223,10 @@ class Atom extends Model
     else
       @center()
 
+  storeDefaultWindowDimensions: ->
+    dimensions = JSON.stringify(atom.getWindowDimensions())
+    localStorage.setItem("defaultWindowDimensions", dimensions)
+
   restoreWindowDimensions: ->
     workAreaSize = screen.getPrimaryDisplay().workAreaSize
     windowDimensions = @state.windowDimensions ? {}
