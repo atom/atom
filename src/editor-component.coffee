@@ -36,7 +36,9 @@ EditorCompont = React.createClass
         InputComponent ref: 'input', className: 'hidden-input', onInput: @onInput, onFocus: @onInputFocused, onBlur: @onInputBlurred
         @renderScrollViewContent()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
-        div outlet: 'verticalScrollbarContent', style: {height: editor.getScrollHeight()}
+        div className: 'scrollbar-content', style: {height: editor.getScrollHeight()}
+      div className: 'horizontal-scrollbar', ref: 'horizontalScrollbar', onScroll: @onHorizontalScroll,
+        div className: 'scrollbar-content', style: {width: editor.getScrollWidth()}
 
   renderGutterContent: ->
     {editor} = @props
@@ -136,6 +138,7 @@ EditorCompont = React.createClass
 
   componentDidUpdate: ->
     @updateVerticalScrollbar()
+    @updateHorizontalScrollbar()
     @measureNewLines()
 
   # The React-provided scrollTop property doesn't work in this case because when
@@ -150,6 +153,16 @@ EditorCompont = React.createClass
     scrollbarNode = @refs.verticalScrollbar.getDOMNode()
     scrollbarNode.scrollTop = scrollTop
     @lastScrollTop = scrollbarNode.scrollTop
+
+  updateHorizontalScrollbar: ->
+    {editor} = @props
+    scrollLeft = editor.getScrollLeft()
+
+    return if scrollLeft is @lastScrollLeft
+
+    scrollbarNode = @refs.horizontalScrollbar.getDOMNode()
+    scrollbarNode.scrollLeft = scrollLeft
+    @lastScrollLeft = scrollbarNode.scrollLeft
 
   observeEditor: ->
     {editor} = @props
