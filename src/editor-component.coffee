@@ -49,11 +49,20 @@ EditorCompont = React.createClass
       height: editor.getScrollHeight()
       WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
 
+    wrapCount = 0
     div className: 'line-numbers', style: style, [
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
-        lineNumber = bufferRow + 1
-        LineNumberComponent({lineNumber, maxDigits, key: lineNumber}))...
+        if bufferRow is lastBufferRow
+          lineNumber = '•'
+          key = "#{bufferRow}-#{++wrapCount}"
+        else
+          lastBufferRow = bufferRow
+          wrapCount = 0
+          lineNumber = (bufferRow + 1).toString()
+          key = bufferRow.toString()
+
+        LineNumberComponent({lineNumber, maxDigits, key}))...
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
 
@@ -380,7 +389,18 @@ EditorCompont = React.createClass
   clearVisibleRowOverridesAfterDelay: null
 
   onOverflowChanged: ->
-    @props.editor.setHeight(@refs.scrollView.getDOMNode().clientHeight)
+    {editor} = @props
+    {height, width} = @measureScrollViewDimensions()
+
+    if height isnt editor.getHeight()
+      editor.setHeight(height)
+      update = true
+
+    if width isnt editor.getWidth()
+      editor.setWidth(width)
+      update = true
+
+    @requestUpdate() if update
 
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props
@@ -497,7 +517,6 @@ LineNumberComponent = React.createClass
 
   buildInnerHTML: ->
     {lineNumber, maxDigits} = @props
-    lineNumber = lineNumber.toString()
     if lineNumber.length < maxDigits
       padding = multiplyString('&nbsp;', maxDigits - lineNumber.length)
       padding + lineNumber + @iconDivHTML

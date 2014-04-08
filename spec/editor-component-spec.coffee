@@ -51,8 +51,9 @@ describe "EditorComponent", ->
       expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
 
   describe "gutter rendering", ->
+    nbsp = String.fromCharCode(160)
+
     it "renders the currently-visible line numbers", ->
-      nbsp = String.fromCharCode(160)
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.updateAllDimensions()
 
@@ -74,6 +75,21 @@ describe "EditorComponent", ->
       spacers = node.querySelectorAll('.line-numbers .spacer')
       expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
       expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
+
+    it "renders • characters for soft-wrapped lines", ->
+      editor.setSoftWrap(true)
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = 30 * charWidth + 'px'
+      component.updateAllDimensions()
+
+      lines = node.querySelectorAll('.line-number')
+      expect(lines.length).toBe 6
+      expect(lines[0].textContent).toBe "#{nbsp}1"
+      expect(lines[1].textContent).toBe "#{nbsp}•"
+      expect(lines[2].textContent).toBe "#{nbsp}2"
+      expect(lines[3].textContent).toBe "#{nbsp}•"
+      expect(lines[4].textContent).toBe "#{nbsp}3"
+      expect(lines[5].textContent).toBe "#{nbsp}•"
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
