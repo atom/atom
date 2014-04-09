@@ -955,3 +955,41 @@ describe "DisplayBuffer", ->
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
         expect(start.left).toBe (4 * 10) + (6 * 11)
+
+  describe "::setScrollTop", ->
+    beforeEach ->
+      displayBuffer.setLineHeight(10)
+
+    it "disallows negative values", ->
+      displayBuffer.setHeight(displayBuffer.getScrollHeight() + 100)
+      expect(displayBuffer.setScrollTop(-10)).toBe 0
+      expect(displayBuffer.getScrollTop()).toBe 0
+
+    it "disallows values that would make ::getScrollBottom() exceed ::getScrollHeight()", ->
+      displayBuffer.setHeight(50)
+      maxScrollTop = displayBuffer.getScrollHeight() - displayBuffer.getHeight()
+
+      expect(displayBuffer.setScrollTop(maxScrollTop)).toBe maxScrollTop
+      expect(displayBuffer.getScrollTop()).toBe maxScrollTop
+
+      expect(displayBuffer.setScrollTop(maxScrollTop + 50)).toBe maxScrollTop
+      expect(displayBuffer.getScrollTop()).toBe maxScrollTop
+
+  describe "::setScrollLeft", ->
+    beforeEach ->
+      displayBuffer.setDefaultCharWidth(10)
+
+    it "disallows negative values", ->
+      displayBuffer.setWidth(displayBuffer.getScrollWidth() + 100)
+      expect(displayBuffer.setScrollLeft(-10)).toBe 0
+      expect(displayBuffer.getScrollLeft()).toBe 0
+
+    it "disallows values that would make ::getScrollRight() exceed ::getScrollWidth()", ->
+      displayBuffer.setWidth(50)
+      maxScrollLeft = displayBuffer.getScrollWidth() - displayBuffer.getWidth()
+
+      expect(displayBuffer.setScrollLeft(maxScrollLeft)).toBe maxScrollLeft
+      expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
+
+      expect(displayBuffer.setScrollLeft(maxScrollLeft + 50)).toBe maxScrollLeft
+      expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
