@@ -4,8 +4,8 @@ idCounter = 1
 
 module.exports =
 class TokenizedLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength, @indentLevel}) ->
-    @tokens = @breakOutAtomicTokens(tokens, tabLength)
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
+    @tokens = @breakOutAtomicTokens(tokens)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
     @bufferDelta = _.sum(_.pluck(@tokens, 'bufferDelta'))
@@ -110,11 +110,11 @@ class TokenizedLine
       delta = nextDelta
     delta
 
-  breakOutAtomicTokens: (inputTokens, tabLength) ->
+  breakOutAtomicTokens: (inputTokens) ->
     outputTokens = []
     breakOutLeadingSoftTabs = true
     for token in inputTokens
-      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
+      outputTokens.push(token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs)...)
       breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
 
