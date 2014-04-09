@@ -500,3 +500,12 @@ describe "TokenizedBuffer", ->
       # Lines that are *only* whitespace are considered to have trailing whitespace
       buffer.insert([10, 0], '  ')
       expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasTrailingWhitespace).toBe true
+
+    it "only marks trailing whitespace on the last segment of a soft-wrapped line", ->
+      buffer.insert([0, Infinity], '  ')
+      tokenizedLine = tokenizedBuffer.lineForScreenRow(0)
+      [segment1, segment2] = tokenizedLine.softWrapAt(16)
+      expect(segment1.tokens[5].value).toBe ' '
+      expect(segment1.tokens[5].hasTrailingWhitespace).toBe false
+      expect(segment2.tokens[6].value).toBe '  '
+      expect(segment2.tokens[6].hasTrailingWhitespace).toBe true

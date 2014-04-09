@@ -125,7 +125,8 @@ class TokenizedLine
     position = 0
     for token, i in @tokens
       token.hasLeadingWhitespace =  position < firstNonWhitespacePosition
-      token.hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+      # Only the *last* segment of a soft-wrapped line can have trailing whitespace
+      token.hasTrailingWhitespace = @lineEnding? and (position + token.value.length > firstTrailingWhitespacePosition)
       position += token.value.length
 
   isComment: ->
