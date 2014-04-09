@@ -185,14 +185,16 @@ class TokenizedBuffer extends Model
     line = @buffer.lineForRow(row)
     tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     tabLength = @getTabLength()
-    new TokenizedLine({tokens, tabLength})
+    indentLevel = @indentLevelForRow(row)
+    new TokenizedLine({tokens, tabLength, indentLevel})
 
   buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
+    indentLevel = @indentLevelForRow(row)
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding})
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel})
 
   # FIXME: benogle says: These are actually buffer rows as all buffer rows are
   # accounted for in @tokenizedLines
@@ -206,6 +208,36 @@ class TokenizedBuffer extends Model
 
   stackForRow: (row) ->
     @tokenizedLines[row]?.ruleStack
+
+  indentLevelForRow: (row) ->
+    line = @buffer.lineForRow(row)
+
+    if line is ''
+      nextRow = row + 1
+      lineCount = @getLineCount()
+      while nextRow < lineCount
+        nextLine = @buffer.lineForRow(nextRow)
+        return @indentLevelForLine(nextLine) unless nextLine is ''
+        nextRow++
+
+      previousRow = row - 1
+      while previousRow >= 0
+        previousLine = @buffer.lineForRow(previousRow)
+        return @indentLevelForLine(previousLine) unless previousLine is ''
+        previousRow--
+
+      0
+    else
+      @indentLevelForLine(line)
+
+  indentLevelForLine: (line) ->
+    if match = line.match(/^[\t ]+/)
+      leadingWhitespace = match[0]
+      tabCount = leadingWhitespace.match(/\t/g)?.length ? 0
+      spaceCount = leadingWhitespace.match(/[ ]/g)?.length ? 0
+      tabCount + (spaceCount / @getTabLength())
+    else
+      0
 
   scopesForPosition: (position) ->
     @tokenForPosition(position).scopes
@@ -305,6 +337,9 @@ class TokenizedBuffer extends Model
   # Returns a {Number}.
   getLastRow: ->
     @buffer.getLastRow()
+
+  getLineCount: ->
+    @buffer.getLineCount()
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]

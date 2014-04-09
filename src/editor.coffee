@@ -405,13 +405,7 @@ class Editor extends Model
   #
   # Returns a {Number}.
   indentLevelForLine: (line) ->
-    if match = line.match(/^[\t ]+/)
-      leadingWhitespace = match[0]
-      tabCount = leadingWhitespace.match(/\t/g)?.length ? 0
-      spaceCount = leadingWhitespace.match(/[ ]/g)?.length ? 0
-      tabCount + (spaceCount / @getTabLength())
-    else
-      0
+    @displayBuffer.indentLevelForLine(line)
 
   # Constructs the string used for tabs.
   buildIndentString: (number) ->

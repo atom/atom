@@ -4,7 +4,7 @@ idCounter = 1
 
 module.exports =
 class TokenizedLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength, @indentLevel}) ->
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')

@@ -242,6 +242,9 @@ class DisplayBuffer extends Model
   getLines: ->
     new Array(@screenLines...)
 
+  indentLevelForLine: (line) ->
+    @tokenizedBuffer.indentLevelForLine(line)
+
   # Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
   #

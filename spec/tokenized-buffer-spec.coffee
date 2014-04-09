@@ -509,3 +509,31 @@ describe "TokenizedBuffer", ->
       expect(segment1.tokens[5].hasTrailingWhitespace).toBe false
       expect(segment2.tokens[6].value).toBe '  '
       expect(segment2.tokens[6].hasTrailingWhitespace).toBe true
+
+  describe "indent level", ->
+    beforeEach ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+    describe "when the line is non-empty", ->
+      it "has an indent level based on the leading whitespace on the line", ->
+        expect(tokenizedBuffer.lineForScreenRow(0).indentLevel).toBe 0
+        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
+        buffer.insert([2, 0], ' ')
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2.5
+
+    describe "when the line is empty", ->
+      it "assumes the indentation level of the first non-empty line below or above if one exists", ->
+        buffer.insert([12, 0], '    ')
+        buffer.insert([12, Infinity], '\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(14).indentLevel).toBe 2
+
+        buffer.insert([1, Infinity], '\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(3).indentLevel).toBe 2
+
+        buffer.setText('\n\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 0
