@@ -51,9 +51,10 @@ describe "EditorComponent", ->
       expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
 
     describe "when indent guides are enabled", ->
-      it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
+      beforeEach ->
         component.setShowIndentGuide(true)
 
+      it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
         lines = node.querySelectorAll('.line')
         line1LeafNodes = getLeafNodes(lines[1])
         expect(line1LeafNodes[0].textContent).toBe '  '
@@ -66,6 +67,20 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[1].textContent).toBe '  '
         expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe true
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe false
+
+      it "renders leading whitespace spans with the 'indent-guide' class for empty lines", ->
+        editor.getBuffer().insert([1, Infinity], '\n')
+
+        lines = node.querySelectorAll('.line')
+        line2LeafNodes = getLeafNodes(lines[2])
+
+        expect(line2LeafNodes.length).toBe 3
+        expect(line2LeafNodes[0].textContent).toBe '  '
+        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[1].textContent).toBe '  '
+        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[2].textContent).toBe '  '
+        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
       getLeafNodes = (node) ->
         if node.children.length > 0

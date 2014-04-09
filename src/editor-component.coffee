@@ -532,9 +532,19 @@ LineComponent = React.createClass
 
   buildInnerHTML: ->
     if @props.tokenizedLine.text.length is 0
-      "<span>&nbsp;</span>"
+      @buildEmptyLineHTML()
     else
       @buildScopeTreeHTML(@props.tokenizedLine.getScopeTree())
+
+  buildEmptyLineHTML: ->
+    {showIndentGuide, tokenizedLine} = @props
+    {indentLevel, tabLength} = tokenizedLine
+
+    if showIndentGuide and indentLevel > 0
+      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
+      multiplyString(indentSpan, indentLevel + 1)
+    else
+      "&nbsp;"
 
   buildScopeTreeHTML: (scopeTree) ->
     if scopeTree.children?
