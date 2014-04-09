@@ -20,6 +20,8 @@ class Token
   scopes: null
   isAtomic: null
   isHardTab: null
+  hasLeadingWhitespace: false
+  hasTrailingWhitespace: false
 
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length

@@ -10,6 +10,7 @@ class TokenizedLine
     @text = _.pluck(@tokens, 'value').join('')
     @bufferDelta = _.sum(_.pluck(@tokens, 'bufferDelta'))
     @id = idCounter++
+    @markLeadingAndTrailingWhitespaceTokens()
 
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
@@ -116,6 +117,16 @@ class TokenizedLine
       outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
       breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
+
+  markLeadingAndTrailingWhitespaceTokens: ->
+    firstNonWhitespacePosition = @text.search(/\S/)
+    firstTrailingWhitespacePosition = @text.search(/\s*$/)
+    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+    position = 0
+    for token, i in @tokens
+      token.hasLeadingWhitespace =  position < firstNonWhitespacePosition
+      token.hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+      position += token.value.length
 
   isComment: ->
     for token in @tokens

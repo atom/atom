@@ -463,3 +463,40 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+
+  describe "leading and trailing whitespace", ->
+    beforeEach ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+    it "sets ::hasLeadingWhitespace to true on tokens that have leading whitespace", ->
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].hasLeadingWhitespace).toBe false
+
+      # The 4th token *has* leading whitespace, but isn't entirely whitespace
+      buffer.insert([5, 0], ' ')
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].hasLeadingWhitespace).toBe false
+
+      # Lines that are *only* whitespace are not considered to have leading whitespace
+      buffer.insert([10, 0], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe false
+
+    it "sets ::hasTrailingWhitespace to true on tokens that have trailing whitespace", ->
+      buffer.insert([0, Infinity], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].hasTrailingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].hasTrailingWhitespace).toBe true
+
+      # The last token *has* trailing whitespace, but isn't entirely whitespace
+      buffer.setTextInRange([[2, 39], [2, 40]], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].hasTrailingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].hasTrailingWhitespace).toBe true
+
+      # Lines that are *only* whitespace are considered to have trailing whitespace
+      buffer.insert([10, 0], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasTrailingWhitespace).toBe true
