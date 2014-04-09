@@ -172,7 +172,7 @@ class AtomApplication
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(windowDimensions: @getFocusedWindowDimensions())
+    @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPath()
     @on 'application:open-dev', -> @promptForPath(devMode: true)
@@ -304,18 +304,6 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
-  # Public: Get the dimensions focused window.
-  #
-  # Returns an object with x, y height and width keys or null if there is no
-  # focused window.
-  getFocusedWindowDimensions: ->
-    if focusedWindow = @focusedWindow()
-      [width, height] = focusedWindow.getSize()
-      [x, y] = focusedWindow.getPosition()
-      {x, y, width, height}
-    else
-      null
-
   # Public: Opens multiple paths, in existing windows if possible.
   #
   # * options
@@ -415,7 +403,8 @@ class AtomApplication
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
-        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, windowDimensions: @getFocusedWindowDimensions()})
+        windowDimensions = @focusedWindow()?.getDimensions()
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, windowDimensions})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else

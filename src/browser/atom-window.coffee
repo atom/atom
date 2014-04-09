@@ -132,11 +132,14 @@ class AtomWindow
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
 
+  getDimensions: ->
+    [x, y] = @browserWindow.getPosition()
+    [width, height] = @browserWindow.getSize()
+    {x, y, width, height}
+
   close: -> @browserWindow.close()
 
   focus: -> @browserWindow.focus()
-
-  getSize: -> @browserWindow.getSize()
 
   minimize: -> @browserWindow.minimize()
 
