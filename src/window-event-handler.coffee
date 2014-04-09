@@ -43,15 +43,15 @@ class WindowEventHandler
     @subscribe $(window), 'unload', ->
       atom.storeWindowDimensions()
 
-    @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
+    @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 
-    @subscribeToCommand $(window), 'window:close', => atom.close()
+    @subscribeToCommand $(window), 'window:close', -> atom.close()
 
     @subscribeToCommand $(window), 'window:reload', =>
       @reloadRequested = true
       atom.reload()
 
-    @subscribeToCommand $(window), 'window:toggle-dev-tools', => atom.toggleDevTools()
+    @subscribeToCommand $(window), 'window:toggle-dev-tools', -> atom.toggleDevTools()
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
@@ -95,7 +95,7 @@ class WindowEventHandler
     bindCommandToAction('core:redo', 'redo:')
     bindCommandToAction('core:select-all', 'selectAll:')
 
-  openLink: (event) =>
+  openLink: (event) ->
     location = $(event.target).attr('href')
     if location and location[0] isnt '#' and /^https?:\/\//.test(location)
       shell.openExternal(location)
