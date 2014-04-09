@@ -284,6 +284,7 @@ EditorCompont = React.createClass
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
+    @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
 
   setFontSize: (fontSize) ->
     @clearScopedCharWidths()
