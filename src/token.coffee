@@ -144,7 +144,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if @hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
+      if @hasLeadingWhitespace and not @hasTrailingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -156,7 +156,7 @@ class Token
 
       if @hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
         classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace
+        classes += ' indent-guide' if hasIndentGuide and @hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space

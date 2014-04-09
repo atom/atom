@@ -82,6 +82,18 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[2].textContent).toBe '  '
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
+      it "renders indent guides correctly on lines containing only whitespace", ->
+        editor.getBuffer().insert([1, Infinity], '\n      ')
+        lines = node.querySelectorAll('.line')
+        line2LeafNodes = getLeafNodes(lines[2])
+        expect(line2LeafNodes.length).toBe 3
+        expect(line2LeafNodes[0].textContent).toBe '  '
+        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[1].textContent).toBe '  '
+        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[2].textContent).toBe '  '
+        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
+
       getLeafNodes = (node) ->
         if node.children.length > 0
           flatten(toArray(node.children).map(getLeafNodes))
