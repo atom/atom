@@ -231,13 +231,15 @@ class Atom extends Model
     {windowDimensions} = @getLoadSettings()
     return windowDimensions if windowDimensions?
 
+    dimensions = null
     try
-      JSON.parse(localStorage.getItem("defaultWindowDimensions"))
+      dimensions = JSON.parse(localStorage.getItem("defaultWindowDimensions"))
     catch error
       console.warn "Error parsing default window dimensions", error
       localStorage.removeItem("defaultWindowDimensions")
-      {width, height} = screen.getPrimaryDisplay().workAreaSize
-      {x: 0, y: 0, width: width, height: Math.min(1024, height)}
+
+    {width, height} = screen.getPrimaryDisplay().workAreaSize
+    dimensions ? {x: 0, y: 0, width: Math.min(1024, width), height: height}
 
   restoreWindowDimensions: ->
     windowDimensions = @state.windowDimensions ? @getDefaultWindowDimensions()
