@@ -119,7 +119,7 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespacePosition = @text.search(/\S/)
+    firstNonWhitespacePosition = @text.search(/\S|$/)
     firstTrailingWhitespacePosition = @text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     position = 0
