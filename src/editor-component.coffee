@@ -82,6 +82,7 @@ EditorCompont = React.createClass
 
   renderVisibleLines: ->
     {editor} = @props
+    {showIndentGuide} = @state
     [startRow, endRow] = @getVisibleRowRange()
     lineHeightInPixels = editor.getLineHeight()
     precedingHeight = startRow * lineHeightInPixels
@@ -90,7 +91,7 @@ EditorCompont = React.createClass
     div className: 'lines', ref: 'lines', [
       div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
       (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({tokenizedLine, key: tokenizedLine.id}))...
+        LineComponent({tokenizedLine, showIndentGuide, key: tokenizedLine.id}))...
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
 
@@ -296,6 +297,9 @@ EditorCompont = React.createClass
     @clearScopedCharWidths()
     @setState({fontFamily})
     @updateLineDimensions()
+
+  setShowIndentGuide: (showIndentGuide) ->
+    @setState({showIndentGuide})
 
   onFocus: ->
     @refs.input.focus()
@@ -538,9 +542,10 @@ LineComponent = React.createClass
       html += "</span>"
       html
     else
-      "<span>#{scopeTree.getValueAsHtml({})}</span>"
+      "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
-  shouldComponentUpdate: -> false
+  shouldComponentUpdate: (newProps, newState) ->
+    newProps.showIndentGuide isnt @props.showIndentGuide
 
 LineNumberComponent = React.createClass
   render: ->
