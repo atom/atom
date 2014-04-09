@@ -1488,10 +1488,8 @@ class EditorView extends View
       position = 0
       for token in tokens
         @updateScopeStack(line, scopeStack, token.scopes)
-        hasLeadingWhitespace =  position < firstNonWhitespacePosition
-        hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
         hasIndentGuide = not mini and showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
-        line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
+        line.push(token.getValueAsHtml({invisibles, hasIndentGuide}))
         position += token.value.length
 
     @popScope(line, scopeStack) while scopeStack.length > 0

@@ -129,7 +129,7 @@ class Token
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
-  getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
+  getValueAsHtml: ({invisibles, hasIndentGuide})->
     invisibles ?= {}
     if @isHardTab
       classes = 'hard-tab'
@@ -144,7 +144,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
+      if @hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -154,9 +154,9 @@ class Token
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+      if @hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
         classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
+        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
