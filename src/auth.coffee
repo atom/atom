@@ -10,10 +10,9 @@ module.exports =
       callback(null, token)
       return
 
-    for tokenName in ['Atom GitHub API Token', 'GitHub API Token']
-      if token = keytar.findPassword(tokenName)
-        callback(null, token)
-        return
+    if token = keytar.findPassword('Atom.io API Token')
+      callback(null, token)
+      return
 
     callback """
       No GitHub API token in keychain
