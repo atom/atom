@@ -12,6 +12,8 @@ class ApplicationMenu
   constructor: (@version) ->
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
+    global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
+      @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
@@ -25,6 +27,8 @@ class ApplicationMenu
     @substituteVersion(template)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
+
+    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   # Flattens the given menu and submenu items into an single Array.
   #
@@ -63,35 +67,28 @@ class ApplicationMenu
 
   # Replaces VERSION with the current version.
   substituteVersion: (template) ->
-    if (item = _.find(@flattenMenuTemplate(template), (i) -> i.label == 'VERSION'))
+    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label == 'VERSION'))
       item.label = "Version #{@version}"
 
-  # Toggles Install Update Item
-  showInstallUpdateItem: (visible=true) ->
-    if visible
-      @showDownloadingUpdateItem(false)
-      @showCheckForUpdateItem(false)
+  # Sets the proper visible state the update menu items
+  showUpdateMenuItem: (state) ->
+    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
+    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
+    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
 
-    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Restart and Install Update'))
-      item.visible = visible
+    return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
-  # Toggles Downloading Update Item
-  showDownloadingUpdateItem: (visible=true) ->
-    if visible
-      @showInstallUpdateItem(false)
-      @showCheckForUpdateItem(false)
+    checkForUpdateItem.visible = false
+    downloadingUpdateItem.visible = false
+    installUpdateItem.visible = false
 
-    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Downloading Update'))
-      item.visible = visible
-
-  # Toggles Check For Update Item
-  showCheckForUpdateItem: (visible=true) ->
-    if visible
-      @showDownloadingUpdateItem(false)
-      @showInstallUpdateItem(false)
-
-    if (item = _.find(@flattenMenuItems(@menu), (i) -> i.label == 'Check for Update'))
-      item.visible = visible
+    switch state
+      when 'idle', 'error', 'no-update-available'
+        checkForUpdateItem.visible = true
+      when 'checking', 'downloading'
+        downloadingUpdateItem.visible = true
+      when 'update-available'
+        installUpdateItem.visible = true
 
   # Default list of menu items.
   #
@@ -100,6 +97,7 @@ class ApplicationMenu
     [
       label: "Atom"
       submenu: [
+          { label: "Check for Update", metadata: {autoUpdate: true}}
           { label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload() }
           { label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close() }
           { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools() }
@@ -122,7 +120,7 @@ class ApplicationMenu
   # Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
     template.forEach (item) =>
-      item.metadata = {}
+      item.metadata ?= {}
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = => global.atomApplication.sendCommand(item.command)
