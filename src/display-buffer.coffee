@@ -427,6 +427,9 @@ class DisplayBuffer extends Model
 
     new Point(row, column)
 
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))
+
   # Gets the number of screen lines.
   #
   # Returns a {Number}.

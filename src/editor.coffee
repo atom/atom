@@ -156,7 +156,7 @@ class Editor extends Model
     'getScrollBottom', 'setScrollBottom', 'getScrollLeft', 'setScrollLeft', 'getScrollRight',
     'setScrollRight', 'getScrollHeight', 'getScrollWidth', 'getVisibleRowRange',
     'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', 'pixelPositionForScreenPosition',
-    'screenPositionForPixelPosition', toProperty: 'displayBuffer'
+    'screenPositionForPixelPosition', 'pixelPositionForBufferPosition', toProperty: 'displayBuffer'
 
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', toProperty: 'displayBuffer'
