@@ -34,7 +34,13 @@ EditorCompont = React.createClass
       div className: 'gutter',
         @renderGutterContent()
       div className: 'scroll-view', ref: 'scrollView',
-        InputComponent ref: 'input', className: 'hidden-input', onInput: @onInput, onFocus: @onInputFocused, onBlur: @onInputBlurred
+        InputComponent
+          ref: 'input'
+          className: 'hidden-input'
+          style: @getHiddenInputPosition()
+          onInput: @onInput
+          onFocus: @onInputFocused
+          onBlur: @onInputBlurred
         @renderScrollViewContent()
       div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
         div className: 'scrollbar-content', style: {height: editor.getScrollHeight()}
@@ -68,6 +74,21 @@ EditorCompont = React.createClass
         LineNumberComponent({lineNumber, maxDigits, key}))...
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
+
+  getHiddenInputPosition: ->
+    {editor} = @props
+
+    if cursor = editor.getCursor()
+      cursorRect = cursor.getPixelRect()
+      top = cursorRect.top - editor.getScrollTop()
+      top = Math.max(0, Math.min(editor.getHeight(), top))
+      left = cursorRect.left - editor.getScrollLeft()
+      left = Math.max(0, Math.min(editor.getWidth(), left))
+    else
+      top = 0
+      left = 0
+
+    {top, left}
 
   renderScrollViewContent: ->
     {editor} = @props
