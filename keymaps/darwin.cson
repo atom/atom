@@ -138,6 +138,8 @@
   'cmd-j': 'editor:join-lines'
   'cmd-D': 'editor:duplicate-lines'
   'cmd-L': 'editor:split-selections-into-lines'
+  'ctrl-shift-up': 'editor:add-selection-above'
+  'ctrl-shift-down': 'editor:add-selection-below'
 
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'

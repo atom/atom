@@ -11,6 +11,7 @@
   'ctrl-alt-p': 'window:run-package-specs'
   'ctrl-alt-s': 'application:run-all-specs'
   'ctrl-shift-o': 'application:open-dev'
+  'F11': 'window:toggle-full-screen'
 
   # Sublime Parity
   'ctrl-N': 'application:new-window'
@@ -84,6 +85,8 @@
   'ctrl-/': 'editor:toggle-line-comments'
   'ctrl-j': 'editor:join-lines'
   'ctrl-D': 'editor:duplicate-lines'
+  'alt-shift-up': 'editor:add-selection-above'
+  'alt-shift-down': 'editor:add-selection-below'
 
   'ctrl-alt-[': 'editor:fold-current-row'
   'ctrl-alt-]': 'editor:unfold-current-row'

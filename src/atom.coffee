@@ -133,6 +133,7 @@ class Atom extends Model
   initialize: ->
     window.onerror = =>
       @openDevTools()
+      @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @emit 'uncaught-error', arguments...
 
     @unsubscribe()
@@ -383,6 +384,10 @@ class Atom extends Model
   toggleDevTools: ->
     ipc.sendChannel('call-window-method', 'toggleDevTools')
 
+  # Public: Execute code in dev tools.
+  executeJavaScriptInDevTools: (code) ->
+    ipc.sendChannel('call-window-method', 'executeJavaScriptInDevTools', code)
+
   # Public: Reload the current window.
   reload: ->
     ipc.sendChannel('call-window-method', 'restart')
@@ -435,7 +440,7 @@ class Atom extends Model
   exit: (status) ->
     app = remote.require('app')
     app.emit('will-exit')
-    app.exit(status)
+    remote.process.exit(status)
 
   # Public: Is the current window in development mode?
   inDevMode: ->

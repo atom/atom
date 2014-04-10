@@ -18,8 +18,6 @@
   'enter': 'editor:newline'
   'shift-tab': 'editor:outdent-selected-rows'
   'ctrl-K': 'editor:delete-line'
-  'ctrl-shift-up': 'editor:add-selection-above'
-  'ctrl-shift-down': 'editor:add-selection-below'
 
 '.tool-panel.panel-left, .tool-panel.panel-right':
   'escape': 'tool-panel:unfocus'

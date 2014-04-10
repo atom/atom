@@ -92,10 +92,10 @@ class MenuManager
   merge: (menu, item) ->
     item = _.deepClone(item)
 
-    if item.submenu? and match = _.find(menu, (i) => i.submenu? and @normalizeLabel(i.label) == @normalizeLabel(item.label))
+    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
       @merge(match.submenu, i) for i in item.submenu
     else
-      menu.push(item) unless _.find(menu, (i) => @normalizeLabel(i.label) == @normalizeLabel(item.label))
+      menu.push(item) unless _.find(menu, ({label}) => label and @normalizeLabel(label) is @normalizeLabel(item.label))
 
   # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
