@@ -21,3 +21,6 @@ class ReactEditorView extends View
     React.unmountComponentAtNode(@element)
     @attached = false
     @trigger 'editor:detached', this
+
+  getPane: ->
+    @closest('.pane').view()
