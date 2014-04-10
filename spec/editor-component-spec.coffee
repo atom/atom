@@ -283,7 +283,7 @@ describe "EditorComponent", ->
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe node.clientWidth
+      expect(Math.ceil(region1Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
@@ -300,13 +300,13 @@ describe "EditorComponent", ->
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe node.clientWidth
+      expect(Math.ceil(region1Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
       expect(region2Rect.height).toBe 3 * lineHeightInPixels
       expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(region2Rect.right).toBe node.clientWidth
+      expect(Math.ceil(region2Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
 
       region3Rect = regions[2].getBoundingClientRect()
       expect(region3Rect.top).toBe 5 * lineHeightInPixels
