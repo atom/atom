@@ -238,6 +238,25 @@ describe "EditorComponent", ->
       expect(cursorNode1.classList.contains('blink-off')).toBe false
       expect(cursorNode2.classList.contains('blink-off')).toBe false
 
+    it "renders the hidden input field at the position of the last cursor if it is on screen", ->
+      inputNode = node.querySelector('.hidden-input')
+      node.style.height = 5 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.updateAllDimensions()
+
+      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+      editor.setScrollTop(3 * lineHeightInPixels)
+      editor.setScrollLeft(3 * charWidth)
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
+
+      editor.setCursorBufferPosition([5, 5])
+      cursorRect = editor.getCursor().getPixelRect()
+      cursorTop = cursorRect.top
+      cursorLeft = cursorRect.left
+      expect(inputNode.offsetTop).toBe cursorTop - editor.getScrollTop()
+      expect(inputNode.offsetLeft).toBe cursorLeft - editor.getScrollLeft()
+
   describe "selection rendering", ->
     scrollViewClientLeft = null
 

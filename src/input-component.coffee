@@ -1,14 +1,14 @@
 punycode = require 'punycode'
-{last} = require 'underscore-plus'
+{last, isEqual} = require 'underscore-plus'
 React = require 'react'
 {input} = require 'reactionary'
 
 module.exports =
 InputComponent = React.createClass
   render: ->
-    {className, onFocus, onBlur} = @props
+    {className, style, onFocus, onBlur} = @props
 
-    input {className, onFocus, onBlur}
+    input {className, style, onFocus, onBlur}
 
   getInitialState: ->
     {lastChar: ''}
@@ -27,7 +27,8 @@ InputComponent = React.createClass
   isPressAndHoldCharacter: (char) ->
     @state.lastChar.match /[aeiouAEIOU]/
 
-  shouldComponentUpdate: -> false
+  shouldComponentUpdate: (newProps) ->
+    not isEqual(newProps.style, @props.style)
 
   onInput: (e) ->
     valueCharCodes = punycode.ucs2.decode(@getDOMNode().value)
