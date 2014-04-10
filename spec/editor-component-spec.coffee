@@ -1,9 +1,8 @@
-React = require 'react'
 {extend, flatten, toArray} = require 'underscore-plus'
-EditorComponent = require '../src/editor-component'
+ReactEditorView = require '../src/react-editor-view'
 
-fdescribe "EditorComponent", ->
-  [editor, component, node, lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
+describe "EditorComponent", ->
+  [editor, wrapperView, component, node, lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -19,8 +18,9 @@ fdescribe "EditorComponent", ->
           fn()
 
       editor = atom.project.openSync('sample.js')
-      container = document.querySelector('#jasmine-content')
-      component = React.renderComponent(EditorComponent({editor}), container)
+      wrapperView = new ReactEditorView(editor)
+      wrapperView.attachToDom()
+      {component} = wrapperView
       component.setLineHeight(1.3)
       component.setFontSize(20)
       {lineHeightInPixels, charWidth} = component.measureLineDimensions()
