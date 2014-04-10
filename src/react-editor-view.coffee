@@ -1,4 +1,4 @@
-{View} = require 'space-pen'
+{View, $} = require 'space-pen'
 React = require 'react'
 EditorComponent = require './editor-component'
 
@@ -11,11 +11,18 @@ class ReactEditorView extends View
 
   getEditor: -> @editor
 
+  Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeight()
+  Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
+
   afterAttach: (onDom) ->
     return unless onDom
     @attached = true
     @component = React.renderComponent(EditorComponent({@editor, parentView: this}), @element)
+    @underlayer = $(@component.getDOMNode()).find('.underlayer')
     @trigger 'editor:attached', [this]
+
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @editor.pixelPositionForBufferPosition(bufferPosition)
 
   beforeDetach: ->
     React.unmountComponentAtNode(@element)
