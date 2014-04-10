@@ -18,7 +18,20 @@ class ReactEditorView extends View
     return unless onDom
     @attached = true
     @component = React.renderComponent(EditorComponent({@editor, parentView: this}), @element)
-    @underlayer = $(@component.getDOMNode()).find('.underlayer')
+
+    node = @component.getDOMNode()
+
+    @underlayer = $(node).find('.underlayer')
+
+    @gutter = $(node).find('.gutter')
+    @gutter.removeClassFromAllLines = (klass) =>
+      @gutter.find('.line-number').removeClass(klass)
+
+    @gutter.addClassToLine = (bufferRow, klass) =>
+      lines = @gutter.find(".line-number-#{bufferRow}")
+      lines.addClass(klass)
+      lines.length > 0
+
     @trigger 'editor:attached', [this]
 
   pixelPositionForBufferPosition: (bufferPosition) ->

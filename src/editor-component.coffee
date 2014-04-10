@@ -70,7 +70,7 @@ EditorCompont = React.createClass
           lineNumber = (bufferRow + 1).toString()
           key = bufferRow.toString()
 
-        LineNumberComponent({lineNumber, maxDigits, key}))...
+        LineNumberComponent({lineNumber, maxDigits, bufferRow, key}))...
       div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
     ]
 
@@ -162,6 +162,7 @@ EditorCompont = React.createClass
     @updateVerticalScrollbar()
     @updateHorizontalScrollbar()
     @measureNewLines()
+    @props.parentView.trigger 'editor:display-updated'
 
   # The React-provided scrollTop property doesn't work in this case because when
   # initially rendering, the synthetic scrollHeight hasn't been computed yet.
@@ -590,7 +591,11 @@ LineComponent = React.createClass
 
 LineNumberComponent = React.createClass
   render: ->
-    div className: 'line-number', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    {bufferRow} = @props
+    div
+      className: "line-number line-number-#{bufferRow}"
+      'data-buffer-row': bufferRow
+      dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
     {lineNumber, maxDigits} = @props
