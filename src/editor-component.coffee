@@ -436,7 +436,7 @@ EditorCompont = React.createClass
 
     editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
     top = clientY - editorClientRect.top + editor.getScrollTop()
-    left = clientX - editorClientRect.left
+    left = clientX - editorClientRect.left + editor.getScrollLeft()
     {top, left}
 
   clearVisibleRowOverrides: ->

@@ -325,8 +325,10 @@ describe "EditorComponent", ->
       describe "when no modifier keys are held down", ->
         it "moves the cursor to the nearest screen position", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
+          node.style.width = 10 * charWidth + 'px'
           component.updateAllDimensions()
           editor.setScrollTop(3.5 * lineHeightInPixels)
+          editor.setScrollLeft(2 * charWidth)
 
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
           expect(editor.getCursorScreenPosition()).toEqual [4, 8]
@@ -406,7 +408,7 @@ describe "EditorComponent", ->
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
       scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
-      clientX = scrollViewClientRect.left + positionOffset.left
+      clientX = scrollViewClientRect.left + positionOffset.left - editor.getScrollLeft()
       clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
       {clientX, clientY}
 
