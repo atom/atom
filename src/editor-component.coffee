@@ -7,7 +7,6 @@ ReactUpdates = require 'react/lib/ReactUpdates'
 InputComponent = require './input-component'
 SelectionComponent = require './selection-component'
 CursorComponent = require './cursor-component'
-CustomEventMixin = require './custom-event-mixin'
 SubscriberMixin = require './subscriber-mixin'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -22,7 +21,7 @@ EditorCompont = React.createClass
 
   statics: {DummyLineNode}
 
-  mixins: [CustomEventMixin, SubscriberMixin]
+  mixins: [SubscriberMixin]
 
   render: ->
     {fontSize, lineHeight, fontFamily, focused} = @state
@@ -147,7 +146,7 @@ EditorCompont = React.createClass
     @measuredLines = new WeakSet
 
     @listenForDOMEvents()
-    @listenForCustomEvents()
+    @listenForCommands()
     @observeEditor()
     @observeConfig()
     @startBlinkingCursors()
@@ -205,10 +204,10 @@ EditorCompont = React.createClass
     @getDOMNode().addEventListener 'focus', @onFocus
     @refs.scrollView.getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
 
-  listenForCustomEvents: ->
-    {editor, mini} = @props
+  listenForCommands: ->
+    {parentView, editor, mini} = @props
 
-    @addCustomEventListeners
+    @addCommandListeners
       'core:move-left': => editor.moveCursorLeft()
       'core:move-right': => editor.moveCursorRight()
       'core:select-left': => editor.selectLeft()
@@ -253,7 +252,7 @@ EditorCompont = React.createClass
       'editor:lower-case': => editor.lowerCase()
 
     unless mini
-      @addCustomEventListeners
+      @addCommandListeners
         'core:move-up': => editor.moveCursorUp()
         'core:move-down': => editor.moveCursorDown()
         'core:move-to-top': => editor.moveCursorToTop()
@@ -301,6 +300,12 @@ EditorCompont = React.createClass
         # 'core:page-down': => @pageDown()
         # 'core:page-up': => @pageUp()
         # 'editor:scroll-to-cursor': => @scrollToCursorPosition()
+
+  addCommandListeners: (listenersByCommandName) ->
+    {parentView} = @props
+
+    for command, listener of listenersByCommandName
+      parentView.command command, listener
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
