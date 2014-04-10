@@ -18,9 +18,9 @@ class AutoUpdateManager
     @state = IDLE_STATE
 
     # Only released versions should check for updates.
-    return if /\w{7}/.test(@version())
+    return if /\w{7}/.test(@version)
 
-    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version()}"
+    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CHECKING_STATE)
