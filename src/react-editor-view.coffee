@@ -4,7 +4,7 @@ EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
-  @content: -> @div class: 'react-wrapper'
+  @content: -> @div class: 'editor react-wrapper'
 
   constructor: (@editor) ->
     super
@@ -14,7 +14,7 @@ class ReactEditorView extends View
   afterAttach: (onDom) ->
     return unless onDom
     @attached = true
-    @component = React.renderComponent(EditorComponent({@editor}), @element)
+    @component = React.renderComponent(EditorComponent({@editor, parentView: this}), @element)
     @trigger 'editor:attached', [this]
 
   beforeDetach: ->
