@@ -2,7 +2,7 @@ React = require 'react'
 {extend, flatten, toArray} = require 'underscore-plus'
 EditorComponent = require '../src/editor-component'
 
-describe "EditorComponent", ->
+fdescribe "EditorComponent", ->
   [editor, component, node, lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
@@ -489,3 +489,13 @@ describe "EditorComponent", ->
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
+
+  describe "input events", ->
+    it "inserts the typed character into the buffer", ->
+      component.onInput('x')
+      expect(editor.lineForBufferRow(0)).toBe 'xvar quicksort = function () {'
+
+    it "replaces the last character if replaceLastCharacter is true", ->
+      component.onInput('u')
+      component.onInput('ü', true)
+      expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'

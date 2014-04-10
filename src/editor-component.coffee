@@ -332,8 +332,12 @@ EditorCompont = React.createClass
   onInputBlurred: ->
     @setState(focused: false) unless document.activeElement is @getDOMNode()
 
-  onInput: (char, replaceLastChar) ->
-    ReactUpdates.batchedUpdates => @props.editor.insertText(char)
+  onInput: (char, replaceLastCharacter) ->
+    {editor} = @props
+
+    ReactUpdates.batchedUpdates ->
+      editor.selectLeft() if replaceLastCharacter
+      editor.insertText(char)
 
   onVerticalScroll: ->
     scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
