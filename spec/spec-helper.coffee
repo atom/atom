@@ -84,6 +84,7 @@ beforeEach ->
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
+  config.set "core.useReactEditor", false
   config.save.reset()
   atom.config = config
 
