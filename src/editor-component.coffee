@@ -145,6 +145,8 @@ EditorCompont = React.createClass
   componentDidMount: ->
     @measuredLines = new WeakSet
 
+    @props.editor.manageScrollPosition = true
+
     @listenForDOMEvents()
     @listenForCommands()
     @observeEditor()

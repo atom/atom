@@ -31,7 +31,7 @@ class Cursor
       @needsAutoscroll ?= @isLastCursor() and !textChanged
 
       # Supports react editor view
-      @autoscroll() if @needsAutoscroll
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
 
       @goalColumn = null
 

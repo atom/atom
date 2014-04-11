@@ -20,6 +20,7 @@ class DisplayBuffer extends Model
   Serializable.includeInto(this)
 
   @properties
+    manageScrollPosition: false
     softWrap: null
     editorWidthInChars: null
     lineHeight: null
@@ -113,7 +114,10 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getHeight(), scrollTop))
+    if @manageScrollPosition
+      @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getHeight(), scrollTop))
+    else
+      @scrollTop = scrollTop
 
   getScrollBottom: -> @scrollTop + @height
   setScrollBottom: (scrollBottom) ->
@@ -122,7 +126,10 @@ class DisplayBuffer extends Model
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
-    @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
+    if @manageScrollPosition
+      @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
+    else
+      @scrollLeft = scrollLeft
 
   getScrollRight: -> @scrollLeft + @width
   setScrollRight: (scrollRight) ->
