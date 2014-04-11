@@ -950,7 +950,7 @@ describe "DisplayBuffer", ->
 
         displayBuffer.setLineHeight(20)
         displayBuffer.setDefaultCharWidth(10)
-        displayBuffer.setScopedCharWidths(["source.js", "keyword.control.js"], r: 11, e: 11, t: 11, u: 11, r: 11, n: 11)
+        displayBuffer.setScopedCharWidths(["source.js", "keyword.control.js"], r: 11, e: 11, t: 11, u: 11, n: 11)
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
