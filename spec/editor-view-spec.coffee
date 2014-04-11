@@ -432,9 +432,9 @@ describe "EditorView", ->
           editorView.setFontFamily('sans-serif')
 
       it "positions the cursor to the clicked row and column", ->
-          {top, left} = editorView.pixelOffsetForScreenPosition([3, 30])
-          editorView.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
-          expect(editor.getCursorScreenPosition()).toEqual [3, 30]
+        {top, left} = editorView.pixelOffsetForScreenPosition([3, 30])
+        editorView.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
+        expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
     describe "double-click", ->
       it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
