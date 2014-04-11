@@ -464,6 +464,20 @@ describe "EditorView", ->
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
+      it "stops selecting by word when another selection is made", ->
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 1})
+        editorView.renderedLines.trigger 'mouseup'
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
+        editorView.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedText()).toBe "quicksort"
+
+        editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [3, 10])
+        editorView.renderedLines.trigger mousemoveEvent(editorView: editorView, point: [3, 12], which: 1)
+        editorView.renderedLines.trigger 'mouseup'
+
+        expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
+
       describe "when clicking between a word and a non-word", ->
         it "selects the word", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)

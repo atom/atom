@@ -99,6 +99,7 @@ class Selection
   clear: ->
     @marker.setAttributes(goalBufferRange: null)
     @marker.clearTail() unless @retainSelection
+    @finalize()
 
   # Public: Modifies the selection to encompass the current word.
   #
