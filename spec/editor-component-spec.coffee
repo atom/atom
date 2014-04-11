@@ -9,6 +9,9 @@ describe "EditorComponent", ->
       atom.packages.activatePackage('language-javascript')
 
     runs ->
+      spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+      spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
       delayAnimationFrames = false
       nextAnimationFrame = null
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
