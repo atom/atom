@@ -630,7 +630,9 @@ class Editor extends Model
       @moveCursorToBeginningOfLine()
       @moveCursorLeft()
       @insertNewline()
-      @setIndentationForBufferRow(bufferRow, indentLevel) if @shouldAutoIndent()
+
+      if @shouldAutoIndent() and @indentationForBufferRow(bufferRow) < indentLevel
+        @setIndentationForBufferRow(bufferRow, indentLevel)
 
       if onFirstLine
         @moveCursorUp()
