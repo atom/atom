@@ -483,9 +483,9 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].hasLeadingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].hasLeadingWhitespace).toBe false
 
-      # Lines that are *only* whitespace are considered to have leading whitespace
+      # Lines that are *only* whitespace are not considered to have leading whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe false
 
     it "sets ::hasTrailingWhitespace to true on tokens that have trailing whitespace", ->
       buffer.insert([0, Infinity], '  ')
