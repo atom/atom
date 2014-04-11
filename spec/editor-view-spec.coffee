@@ -624,6 +624,8 @@ describe "EditorView", ->
         editorView.attachToDom(heightInLines: 5)
         editorView.scrollToBottom()
 
+        spyOn(window, 'setInterval').andCallFake ->
+
         # start
         editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [12, 0])
         originalScrollTop = editorView.scrollTop()
@@ -671,6 +673,8 @@ describe "EditorView", ->
           editorView.vScrollMargin = 0
           editorView.attachToDom(heightInLines: 5)
           editorView.scrollToBottom()
+
+          spyOn(window, 'setInterval').andCallFake ->
 
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [12, 0])
           originalScrollTop = editorView.scrollTop()
