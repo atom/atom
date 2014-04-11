@@ -292,8 +292,7 @@ class Project extends Model
     deferred.promise
 
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new Editor(_.extend({buffer}, editorOptions))
-    atom.workspace.addEditor(editor)
+    editor = new Editor(_.extend({buffer, registerEditor: true}, editorOptions))
     editor
 
   eachBuffer: (args...) ->

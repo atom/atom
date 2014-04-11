@@ -5,6 +5,7 @@ _ = require 'underscore-plus'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
+Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
@@ -30,7 +31,6 @@ class Workspace extends Model
     super
 
     @openers = []
-    @editors = []
 
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
@@ -54,13 +54,8 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
-  addEditor: (editor) ->
-    @editors.push editor
+  editorAdded: (editor) ->
     @emit 'editor-created', editor
-    editor
-
-  removeEditor: (editor) ->
-    _.remove(@editors, editor)
 
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
@@ -77,7 +72,11 @@ class Workspace extends Model
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
-    _.clone(@editors)
+    editors = []
+    for pane in @paneContainer.getPanes()
+      editors.push(item) for item in pane.getItems() when item instanceof Editor
+
+    editors
 
   # Public: Open a given a URI in Atom asynchronously.
   #
@@ -284,5 +283,4 @@ class Workspace extends Model
 
   # Called by Model superclass when destroyed
   destroyed: ->
-    editor.destroy() for editor in @getEditors()
     @paneContainer.destroy()

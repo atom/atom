@@ -182,7 +182,7 @@ class Editor extends Model
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
-    atom.workspace.addEditor(this) if registerEditor
+    atom.workspace.editorAdded(this) if registerEditor
 
   serializeParams: ->
     id: @id
@@ -225,19 +225,17 @@ class Editor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
-    atom.workspace?.removeEditor(this)
 
   # Create an {Editor} with its initial state based on this object
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
+    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
-    atom.workspace.addEditor(newEditor)
     newEditor
 
   # Public: Get the title the editor's title for display in other parts of the
