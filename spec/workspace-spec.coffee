@@ -271,14 +271,12 @@ describe "Workspace", ->
         expect(workspace.getEditors()).toHaveLength 0
 
   describe "when an editor is copied", ->
-    it "emits an 'editor-created' event and stores the editor", ->
+    it "emits an 'editor-created' event", ->
       handler = jasmine.createSpy('editorCreatedHandler')
       workspace.on 'editor-created', handler
 
       editor1 = workspace.openSync("a")
       expect(handler.callCount).toBe 1
-      expect(workspace.getEditors()).toEqual [editor1]
 
       editor2 = editor1.copy()
       expect(handler.callCount).toBe 2
-      expect(workspace.getEditors()).toEqual [editor1, editor2]
