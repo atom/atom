@@ -218,10 +218,8 @@ class AtomApplication
   #
   # If it isn't handled globally, delegate to the currently focused window.
   #
-  # * command:
-  #   The string representing the command.
-  # * args:
-  #   The optional arguments to pass along.
+  # command - The string representing the command.
+  # args - The optional arguments to pass along.
   sendCommand: (command, args...) ->
     unless @emit(command, args...)
       focusedWindow = @focusedWindow()
@@ -250,8 +248,8 @@ class AtomApplication
   #
   # A new window will be created if there is no currently focused window.
   #
-  # * eventName: The event to listen for.
-  # * pathToOpen: The path to open when the event is triggered.
+  # eventName - The event to listen for.
+  # pathToOpen - The path to open when the event is triggered.
   openPathOnEvent: (eventName, pathToOpen) ->
     @on eventName, ->
       if window = @focusedWindow()
@@ -270,31 +268,22 @@ class AtomApplication
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
-  # * options
-  #    + pathsToOpen:
-  #      The array of file paths to open
-  #    + pidToKillWhenClosed:
-  #      The integer of the pid to kill
-  #    + newWindow:
-  #      Boolean of whether this should be opened in a new window.
-  #    + devMode:
-  #      Boolean to control the opened window's dev mode.
+  # options -
+  #   :pathsToOpen - The array of file paths to open
+  #   :pidToKillWhenClosed - The integer of the pid to kill
+  #   :newWindow - Boolean of whether this should be opened in a new window.
+  #   :devMode - Boolean to control the opened window's dev mode.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
     @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
 
   # Public: Opens a single path, in an existing window if possible.
   #
-  # * options
-  #    + pathToOpen:
-  #      The file path to open
-  #    + pidToKillWhenClosed:
-  #      The integer of the pid to kill
-  #    + newWindow:
-  #      Boolean of whether this should be opened in a new window.
-  #    + devMode:
-  #      Boolean to control the opened window's dev mode.
-  #    + windowDimensions:
-  #      Object with height and width keys.
+  # options -
+  #   :pathToOpen - The file path to open
+  #   :pidToKillWhenClosed - The integer of the pid to kill
+  #   :newWindow - Boolean of whether this should be opened in a new window.
+  #   :devMode - Boolean to control the opened window's dev mode.
+  #   :windowDimensions - Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, windowDimensions}={}) ->
     if pathToOpen
       [basename, initialLine] = path.basename(pathToOpen).split(':')
@@ -347,11 +336,9 @@ class AtomApplication
   # responsible for opening the URL.  A new window will be created with
   # that package's `urlMain` as the bootstrap script.
   #
-  # * options
-  #    + urlToOpen:
-  #      The atom:// url to open.
-  #    + devMode:
-  #      Boolean to control the opened window's dev mode.
+  # options -
+  #   :urlToOpen - The atom:// url to open.
+  #   :devMode - Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
@@ -376,13 +363,11 @@ class AtomApplication
 
   # Opens up a new {AtomWindow} to run specs within.
   #
-  # * options
-  #    + exitWhenDone:
-  #      A Boolean that if true, will close the window upon completion.
-  #    + resourcePath:
-  #      The path to include specs from.
-  #    + specPath:
-  #      The directory to load specs from.
+  # options -
+  #   :exitWhenDone - A Boolean that if true, will close the window upon
+  #                   completion.
+  #   :resourcePath - The path to include specs from.
+  #   :specPath - The directory to load specs from.
   runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
@@ -409,13 +394,11 @@ class AtomApplication
   #
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #
-  # * options
-  #    + type:
-  #      A String which specifies the type of the dialog, could be 'file',
-  #      'folder' or 'all'. The 'all' is only available on OS X.
-  #    + devMode:
-  #      A Boolean which controls whether any newly opened windows should  be in
-  #      dev mode or not.
+  # options -
+  #   :type - A String which specifies the type of the dialog, could be 'file',
+  #           'folder' or 'all'. The 'all' is only available on OS X.
+  #   :devMode - A Boolean which controls whether any newly opened windows
+  #              should  be in dev mode or not.
   promptForPath: ({type, devMode}={}) ->
     type ?= 'all'
     properties =
