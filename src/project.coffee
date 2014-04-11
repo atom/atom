@@ -141,7 +141,7 @@ class Project extends Model
     @findBufferForPath(@resolve(filePath))?.isModified()
 
   findBufferForPath: (filePath) ->
-   _.find @buffers, (buffer) -> buffer.getPath() == filePath
+    _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
