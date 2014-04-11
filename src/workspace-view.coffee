@@ -116,6 +116,8 @@ class WorkspaceView extends View
     @command 'application:new-window', -> ipc.sendChannel('command', 'application:new-window')
     @command 'application:new-file', -> ipc.sendChannel('command', 'application:new-file')
     @command 'application:open', -> ipc.sendChannel('command', 'application:open')
+    @command 'application:open-file', -> ipc.sendChannel('command', 'application:open-file')
+    @command 'application:open-folder', -> ipc.sendChannel('command', 'application:open-folder')
     @command 'application:open-dev', -> ipc.sendChannel('command', 'application:open-dev')
     @command 'application:minimize', -> ipc.sendChannel('command', 'application:minimize')
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')

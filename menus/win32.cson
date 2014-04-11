@@ -4,7 +4,8 @@
     submenu: [
       { label: 'New &Window', command: 'application:new-window' }
       { label: '&New File', command: 'application:new-file' }
-      { label: '&Open...', command: 'application:open' }
+      { label: '&Open File...', command: 'application:open-file' }
+      { label: 'Open Folder...', command: 'application:open-folder' }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: '&Preferences...', command: 'application:show-settings' }

@@ -135,7 +135,9 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath()
+    @on 'application:open', -> @promptForPath(type: 'all')
+    @on 'application:open-file', -> @promptForPath(type: 'file')
+    @on 'application:open-folder', -> @promptForPath(type: 'folder')
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
@@ -407,9 +409,19 @@ class AtomApplication
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #
   # * options
+  #    + type:
+  #      A String which specifies the type of the dialog, could be 'file',
+  #      'folder' or 'all'. The 'all' is only available on OS X.
   #    + devMode:
   #      A Boolean which controls whether any newly opened windows should  be in
   #      dev mode or not.
-  promptForPath: ({devMode}={}) ->
-    dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory'], (pathsToOpen) =>
+  promptForPath: ({type, devMode}={}) ->
+    type ?= 'all'
+    properties =
+      switch type
+        when 'file' then ['openFile']
+        when 'folder' then ['openDirectory']
+        when 'all' then ['openFile', 'openDirectory']
+        else throw new Error("#{type} is an invalid type for promptForPath")
+    dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode})
