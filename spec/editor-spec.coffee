@@ -1424,7 +1424,7 @@ describe "Editor", ->
           editor.undo()
           expect(editor.getCursorBufferPosition()).toEqual [3,4]
 
-      it "indents the new line to the same indent level as the current line when editor.autoIndent is true", ->
+      it "indents the new line to the correct level when editor.autoIndent is true", ->
         atom.config.set('editor.autoIndent', true)
 
         editor.setText('  var test')
@@ -1443,6 +1443,15 @@ describe "Editor", ->
         expect(editor.lineForBufferRow(0)).toBe ''
         expect(editor.lineForBufferRow(1)).toBe '  '
         expect(editor.lineForBufferRow(2)).toBe '  var test'
+
+        editor.setText('function() {\n}')
+        editor.setCursorBufferPosition([1,1])
+        editor.insertNewlineAbove()
+
+        expect(editor.getCursorBufferPosition()).toEqual [1,2]
+        expect(editor.lineForBufferRow(0)).toBe 'function() {'
+        expect(editor.lineForBufferRow(1)).toBe '  '
+        expect(editor.lineForBufferRow(2)).toBe '}'
 
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
