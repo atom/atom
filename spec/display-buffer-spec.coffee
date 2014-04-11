@@ -958,6 +958,7 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollTop", ->
     beforeEach ->
+      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeight(10)
 
     it "disallows negative values", ->
@@ -977,6 +978,7 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollLeft", ->
     beforeEach ->
+      displayBuffer.manageScrollPosition = true
       displayBuffer.setDefaultCharWidth(10)
 
     it "disallows negative values", ->

@@ -159,7 +159,7 @@ class Editor extends Model
     'screenPositionForPixelPosition', 'pixelPositionForBufferPosition', toProperty: 'displayBuffer'
 
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
-    '$scrollTop', '$scrollLeft', toProperty: 'displayBuffer'
+    '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super

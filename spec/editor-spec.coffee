@@ -662,6 +662,7 @@ describe "Editor", ->
 
     describe "autoscroll", ->
       beforeEach ->
+        editor.manageScrollPosition = true
         editor.setVerticalScrollMargin(2)
         editor.setHorizontalScrollMargin(2)
         editor.setLineHeight(10)
