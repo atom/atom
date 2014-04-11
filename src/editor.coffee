@@ -225,7 +225,7 @@ class Editor extends Model
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
   getViewClass: ->
-    if atom.config.get('core.useNewEditor')
+    if atom.config.get('core.useReactEditor')
       require './react-editor-view'
     else
       require './editor-view'
