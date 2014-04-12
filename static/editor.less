@@ -2,12 +2,38 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-.editor.react .underlayer {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.editor.react {
+  .underlayer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .horizontal-scrollbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 3;
+
+    .scrollbar-content {
+      height: 15px;
+    }
+  }
+
+  .scroll-view {
+    overflow: hidden;
+  }
+
+  .scroll-view-content {
+    position: relative;
+  }
 }
 
 .editor {
@@ -116,23 +142,9 @@
   z-index: 3;
 }
 
-.editor .horizontal-scrollbar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  height: 15px;
-  overflow-x: auto;
-  z-index: 3;
-
-  .scrollbar-content {
-    height: 15px;
-  }
-}
-
 .editor .scroll-view {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   -webkit-flex: 1;
   min-width: 0;
   position: relative;
@@ -156,10 +168,6 @@
 .editor .overlayer {
   z-index: 2;
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
 
 .editor .line {
@@ -221,11 +229,5 @@
 
   .placeholder-text {
     color: @text-color-subtle;
-  }
-}
-
-.react-wrapper > .editor {
-  .scroll-view-content {
-    position: relative;
   }
 }
