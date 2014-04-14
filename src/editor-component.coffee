@@ -1,18 +1,12 @@
 React = require 'react'
-ReactUpdates = require 'react/lib/ReactUpdates'
 {div, span} = require 'reactionary'
-{$$} = require 'space-pen'
-{debounce, multiplyString} = require 'underscore-plus'
+{debounce} = require 'underscore-plus'
 
 GutterComponent = require './gutter-component'
-InputComponent = require './input-component'
+EditorScrollViewComponent = require './editor-scroll-view-component'
+{DummyLineNode} = EditorScrollViewComponent
 ScrollbarComponent = require './scrollbar-component'
-SelectionComponent = require './selection-component'
-CursorComponent = require './cursor-component'
 SubscriberMixin = require './subscriber-mixin'
-
-DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 
 module.exports =
 EditorCompont = React.createClass
@@ -25,24 +19,20 @@ EditorCompont = React.createClass
   mixins: [SubscriberMixin]
 
   render: ->
-    {fontSize, lineHeight, fontFamily, focused} = @state
-    {editor} = @props
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
+    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     visibleRowRange = @getVisibleRowRange()
 
     className = 'editor react'
     className += ' is-focused' if focused
 
-    div className: className, tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
+    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
       GutterComponent({editor, visibleRowRange})
-      div className: 'scroll-view', ref: 'scrollView',
-        InputComponent
-          ref: 'input'
-          className: 'hidden-input'
-          style: @getHiddenInputPosition()
-          onInput: @onInput
-          onFocus: @onInputFocused
-          onBlur: @onInputBlurred
-        @renderScrollViewContent()
+
+      EditorScrollViewComponent {
+        ref: 'scrollView', editor, visibleRowRange, @onInputFocused, @onInputBlurred
+        cursorBlinkPeriod, cursorBlinkResumeDelay, showIndentGuide, fontSize, fontFamily, lineHeight
+      }
 
       ScrollbarComponent
         ref: 'verticalScrollbar'
@@ -60,61 +50,6 @@ EditorCompont = React.createClass
         scrollLeft: editor.getScrollLeft()
         scrollWidth: editor.getScrollWidth()
 
-  getHiddenInputPosition: ->
-    {editor} = @props
-
-    if cursor = editor.getCursor()
-      cursorRect = cursor.getPixelRect()
-      top = cursorRect.top - editor.getScrollTop()
-      top = Math.max(0, Math.min(editor.getHeight(), top))
-      left = cursorRect.left - editor.getScrollLeft()
-      left = Math.max(0, Math.min(editor.getWidth(), left))
-    else
-      top = 0
-      left = 0
-
-    {top, left}
-
-  renderScrollViewContent: ->
-    {editor} = @props
-    style =
-      height: editor.getScrollHeight()
-      WebkitTransform: "translate(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px)"
-
-    div {className: 'scroll-view-content', style, @onMouseDown},
-      @renderCursors()
-      @renderVisibleLines()
-      @renderUnderlayer()
-
-  renderVisibleLines: ->
-    {editor} = @props
-    {showIndentGuide} = @state
-    [startRow, endRow] = @getVisibleRowRange()
-    lineHeightInPixels = editor.getLineHeight()
-    precedingHeight = startRow * lineHeightInPixels
-    followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
-
-    div className: 'lines', ref: 'lines', [
-      div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
-      (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({tokenizedLine, showIndentGuide, key: tokenizedLine.id}))...
-      div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
-    ]
-
-  renderCursors: ->
-    {editor} = @props
-    {blinkCursorsOff} = @state
-
-    for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-      CursorComponent(cursor: selection.cursor, blinkOff: blinkCursorsOff)
-
-  renderUnderlayer: ->
-    {editor} = @props
-
-    div className: 'underlayer',
-      for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        SelectionComponent({selection})
-
   getVisibleRowRange: ->
     visibleRowRange = @props.editor.getVisibleRowRange()
     if @visibleRowOverrides?
@@ -129,17 +64,13 @@ EditorCompont = React.createClass
     cursorBlinkResumeDelay: 200
 
   componentDidMount: ->
-    @measuredLines = new WeakSet
-
     @props.editor.manageScrollPosition = true
 
     @listenForDOMEvents()
     @listenForCommands()
     @observeEditor()
     @observeConfig()
-    @startBlinkingCursors()
 
-    @updateAllDimensions()
     @props.editor.setVisible(true)
 
   componentWillUnmount: ->
@@ -147,7 +78,6 @@ EditorCompont = React.createClass
     @stopBlinkingCursors()
 
   componentDidUpdate: ->
-    @measureNewLines()
     @props.parentView.trigger 'editor:display-updated'
 
   observeEditor: ->
@@ -155,7 +85,6 @@ EditorCompont = React.createClass
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
-    @subscribe editor, 'cursors-moved', @pauseCursorBlinking
     @subscribe editor.$scrollTop.changes, @requestUpdate
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -165,8 +94,6 @@ EditorCompont = React.createClass
 
   listenForDOMEvents: ->
     @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
-    @getDOMNode().addEventListener 'focus', @onFocus
-    @refs.scrollView.getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
@@ -277,36 +204,25 @@ EditorCompont = React.createClass
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
 
   setFontSize: (fontSize) ->
-    @clearScopedCharWidths()
     @setState({fontSize})
-    @updateLineDimensions()
 
   setLineHeight: (lineHeight) ->
     @setState({lineHeight})
 
   setFontFamily: (fontFamily) ->
-    @clearScopedCharWidths()
     @setState({fontFamily})
-    @updateLineDimensions()
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
 
   onFocus: ->
-    @refs.input.focus()
+    @refs.scrollView.focus()
 
   onInputFocused: ->
     @setState(focused: true)
 
   onInputBlurred: ->
-    @setState(focused: false) unless document.activeElement is @getDOMNode()
-
-  onInput: (char, replaceLastCharacter) ->
-    {editor} = @props
-
-    ReactUpdates.batchedUpdates ->
-      editor.selectLeft() if replaceLastCharacter
-      editor.insertText(char)
+    @setState(focused: false)
 
   onVerticalScroll: (scrollTop) ->
     {editor} = @props
@@ -349,90 +265,11 @@ EditorCompont = React.createClass
 
     event.preventDefault()
 
-  onMouseDown: (event) ->
-    {editor} = @props
-    {detail, shiftKey, metaKey} = event
-    screenPosition = @screenPositionForMouseEvent(event)
-
-    if shiftKey
-      editor.selectToScreenPosition(screenPosition)
-    else if metaKey
-      editor.addCursorAtScreenPosition(screenPosition)
-    else
-      editor.setCursorScreenPosition(screenPosition)
-      switch detail
-        when 2 then editor.selectWord()
-        when 3 then editor.selectLine()
-
-    @selectToMousePositionUntilMouseUp(event)
-
-  selectToMousePositionUntilMouseUp: (event) ->
-    {editor} = @props
-    dragging = false
-    lastMousePosition = {}
-
-    animationLoop = =>
-      requestAnimationFrame =>
-        if dragging
-          @selectToMousePosition(lastMousePosition)
-          animationLoop()
-
-    onMouseMove = (event) ->
-      lastMousePosition.clientX = event.clientX
-      lastMousePosition.clientY = event.clientY
-
-      # Start the animation loop when the mouse moves prior to a mouseup event
-      unless dragging
-        dragging = true
-        animationLoop()
-
-      # Stop dragging when cursor enters dev tools because we can't detect mouseup
-      onMouseUp() if event.which is 0
-
-    onMouseUp = ->
-      dragging = false
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-      editor.finalizeSelections()
-
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-
-  selectToMousePosition: (event) ->
-    @props.editor.selectToScreenPosition(@screenPositionForMouseEvent(event))
-
-  screenPositionForMouseEvent: (event) ->
-    pixelPosition = @pixelPositionForMouseEvent(event)
-    @props.editor.screenPositionForPixelPosition(pixelPosition)
-
-  pixelPositionForMouseEvent: (event) ->
-    {editor} = @props
-    {clientX, clientY} = event
-
-    editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
-    top = clientY - editorClientRect.top + editor.getScrollTop()
-    left = clientX - editorClientRect.left + editor.getScrollLeft()
-    {top, left}
-
   clearVisibleRowOverrides: ->
     @visibleRowOverrides = null
     @forceUpdate()
 
   clearVisibleRowOverridesAfterDelay: null
-
-  onOverflowChanged: ->
-    {editor} = @props
-    {height, width} = @measureScrollViewDimensions()
-
-    if height isnt editor.getHeight()
-      editor.setHeight(height)
-      update = true
-
-    if width isnt editor.getWidth()
-      editor.setWidth(width)
-      update = true
-
-    @requestUpdate() if update
 
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props
@@ -446,110 +283,14 @@ EditorCompont = React.createClass
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
-  startBlinkingCursors: ->
-    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
-
-  stopBlinkingCursors: ->
-    clearInterval(@cursorBlinkIntervalHandle)
-    @setState(blinkCursorsOff: false)
-
-  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
-
-  pauseCursorBlinking: ->
-    @stopBlinkingCursors()
-    @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
-    @startBlinkingCursorsAfterDelay()
-
   requestUpdate: ->
     @forceUpdate()
 
-  updateAllDimensions: ->
-    {height, width} = @measureScrollViewDimensions()
-    {lineHeightInPixels, charWidth} = @measureLineDimensions()
-    {editor} = @props
-
-    editor.setHeight(height)
-    editor.setWidth(width)
-    editor.setLineHeight(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
-
-  updateLineDimensions: ->
-    {lineHeightInPixels, charWidth} = @measureLineDimensions()
-    {editor} = @props
-
-    editor.setLineHeight(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
-
-  measureScrollViewDimensions: ->
-    scrollViewNode = @refs.scrollView.getDOMNode()
-    {height: scrollViewNode.clientHeight, width: scrollViewNode.clientWidth}
-
   measureLineDimensions: ->
-    linesNode = @refs.lines.getDOMNode()
-    linesNode.appendChild(DummyLineNode)
-    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
-    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
-    linesNode.removeChild(DummyLineNode)
-    {lineHeightInPixels, charWidth}
+    @refs.scrollView.measureLineDimensions()
 
-  measureNewLines: ->
-    [visibleStartRow, visibleEndRow] = @getVisibleRowRange()
-    linesNode = @refs.lines.getDOMNode()
+  updateAllDimensions: ->
+    @refs.scrollView.updateAllDimensions()
 
-    for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
-      unless @measuredLines.has(tokenizedLine)
-        lineNode = linesNode.children[i + 1]
-        @measureCharactersInLine(tokenizedLine, lineNode)
-
-  measureCharactersInLine: (tokenizedLine, lineNode) ->
-    {editor} = @props
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-    rangeForMeasurement = document.createRange()
-
-    for {value, scopes} in tokenizedLine.tokens
-      textNode = iterator.nextNode()
-      charWidths = editor.getScopedCharWidths(scopes)
-      for char, i in value
-        unless charWidths[char]?
-          rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + 1)
-          charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopes, char, charWidth)
-
-    @measuredLines.add(tokenizedLine)
-
-  clearScopedCharWidths: ->
-    @measuredLines.clear()
-    @props.editor.clearScopedCharWidths()
-
-LineComponent = React.createClass
-  render: ->
-    div className: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
-
-  buildInnerHTML: ->
-    if @props.tokenizedLine.text.length is 0
-      @buildEmptyLineHTML()
-    else
-      @buildScopeTreeHTML(@props.tokenizedLine.getScopeTree())
-
-  buildEmptyLineHTML: ->
-    {showIndentGuide, tokenizedLine} = @props
-    {indentLevel, tabLength} = tokenizedLine
-
-    if showIndentGuide and indentLevel > 0
-      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
-      multiplyString(indentSpan, indentLevel + 1)
-    else
-      "&nbsp;"
-
-  buildScopeTreeHTML: (scopeTree) ->
-    if scopeTree.children?
-      html = "<span class='#{scopeTree.scope.replace(/\./g, ' ')}'>"
-      html += @buildScopeTreeHTML(child) for child in scopeTree.children
-      html += "</span>"
-      html
-    else
-      "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
-
-  shouldComponentUpdate: (newProps, newState) ->
-    newProps.showIndentGuide isnt @props.showIndentGuide
+  updateScrollViewDimensions: ->
+    @refs.scrollView.updateScrollViewDimensions()
