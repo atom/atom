@@ -508,7 +508,7 @@ describe "EditorComponent", ->
       inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'xyvar quicksort = function () {'
 
-    it "replaces the last character if the length of the input's value doesn't increase", ->
+    it "replaces the last character if the length of the input's value doesn't increase, as occurs with the accented character menu", ->
       inputNode.value = 'u'
       inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'uvar quicksort = function () {'
