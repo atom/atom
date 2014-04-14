@@ -47,13 +47,6 @@ EditorCompont = React.createClass
         scrollLeft: editor.getScrollLeft()
         scrollWidth: editor.getScrollWidth()
 
-  getVisibleRowRange: ->
-    visibleRowRange = @props.editor.getVisibleRowRange()
-    if @visibleRowOverrides?
-      visibleRowRange[0] = Math.min(visibleRowRange[0], @visibleRowOverrides[0])
-      visibleRowRange[1] = Math.max(visibleRowRange[1], @visibleRowOverrides[1])
-    visibleRowRange
-
   getInitialState: -> {}
 
   getDefaultProps: ->
@@ -262,12 +255,6 @@ EditorCompont = React.createClass
 
     event.preventDefault()
 
-  clearVisibleRowOverrides: ->
-    @visibleRowOverrides = null
-    @forceUpdate()
-
-  clearVisibleRowOverridesAfterDelay: null
-
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props
     @requestUpdate() if editor.intersectsVisibleRowRange(start, end + 1) # TODO: Use closed-open intervals for change events
@@ -279,6 +266,19 @@ EditorCompont = React.createClass
   onSelectionRemoved: (selection) ->
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+
+  getVisibleRowRange: ->
+    visibleRowRange = @props.editor.getVisibleRowRange()
+    if @visibleRowOverrides?
+      visibleRowRange[0] = Math.min(visibleRowRange[0], @visibleRowOverrides[0])
+      visibleRowRange[1] = Math.max(visibleRowRange[1], @visibleRowOverrides[1])
+    visibleRowRange
+
+  clearVisibleRowOverrides: ->
+    @visibleRowOverrides = null
+    @forceUpdate()
+
+  clearVisibleRowOverridesAfterDelay: null
 
   requestUpdate: ->
     @forceUpdate()
