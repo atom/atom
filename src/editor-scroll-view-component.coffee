@@ -35,24 +35,6 @@ EditorScrollViewComponent = React.createClass
     @getDOMNode().addEventListener 'overflowchanged', @updateModelDimensions
     @updateModelDimensions()
 
-  focus: ->
-    @refs.input.focus()
-
-  getHiddenInputPosition: ->
-    {editor} = @props
-
-    if cursor = editor.getCursor()
-      cursorRect = cursor.getPixelRect()
-      top = cursorRect.top - editor.getScrollTop()
-      top = Math.max(0, Math.min(editor.getHeight(), top))
-      left = cursorRect.left - editor.getScrollLeft()
-      left = Math.max(0, Math.min(editor.getWidth(), left))
-    else
-      top = 0
-      left = 0
-
-    {top, left}
-
   onInput: (char, replaceLastCharacter) ->
     {editor} = @props
 
@@ -125,8 +107,26 @@ EditorScrollViewComponent = React.createClass
     left = clientX - editorClientRect.left + editor.getScrollLeft()
     {top, left}
 
+  getHiddenInputPosition: ->
+    {editor} = @props
+
+    if cursor = editor.getCursor()
+      cursorRect = cursor.getPixelRect()
+      top = cursorRect.top - editor.getScrollTop()
+      top = Math.max(0, Math.min(editor.getHeight(), top))
+      left = cursorRect.left - editor.getScrollLeft()
+      left = Math.max(0, Math.min(editor.getWidth(), left))
+    else
+      top = 0
+      left = 0
+
+    {top, left}
+
   updateModelDimensions: ->
     {editor} = @props
     node = @getDOMNode()
     editor.setHeight(node.clientHeight)
     editor.setWidth(node.clientWidth)
+
+  focus: ->
+    @refs.input.focus()
