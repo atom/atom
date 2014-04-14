@@ -182,7 +182,7 @@ class Editor extends Model
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
-    atom.workspace.editorAdded(this) if registerEditor
+    atom.workspace?.editorAdded(this) if registerEditor
 
   serializeParams: ->
     id: @id
