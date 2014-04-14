@@ -4,6 +4,7 @@ ReactUpdates = require 'react/lib/ReactUpdates'
 {$$} = require 'space-pen'
 {debounce, multiplyString} = require 'underscore-plus'
 
+GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 SelectionComponent = require './selection-component'
 CursorComponent = require './cursor-component'
@@ -26,12 +27,13 @@ EditorCompont = React.createClass
   render: ->
     {fontSize, lineHeight, fontFamily, focused} = @state
     {editor} = @props
+    visibleRowRange = @getVisibleRowRange()
+
     className = 'editor react'
     className += ' is-focused' if focused
 
     div className: className, tabIndex: -1, style: {fontSize, lineHeight, fontFamily},
-      div className: 'gutter',
-        @renderGutterContent()
+      GutterComponent({editor, visibleRowRange})
       div className: 'scroll-view', ref: 'scrollView',
         InputComponent
           ref: 'input'
@@ -45,34 +47,6 @@ EditorCompont = React.createClass
         div className: 'scrollbar-content', style: {height: editor.getScrollHeight()}
       div className: 'horizontal-scrollbar', ref: 'horizontalScrollbar', onScroll: @onHorizontalScroll,
         div className: 'scrollbar-content', style: {width: editor.getScrollWidth()}
-
-  renderGutterContent: ->
-    {editor} = @props
-    [startRow, endRow] = @getVisibleRowRange()
-    lineHeightInPixels = editor.getLineHeight()
-    precedingHeight = startRow * lineHeightInPixels
-    followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
-    maxDigits = editor.getLastBufferRow().toString().length
-    style =
-      height: editor.getScrollHeight()
-      WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
-
-    wrapCount = 0
-    div className: 'line-numbers', style: style, [
-      div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
-      (for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
-        if bufferRow is lastBufferRow
-          lineNumber = '•'
-          key = "#{bufferRow}-#{++wrapCount}"
-        else
-          lastBufferRow = bufferRow
-          wrapCount = 0
-          lineNumber = (bufferRow + 1).toString()
-          key = bufferRow.toString()
-
-        LineNumberComponent({lineNumber, maxDigits, bufferRow, key}))...
-      div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
-    ]
 
   getHiddenInputPosition: ->
     {editor} = @props
@@ -590,21 +564,3 @@ LineComponent = React.createClass
 
   shouldComponentUpdate: (newProps, newState) ->
     newProps.showIndentGuide isnt @props.showIndentGuide
-
-LineNumberComponent = React.createClass
-  render: ->
-    {bufferRow} = @props
-    div
-      className: "line-number line-number-#{bufferRow}"
-      'data-buffer-row': bufferRow
-      dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
-
-  buildInnerHTML: ->
-    {lineNumber, maxDigits} = @props
-    if lineNumber.length < maxDigits
-      padding = multiplyString('&nbsp;', maxDigits - lineNumber.length)
-      padding + lineNumber + @iconDivHTML
-    else
-      lineNumber + @iconDivHTML
-
-  iconDivHTML: '<div class="icon-right"></div>'
