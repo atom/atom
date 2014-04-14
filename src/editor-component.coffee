@@ -18,7 +18,6 @@ module.exports =
 EditorCompont = React.createClass
   pendingScrollTop: null
   pendingScrollLeft: null
-  lastScrollTop: null
   selectOnMouseMove: false
 
   statics: {DummyLineNode}
@@ -50,6 +49,7 @@ EditorCompont = React.createClass
         className: 'vertical-scrollbar'
         orientation: 'vertical'
         onScroll: @onVerticalScroll
+        scrollTop: editor.getScrollTop()
         scrollHeight: editor.getScrollHeight()
 
       ScrollbarComponent
@@ -57,6 +57,7 @@ EditorCompont = React.createClass
         className: 'horizontal-scrollbar'
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
+        scrollLeft: editor.getScrollLeft()
         scrollWidth: editor.getScrollWidth()
 
   getHiddenInputPosition: ->
@@ -146,33 +147,8 @@ EditorCompont = React.createClass
     @stopBlinkingCursors()
 
   componentDidUpdate: ->
-    @updateVerticalScrollbar()
-    @updateHorizontalScrollbar()
     @measureNewLines()
     @props.parentView.trigger 'editor:display-updated'
-
-  # The React-provided scrollTop property doesn't work in this case because when
-  # initially rendering, the synthetic scrollHeight hasn't been computed yet.
-  # trying to assign it before the element inside is tall enough?
-  updateVerticalScrollbar: ->
-    {editor} = @props
-    scrollTop = editor.getScrollTop()
-
-    return if scrollTop is @lastScrollTop
-
-    scrollbarNode = @refs.verticalScrollbar.getDOMNode()
-    scrollbarNode.scrollTop = scrollTop
-    @lastScrollTop = scrollbarNode.scrollTop
-
-  updateHorizontalScrollbar: ->
-    {editor} = @props
-    scrollLeft = editor.getScrollLeft()
-
-    return if scrollLeft is @lastScrollLeft
-
-    scrollbarNode = @refs.horizontalScrollbar.getDOMNode()
-    scrollbarNode.scrollLeft = scrollLeft
-    @lastScrollLeft = scrollbarNode.scrollLeft
 
   observeEditor: ->
     {editor} = @props
