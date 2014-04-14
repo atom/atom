@@ -6,6 +6,7 @@ ReactUpdates = require 'react/lib/ReactUpdates'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
+ScrollbarComponent = require './scrollbar-component'
 SelectionComponent = require './selection-component'
 CursorComponent = require './cursor-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -43,10 +44,20 @@ EditorCompont = React.createClass
           onFocus: @onInputFocused
           onBlur: @onInputBlurred
         @renderScrollViewContent()
-      div className: 'vertical-scrollbar', ref: 'verticalScrollbar', onScroll: @onVerticalScroll,
-        div className: 'scrollbar-content', style: {height: editor.getScrollHeight()}
-      div className: 'horizontal-scrollbar', ref: 'horizontalScrollbar', onScroll: @onHorizontalScroll,
-        div className: 'scrollbar-content', style: {width: editor.getScrollWidth()}
+
+      ScrollbarComponent
+        ref: 'verticalScrollbar'
+        className: 'vertical-scrollbar'
+        orientation: 'vertical'
+        onScroll: @onVerticalScroll
+        scrollHeight: editor.getScrollHeight()
+
+      ScrollbarComponent
+        ref: 'horizontalScrollbar'
+        className: 'horizontal-scrollbar'
+        orientation: 'horizontal'
+        onScroll: @onHorizontalScroll
+        scrollWidth: editor.getScrollWidth()
 
   getHiddenInputPosition: ->
     {editor} = @props
