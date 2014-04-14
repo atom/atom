@@ -5,7 +5,7 @@ ReactUpdates = require 'react/lib/ReactUpdates'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 CursorsComponent = require './cursors-component'
-SelectionComponent = require './selection-component'
+SelectionsComponent = require './selections-component'
 
 module.exports =
 EditorScrollViewComponent = React.createClass
@@ -28,14 +28,8 @@ EditorScrollViewComponent = React.createClass
       div className: 'scroll-view-content', style: contentStyle, onMouseDown: @onMouseDown,
         CursorsComponent({editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
         LinesComponent({ref: 'lines', editor, fontSize, fontFamily, lineHeight, visibleRowRange, showIndentGuide})
-        @renderUnderlayer()
-
-  renderUnderlayer: ->
-    {editor} = @props
-
-    div className: 'underlayer',
-      for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        SelectionComponent({selection})
+        div className: 'underlayer',
+          SelectionsComponent({editor})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @updateModelDimensions
