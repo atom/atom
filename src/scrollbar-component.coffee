@@ -7,9 +7,9 @@ ScrollbarComponent = React.createClass
   lastScrollLeft: null
 
   render: ->
-    {orientation, className, onScroll, scrollHeight, scrollWidth} = @props
+    {orientation, className, scrollHeight, scrollWidth} = @props
 
-    div {className, onScroll},
+    div {className, @onScroll},
       switch orientation
         when 'vertical'
           div className: 'scrollbar-content', style: {height: scrollHeight}
@@ -35,3 +35,13 @@ ScrollbarComponent = React.createClass
         unless scrollLeft is @lastScrollLeft
           node.scrollLeft = scrollLeft
           @lastScrollLeft = node.scrollLeft
+
+  onScroll: ->
+    {orientation, onScroll} = @props
+    node = @getDOMNode()
+
+    switch orientation
+      when 'vertical'
+        onScroll(node.scrollTop)
+      when 'horizontal'
+        onScroll(node.scrollLeft)

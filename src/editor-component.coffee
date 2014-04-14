@@ -308,9 +308,10 @@ EditorCompont = React.createClass
       editor.selectLeft() if replaceLastCharacter
       editor.insertText(char)
 
-  onVerticalScroll: ->
-    scrollTop = @refs.verticalScrollbar.getDOMNode().scrollTop
-    return if @props.editor.getScrollTop() is scrollTop
+  onVerticalScroll: (scrollTop) ->
+    {editor} = @props
+
+    return if scrollTop is editor.getScrollTop()
 
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
@@ -319,9 +320,10 @@ EditorCompont = React.createClass
         @props.editor.setScrollTop(@pendingScrollTop)
         @pendingScrollTop = null
 
-  onHorizontalScroll: ->
-    scrollLeft = @refs.horizontalScrollbar.getDOMNode().scrollLeft
-    return if @props.editor.getScrollLeft() is scrollLeft
+  onHorizontalScroll: (scrollLeft) ->
+    {editor} = @props
+
+    return if scrollLeft is editor.getScrollLeft()
 
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
