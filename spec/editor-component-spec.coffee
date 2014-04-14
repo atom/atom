@@ -2,7 +2,8 @@
 ReactEditorView = require '../src/react-editor-view'
 
 describe "EditorComponent", ->
-  [editor, wrapperView, component, node, lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
+  [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -28,6 +29,8 @@ describe "EditorComponent", ->
       component.setFontSize(20)
       {lineHeightInPixels, charWidth} = component.measureLineDimensions()
       node = component.getDOMNode()
+      verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
+      horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
 
   describe "line rendering", ->
     it "renders only the currently-visible lines", ->
@@ -39,8 +42,8 @@ describe "EditorComponent", ->
       expect(lines[0].textContent).toBe editor.lineForScreenRow(0).text
       expect(lines[5].textContent).toBe editor.lineForScreenRow(5).text
 
-      node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
-      component.onVerticalScroll()
+      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate(0px, #{-2.5 * lineHeightInPixels}px)"
 
@@ -115,8 +118,8 @@ describe "EditorComponent", ->
       expect(lines[0].textContent).toBe "#{nbsp}1"
       expect(lines[5].textContent).toBe "#{nbsp}6"
 
-      node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
-      component.onVerticalScroll()
+      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
 
@@ -169,8 +172,8 @@ describe "EditorComponent", ->
       expect(cursorNodes[1].offsetTop).toBe 4 * lineHeightInPixels
       expect(cursorNodes[1].offsetLeft).toBe 10 * charWidth
 
-      node.querySelector('.vertical-scrollbar').scrollTop = 2.5 * lineHeightInPixels
-      component.onVerticalScroll()
+      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
@@ -444,18 +447,16 @@ describe "EditorComponent", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.updateAllDimensions()
 
-      scrollbarNode = node.querySelector('.vertical-scrollbar')
-      expect(scrollbarNode.scrollTop).toBe 0
+      expect(verticalScrollbarNode.scrollTop).toBe 0
 
       editor.setScrollTop(10)
-      expect(scrollbarNode.scrollTop).toBe 10
+      expect(verticalScrollbarNode.scrollTop).toBe 10
 
     it "updates the horizontal scrollbar and scroll view content x transform based on the scrollLeft of the model", ->
       node.style.width = 30 * charWidth + 'px'
       component.updateAllDimensions()
 
       scrollViewContentNode = node.querySelector('.scroll-view-content')
-      horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
       expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
@@ -468,8 +469,8 @@ describe "EditorComponent", ->
       component.updateAllDimensions()
 
       expect(editor.getScrollLeft()).toBe 0
-      node.querySelector('.horizontal-scrollbar').scrollLeft = 100
-      component.onHorizontalScroll()
+      horizontalScrollbarNode.scrollLeft = 100
+      horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       expect(editor.getScrollLeft()).toBe 100
 
@@ -478,9 +479,6 @@ describe "EditorComponent", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
         component.updateAllDimensions()
-
-        verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
-        horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
 
         expect(verticalScrollbarNode.scrollTop).toBe 0
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
@@ -494,11 +492,25 @@ describe "EditorComponent", ->
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
 
   describe "input events", ->
-    it "inserts the typed character into the buffer", ->
-      component.onInput('x')
+    inputNode = null
+
+    beforeEach ->
+      inputNode = node.querySelector('.hidden-input')
+
+    it "inserts the newest character in the input's value into the buffer", ->
+      inputNode.value = 'x'
+      inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'xvar quicksort = function () {'
 
-    it "replaces the last character if replaceLastCharacter is true", ->
-      component.onInput('u')
-      component.onInput('ü', true)
+      inputNode.value = 'xy'
+      inputNode.dispatchEvent(new Event('input'))
+      expect(editor.lineForBufferRow(0)).toBe 'xyvar quicksort = function () {'
+
+    it "replaces the last character if the length of the input's value doesn't increase", ->
+      inputNode.value = 'u'
+      inputNode.dispatchEvent(new Event('input'))
+      expect(editor.lineForBufferRow(0)).toBe 'uvar quicksort = function () {'
+
+      inputNode.value = 'ü'
+      inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
