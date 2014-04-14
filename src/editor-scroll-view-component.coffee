@@ -1,20 +1,16 @@
 React = require 'react'
 ReactUpdates = require 'react/lib/ReactUpdates'
-{div, span} = require 'reactionary'
-{debounce, isEqual, multiplyString, pick} = require 'underscore-plus'
+{div} = require 'reactionary'
 
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
-CursorComponent = require './cursor-component'
+CursorsComponent = require './cursors-component'
 SelectionComponent = require './selection-component'
-SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 EditorScrollViewComponent = React.createClass
-  mixins: [SubscriberMixin]
-
   render: ->
-    {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
+    {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     {visibleRowRange, onInputFocused, onInputBlurred} = @props
     contentStyle =
       height: editor.getScrollHeight()
@@ -30,16 +26,9 @@ EditorScrollViewComponent = React.createClass
         onBlur: onInputBlurred
 
       div className: 'scroll-view-content', style: contentStyle, onMouseDown: @onMouseDown,
-        @renderCursors()
+        CursorsComponent({editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
         LinesComponent({ref: 'lines', editor, fontSize, fontFamily, lineHeight, visibleRowRange, showIndentGuide})
         @renderUnderlayer()
-
-  renderCursors: ->
-    {editor} = @props
-    {blinkCursorsOff} = @state
-
-    for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-      CursorComponent(cursor: selection.cursor, blinkOff: blinkCursorsOff)
 
   renderUnderlayer: ->
     {editor} = @props
@@ -48,31 +37,12 @@ EditorScrollViewComponent = React.createClass
       for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
         SelectionComponent({selection})
 
-  getInitialState: ->
-    blinkCursorsOff: false
-
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @updateModelDimensions
-    @subscribe @props.editor, 'cursors-moved', @pauseCursorBlinking
     @updateModelDimensions()
-    @startBlinkingCursors()
 
   focus: ->
     @refs.input.focus()
-
-  startBlinkingCursors: ->
-    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
-
-  stopBlinkingCursors: ->
-    clearInterval(@cursorBlinkIntervalHandle)
-    @setState(blinkCursorsOff: false)
-
-  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
-
-  pauseCursorBlinking: ->
-    @stopBlinkingCursors()
-    @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
-    @startBlinkingCursorsAfterDelay()
 
   getHiddenInputPosition: ->
     {editor} = @props
