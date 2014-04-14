@@ -4,7 +4,6 @@ React = require 'react'
 
 GutterComponent = require './gutter-component'
 EditorScrollViewComponent = require './editor-scroll-view-component'
-{DummyLineNode} = EditorScrollViewComponent
 ScrollbarComponent = require './scrollbar-component'
 SubscriberMixin = require './subscriber-mixin'
 
@@ -13,8 +12,6 @@ EditorCompont = React.createClass
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
-
-  statics: {DummyLineNode}
 
   mixins: [SubscriberMixin]
 
@@ -286,11 +283,5 @@ EditorCompont = React.createClass
   requestUpdate: ->
     @forceUpdate()
 
-  measureLineDimensions: ->
-    @refs.scrollView.measureLineDimensions()
-
-  updateAllDimensions: ->
-    @refs.scrollView.updateAllDimensions()
-
-  updateScrollViewDimensions: ->
-    @refs.scrollView.updateScrollViewDimensions()
+  updateModelDimensions: ->
+    @refs.scrollView.updateModelDimensions()
