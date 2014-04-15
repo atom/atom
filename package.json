@@ -54,7 +54,7 @@
     "temp": "0.5.0",
     "text-buffer": "^2.1.0",
     "theorist": "1.x",
-    "underscore-plus": "^1.2.0",
+    "underscore-plus": "^1.2.1",
     "vm-compatibility-layer": "0.1.0"
   },
   "packageDependencies": {
