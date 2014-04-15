@@ -33,6 +33,7 @@ InputComponent = React.createClass
     not isEqual(newProps.style, @props.style)
 
   onInput: (e) ->
+    e.stopPropagation()
     valueCharCodes = punycode.ucs2.decode(@getDOMNode().value)
     valueLength = valueCharCodes.length
     replaceLastChar = valueLength is @lastValueLength
