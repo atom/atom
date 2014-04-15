@@ -16,20 +16,24 @@ GutterComponent = React.createClass
       WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
     wrapCount = 0
 
+    lineNumbers = []
+    for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
+      if bufferRow is lastBufferRow
+        lineNumber = '•'
+        key = "#{bufferRow}-#{++wrapCount}"
+      else
+        lastBufferRow = bufferRow
+        wrapCount = 0
+        lineNumber = (bufferRow + 1).toString()
+        key = bufferRow.toString()
+
+      lineNumbers.push(LineNumberComponent({lineNumber, maxDigits, bufferRow, key}))
+      lastBufferRow = bufferRow
+
     div className: 'gutter',
       div className: 'line-numbers', style: style, [
         div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
-        (for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
-          if bufferRow is lastBufferRow
-            lineNumber = '•'
-            key = "#{bufferRow}-#{++wrapCount}"
-          else
-            lastBufferRow = bufferRow
-            wrapCount = 0
-            lineNumber = (bufferRow + 1).toString()
-            key = bufferRow.toString()
-
-          LineNumberComponent({lineNumber, maxDigits, bufferRow, key}))...
+        lineNumbers...
         div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
       ]
 
