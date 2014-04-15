@@ -8,6 +8,8 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 
 module.exports =
 LinesComponent = React.createClass
+  displayName: 'LinesComponent'
+
   render: ->
     {editor, visibleRowRange, showIndentGuide} = @props
     [startRow, endRow] = visibleRowRange
@@ -77,6 +79,8 @@ LinesComponent = React.createClass
 
 
 LineComponent = React.createClass
+  displayName: 'LineComponent'
+
   render: ->
     div className: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 

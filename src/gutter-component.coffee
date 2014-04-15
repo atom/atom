@@ -68,6 +68,8 @@ GutterComponent = React.createClass
     @pendingChanges.push(change)
 
 LineNumberComponent = React.createClass
+  displayName: 'LineNumberComponent'
+
   render: ->
     {bufferRow} = @props
     div
