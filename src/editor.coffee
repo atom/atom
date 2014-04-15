@@ -1472,7 +1472,8 @@ class Editor extends Model
 
   moveCursors: (fn) ->
     @movingCursors = true
-    fn(cursor) for cursor in @getCursors()
+    @batchUpdates =>
+      fn(cursor) for cursor in @getCursors()
     @mergeCursors()
     @movingCursors = false
     @emit 'cursors-moved'
