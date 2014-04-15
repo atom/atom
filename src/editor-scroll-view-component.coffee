@@ -1,5 +1,4 @@
 React = require 'react'
-ReactUpdates = require 'react/lib/ReactUpdates'
 {div} = require 'reactionary'
 
 InputComponent = require './input-component'
@@ -40,8 +39,11 @@ EditorScrollViewComponent = React.createClass
   onInput: (char, replaceLastCharacter) ->
     {editor} = @props
 
-    ReactUpdates.batchedUpdates ->
-      editor.selectLeft() if replaceLastCharacter
+    if replaceLastCharacter
+      editor.transact ->
+        editor.selectLeft()
+        editor.insertText(char)
+    else
       editor.insertText(char)
 
   onMouseDown: (event) ->
