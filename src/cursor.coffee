@@ -1,5 +1,5 @@
 {Point, Range} = require 'text-buffer'
-{Emitter} = require 'emissary'
+{Model} = require 'theorist'
 _ = require 'underscore-plus'
 
 # Public: The `Cursor` class represents the little blinking line identifying
@@ -8,9 +8,7 @@ _ = require 'underscore-plus'
 # Cursors belong to {Editor}s and have some metadata attached in the form
 # of a {Marker}.
 module.exports =
-class Cursor
-  Emitter.includeInto(this)
-
+class Cursor extends Model
   screenPosition: null
   bufferPosition: null
   goalColumn: null
@@ -18,7 +16,8 @@ class Cursor
   needsAutoscroll: null
 
   # Instantiated by an {Editor}
-  constructor: ({@editor, @marker}) ->
+  constructor: ({@editor, @marker, id}) ->
+    @assignId(id)
     @updateVisibility()
     @marker.on 'changed', (e) =>
       @updateVisibility()
