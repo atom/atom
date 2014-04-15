@@ -1246,6 +1246,9 @@ class Editor extends Model
     else
       false
 
+  selectionScreenRangeChanged: (selection) ->
+    @emit 'selection-screen-range-changed', selection
+
   # Public: Get current {Selection}s.
   #
   # Returns: An {Array} of {Selection}s.

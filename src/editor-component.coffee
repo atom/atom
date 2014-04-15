@@ -75,6 +75,7 @@ EditorCompont = React.createClass
   observeEditor: ->
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
+    @subscribe editor, 'selection-screen-range-changed', @requestUpdate
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
     @subscribe editor.$scrollTop.changes, @requestUpdate
