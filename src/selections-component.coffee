@@ -11,4 +11,4 @@ SelectionsComponent = React.createClass
 
     div className: 'selections',
       for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        SelectionComponent({selection})
+        SelectionComponent({key: selection.id, selection})
