@@ -1,11 +1,9 @@
 React = require 'react'
 {div} = require 'reactionary'
+{isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 ScrollbarComponent = React.createClass
-  lastScrollTop: null
-  lastScrollLeft: null
-
   render: ->
     {orientation, className, scrollHeight, scrollWidth} = @props
 
@@ -22,19 +20,24 @@ ScrollbarComponent = React.createClass
     unless orientation is 'vertical' or orientation is 'horizontal'
       throw new Error("Must specify an orientation property of 'vertical' or 'horizontal'")
 
+  shouldComponentUpdate: (newProps) ->
+    switch @props.orientation
+      when 'vertical'
+        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop')
+      when 'horizontal'
+        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft')
+
   componentDidUpdate: ->
     {orientation, scrollTop, scrollLeft} = @props
     node = @getDOMNode()
 
     switch orientation
       when 'vertical'
-        unless scrollTop is @lastScrollTop
-          node.scrollTop = scrollTop
-          @lastScrollTop = node.scrollTop
+        node.scrollTop = scrollTop
+        @props.scrollTop = node.scrollTop # Ensure scrollTop reflects actual DOM without triggering another update
       when 'horizontal'
-        unless scrollLeft is @lastScrollLeft
-          node.scrollLeft = scrollLeft
-          @lastScrollLeft = node.scrollLeft
+        node.scrollLeft = scrollLeft
+        @props.scrollLeft = node.scrollLeft # Ensure scrollLeft reflects actual DOM without triggering another update
 
   onScroll: ->
     {orientation, onScroll} = @props
@@ -42,6 +45,10 @@ ScrollbarComponent = React.createClass
 
     switch orientation
       when 'vertical'
-        onScroll(node.scrollTop)
+        scrollTop = node.scrollTop
+        @props.scrollTop = scrollTop # Ensure scrollTop reflects actual DOM without triggering another update
+        onScroll(scrollTop)
       when 'horizontal'
-        onScroll(node.scrollLeft)
+        scrollLeft = node.scrollLeft
+        @props.scrollLeft = scrollLeft # Ensure scrollLeft reflects actual DOM without triggering another update
+        onScroll(scrollLeft)
