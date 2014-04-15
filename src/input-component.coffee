@@ -5,6 +5,8 @@ React = require 'react'
 
 module.exports =
 InputComponent = React.createClass
+  displayName: 'InputComponent'
+
   render: ->
     {className, style, onFocus, onBlur} = @props
 

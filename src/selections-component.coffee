@@ -4,6 +4,8 @@ SelectionComponent = require './selection-component'
 
 module.exports =
 SelectionsComponent = React.createClass
+  displayName: 'SelectionsComponent'
+
   render: ->
     {editor} = @props
 

@@ -4,6 +4,7 @@ SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 CursorComponent = React.createClass
+  displayName: 'CursorComponent'
   mixins: [SubscriberMixin]
 
   render: ->

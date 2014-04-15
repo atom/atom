@@ -4,6 +4,8 @@ React = require 'react'
 
 module.exports =
 GutterComponent = React.createClass
+  displayName: 'GutterComponent'
+
   render: ->
     {editor, visibleRowRange} = @props
     [startRow, endRow] = visibleRowRange

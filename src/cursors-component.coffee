@@ -7,6 +7,7 @@ CursorComponent = require './cursor-component'
 
 module.exports =
 CursorsComponent = React.createClass
+  displayName: 'CursorsComponent'
   mixins: [SubscriberMixin]
 
   cursorBlinkIntervalHandle: null

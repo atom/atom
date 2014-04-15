@@ -9,11 +9,13 @@ SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 EditorCompont = React.createClass
+  displayName: 'EditorComponent'
+  mixins: [SubscriberMixin]
+
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
 
-  mixins: [SubscriberMixin]
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
