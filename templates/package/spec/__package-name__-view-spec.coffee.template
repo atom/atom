@@ -1,5 +1,4 @@
 __PackageName__View = require '../lib/__package-name__-view'
-{WorkspaceView} = require 'atom'
 
 describe "__PackageName__View", ->
   it "has one valid test", ->
