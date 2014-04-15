@@ -1,6 +1,6 @@
 React = require 'react'
 {div, span} = require 'reactionary'
-{debounce, isEqual, multiplyString, pick} = require 'underscore-plus'
+{debounce, isEqualForProperties, multiplyString} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -27,12 +27,9 @@ LinesComponent = React.createClass
     @updateModelDimensions()
 
   componentDidUpdate: (prevProps) ->
-    @updateModelDimensions() unless @compareProps(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
-    @clearScopedCharWidths() unless @compareProps(prevProps, @props, 'fontSize', 'fontFamily')
+    @updateModelDimensions() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+    @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines()
-
-  compareProps: (a, b, whiteList...) ->
-    isEqual(pick(a, whiteList...), pick(b, whiteList...))
 
   updateModelDimensions: ->
     {editor} = @props
