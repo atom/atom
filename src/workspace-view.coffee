@@ -151,7 +151,7 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', => @reopenItemSync()
 
-    @command 'core:close', => if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
+    @command 'core:close', => if @getModel().getActivePane().getActiveItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
@@ -182,8 +182,8 @@ class WorkspaceView extends View
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   handleFocus: ->
-    if @getActivePane()
-      @getActivePane().focus()
+    if @getActivePaneView()
+      @getActivePaneView().focus()
       false
     else
       @updateTitle()
@@ -205,7 +205,7 @@ class WorkspaceView extends View
   # Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
-      if item = @getActivePaneItem()
+      if item = @getModel().getActivePane().getActiveItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
         @setTitle(projectPath)
@@ -272,7 +272,7 @@ class WorkspaceView extends View
   #
   # Returns a {PaneView}.
   getActivePaneView: ->
-    @panes.getActivePane()
+    @panes.getActivePaneView()
 
   # Public: Get the view associated with the active pane item.
   #
