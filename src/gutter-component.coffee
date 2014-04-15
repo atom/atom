@@ -9,7 +9,7 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   render: ->
-    {editor, visibleRowRange} = @props
+    {editor, visibleRowRange, scrollTop} = @props
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
     precedingHeight = startRow * lineHeightInPixels
@@ -17,7 +17,7 @@ GutterComponent = React.createClass
     maxDigits = editor.getLastBufferRow().toString().length
     style =
       height: editor.getScrollHeight()
-      WebkitTransform: "translateY(#{-editor.getScrollTop()}px)"
+      WebkitTransform: "translateY(#{-scrollTop}px)"
     wrapCount = 0
 
     lineNumbers = []
@@ -52,8 +52,9 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    {visibleRowRange} = @props
+    {visibleRowRange, scrollTop} = @props
 
+    return true unless newProps.scrollTop is scrollTop
     return true unless isEqual(newProps.visibleRowRange, visibleRowRange)
 
     for change in @pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
