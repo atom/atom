@@ -50,3 +50,5 @@ LineNumberComponent = React.createClass
       lineNumber + @iconDivHTML
 
   iconDivHTML: '<div class="icon-right"></div>'
+
+  shouldComponentUpdate: -> false
