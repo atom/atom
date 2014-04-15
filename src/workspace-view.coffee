@@ -151,7 +151,7 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', => @reopenItemSync()
 
-    @command 'core:close', => if @getModel().getActivePane().getActiveItem()? then @destroyActivePaneItem() else @destroyActivePane()
+    @command 'core:close', => if @getModel().getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
@@ -205,7 +205,7 @@ class WorkspaceView extends View
   # Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
-      if item = @getModel().getActivePane().getActiveItem()
+      if item = @getModel().getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
         @setTitle(projectPath)
