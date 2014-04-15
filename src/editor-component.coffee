@@ -8,7 +8,7 @@ ScrollbarComponent = require './scrollbar-component'
 SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
-EditorCompont = React.createClass
+EditorComponent = React.createClass
   displayName: 'EditorComponent'
   mixins: [SubscriberMixin]
 
