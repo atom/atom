@@ -316,7 +316,7 @@ class WorkspaceView extends View
   #
   # Returns an Array of all open {PaneView}s.
   getPaneViews: ->
-    @panes.getPanes()
+    @panes.getPaneViews()
 
   # Public: Register a function to be called for every current and future
   # editor view in the workspace.
