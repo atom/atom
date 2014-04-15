@@ -4,6 +4,7 @@ SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 SelectionComponent = React.createClass
+  displayName: 'SelectionComponent'
   mixins: [SubscriberMixin]
 
   render: ->

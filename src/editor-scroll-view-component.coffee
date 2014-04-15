@@ -9,6 +9,8 @@ SelectionsComponent = require './selections-component'
 
 module.exports =
 EditorScrollViewComponent = React.createClass
+  displayName: 'EditorScrollViewComponent'
+
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     {visibleRowRange, onInputFocused, onInputBlurred} = @props
