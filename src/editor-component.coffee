@@ -22,12 +22,13 @@ EditorCompont = React.createClass
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     visibleRowRange = @getVisibleRowRange()
+    scrollTop = editor.getScrollTop()
 
     className = 'editor react'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
-      GutterComponent({editor, visibleRowRange})
+      GutterComponent({editor, visibleRowRange, scrollTop})
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, visibleRowRange, @onInputFocused, @onInputBlurred
