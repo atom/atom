@@ -1,12 +1,10 @@
 {Point, Range} = require 'text-buffer'
-{Emitter} = require 'emissary'
+{Model} = require 'theorist'
 {pick} = require 'underscore-plus'
 
 # Public: Represents a selection in the {Editor}.
 module.exports =
-class Selection
-  Emitter.includeInto(this)
-
+class Selection extends Model
   cursor: null
   marker: null
   editor: null
@@ -14,7 +12,8 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  constructor: ({@cursor, @marker, @editor}) ->
+  constructor: ({@cursor, @marker, @editor, id}) ->
+    @assignId(id)
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
