@@ -15,7 +15,8 @@ EditorCompont = React.createClass
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
-
+  batchingUpdates: false
+  updateRequested: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
@@ -74,6 +75,8 @@ EditorCompont = React.createClass
 
   observeEditor: ->
     {editor} = @props
+    @subscribe editor, 'batched-updates-started', @onBatchedUpdatesStarted
+    @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'selection-screen-range-changed', @requestUpdate
     @subscribe editor, 'selection-added', @onSelectionAdded
@@ -258,6 +261,16 @@ EditorCompont = React.createClass
 
     event.preventDefault()
 
+  onBatchedUpdatesStarted: ->
+    @batchingUpdates = true
+
+  onBatchedUpdatesEnded: ->
+    updateRequested = @updateRequested
+    @updateRequested = false
+    @batchingUpdates = false
+    if updateRequested
+      @forceUpdate()
+
   onScreenLinesChanged: ({start, end}) ->
     {editor} = @props
     @requestUpdate() if editor.intersectsVisibleRowRange(start, end + 1) # TODO: Use closed-open intervals for change events
@@ -284,7 +297,10 @@ EditorCompont = React.createClass
   clearVisibleRowOverridesAfterDelay: null
 
   requestUpdate: ->
-    @forceUpdate()
+    if @batchingUpdates
+      @updateRequested = true
+    else
+      @forceUpdate()
 
   updateModelDimensions: ->
     @refs.scrollView.updateModelDimensions()

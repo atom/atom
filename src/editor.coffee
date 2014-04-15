@@ -1775,7 +1775,9 @@ class Editor extends Model
   # execution and revert any changes performed up to the abortion.
   #
   # fn - A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
+  transact: (fn) ->
+    @batchUpdates =>
+      @buffer.transact(fn)
 
   # Public: Start an open-ended transaction.
   #
@@ -1794,6 +1796,11 @@ class Editor extends Model
   # Public: Abort an open transaction, undoing any operations performed so far
   # within the transaction.
   abortTransaction: -> @buffer.abortTransaction()
+
+  batchUpdates: (fn) ->
+    @emit 'batched-updates-started'
+    fn()
+    @emit 'batched-updates-ended'
 
   inspect: ->
     "<Editor #{@id}>"
