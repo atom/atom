@@ -14,11 +14,12 @@ CursorsComponent = React.createClass
 
   render: ->
     {editor} = @props
-    {blinkCursorsOff} = @state
+    blinkOff = @state.blinkCursorsOff
 
     div className: 'cursors',
       for selection in editor.getSelections() when editor.selectionIntersectsVisibleRowRange(selection)
-        CursorComponent(cursor: selection.cursor, blinkOff: blinkCursorsOff)
+        {cursor} = selection
+        CursorComponent({key: cursor.id, cursor, blinkOff})
 
   getInitialState: ->
     blinkCursorsOff: false
