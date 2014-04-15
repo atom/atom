@@ -30,7 +30,6 @@
     "grim": "0.6.0",
     "guid": "0.0.10",
     "jasmine-tagged": "^1.1.1",
-    "keytar": "1.x",
     "less-cache": "0.12.0",
     "mixto": "1.x",
     "mkdirp": "0.3.5",
