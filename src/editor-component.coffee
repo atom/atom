@@ -279,7 +279,7 @@ EditorCompont = React.createClass
 
   clearVisibleRowOverrides: ->
     @visibleRowOverrides = null
-    @forceUpdate()
+    @requestUpdate()
 
   clearVisibleRowOverridesAfterDelay: null
 
