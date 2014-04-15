@@ -1,10 +1,12 @@
 React = require 'react'
 {div} = require 'reactionary'
-{multiplyString} = require 'underscore-plus'
+{isEqual, multiplyString} = require 'underscore-plus'
+SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
+  mixins: [SubscriberMixin]
 
   render: ->
     {editor, visibleRowRange} = @props
@@ -38,6 +40,32 @@ GutterComponent = React.createClass
         lineNumbers...
         div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
       ]
+
+  componentDidMount: ->
+    @pendingChanges = []
+    @subscribe @props.editor, 'screen-lines-changed', @onScreenLinesChanged
+
+  componentWillUnmount: ->
+    @unsubscribe()
+
+  # Only update the gutter if the visible row range has changed or if a
+  # non-zero-delta change to the screen lines has occurred within the current
+  # visible row range.
+  shouldComponentUpdate: (newProps) ->
+    {visibleRowRange} = @props
+
+    return true unless isEqual(newProps.visibleRowRange, visibleRowRange)
+
+    for change in @pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
+      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
+
+    false
+
+  componentDidUpdate: ->
+    @pendingChanges.length = 0
+
+  onScreenLinesChanged: (change) ->
+    @pendingChanges.push(change)
 
 LineNumberComponent = React.createClass
   render: ->
