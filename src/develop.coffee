@@ -29,7 +29,8 @@ class Develop extends Command
 
       Clone the given package's Git repository to ~/github/<package_name>,
       install its dependencies, and link it for development to
-      ~/.atom/packages/dev/<package_name>.
+      ~/.atom/packages/dev/<package_name>. The default folder to clone packages
+      into can be overridden using the ATOM_REPOS_HOME environment variable.
 
       Once this command completes you can open a dev window from atom using
       cmd-shift-o to run the package out of the newly cloned repository.
