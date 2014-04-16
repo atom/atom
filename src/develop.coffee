@@ -14,9 +14,6 @@ module.exports =
 class Develop extends Command
   @commandNames: ['dev', 'develop']
 
-  atomDirectory: null
-  atomDevPackagesDirectory: null
-
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
     @atomDevPackagesDirectory = path.join(@atomDirectory, 'dev', 'packages')
