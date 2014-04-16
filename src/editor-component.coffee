@@ -17,6 +17,7 @@ EditorComponent = React.createClass
   selectOnMouseMove: false
   batchingUpdates: false
   updateRequested: false
+  cursorsMoved: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
@@ -31,8 +32,10 @@ EditorComponent = React.createClass
       GutterComponent({editor, visibleRowRange, scrollTop, @pendingChanges})
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, visibleRowRange, @pendingChanges, @onInputFocused, @onInputBlurred
-        cursorBlinkPeriod, cursorBlinkResumeDelay, showIndentGuide, fontSize, fontFamily, lineHeight
+        ref: 'scrollView', editor, visibleRowRange, @pendingChanges,
+        showIndentGuide, fontSize, fontFamily, lineHeight,
+        @cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay,
+        @onInputFocused, @onInputBlurred
       }
 
       ScrollbarComponent
@@ -74,6 +77,7 @@ EditorComponent = React.createClass
 
   componentDidUpdate: ->
     @pendingChanges.length = 0
+    @cursorsMoved = false
     @props.parentView.trigger 'editor:display-updated'
 
   observeEditor: ->
@@ -81,6 +85,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'batched-updates-started', @onBatchedUpdatesStarted
     @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
+    @subscribe editor, 'cursors-moved', @onCursorsMoved
     @subscribe editor, 'selection-screen-range-changed', @requestUpdate
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
@@ -272,7 +277,7 @@ EditorComponent = React.createClass
     @updateRequested = false
     @batchingUpdates = false
     if updateRequested
-      @forceUpdate()
+      @requestUpdate()
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -286,6 +291,9 @@ EditorComponent = React.createClass
   onSelectionRemoved: (selection) ->
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+
+  onCursorsMoved: ->
+    @cursorsMoved = true
 
   getVisibleRowRange: ->
     visibleRowRange = @props.editor.getVisibleRowRange()
