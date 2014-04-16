@@ -37,4 +37,4 @@ done
 
 binDir=`pwd -P`
 cd "$initialCwd"
-"$binDir/$nodeBin" --harmony_collections "$binDir/../lib/cli.js" $@
+"$binDir/$nodeBin" --harmony_collections "$binDir/../lib/cli.js" "$@"
