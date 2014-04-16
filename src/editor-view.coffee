@@ -527,7 +527,7 @@ class EditorView extends View
 
     if @editor
       @saveScrollPositionForEditor()
-      @editor.off(".editor")
+      @unsubscribe(@editor)
 
     @editor = editor
 
