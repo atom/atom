@@ -29,6 +29,9 @@ CursorsComponent = React.createClass
     @subscribe editor, 'cursors-moved', @pauseCursorBlinking
     @startBlinkingCursors()
 
+  componentWillUnmount: ->
+    @stopBlinkingCursors()
+
   startBlinkingCursors: ->
     @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
 
