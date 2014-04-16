@@ -87,6 +87,10 @@ class Develop extends Command
 
   run: (options) ->
     packageName = options.commandArgs.shift()
+
+    unless packageName?.length > 0
+      return options.callback("Missing required package name")
+
     packageDirectory = options.commandArgs.shift() ? path.join(config.getReposDirectory(), packageName)
     packageDirectory = path.resolve(packageDirectory)
 
