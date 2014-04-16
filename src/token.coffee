@@ -155,8 +155,9 @@ class Token
         startIndex = match[0].length
 
       if @hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+        tokenIsOnlyWhitespace = match[0].length is @value.length
         classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace
+        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space

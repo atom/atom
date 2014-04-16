@@ -102,6 +102,15 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[2].textContent).toBe '  '
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
+      it "does not render indent guides in trailing whitespace for lines containing non whitespace characters", ->
+        editor.getBuffer().setText ("  hi  ")
+        lines = node.querySelectorAll('.line')
+        line0LeafNodes = getLeafNodes(lines[0])
+        expect(line0LeafNodes[0].textContent).toBe '  '
+        expect(line0LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line0LeafNodes[1].textContent).toBe '  '
+        expect(line0LeafNodes[1].classList.contains('indent-guide')).toBe false
+
       getLeafNodes = (node) ->
         if node.children.length > 0
           flatten(toArray(node.children).map(getLeafNodes))
