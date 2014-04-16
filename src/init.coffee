@@ -23,7 +23,7 @@ class Init extends Command
         apm init -t <theme-name> -c https://raw.github.com/chriskempson/tomorrow-theme/master/textmate/Tomorrow-Night-Eighties.tmTheme
 
       Generates code scaffolding for either a theme or package depending
-      on option selected.
+      on the option selected.
     """
     options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
