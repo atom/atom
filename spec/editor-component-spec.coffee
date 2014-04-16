@@ -49,14 +49,14 @@ describe "EditorComponent", ->
 
       expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate(0px, #{-2.5 * lineHeightInPixels}px)"
 
-      lines = node.querySelectorAll('.line')
-      expect(lines.length).toBe 6
-      expect(lines[0].textContent).toBe editor.lineForScreenRow(2).text
-      expect(lines[5].textContent).toBe editor.lineForScreenRow(7).text
+      lineNodes = node.querySelectorAll('.line')
+      expect(lineNodes.length).toBe 6
+      expect(lineNodes[0].textContent).toBe editor.lineForScreenRow(2).text
+      expect(lineNodes[5].textContent).toBe editor.lineForScreenRow(7).text
 
-      spacers = node.querySelectorAll('.lines .spacer')
-      expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
-      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
+      linesNode = node.querySelector('.lines')
+      expect(linesNode.style.paddingTop).toBe 2 * lineHeightInPixels + 'px'
+      expect(linesNode.style.paddingBottom).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels + 'px'
 
     describe "when indent guides are enabled", ->
       beforeEach ->
@@ -134,14 +134,14 @@ describe "EditorComponent", ->
 
       expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
 
-      lines = node.querySelectorAll('.line-number')
-      expect(lines.length).toBe 6
-      expect(lines[0].textContent).toBe "#{nbsp}3"
-      expect(lines[5].textContent).toBe "#{nbsp}8"
+      lineNumberNodes = node.querySelectorAll('.line-number')
+      expect(lineNumberNodes.length).toBe 6
+      expect(lineNumberNodes[0].textContent).toBe "#{nbsp}3"
+      expect(lineNumberNodes[5].textContent).toBe "#{nbsp}8"
 
-      spacers = node.querySelectorAll('.line-numbers .spacer')
-      expect(spacers[0].offsetHeight).toBe 2 * lineHeightInPixels
-      expect(spacers[1].offsetHeight).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels
+      lineNumbersNode = node.querySelector('.line-numbers')
+      expect(lineNumbersNode.style.paddingTop).toBe 2 * lineHeightInPixels + 'px'
+      expect(lineNumbersNode.style.paddingBottom).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels + 'px'
 
     it "renders • characters for soft-wrapped lines", ->
       editor.setSoftWrap(true)

@@ -12,12 +12,12 @@ GutterComponent = React.createClass
     {editor, visibleRowRange, scrollTop} = @props
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
-    precedingHeight = startRow * lineHeightInPixels
-    followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
     maxDigits = editor.getLastBufferRow().toString().length
     style =
       height: editor.getScrollHeight()
       WebkitTransform: "translateY(#{-scrollTop}px)"
+      paddingTop: startRow * lineHeightInPixels
+      paddingBottom: (editor.getScreenLineCount() - endRow) * lineHeightInPixels
     wrapCount = 0
 
     lineNumbers = []
@@ -35,11 +35,8 @@ GutterComponent = React.createClass
       lastBufferRow = bufferRow
 
     div className: 'gutter',
-      div className: 'line-numbers', style: style, [
-        div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
-        lineNumbers...
-        div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
-      ]
+      div className: 'line-numbers', style: style,
+        lineNumbers
 
   componentWillUnmount: ->
     @unsubscribe()
