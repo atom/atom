@@ -14,15 +14,12 @@ LinesComponent = React.createClass
     {editor, visibleRowRange, showIndentGuide} = @props
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
-    precedingHeight = startRow * lineHeightInPixels
-    followingHeight = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
+    paddingTop = startRow * lineHeightInPixels
+    paddingBottom = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
 
-    div className: 'lines', ref: 'lines', [
-      div className: 'spacer', key: 'top-spacer', style: {height: precedingHeight}
-      (for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({tokenizedLine, showIndentGuide, key: tokenizedLine.id}))...
-      div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
-    ]
+    div className: 'lines', ref: 'lines', style: {paddingTop, paddingBottom},
+      for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
+        LineComponent({tokenizedLine, showIndentGuide, key: tokenizedLine.id})
 
   componentDidMount: ->
     @measuredLines = new WeakSet
@@ -62,7 +59,7 @@ LinesComponent = React.createClass
 
     for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
       unless @measuredLines.has(tokenizedLine)
-        lineNode = linesNode.children[i + 1]
+        lineNode = linesNode.children[i]
         @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
