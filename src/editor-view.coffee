@@ -538,31 +538,31 @@ class EditorView extends View
     @subscribe @editor, "destroyed", =>
       @remove()
 
-    @subscribe @editor, "contents-conflicted.editor", =>
+    @subscribe @editor, "contents-conflicted", =>
       @showBufferConflictAlert(@editor)
 
-    @subscribe @editor, "path-changed.editor", =>
+    @subscribe @editor, "path-changed", =>
       @editor.reloadGrammar()
       @trigger 'editor:path-changed'
 
-    @subscribe @editor, "grammar-changed.editor", =>
+    @subscribe @editor, "grammar-changed", =>
       @trigger 'editor:grammar-changed'
 
-    @subscribe @editor, 'selection-added.editor', (selection) =>
+    @subscribe @editor, 'selection-added', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @subscribe @editor, 'screen-lines-changed.editor', (e) =>
+    @subscribe @editor, 'screen-lines-changed', (e) =>
       @handleScreenLinesChange(e)
 
-    @subscribe @editor, 'scroll-top-changed.editor', (scrollTop) =>
+    @subscribe @editor, 'scroll-top-changed', (scrollTop) =>
       @scrollTop(scrollTop)
 
-    @subscribe @editor, 'scroll-left-changed.editor', (scrollLeft) =>
+    @subscribe @editor, 'scroll-left-changed', (scrollLeft) =>
       @scrollLeft(scrollLeft)
 
-    @subscribe @editor, 'soft-wrap-changed.editor', (softWrap) =>
+    @subscribe @editor, 'soft-wrap-changed', (softWrap) =>
       @setSoftWrap(softWrap)
 
     @trigger 'editor:path-changed'
