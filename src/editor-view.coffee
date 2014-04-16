@@ -535,34 +535,34 @@ class EditorView extends View
 
     @editor.setVisible(true)
 
-    @editor.on "destroyed", =>
+    @subscribe @editor, "destroyed", =>
       @remove()
 
-    @editor.on "contents-conflicted.editor", =>
+    @subscribe @editor, "contents-conflicted.editor", =>
       @showBufferConflictAlert(@editor)
 
-    @editor.on "path-changed.editor", =>
+    @subscribe @editor, "path-changed.editor", =>
       @editor.reloadGrammar()
       @trigger 'editor:path-changed'
 
-    @editor.on "grammar-changed.editor", =>
+    @subscribe @editor, "grammar-changed.editor", =>
       @trigger 'editor:grammar-changed'
 
-    @editor.on 'selection-added.editor', (selection) =>
+    @subscribe @editor, 'selection-added.editor', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @editor.on 'screen-lines-changed.editor', (e) =>
+    @subscribe @editor, 'screen-lines-changed.editor', (e) =>
       @handleScreenLinesChange(e)
 
-    @editor.on 'scroll-top-changed.editor', (scrollTop) =>
+    @subscribe @editor, 'scroll-top-changed.editor', (scrollTop) =>
       @scrollTop(scrollTop)
 
-    @editor.on 'scroll-left-changed.editor', (scrollLeft) =>
+    @subscribe @editor, 'scroll-left-changed.editor', (scrollLeft) =>
       @scrollLeft(scrollLeft)
 
-    @editor.on 'soft-wrap-changed.editor', (softWrap) =>
+    @subscribe @editor, 'soft-wrap-changed.editor', (softWrap) =>
       @setSoftWrap(softWrap)
 
     @trigger 'editor:path-changed'
