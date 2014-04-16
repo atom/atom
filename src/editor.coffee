@@ -913,7 +913,7 @@ class Editor extends Model
       for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true, autoscroll: true)
 
   # Move lines intersecting the most recent selection down by one row in screen
   # coordinates.
@@ -969,7 +969,7 @@ class Editor extends Model
       for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
