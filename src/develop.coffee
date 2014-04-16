@@ -25,12 +25,15 @@ class Develop extends Command
     options = optimist(argv)
 
     options.usage """
-      Usage: apm develop <package_name>
+      Usage: apm develop <package_name> [<directory>]
 
-      Clone the given package's Git repository to ~/github/<package_name>,
+      Clone the given package's Git repository to the directory specified,
       install its dependencies, and link it for development to
-      ~/.atom/packages/dev/<package_name>. The default folder to clone packages
-      into can be overridden using the ATOM_REPOS_HOME environment variable.
+      ~/.atom/packages/dev/<package_name>.
+
+      If no directory is specified then the repository is cloned to
+      ~/github/<package_name>. The default folder to clone packages into can
+      be overridden using the ATOM_REPOS_HOME environment variable.
 
       Once this command completes you can open a dev window from atom using
       cmd-shift-o to run the package out of the newly cloned repository.
@@ -84,7 +87,8 @@ class Develop extends Command
 
   run: (options) ->
     packageName = options.commandArgs.shift()
-    packageDirectory = path.join(config.getReposDirectory(), packageName)
+    packageDirectory = options.commandArgs.shift() ? path.join(config.getReposDirectory(), packageName)
+    packageDirectory = path.resolve(packageDirectory)
 
     if fs.existsSync(packageDirectory)
       @linkPackage(packageDirectory, options)
