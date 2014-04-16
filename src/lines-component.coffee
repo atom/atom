@@ -1,6 +1,6 @@
 React = require 'react'
 {div, span} = require 'reactionary'
-{debounce, isEqualForProperties, multiplyString} = require 'underscore-plus'
+{debounce, isEqual, isEqualForProperties, multiplyString} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -27,6 +27,15 @@ LinesComponent = React.createClass
   componentDidMount: ->
     @measuredLines = new WeakSet
     @updateModelDimensions()
+
+  shouldComponentUpdate: (newProps) ->
+    return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
+
+    {visibleRowRange, pendingChanges} = newProps
+    for change in pendingChanges
+      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
+
+    false
 
   componentDidUpdate: (prevProps) ->
     @updateModelDimensions() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
