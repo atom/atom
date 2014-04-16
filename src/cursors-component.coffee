@@ -26,24 +26,23 @@ CursorsComponent = React.createClass
 
   componentDidMount: ->
     {editor} = @props
-    @subscribe editor, 'cursors-moved', @pauseCursorBlinking
     @startBlinkingCursors()
 
   componentWillUnmount: ->
-    @stopBlinkingCursors()
+    clearInterval(@cursorBlinkIntervalHandle)
+
+  componentWillUpdate: ({cursorsMoved}) ->
+    @pauseCursorBlinking() if cursorsMoved
 
   startBlinkingCursors: ->
     @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
 
   startBlinkingCursorsAfterDelay: null # Created lazily
 
-  stopBlinkingCursors: ->
-    clearInterval(@cursorBlinkIntervalHandle)
-    @setState(blinkCursorsOff: false)
-
   toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
 
   pauseCursorBlinking: ->
-    @stopBlinkingCursors()
+    @state.blinkCursorsOff = false
+    clearInterval(@cursorBlinkIntervalHandle)
     @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
     @startBlinkingCursorsAfterDelay()

@@ -1474,9 +1474,9 @@ class Editor extends Model
     @movingCursors = true
     @batchUpdates =>
       fn(cursor) for cursor in @getCursors()
-    @mergeCursors()
-    @movingCursors = false
-    @emit 'cursors-moved'
+      @mergeCursors()
+      @movingCursors = false
+      @emit 'cursors-moved'
 
   cursorMoved: (event) ->
     @emit 'cursor-moved', event
