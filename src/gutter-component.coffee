@@ -41,10 +41,6 @@ GutterComponent = React.createClass
         div className: 'spacer', key: 'bottom-spacer', style: {height: followingHeight}
       ]
 
-  componentDidMount: ->
-    @pendingChanges = []
-    @subscribe @props.editor, 'screen-lines-changed', @onScreenLinesChanged
-
   componentWillUnmount: ->
     @unsubscribe()
 
@@ -52,21 +48,15 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    {visibleRowRange, scrollTop} = @props
+    {visibleRowRange, pendingChanges, scrollTop} = @props
 
     return true unless newProps.scrollTop is scrollTop
     return true unless isEqual(newProps.visibleRowRange, visibleRowRange)
 
-    for change in @pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
+    for change in pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
       return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
 
     false
-
-  componentDidUpdate: ->
-    @pendingChanges.length = 0
-
-  onScreenLinesChanged: (change) ->
-    @pendingChanges.push(change)
 
 LineNumberComponent = React.createClass
   displayName: 'LineNumberComponent'

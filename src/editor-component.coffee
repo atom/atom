@@ -28,10 +28,10 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
-      GutterComponent({editor, visibleRowRange, scrollTop})
+      GutterComponent({editor, visibleRowRange, scrollTop, @pendingChanges})
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, visibleRowRange, @onInputFocused, @onInputBlurred
+        ref: 'scrollView', editor, visibleRowRange, @pendingChanges, @onInputFocused, @onInputBlurred
         cursorBlinkPeriod, cursorBlinkResumeDelay, showIndentGuide, fontSize, fontFamily, lineHeight
       }
 
@@ -58,6 +58,7 @@ EditorComponent = React.createClass
     cursorBlinkResumeDelay: 200
 
   componentDidMount: ->
+    @pendingChanges = []
     @props.editor.manageScrollPosition = true
 
     @listenForDOMEvents()
@@ -72,6 +73,7 @@ EditorComponent = React.createClass
     @stopBlinkingCursors()
 
   componentDidUpdate: ->
+    @pendingChanges.length = 0
     @props.parentView.trigger 'editor:display-updated'
 
   observeEditor: ->
@@ -272,9 +274,10 @@ EditorComponent = React.createClass
     if updateRequested
       @forceUpdate()
 
-  onScreenLinesChanged: ({start, end}) ->
+  onScreenLinesChanged: (change) ->
     {editor} = @props
-    @requestUpdate() if editor.intersectsVisibleRowRange(start, end + 1) # TODO: Use closed-open intervals for change events
+    @pendingChanges.push(change)
+    @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
   onSelectionAdded: (selection) ->
     {editor} = @props
