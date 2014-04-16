@@ -223,6 +223,12 @@ class Workspace extends Model
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
 
+  # Public: Get the active {Pane}'s active item.
+  #
+  # Returns an pane item {Object}.
+  getActivePaneItem: ->
+    @paneContainer.getActivePane().getActiveItem()
+
   # Public: Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
