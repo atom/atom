@@ -64,14 +64,21 @@ LinesComponent = React.createClass
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
     {editor} = @props
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-    rangeForMeasurement = document.createRange()
+    rangeForMeasurement = null
+    iterator = null
+    iteratorIndex = -1
 
-    for {value, scopes} in tokenizedLine.tokens
-      textNode = iterator.nextNode()
+    for {value, scopes}, tokenIndex in tokenizedLine.tokens
       charWidths = editor.getScopedCharWidths(scopes)
       for char, i in value
         unless charWidths[char]?
+          rangeForMeasurement ?= document.createRange()
+          iterator ?=  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
+
+          while iteratorIndex < tokenIndex
+            textNode = iterator.nextNode()
+            iteratorIndex++
+
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + 1)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
