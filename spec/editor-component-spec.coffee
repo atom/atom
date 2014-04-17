@@ -339,6 +339,10 @@ describe "EditorComponent", ->
       expect(region3Rect.left).toBe scrollViewClientLeft + 0
       expect(region3Rect.width).toBe 10 * charWidth
 
+    it "does not render empty selections", ->
+      expect(editor.getSelection().isEmpty()).toBe true
+      expect(node.querySelectorAll('.selection').length).toBe 0
+
   describe "mouse interactions", ->
     linesNode = null
 
