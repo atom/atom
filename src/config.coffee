@@ -18,9 +18,9 @@ pathWatcher = require 'pathwatcher'
 # ## Example
 #
 # ```coffeescript
-# atom.config.set('myplugin.key', 'value')
-# atom.config.observe 'myplugin.key', ->
-#   console.log 'My configuration changed:', atom.config.get('myplugin.key')
+# atom.config.set('my-package.key', 'value')
+# atom.config.observe 'my-package.key', ->
+#   console.log 'My configuration changed:', atom.config.get('my-package.key')
 # ```
 module.exports =
 class Config
