@@ -75,6 +75,9 @@ EditorComponent = React.createClass
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
 
+  componentWillUpdate: ->
+    @props.parentView.trigger 'cursor:moved' if @cursorsMoved
+
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
