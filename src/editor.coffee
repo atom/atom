@@ -144,8 +144,6 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
-  verticalScrollMargin: 2
-  horizontalScrollMargin: 6
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -304,14 +302,6 @@ class Editor extends Model
 
   # Public: Toggle soft wrap for this editor
   toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
-
-  getVerticalScrollMargin: -> @verticalScrollMargin
-
-  setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
-
-  getHorizontalScrollMargin: -> @horizontalScrollMargin
-
-  setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
   # Public: Get the text representing a single level of indent.
   #
@@ -1818,6 +1808,12 @@ class Editor extends Model
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
 
+  getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
+  setVerticalScrollMargin: (args...) -> @displayBuffer.setVerticalScrollMargin(args...)
+
+  getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
+  setHorizontalScrollMargin: (args...) -> @displayBuffer.setHorizontalScrollMargin(args...)
+
   getLineHeight: -> @displayBuffer.getLineHeight()
   setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
 
@@ -1863,6 +1859,10 @@ class Editor extends Model
   pixelPositionForBufferPosition: (args...) -> @displayBuffer.pixelPositionForBufferPosition(args...)
 
   screenPositionForPixelPosition: (args...) -> @displayBuffer.screenPositionForPixelPosition(args...)
+
+  pixelRectForScreenRange: (args...) -> @displayBuffer.pixelRectForScreenRange(args...)
+
+  autoscrollToScreenRange: (args...) -> @displayBuffer.autoscrollToScreenRange(args...)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->

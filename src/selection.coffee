@@ -76,8 +76,9 @@ class Selection extends Model
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
-      @cursor.needsAutoscroll = false if options.autoscroll?
+      @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
+      @autoscroll() if @needsAutoscroll
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.
@@ -89,6 +90,9 @@ class Selection extends Model
     end = range.end.row
     end = Math.max(start, end - 1) if range.end.column == 0
     [start, end]
+
+  autoscroll: ->
+    @editor.autoscrollToScreenRange(@getScreenRange())
 
   # Public: Returns the text in the selection.
   getText: ->
