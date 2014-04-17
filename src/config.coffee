@@ -88,7 +88,7 @@ class Config
     _.extend hash, defaults
     @emit 'updated'
 
-  # Public: Get the path to the config file being used.
+  # Public: Get the {String} path to the config file being used.
   getUserConfigPath: ->
     @configFilePath
 
@@ -98,10 +98,10 @@ class Config
 
   # Public: Retrieves the setting for the given key.
   #
-  # keyPath - The {String} name of the key to retrieve
+  # keyPath - The {String} name of the key to retrieve.
   #
-  # Returns the value from Atom's default settings, the user's configuration file,
-  # or `null` if the key doesn't exist in either.
+  # Returns the value from Atom's default settings, the user's configuration
+  # file, or `null` if the key doesn't exist in either.
   get: (keyPath) ->
     value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(value)
@@ -110,8 +110,8 @@ class Config
   #
   # keyPath - The {String} name of the key to retrieve
   #
-  # Returns the value from Atom's default settings, the user's configuration file,
-  # or `NaN` if the key doesn't exist in either.
+  # Returns the value from Atom's default settings, the user's configuration
+  # file, or `NaN` if the key doesn't exist in either.
   getInt: (keyPath) ->
     parseInt(@get(keyPath))
 
@@ -121,8 +121,8 @@ class Config
   # defaultValue - The integer {Number} to fall back to if the value isn't
   #                positive, defaults to 0.
   #
-  # Returns the value from Atom's default settings, the user's configuration file,
-  # or `defaultValue` if the key value isn't greater than zero.
+  # Returns the value from Atom's default settings, the user's configuration
+  # file, or `defaultValue` if the key value isn't greater than zero.
   getPositiveInt: (keyPath, defaultValue=0) ->
     Math.max(@getInt(keyPath), 0) or defaultValue
 
@@ -130,8 +130,8 @@ class Config
   #
   # This value is stored in Atom's internal configuration file.
   #
-  # keyPath - The {String} name of the key
-  # value - The value of the setting
+  # keyPath - The {String} name of the key.
+  # value - The value of the setting.
   #
   # Returns the `value`.
   set: (keyPath, value) ->
@@ -146,6 +146,8 @@ class Config
   #
   # The new value will be `true` if the value is currently falsy and will be
   # `false` if the value is currently truthy.
+  #
+  # keyPath - The {String} name of the key.
   #
   # Returns the new value.
   toggle: (keyPath) ->
@@ -170,6 +172,8 @@ class Config
 
   # Public: Is the key path value its default value?
   #
+  # keyPath - The {String} name of the key.
+  #
   # Returns a {Boolean}, `true` if the current value is the default, `false`
   # otherwise.
   isDefault: (keyPath) ->
@@ -180,7 +184,7 @@ class Config
   # keyPath - The {String} key path.
   # value - The value to push to the array.
   #
-  # Returns the new array length of the setting.
+  # Returns the new array length {Number} of the setting.
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
     result = arrayValue.push(value)
@@ -192,7 +196,7 @@ class Config
   # keyPath - The {String} key path.
   # value - The value to shift onto the array.
   #
-  # Returns the new array length of the setting.
+  # Returns the new array length {Number} of the setting.
   unshiftAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
     result = arrayValue.unshift(value)
@@ -242,9 +246,9 @@ class Config
     callback(value) if options.callNow ? true
     subscription
 
-  # Public: Unobserve all callbacks on a given key
+  # Public: Unobserve all callbacks on a given key.
   #
-  # keyPath - The {String} name of the key to unobserve
+  # keyPath - The {String} name of the key to unobserve.
   unobserve: (keyPath) ->
     @off("updated.#{keyPath.replace(/\./, '-')}")
 
