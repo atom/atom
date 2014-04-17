@@ -11,22 +11,29 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {editor, visibleRowRange, showIndentGuide} = @props
+    {editor, visibleRowRange, preservedScreenRow, showIndentGuide} = @props
+
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
     paddingTop = startRow * lineHeightInPixels
     paddingBottom = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
 
+    lines =
+      for tokenizedLine, i in editor.linesForScreenRows(startRow, endRow - 1)
+        LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, screenRow: startRow + i})
+
+    if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
+      lines.push(LineComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
+
     div className: 'lines', ref: 'lines', style: {paddingTop, paddingBottom},
-      for tokenizedLine in @props.editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({tokenizedLine, showIndentGuide, key: tokenizedLine.id})
+      lines
 
   componentDidMount: ->
     @measuredLines = new WeakSet
     @updateModelDimensions()
 
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
+    return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'preservedScreenRow', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
 
     {visibleRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -95,7 +102,9 @@ LineComponent = React.createClass
   displayName: 'LineComponent'
 
   render: ->
-    div className: 'line', dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    {screenRow, preserved} = @props
+
+    div className: 'line', 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
     if @props.tokenizedLine.text.length is 0
@@ -122,5 +131,6 @@ LineComponent = React.createClass
     else
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
-  shouldComponentUpdate: (newProps, newState) ->
-    newProps.showIndentGuide isnt @props.showIndentGuide
+  shouldComponentUpdate: (newProps) ->
+    return false if newProps.preserved
+    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'preserved')

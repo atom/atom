@@ -18,21 +18,22 @@ EditorComponent = React.createClass
   batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
+  preservedScreenRow: null
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-    visibleRowRange = @getVisibleRowRange()
+    visibleRowRange = editor.getVisibleRowRange()
     scrollTop = editor.getScrollTop()
 
     className = 'editor react'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
-      GutterComponent({editor, visibleRowRange, scrollTop, @pendingChanges})
+      GutterComponent({editor, visibleRowRange, @preservedScreenRow, scrollTop, @pendingChanges})
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, visibleRowRange, @pendingChanges,
+        ref: 'scrollView', editor, visibleRowRange, @preservedScreenRow, @pendingChanges,
         showIndentGuide, fontSize, fontFamily, lineHeight,
         @cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay,
         @onInputFocused, @onInputBlurred
@@ -255,9 +256,9 @@ EditorComponent = React.createClass
     # To preserve velocity scrolling, delay removal of the event's target until
     # after mousewheel events stop being fired. Removing the target before then
     # will cause scrolling to stop suddenly.
-    @visibleRowOverrides = @getVisibleRowRange()
-    @clearVisibleRowOverridesAfterDelay ?= debounce(@clearVisibleRowOverrides, 100)
-    @clearVisibleRowOverridesAfterDelay()
+    @preservedScreenRow = @screenRowForNode(event.target)
+    @clearPreservedScreenRowAfterDelay ?= debounce(@clearPreservedScreenRow, 100)
+    @clearPreservedScreenRowAfterDelay()
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
@@ -267,6 +268,13 @@ EditorComponent = React.createClass
       @refs.verticalScrollbar.getDOMNode().scrollTop -= wheelDeltaY
 
     event.preventDefault()
+
+  screenRowForNode: (node) ->
+    editorNode = @getDOMNode()
+    while node isnt editorNode
+      screenRow = node.dataset.screenRow
+      return screenRow if screenRow?
+      node = node.parentNode
 
   onBatchedUpdatesStarted: ->
     @batchingUpdates = true
@@ -294,18 +302,11 @@ EditorComponent = React.createClass
   onCursorsMoved: ->
     @cursorsMoved = true
 
-  getVisibleRowRange: ->
-    visibleRowRange = @props.editor.getVisibleRowRange()
-    if @visibleRowOverrides?
-      visibleRowRange[0] = Math.min(visibleRowRange[0], @visibleRowOverrides[0])
-      visibleRowRange[1] = Math.max(visibleRowRange[1], @visibleRowOverrides[1])
-    visibleRowRange
-
-  clearVisibleRowOverrides: ->
-    @visibleRowOverrides = null
+  clearPreservedScreenRow: ->
+    @preservedScreenRow = null
     @requestUpdate()
 
-  clearVisibleRowOverridesAfterDelay: null
+  clearPreservedScreenRowAfterDelay: null # Created lazily
 
   requestUpdate: ->
     if @batchingUpdates

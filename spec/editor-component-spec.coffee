@@ -1,5 +1,6 @@
 {extend, flatten, toArray} = require 'underscore-plus'
 ReactEditorView = require '../src/react-editor-view'
+nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
   [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
@@ -118,8 +119,6 @@ describe "EditorComponent", ->
           [node]
 
   describe "gutter rendering", ->
-    nbsp = String.fromCharCode(160)
-
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.updateModelDimensions()
@@ -501,6 +500,29 @@ describe "EditorComponent", ->
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
+
+      it "preserves the target of the mousewheel event when scrolling vertically", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 20 * charWidth + 'px'
+        component.updateModelDimensions()
+
+        lineNodes = node.querySelectorAll('.line')
+        expect(lineNodes.length).toBe 6
+        mousewheelEvent = new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -100)
+        Object.defineProperty(mousewheelEvent, 'target', get: -> lineNodes[0].querySelector('span'))
+        node.dispatchEvent(mousewheelEvent)
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+        expect(editor.getScrollTop()).toBe 100
+
+        # Preserves the line and line number for the scroll event's target screen row
+        lineNodes = node.querySelectorAll('.line')
+        expect(lineNodes.length).toBe 7
+        expect(lineNodes[6].textContent).toBe editor.lineForScreenRow(0).text
+
+        lineNumberNodes = node.querySelectorAll('.line-number')
+        expect(lineNumberNodes.length).toBe 7
+        expect(lineNumberNodes[6].textContent).toBe "#{nbsp}1"
 
   describe "input events", ->
     inputNode = null
