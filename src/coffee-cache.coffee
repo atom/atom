@@ -1,14 +1,12 @@
 crypto = require 'crypto'
-fs = require 'fs'
 path = require 'path'
-os = require 'os'
 
 CoffeeScript = require 'coffee-script'
 CSON = require 'season'
+fs = require 'fs-plus'
 mkdir = require('mkdirp').sync
 
-tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
-cacheDir = path.join(tmpDir, 'atom-compile-cache')
+cacheDir = path.join(fs.getHomeDirectory(), 'compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
