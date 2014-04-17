@@ -142,7 +142,7 @@ class AtomApplication
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
-      atomWindow?.browserWindow?.inspectElement(x, y)
+      atomWindow?.browserWindow.inspectElement(x, y)
 
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:install-update', -> @autoUpdateManager.install()
