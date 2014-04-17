@@ -165,8 +165,8 @@ class Config
   #
   # Returns the default value.
   getDefault: (keyPath) ->
-    value = _.valueForKeyPath(@defaultSettings, keyPath)
-    _.deepClone(value)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    _.deepClone(defaultValue)
 
   # Public: Push the value to the array at the key path.
   #
