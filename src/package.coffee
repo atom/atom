@@ -7,7 +7,7 @@ fs = require 'fs-plus'
 {Emitter} = require 'emissary'
 Q = require 'q'
 
-{$} = require './space-pen-extensions'
+$ = null # Defer require in case this is in the window-less browser process
 ScopedProperties = require './scoped-properties'
 
 # Loads and activates a package's main module and resources such as
@@ -286,6 +286,7 @@ class Package
   handleActivationEvent: (event) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
     @activateNow()
+    $ ?= require('./space-pen-extensions').$
     $(event.target).trigger(event)
     @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
     @unsubscribeFromActivationEvents()
@@ -303,6 +304,7 @@ class Package
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []
     disabledHandler = ->
+    $ ?= require('./space-pen-extensions').$
     element = $(event.target)
     while element.length
       if eventHandlers = element.handlers()?[event.type]
