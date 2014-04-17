@@ -57,7 +57,7 @@ describe "Config", ->
         expect(atom.config.settings.foo).toEqual {}
 
   describe ".getDefault(keyPath)", ->
-    it "returns the default value", ->
+    it "returns a clone of the default value", ->
       atom.config.setDefaults("foo", same: 1, changes: 1)
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
@@ -67,7 +67,6 @@ describe "Config", ->
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
 
-    it "returns a clone of the default value", ->
       initialDefaultValue = [1, 2, 3]
       atom.config.setDefaults("foo", bar: initialDefaultValue)
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
