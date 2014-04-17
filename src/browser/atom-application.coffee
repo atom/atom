@@ -140,7 +140,9 @@ class AtomApplication
     @on 'application:open-file', -> @promptForPath(type: 'file')
     @on 'application:open-folder', -> @promptForPath(type: 'folder')
     @on 'application:open-dev', -> @promptForPath(devMode: true)
-    @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
+    @on 'application:inspect', ({x,y}, atomWindow=@focusedWindow()) ->
+      atomWindow?.browserWindow?.inspectElement(x, y)
+
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
@@ -225,6 +227,18 @@ class AtomApplication
       focusedWindow = @focusedWindow()
       if focusedWindow?
         focusedWindow.sendCommand(command, args...)
+      else
+        @sendCommandToFirstResponder(command)
+
+  # Public: Executes the given command on the given window.
+  #
+  # command - The string representing the command.
+  # atomWindow - The {AtomWindow} to send the command to.
+  # args - The optional arguments to pass along.
+  sendCommandToWindow: (command, atomWindow, args...) ->
+    unless @emit(command, args..., atomWindow)
+      if atomWindow?
+        atomWindow.sendCommand(command, args...)
       else
         @sendCommandToFirstResponder(command)
 
