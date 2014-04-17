@@ -44,3 +44,6 @@ class ReactEditorView extends View
 
   getPane: ->
     @closest('.pane').view()
+
+  focus: ->
+    @component?.onFocus()
