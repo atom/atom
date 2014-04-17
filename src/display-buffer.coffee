@@ -30,6 +30,9 @@ class DisplayBuffer extends Model
     scrollTop: 0
     scrollLeft: 0
 
+  verticalScrollMargin: 2
+  horizontalScrollMargin: 6
+
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
     @softWrap ?= atom.config.get('editor.softWrap') ? false
@@ -101,6 +104,12 @@ class DisplayBuffer extends Model
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  getVerticalScrollMargin: -> @verticalScrollMargin
+  setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
+
+  getHorizontalScrollMargin: -> @horizontalScrollMargin
+  setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
   getHeight: -> @height
   setHeight: (@height) -> @height
@@ -184,6 +193,41 @@ class DisplayBuffer extends Model
   selectionIntersectsVisibleRowRange: (selection) ->
     {start, end} = selection.getScreenRange()
     @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  autoscrollToScreenRange: (screenRange) ->
+    verticalScrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeight()
+    horizontalScrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
+
+    {top, left, height, width} = @pixelRectForScreenRange(screenRange)
+    bottom = top + height
+    right = left + width
+    desiredScrollTop = top - verticalScrollMarginInPixels
+    desiredScrollBottom = bottom + verticalScrollMarginInPixels
+    desiredScrollLeft = left - horizontalScrollMarginInPixels
+    desiredScrollRight = right + horizontalScrollMarginInPixels
+
+    if desiredScrollTop < @getScrollTop()
+      @setScrollTop(desiredScrollTop)
+    else if desiredScrollBottom > @getScrollBottom()
+      @setScrollBottom(desiredScrollBottom)
+
+    if desiredScrollLeft < @getScrollLeft()
+      @setScrollLeft(desiredScrollLeft)
+    else if desiredScrollRight > @getScrollRight()
+      @setScrollRight(desiredScrollRight)
+
+  pixelRectForScreenRange: (screenRange) ->
+    if screenRange.end.row > screenRange.start.row
+      top = @pixelPositionForScreenPosition(screenRange.start).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeight()
+      width = @getScrollWidth()
+    else
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start)
+      height = @getLineHeight()
+      width = @pixelPositionForScreenPosition(screenRange.end).left - left
+
+    {top, left, width, height}
 
   # Retrieves the current tab length.
   #

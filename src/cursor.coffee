@@ -59,12 +59,7 @@ class Cursor extends Model
       @emit 'autoscrolled' if @needsAutoscroll
 
   getPixelRect: ->
-    screenPosition = @getScreenPosition()
-    {top, left} = @editor.pixelPositionForScreenPosition(screenPosition, false)
-    right = @editor.pixelPositionForScreenPosition(screenPosition.add([0, 1])).left
-    width = right - left
-    height = @editor.getLineHeight()
-    {top, left, width, height}
+    @editor.pixelRectForScreenRange(@getScreenRange())
 
   # Public: Moves a cursor to a given screen position.
   #
@@ -80,6 +75,10 @@ class Cursor extends Model
   # Public: Returns the screen position of the cursor as an Array.
   getScreenPosition: ->
     @marker.getHeadScreenPosition()
+
+  getScreenRange: ->
+    {row, column} = @getScreenPosition()
+    new Range(new Point(row, column), new Point(row, column + 1))
 
   # Public: Moves a cursor to a given buffer position.
   #
@@ -97,25 +96,7 @@ class Cursor extends Model
     @marker.getHeadBufferPosition()
 
   autoscroll: ->
-    verticalScrollMarginInPixels = @editor.getVerticalScrollMargin() * @editor.getLineHeight()
-    horizontalScrollMarginInPixels = @editor.getHorizontalScrollMargin() * @editor.getDefaultCharWidth()
-    {top, left, height, width} = @getPixelRect()
-    bottom = top + height
-    right = left + width
-    desiredScrollTop = top - verticalScrollMarginInPixels
-    desiredScrollBottom = bottom + verticalScrollMarginInPixels
-    desiredScrollLeft = left - horizontalScrollMarginInPixels
-    desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if desiredScrollTop < @editor.getScrollTop()
-      @editor.setScrollTop(desiredScrollTop)
-    else if desiredScrollBottom > @editor.getScrollBottom()
-      @editor.setScrollBottom(desiredScrollBottom)
-
-    if desiredScrollLeft < @editor.getScrollLeft()
-      @editor.setScrollLeft(desiredScrollLeft)
-    else if desiredScrollRight > @editor.getScrollRight()
-      @editor.setScrollRight(desiredScrollRight)
+    @editor.autoscrollToScreenRange(@getScreenRange())
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->

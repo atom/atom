@@ -670,7 +670,6 @@ describe "Editor", ->
         editor.setHeight(5.5 * 10)
         editor.setWidth(5.5 * 10)
 
-
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
         expect(editor.getScrollTop()).toBe 0
         expect(editor.getScrollBottom()).toBe 5.5 * 10
@@ -1077,7 +1076,7 @@ describe "Editor", ->
         expect(selection1).toBe selection
         expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
 
-      describe "when the preserveFolds option is false (the default)", ->
+      describe "when the 'preserveFolds' option is false (the default)", ->
         it "removes folds that contain the selections", ->
           editor.setSelectedBufferRange([[0,0], [0,0]])
           editor.createFold(1, 4)
@@ -1091,7 +1090,7 @@ describe "Editor", ->
           expect(editor.lineForScreenRow(6).fold).toBeUndefined()
           expect(editor.lineForScreenRow(10).fold).toBeDefined()
 
-      describe "when the preserve folds option is true", ->
+      describe "when the 'preserveFolds' option is true", ->
         it "does not remove folds that contain the selections", ->
           editor.setSelectedBufferRange([[0,0], [0,0]])
           editor.createFold(1, 4)
@@ -1099,6 +1098,24 @@ describe "Editor", ->
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], preserveFolds: true)
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+
+    describe ".setSelectedBufferRange(range)", ->
+      describe "when the 'autoscroll' option is true", ->
+        it "autoscrolls to the selection", ->
+          editor.manageScrollPosition = true
+          editor.setLineHeight(10)
+          editor.setDefaultCharWidth(10)
+          editor.setHeight(50)
+          editor.setWidth(50)
+          expect(editor.getScrollTop()).toBe 0
+
+          editor.setSelectedBufferRange([[5, 6], [6, 8]], autoscroll: true)
+          expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+          expect(editor.getScrollRight()).toBe 50
+
+          editor.setSelectedBufferRange([[6, 6], [6, 8]], autoscroll: true)
+          expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+          expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
 
     describe ".selectMarker(marker)", ->
       describe "if the marker is valid", ->
