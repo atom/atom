@@ -273,6 +273,15 @@ describe "EditorComponent", ->
       expect(inputNode.offsetTop).toBe cursorTop - editor.getScrollTop()
       expect(inputNode.offsetLeft).toBe cursorLeft - editor.getScrollLeft()
 
+    it "does not render cursors that are associated with non-empty selections", ->
+      editor.setSelectedScreenRange([[0, 4], [4, 6]])
+      editor.addCursorAtScreenPosition([6, 8])
+
+      cursorNodes = node.querySelectorAll('.cursor')
+      expect(cursorNodes.length).toBe 1
+      expect(cursorNodes[0].offsetTop).toBe 6 * lineHeightInPixels
+      expect(cursorNodes[0].offsetLeft).toBe 8 * charWidth
+
   describe "selection rendering", ->
     scrollViewClientLeft = null
 
