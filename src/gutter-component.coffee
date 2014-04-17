@@ -9,7 +9,7 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   render: ->
-    {editor, visibleRowRange, scrollTop} = @props
+    {editor, visibleRowRange, preservedScreenRow, scrollTop} = @props
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
     maxDigits = editor.getLastBufferRow().toString().length
@@ -18,21 +18,23 @@ GutterComponent = React.createClass
       WebkitTransform: "translateY(#{-scrollTop}px)"
       paddingTop: startRow * lineHeightInPixels
       paddingBottom: (editor.getScreenLineCount() - endRow) * lineHeightInPixels
-    wrapCount = 0
 
     lineNumbers = []
-    for bufferRow in @props.editor.bufferRowsForScreenRows(startRow, endRow - 1)
+    tokenizedLines = editor.linesForScreenRows(startRow, endRow - 1)
+    for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       if bufferRow is lastBufferRow
         lineNumber = '•'
-        key = "#{bufferRow}-#{++wrapCount}"
       else
         lastBufferRow = bufferRow
-        wrapCount = 0
         lineNumber = (bufferRow + 1).toString()
-        key = bufferRow.toString()
 
-      lineNumbers.push(LineNumberComponent({lineNumber, maxDigits, bufferRow, key}))
+      key = tokenizedLines[i]?.id ? 0
+      screenRow = startRow + i
+      lineNumbers.push(LineNumberComponent({key, lineNumber, maxDigits, bufferRow, screenRow}))
       lastBufferRow = bufferRow
+
+    if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
+      lineNumbers.push(LineNumberComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
 
     div className: 'gutter',
       div className: 'line-numbers', style: style,
@@ -59,10 +61,11 @@ LineNumberComponent = React.createClass
   displayName: 'LineNumberComponent'
 
   render: ->
-    {bufferRow} = @props
+    {bufferRow, screenRow} = @props
     div
       className: "line-number line-number-#{bufferRow}"
       'data-buffer-row': bufferRow
+      'data-screen-row': screenRow
       dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
