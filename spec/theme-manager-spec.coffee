@@ -36,6 +36,22 @@ describe "ThemeManager", ->
         themes = themeManager.getActiveThemes()
         expect(themes).toHaveLength(names.length)
 
+  describe "when the core.themes config value contains invalid entry", ->
+    fit "ignores theme", ->
+      atom.config.set 'core.themes', [
+        'atom-light-ui'
+        null
+        undefined
+        ''
+        false
+        4
+        {}
+        []
+        'atom-dark-ui'
+      ]
+
+      expect(themeManager.getEnabledThemeNames()).toEqual ['atom-dark-ui', 'atom-light-ui']
+
   describe "getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
       atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui', 'atom-light-ui'])
