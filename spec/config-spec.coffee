@@ -43,8 +43,8 @@ describe "Config", ->
           sameObject: {a: 1, b: 2}
           null: null
           undefined: undefined
-
         expect(atom.config.settings.foo).toBeUndefined()
+
         atom.config.set('foo.same', 1)
         atom.config.set('foo.changes', 2)
         atom.config.set('foo.sameArray', [1, 2, 3])
