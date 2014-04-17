@@ -73,7 +73,6 @@ EditorComponent = React.createClass
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
-    @stopBlinkingCursors()
 
   componentDidUpdate: ->
     @pendingChanges.length = 0

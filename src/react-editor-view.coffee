@@ -37,7 +37,7 @@ class ReactEditorView extends View
   pixelPositionForBufferPosition: (bufferPosition) ->
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
-  beforeDetach: ->
+  beforeRemove: ->
     React.unmountComponentAtNode(@element)
     @attached = false
     @trigger 'editor:detached', this
