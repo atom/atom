@@ -135,8 +135,9 @@ class Config
   #
   # Returns the `value`.
   set: (keyPath, value) ->
-    if @get(keyPath) != value
-      value = undefined if _.valueForKeyPath(@defaultSettings, keyPath) == value
+    if @get(keyPath) isnt value
+      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+      value = undefined if _.isEqual(defaultValue, value)
       _.setValueForKeyPath(@settings, keyPath, value)
       @update()
     value

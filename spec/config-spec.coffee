@@ -36,10 +36,13 @@ describe "Config", ->
 
     describe "when the value equals the default value", ->
       it "does not store the value", ->
-        atom.config.setDefaults("foo", same: 1, changes: 1)
+        atom.config.setDefaults("foo", same: 1, changes: 1, sameArray: [1, 2, 3], null: null, undefined: undefined)
         expect(atom.config.settings.foo).toBeUndefined()
         atom.config.set('foo.same', 1)
         atom.config.set('foo.changes', 2)
+        atom.config.set('foo.sameArray', [1, 2, 3])
+        atom.config.set('foo.null', undefined)
+        atom.config.set('foo.undefined', null)
         expect(atom.config.settings.foo).toEqual {changes: 2}
 
         atom.config.set('foo.changes', 1)
