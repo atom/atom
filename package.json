@@ -22,7 +22,6 @@
     "coffeestack": "0.7.0",
     "delegato": "1.x",
     "emissary": "^1.2.1",
-    "envify": "^1.2.1",
     "first-mate": "^1.5.2",
     "fs-plus": "^2.2.2",
     "fstream": "0.1.24",
