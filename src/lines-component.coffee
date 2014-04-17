@@ -44,7 +44,7 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     @updateModelDimensions() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
-    @measureCharactersInNewLines()
+    @measureCharactersInNewLines() unless @props.preservedScreenRow?
 
   updateModelDimensions: ->
     {editor} = @props

@@ -257,7 +257,7 @@ EditorComponent = React.createClass
     # after mousewheel events stop being fired. Removing the target before then
     # will cause scrolling to stop suddenly.
     @preservedScreenRow = @screenRowForNode(event.target)
-    @clearPreservedScreenRowAfterDelay ?= debounce(@clearPreservedScreenRow, 100)
+    @clearPreservedScreenRowAfterDelay ?= debounce(@clearPreservedScreenRow, 300)
     @clearPreservedScreenRowAfterDelay()
 
     # Only scroll in one direction at a time
