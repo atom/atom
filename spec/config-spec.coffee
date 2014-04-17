@@ -72,6 +72,17 @@ describe "Config", ->
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
       expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
 
+  describe ".isDefault(keyPath)", ->
+    it "returns true when the value of the key path is its default value", ->
+      atom.config.setDefaults("foo", same: 1, changes: 1)
+      expect(atom.config.isDefault('foo.same')).toBe true
+      expect(atom.config.isDefault('foo.changes')).toBe true
+
+      atom.config.set('foo.same', 2)
+      atom.config.set('foo.changes', 3)
+      expect(atom.config.isDefault('foo.same')).toBe false
+      expect(atom.config.isDefault('foo.changes')).toBe false
+
   describe ".toggle(keyPath)", ->
     it "negates the boolean value of the current key path value", ->
       atom.config.set('foo.a', 1)

@@ -168,6 +168,13 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(defaultValue)
 
+  # Public: Is the key path value its default value?
+  #
+  # Returns a {Boolean}, `true` if the current value is the default, `false`
+  # otherwise.
+  isDefault: (keyPath) ->
+    not _.valueForKeyPath(@settings, keyPath)?
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.
