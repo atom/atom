@@ -12,7 +12,7 @@ CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
 getCachePath = (coffee) ->
   digest = crypto.createHash('sha1').update(coffee, 'utf8').digest('hex')
-  path.join(coffeeCacheDir, "#{digest}.coffee")
+  path.join(coffeeCacheDir, "#{digest}.js")
 
 getCachedJavaScript = (cachePath) ->
   if stat = fs.statSyncNoException(cachePath)
