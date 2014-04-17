@@ -117,7 +117,7 @@ EditorComponent = React.createClass
       'core:paste': => editor.pasteText()
       'editor:move-to-previous-word': => editor.moveCursorToPreviousWord()
       'editor:select-word': => editor.selectWord()
-      # 'editor:consolidate-selections': (event) => @consolidateSelections(event)
+      'editor:consolidate-selections': @consolidateSelections
       'editor:backspace-to-beginning-of-word': => editor.backspaceToBeginningOfWord()
       'editor:backspace-to-beginning-of-line': => editor.backspaceToBeginningOfLine()
       'editor:delete-to-end-of-word': => editor.deleteToEndOfWord()
@@ -316,3 +316,6 @@ EditorComponent = React.createClass
 
   updateModelDimensions: ->
     @refs.scrollView.updateModelDimensions()
+
+  consolidateSelections: (e) ->
+    e.abortKeyBinding() unless @props.editor.consolidateSelections()

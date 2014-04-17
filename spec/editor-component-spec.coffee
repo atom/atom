@@ -547,3 +547,15 @@ describe "EditorComponent", ->
       inputNode.value = 'ü'
       inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
+
+  describe "commands", ->
+    describe "editor:consolidate-selections", ->
+      it "consolidates selections on the editor model, aborting the key binding if there is only one selection", ->
+        spyOn(editor, 'consolidateSelections').andCallThrough()
+
+        event = new CustomEvent('editor:consolidate-selections', bubbles: true, cancelable: true)
+        event.abortKeyBinding = jasmine.createSpy("event.abortKeyBinding")
+        node.dispatchEvent(event)
+
+        expect(editor.consolidateSelections).toHaveBeenCalled()
+        expect(event.abortKeyBinding).toHaveBeenCalled()
