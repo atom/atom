@@ -158,6 +158,15 @@ class Config
   restoreDefault: (keyPath) ->
     @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
 
+  # Public: Get the default value of the key path.
+  #
+  # keyPath - The {String} name of the key.
+  #
+  # Returns the default value.
+  getDefault: (keyPath) ->
+    value = _.valueForKeyPath(@defaultSettings, keyPath)
+    _.deepClone(value)
+
   # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.
