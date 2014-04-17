@@ -151,13 +151,6 @@ class Editor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesMethods 'setLineHeight', 'getLineHeight', 'getDefaultCharWidth', 'setDefaultCharWidth',
-    'setHeight', 'getHeight', 'setWidth', 'getWidth', 'setScrollTop', 'getScrollTop',
-    'getScrollBottom', 'setScrollBottom', 'getScrollLeft', 'setScrollLeft', 'getScrollRight',
-    'setScrollRight', 'getScrollHeight', 'getScrollWidth', 'getVisibleRowRange',
-    'intersectsVisibleRowRange', 'selectionIntersectsVisibleRowRange', 'pixelPositionForScreenPosition',
-    'screenPositionForPixelPosition', 'pixelPositionForBufferPosition', toProperty: 'displayBuffer'
-
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
@@ -1826,16 +1819,50 @@ class Editor extends Model
     type: 'selection', editorId: @id, invalidate: 'never'
 
   getLineHeight: -> @displayBuffer.getLineHeight()
-
   setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
 
   getScopedCharWidth: (args...) -> @displayBuffer.getScopedCharWidth(args...)
+  setScopedCharWidth: (args...) -> @displayBuffer.setScopedCharWidth(args...)
 
   getScopedCharWidths: (args...) -> @displayBuffer.getScopedCharWidths(args...)
 
-  setScopedCharWidth: (args...) -> @displayBuffer.setScopedCharWidth(args...)
-
   clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
+
+  getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
+  setDefaultCharWidth: (args...) -> @displayBuffer.setDefaultCharWidth(args...)
+
+  setHeight: (args...) -> @displayBuffer.setHeight(args...)
+  getHeight: -> @displayBuffer.getHeight()
+
+  setWidth: (args...) -> @displayBuffer.setWidth(args...)
+  getWidth: -> @displayBuffer.getWidth()
+
+  getScrollTop: -> @displayBuffer.getScrollTop()
+  setScrollTop: (args...) -> @displayBuffer.setScrollTop(args...)
+
+  getScrollBottom: -> @displayBuffer.getScrollBottom()
+  setScrollBottom: (args...) -> @displayBuffer.setScrollBottom(args...)
+
+  getScrollLeft: -> @displayBuffer.getScrollLeft()
+  setScrollLeft: (args...) -> @displayBuffer.setScrollLeft(args...)
+
+  getScrollRight: -> @displayBuffer.getScrollRight()
+  setScrollRight: (args...) -> @displayBuffer.setScrollRight(args...)
+
+  getScrollHeight: -> @displayBuffer.getScrollHeight()
+  getScrollWidth: (args...) -> @displayBuffer.getScrollWidth(args...)
+
+  getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
+
+  intersectsVisibleRowRange: (args...) -> @displayBuffer.intersectsVisibleRowRange(args...)
+
+  selectionIntersectsVisibleRowRange: (args...) -> @displayBuffer.selectionIntersectsVisibleRowRange(args...)
+
+  pixelPositionForScreenPosition: (args...) -> @displayBuffer.pixelPositionForScreenPosition(args...)
+
+  pixelPositionForBufferPosition: (args...) -> @displayBuffer.pixelPositionForBufferPosition(args...)
+
+  screenPositionForPixelPosition: (args...) -> @displayBuffer.screenPositionForPixelPosition(args...)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
