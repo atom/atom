@@ -1783,8 +1783,9 @@ class Editor extends Model
 
   batchUpdates: (fn) ->
     @emit 'batched-updates-started'
-    fn()
+    result = fn()
     @emit 'batched-updates-ended'
+    result
 
   inspect: ->
     "<Editor #{@id}>"
