@@ -1002,6 +1002,13 @@ class Editor extends Model
     deprecate("Use Editor::duplicateLines() instead")
     @duplicateLines()
 
+  # Public: Mutate the text of all the selections in a single transaction.
+  #
+  # All the changes made inside the given {Function} can be reverted with a
+  # single call to {::undo}.
+  #
+  # fn - A {Function} to call once per selection with the {Selection} as the
+  #      first argument.
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
