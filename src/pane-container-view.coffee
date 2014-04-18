@@ -91,7 +91,7 @@ class PaneContainerView extends View
     @model.activePaneItem
 
   getActiveView: ->
-    @getActivePane()?.activeView
+    @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
     @viewForModel(@model.paneForUri(uri))
@@ -120,8 +120,8 @@ class PaneContainerView extends View
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    pane = @getActivePane()
     box = @boundingBoxForPane(pane)
+    pane = @getActivePaneView()
     panes = @getPaneViews()
       .filter (otherPane) =>
         otherBox = @boundingBoxForPane(otherPane)

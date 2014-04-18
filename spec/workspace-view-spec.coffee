@@ -36,18 +36,18 @@ describe "WorkspaceView", ->
         editorView1 = atom.workspaceView.getActiveView()
         buffer = editorView1.getEditor().getBuffer()
         editorView1.splitRight()
-        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPaneViews()[1]
+        expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
 
         simulateReload()
 
         expect(atom.workspaceView.getEditorViews().length).toBe 2
-        expect(atom.workspaceView.getActivePane()).toBe atom.workspaceView.getPaneViews()[1]
+        expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
         expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPath()}"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
         atom.workspaceView.attachToDom()
-        pane1 = atom.workspaceView.getActivePane()
+        pane1 = atom.workspaceView.getActivePaneView()
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
         pane4 = pane2.splitDown()
@@ -89,7 +89,7 @@ describe "WorkspaceView", ->
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
-        atom.workspaceView.getActivePane().remove()
+        atom.workspaceView.getActivePaneView().remove()
         expect(atom.workspaceView.getEditorViews().length).toBe 0
         simulateReload()
         expect(atom.workspaceView.getEditorViews().length).toBe 0
@@ -99,7 +99,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.attachToDom()
 
     it "hands off focus to the active pane", ->
-      activePane = atom.workspaceView.getActivePane()
+      activePane = atom.workspaceView.getActivePaneView()
       $('body').focus()
       expect(activePane.hasFocus()).toBe false
       atom.workspaceView.focus()
@@ -132,30 +132,30 @@ describe "WorkspaceView", ->
 
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
-          item = atom.workspaceView.getActivePaneItem()
+          item = atom.workspaceView.getActivePaneViewItem()
           expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
-          editor = atom.workspaceView.getActivePaneItem()
+          editor = atom.workspaceView.getActivePaneViewItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
           expect(atom.workspaceView.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
-          atom.workspaceView.getActivePane().showNextItem()
-          item = atom.workspaceView.getActivePaneItem()
+          atom.workspaceView.getActivePaneView().showNextItem()
+          item = atom.workspaceView.getActivePaneViewItem()
           expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
-          atom.workspaceView.getActivePane().remove()
-          expect(atom.workspaceView.getActivePaneItem()).toBeUndefined()
+          atom.workspaceView.getActivePaneView().remove()
+          expect(atom.workspaceView.getActivePaneViewItem()).toBeUndefined()
           expect(atom.workspaceView.title).toBe atom.project.getPath()
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
-          pane = atom.workspaceView.getActivePane()
+          pane = atom.workspaceView.getActivePaneView()
           pane.splitRight()
           initialTitle = atom.workspaceView.title
           pane.showNextItem()
@@ -164,7 +164,7 @@ describe "WorkspaceView", ->
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
         workspaceView2 = new WorkspaceView(atom.workspace.testSerialization())
-        item = atom.workspaceView.getActivePaneItem()
+        item = atom.workspaceView.getActivePaneViewItem()
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()
 
@@ -238,9 +238,9 @@ describe "WorkspaceView", ->
     it "closes the active pane item until all that remains is a single empty pane", ->
       atom.config.set('core.destroyEmptyPanes', true)
       atom.project.openSync('../sample.txt')
-      expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 1
+      expect(atom.workspaceView.getActivePaneView().getItems()).toHaveLength 1
       atom.workspaceView.trigger('core:close')
-      expect(atom.workspaceView.getActivePane().getItems()).toHaveLength 0
+      expect(atom.workspaceView.getActivePaneView().getItems()).toHaveLength 0
 
   describe "the scrollbar visibility class", ->
     it "has a class based on the style of the scrollbar", ->
