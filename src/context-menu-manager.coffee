@@ -18,7 +18,7 @@ class ContextMenuManager
       label: 'Inspect Element'
       command: 'application:inspect'
       executeAtBuild: (e) ->
-        @.commandOptions = x: e.pageX, y: e.pageY
+        @commandOptions = x: e.pageX, y: e.pageY
     ]
 
   # Public: Creates menu definitions from the object specified by the menu

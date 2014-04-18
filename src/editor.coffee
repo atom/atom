@@ -182,7 +182,7 @@ class Editor extends Model
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
 
-    atom.project.addEditor(this) if registerEditor
+    atom.workspace?.editorAdded(this) if registerEditor
 
   serializeParams: ->
     id: @id
@@ -225,19 +225,17 @@ class Editor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
-    atom.project?.removeEditor(this)
 
   # Create an {Editor} with its initial state based on this object
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
+    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
     newEditor.setScrollTop(@getScrollTop())
     newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
-    atom.project.addEditor(newEditor)
     newEditor
 
   # Public: Get the title the editor's title for display in other parts of the
@@ -915,7 +913,7 @@ class Editor extends Model
       for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true, autoscroll: true)
 
   # Move lines intersecting the most recent selection down by one row in screen
   # coordinates.
@@ -971,7 +969,7 @@ class Editor extends Model
       for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
@@ -1004,6 +1002,12 @@ class Editor extends Model
     deprecate("Use Editor::duplicateLines() instead")
     @duplicateLines()
 
+  # Public: Mutate the text of all the selections in a single transaction.
+  #
+  # All the changes made inside the given {Function} can be reverted with a
+  # single call to {::undo}.
+  #
+  # fn - A {Function} that will be called with each {Selection}.
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 

@@ -48,6 +48,8 @@ class ThemeManager
   getEnabledThemeNames: ->
     themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
+    themeNames = themeNames.filter (themeName) ->
+      themeName and typeof themeName is 'string'
 
     # Reverse so the first (top) theme is loaded after the others. We want
     # the first/top theme to override later themes in the stack.

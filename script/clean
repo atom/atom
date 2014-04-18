@@ -23,9 +23,9 @@ var commands = [
   [home, '.atom', '.node-gyp'],
   [home, '.atom', 'storage'],
   [home, '.atom', '.npm'],
+  [home, '.atom', 'compile-cache'],
   [tmpdir, 'atom-build'],
   [tmpdir, 'atom-cached-atom-shells'],
-  [tmpdir, 'atom-compile-cache'],
 ];
 var run = function() {
   var next = commands.shift();

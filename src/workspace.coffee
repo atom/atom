@@ -1,10 +1,11 @@
 {deprecate} = require 'grim'
-{remove, last} = require 'underscore-plus'
+_ = require 'underscore-plus'
 {join} = require 'path'
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
+Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
@@ -28,6 +29,9 @@ class Workspace extends Model
 
   constructor: ->
     super
+
+    @openers = []
+
     @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
     @registerOpener (filePath) =>
       switch filePath
@@ -50,6 +54,9 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
 
+  editorAdded: (editor) ->
+    @emit 'editor-created', editor
+
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
@@ -58,13 +65,18 @@ class Workspace extends Model
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditor: (callback) ->
-    atom.project.eachEditor(callback)
+    callback(editor) for editor in @getEditors()
+    @subscribe this, 'editor-created', (editor) -> callback(editor)
 
   # Public: Get all current editors in the workspace.
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
-    atom.project.getEditors()
+    editors = []
+    for pane in @paneContainer.getPanes()
+      editors.push(item) for item in pane.getItems() when item instanceof Editor
+
+    editors
 
   # Public: Open a given a URI in Atom asynchronously.
   #
@@ -172,14 +184,14 @@ class Workspace extends Model
   #
   # opener - A {Function} to be called when a path is being opened.
   registerOpener: (opener) ->
-    atom.project.registerOpener(opener)
+    @openers.push(opener)
 
   # Public: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
-    atom.project.unregisterOpener(opener)
+    _.remove(@openers, opener)
 
   getOpeners: ->
-    atom.project.openers
+    @openers
 
   # Public: Get the active {Pane}.
   #
@@ -210,6 +222,12 @@ class Workspace extends Model
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
+
+  # Public: Get the active {Pane}'s active item.
+  #
+  # Returns an pane item {Object}.
+  getActivePaneItem: ->
+    @paneContainer.getActivePane().getActiveItem()
 
   # Public: Save the active pane item.
   #
@@ -262,7 +280,7 @@ class Workspace extends Model
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
     if uri = item.getUri?()
-      remove(@destroyedItemUris, uri)
+      _.remove(@destroyedItemUris, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
   onPaneItemDestroyed: (item) =>

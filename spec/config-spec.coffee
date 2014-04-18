@@ -36,14 +36,52 @@ describe "Config", ->
 
     describe "when the value equals the default value", ->
       it "does not store the value", ->
-        atom.config.setDefaults("foo", same: 1, changes: 1)
+        atom.config.setDefaults "foo",
+          same: 1
+          changes: 1
+          sameArray: [1, 2, 3]
+          sameObject: {a: 1, b: 2}
+          null: null
+          undefined: undefined
         expect(atom.config.settings.foo).toBeUndefined()
+
         atom.config.set('foo.same', 1)
         atom.config.set('foo.changes', 2)
+        atom.config.set('foo.sameArray', [1, 2, 3])
+        atom.config.set('foo.null', undefined)
+        atom.config.set('foo.undefined', null)
+        atom.config.set('foo.sameObject', {b: 2, a: 1})
         expect(atom.config.settings.foo).toEqual {changes: 2}
 
         atom.config.set('foo.changes', 1)
         expect(atom.config.settings.foo).toEqual {}
+
+  describe ".getDefault(keyPath)", ->
+    it "returns a clone of the default value", ->
+      atom.config.setDefaults("foo", same: 1, changes: 1)
+      expect(atom.config.getDefault('foo.same')).toBe 1
+      expect(atom.config.getDefault('foo.changes')).toBe 1
+
+      atom.config.set('foo.same', 2)
+      atom.config.set('foo.changes', 3)
+      expect(atom.config.getDefault('foo.same')).toBe 1
+      expect(atom.config.getDefault('foo.changes')).toBe 1
+
+      initialDefaultValue = [1, 2, 3]
+      atom.config.setDefaults("foo", bar: initialDefaultValue)
+      expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
+      expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
+
+  describe ".isDefault(keyPath)", ->
+    it "returns true when the value of the key path is its default value", ->
+      atom.config.setDefaults("foo", same: 1, changes: 1)
+      expect(atom.config.isDefault('foo.same')).toBe true
+      expect(atom.config.isDefault('foo.changes')).toBe true
+
+      atom.config.set('foo.same', 2)
+      atom.config.set('foo.changes', 3)
+      expect(atom.config.isDefault('foo.same')).toBe false
+      expect(atom.config.isDefault('foo.changes')).toBe false
 
   describe ".toggle(keyPath)", ->
     it "negates the boolean value of the current key path value", ->

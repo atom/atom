@@ -1,33 +1,29 @@
 crypto = require 'crypto'
-fs = require 'fs'
 path = require 'path'
-os = require 'os'
 
 CoffeeScript = require 'coffee-script'
 CSON = require 'season'
-mkdir = require('mkdirp').sync
+fs = require 'fs-plus'
 
-tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
-cacheDir = path.join(tmpDir, 'atom-compile-cache')
+cacheDir = path.join(fs.getHomeDirectory(), 'compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
 getCachePath = (coffee) ->
   digest = crypto.createHash('sha1').update(coffee, 'utf8').digest('hex')
-  path.join(coffeeCacheDir, "#{digest}.coffee")
+  path.join(coffeeCacheDir, "#{digest}.js")
 
 getCachedJavaScript = (cachePath) ->
-  if stat = fs.statSyncNoException(cachePath)
+  if fs.isFileSync(cachePath)
     try
-      fs.readFileSync(cachePath, 'utf8') if stat.isFile()
+      fs.readFileSync(cachePath, 'utf8')
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
-  {js,v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
+  {js, v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
   # Include source map in the web page environment.
   if btoa? and JSON? and unescape? and encodeURIComponent?
     js = "#{js}\n//# sourceMappingURL=data:application/json;base64,#{btoa unescape encodeURIComponent v3SourceMap}\n//# sourceURL=#{filePath}"
   try
-    mkdir(path.dirname(cachePath))
     fs.writeFileSync(cachePath, js)
   js
 

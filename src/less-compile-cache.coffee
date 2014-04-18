@@ -1,16 +1,14 @@
 path = require 'path'
-os = require 'os'
+fs = require 'fs-plus'
 LessCache = require 'less-cache'
 {Subscriber} = require 'emissary'
-
-tmpDir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
 
 # {LessCache} wrapper used by {ThemeManager} to read stylesheets.
 module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)
 
-  @cacheDir: path.join(tmpDir, 'atom-compile-cache', 'less')
+  @cacheDir: path.join(fs.getHomeDirectory(), 'compile-cache', 'less')
 
   constructor: ({resourcePath, importPaths}) ->
     @lessSearchPaths = [
