@@ -78,7 +78,7 @@ class MenuManager
       keystrokesByCommand = {}
       for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
         keystrokesByCommand[binding.command] ?= []
-        keystrokesByCommand[binding.command].unshift binding.keystroke
+        keystrokesByCommand[binding.command].unshift binding.keystrokes
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
