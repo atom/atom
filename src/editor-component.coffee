@@ -26,7 +26,7 @@ EditorComponent = React.createClass
     visibleRowRange = editor.getVisibleRowRange()
     scrollTop = editor.getScrollTop()
 
-    className = 'editor react'
+    className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
