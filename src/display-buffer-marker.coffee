@@ -140,10 +140,10 @@ class DisplayBufferMarker
     @bufferMarker.isDestroyed()
 
   getAttributes: ->
-    @bufferMarker.getAttributes()
+    @bufferMarker.getProperties()
 
   setAttributes: (attributes) ->
-    @bufferMarker.setAttributes(attributes)
+    @bufferMarker.setProperties(attributes)
 
   matchesAttributes: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)

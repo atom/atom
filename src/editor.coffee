@@ -381,7 +381,7 @@ class Editor extends Model
     else
       endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
-    @buffer.change([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
   # Public: Get the indentation level of the given line of text.
   #
@@ -456,8 +456,8 @@ class Editor extends Model
   # {Delegates to: TextBuffer.nextNonBlankRow}
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
 
-  # {Delegates to: TextBuffer.getEofPosition}
-  getEofBufferPosition: -> @buffer.getEofPosition()
+  # {Delegates to: TextBuffer.getEndPosition}
+  getEofBufferPosition: -> @buffer.getEndPosition()
 
   # Public: Returns a {Number} representing the last zero-indexed buffer row
   # number of the editor.
@@ -1348,7 +1348,7 @@ class Editor extends Model
   # text - A {String}
   #
   # Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange: (range, text) -> @getBuffer().change(range, text)
+  setTextInBufferRange: (range, text) -> @getBuffer().setTextInRange(range, text)
 
   # Public: Get the {Range} of the paragraph surrounding the most recently added
   # cursor.

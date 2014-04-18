@@ -270,7 +270,7 @@ describe "Project", ->
 
       it "does NOT save when modified", ->
         editor = atom.project.openSync('sample.js')
-        editor.buffer.change([[0,0],[0,0]], 'omg')
+        editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
         expect(editor.isModified()).toBeTruthy()
 
         results = []

@@ -53,11 +53,11 @@ class LanguageMode
           buffer.transact ->
             columnStart = startMatch[1].length
             columnEnd = columnStart + startMatch[2].length
-            buffer.change([[start, columnStart], [start, columnEnd]], "")
+            buffer.setTextInRange([[start, columnStart], [start, columnEnd]], "")
 
             endLength = buffer.lineLengthForRow(end) - endMatch[2].length
             endColumn = endLength - endMatch[1].length
-            buffer.change([[end, endColumn], [end, endLength]], "")
+            buffer.setTextInRange([[end, endColumn], [end, endLength]], "")
       else
         buffer.transact ->
           buffer.insert([start, 0], commentStartString)
@@ -72,7 +72,7 @@ class LanguageMode
           if match = commentStartRegex.search(buffer.lineForRow(row))
             columnStart = match[1].length
             columnEnd = columnStart + match[2].length
-            buffer.change([[row, columnStart], [row, columnEnd]], "")
+            buffer.setTextInRange([[row, columnStart], [row, columnEnd]], "")
       else
         if start is end
           indent = @editor.indentationForBufferRow(start)
@@ -86,7 +86,7 @@ class LanguageMode
           if indentLength = line.match(indentRegex)?[0].length
             buffer.insert([row, indentLength], commentStartString)
           else
-            buffer.change([[row, 0], [row, indentString.length]], indentString + commentStartString)
+            buffer.setTextInRange([[row, 0], [row, indentString.length]], indentString + commentStartString)
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->

@@ -493,8 +493,8 @@ class DisplayBuffer extends Model
   # options - Options to pass to the {Marker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markBufferRange: (args...) ->
-    @getMarker(@buffer.markRange(args...).id)
+  markBufferRange: (range, options) ->
+    @getMarker(@buffer.markRange(range, options).id)
 
   # Public: Constructs a new marker at the given screen position.
   #
