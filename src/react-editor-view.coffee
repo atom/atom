@@ -37,6 +37,12 @@ class ReactEditorView extends View
   pixelPositionForBufferPosition: (bufferPosition) ->
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
+  pixelPositionForScreenPosition: (screenPosition) ->
+    @editor.pixelPositionForScreenPosition(screenPosition)
+
+  appendToLinesView: (view) ->
+    @find('.scroll-view-content').prepend(view)
+
   beforeRemove: ->
     React.unmountComponentAtNode(@element)
     @attached = false
