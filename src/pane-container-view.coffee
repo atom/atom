@@ -55,9 +55,9 @@ class PaneContainerView extends View
 
   confirmClose: ->
     saved = true
-    for pane in @getPaneViews()
-      for item in pane.getItems()
-        if not pane.promptToSaveItem(item)
+    for paneView in @getPaneViews()
+      for item in paneView.getItems()
+        if not paneView.promptToSaveItem(item)
           saved = false
           break
     saved
@@ -65,17 +65,17 @@ class PaneContainerView extends View
   getPaneViews: ->
     @find('.pane').views()
 
-  indexOfPane: (pane) ->
-    @getPaneViews().indexOf(pane.view())
+  indexOfPane: (paneView) ->
+    @getPaneViews().indexOf(paneView.view())
 
   paneAtIndex: (index) ->
     @getPaneViews()[index]
 
   eachPaneView: (callback) ->
-    callback(pane) for pane in @getPaneViews()
-    paneAttached = (e) -> callback($(e.target).view())
-    @on 'pane:attached', paneAttached
-    off: => @off 'pane:attached', paneAttached
+    callback(paneView) for paneView in @getPaneViews()
+    paneViewAttached = (e) -> callback($(e.target).view())
+    @on 'pane:attached', paneViewAttached
+    off: => @off 'pane:attached', paneViewAttached
 
   getFocusedPane: ->
     @find('.pane:has(:focus)').view()
@@ -91,7 +91,7 @@ class PaneContainerView extends View
     @model.activePaneItem
 
   getActiveView: ->
-    @getActivePane()?.activeView
+    @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
     @viewForModel(@model.paneForUri(uri))
@@ -120,29 +120,29 @@ class PaneContainerView extends View
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    pane = @getActivePane()
-    box = @boundingBoxForPane(pane)
-    panes = @getPaneViews()
-      .filter (otherPane) =>
-        otherBox = @boundingBoxForPane(otherPane)
+    paneView = @getActivePaneView()
+    box = @boundingBoxForPaneView(paneView)
+    paneViews = @getPaneViews()
+      .filter (otherPaneView) =>
+        otherBox = @boundingBoxForPaneView(otherPaneView)
         switch direction
           when 'left' then otherBox.right.x <= box.left.x
           when 'right' then otherBox.left.x >= box.right.x
           when 'above' then otherBox.bottom.y <= box.top.y
           when 'below' then otherBox.top.y >= box.bottom.y
-      .sort (paneA, paneB) =>
-        boxA = @boundingBoxForPane(paneA)
-        boxB = @boundingBoxForPane(paneB)
+      .sort (paneViewA, paneViewB) =>
+        boxA = @boundingBoxForPaneView(paneViewA)
+        boxB = @boundingBoxForPaneView(paneViewB)
         switch direction
           when 'left' then distance(box.left, boxA.right) - distance(box.left, boxB.right)
           when 'right' then distance(box.right, boxA.left) - distance(box.right, boxB.left)
           when 'above' then distance(box.top, boxA.bottom) - distance(box.top, boxB.bottom)
           when 'below' then distance(box.bottom, boxA.top) - distance(box.bottom, boxB.top)
 
-    panes[0]
+    paneViews[0]
 
-  boundingBoxForPane: (pane) ->
-    boundingBox = pane[0].getBoundingClientRect()
+  boundingBoxForPaneView: (paneView) ->
+    boundingBox = paneView[0].getBoundingClientRect()
 
     left: {x: boundingBox.left, y: boundingBox.top}
     right: {x: boundingBox.right, y: boundingBox.top}

@@ -27,7 +27,7 @@ describe "PaneContainerView", ->
   afterEach ->
     atom.deserializers.remove(TestView)
 
-  describe ".getActivePane()", ->
+  describe ".getActivePaneView()", ->
     it "returns the most-recently focused pane", ->
       focusStealer = $$ -> @div tabindex: -1, "focus stealer"
       focusStealer.attachToDom()
@@ -35,15 +35,15 @@ describe "PaneContainerView", ->
 
       pane2.focus()
       expect(container.getFocusedPane()).toBe pane2
-      expect(container.getActivePane()).toBe pane2
+      expect(container.getActivePaneView()).toBe pane2
 
       focusStealer.focus()
       expect(container.getFocusedPane()).toBeUndefined()
-      expect(container.getActivePane()).toBe pane2
+      expect(container.getActivePaneView()).toBe pane2
 
       pane3.focus()
       expect(container.getFocusedPane()).toBe pane3
-      expect(container.getActivePane()).toBe pane3
+      expect(container.getActivePaneView()).toBe pane3
 
   describe ".eachPaneView(callback)", ->
     it "runs the callback with all current and future panes until the subscription is cancelled", ->

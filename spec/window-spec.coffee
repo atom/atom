@@ -102,7 +102,7 @@ describe "Window", ->
     it "unsubscribes from all buffers", ->
       atom.workspaceView.openSync('sample.js')
       buffer = atom.workspaceView.getActivePaneItem().buffer
-      pane = atom.workspaceView.getActivePane()
+      pane = atom.workspaceView.getActivePaneView()
       pane.splitRight(pane.copyActiveItem())
       expect(atom.workspaceView.find('.editor').length).toBe 2
 
