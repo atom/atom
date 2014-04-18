@@ -11,9 +11,9 @@ module.exports =
 EditorScrollViewComponent = React.createClass
   displayName: 'EditorScrollViewComponent'
 
-  measurementPaused: false
   measurementPending: false
-  measurementRequested: false
+  overflowChangedEventsPaused: false
+  overflowChangedWhilePaused: false
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
@@ -43,33 +43,45 @@ EditorScrollViewComponent = React.createClass
           SelectionsComponent({editor})
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'overflowchanged', @requestMeasurement
+    @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
+    window.addEventListener('resize', @onWindowResize)
+
     @measureHeightAndWidth()
 
+  componentDidUnmount: ->
+    window.removeEventListener('resize', @onWindowResize)
+
   componentDidUpdate: ->
-    @pauseMeasurement()
+    @pauseOverflowChangedEvents()
 
-  requestMeasurement: ->
-    if @measurementPaused
-      @measurementRequested = true
-    else unless @measurementPending
-      @measurementPending = true
-      requestAnimationFrame =>
-        @measurementPending = false
-        @measureHeightAndWidth()
-
-  pauseMeasurement: ->
-    @measurementPaused = true
-    @resumeOverflowChangedEventsAfterDelay ?= debounce(@resumeMeasurement, 500)
-    @resumeOverflowChangedEventsAfterDelay()
-
-  resumeMeasurement: ->
-    @measurementPaused = false
-    if @measurementRequested
-      @measurementRequested = false
+  onOverflowChanged: ->
+    if @overflowChangedEventsPaused
+      @overflowChangedWhilePaused = true
+    else
       @requestMeasurement()
 
-  resumeMeasurementAfterDelay: null
+  onWindowResize: ->
+    @requestMeasurement()
+
+  pauseOverflowChangedEvents: ->
+    @overflowChangedEventsPaused = true
+    @resumeOverflowChangedEventsAfterDelay ?= debounce(@resumeOverflowChangedEvents, 500)
+    @resumeOverflowChangedEventsAfterDelay()
+
+  resumeOverflowChangedEvents: ->
+    if @overflowChangedWhilePaused
+      @overflowChangedWhilePaused = false
+      @requestMeasurement()
+
+  resumeOverflowChangedEventsAfterDelay: null
+
+  requestMeasurement: ->
+    return if @measurementPending
+
+    @measurementPending = true
+    requestAnimationFrame =>
+      @measurementPending = false
+      @measureHeightAndWidth()
 
   onInput: (char, replaceLastCharacter) ->
     {editor} = @props
