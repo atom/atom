@@ -4,7 +4,6 @@ path = require 'path'
 CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
-mkdir = require('mkdirp').sync
 
 cacheDir = path.join(fs.getHomeDirectory(), 'compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
@@ -25,7 +24,6 @@ compileCoffeeScript = (coffee, filePath, cachePath) ->
   if btoa? and JSON? and unescape? and encodeURIComponent?
     js = "#{js}\n//# sourceMappingURL=data:application/json;base64,#{btoa unescape encodeURIComponent v3SourceMap}\n//# sourceURL=#{filePath}"
   try
-    mkdir(path.dirname(cachePath))
     fs.writeFileSync(cachePath, js)
   js
 
