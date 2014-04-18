@@ -188,17 +188,17 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
       it "uncomments lines with leading whitespace", ->
-        buffer.change([[2, 0], [2, Infinity]], "  /*width: 110%;*/")
+        buffer.setTextInRange([[2, 0], [2, Infinity]], "  /*width: 110%;*/")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "  width: 110%;"
 
       it "uncomments lines with trailing whitespace", ->
-        buffer.change([[2, 0], [2, Infinity]], "/*width: 110%;*/  ")
+        buffer.setTextInRange([[2, 0], [2, Infinity]], "/*width: 110%;*/  ")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "width: 110%;  "
 
       it "uncomments lines with leading and trailing whitespace", ->
-        buffer.change([[2, 0], [2, Infinity]], "   /*width: 110%;*/ ")
+        buffer.setTextInRange([[2, 0], [2, Infinity]], "   /*width: 110%;*/ ")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "   width: 110%; "
 

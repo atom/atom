@@ -119,7 +119,7 @@ describe "TokenizedBuffer", ->
 
       describe "when there is a buffer change surrounding an invalid row", ->
         it "pushes the invalid row to the end of the change", ->
-          buffer.change([[4, 0], [6, 0]], "\n\n\n")
+          buffer.setTextInRange([[4, 0], [6, 0]], "\n\n\n")
           changeHandler.reset()
 
           expect(tokenizedBuffer.firstInvalidRow()).toBe 8
@@ -128,7 +128,7 @@ describe "TokenizedBuffer", ->
       describe "when there is a buffer change inside an invalid region", ->
         it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
-          buffer.change([[6, 0], [7, 0]], "\n\n\n")
+          buffer.setTextInRange([[6, 0], [7, 0]], "\n\n\n")
 
           expect(tokenizedBuffer.lineForScreenRow(6).ruleStack?).toBeFalsy()
           expect(tokenizedBuffer.lineForScreenRow(7).ruleStack?).toBeFalsy()
@@ -143,7 +143,7 @@ describe "TokenizedBuffer", ->
       describe "when there is a buffer change that is smaller than the chunk size", ->
         describe "when lines are updated, but none are added or removed", ->
           it "updates tokens to reflect the change", ->
-            buffer.change([[0, 0], [2, 0]], "foo()\n7\n")
+            buffer.setTextInRange([[0, 0], [2, 0]], "foo()\n7\n")
 
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
             expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
@@ -185,7 +185,7 @@ describe "TokenizedBuffer", ->
 
         describe "when lines are both updated and removed", ->
           it "updates tokens to reflect the change", ->
-            buffer.change([[1, 0], [3, 0]], "foo()")
+            buffer.setTextInRange([[1, 0], [3, 0]], "foo()")
 
             # previous line 0 remains
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
@@ -209,7 +209,7 @@ describe "TokenizedBuffer", ->
             buffer.insert([5, 30], '/* */')
             changeHandler.reset()
 
-            buffer.change([[2, 0], [3, 0]], '/*')
+            buffer.setTextInRange([[2, 0], [3, 0]], '/*')
             expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
             expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js']
             expect(changeHandler).toHaveBeenCalled()
@@ -228,7 +228,7 @@ describe "TokenizedBuffer", ->
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
-            buffer.change([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
+            buffer.setTextInRange([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
 
             # previous line 0 remains
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
