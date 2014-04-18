@@ -9,6 +9,10 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   render: ->
+    div className: 'gutter',
+      @renderLineNumbers() if @isMounted()
+
+  renderLineNumbers: ->
     {editor, visibleRowRange, preservedScreenRow, scrollTop} = @props
     [startRow, endRow] = visibleRowRange
     lineHeightInPixels = editor.getLineHeight()
@@ -21,6 +25,7 @@ GutterComponent = React.createClass
 
     lineNumbers = []
     tokenizedLines = editor.linesForScreenRows(startRow, endRow - 1)
+    tokenizedLines.push({id: 0}) if tokenizedLines.length is 0
     for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       if bufferRow is lastBufferRow
         lineNumber = '•'
@@ -28,7 +33,7 @@ GutterComponent = React.createClass
         lastBufferRow = bufferRow
         lineNumber = (bufferRow + 1).toString()
 
-      key = tokenizedLines[i]?.id ? 0
+      key = tokenizedLines[i]?.id
       screenRow = startRow + i
       lineNumbers.push(LineNumberComponent({key, lineNumber, maxDigits, bufferRow, screenRow}))
       lastBufferRow = bufferRow
@@ -36,9 +41,8 @@ GutterComponent = React.createClass
     if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
       lineNumbers.push(LineNumberComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
 
-    div className: 'gutter',
-      div className: 'line-numbers', style: style,
-        lineNumbers
+    div className: 'line-numbers', style: style,
+      lineNumbers
 
   componentWillUnmount: ->
     @unsubscribe()

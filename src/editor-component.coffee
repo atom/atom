@@ -23,8 +23,12 @@ EditorComponent = React.createClass
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-    visibleRowRange = editor.getVisibleRowRange()
-    scrollTop = editor.getScrollTop()
+    if @isMounted()
+      visibleRowRange = editor.getVisibleRowRange()
+      scrollHeight = editor.getScrollHeight()
+      scrollWidth = editor.getScrollWidth()
+      scrollTop = editor.getScrollTop()
+      scrollLeft = editor.getScrollLeft()
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
@@ -44,16 +48,16 @@ EditorComponent = React.createClass
         className: 'vertical-scrollbar'
         orientation: 'vertical'
         onScroll: @onVerticalScroll
-        scrollTop: editor.getScrollTop()
-        scrollHeight: editor.getScrollHeight()
+        scrollTop: scrollTop
+        scrollHeight: scrollHeight
 
       ScrollbarComponent
         ref: 'horizontalScrollbar'
         className: 'horizontal-scrollbar'
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
-        scrollLeft: editor.getScrollLeft()
-        scrollWidth: editor.getScrollWidth()
+        scrollLeft: scrollLeft
+        scrollWidth: scrollWidth
 
   getInitialState: -> {}
 
@@ -61,16 +65,17 @@ EditorComponent = React.createClass
     cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 200
 
-  componentDidMount: ->
+  componentWillMount: ->
     @pendingChanges = []
     @props.editor.manageScrollPosition = true
-
-    @listenForDOMEvents()
-    @listenForCommands()
-    @observeEditor()
     @observeConfig()
 
+  componentDidMount: ->
+    @observeEditor()
+    @listenForDOMEvents()
+    @listenForCommands()
     @props.editor.setVisible(true)
+    @requestUpdate()
 
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
@@ -317,8 +322,8 @@ EditorComponent = React.createClass
     else
       @forceUpdate()
 
-  updateModelDimensions: ->
-    @refs.scrollView.updateModelDimensions()
+  measureHeightAndWidth: ->
+    @refs.scrollView.measureHeightAndWidth()
 
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @props.editor.consolidateSelections()

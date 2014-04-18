@@ -38,7 +38,7 @@ describe "EditorComponent", ->
   describe "line rendering", ->
     it "renders only the currently-visible lines", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       lines = node.querySelectorAll('.line')
       expect(lines.length).toBe 6
@@ -121,7 +121,7 @@ describe "EditorComponent", ->
   describe "gutter rendering", ->
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       lines = node.querySelectorAll('.line-number')
       expect(lines.length).toBe 6
@@ -146,7 +146,7 @@ describe "EditorComponent", ->
       editor.setSoftWrap(true)
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = 30 * charWidth + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       lines = node.querySelectorAll('.line-number')
       expect(lines.length).toBe 6
@@ -163,7 +163,7 @@ describe "EditorComponent", ->
       cursor1.setScreenPosition([0, 5])
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
@@ -258,7 +258,7 @@ describe "EditorComponent", ->
       inputNode = node.querySelector('.hidden-input')
       node.style.height = 5 * lineHeightInPixels + 'px'
       node.style.width = 10 * charWidth + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
       editor.setScrollTop(3 * lineHeightInPixels)
@@ -292,6 +292,7 @@ describe "EditorComponent", ->
       # 1-line selection
       editor.setSelectedScreenRange([[1, 6], [1, 10]])
       regions = node.querySelectorAll('.selection .region')
+
       expect(regions.length).toBe 1
       regionRect = regions[0].getBoundingClientRect()
       expect(regionRect.top).toBe 1 * lineHeightInPixels
@@ -355,7 +356,7 @@ describe "EditorComponent", ->
         it "moves the cursor to the nearest screen position", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
           node.style.width = 10 * charWidth + 'px'
-          component.updateModelDimensions()
+          component.measureHeightAndWidth()
           editor.setScrollTop(3.5 * lineHeightInPixels)
           editor.setScrollLeft(2 * charWidth)
 
@@ -468,7 +469,7 @@ describe "EditorComponent", ->
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
 
@@ -477,7 +478,7 @@ describe "EditorComponent", ->
 
     it "updates the horizontal scrollbar and scroll view content x transform based on the scrollLeft of the model", ->
       node.style.width = 30 * charWidth + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       scrollViewContentNode = node.querySelector('.scroll-view-content')
       expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(0px, 0px)"
@@ -489,7 +490,7 @@ describe "EditorComponent", ->
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       node.style.width = 30 * charWidth + 'px'
-      component.updateModelDimensions()
+      component.measureHeightAndWidth()
 
       expect(editor.getScrollLeft()).toBe 0
       horizontalScrollbarNode.scrollLeft = 100
@@ -501,7 +502,7 @@ describe "EditorComponent", ->
       it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.updateModelDimensions()
+        component.measureHeightAndWidth()
 
         expect(verticalScrollbarNode.scrollTop).toBe 0
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
@@ -517,7 +518,7 @@ describe "EditorComponent", ->
       it "preserves the target of the mousewheel event when scrolling vertically", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.updateModelDimensions()
+        component.measureHeightAndWidth()
 
         lineNodes = node.querySelectorAll('.line')
         expect(lineNodes.length).toBe 6

@@ -111,10 +111,10 @@ class DisplayBuffer extends Model
   getHorizontalScrollMargin: -> @horizontalScrollMargin
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHeight: -> @height
+  getHeight: -> @height ? @getScrollHeight()
   setHeight: (@height) -> @height
 
-  getWidth: -> @width
+  getWidth: -> @width ? @getScrollWidth()
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
@@ -172,18 +172,21 @@ class DisplayBuffer extends Model
     @charWidthsByScope = {}
 
   getScrollHeight: ->
+    unless @getLineHeight() > 0
+      throw new Error("You must assign lineHeight before calling ::getScrollHeight()")
+
     @getLineCount() * @getLineHeight()
 
   getScrollWidth: ->
     @getMaxLineLength() * @getDefaultCharWidth()
 
   getVisibleRowRange: ->
-    return [0, 0] unless @getLineHeight() > 0
-    return [0, @getLineCount()] if @getHeight() is 0
+    unless @getLineHeight() > 0
+      throw new Error("You must assign a non-zero lineHeight before calling ::getVisibleRowRange()")
 
     heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
-    endRow = Math.ceil(startRow + heightInLines)
+    endRow = Math.min(@getLineCount(), Math.ceil(startRow + heightInLines))
     [startRow, endRow]
 
   intersectsVisibleRowRange: (startRow, endRow) ->

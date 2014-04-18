@@ -11,26 +11,28 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {editor, visibleRowRange, preservedScreenRow, showIndentGuide} = @props
+    if @isMounted()
+      {editor, visibleRowRange, preservedScreenRow, showIndentGuide} = @props
+      [startRow, endRow] = visibleRowRange
 
-    [startRow, endRow] = visibleRowRange
-    lineHeightInPixels = editor.getLineHeight()
-    paddingTop = startRow * lineHeightInPixels
-    paddingBottom = (editor.getScreenLineCount() - endRow) * lineHeightInPixels
+      style =
+        paddingTop: startRow * editor.getLineHeight()
+        paddingBottom: (editor.getScreenLineCount() - endRow) * editor.getLineHeight()
 
-    lines =
-      for tokenizedLine, i in editor.linesForScreenRows(startRow, endRow - 1)
-        LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, screenRow: startRow + i})
+      lines =
+        for tokenizedLine, i in editor.linesForScreenRows(startRow, endRow - 1)
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, screenRow: startRow + i})
 
-    if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
-      lines.push(LineComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
+      if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
+        lines.push(LineComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
 
-    div className: 'lines', ref: 'lines', style: {paddingTop, paddingBottom},
-      lines
+    div {className: 'lines', style}, lines
+
+  componentWillMount: ->
+    @measuredLines = new WeakSet
 
   componentDidMount: ->
-    @measuredLines = new WeakSet
-    @updateModelDimensions()
+    @measureLineHeightAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'preservedScreenRow', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
@@ -42,31 +44,28 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    @updateModelDimensions() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+    @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.preservedScreenRow?
 
-  updateModelDimensions: ->
-    {editor} = @props
-    {lineHeightInPixels, charWidth} = @measureLineDimensions()
-    editor.setLineHeight(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
-
-  measureLineDimensions: ->
-    linesNode = @refs.lines.getDOMNode()
-    linesNode.appendChild(DummyLineNode)
-    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
+  measureLineHeightAndCharWidth: ->
+    node = @getDOMNode()
+    node.appendChild(DummyLineNode)
+    lineHeight = DummyLineNode.getBoundingClientRect().height
     charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
-    linesNode.removeChild(DummyLineNode)
-    {lineHeightInPixels, charWidth}
+    node.removeChild(DummyLineNode)
+
+    {editor} = @props
+    editor.setLineHeight(lineHeight)
+    editor.setDefaultCharWidth(charWidth)
 
   measureCharactersInNewLines: ->
     [visibleStartRow, visibleEndRow] = @props.visibleRowRange
-    linesNode = @refs.lines.getDOMNode()
+    node = @getDOMNode()
 
     for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
       unless @measuredLines.has(tokenizedLine)
-        lineNode = linesNode.children[i]
+        lineNode = node.children[i]
         @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->

@@ -13,11 +13,13 @@ EditorScrollViewComponent = React.createClass
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     {visibleRowRange, preservedScreenRow, pendingChanges, cursorsMoved, onInputFocused, onInputBlurred} = @props
-    contentStyle =
-      height: editor.getScrollHeight()
-      WebkitTransform: "translate(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px)"
 
-    div className: 'scroll-view', ref: 'scrollView',
+    if @isMounted()
+      contentStyle =
+        height: editor.getScrollHeight()
+        WebkitTransform: "translate(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px)"
+
+    div className: 'scroll-view',
       InputComponent
         ref: 'input'
         className: 'hidden-input'
@@ -36,8 +38,8 @@ EditorScrollViewComponent = React.createClass
           SelectionsComponent({editor})
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'overflowchanged', @updateModelDimensions
-    @updateModelDimensions()
+    @getDOMNode().addEventListener 'overflowchanged', @measureHeightAndWidth
+    @measureHeightAndWidth()
 
   onInput: (char, replaceLastCharacter) ->
     {editor} = @props
@@ -109,12 +111,14 @@ EditorScrollViewComponent = React.createClass
     {editor} = @props
     {clientX, clientY} = event
 
-    editorClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
+    editorClientRect = @getDOMNode().getBoundingClientRect()
     top = clientY - editorClientRect.top + editor.getScrollTop()
     left = clientX - editorClientRect.left + editor.getScrollLeft()
     {top, left}
 
   getHiddenInputPosition: ->
+    return {top: 0, left: 0} unless @isMounted()
+
     {editor} = @props
 
     if cursor = editor.getCursor()
@@ -129,11 +133,20 @@ EditorScrollViewComponent = React.createClass
 
     {top, left}
 
-  updateModelDimensions: ->
+  # Measure explicitly-styled height and width and relay them to the model. If
+  # these values aren't explicitly styled, we assume the editor is unconstrained
+  # and use the scrollHeight / scrollWidth as its height and width in
+  # calculations.
+  measureHeightAndWidth: ->
     {editor} = @props
     node = @getDOMNode()
-    editor.setHeight(node.clientHeight)
-    editor.setWidth(node.clientWidth)
+    computedStyle = getComputedStyle(node)
+
+    unless computedStyle.height is '0px'
+      editor.setHeight(node.clientHeight)
+
+    unless computedStyle.width is '0px'
+      editor.setWidth(node.clientWidth)
 
   focus: ->
     @refs.input.focus()
