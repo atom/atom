@@ -1,5 +1,6 @@
 React = require 'react'
 {div} = require 'reactionary'
+{debounce} = require 'underscore-plus'
 
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
@@ -9,6 +10,10 @@ SelectionsComponent = require './selections-component'
 module.exports =
 EditorScrollViewComponent = React.createClass
   displayName: 'EditorScrollViewComponent'
+
+  measurementPaused: false
+  measurementPending: false
+  measurementRequested: false
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
@@ -38,8 +43,33 @@ EditorScrollViewComponent = React.createClass
           SelectionsComponent({editor})
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'overflowchanged', @measureHeightAndWidth
+    @getDOMNode().addEventListener 'overflowchanged', @requestMeasurement
     @measureHeightAndWidth()
+
+  componentDidUpdate: ->
+    @pauseMeasurement()
+
+  requestMeasurement: ->
+    if @measurementPaused
+      @measurementRequested = true
+    else unless @measurementPending
+      @measurementPending = true
+      requestAnimationFrame =>
+        @measurementPending = false
+        @measureHeightAndWidth()
+
+  pauseMeasurement: ->
+    @measurementPaused = true
+    @resumeOverflowChangedEventsAfterDelay ?= debounce(@resumeMeasurement, 500)
+    @resumeOverflowChangedEventsAfterDelay()
+
+  resumeMeasurement: ->
+    @measurementPaused = false
+    if @measurementRequested
+      @measurementRequested = false
+      @requestMeasurement()
+
+  resumeMeasurementAfterDelay: null
 
   onInput: (char, replaceLastCharacter) ->
     {editor} = @props
