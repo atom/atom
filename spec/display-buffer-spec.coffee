@@ -82,7 +82,7 @@ describe "DisplayBuffer", ->
 
         describe "when there is no whitespace before the boundary", ->
           it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
-            buffer.change([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
+            buffer.setTextInRange([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
             displayBuffer.setEditorWidthInChars(10)
             expect(displayBuffer.lineForRow(0).text).toBe 'abcdefghij'
             expect(displayBuffer.lineForRow(1).text).toBe 'klmnopqrst'
@@ -142,7 +142,7 @@ describe "DisplayBuffer", ->
 
       describe "when buffer lines are removed", ->
         it "removes lines and emits a change event", ->
-          buffer.change([[3, 21], [7, 5]], ';')
+          buffer.setTextInRange([[3, 21], [7, 5]], ';')
           expect(displayBuffer.lineForRow(3).text).toBe '    var pivot = items;'
           expect(displayBuffer.lineForRow(4).text).toBe '    return '
           expect(displayBuffer.lineForRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
@@ -330,7 +330,7 @@ describe "DisplayBuffer", ->
 
       describe "when the old range surrounds a fold", ->
         beforeEach ->
-          buffer.change([[1, 0], [5, 1]], 'party!')
+          buffer.setTextInRange([[1, 0], [5, 1]], 'party!')
 
         it "removes the fold and replaces the selection with the new text", ->
           expect(displayBuffer.lineForRow(0).text).toBe "0"
@@ -352,7 +352,7 @@ describe "DisplayBuffer", ->
           displayBuffer.createFold(2, 9)
           changeHandler.reset()
 
-          buffer.change([[1, 0], [10, 0]], 'goodbye')
+          buffer.setTextInRange([[1, 0], [10, 0]], 'goodbye')
 
           expect(displayBuffer.lineForRow(0).text).toBe "0"
           expect(displayBuffer.lineForRow(1).text).toBe "goodbye10"
@@ -371,7 +371,7 @@ describe "DisplayBuffer", ->
       describe "when the old range precedes lines with a fold", ->
         describe "when the new range precedes lines with a fold", ->
           it "updates the buffer and re-positions subsequent folds", ->
-            buffer.change([[0, 0], [1, 1]], 'abc')
+            buffer.setTextInRange([[0, 0], [1, 1]], 'abc')
 
             expect(displayBuffer.lineForRow(0).text).toBe "abc"
             expect(displayBuffer.lineForRow(1).fold).toBe fold1
@@ -394,7 +394,7 @@ describe "DisplayBuffer", ->
 
       describe "when the old range straddles the beginning of a fold", ->
         it "destroys the fold", ->
-          buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
+          buffer.setTextInRange([[1, 1], [3, 0]], "a\nb\nc\nd\n")
           expect(displayBuffer.lineForRow(1).text).toBe '1a'
           expect(displayBuffer.lineForRow(2).text).toBe 'b'
           expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
@@ -402,7 +402,7 @@ describe "DisplayBuffer", ->
 
       describe "when the old range follows a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
-          buffer.change([[10, 0], [11, 0]], 'abc')
+          buffer.setTextInRange([[10, 0], [11, 0]], 'abc')
 
           expect(displayBuffer.lineForRow(1).text).toBe "1"
           expect(displayBuffer.lineForRow(2).fold).toBe fold1
@@ -430,7 +430,7 @@ describe "DisplayBuffer", ->
 
         describe "when the end of the new range exceeds the end of the fold", ->
           it "expands the fold to contain all the inserted lines", ->
-            buffer.change([[3, 0], [4, 0]], 'a\nb\nc\nd\n')
+            buffer.setTextInRange([[3, 0], [4, 0]], 'a\nb\nc\nd\n')
             expect(fold1.getStartRow()).toBe 2
             expect(fold1.getEndRow()).toBe 7
 
@@ -447,7 +447,7 @@ describe "DisplayBuffer", ->
         describe "when the end of the new range precedes the end of the fold", ->
           it "destroys the fold", ->
             fold2.destroy()
-            buffer.change([[3, 0], [6, 0]], 'a\n')
+            buffer.setTextInRange([[3, 0], [6, 0]], 'a\n')
             expect(displayBuffer.lineForRow(2).text).toBe '2'
             expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
             expect(displayBuffer.lineForRow(3).text).toBe 'a'
@@ -831,7 +831,7 @@ describe "DisplayBuffer", ->
           expect(marker.getTailScreenPosition()).toEqual [5, 7]
           expect(marker2.isValid()).toBeFalsy()
 
-        buffer.change([[8, 0], [8, 2]], ".....")
+        buffer.setTextInRange([[8, 0], [8, 2]], ".....")
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(marker2ChangedHandler).toHaveBeenCalled()

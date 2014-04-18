@@ -74,7 +74,7 @@ class Selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
-    options.isReversed ?= @isReversed()
+    options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
@@ -293,7 +293,7 @@ class Selection
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editor.buffer.change(oldBufferRange, text, pick(options, 'undo'))
+    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
     if options.select
       @setBufferRange(newBufferRange, isReversed: wasReversed)
     else

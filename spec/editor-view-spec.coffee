@@ -1385,7 +1385,7 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
-          buffer.change([[1,0], [3,0]], "1\n2\n3\n")
+          buffer.setTextInRange([[1,0], [3,0]], "1\n2\n3\n")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
@@ -1398,21 +1398,21 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
-          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
+          buffer.setTextInRange([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
       describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
-          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
+          buffer.setTextInRange([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       describe "when the change the follows the last rendered row", ->
         it "does not change the rendered lines", ->
-          buffer.change([[12,0], [12,0]], "12\n13\n14\n")
+          buffer.setTextInRange([[12,0], [12,0]], "12\n13\n14\n")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
@@ -1422,7 +1422,7 @@ describe "EditorView", ->
         setEditorWidthInChars(editorView, maxLineLength)
         widthBefore = editorView.renderedLines.width()
         expect(widthBefore).toBe editorView.scrollView.width() + 20
-        buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
+        buffer.setTextInRange([[12,0], [12,0]], [1..maxLineLength*2].join(''))
         expect(editorView.renderedLines.width()).toBeGreaterThan widthBefore
 
     describe "when lines are removed", ->
@@ -1432,7 +1432,7 @@ describe "EditorView", ->
       it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
         maxLineLength = editor.getMaxScreenLineLength()
         setEditorWidthInChars(editorView, maxLineLength)
-        buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
+        buffer.setTextInRange([[12,0], [12,0]], [1..maxLineLength*2].join(''))
         expect(editorView.renderedLines.width()).toBeGreaterThan editorView.scrollView.width()
         widthBefore = editorView.renderedLines.width()
         buffer.delete([[12, 0], [12, Infinity]])
@@ -1445,7 +1445,7 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
-          buffer.change([[1,0], [2,0]], "")
+          buffer.setTextInRange([[1,0], [2,0]], "")
           expect(editorView.renderedLines.find(".line").length).toBe 6
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(11)
@@ -1457,21 +1457,21 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
-          buffer.change([[7,0], [11,0]], "1\n2\n")
+          buffer.setTextInRange([[7,0], [11,0]], "1\n2\n")
           expect(editorView.renderedLines.find(".line").length).toBe 5
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(10)
 
       describe "when the change straddles the last rendered row", ->
         it "renders the correct rows", ->
-          buffer.change([[2,0], [7,0]], "")
+          buffer.setTextInRange([[2,0], [7,0]], "")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       describe "when the change the follows the last rendered row", ->
         it "does not change the rendered lines", ->
-          buffer.change([[10,0], [12,0]], "")
+          buffer.setTextInRange([[10,0], [12,0]], "")
           expect(editorView.renderedLines.find(".line").length).toBe 7
           expect(editorView.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editorView.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
