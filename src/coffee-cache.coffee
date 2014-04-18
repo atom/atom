@@ -15,9 +15,9 @@ getCachePath = (coffee) ->
   path.join(coffeeCacheDir, "#{digest}.js")
 
 getCachedJavaScript = (cachePath) ->
-  if stat = fs.statSyncNoException(cachePath)
+  if fs.isFileSync(cachePath)
     try
-      fs.readFileSync(cachePath, 'utf8') if stat.isFile()
+      fs.readFileSync(cachePath, 'utf8')
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
   {js,v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
