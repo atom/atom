@@ -6,6 +6,8 @@ module.exports =
 class ReactEditorView extends View
   @content: -> @div class: 'editor react-wrapper'
 
+  focusOnAttach: false
+
   constructor: (@editor) ->
     super
 
@@ -32,6 +34,8 @@ class ReactEditorView extends View
       lines.addClass(klass)
       lines.length > 0
 
+    @focus() if @focusOnAttach
+
     @trigger 'editor:attached', [this]
 
   pixelPositionForBufferPosition: (bufferPosition) ->
@@ -52,4 +56,7 @@ class ReactEditorView extends View
     @closest('.pane').view()
 
   focus: ->
-    @component?.onFocus()
+    if @component?
+      @component.onFocus()
+    else
+      @focusOnAttach = true
