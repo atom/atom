@@ -19,7 +19,7 @@ getCachedJavaScript = (cachePath) ->
       fs.readFileSync(cachePath, 'utf8')
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
-  {js,v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
+  {js, v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
   # Include source map in the web page environment.
   if btoa? and JSON? and unescape? and encodeURIComponent?
     js = "#{js}\n//# sourceMappingURL=data:application/json;base64,#{btoa unescape encodeURIComponent v3SourceMap}\n//# sourceURL=#{filePath}"
