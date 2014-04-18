@@ -180,6 +180,8 @@ EditorScrollViewComponent = React.createClass
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureHeightAndWidth: ->
+    return unless @isMounted()
+
     {editor} = @props
     node = @getDOMNode()
     computedStyle = getComputedStyle(node)
