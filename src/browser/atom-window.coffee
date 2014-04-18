@@ -107,7 +107,7 @@ class AtomWindow
         when 1 then @browserWindow.restart()
 
     @browserWindow.on 'context-menu', (menuTemplate) =>
-      new ContextMenu(menuTemplate, @browserWindow)
+      new ContextMenu(menuTemplate, this)
 
     if @isSpec
       # Spec window's web view should always have focus

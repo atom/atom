@@ -39,6 +39,9 @@ class PaneContainer extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
+  getActivePane: ->
+    @activePane
+
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
 

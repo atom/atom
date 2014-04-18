@@ -81,6 +81,10 @@ class PaneContainerView extends View
     @find('.pane:has(:focus)').view()
 
   getActivePane: ->
+    deprecate("Use PaneContainerView::getActivePaneView instead.")
+    @getActivePaneView()
+
+  getActivePaneView: ->
     @viewForModel(@model.activePane)
 
   getActivePaneItem: ->
