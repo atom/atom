@@ -15,7 +15,7 @@
   "atomShellVersion": "0.11.10",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "^0.17.0",
+    "atom-keymap": "^0.18.0",
     "bootstrap": "git://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.7.0",
@@ -49,7 +49,7 @@
     "serializable": "1.x",
     "space-pen": "3.1.1",
     "temp": "0.5.0",
-    "text-buffer": "^2.0.3",
+    "text-buffer": "^2.1.0",
     "theorist": "1.x",
     "underscore-plus": "^1.1.2",
     "vm-compatibility-layer": "0.1.0"
