@@ -26,7 +26,7 @@ humanizeKeystrokes = (keystroke) ->
 
 getKeystroke = (bindings) ->
   if bindings?.length
-    "<span class=\"keystroke\">#{humanizeKeystrokes(bindings[0].keystroke)}</span>"
+    "<span class=\"keystroke\">#{humanizeKeystrokes(bindings[0].keystrokes)}</span>"
   else
     ''
 
@@ -40,9 +40,9 @@ jQuery.fn.setTooltip = (tooltipOptions, {command, commandElement}={}) ->
   tooltipOptions = {title: tooltipOptions} if _.isString(tooltipOptions)
 
   if commandElement
-    bindings = atom.keymaps.keyBindingsForCommandMatchingElement(command, commandElement)
+    bindings = atom.keymaps.findKeyBindings(command: command, target: commandElement[0])
   else if command
-    bindings = atom.keymaps.keyBindingsForCommand(command)
+    bindings = atom.keymaps.findKeyBindings(command: command)
 
   tooltipOptions.title = "#{tooltipOptions.title} #{getKeystroke(bindings)}"
 
