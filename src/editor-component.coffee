@@ -78,6 +78,7 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   componentWillUnmount: ->
+    @unsubscribe()
     @getDOMNode().removeEventListener 'mousewheel', @onMouseWheel
 
   componentWillUpdate: ->
