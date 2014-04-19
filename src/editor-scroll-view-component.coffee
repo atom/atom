@@ -159,19 +159,14 @@ EditorScrollViewComponent = React.createClass
     {top, left}
 
   getHiddenInputPosition: ->
-    return {top: 0, left: 0} unless @isMounted()
-
     {editor} = @props
+    return {top: 0, left: 0} unless @isMounted() and editor.getCursor()?
 
-    if cursor = editor.getCursor()
-      cursorRect = cursor.getPixelRect()
-      top = cursorRect.top - editor.getScrollTop()
-      top = Math.max(0, Math.min(editor.getHeight(), top))
-      left = cursorRect.left - editor.getScrollLeft()
-      left = Math.max(0, Math.min(editor.getWidth(), left))
-    else
-      top = 0
-      left = 0
+    {top, left, height, width} = editor.getCursor().getPixelRect()
+    top = top - editor.getScrollTop()
+    top = Math.max(0, Math.min(editor.getHeight() - height, top))
+    left = left - editor.getScrollLeft()
+    left = Math.max(0, Math.min(editor.getWidth() - width, left))
 
     {top, left}
 
