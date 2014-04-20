@@ -17,12 +17,12 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-    {visibleRowRange, preservedScreenRow, pendingChanges, cursorsMoved, onInputFocused, onInputBlurred} = @props
+    {renderedRowRange, pendingChanges, scrollingVertically, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       contentStyle =
         height: editor.getScrollHeight()
-        WebkitTransform: "translate(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px)"
+        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
 
     div className: 'scroll-view',
       InputComponent
@@ -37,7 +37,7 @@ EditorScrollViewComponent = React.createClass
         CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
         LinesComponent {
           ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-          visibleRowRange, preservedScreenRow, pendingChanges
+          renderedRowRange, pendingChanges, scrollingVertically
         }
         div className: 'underlayer',
           SelectionsComponent({editor})

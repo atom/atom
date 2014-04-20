@@ -39,6 +39,24 @@
   .scroll-view-content {
     position: relative;
   }
+
+  .gutter {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+
+    .line-number {
+      position: absolute;
+      left: 0;
+      right: 0;
+      padding: 0;
+      white-space: nowrap;
+
+      .icon-right {
+        padding: 0;
+        padding-left: .1em;
+      }
+    }
+  }
 }
 
 .editor {
@@ -67,7 +85,6 @@
 .editor .gutter .line-number {
   padding-left: .5em;
   opacity: 0.6;
-  position: relative;
 }
 
 .editor .gutter .line-numbers {

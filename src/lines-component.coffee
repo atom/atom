@@ -12,21 +12,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, visibleRowRange, preservedScreenRow, showIndentGuide} = @props
-      [startRow, endRow] = visibleRowRange
-
-      style =
-        paddingTop: startRow * editor.getLineHeight()
-        paddingBottom: (editor.getScreenLineCount() - endRow) * editor.getLineHeight()
+      {editor, renderedRowRange, lineHeight, showIndentGuide} = @props
+      [startRow, endRow] = renderedRowRange
 
       lines =
         for tokenizedLine, i in editor.linesForScreenRows(startRow, endRow - 1)
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, screenRow: startRow + i})
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, screenRow: startRow + i})
 
-      if preservedScreenRow? and (preservedScreenRow < startRow or endRow <= preservedScreenRow)
-        lines.push(LineComponent({key: editor.lineForScreenRow(preservedScreenRow).id, preserved: true}))
-
-    div {className: 'lines', style}, lines
+    div {className: 'lines'}, lines
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -35,18 +28,18 @@ LinesComponent = React.createClass
     @measureLineHeightAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'preservedScreenRow', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
 
-    {visibleRowRange, pendingChanges} = newProps
+    {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
-      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
+      return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
     false
 
   componentDidUpdate: (prevProps) ->
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
-    @measureCharactersInNewLines() unless @props.preservedScreenRow?
+    @measureCharactersInNewLines() unless @props.scrollingVertically
 
   measureLineHeightAndCharWidth: ->
     node = @getDOMNode()
@@ -60,7 +53,7 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   measureCharactersInNewLines: ->
-    [visibleStartRow, visibleEndRow] = @props.visibleRowRange
+    [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
     for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
@@ -110,9 +103,13 @@ LineComponent = React.createClass
   displayName: 'LineComponent'
 
   render: ->
-    {screenRow, preserved} = @props
+    {screenRow, lineHeight} = @props
 
-    div className: 'line', 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    style =
+      top: screenRow * lineHeight
+      position: 'absolute'
+
+    div className: 'line', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
     if @props.tokenizedLine.text.length is 0
@@ -140,5 +137,4 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
   shouldComponentUpdate: (newProps) ->
-    return false if newProps.preserved
-    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'preserved')
+    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight')

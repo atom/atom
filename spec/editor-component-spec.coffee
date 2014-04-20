@@ -48,16 +48,13 @@ describe "EditorComponent", ->
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate(0px, #{-2.5 * lineHeightInPixels}px)"
+      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate3d(0px, #{-2.5 * lineHeightInPixels}px, 0)"
 
       lineNodes = node.querySelectorAll('.line')
       expect(lineNodes.length).toBe 6
+      expect(lineNodes[0].offsetTop).toBe 2 * lineHeightInPixels
       expect(lineNodes[0].textContent).toBe editor.lineForScreenRow(2).text
       expect(lineNodes[5].textContent).toBe editor.lineForScreenRow(7).text
-
-      linesNode = node.querySelector('.lines')
-      expect(linesNode.style.paddingTop).toBe 2 * lineHeightInPixels + 'px'
-      expect(linesNode.style.paddingBottom).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels + 'px'
 
     describe "when indent guides are enabled", ->
       beforeEach ->
@@ -131,16 +128,14 @@ describe "EditorComponent", ->
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translateY(#{-2.5 * lineHeightInPixels}px)"
+      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translate3d(0, #{-2.5 * lineHeightInPixels}px, 0)"
 
       lineNumberNodes = node.querySelectorAll('.line-number')
       expect(lineNumberNodes.length).toBe 6
+      expect(lineNumberNodes[0].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNumberNodes[5].offsetTop).toBe 7 * lineHeightInPixels
       expect(lineNumberNodes[0].textContent).toBe "#{nbsp}3"
       expect(lineNumberNodes[5].textContent).toBe "#{nbsp}8"
-
-      lineNumbersNode = node.querySelector('.line-numbers')
-      expect(lineNumbersNode.style.paddingTop).toBe 2 * lineHeightInPixels + 'px'
-      expect(lineNumbersNode.style.paddingBottom).toBe (editor.getScreenLineCount() - 8) * lineHeightInPixels + 'px'
 
     it "renders • characters for soft-wrapped lines", ->
       editor.setSoftWrap(true)
@@ -481,11 +476,11 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
 
       scrollViewContentNode = node.querySelector('.scroll-view-content')
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(0px, 0px)"
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate(-100px, 0px)"
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
@@ -514,29 +509,6 @@ describe "EditorComponent", ->
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
-
-      it "preserves the target of the mousewheel event when scrolling vertically", ->
-        node.style.height = 4.5 * lineHeightInPixels + 'px'
-        node.style.width = 20 * charWidth + 'px'
-        component.measureHeightAndWidth()
-
-        lineNodes = node.querySelectorAll('.line')
-        expect(lineNodes.length).toBe 6
-        mousewheelEvent = new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -100)
-        Object.defineProperty(mousewheelEvent, 'target', get: -> lineNodes[0].querySelector('span'))
-        node.dispatchEvent(mousewheelEvent)
-        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-        expect(editor.getScrollTop()).toBe 100
-
-        # Preserves the line and line number for the scroll event's target screen row
-        lineNodes = node.querySelectorAll('.line')
-        expect(lineNodes.length).toBe 7
-        expect(lineNodes[6].textContent).toBe editor.lineForScreenRow(0).text
-
-        lineNumberNodes = node.querySelectorAll('.line-number')
-        expect(lineNumberNodes.length).toBe 7
-        expect(lineNumberNodes[6].textContent).toBe "#{nbsp}1"
 
   describe "input events", ->
     inputNode = null

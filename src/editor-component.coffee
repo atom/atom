@@ -18,29 +18,31 @@ EditorComponent = React.createClass
   batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
-  preservedScreenRow: null
+  preservedRowRange: null
+  scrollingVertically: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     if @isMounted()
-      visibleRowRange = editor.getVisibleRowRange()
+      renderedRowRange = @getRenderedRowRange()
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
+      lineHeightInPixels = editor.getLineHeight()
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
-      GutterComponent({editor, visibleRowRange, @preservedScreenRow, scrollTop, @pendingChanges})
+      GutterComponent({editor, renderedRowRange, scrollTop, lineHeight: lineHeightInPixels, @pendingChanges})
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, visibleRowRange, @preservedScreenRow, @pendingChanges,
-        showIndentGuide, fontSize, fontFamily, lineHeight,
-        @cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay,
-        @onInputFocused, @onInputBlurred
+        ref: 'scrollView', editor, renderedRowRange, @pendingChanges,
+        @scrollingVertically, showIndentGuide, fontSize, fontFamily,
+        lineHeight: lineHeightInPixels, @cursorsMoved, cursorBlinkPeriod,
+        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred,
       }
 
       ScrollbarComponent
@@ -58,6 +60,13 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth
+
+  getRenderedRowRange: ->
+    renderedRowRange = @props.editor.getVisibleRowRange()
+    if @preservedRowRange?
+      renderedRowRange[0] = Math.min(@preservedRowRange[0], renderedRowRange[0])
+      renderedRowRange[1] = Math.max(@preservedRowRange[1], renderedRowRange[1])
+    renderedRowRange
 
   getInitialState: -> {}
 
@@ -98,7 +107,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'selection-screen-range-changed', @requestUpdate
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'selection-removed', @onSelectionAdded
-    @subscribe editor.$scrollTop.changes, @requestUpdate
+    @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
@@ -262,13 +271,6 @@ EditorComponent = React.createClass
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
-    # To preserve velocity scrolling, delay removal of the event's target until
-    # after mousewheel events stop being fired. Removing the target before then
-    # will cause scrolling to stop suddenly.
-    @preservedScreenRow = @screenRowForNode(event.target)
-    @clearPreservedScreenRowAfterDelay ?= debounce(@clearPreservedScreenRow, 300)
-    @clearPreservedScreenRowAfterDelay()
-
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
@@ -278,12 +280,12 @@ EditorComponent = React.createClass
 
     event.preventDefault()
 
-  screenRowForNode: (node) ->
-    editorNode = @getDOMNode()
-    while node isnt editorNode
-      screenRow = node.dataset.screenRow
-      return screenRow if screenRow?
-      node = node.parentNode
+  clearPreservedRowRange: ->
+    @preservedRowRange = null
+    @scrollingVertically = false
+    @requestUpdate()
+
+  clearPreservedRowRangeAfterDelay: null # Created lazily
 
   onBatchedUpdatesStarted: ->
     @batchingUpdates = true
@@ -304,18 +306,19 @@ EditorComponent = React.createClass
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
+  onScrollTopChanged: ->
+    @preservedRowRange = @getRenderedRowRange()
+    @scrollingVertically = true
+    @clearPreservedRowRangeAfterDelay ?= debounce(@clearPreservedRowRange, 200)
+    @clearPreservedRowRangeAfterDelay()
+    @requestUpdate()
+
   onSelectionRemoved: (selection) ->
     {editor} = @props
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
   onCursorsMoved: ->
     @cursorsMoved = true
-
-  clearPreservedScreenRow: ->
-    @preservedScreenRow = null
-    @requestUpdate()
-
-  clearPreservedScreenRowAfterDelay: null # Created lazily
 
   requestUpdate: ->
     if @batchingUpdates
