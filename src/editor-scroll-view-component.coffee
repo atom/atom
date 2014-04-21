@@ -21,6 +21,9 @@ EditorScrollViewComponent = React.createClass
     {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
+      inputStyle = @getHiddenInputPosition()
+      inputStyle.WebkitTransform = 'translateZ(0)'
+
       contentStyle =
         height: scrollHeight
         minWidth: scrollWidth
@@ -30,7 +33,7 @@ EditorScrollViewComponent = React.createClass
       InputComponent
         ref: 'input'
         className: 'hidden-input'
-        style: @getHiddenInputPosition()
+        style: inputStyle
         onInput: @onInput
         onFocus: onInputFocused
         onBlur: onInputBlurred
