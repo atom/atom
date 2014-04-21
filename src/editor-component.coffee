@@ -36,13 +36,16 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
-      GutterComponent({editor, renderedRowRange, scrollTop, lineHeight: lineHeightInPixels, @pendingChanges})
+      GutterComponent {
+        editor, renderedRowRange, scrollTop, scrollHeight,
+        lineHeight: lineHeightInPixels, @pendingChanges
+      }
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, renderedRowRange, @pendingChanges,
-        @scrollingVertically, showIndentGuide, fontSize, fontFamily,
-        lineHeight: lineHeightInPixels, @cursorsMoved, cursorBlinkPeriod,
-        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred,
+        ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide
+        scrollHeight, scrollWidth, lineHeight: lineHeightInPixels,
+        renderedRowRange, @pendingChanges, @scrollingVertically, @cursorsMoved,
+        cursorBlinkPeriod, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
       }
 
       ScrollbarComponent

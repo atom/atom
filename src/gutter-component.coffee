@@ -13,14 +13,14 @@ GutterComponent = React.createClass
       @renderLineNumbers() if @isMounted()
 
   renderLineNumbers: ->
-    {editor, renderedRowRange, scrollTop} = @props
+    {editor, renderedRowRange, scrollTop, scrollHeight} = @props
     [startRow, endRow] = renderedRowRange
     charWidth = editor.getDefaultCharWidth()
     lineHeight = editor.getLineHeight()
     maxDigits = editor.getLastBufferRow().toString().length
     style =
       width: charWidth * (maxDigits + 1.5)
-      height: editor.getScrollHeight()
+      height: scrollHeight
       WebkitTransform: "translate3d(0, #{-scrollTop}px, 0)"
 
     lineNumbers = []

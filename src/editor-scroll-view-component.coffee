@@ -16,12 +16,14 @@ EditorScrollViewComponent = React.createClass
   overflowChangedWhilePaused: false
 
   render: ->
-    {editor, fontSize, fontFamily, lineHeight, showIndentGuide, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-    {renderedRowRange, pendingChanges, scrollingVertically, cursorsMoved, onInputFocused, onInputBlurred} = @props
+    {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
+    {scrollHeight, scrollWidth, renderedRowRange, pendingChanges, scrollingVertically} = @props
+    {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       contentStyle =
-        height: editor.getScrollHeight()
+        height: scrollHeight
+        minWidth: scrollWidth
         WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
 
     div className: 'scroll-view',
