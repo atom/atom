@@ -18,11 +18,11 @@ esac
 
 # Detect current OS, see http://stackoverflow.com/q/3466166/682252.
 if [ "`uname`" == 'Darwin' ]; then
-  nodeBin="node_darwin_$archs"
+  nodeBin="node"
 elif [ "`expr substr $(uname -s) 1 5`" == 'Linux' ]; then
-  nodeBin="node_linux_$archs"
+  nodeBin="node"
 elif [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
-  nodeBin="node_win32_$archs.exe"
+  nodeBin="node.exe"
 else
   echo "Your platform (`uname -a`) is not supported."
   exit 1

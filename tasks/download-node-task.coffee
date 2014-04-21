@@ -36,11 +36,11 @@ module.exports = (grunt) ->
     if process.platform is 'win32'
       arch = if process.arch is 'x64' then 'x64/' else ''
       downloadURL = "http://nodejs.org/dist/#{version}/#{arch}node.exe"
-      filename = path.join('bin', "node_win32_#{process.arch}.exe")
+      filename = path.join('bin', "node.exe")
     else
       arch = if process.arch == 'ia32' then 'x86' else process.arch
       downloadURL = "http://nodejs.org/dist/#{version}/node-#{version}-#{process.platform}-#{arch}.tar.gz"
-      filename = path.join('bin', "node_#{process.platform}_#{process.arch}")
+      filename = path.join('bin', "node")
 
     if fs.existsSync(filename)
       done()
