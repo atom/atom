@@ -35,7 +35,7 @@ EditorComponent = React.createClass
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1, onFocus: @onFocus,
+    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         editor, renderedRowRange, scrollTop, scrollHeight,
         lineHeight: lineHeightInPixels, @pendingChanges
@@ -118,7 +118,9 @@ EditorComponent = React.createClass
     @subscribe editor.$lineHeight.changes, @requestUpdate
 
   listenForDOMEvents: ->
-    @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
+    node = @getDOMNode()
+    node.addEventListener 'mousewheel', @onMouseWheel
+    node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
