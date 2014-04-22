@@ -16,6 +16,18 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeight()
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
 
+  scrollTop: (scrollTop) ->
+    if scrollTop?
+      @editor.setScrollTop(scrollTop)
+    else
+      @editor.getScrollTop()
+
+  scrollLeft: (scrollLeft) ->
+    if scrollLeft?
+      @editor.setScrollLeft(scrollLeft)
+    else
+      @editor.getScrollLeft()
+
   afterAttach: (onDom) ->
     return unless onDom
     @attached = true
