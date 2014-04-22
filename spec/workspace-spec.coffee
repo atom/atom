@@ -1,6 +1,6 @@
 Workspace = require '../src/workspace'
 
-describe "Workspace", ->
+fdescribe "Workspace", ->
   workspace = null
 
   beforeEach ->
@@ -37,12 +37,17 @@ describe "Workspace", ->
       describe "when called with a uri", ->
         describe "when the active pane already has an editor for the given uri", ->
           it "activates the existing editor on the active pane", ->
-            editor1 = workspace.openSync('a')
-            editor2 = workspace.openSync('b')
-
             editor = null
+            editor1 = null
+            editor2 = null
+
             waitsForPromise ->
-              workspace.open('a').then (o) -> editor = o
+              workspace.open('a').then (o) ->
+                editor1 = o
+                workspace.open('b').then (o) ->
+                  editor2 = o
+                  workspace.open('a').then (o) ->
+                    editor = o
 
             runs ->
               expect(editor).toBe editor1
@@ -63,12 +68,22 @@ describe "Workspace", ->
 
     describe "when the 'searchAllPanes' option is true", ->
       describe "when an editor for the given uri is already open on an inactive pane", ->
-        it "activates the existing editor on the inactive pane, then activates that pane", ->
-          editor1 = workspace.openSync('a')
-          pane1 = workspace.activePane
-          pane2 = workspace.activePane.splitRight()
-          editor2 = workspace.openSync('b')
-          expect(workspace.activePaneItem).toBe editor2
+        fit "activates the existing editor on the inactive pane, then activates that pane", ->
+          editor1 = null
+          editor2 = null
+          pane1 = workspace.getActivePane()
+          pane2 = workspace.getActivePane().splitRight()
+
+          waitsForPromise ->
+            pane1.activate()
+            workspace.open('a').then (o) -> editor1 = o
+
+          waitsForPromise ->
+            pane2.activate()
+            workspace.open('b').then (o) -> editor2 = o
+
+          runs ->
+            expect(workspace.activePaneItem).toBe editor2
 
           waitsForPromise ->
             workspace.open('a', searchAllPanes: true)
@@ -164,80 +179,43 @@ describe "Workspace", ->
       runs ->
         expect(newEditorHandler).toHaveBeenCalledWith editor
 
-  describe "::openSync(uri, options)", ->
-    [activePane, initialItemCount] = []
-
-    beforeEach ->
-      activePane = workspace.activePane
-      spyOn(activePane, 'activate')
-      initialItemCount = activePane.items.length
-
-    describe "when called without a uri", ->
-      it "adds and activates an empty editor on the active pane", ->
-        editor = workspace.openSync()
-        expect(activePane.items.length).toBe initialItemCount + 1
-        expect(activePane.activeItem).toBe editor
-        expect(editor.getPath()).toBeUndefined()
-        expect(activePane.activate).toHaveBeenCalled()
-
-    describe "when called with a uri", ->
-      describe "when the active pane already has an editor for the given uri", ->
-        it "activates the existing editor on the active pane", ->
-          editor1 = workspace.openSync('a')
-          editor2 = workspace.openSync('b')
-          expect(activePane.activeItem).toBe editor2
-          expect(activePane.items.length).toBe 2
-
-          editor = workspace.openSync(editor1.getPath())
-          expect(editor).toBe editor1
-          expect(activePane.activeItem).toBe editor
-          expect(activePane.activate).toHaveBeenCalled()
-          expect(activePane.items.length).toBe 2
-
-      describe "when the active pane does not have an editor for the given uri", ->
-        it "adds and activates a new editor for the given path on the active pane", ->
-          editor = workspace.openSync('a')
-          expect(activePane.items.length).toBe 1
-          expect(activePane.activeItem).toBe editor
-          expect(activePane.activate).toHaveBeenCalled()
-
-    describe "when the 'activatePane' option is false", ->
-      it "does not activate the active pane", ->
-        workspace.openSync('b', activatePane: false)
-        expect(activePane.activate).not.toHaveBeenCalled()
-
   describe "::reopenItemSync()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.activePane
-      workspace.openSync('a')
-      workspace.openSync('b')
-      workspace.openSync('file1')
-      workspace.openSync()
+      waitsForPromise ->
+        workspace.open('a').then ->
+          workspace.open('b').then ->
+            workspace.open('file1').then ->
+              workspace.open()
 
-      # does not reopen items with no uri
-      expect(workspace.activePaneItem.getUri()).toBeUndefined()
-      pane.destroyActiveItem()
-      workspace.reopenItemSync()
-      expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
+      runs ->
+        # does not reopen items with no uri
+        expect(workspace.activePaneItem.getUri()).toBeUndefined()
+        pane.destroyActiveItem()
+        workspace.reopenItemSync()
+        expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
 
-      # destroy all items
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
-      pane.destroyActiveItem()
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
-      pane.destroyActiveItem()
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
-      pane.destroyActiveItem()
+        # destroy all items
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
+        pane.destroyActiveItem()
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
+        pane.destroyActiveItem()
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
+        pane.destroyActiveItem()
 
-      # reopens items with uris
-      expect(workspace.activePaneItem).toBeUndefined()
-      workspace.reopenItemSync()
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
+        # reopens items with uris
+        expect(workspace.activePaneItem).toBeUndefined()
+        workspace.reopenItemSync()
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
 
       # does not reopen items that are already open
-      workspace.openSync('b')
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
-      workspace.reopenItemSync()
-      expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
+      waitsForPromise ->
+        workspace.open('b')
+
+      runs ->
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
+        workspace.reopenItemSync()
+        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->
@@ -272,11 +250,14 @@ describe "Workspace", ->
 
   describe "when an editor is copied", ->
     it "emits an 'editor-created' event", ->
+      editor = null
       handler = jasmine.createSpy('editorCreatedHandler')
       workspace.on 'editor-created', handler
 
-      editor1 = workspace.openSync("a")
-      expect(handler.callCount).toBe 1
+      waitsForPromise ->
+        workspace.open("a").then (o) -> editor = o
 
-      editor2 = editor1.copy()
-      expect(handler.callCount).toBe 2
+      runs ->
+        expect(handler.callCount).toBe 1
+        editorCopy = editor.copy()
+        expect(handler.callCount).toBe 2
