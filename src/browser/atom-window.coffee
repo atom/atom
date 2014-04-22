@@ -151,6 +151,8 @@ class AtomWindow
 
   maximize: -> @browserWindow.maximize()
 
+  restore: -> @browserWindow.restore()
+
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
 
