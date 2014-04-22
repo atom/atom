@@ -1519,7 +1519,7 @@ class EditorView extends View
 
   @pushScope: (line, scopeStack, scope) ->
     scopeStack.push(scope)
-    line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
+    line.push("<span class=\"#{scope.replace(/\.+/g, ' ')}\">")
 
   @popScope: (line, scopeStack) ->
     scopeStack.pop()
