@@ -6,6 +6,7 @@ require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 {$, WorkspaceView, Workspace} = require 'atom'
 Config = require '../src/config'
@@ -47,6 +48,7 @@ if specDirectory
   specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
+  Grim.clearDeprecations()
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
@@ -123,6 +125,14 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
+  deprecations = Grim.getDeprecations()
+  if deprecations.length > 0
+    for deprecation in deprecations
+      console.log deprecation
+      for stack in deprecations.stacks
+        console.log stack
+    throw new Error("#{deprecations.length} deprecated methods were called.")
+
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
