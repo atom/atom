@@ -237,10 +237,22 @@ describe "WorkspaceView", ->
   describe "core:close", ->
     it "closes the active pane item until all that remains is a single empty pane", ->
       atom.config.set('core.destroyEmptyPanes', true)
-      atom.project.openSync('../sample.txt')
-      expect(atom.workspaceView.getActivePaneView().getItems()).toHaveLength 1
+
+      paneView1 = atom.workspaceView.getActivePaneView()
+      editorView = atom.workspaceView.getActiveView()
+      editorView.splitRight()
+      paneView2 = atom.workspaceView.getActivePaneView()
+
+      expect(paneView1).not.toBe paneView2
+      expect(atom.workspaceView.getPanes()).toHaveLength 2
       atom.workspaceView.trigger('core:close')
+
+      expect(atom.workspaceView.getActivePaneView().getItems()).toHaveLength 1
+      expect(atom.workspaceView.getPanes()).toHaveLength 1
+      atom.workspaceView.trigger('core:close')
+
       expect(atom.workspaceView.getActivePaneView().getItems()).toHaveLength 0
+      expect(atom.workspaceView.getPanes()).toHaveLength 1
 
   describe "the scrollbar visibility class", ->
     it "has a class based on the style of the scrollbar", ->
