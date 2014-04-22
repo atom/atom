@@ -216,8 +216,8 @@ EditorComponent = React.createClass
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
-        # 'core:page-down': => @pageDown()
-        # 'core:page-up': => @pageUp()
+        'core:page-up': => editor.pageUp()
+        'core:page-down': => editor.pageDown()
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props

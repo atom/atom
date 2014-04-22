@@ -1456,6 +1456,12 @@ class Editor extends Model
   scrollToCursorPosition: ->
     @getCursor().autoscroll()
 
+  pageUp: ->
+    @setScrollTop(@getScrollTop() - @getHeight())
+
+  pageDown: ->
+    @setScrollTop(@getScrollTop() + @getHeight())
+
   moveCursors: (fn) ->
     @movingCursors = true
     @batchUpdates =>

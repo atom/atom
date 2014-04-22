@@ -3042,3 +3042,23 @@ describe "Editor", ->
       editor.scrollToCursorPosition()
       expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
       expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
+
+  describe ".pageUp/Down()", ->
+    it "scrolls one screen height up or down", ->
+      editor.manageScrollPosition = true
+
+      editor.setLineHeight(10)
+      editor.setHeight(50)
+      expect(editor.getScrollHeight()).toBe 130
+
+      editor.pageDown()
+      expect(editor.getScrollTop()).toBe 50
+
+      editor.pageDown()
+      expect(editor.getScrollTop()).toBe 80
+
+      editor.pageUp()
+      expect(editor.getScrollTop()).toBe 30
+
+      editor.pageUp()
+      expect(editor.getScrollTop()).toBe 0
