@@ -45,6 +45,7 @@ class ReactEditorView extends View
     @editor.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
+    view.css('position', 'absolute')
     @find('.scroll-view-content').prepend(view)
 
   beforeRemove: ->
