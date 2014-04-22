@@ -1,6 +1,6 @@
 Workspace = require '../src/workspace'
 
-fdescribe "Workspace", ->
+describe "Workspace", ->
   workspace = null
 
   beforeEach ->
