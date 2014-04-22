@@ -68,7 +68,7 @@ class Syntax extends GrammarRegistry
   getProperty: (scope, keyPath) ->
     scopeChain = scope
       .map (scope) ->
-        scope = ".#{scope}" unless scope.indexOf('.') is 0
+        scope = ".#{scope}" unless scope[0] is '.'
         scope
       .join(' ')
     @propertyStore.getPropertyValue(scopeChain, keyPath)
@@ -76,7 +76,7 @@ class Syntax extends GrammarRegistry
   propertiesForScope: (scope, keyPath) ->
     scopeChain = scope
       .map (scope) ->
-        scope = ".#{scope}" unless scope.indexOf('.') is 0
+        scope = ".#{scope}" unless scope[0] is '.'
         scope
       .join(' ')
 
