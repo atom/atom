@@ -4,7 +4,7 @@ path = require 'path'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 
-fdescribe "the `atom` global", ->
+describe "the `atom` global", ->
   beforeEach ->
     atom.workspaceView = new WorkspaceView
 
