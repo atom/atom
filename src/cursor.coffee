@@ -96,7 +96,7 @@ class Cursor extends Model
     @marker.getHeadBufferPosition()
 
   autoscroll: ->
-    @editor.autoscrollToScreenRange(@getScreenRange())
+    @editor.scrollToScreenRange(@getScreenRange())
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->

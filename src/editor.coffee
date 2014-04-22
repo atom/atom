@@ -1863,7 +1863,11 @@ class Editor extends Model
 
   pixelRectForScreenRange: (args...) -> @displayBuffer.pixelRectForScreenRange(args...)
 
-  autoscrollToScreenRange: (args...) -> @displayBuffer.autoscrollToScreenRange(args...)
+  scrollToScreenRange: (args...) -> @displayBuffer.scrollToScreenRange(args...)
+
+  scrollToScreenPosition: (screenPosition) -> @displayBuffer.scrollToScreenPosition(screenPosition)
+
+  scrollToBufferPosition: (bufferPosition) -> @displayBuffer.scrollToBufferPosition(bufferPosition)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->

@@ -28,6 +28,12 @@ class ReactEditorView extends View
     else
       @editor.getScrollLeft()
 
+  scrollToScreenPosition: (screenPosition) ->
+    @editor.scrollToScreenPosition(screenPosition)
+
+  scrollToBufferPosition: (bufferPosition) ->
+    @editor.scrollToBufferPosition(bufferPosition)
+
   afterAttach: (onDom) ->
     return unless onDom
     @attached = true

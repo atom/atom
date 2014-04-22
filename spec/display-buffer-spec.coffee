@@ -995,3 +995,17 @@ describe "DisplayBuffer", ->
 
       expect(displayBuffer.setScrollLeft(maxScrollLeft + 50)).toBe maxScrollLeft
       expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
+
+  describe "::scrollToScreenPosition(position)", ->
+    it "sets the scroll top and scroll left so the given screen position is in view", ->
+      displayBuffer.manageScrollPosition = true
+      displayBuffer.setLineHeight(10)
+      displayBuffer.setDefaultCharWidth(10)
+
+      displayBuffer.setHeight(50)
+      displayBuffer.setWidth(50)
+      maxScrollTop = displayBuffer.getScrollHeight() - displayBuffer.getHeight()
+
+      displayBuffer.scrollToScreenPosition([8, 20])
+      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
+      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10

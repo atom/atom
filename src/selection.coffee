@@ -92,7 +92,7 @@ class Selection extends Model
     [start, end]
 
   autoscroll: ->
-    @editor.autoscrollToScreenRange(@getScreenRange())
+    @editor.scrollToScreenRange(@getScreenRange())
 
   # Public: Returns the text in the selection.
   getText: ->
