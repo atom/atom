@@ -1453,6 +1453,9 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
+  scrollToCursorPosition: ->
+    @getCursor().autoscroll()
+
   moveCursors: (fn) ->
     @movingCursors = true
     @batchUpdates =>

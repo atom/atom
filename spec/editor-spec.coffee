@@ -3028,3 +3028,17 @@ describe "Editor", ->
       editor.setSoftTabs(false)
       editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
       expect(editor.getText()).toBe '     '
+
+  describe ".scrollToCursorPosition()", ->
+    it "scrolls the last cursor into view", ->
+      editor.setCursorScreenPosition([8, 8])
+      editor.setLineHeight(10)
+      editor.setDefaultCharWidth(10)
+      editor.setHeight(50)
+      editor.setWidth(50)
+      expect(editor.getScrollTop()).toBe 0
+      expect(editor.getScrollLeft()).toBe 0
+
+      editor.scrollToCursorPosition()
+      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
+      expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
