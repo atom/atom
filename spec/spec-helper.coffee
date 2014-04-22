@@ -125,14 +125,7 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
-  deprecations = Grim.getDeprecations()
-  if deprecations.length > 0
-    for deprecation in deprecations
-      console.log deprecation
-      for stack in deprecations.stacks
-        console.log stack
-    throw new Error("#{deprecations.length} deprecated methods were called.")
-
+  ensureNoDeprecatedFunctionsCalled()
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
@@ -140,6 +133,27 @@ ensureNoPathSubscriptions = ->
   pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+
+ensureNoDeprecatedFunctionsCalled = ->
+  deprecations = Grim.getDeprecations()
+  if deprecations.length > 0
+    originalPrepareStackTrace = Error.prepareStackTrace
+    Error.prepareStackTrace = (error, stack) ->
+      output = []
+      for deprecation in deprecations
+        output.push "#{deprecation.originName} is deprecated"
+        output.push _.multiplyString("-", output[output.length - 1].length)
+        for stack in deprecation.getStacks()
+          for {functionName, location} in stack
+            output.push "#{functionName} -- #{location}"
+        output.push ""
+      output.join("\n")
+
+    error = new Error("Deprecated function(s) #{deprecations.map(({originName}) -> originName).join ', '}) were called.")
+    error.stack
+    Error.prepareStackTrace = originalPrepareStackTrace
+
+    throw error
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
