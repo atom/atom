@@ -131,7 +131,7 @@ class WorkspaceView extends View
 
     @command 'window:install-shell-commands', => @installShellCommands()
 
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+    @command 'window:run-package-specs', -> ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', => @increaseFontSize()
     @command 'window:decrease-font-size', => @decreaseFontSize()
     @command 'window:reset-font-size', => @model.resetFontSize()
@@ -146,7 +146,7 @@ class WorkspaceView extends View
     @command 'window:toggle-invisibles', -> atom.config.toggle("editor.showInvisibles")
     @command 'window:log-deprecation-warnings', -> logDeprecationWarnings()
 
-    @command 'window:toggle-auto-indent', =>
+    @command 'window:toggle-auto-indent', ->
       atom.config.toggle("editor.autoIndent")
 
     @command 'pane:reopen-closed-item', => @getModel().reopenItem()
@@ -169,11 +169,11 @@ class WorkspaceView extends View
         detailedMessage: error.message
 
     resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, true, (error) =>
+    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
       if error?
         showErrorDialog(error)
       else
-        CommandInstaller.installApmCommand resourcePath, true, (error) =>
+        CommandInstaller.installApmCommand resourcePath, true, (error) ->
           if error?
             showErrorDialog(error)
           else
