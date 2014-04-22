@@ -141,7 +141,7 @@ ensureNoDeprecatedFunctionsCalled = ->
     Error.prepareStackTrace = (error, stack) ->
       output = []
       for deprecation in deprecations
-        output.push "#{deprecation.originName} is deprecated"
+        output.push "#{deprecation.originName} is deprecated. #{deprecation.message}"
         output.push _.multiplyString("-", output[output.length - 1].length)
         for stack in deprecation.getStacks()
           for {functionName, location} in stack
