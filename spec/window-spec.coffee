@@ -64,27 +64,41 @@ describe "Window", ->
 
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls workspaceView.confirmClose", ->
+        editor = null
         spyOn(atom.workspaceView, 'confirmClose').andCallThrough()
         spyOn(atom, "confirm").andReturn(2)
-        editor = atom.workspaceView.openSync("sample.js")
-        editor.insertText("I look different, I feel different.")
-        $(window).trigger(beforeUnloadEvent)
-        expect(atom.workspaceView.confirmClose).toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+
+        waitsForPromise ->
+          atom.workspace.open("sample.js").then (o) -> editor = o
+
+        runs ->
+          editor.insertText("I look different, I feel different.")
+          $(window).trigger(beforeUnloadEvent)
+          expect(atom.workspaceView.confirmClose).toHaveBeenCalled()
+          expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->
+        editor = null
         spyOn(atom, "confirm").andReturn(2)
-        editor = atom.workspaceView.openSync("sample.js")
-        editor.insertText("I look different, I feel different.")
-        $(window).trigger(beforeUnloadEvent)
-        expect(atom.confirm).toHaveBeenCalled()
+
+        waitsForPromise ->
+          atom.workspace.open("sample.js").then (o) -> editor = o
+
+        runs ->
+          editor.insertText("I look different, I feel different.")
+          $(window).trigger(beforeUnloadEvent)
+          expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
+        editor = null
         spyOn(atom, "confirm").andReturn(1)
-        editor = atom.workspaceView.openSync("sample.js")
-        editor.insertText("I look different, I feel different.")
-        $(window).trigger(beforeUnloadEvent)
-        expect(atom.confirm).toHaveBeenCalled()
+        waitsForPromise ->
+          atom.workspace.open("sample.js").then (o) -> editor = o
+
+        runs ->
+          editor.insertText("I look different, I feel different.")
+          $(window).trigger(beforeUnloadEvent)
+          expect(atom.confirm).toHaveBeenCalled()
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
@@ -100,15 +114,18 @@ describe "Window", ->
       expect(atom.saveSync).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
-      atom.workspaceView.openSync('sample.js')
-      buffer = atom.workspaceView.getActivePaneItem().buffer
-      pane = atom.workspaceView.getActivePaneView()
-      pane.splitRight(pane.copyActiveItem())
-      expect(atom.workspaceView.find('.editor').length).toBe 2
+      waitsForPromise ->
+        atom.workspace.open("sample.js")
 
-      atom.unloadEditorWindow()
+      runs ->
+        buffer = atom.workspace.getActivePaneItem().buffer
+        pane = atom.workspaceView.getActivePaneView()
+        pane.splitRight(pane.copyActiveItem())
+        expect(atom.workspaceView.find('.editor').length).toBe 2
 
-      expect(buffer.getSubscriptionCount()).toBe 0
+        atom.unloadEditorWindow()
+
+        expect(buffer.getSubscriptionCount()).toBe 0
 
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
