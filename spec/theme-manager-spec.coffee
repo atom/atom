@@ -37,7 +37,7 @@ describe "ThemeManager", ->
         expect(themes).toHaveLength(names.length)
 
   describe "when the core.themes config value contains invalid entry", ->
-    fit "ignores theme", ->
+    it "ignores theme", ->
       atom.config.set 'core.themes', [
         'atom-light-ui'
         null
