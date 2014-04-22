@@ -137,4 +137,4 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight')
+    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow')

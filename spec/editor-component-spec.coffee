@@ -56,6 +56,21 @@ describe "EditorComponent", ->
       expect(lineNodes[0].textContent).toBe editor.lineForScreenRow(2).text
       expect(lineNodes[5].textContent).toBe editor.lineForScreenRow(7).text
 
+    it "updates absolute positions of subsequent lines when lines are inserted or removed", ->
+      editor.getBuffer().deleteRows(0, 1)
+      lineNodes = node.querySelectorAll('.line')
+      expect(lineNodes[0].offsetTop).toBe 0
+      expect(lineNodes[1].offsetTop).toBe 1 * lineHeightInPixels
+      expect(lineNodes[2].offsetTop).toBe 2 * lineHeightInPixels
+
+      editor.getBuffer().insert([0, 0], '\n\n')
+      lineNodes = node.querySelectorAll('.line')
+      expect(lineNodes[0].offsetTop).toBe 0
+      expect(lineNodes[1].offsetTop).toBe 1 * lineHeightInPixels
+      expect(lineNodes[2].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNodes[3].offsetTop).toBe 3 * lineHeightInPixels
+      expect(lineNodes[4].offsetTop).toBe 4 * lineHeightInPixels
+
     describe "when indent guides are enabled", ->
       beforeEach ->
         component.setShowIndentGuide(true)
@@ -136,6 +151,24 @@ describe "EditorComponent", ->
       expect(lineNumberNodes[5].offsetTop).toBe 7 * lineHeightInPixels
       expect(lineNumberNodes[0].textContent).toBe "#{nbsp}3"
       expect(lineNumberNodes[5].textContent).toBe "#{nbsp}8"
+
+    it "updates absolute positions of subsequent line numbers when lines are inserted or removed", ->
+      editor.getBuffer().insert([0, 0], '\n\n')
+
+      lineNumberNodes = node.querySelectorAll('.line-number')
+      expect(lineNumberNodes[0].offsetTop).toBe 0
+      expect(lineNumberNodes[1].offsetTop).toBe 1 * lineHeightInPixels
+      expect(lineNumberNodes[2].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNumberNodes[3].offsetTop).toBe 3 * lineHeightInPixels
+      expect(lineNumberNodes[4].offsetTop).toBe 4 * lineHeightInPixels
+
+      editor.getBuffer().insert([0, 0], '\n\n')
+      lineNumberNodes = node.querySelectorAll('.line-number')
+      expect(lineNumberNodes[0].offsetTop).toBe 0
+      expect(lineNumberNodes[1].offsetTop).toBe 1 * lineHeightInPixels
+      expect(lineNumberNodes[2].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNumberNodes[3].offsetTop).toBe 3 * lineHeightInPixels
+      expect(lineNumberNodes[4].offsetTop).toBe 4 * lineHeightInPixels
 
     it "renders • characters for soft-wrapped lines", ->
       editor.setSoftWrap(true)

@@ -80,4 +80,4 @@ LineNumberComponent = React.createClass
   iconDivHTML: '<div class="icon-right"></div>'
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'lineHeight')
+    not isEqualForProperties(newProps, @props, 'lineHeight', 'screenRow')
