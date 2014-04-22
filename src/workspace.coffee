@@ -167,9 +167,13 @@ class Workspace extends Model
 
   # Public: Reopen the last-closed item's URI if it hasn't already been
   # reopened.
-  reopenItemSync: ->
+  #
+  # Returns a promise that is resolved when the item is opened
+  reopenItem: ->
     if uri = @destroyedItemUris.pop()
-      @openSync(uri)
+      @open(uri)
+    else
+      Q()
 
   # Public: Register an opener for a uri.
   #

@@ -179,7 +179,7 @@ fdescribe "Workspace", ->
       runs ->
         expect(newEditorHandler).toHaveBeenCalledWith editor
 
-  describe "::reopenItemSync()", ->
+  describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.activePane
       waitsForPromise ->
@@ -192,7 +192,11 @@ fdescribe "Workspace", ->
         # does not reopen items with no uri
         expect(workspace.activePaneItem.getUri()).toBeUndefined()
         pane.destroyActiveItem()
-        workspace.reopenItemSync()
+
+      waitsForPromise ->
+        workspace.reopenItem()
+
+      runs ->
         expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
 
         # destroy all items
@@ -205,7 +209,11 @@ fdescribe "Workspace", ->
 
         # reopens items with uris
         expect(workspace.activePaneItem).toBeUndefined()
-        workspace.reopenItemSync()
+
+      waitsForPromise ->
+        workspace.reopenItem()
+
+      runs ->
         expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
 
       # does not reopen items that are already open
@@ -214,7 +222,11 @@ fdescribe "Workspace", ->
 
       runs ->
         expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
-        workspace.reopenItemSync()
+
+      waitsForPromise ->
+        workspace.reopenItem()
+
+      runs ->
         expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
