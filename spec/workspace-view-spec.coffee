@@ -132,25 +132,25 @@ describe "WorkspaceView", ->
 
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
-          item = atom.workspaceView.getActivePaneViewItem()
+          item = atom.workspace.getActivePaneItem()
           expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
-          editor = atom.workspaceView.getActivePaneViewItem()
+          editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
           expect(atom.workspaceView.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspaceView.getActivePaneView().showNextItem()
-          item = atom.workspaceView.getActivePaneViewItem()
+          item = atom.workspace.getActivePaneItem()
           expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspaceView.getActivePaneView().remove()
-          expect(atom.workspaceView.getActivePaneViewItem()).toBeUndefined()
+          expect(atom.workspace.getActivePaneItem()).toBeUndefined()
           expect(atom.workspaceView.title).toBe atom.project.getPath()
 
       describe "when an inactive pane's item changes", ->
@@ -164,7 +164,7 @@ describe "WorkspaceView", ->
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
         workspaceView2 = new WorkspaceView(atom.workspace.testSerialization())
-        item = atom.workspaceView.getActivePaneViewItem()
+        item = atom.workspace.getActivePaneItem()
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()
 
