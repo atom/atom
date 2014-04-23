@@ -157,6 +157,9 @@ class Atom extends Model
     # Still set NODE_PATH since tasks may need it.
     process.env.NODE_PATH = exportsPath
 
+    # Make react.js faster
+    process.env.NODE_ENV ?= 'production'
+
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated

@@ -1,12 +1,10 @@
 {Point, Range} = require 'text-buffer'
-{Emitter} = require 'emissary'
+{Model} = require 'theorist'
 {pick} = require 'underscore-plus'
 
 # Public: Represents a selection in the {Editor}.
 module.exports =
-class Selection
-  Emitter.includeInto(this)
-
+class Selection extends Model
   cursor: null
   marker: null
   editor: null
@@ -14,7 +12,8 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  constructor: ({@cursor, @marker, @editor}) ->
+  constructor: ({@cursor, @marker, @editor, id}) ->
+    @assignId(id)
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
@@ -77,8 +76,9 @@ class Selection
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
-      @cursor.needsAutoscroll = false if options.autoscroll?
+      @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.
@@ -90,6 +90,9 @@ class Selection
     end = range.end.row
     end = Math.max(start, end - 1) if range.end.column == 0
     [start, end]
+
+  autoscroll: ->
+    @editor.scrollToScreenRange(@getScreenRange())
 
   # Public: Returns the text in the selection.
   getText: ->
@@ -570,6 +573,48 @@ class Selection
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
+  # Get the pixel dimensions of rectangular regions that cover selection's area
+  # on the screen. Used by SelectionComponent for rendering.
+  getRegionRects: ->
+    lineHeight = @editor.getLineHeight()
+    {start, end} = @getScreenRange()
+    rowCount = end.row - start.row + 1
+    startPixelPosition = @editor.pixelPositionForScreenPosition(start)
+    endPixelPosition = @editor.pixelPositionForScreenPosition(end)
+
+    if rowCount is 1
+      # Single line selection
+      rects = [{
+        top: startPixelPosition.top
+        height: lineHeight
+        left: startPixelPosition.left
+        width: endPixelPosition.left - startPixelPosition.left
+      }]
+    else
+      # Multi-line selection
+      rects = []
+
+      # First row, extending from selection start to the right side of screen
+      rects.push {
+        top: startPixelPosition.top
+        left: startPixelPosition.left
+        height: lineHeight
+        right: 0
+      }
+      if rowCount > 2
+        # Middle rows, extending from left side to right side of screen
+        rects.push {
+          top: startPixelPosition.top + lineHeight
+          height: (rowCount - 2) * lineHeight
+          left: 0
+          right: 0
+        }
+      # Last row, extending from left side of screen to selection end
+      rects.push {top: endPixelPosition.top, height: lineHeight, left: 0, width: endPixelPosition.left }
+
+    rects
+
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange
+    @editor.selectionScreenRangeChanged(this)

@@ -1,5 +1,5 @@
 {Point, Range} = require 'text-buffer'
-{Emitter} = require 'emissary'
+{Model} = require 'theorist'
 _ = require 'underscore-plus'
 
 # Public: The `Cursor` class represents the little blinking line identifying
@@ -8,9 +8,7 @@ _ = require 'underscore-plus'
 # Cursors belong to {Editor}s and have some metadata attached in the form
 # of a {Marker}.
 module.exports =
-class Cursor
-  Emitter.includeInto(this)
-
+class Cursor extends Model
   screenPosition: null
   bufferPosition: null
   goalColumn: null
@@ -18,7 +16,8 @@ class Cursor
   needsAutoscroll: null
 
   # Instantiated by an {Editor}
-  constructor: ({@editor, @marker}) ->
+  constructor: ({@editor, @marker, id}) ->
+    @assignId(id)
     @updateVisibility()
     @marker.on 'changed', (e) =>
       @updateVisibility()
@@ -27,7 +26,12 @@ class Cursor
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
+      # Supports old editor view
       @needsAutoscroll ?= @isLastCursor() and !textChanged
+
+      # Supports react editor view
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+
       @goalColumn = null
 
       movedEvent =
@@ -38,7 +42,7 @@ class Cursor
         textChanged: textChanged
 
       @emit 'moved', movedEvent
-      @editor.emit 'cursor-moved', movedEvent
+      @editor.cursorMoved(movedEvent)
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeCursor(this)
@@ -53,6 +57,9 @@ class Cursor
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
       @emit 'autoscrolled' if @needsAutoscroll
+
+  getPixelRect: ->
+    @editor.pixelRectForScreenRange(@getScreenRange())
 
   # Public: Moves a cursor to a given screen position.
   #
@@ -69,6 +76,10 @@ class Cursor
   getScreenPosition: ->
     @marker.getHeadScreenPosition()
 
+  getScreenRange: ->
+    {row, column} = @getScreenPosition()
+    new Range(new Point(row, column), new Point(row, column + 1))
+
   # Public: Moves a cursor to a given buffer position.
   #
   # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer
@@ -83,6 +94,9 @@ class Cursor
   # Public: Returns the current buffer position as an Array.
   getBufferPosition: ->
     @marker.getHeadBufferPosition()
+
+  autoscroll: ->
+    @editor.scrollToScreenRange(@getScreenRange())
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->

@@ -943,3 +943,69 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 2
         expect(marker1.getAttributes()).toEqual a: 1, b: 2
         expect(marker2.getAttributes()).toEqual a: 1, b: 3
+
+    describe "DisplayBufferMarker::getPixelRange()", ->
+      it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->
+        marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
+
+        displayBuffer.setLineHeight(20)
+        displayBuffer.setDefaultCharWidth(10)
+        displayBuffer.setScopedCharWidths(["source.js", "keyword.control.js"], r: 11, e: 11, t: 11, u: 11, n: 11)
+
+        {start, end} = marker.getPixelRange()
+        expect(start.top).toBe 5 * 20
+        expect(start.left).toBe (4 * 10) + (6 * 11)
+
+  describe "::setScrollTop", ->
+    beforeEach ->
+      displayBuffer.manageScrollPosition = true
+      displayBuffer.setLineHeight(10)
+
+    it "disallows negative values", ->
+      displayBuffer.setHeight(displayBuffer.getScrollHeight() + 100)
+      expect(displayBuffer.setScrollTop(-10)).toBe 0
+      expect(displayBuffer.getScrollTop()).toBe 0
+
+    it "disallows values that would make ::getScrollBottom() exceed ::getScrollHeight()", ->
+      displayBuffer.setHeight(50)
+      maxScrollTop = displayBuffer.getScrollHeight() - displayBuffer.getHeight()
+
+      expect(displayBuffer.setScrollTop(maxScrollTop)).toBe maxScrollTop
+      expect(displayBuffer.getScrollTop()).toBe maxScrollTop
+
+      expect(displayBuffer.setScrollTop(maxScrollTop + 50)).toBe maxScrollTop
+      expect(displayBuffer.getScrollTop()).toBe maxScrollTop
+
+  describe "::setScrollLeft", ->
+    beforeEach ->
+      displayBuffer.manageScrollPosition = true
+      displayBuffer.setDefaultCharWidth(10)
+
+    it "disallows negative values", ->
+      displayBuffer.setWidth(displayBuffer.getScrollWidth() + 100)
+      expect(displayBuffer.setScrollLeft(-10)).toBe 0
+      expect(displayBuffer.getScrollLeft()).toBe 0
+
+    it "disallows values that would make ::getScrollRight() exceed ::getScrollWidth()", ->
+      displayBuffer.setWidth(50)
+      maxScrollLeft = displayBuffer.getScrollWidth() - displayBuffer.getWidth()
+
+      expect(displayBuffer.setScrollLeft(maxScrollLeft)).toBe maxScrollLeft
+      expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
+
+      expect(displayBuffer.setScrollLeft(maxScrollLeft + 50)).toBe maxScrollLeft
+      expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
+
+  describe "::scrollToScreenPosition(position)", ->
+    it "sets the scroll top and scroll left so the given screen position is in view", ->
+      displayBuffer.manageScrollPosition = true
+      displayBuffer.setLineHeight(10)
+      displayBuffer.setDefaultCharWidth(10)
+
+      displayBuffer.setHeight(50)
+      displayBuffer.setWidth(50)
+      maxScrollTop = displayBuffer.getScrollHeight() - displayBuffer.getHeight()
+
+      displayBuffer.scrollToScreenPosition([8, 20])
+      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
+      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10

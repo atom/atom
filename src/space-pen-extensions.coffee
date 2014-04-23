@@ -69,4 +69,6 @@ jQuery(document.body).on 'show.bs.tooltip', ({target}) ->
 jQuery.fn.setTooltip.getKeystroke = getKeystroke
 jQuery.fn.setTooltip.humanizeKeystrokes = humanizeKeystrokes
 
+Object.defineProperty jQuery.fn, 'element', get: -> @[0]
+
 module.exports = spacePen

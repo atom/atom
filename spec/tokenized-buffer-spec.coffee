@@ -463,3 +463,77 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+
+  describe "leading and trailing whitespace", ->
+    beforeEach ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+    it "sets ::hasLeadingWhitespace to true on tokens that have leading whitespace", ->
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].hasLeadingWhitespace).toBe false
+
+      # The 4th token *has* leading whitespace, but isn't entirely whitespace
+      buffer.insert([5, 0], ' ')
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].hasLeadingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].hasLeadingWhitespace).toBe false
+
+      # Lines that are *only* whitespace are not considered to have leading whitespace
+      buffer.insert([10, 0], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe false
+
+    it "sets ::hasTrailingWhitespace to true on tokens that have trailing whitespace", ->
+      buffer.insert([0, Infinity], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].hasTrailingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].hasTrailingWhitespace).toBe true
+
+      # The last token *has* trailing whitespace, but isn't entirely whitespace
+      buffer.setTextInRange([[2, 39], [2, 40]], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].hasTrailingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].hasTrailingWhitespace).toBe true
+
+      # Lines that are *only* whitespace are considered to have trailing whitespace
+      buffer.insert([10, 0], '  ')
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasTrailingWhitespace).toBe true
+
+    it "only marks trailing whitespace on the last segment of a soft-wrapped line", ->
+      buffer.insert([0, Infinity], '  ')
+      tokenizedLine = tokenizedBuffer.lineForScreenRow(0)
+      [segment1, segment2] = tokenizedLine.softWrapAt(16)
+      expect(segment1.tokens[5].value).toBe ' '
+      expect(segment1.tokens[5].hasTrailingWhitespace).toBe false
+      expect(segment2.tokens[6].value).toBe '  '
+      expect(segment2.tokens[6].hasTrailingWhitespace).toBe true
+
+  describe "indent level", ->
+    beforeEach ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+    describe "when the line is non-empty", ->
+      it "has an indent level based on the leading whitespace on the line", ->
+        expect(tokenizedBuffer.lineForScreenRow(0).indentLevel).toBe 0
+        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
+        buffer.insert([2, 0], ' ')
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2.5
+
+    describe "when the line is empty", ->
+      it "assumes the indentation level of the first non-empty line below or above if one exists", ->
+        buffer.insert([12, 0], '    ')
+        buffer.insert([12, Infinity], '\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(14).indentLevel).toBe 2
+
+        buffer.insert([1, Infinity], '\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(3).indentLevel).toBe 2
+
+        buffer.setText('\n\n\n')
+        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 0

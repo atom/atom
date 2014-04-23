@@ -311,6 +311,7 @@ class AtomApplication
     if existingWindow
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen, initialLine)
+      openedWindow.restore()
     else
       if devMode
         try

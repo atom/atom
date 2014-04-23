@@ -290,6 +290,7 @@ class Package
     $(event.target).trigger(event)
     @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
     @unsubscribeFromActivationEvents()
+    false
 
   unsubscribeFromActivationEvents: ->
     return unless atom.workspaceView?

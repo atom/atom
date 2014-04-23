@@ -20,6 +20,8 @@ class Token
   scopes: null
   isAtomic: null
   isHardTab: null
+  hasLeadingWhitespace: false
+  hasTrailingWhitespace: false
 
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
@@ -40,7 +42,7 @@ class Token
   whitespaceRegexForTabLength: (tabLength) ->
     WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
-  breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
+  breakOutAtomicTokens: (tabLength, breakOutLeadingSoftTabs) ->
     if @hasSurrogatePair
       outputTokens = []
 
@@ -48,14 +50,14 @@ class Token
         if token.isAtomic
           outputTokens.push(token)
         else
-          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
-        breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
+        breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
 
       outputTokens
     else
       return [this] if @isAtomic
 
-      if breakOutLeadingWhitespace
+      if breakOutLeadingSoftTabs
         return [this] unless /^[ ]|\t/.test(@value)
       else
         return [this] unless /\t/.test(@value)
@@ -64,13 +66,13 @@ class Token
       regex = @whitespaceRegexForTabLength(tabLength)
       while match = regex.exec(@value)
         [fullMatch, softTab, hardTab] = match
-        if softTab and breakOutLeadingWhitespace
-          outputTokens.push(@buildSoftTabToken(tabLength, false))
+        if softTab and breakOutLeadingSoftTabs
+          outputTokens.push(@buildSoftTabToken(tabLength))
         else if hardTab
-          breakOutLeadingWhitespace = false
-          outputTokens.push(@buildHardTabToken(tabLength, true))
+          breakOutLeadingSoftTabs = false
+          outputTokens.push(@buildHardTabToken(tabLength))
         else
-          breakOutLeadingWhitespace = false
+          breakOutLeadingSoftTabs = false
           value = match[0]
           outputTokens.push(new Token({value, @scopes}))
 
@@ -127,7 +129,7 @@ class Token
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
-  getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
+  getValueAsHtml: ({invisibles, hasIndentGuide})->
     invisibles ?= {}
     if @isHardTab
       classes = 'hard-tab'
@@ -142,7 +144,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
+      if @hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -152,9 +154,10 @@ class Token
 
         startIndex = match[0].length
 
-      if hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+      if @hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+        tokenIsOnlyWhitespace = match[0].length is @value.length
         classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not hasLeadingWhitespace
+        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
         classes += ' invisible-character' if invisibles.space
 
         match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
