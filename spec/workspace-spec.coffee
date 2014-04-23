@@ -68,7 +68,7 @@ describe "Workspace", ->
 
     describe "when the 'searchAllPanes' option is true", ->
       describe "when an editor for the given uri is already open on an inactive pane", ->
-        fit "activates the existing editor on the inactive pane, then activates that pane", ->
+        it "activates the existing editor on the inactive pane, then activates that pane", ->
           editor1 = null
           editor2 = null
           pane1 = workspace.getActivePane()
