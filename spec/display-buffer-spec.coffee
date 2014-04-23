@@ -21,7 +21,7 @@ describe "DisplayBuffer", ->
   describe "::copy()", ->
     it "creates a new DisplayBuffer with the same initial state", ->
       marker1 = displayBuffer.markBufferRange([[1, 2], [3, 4]], id: 1)
-      marker2 = displayBuffer.markBufferRange([[2, 3], [4, 5]], isReversed: true, id: 2)
+      marker2 = displayBuffer.markBufferRange([[2, 3], [4, 5]], reversed: true, id: 2)
       marker3 = displayBuffer.markBufferPosition([5, 6], id: 3)
       displayBuffer.createFold(3, 5)
 
