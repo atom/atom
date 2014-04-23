@@ -5,7 +5,7 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-cacheDir = path.join(fs.getHomeDirectory(), 'compile-cache')
+cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
