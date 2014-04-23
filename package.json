@@ -11,7 +11,12 @@
   "bugs": {
     "url": "https://github.com/atom/atom/issues"
   },
-  "license": "All Rights Reserved",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/atom/atom/raw/master/LICENSE.md"
+    }
+  ],
   "atomShellVersion": "0.11.10",
   "dependencies": {
     "async": "0.2.6",
