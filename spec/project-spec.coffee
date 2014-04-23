@@ -18,62 +18,39 @@ describe "Project", ->
       deserializedProject?.destroy()
 
     it "does not include unretained buffers in the serialized state", ->
-      atom.project.bufferForPathSync('a')
-      expect(atom.project.getBuffers().length).toBe 1
+      waitsForPromise ->
+        atom.project.bufferForPath('a')
 
-      deserializedProject = atom.project.testSerialization()
-      expect(deserializedProject.getBuffers().length).toBe 0
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        deserializedProject = atom.project.testSerialization()
+        expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
-      atom.project.openSync('a')
-      expect(atom.project.getBuffers().length).toBe 1
-      deserializedProject = atom.project.testSerialization()
+      waitsForPromise ->
+        atom.project.open('a')
 
-      expect(deserializedProject.getBuffers().length).toBe 1
-      deserializedProject.getBuffers()[0].destroy()
-      expect(deserializedProject.getBuffers().length).toBe 0
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        deserializedProject = atom.project.testSerialization()
+
+        expect(deserializedProject.getBuffers().length).toBe 1
+        deserializedProject.getBuffers()[0].destroy()
+        expect(deserializedProject.getBuffers().length).toBe 0
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
       atom.project.setPath(undefined)
       expect(atom.project.getPath()).toBeUndefined()
-      editor = atom.project.openSync()
-      editor.saveAs(tempFile)
-      expect(atom.project.getPath()).toBe path.dirname(tempFile)
+      editor = null
 
-  describe ".openSync(path)", ->
-    [absolutePath, newBufferHandler] = []
-    beforeEach ->
-      absolutePath = require.resolve('./fixtures/dir/a')
-      newBufferHandler = jasmine.createSpy('newBufferHandler')
-      atom.project.on 'buffer-created', newBufferHandler
+      waitsForPromise ->
+        atom.project.open().then (o) -> editor = o
 
-    describe "when given an absolute path that hasn't been opened previously", ->
-      it "returns a new edit session for the given path and emits 'buffer-created'", ->
-        editor = atom.project.openSync(absolutePath)
-        expect(editor.buffer.getPath()).toBe absolutePath
-        expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-
-    describe "when given a relative path that hasn't been opened previously", ->
-      it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", ->
-        editor = atom.project.openSync('a')
-        expect(editor.buffer.getPath()).toBe absolutePath
-        expect(newBufferHandler).toHaveBeenCalledWith editor.buffer
-
-    describe "when passed the path to a buffer that has already been opened", ->
-      it "returns a new edit session containing previously opened buffer", ->
-        editor = atom.project.openSync(absolutePath)
-        newBufferHandler.reset()
-        expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
-        expect(atom.project.openSync('a').buffer).toBe editor.buffer
-        expect(newBufferHandler).not.toHaveBeenCalled()
-
-    describe "when not passed a path", ->
-      it "returns a new edit session and emits 'buffer-created'", ->
-        editor = atom.project.openSync()
-        expect(editor.buffer.getPath()).toBeUndefined()
-        expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
+      runs ->
+        editor.saveAs(tempFile)
+        expect(atom.project.getPath()).toBe path.dirname(tempFile)
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
@@ -106,14 +83,21 @@ describe "Project", ->
     describe "when passed the path to a buffer that is currently opened", ->
       it "returns a new edit session containing currently opened buffer", ->
         editor = null
+
         waitsForPromise ->
           atom.project.open(absolutePath).then (o) -> editor = o
 
         runs ->
           newBufferHandler.reset()
-          expect(atom.project.openSync(absolutePath).buffer).toBe editor.buffer
-          expect(atom.project.openSync('a').buffer).toBe editor.buffer
-          expect(newBufferHandler).not.toHaveBeenCalled()
+
+        waitsForPromise ->
+          atom.project.open(absolutePath).then ({buffer}) ->
+            expect(buffer).toBe editor.buffer
+
+        waitsForPromise ->
+          atom.project.open('a').then ({buffer}) ->
+            expect(buffer).toBe editor.buffer
+            expect(newBufferHandler).not.toHaveBeenCalled()
 
     describe "when not passed a path", ->
       it "returns a new edit session and emits 'buffer-created'", ->
@@ -136,20 +120,6 @@ describe "Project", ->
 
       runs ->
         expect(totalBytes).toBe fs.statSync(filePath).size
-
-  describe ".bufferForPathSync(path)", ->
-    describe "when opening a previously opened path", ->
-      it "does not create a new buffer", ->
-        buffer = atom.project.bufferForPathSync("a").retain()
-        expect(atom.project.bufferForPathSync("a")).toBe buffer
-
-        alternativeBuffer = atom.project.bufferForPathSync("b").retain().release()
-        expect(alternativeBuffer).not.toBe buffer
-        buffer.release()
-
-      it "creates a new buffer if the previous buffer was destroyed", ->
-        buffer = atom.project.bufferForPathSync("a").retain().release()
-        expect(atom.project.bufferForPathSync("a").retain().release()).not.toBe buffer
 
   describe ".bufferForPath(path)", ->
     [buffer] = []
@@ -240,10 +210,15 @@ describe "Project", ->
 
     describe "when a buffer is already open", ->
       it "replaces properly and saves when not modified", ->
-        editor = atom.project.openSync('sample.js')
-        expect(editor.isModified()).toBeFalsy()
-
+        editor = null
         results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          expect(editor.isModified()).toBeFalsy()
+
         waitsForPromise ->
           atom.project.replace /items/gi, 'items', [filePath], (result) ->
             results.push(result)
@@ -256,10 +231,12 @@ describe "Project", ->
           expect(editor.isModified()).toBeFalsy()
 
       it "does not replace when the path is not specified", ->
-        editor = atom.project.openSync('sample.js')
-        editor = atom.project.openSync('sample-with-comments.js')
-
+        editor = null
         results = []
+
+        waitsForPromise ->
+          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+
         waitsForPromise ->
           atom.project.replace /items/gi, 'items', [commentFilePath], (result) ->
             results.push(result)
@@ -269,11 +246,16 @@ describe "Project", ->
           expect(results[0].filePath).toBe commentFilePath
 
       it "does NOT save when modified", ->
-        editor = atom.project.openSync('sample.js')
-        editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
-        expect(editor.isModified()).toBeTruthy()
-
+        editor = null
         results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
+          expect(editor.isModified()).toBeTruthy()
+
         waitsForPromise ->
           atom.project.replace /items/gi, 'okthen', [filePath], (result) ->
             results.push(result)
@@ -437,9 +419,14 @@ describe "Project", ->
           expect(resultHandler).not.toHaveBeenCalled()
 
       it "scans buffer contents if the buffer is modified", ->
-        editor = atom.project.openSync("a")
-        editor.setText("Elephant")
+        editor = null
         results = []
+
+        waitsForPromise ->
+          atom.project.open('a').then (o) ->
+            editor = o
+            editor.setText("Elephant")
+
         waitsForPromise ->
           atom.project.scan /a|Elephant/, (result) -> results.push result
 
@@ -450,9 +437,14 @@ describe "Project", ->
           expect(resultForA.matches[0].matchText).toBe 'Elephant'
 
       it "ignores buffers outside the project", ->
-        editor = atom.project.openSync(temp.openSync().path)
-        editor.setText("Elephant")
+        editor = null
         results = []
+
+        waitsForPromise ->
+          atom.project.open(temp.openSync().path).then (o) ->
+            editor = o
+            editor.setText("Elephant")
+
         waitsForPromise ->
           atom.project.scan /Elephant/, (result) -> results.push result
 
