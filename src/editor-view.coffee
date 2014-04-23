@@ -472,7 +472,7 @@ class EditorView extends View
       $(document).off 'mouseup', finalizeSelections
 
       unless @editor.isDestroyed()
-        @editor.mergeIntersectingSelections(isReversed: @editor.getLastSelection().isReversed())
+        @editor.mergeIntersectingSelections(reversed: @editor.getLastSelection().isReversed())
         @editor.finalizeSelections()
         @syncCursorAnimations()
 

@@ -147,7 +147,7 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @marker.setScreenRange([position, @initialScreenRange.end], isReversed: true)
+          @marker.setScreenRange([position, @initialScreenRange.end], reversed: true)
         else
           @marker.setScreenRange([@initialScreenRange.start, position])
       else
@@ -295,7 +295,7 @@ class Selection
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
     if options.select
-      @setBufferRange(newBufferRange, isReversed: wasReversed)
+      @setBufferRange(newBufferRange, reversed: wasReversed)
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 

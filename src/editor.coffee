@@ -1444,7 +1444,7 @@ class Editor extends Model
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(isReversed: lastSelection.isReversed())
+    @mergeIntersectingSelections(reversed: lastSelection.isReversed())
 
   # Public: Move the cursor of each selection one character rightward while
   # preserving the selection's tail position.
@@ -1671,7 +1671,7 @@ class Editor extends Model
   # Calls the given function with each selection, then merges selections in the
   # reversed orientation
   expandSelectionsBackward: (fn) ->
-    @mergeIntersectingSelections isReversed: true, =>
+    @mergeIntersectingSelections reversed: true, =>
       fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->
