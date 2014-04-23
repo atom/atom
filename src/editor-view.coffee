@@ -1482,10 +1482,12 @@ class EditorView extends View
       html = @buildEmptyLineHtml(showIndentGuide, eolInvisibles, htmlEolInvisibles, indentation, editor, mini)
       line.push(html) if html
     else
+      firstTrailingWhitespacePosition = text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in tokens
         @updateScopeStack(line, scopeStack, token.scopes)
-        hasIndentGuide = not mini and showIndentGuide
+        hasIndentGuide = not mini and showIndentGuide and lineIsWhitespaceOnly
         line.push(token.getValueAsHtml({invisibles, hasIndentGuide}))
         position += token.value.length
 
