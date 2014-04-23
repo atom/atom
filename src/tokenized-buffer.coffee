@@ -286,7 +286,7 @@ class TokenizedBuffer extends Model
     position
 
   findClosingBracket: (startBufferPosition) ->
-    range = [startBufferPosition, @buffer.getEofPosition()]
+    range = [startBufferPosition, @buffer.getEndPosition()]
     position = null
     depth = 0
     @iterateTokensInBufferRange range, (token, startPosition, { stop }) ->
