@@ -20,14 +20,25 @@ class DisplayBuffer extends Model
   Serializable.includeInto(this)
 
   @properties
+    manageScrollPosition: false
     softWrap: null
     editorWidthInChars: null
+    lineHeight: null
+    defaultCharWidth: null
+    height: null
+    width: null
+    scrollTop: 0
+    scrollLeft: 0
+
+  verticalScrollMargin: 2
+  horizontalScrollMargin: 6
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
     @softWrap ?= atom.config.get('editor.softWrap') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
     @buffer = @tokenizedBuffer.buffer
+    @charWidthsByScope = {}
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
@@ -51,6 +62,8 @@ class DisplayBuffer extends Model
     id: @id
     softWrap: @softWrap
     editorWidthInChars: @editorWidthInChars
+    scrollTop: @scrollTop
+    scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
 
   deserializeParams: (params) ->
@@ -59,6 +72,9 @@ class DisplayBuffer extends Model
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer.setScrollTop(@getScrollTop())
+    newDisplayBuffer.setScrollLeft(@getScrollLeft())
+
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -89,6 +105,151 @@ class DisplayBuffer extends Model
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
+  getVerticalScrollMargin: -> @verticalScrollMargin
+  setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
+
+  getHorizontalScrollMargin: -> @horizontalScrollMargin
+  setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
+
+  getHeight: -> @height ? @getScrollHeight()
+  setHeight: (@height) -> @height
+
+  getWidth: -> @width ? @getScrollWidth()
+  setWidth: (newWidth) ->
+    oldWidth = @width
+    @width = newWidth
+    @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
+    @width
+
+  getScrollTop: -> @scrollTop
+  setScrollTop: (scrollTop) ->
+    if @manageScrollPosition
+      @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getHeight(), scrollTop))
+    else
+      @scrollTop = scrollTop
+
+  getScrollBottom: -> @scrollTop + @height
+  setScrollBottom: (scrollBottom) ->
+    @setScrollTop(scrollBottom - @height)
+    @getScrollBottom()
+
+  getScrollLeft: -> @scrollLeft
+  setScrollLeft: (scrollLeft) ->
+    if @manageScrollPosition
+      @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
+    else
+      @scrollLeft = scrollLeft
+
+  getScrollRight: -> @scrollLeft + @width
+  setScrollRight: (scrollRight) ->
+    @setScrollLeft(scrollRight - @width)
+    @getScrollRight()
+
+  getLineHeight: -> @lineHeight
+  setLineHeight: (@lineHeight) -> @lineHeight
+
+  getDefaultCharWidth: -> @defaultCharWidth
+  setDefaultCharWidth: (@defaultCharWidth) -> @defaultCharWidth
+
+  getScopedCharWidth: (scopeNames, char) ->
+    @getScopedCharWidths(scopeNames)[char]
+
+  getScopedCharWidths: (scopeNames) ->
+    scope = @charWidthsByScope
+    for scopeName in scopeNames
+      scope[scopeName] ?= {}
+      scope = scope[scopeName]
+    scope.charWidths ?= {}
+    scope.charWidths
+
+  setScopedCharWidth: (scopeNames, char, width) ->
+    @getScopedCharWidths(scopeNames)[char] = width
+
+  setScopedCharWidths: (scopeNames, charWidths) ->
+    _.extend(@getScopedCharWidths(scopeNames), charWidths)
+
+  clearScopedCharWidths: ->
+    @charWidthsByScope = {}
+
+  getScrollHeight: ->
+    unless @getLineHeight() > 0
+      throw new Error("You must assign lineHeight before calling ::getScrollHeight()")
+
+    @getLineCount() * @getLineHeight()
+
+  getScrollWidth: ->
+    @getMaxLineLength() * @getDefaultCharWidth()
+
+  getVisibleRowRange: ->
+    unless @getLineHeight() > 0
+      throw new Error("You must assign a non-zero lineHeight before calling ::getVisibleRowRange()")
+
+    heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
+    startRow = Math.floor(@getScrollTop() / @getLineHeight())
+    endRow = Math.min(@getLineCount(), Math.ceil(startRow + heightInLines))
+    [startRow, endRow]
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  scrollToScreenRange: (screenRange) ->
+    verticalScrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeight()
+    horizontalScrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
+
+    {top, left, height, width} = @pixelRectForScreenRange(screenRange)
+    bottom = top + height
+    right = left + width
+    desiredScrollTop = top - verticalScrollMarginInPixels
+    desiredScrollBottom = bottom + verticalScrollMarginInPixels
+    desiredScrollLeft = left - horizontalScrollMarginInPixels
+    desiredScrollRight = right + horizontalScrollMarginInPixels
+
+    if desiredScrollTop < @getScrollTop()
+      @setScrollTop(desiredScrollTop)
+    else if desiredScrollBottom > @getScrollBottom()
+      @setScrollBottom(desiredScrollBottom)
+
+    if desiredScrollLeft < @getScrollLeft()
+      @setScrollLeft(desiredScrollLeft)
+    else if desiredScrollRight > @getScrollRight()
+      @setScrollRight(desiredScrollRight)
+
+  scrollToScreenPosition: (screenPosition) ->
+    @scrollToScreenRange(new Range(screenPosition, screenPosition))
+
+  scrollToBufferPosition: (bufferPosition) ->
+    @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition))
+
+  pixelRectForScreenRange: (screenRange) ->
+    if screenRange.end.row > screenRange.start.row
+      top = @pixelPositionForScreenPosition(screenRange.start).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeight()
+      width = @getScrollWidth()
+    else
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start)
+      height = @getLineHeight()
+      width = @pixelPositionForScreenPosition(screenRange.end).left - left
+
+    {top, left, width, height}
+
+  # Retrieves the current tab length.
+  #
+  # Returns a {Number}.
+  getTabLength: ->
+    @tokenizedBuffer.getTabLength()
+
+  # Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
+  setTabLength: (tabLength) ->
+    @tokenizedBuffer.setTabLength(tabLength)
+
   # Deprecated: Use the softWrap property directly
   setSoftWrap: (@softWrap) -> @softWrap
 
@@ -105,11 +266,18 @@ class DisplayBuffer extends Model
       if editorWidthInChars isnt previousWidthInChars and @softWrap
         @updateWrappedScreenLines()
 
-  getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@editorWidthInChars, atom.config.getPositiveInt('editor.preferredLineLength', @editorWidthInChars))
+  getEditorWidthInChars: ->
+    width = @getWidth()
+    if width? and @defaultCharWidth > 0
+      Math.floor(width / @defaultCharWidth)
     else
       @editorWidthInChars
+
+  getSoftWrapColumn: ->
+    if atom.config.get('editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+    else
+      @getEditorWidthInChars()
 
   # Gets the screen line for the given screen row.
   #
@@ -133,6 +301,9 @@ class DisplayBuffer extends Model
   # Returns an {Array} of {ScreenLines}s.
   getLines: ->
     new Array(@screenLines...)
+
+  indentLevelForLine: (line) ->
+    @tokenizedBuffer.indentLevelForLine(line)
 
   # Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
@@ -273,6 +444,52 @@ class DisplayBuffer extends Model
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
+  pixelRangeForScreenRange: (screenRange, clip=true) ->
+    {start, end} = Range.fromObject(screenRange)
+    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
+
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+    defaultCharWidth = @defaultCharWidth
+
+    top = targetRow * @lineHeight
+    left = 0
+    column = 0
+    for token in @lineForRow(targetRow).tokens
+      charWidths = @getScopedCharWidths(token.scopes)
+      for char in token.value
+        return {top, left} if column is targetColumn
+        left += charWidths[char] ? defaultCharWidth
+        column++
+    {top, left}
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    targetTop = pixelPosition.top
+    targetLeft = pixelPosition.left
+    defaultCharWidth = @defaultCharWidth
+    row = Math.floor(targetTop / @getLineHeight())
+    row = Math.min(row, @getLastRow())
+    row = Math.max(0, row)
+
+    left = 0
+    column = 0
+    for token in @lineForRow(row).tokens
+      charWidths = @getScopedCharWidths(token.scopes)
+      for char in token.value
+        charWidth = charWidths[char] ? defaultCharWidth
+        break if targetLeft <= left + (charWidth / 2)
+        left += charWidth
+        column++
+
+    new Point(row, column)
+
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))
+
   # Gets the number of screen lines.
   #
   # Returns a {Number}.
@@ -357,18 +574,6 @@ class DisplayBuffer extends Model
   # Returns a {Token}.
   tokenForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.tokenForPosition(bufferPosition)
-
-  # Retrieves the current tab length.
-  #
-  # Returns a {Number}.
-  getTabLength: ->
-    @tokenizedBuffer.getTabLength()
-
-  # Specifies the tab length.
-  #
-  # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (tabLength) ->
-    @tokenizedBuffer.setTabLength(tabLength)
 
   # Get the grammar for this buffer.
   #

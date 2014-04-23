@@ -40,6 +40,8 @@
     "property-accessors": "1.x",
     "q": "^1.0.1",
     "random-words": "0.0.1",
+    "react": "^0.10.0",
+    "reactionary": "^0.8.0",
     "runas": "0.5.x",
     "scandal": "0.15.2",
     "scoped-property-store": "^0.8.0",
@@ -51,7 +53,7 @@
     "temp": "0.5.0",
     "text-buffer": "^2.1.0",
     "theorist": "1.x",
-    "underscore-plus": "^1.1.2",
+    "underscore-plus": "^1.2.1",
     "vm-compatibility-layer": "0.1.0"
   },
   "packageDependencies": {

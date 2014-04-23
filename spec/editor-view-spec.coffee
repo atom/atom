@@ -1596,7 +1596,7 @@ describe "EditorView", ->
           editor.setSoftWrap(true)
 
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-          editor.setText "a line that wraps"
+          editor.setText "a line that wraps "
           editorView.attachToDom()
           editorView.setWidthInChars(6)
           atom.config.set "editor.showInvisibles", true
@@ -1604,11 +1604,11 @@ describe "EditorView", ->
           expect(space).toBeTruthy()
           eol = editorView.invisibles?.eol
           expect(eol).toBeTruthy()
-          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-          expect(editorView.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line "
+          expect(editorView.renderedLines.find('.line:last').text()).toBe "wraps#{space}#{eol}"
 
         it "displays trailing carriage return using a visible non-empty value", ->
-          editor.setText "a line that\r\n"
+          editor.setText "a line that \r\n"
           editorView.attachToDom()
           editorView.setWidthInChars(6)
           atom.config.set "editor.showInvisibles", true
@@ -1618,8 +1618,8 @@ describe "EditorView", ->
           expect(cr).toBeTruthy()
           eol = editorView.invisibles?.eol
           expect(eol).toBeTruthy()
-          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-          expect(editorView.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+          expect(editorView.renderedLines.find('.line:first').text()).toBe "a line "
+          expect(editorView.renderedLines.find('.line:eq(1)').text()).toBe "that#{space}#{cr}#{eol}"
           expect(editorView.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
     describe "when editor.showIndentGuide is set to true", ->

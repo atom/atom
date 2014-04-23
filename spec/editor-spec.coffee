@@ -111,6 +111,21 @@ describe "Editor", ->
         editor.moveCursorDown()
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
+      it "emits a single 'cursors-moved' event for all moved cursors", ->
+        editor.on 'cursors-moved', cursorsMovedHandler = jasmine.createSpy("cursorsMovedHandler")
+
+        editor.moveCursorDown()
+        expect(cursorsMovedHandler.callCount).toBe 1
+
+        cursorsMovedHandler.reset()
+        editor.addCursorAtScreenPosition([3, 0])
+        editor.moveCursorDown()
+        expect(cursorsMovedHandler.callCount).toBe 1
+
+        cursorsMovedHandler.reset()
+        editor.getCursor().moveDown()
+        expect(cursorsMovedHandler.callCount).toBe 1
+
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
         # set a goal column by moving down
@@ -645,6 +660,67 @@ describe "Editor", ->
           cursor2 = editor.addCursorAtBufferPosition([1,4])
           expect(cursor2.marker).toBe cursor1.marker
 
+    describe "autoscroll", ->
+      beforeEach ->
+        editor.manageScrollPosition = true
+        editor.setVerticalScrollMargin(2)
+        editor.setHorizontalScrollMargin(2)
+        editor.setLineHeight(10)
+        editor.setDefaultCharWidth(10)
+        editor.setHeight(5.5 * 10)
+        editor.setWidth(5.5 * 10)
+
+      it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
+        expect(editor.getScrollTop()).toBe 0
+        expect(editor.getScrollBottom()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([2, 0])
+        expect(editor.getScrollBottom()).toBe 5.5 * 10
+
+        editor.moveCursorDown()
+        expect(editor.getScrollBottom()).toBe 6 * 10
+
+        editor.moveCursorDown()
+        expect(editor.getScrollBottom()).toBe 7 * 10
+
+      it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
+        editor.setCursorScreenPosition([11, 0])
+        editor.setScrollBottom(editor.getScrollHeight())
+
+        editor.moveCursorUp()
+        expect(editor.getScrollBottom()).toBe editor.getScrollHeight()
+
+        editor.moveCursorUp()
+        expect(editor.getScrollTop()).toBe 7 * 10
+
+        editor.moveCursorUp()
+        expect(editor.getScrollTop()).toBe 6 * 10
+
+      it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
+        expect(editor.getScrollLeft()).toBe 0
+        expect(editor.getScrollRight()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([0, 2])
+        expect(editor.getScrollRight()).toBe 5.5 * 10
+
+        editor.moveCursorRight()
+        expect(editor.getScrollRight()).toBe 6 * 10
+
+        editor.moveCursorRight()
+        expect(editor.getScrollRight()).toBe 7 * 10
+
+      it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
+        editor.setScrollRight(editor.getScrollWidth())
+        editor.setCursorScreenPosition([6, 62])
+
+        expect(editor.getScrollRight()).toBe editor.getScrollWidth()
+
+        editor.moveCursorLeft()
+        expect(editor.getScrollLeft()).toBe 59 * 10
+
+        editor.moveCursorLeft()
+        expect(editor.getScrollLeft()).toBe 58 * 10
+
   describe "selection", ->
     selection = null
 
@@ -1000,7 +1076,7 @@ describe "Editor", ->
         expect(selection1).toBe selection
         expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
 
-      describe "when the preserveFolds option is false (the default)", ->
+      describe "when the 'preserveFolds' option is false (the default)", ->
         it "removes folds that contain the selections", ->
           editor.setSelectedBufferRange([[0,0], [0,0]])
           editor.createFold(1, 4)
@@ -1014,7 +1090,7 @@ describe "Editor", ->
           expect(editor.lineForScreenRow(6).fold).toBeUndefined()
           expect(editor.lineForScreenRow(10).fold).toBeDefined()
 
-      describe "when the preserve folds option is true", ->
+      describe "when the 'preserveFolds' option is true", ->
         it "does not remove folds that contain the selections", ->
           editor.setSelectedBufferRange([[0,0], [0,0]])
           editor.createFold(1, 4)
@@ -1022,6 +1098,24 @@ describe "Editor", ->
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], preserveFolds: true)
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+
+    describe ".setSelectedBufferRange(range)", ->
+      describe "when the 'autoscroll' option is true", ->
+        it "autoscrolls to the selection", ->
+          editor.manageScrollPosition = true
+          editor.setLineHeight(10)
+          editor.setDefaultCharWidth(10)
+          editor.setHeight(50)
+          editor.setWidth(50)
+          expect(editor.getScrollTop()).toBe 0
+
+          editor.setSelectedBufferRange([[5, 6], [6, 8]], autoscroll: true)
+          expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+          expect(editor.getScrollRight()).toBe 50
+
+          editor.setSelectedBufferRange([[6, 6], [6, 8]], autoscroll: true)
+          expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+          expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
 
     describe ".selectMarker(marker)", ->
       describe "if the marker is valid", ->
@@ -2934,3 +3028,37 @@ describe "Editor", ->
       editor.setSoftTabs(false)
       editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
       expect(editor.getText()).toBe '     '
+
+  describe ".scrollToCursorPosition()", ->
+    it "scrolls the last cursor into view", ->
+      editor.setCursorScreenPosition([8, 8])
+      editor.setLineHeight(10)
+      editor.setDefaultCharWidth(10)
+      editor.setHeight(50)
+      editor.setWidth(50)
+      expect(editor.getScrollTop()).toBe 0
+      expect(editor.getScrollLeft()).toBe 0
+
+      editor.scrollToCursorPosition()
+      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
+      expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
+
+  describe ".pageUp/Down()", ->
+    it "scrolls one screen height up or down", ->
+      editor.manageScrollPosition = true
+
+      editor.setLineHeight(10)
+      editor.setHeight(50)
+      expect(editor.getScrollHeight()).toBe 130
+
+      editor.pageDown()
+      expect(editor.getScrollTop()).toBe 50
+
+      editor.pageDown()
+      expect(editor.getScrollTop()).toBe 80
+
+      editor.pageUp()
+      expect(editor.getScrollTop()).toBe 30
+
+      editor.pageUp()
+      expect(editor.getScrollTop()).toBe 0

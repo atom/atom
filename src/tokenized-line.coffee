@@ -1,12 +1,16 @@
 _ = require 'underscore-plus'
 
+idCounter = 1
+
 module.exports =
 class TokenizedLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->
-    @tokens = @breakOutAtomicTokens(tokens, tabLength)
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
+    @tokens = @breakOutAtomicTokens(tokens)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
     @bufferDelta = _.sum(_.pluck(@tokens, 'bufferDelta'))
+    @id = idCounter++
+    @markLeadingAndTrailingWhitespaceTokens()
 
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
@@ -106,13 +110,24 @@ class TokenizedLine
       delta = nextDelta
     delta
 
-  breakOutAtomicTokens: (inputTokens, tabLength) ->
+  breakOutAtomicTokens: (inputTokens) ->
     outputTokens = []
-    breakOutLeadingWhitespace = true
+    breakOutLeadingSoftTabs = true
     for token in inputTokens
-      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
-      breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+      outputTokens.push(token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs)...)
+      breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
+
+  markLeadingAndTrailingWhitespaceTokens: ->
+    firstNonWhitespacePosition = @text.search(/\S/)
+    firstTrailingWhitespacePosition = @text.search(/\s*$/)
+    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+    position = 0
+    for token, i in @tokens
+      token.hasLeadingWhitespace =  position < firstNonWhitespacePosition
+      # Only the *last* segment of a soft-wrapped line can have trailing whitespace
+      token.hasTrailingWhitespace = @lineEnding? and (position + token.value.length > firstTrailingWhitespacePosition)
+      position += token.value.length
 
   isComment: ->
     for token in @tokens
@@ -134,3 +149,33 @@ class TokenizedLine
     for token in @tokens
       return column if token is targetToken
       column += token.bufferDelta
+
+  getScopeTree: ->
+    return @scopeTree if @scopeTree?
+
+    scopeStack = []
+    for token in @tokens
+      @updateScopeStack(scopeStack, token.scopes)
+      _.last(scopeStack).children.push(token)
+
+    @scopeTree = scopeStack[0]
+    @updateScopeStack(scopeStack, [])
+    @scopeTree
+
+  updateScopeStack: (scopeStack, desiredScopes) ->
+    # Find a common prefix
+    for scope, i in desiredScopes
+      break unless scopeStack[i]?.scope is desiredScopes[i]
+
+    # Pop scopes until we're at the common prefx
+    until scopeStack.length is i
+      poppedScope = scopeStack.pop()
+      _.last(scopeStack)?.children.push(poppedScope)
+
+    # Push onto common prefix until scopeStack equals desiredScopes
+    for j in [i...desiredScopes.length]
+      scopeStack.push(new Scope(desiredScopes[j]))
+
+class Scope
+  constructor: (@scope) ->
+    @children = []

@@ -84,6 +84,7 @@ beforeEach ->
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
+  config.set "core.useReactEditor", false
   config.save.reset()
   atom.config = config
 
@@ -242,6 +243,15 @@ window.fakeSetTimeout = (callback, ms) ->
 
 window.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
+
+window.fakeSetInterval = (callback, ms) ->
+  action = ->
+    callback()
+    window.fakeSetTimeout(action, ms)
+  window.fakeSetTimeout(action, ms)
+
+window.fakeClearInterval = (idToClear) ->
+  window.fakeClearTimeout(idToClear)
 
 window.advanceClock = (delta=1) ->
   window.now += delta

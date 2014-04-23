@@ -136,10 +136,6 @@ class Editor extends Model
   atom.deserializers.add(this)
   Delegator.includeInto(this)
 
-  @properties
-    scrollTop: 0
-    scrollLeft: 0
-
   deserializing: false
   callDisplayBufferCreatedHook: false
   registerEditor: false
@@ -152,6 +148,9 @@ class Editor extends Model
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
+
+  @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
+    '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
@@ -217,7 +216,10 @@ class Editor extends Model
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
   getViewClass: ->
-    require './editor-view'
+    if atom.config.get('core.useReactEditor')
+      require './react-editor-view'
+    else
+      require './editor-view'
 
   destroyed: ->
     @unsubscribe()
@@ -232,8 +234,6 @@ class Editor extends Model
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
     newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
-    newEditor.setScrollTop(@getScrollTop())
-    newEditor.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -269,18 +269,6 @@ class Editor extends Model
   # Controls visiblity based on the given {Boolean}.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
-  # Called by {EditorView} when the scroll position changes so it can be
-  # persisted across reloads.
-  setScrollTop: (@scrollTop) -> @scrollTop
-
-  getScrollTop: -> @scrollTop
-
-  # Called by {EditorView} when the scroll position changes so it can be
-  # persisted across reloads.
-  setScrollLeft: (@scrollLeft) -> @scrollLeft
-
-  getScrollLeft: -> @scrollLeft
-
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #
@@ -301,6 +289,9 @@ class Editor extends Model
   # softTabs - A {Boolean}
   setSoftTabs: (@softTabs) -> @softTabs
 
+  # Public: Toggle soft tabs for this editor
+  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
+
   # Public: Get whether soft wrap is enabled for this editor.
   getSoftWrap: -> @displayBuffer.getSoftWrap()
 
@@ -308,6 +299,9 @@ class Editor extends Model
   #
   # softWrap - A {Boolean}
   setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
+
+  # Public: Toggle soft wrap for this editor
+  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
 
   # Public: Get the text representing a single level of indent.
   #
@@ -394,13 +388,7 @@ class Editor extends Model
   #
   # Returns a {Number}.
   indentLevelForLine: (line) ->
-    if match = line.match(/^[\t ]+/)
-      leadingWhitespace = match[0]
-      tabCount = leadingWhitespace.match(/\t/g)?.length ? 0
-      spaceCount = leadingWhitespace.match(/[ ]/g)?.length ? 0
-      tabCount + (spaceCount / @getTabLength())
-    else
-      0
+    @displayBuffer.indentLevelForLine(line)
 
   # Constructs the string used for tabs.
   buildIndentString: (number) ->
@@ -420,6 +408,15 @@ class Editor extends Model
   #
   # filePath - A {String} path.
   saveAs: (filePath) -> @buffer.saveAs(filePath)
+
+  checkoutHead: ->
+    if path = @getPath()
+      atom.project.getRepo()?.checkoutHead(path)
+
+  # Copies the current file path to the native clipboard.
+  copyPathToClipboard: ->
+    path = @getPath()
+    atom.clipboard.write(path) if path?
 
   # Public: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
@@ -598,6 +595,9 @@ class Editor extends Model
   #
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
+
+  logCursorScope: ->
+    console.log @getCursorScopes()
 
   # Public: For each selection, replace the selected text with the given text.
   #
@@ -1178,6 +1178,16 @@ class Editor extends Model
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
+  # Public: Set the selected range in screen coordinates. If there are multiple
+  # selections, they are reduced to a single selection with the given range.
+  #
+  # screenRange - A {Range} or range-compatible {Array}.
+  # options - An options {Object}:
+  #   :reversed - A {Boolean} indicating whether to create the selection in a
+  #     reversed orientation.
+  setSelectedScreenRange: (screenRange, options) ->
+    @setSelectedBufferRange(@bufferRangeForScreenRange(screenRange, options), options)
+
   # Public: Set the selected ranges in buffer coordinates. If there are multiple
   # selections, they are replaced by new selections with the given ranges.
   #
@@ -1202,6 +1212,7 @@ class Editor extends Model
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
+    @emit 'selection-removed', selection
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.
@@ -1217,6 +1228,9 @@ class Editor extends Model
       true
     else
       false
+
+  selectionScreenRangeChanged: (selection) ->
+    @emit 'selection-screen-range-changed', selection
 
   # Public: Get current {Selection}s.
   #
@@ -1328,6 +1342,14 @@ class Editor extends Model
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
+  # Public: Get the {Range}s of all selections in screen coordinates.
+  #
+  # The ranges are sorted by their position in the buffer.
+  #
+  # Returns an {Array} of {Range}s.
+  getSelectedScreenRanges: ->
+    selection.getScreenRange() for selection in @getSelectionsOrderedByBufferPosition()
+
   # Public: Get the selected text of the most recently added selection.
   #
   # Returns a {String}.
@@ -1431,9 +1453,26 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
+  scrollToCursorPosition: ->
+    @getCursor().autoscroll()
+
+  pageUp: ->
+    @setScrollTop(@getScrollTop() - @getHeight())
+
+  pageDown: ->
+    @setScrollTop(@getScrollTop() + @getHeight())
+
   moveCursors: (fn) ->
-    fn(cursor) for cursor in @getCursors()
-    @mergeCursors()
+    @movingCursors = true
+    @batchUpdates =>
+      fn(cursor) for cursor in @getCursors()
+      @mergeCursors()
+      @movingCursors = false
+      @emit 'cursors-moved'
+
+  cursorMoved: (event) ->
+    @emit 'cursor-moved', event
+    @emit 'cursors-moved' unless @movingCursors
 
   # Public: Select from the current cursor position to the given position in
   # screen coordinates.
@@ -1735,7 +1774,9 @@ class Editor extends Model
   # execution and revert any changes performed up to the abortion.
   #
   # fn - A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
+  transact: (fn) ->
+    @batchUpdates =>
+      @buffer.transact(fn)
 
   # Public: Start an open-ended transaction.
   #
@@ -1755,6 +1796,12 @@ class Editor extends Model
   # within the transaction.
   abortTransaction: -> @buffer.abortTransaction()
 
+  batchUpdates: (fn) ->
+    @emit 'batched-updates-started'
+    result = fn()
+    @emit 'batched-updates-ended'
+    result
+
   inspect: ->
     "<Editor #{@id}>"
 
@@ -1770,6 +1817,66 @@ class Editor extends Model
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
+
+  getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
+  setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
+
+  getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
+  setHorizontalScrollMargin: (horizontalScrollMargin) -> @displayBuffer.setHorizontalScrollMargin(horizontalScrollMargin)
+
+  getLineHeight: -> @displayBuffer.getLineHeight()
+  setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
+
+  getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
+  setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
+
+  getScopedCharWidths: (scopeNames) -> @displayBuffer.getScopedCharWidths(scopeNames)
+
+  clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
+
+  getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
+  setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
+
+  setHeight: (height) -> @displayBuffer.setHeight(height)
+  getHeight: -> @displayBuffer.getHeight()
+
+  setWidth: (width) -> @displayBuffer.setWidth(width)
+  getWidth: -> @displayBuffer.getWidth()
+
+  getScrollTop: -> @displayBuffer.getScrollTop()
+  setScrollTop: (scrollTop) -> @displayBuffer.setScrollTop(scrollTop)
+
+  getScrollBottom: -> @displayBuffer.getScrollBottom()
+  setScrollBottom: (scrollBottom) -> @displayBuffer.setScrollBottom(scrollBottom)
+
+  getScrollLeft: -> @displayBuffer.getScrollLeft()
+  setScrollLeft: (scrollLeft) -> @displayBuffer.setScrollLeft(scrollLeft)
+
+  getScrollRight: -> @displayBuffer.getScrollRight()
+  setScrollRight: (scrollRight) -> @displayBuffer.setScrollRight(scrollRight)
+
+  getScrollHeight: -> @displayBuffer.getScrollHeight()
+  getScrollWidth: (scrollWidth) -> @displayBuffer.getScrollWidth(scrollWidth)
+
+  getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
+
+  intersectsVisibleRowRange: (startRow, endRow) -> @displayBuffer.intersectsVisibleRowRange(startRow, endRow)
+
+  selectionIntersectsVisibleRowRange: (selection) -> @displayBuffer.selectionIntersectsVisibleRowRange(selection)
+
+  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
+
+  pixelPositionForBufferPosition: (bufferPosition) -> @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
+
+  screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
+
+  scrollToScreenRange: (screenRange) -> @displayBuffer.scrollToScreenRange(screenRange)
+
+  scrollToScreenPosition: (screenPosition) -> @displayBuffer.scrollToScreenPosition(screenPosition)
+
+  scrollToBufferPosition: (bufferPosition) -> @displayBuffer.scrollToBufferPosition(bufferPosition)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
