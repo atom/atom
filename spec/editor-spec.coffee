@@ -7,9 +7,12 @@ describe "Editor", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
-    editor = atom.project.openSync('sample.js', autoIndent: false)
-    buffer = editor.buffer
-    lineLengths = buffer.getLines().map (line) -> line.length
+    waitsForPromise ->
+      atom.project.open('sample.js', autoIndent: false).then (o) -> editor = o
+
+    runs ->
+      buffer = editor.buffer
+      lineLengths = buffer.getLines().map (line) -> line.length
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
@@ -17,7 +20,7 @@ describe "Editor", ->
   describe "when the editor is deserialized", ->
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
-      editor.addSelectionForBufferRange([[5, 6], [7, 5]], isReversed: true)
+      editor.addSelectionForBufferRange([[5, 6], [7, 5]], reversed: true)
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
@@ -31,15 +34,20 @@ describe "Editor", ->
       editor2.destroy()
 
   describe "when the editor is constructed with an initialLine option", ->
-    it "and positions the cursor on the specified line", ->
-      editor = atom.project.openSync('sample.js', initialLine: 2)
-      buffer = editor.buffer
-      expect(editor.getCursor().getBufferPosition().row).toEqual 2
+    it "positions the cursor on the specified line", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
+
+      runs ->
+        buffer = editor.buffer
+        expect(editor.getCursor().getBufferPosition().row).toEqual 5
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
-      editor.addSelectionForBufferRange([[5, 6], [7, 8]], isReversed: true)
+      editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
@@ -57,21 +65,31 @@ describe "Editor", ->
 
   describe "config defaults", ->
     it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+      editor1 = null
+      editor2 = null
       atom.config.set('editor.tabLength', 4)
       atom.config.set('editor.softWrap', true)
       atom.config.set('editor.softTabs', false)
-      editor1 = atom.project.openSync('a')
-      expect(editor1.getTabLength()).toBe 4
-      expect(editor1.getSoftWrap()).toBe true
-      expect(editor1.getSoftTabs()).toBe false
 
-      atom.config.set('editor.tabLength', 100)
-      atom.config.set('editor.softWrap', false)
-      atom.config.set('editor.softTabs', true)
-      editor2 = atom.project.openSync('b')
-      expect(editor2.getTabLength()).toBe 100
-      expect(editor2.getSoftWrap()).toBe false
-      expect(editor2.getSoftTabs()).toBe true
+      waitsForPromise ->
+        atom.workspace.open('a').then (o) -> editor1 = o
+
+      runs ->
+        expect(editor1.getTabLength()).toBe 4
+        expect(editor1.getSoftWrap()).toBe true
+        expect(editor1.getSoftTabs()).toBe false
+
+        atom.config.set('editor.tabLength', 100)
+        atom.config.set('editor.softWrap', false)
+        atom.config.set('editor.softTabs', true)
+
+      waitsForPromise ->
+        atom.workspace.open('b').then (o) -> editor2 = o
+
+      runs ->
+        expect(editor2.getTabLength()).toBe 100
+        expect(editor2.getSoftWrap()).toBe false
+        expect(editor2.getSoftTabs()).toBe true
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -683,7 +701,7 @@ describe "Editor", ->
         expect(selection1.isReversed()).toBeFalsy()
 
       it "merges selections when they intersect when moving up", ->
-        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[1,10], [1,20]]], isReversed: true)
+        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[1,10], [1,20]]], reversed: true)
         [selection1, selection2] = editor.getSelections()
 
         editor.selectUp()
@@ -694,7 +712,7 @@ describe "Editor", ->
         expect(selection1.isReversed()).toBeTruthy()
 
       it "merges selections when they intersect when moving left", ->
-        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]], isReversed: true)
+        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]], reversed: true)
         [selection1, selection2] = editor.getSelections()
 
         editor.selectLeft()
@@ -1245,10 +1263,14 @@ describe "Editor", ->
         expect(selection.isEmpty()).toBeTruthy()
 
     it "does not share selections between different edit sessions for the same buffer", ->
-      editor2 = atom.project.openSync('sample.js')
-      editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-      editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
-      expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
+      editor2 = null
+      waitsForPromise ->
+        atom.project.open('sample.js').then (o) -> editor2 = o
+
+      runs ->
+        editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
+        expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
 
   describe "buffer manipulation", ->
     describe ".insertText(text)", ->
@@ -2131,10 +2153,14 @@ describe "Editor", ->
 
       it "does not explode if the current language mode has no comment regex", ->
         editor.destroy()
-        editor = atom.project.openSync(null, autoIndent: false)
-        editor.setSelectedBufferRange([[4, 5], [4, 5]])
-        editor.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+
+        waitsForPromise ->
+          atom.workspace.open(null, autoIndent: false).then (o) -> editor = o
+
+        runs ->
+          editor.setSelectedBufferRange([[4, 5], [4, 5]])
+          editor.toggleLineCommentsInSelection()
+          expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
       it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
         editor.setCursorBufferPosition([10, 0])
@@ -2453,14 +2479,17 @@ describe "Editor", ->
 
   describe "soft-tabs detection", ->
     it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-      editor = atom.project.openSync('sample.js', softTabs: false)
-      expect(editor.getSoftTabs()).toBeTruthy()
+      waitsForPromise ->
+        atom.workspace.open('sample.js', softTabs: false).then (editor) ->
+          expect(editor.getSoftTabs()).toBeTruthy()
 
-      editor = atom.project.openSync('sample-with-tabs.coffee', softTabs: true)
-      expect(editor.getSoftTabs()).toBeFalsy()
+      waitsForPromise ->
+        atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
+          expect(editor.getSoftTabs()).toBeFalsy()
 
-      editor = atom.project.openSync(null, softTabs: false)
-      expect(editor.getSoftTabs()).toBeFalsy()
+      waitsForPromise ->
+        atom.workspace.open(null, softTabs: false).then (editor) ->
+          expect(editor.getSoftTabs()).toBeFalsy()
 
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
@@ -2484,16 +2513,21 @@ describe "Editor", ->
 
   describe "when a better-matched grammar is added to syntax", ->
     it "switches to the better-matched grammar and re-tokenizes the buffer", ->
+      editor.destroy()
+
       jsGrammar = atom.syntax.selectGrammar('a.js')
       atom.syntax.removeGrammar(jsGrammar)
 
-      editor2 = atom.project.openSync('sample.js', autoIndent: false)
-      expect(editor2.getGrammar()).toBe atom.syntax.nullGrammar
-      expect(editor2.lineForScreenRow(0).tokens.length).toBe 1
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
-      atom.syntax.addGrammar(jsGrammar)
-      expect(editor2.getGrammar()).toBe jsGrammar
-      expect(editor2.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
+      runs ->
+        expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
+        expect(editor.lineForScreenRow(0).tokens.length).toBe 1
+
+        atom.syntax.addGrammar(jsGrammar)
+        expect(editor.getGrammar()).toBe jsGrammar
+        expect(editor.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
     copyText = (text, {startColumn}={}) ->
@@ -2780,10 +2814,15 @@ describe "Editor", ->
       expect(editor.shouldPromptToSave()).toBeFalsy()
       buffer.setText('changed')
       expect(editor.shouldPromptToSave()).toBeTruthy()
-      editor2 = atom.project.openSync('sample.js', autoIndent: false)
-      expect(editor.shouldPromptToSave()).toBeFalsy()
-      editor2.destroy()
-      expect(editor.shouldPromptToSave()).toBeTruthy()
+
+      editor2 = null
+      waitsForPromise ->
+        atom.project.open('sample.js', autoIndent: false).then (o) -> editor2 = o
+
+      runs ->
+        expect(editor.shouldPromptToSave()).toBeFalsy()
+        editor2.destroy()
+        expect(editor.shouldPromptToSave()).toBeTruthy()
 
   describe "when the edit session contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
@@ -2879,12 +2918,15 @@ describe "Editor", ->
 
     describe "when the grammar is added", ->
       it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-        editor = atom.project.openSync('sample.js')
-        editor.setText("// http://github.com")
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (o) -> editor = o
 
-        {tokens} = editor.lineForScreenRow(0)
-        expect(tokens[1].value).toBe " http://github.com"
-        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+        runs ->
+          editor.setText("// http://github.com")
+
+          {tokens} = editor.lineForScreenRow(0)
+          expect(tokens[1].value).toBe " http://github.com"
+          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
         waitsForPromise ->
           atom.packages.activatePackage('language-hyperlink')
@@ -2896,12 +2938,15 @@ describe "Editor", ->
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editor = atom.project.openSync('sample.js')
-          editor.setText("// SELECT * FROM OCTOCATS")
+          waitsForPromise ->
+            atom.workspace.open('sample.js').then (o) -> editor = o
 
-          {tokens} = editor.lineForScreenRow(0)
-          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+          runs ->
+            editor.setText("// SELECT * FROM OCTOCATS")
+
+            {tokens} = editor.lineForScreenRow(0)
+            expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+            expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
           waitsForPromise ->
             atom.packages.activatePackage('package-with-injection-selector')
