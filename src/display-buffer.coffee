@@ -130,6 +130,7 @@ class DisplayBuffer extends Model
     oldWidth = @width
     @width = newWidth
     @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
+    @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
     @width
 
   getScrollTop: -> @scrollTop

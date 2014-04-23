@@ -539,10 +539,9 @@ describe "EditorComponent", ->
       topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
       expect(bottomOfLastLine).toBe topOfHorizontalScrollbar
 
-      # Render no space below the last line when there's no horizontal scrollbar
+      # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       node.style.width = 100 * charWidth + 'px'
       component.measureHeightAndWidth()
-      editor.setScrollBottom(editor.getScrollHeight())
       lastLineNode = last(node.querySelectorAll('.line'))
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = node.getBoundingClientRect().bottom
