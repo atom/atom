@@ -469,7 +469,7 @@ class Editor extends Model
   # options - An options hash with an `includeNewline` key.
   #
   # Returns a {Range}.
-  bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
+  bufferRangeForBufferRow: (row, {includeNewline}={}) -> @buffer.rangeForRow(row, includeNewline)
 
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
