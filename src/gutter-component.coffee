@@ -33,7 +33,7 @@ GutterComponent = React.createClass
         lastBufferRow = bufferRow
         lineNumber = (bufferRow + 1).toString()
 
-      key = tokenizedLines[i]?.id
+      key = tokenizedLines[i].id
       screenRow = startRow + i
       lineNumbers.push(LineNumberComponent({key, lineNumber, maxDigits, bufferRow, screenRow, lineHeight}))
       lastBufferRow = bufferRow
@@ -45,10 +45,9 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    {renderedRowRange, pendingChanges, scrollTop} = @props
-
     return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeight')
 
+    {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
