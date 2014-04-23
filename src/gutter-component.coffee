@@ -41,9 +41,6 @@ GutterComponent = React.createClass
     div className: 'line-numbers', style: style,
       lineNumbers
 
-  componentWillUnmount: ->
-    @unsubscribe()
-
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
