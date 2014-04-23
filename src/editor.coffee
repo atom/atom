@@ -895,7 +895,7 @@ class Editor extends Model
           endRow = row
 
         insertPosition = Point.fromObject([startRow - insertDelta])
-        endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
+        endPosition = Point.min([endRow + 1], @buffer.getEndPosition())
         lines = @buffer.getTextInRange([[startRow], endPosition])
         if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
           lines = "#{lines}\n"
@@ -954,7 +954,7 @@ class Editor extends Model
         lines = @buffer.getTextInRange([[startRow], endPosition])
         @buffer.deleteRows(startRow, endRow)
 
-        insertPosition = Point.min([startRow + insertDelta], @buffer.getEofPosition())
+        insertPosition = Point.min([startRow + insertDelta], @buffer.getEndPosition())
         if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
           lines = "\n#{lines}"
 
