@@ -229,8 +229,11 @@ describe "Git", ->
     [originalContent, editor] = []
 
     beforeEach ->
-      editor = atom.project.openSync('sample.js')
-      originalContent = editor.getText()
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (o) -> editor = o
+
+      runs ->
+        originalContent = editor.getText()
 
     afterEach ->
       fs.writeFileSync(editor.getPath(), originalContent)
@@ -274,9 +277,12 @@ describe "Git", ->
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
-      atom.project.openSync('sample.js')
-      project2 = atom.project.testSerialization()
-      buffer = project2.getBuffers()[0]
+      waitsForPromise ->
+        atom.project.open('sample.js')
+
+      runs ->
+        project2 = atom.project.testSerialization()
+        buffer = project2.getBuffers()[0]
 
       waitsFor ->
         buffer.loaded
