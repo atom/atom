@@ -303,7 +303,11 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) -> atom.keymaps.handleKeyboardEvent(e.originalEvent)
+  @on 'keydown', (e) ->
+    originalEvent = e.originalEvent ? e
+    Object.defineProperty(originalEvent, 'target', get: -> e.target) unless originalEvent.target?
+    atom.keymaps.handleKeyboardEvent(originalEvent)
+    not e.originalEvent.defaultPrevented
 
 $.fn.attachToDom = ->
   @appendTo($('#jasmine-content'))
