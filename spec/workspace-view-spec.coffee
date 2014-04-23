@@ -60,18 +60,18 @@ describe "WorkspaceView", ->
         pane4 = pane2.splitDown()
 
         waitsForPromise ->
-          atom.project.open('b').then (editor) ->
+          atom.workspace.open('b').then (editor) ->
             pane2.activateItem(editor)
 
         waitsForPromise ->
-          atom.project.open('../sample.js').then (editor) ->
+          atom.workspace.open('../sample.js').then (editor) ->
             pane3.activateItem(editor)
 
         runs ->
           pane3.activeItem.setCursorScreenPosition([2, 4])
 
         waitsForPromise ->
-          atom.project.open('../sample.txt').then (editor) ->
+          atom.workspace.open('../sample.txt').then (editor) ->
             pane4.activateItem(editor)
 
         runs ->

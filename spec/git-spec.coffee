@@ -278,7 +278,7 @@ describe "Git", ->
 
     it "subscribes to all the serialized buffers in the project", ->
       waitsForPromise ->
-        atom.project.open('sample.js')
+        atom.workspace.open('sample.js')
 
       runs ->
         project2 = atom.project.testSerialization()
