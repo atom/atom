@@ -1819,60 +1819,60 @@ class Editor extends Model
     type: 'selection', editorId: @id, invalidate: 'never'
 
   getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
-  setVerticalScrollMargin: (args...) -> @displayBuffer.setVerticalScrollMargin(args...)
+  setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
 
   getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
-  setHorizontalScrollMargin: (args...) -> @displayBuffer.setHorizontalScrollMargin(args...)
+  setHorizontalScrollMargin: (horizontalScrollMargin) -> @displayBuffer.setHorizontalScrollMargin(horizontalScrollMargin)
 
   getLineHeight: -> @displayBuffer.getLineHeight()
   setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
 
-  getScopedCharWidth: (args...) -> @displayBuffer.getScopedCharWidth(args...)
-  setScopedCharWidth: (args...) -> @displayBuffer.setScopedCharWidth(args...)
+  getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
+  setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
 
-  getScopedCharWidths: (args...) -> @displayBuffer.getScopedCharWidths(args...)
+  getScopedCharWidths: (scopeNames) -> @displayBuffer.getScopedCharWidths(scopeNames)
 
   clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
 
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
-  setDefaultCharWidth: (args...) -> @displayBuffer.setDefaultCharWidth(args...)
+  setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
-  setHeight: (args...) -> @displayBuffer.setHeight(args...)
+  setHeight: (height) -> @displayBuffer.setHeight(height)
   getHeight: -> @displayBuffer.getHeight()
 
-  setWidth: (args...) -> @displayBuffer.setWidth(args...)
+  setWidth: (width) -> @displayBuffer.setWidth(width)
   getWidth: -> @displayBuffer.getWidth()
 
   getScrollTop: -> @displayBuffer.getScrollTop()
-  setScrollTop: (args...) -> @displayBuffer.setScrollTop(args...)
+  setScrollTop: (scrollTop) -> @displayBuffer.setScrollTop(scrollTop)
 
   getScrollBottom: -> @displayBuffer.getScrollBottom()
-  setScrollBottom: (args...) -> @displayBuffer.setScrollBottom(args...)
+  setScrollBottom: (scrollBottom) -> @displayBuffer.setScrollBottom(scrollBottom)
 
   getScrollLeft: -> @displayBuffer.getScrollLeft()
-  setScrollLeft: (args...) -> @displayBuffer.setScrollLeft(args...)
+  setScrollLeft: (scrollLeft) -> @displayBuffer.setScrollLeft(scrollLeft)
 
   getScrollRight: -> @displayBuffer.getScrollRight()
-  setScrollRight: (args...) -> @displayBuffer.setScrollRight(args...)
+  setScrollRight: (scrollRight) -> @displayBuffer.setScrollRight(scrollRight)
 
   getScrollHeight: -> @displayBuffer.getScrollHeight()
-  getScrollWidth: (args...) -> @displayBuffer.getScrollWidth(args...)
+  getScrollWidth: (scrollWidth) -> @displayBuffer.getScrollWidth(scrollWidth)
 
   getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
 
-  intersectsVisibleRowRange: (args...) -> @displayBuffer.intersectsVisibleRowRange(args...)
+  intersectsVisibleRowRange: (startRow, endRow) -> @displayBuffer.intersectsVisibleRowRange(startRow, endRow)
 
-  selectionIntersectsVisibleRowRange: (args...) -> @displayBuffer.selectionIntersectsVisibleRowRange(args...)
+  selectionIntersectsVisibleRowRange: (selection) -> @displayBuffer.selectionIntersectsVisibleRowRange(selection)
 
-  pixelPositionForScreenPosition: (args...) -> @displayBuffer.pixelPositionForScreenPosition(args...)
+  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
 
-  pixelPositionForBufferPosition: (args...) -> @displayBuffer.pixelPositionForBufferPosition(args...)
+  pixelPositionForBufferPosition: (bufferPosition) -> @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
 
-  screenPositionForPixelPosition: (args...) -> @displayBuffer.screenPositionForPixelPosition(args...)
+  screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
 
-  pixelRectForScreenRange: (args...) -> @displayBuffer.pixelRectForScreenRange(args...)
+  pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
 
-  scrollToScreenRange: (args...) -> @displayBuffer.scrollToScreenRange(args...)
+  scrollToScreenRange: (screenRange) -> @displayBuffer.scrollToScreenRange(screenRange)
 
   scrollToScreenPosition: (screenPosition) -> @displayBuffer.scrollToScreenPosition(screenPosition)
 
