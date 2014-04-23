@@ -78,7 +78,7 @@ class Selection extends Model
     @modifySelection =>
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
-      @autoscroll() if @needsAutoscroll
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.
