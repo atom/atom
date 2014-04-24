@@ -38,6 +38,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 specPackageName = null
 specPackagePath = null
 specProjectPath = null
+isCoreSpec = false
 
 {specDirectory, resourcePath} = atom.getLoadSettings()
 
@@ -47,8 +48,10 @@ if specDirectory
     specPackageName = JSON.parse(fs.readFileSync(path.join(specPackagePath, 'package.json')))?.name
   specProjectPath = path.join(specDirectory, 'fixtures')
 
+isCoreSpec = specDirectory == fs.realpathSync(__dirname)
+
 beforeEach ->
-  Grim.clearDeprecations()
+  Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
@@ -126,7 +129,7 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
-  ensureNoDeprecatedFunctionsCalled()
+  ensureNoDeprecatedFunctionsCalled() if isCoreSpec
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
