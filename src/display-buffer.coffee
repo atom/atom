@@ -157,7 +157,6 @@ class DisplayBuffer extends Model
   setScrollLeft: (scrollLeft) ->
     if @manageScrollPosition
       @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
-      console.log @scrollLeft
       @scrollLeft
     else
       @scrollLeft = scrollLeft
