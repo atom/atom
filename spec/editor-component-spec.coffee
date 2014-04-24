@@ -2,7 +2,7 @@
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
-describe "EditorComponent", ->
+fdescribe "EditorComponent", ->
   [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
@@ -22,7 +22,10 @@ describe "EditorComponent", ->
         else
           fn()
 
-      editor = atom.project.openSync('sample.js')
+    waitsForPromise ->
+      atom.project.open('sample.js').then (o) -> editor = o
+
+    runs ->
       wrapperView = new ReactEditorView(editor)
       wrapperView.attachToDom()
       {component} = wrapperView
