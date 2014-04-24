@@ -1,6 +1,6 @@
 # apm - Atom Package Manager
 
-Discover and install Atom packages.
+Discover and install Atom packages powered by [atom.io](https://atom.io)
 
 ## Installing
 
@@ -19,4 +19,4 @@ learn more about a specific command.
 
 The common commands are `apm install <package_name>` to install a new package,
 `apm featured` to see all the featured packages, and `apm publish` to publish
-a package to the apm registry.
+a package to the [atom.io](https://atom.io).
