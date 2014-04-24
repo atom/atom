@@ -114,6 +114,17 @@ class DisplayBuffer extends Model
   getHeight: -> @height ? @getScrollHeight()
   setHeight: (@height) -> @height
 
+  getClientHeight: ->
+    if @horizontallyScrollable()
+      @getHeight() - @getHorizontalScrollbarHeight()
+    else
+      @getHeight()
+
+  horizontallyScrollable: ->
+    not @getSoftWrap() and @getScrollWidth() > @getWidth()
+
+  getHorizontalScrollbarHeight: -> 15
+
   getWidth: -> @width ? @getScrollWidth()
   setWidth: (newWidth) ->
     oldWidth = @width
@@ -124,13 +135,13 @@ class DisplayBuffer extends Model
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
     if @manageScrollPosition
-      @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getHeight(), scrollTop))
+      @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getClientHeight(), scrollTop))
     else
       @scrollTop = scrollTop
 
   getScrollBottom: -> @scrollTop + @height
   setScrollBottom: (scrollBottom) ->
-    @setScrollTop(scrollBottom - @height)
+    @setScrollTop(scrollBottom - @getClientHeight())
     @getScrollBottom()
 
   getScrollLeft: -> @scrollLeft
@@ -184,7 +195,7 @@ class DisplayBuffer extends Model
     unless @getLineHeight() > 0
       throw new Error("You must assign a non-zero lineHeight before calling ::getVisibleRowRange()")
 
-    heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
+    heightInLines = Math.ceil(@getClientHeight() / @getLineHeight()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
     endRow = Math.min(@getLineCount(), Math.ceil(startRow + heightInLines))
     [startRow, endRow]

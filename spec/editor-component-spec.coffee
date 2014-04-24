@@ -1,4 +1,4 @@
-{extend, flatten, toArray} = require 'underscore-plus'
+{extend, flatten, toArray, last} = require 'underscore-plus'
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
@@ -528,6 +528,25 @@ describe "EditorComponent", ->
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       expect(editor.getScrollLeft()).toBe 100
+
+    it "does not obscure the last line with the horizontal scrollbar", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      editor.setScrollBottom(editor.getScrollHeight())
+      lastLineNode = last(node.querySelectorAll('.line'))
+      bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
+      topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
+      expect(bottomOfLastLine).toBe topOfHorizontalScrollbar
+
+      # Render no space below the last line when there's no horizontal scrollbar
+      node.style.width = 100 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      editor.setScrollBottom(editor.getScrollHeight())
+      lastLineNode = last(node.querySelectorAll('.line'))
+      bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
+      bottomOfEditor = node.getBoundingClientRect().bottom
+      expect(bottomOfLastLine).toBe bottomOfEditor
 
     describe "when a mousewheel event occurs on the editor", ->
       it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
