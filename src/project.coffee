@@ -165,9 +165,8 @@ class Project extends Model
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # DEPRECATED
+  # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    deprecate("Use Project::buildBuffer instead")
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.loadSync()

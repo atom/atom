@@ -21,11 +21,16 @@ describe "PaneView", ->
     container = new PaneContainerView
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
-    editor1 = atom.project.openSync('sample.js')
-    editor2 = atom.project.openSync('sample.txt')
-    pane = container.getRoot()
-    paneModel = pane.model
-    paneModel.addItems([view1, editor1, view2, editor2])
+    waitsForPromise ->
+      atom.workspace.open('sample.js').then (o) -> editor1 = o
+
+    waitsForPromise ->
+      atom.workspace.open('sample.txt').then (o) -> editor2 = o
+
+    runs ->
+      pane = container.getRoot()
+      paneModel = pane.model
+      paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
     atom.deserializers.remove(TestView)
@@ -159,14 +164,20 @@ describe "PaneView", ->
 
   describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->
+      editor = null
       jasmine.unspy(window, 'setTimeout')
       filePath = temp.openSync('atom').path
-      editor = atom.project.openSync(filePath)
-      pane.activateItem(editor)
-      expect(pane.items).toHaveLength(5)
 
-      fs.removeSync(filePath)
-      waitsFor -> pane.items.length == 4
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (o) -> editor = o
+
+      runs ->
+        pane.activateItem(editor)
+        expect(pane.items).toHaveLength(5)
+        fs.removeSync(filePath)
+
+      waitsFor ->
+        pane.items.length == 4
 
   describe "when a pane is destroyed", ->
     [pane2, pane2Model] = []

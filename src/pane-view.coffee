@@ -103,7 +103,7 @@ class PaneView extends View
 
   # Deprecated: Use ::activateNextItem
   showNextItem: ->
-    deprecate("Use PaneView::destroyItem instead")
+    deprecate("Use PaneView::activateNextItem instead")
     @activateNextItem()
 
   # Deprecated: Use ::activatePreviousItem

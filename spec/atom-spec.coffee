@@ -113,18 +113,21 @@ describe "the `atom` global", ->
                 promise
 
             it "triggers the activation event on all handlers registered during activation", ->
-              atom.workspaceView.openSync()
-              editorView = atom.workspaceView.getActiveView()
-              eventHandler = jasmine.createSpy("activation-event")
-              editorView.command 'activation-event', eventHandler
-              editorView.trigger 'activation-event'
-              expect(mainModule.activate.callCount).toBe 1
-              expect(mainModule.activationEventCallCount).toBe 1
-              expect(eventHandler.callCount).toBe 1
-              editorView.trigger 'activation-event'
-              expect(mainModule.activationEventCallCount).toBe 2
-              expect(eventHandler.callCount).toBe 2
-              expect(mainModule.activate.callCount).toBe 1
+              waitsForPromise ->
+                atom.workspaceView.open()
+
+              runs ->
+                editorView = atom.workspaceView.getActiveView()
+                eventHandler = jasmine.createSpy("activation-event")
+                editorView.command 'activation-event', eventHandler
+                editorView.trigger 'activation-event'
+                expect(mainModule.activate.callCount).toBe 1
+                expect(mainModule.activationEventCallCount).toBe 1
+                expect(eventHandler.callCount).toBe 1
+                editorView.trigger 'activation-event'
+                expect(mainModule.activationEventCallCount).toBe 2
+                expect(eventHandler.callCount).toBe 2
+                expect(mainModule.activate.callCount).toBe 1
 
             it "activates the package immediately when the events are empty", ->
               mainModule = require './fixtures/packages/package-with-empty-activation-events/index'
@@ -170,28 +173,28 @@ describe "the `atom` global", ->
               element2 = $$ -> @div class: 'test-2'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)).toHaveLength 0
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
 
               atom.packages.activatePackage("package-with-keymaps")
 
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe "test-1"
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element2)[0].command).toBe "test-2"
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element3)).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe "test-1"
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])[0].command).toBe "test-2"
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
 
           describe "when the metadata contains a 'keymaps' manifest", ->
             it "loads only the keymaps specified by the manifest, in the specified order", ->
               element1 = $$ -> @div class: 'test-1'
               element3 = $$ -> @div class: 'test-3'
 
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
 
               atom.packages.activatePackage("package-with-keymaps-manifest")
 
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', element1)[0].command).toBe 'keymap-1'
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-n', element1)[0].command).toBe 'keymap-2'
-              expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-y', element3)).toHaveLength 0
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe 'keymap-1'
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
 
         describe "menu loading", ->
           beforeEach ->
@@ -377,8 +380,8 @@ describe "the `atom` global", ->
 
           runs ->
             atom.packages.deactivatePackage('package-with-keymaps')
-            expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-1')).toHaveLength 0
-            expect(atom.keymaps.keyBindingsForKeystrokeMatchingElement('ctrl-z', $$ -> @div class: 'test-2')).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:$$ -> @div class: 'test-1'[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:$$ -> @div class: 'test-2'[0])).toHaveLength 0
 
         it "removes the package's stylesheets", ->
           waitsForPromise ->
