@@ -2,6 +2,7 @@
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
+EditorView = require '../src/editor-view'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 
@@ -221,6 +222,14 @@ describe "WorkspaceView", ->
       atom.workspaceView.getActiveView().splitRight()
       expect(count).toBe 1
       expect(callbackEditor).toBe atom.workspaceView.getActiveView()
+
+    it "does not invoke the callback for mini editors", ->
+      editorViewCreatedHandler = jasmine.createSpy('editorViewCreatedHandler')
+      atom.workspaceView.eachEditorView(editorViewCreatedHandler)
+      editorViewCreatedHandler.reset()
+      miniEditor = new EditorView(mini: true)
+      atom.workspaceView.append(miniEditor)
+      expect(editorViewCreatedHandler).not.toHaveBeenCalled()
 
     it "returns a subscription that can be disabled", ->
       count = 0

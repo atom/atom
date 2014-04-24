@@ -320,15 +320,17 @@ class WorkspaceView extends View
     @panes.getPaneViews()
 
   # Public: Register a function to be called for every current and future
-  # editor view in the workspace.
+  # editor view in the workspace (only includes {EditorView}s that are pane
+  # items).
   #
   # callback - A {Function} with an {EditorView} as its only argument.
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditorView: (callback) ->
-    callback(editor) for editor in @getEditorViews()
-    attachedCallback = (e, editor) -> callback(editor)
+    callback(editorView) for editorView in @getEditorViews()
+    attachedCallback = (e, editorView) ->
+      callback(editorView) unless editorView.mini
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
