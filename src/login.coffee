@@ -43,12 +43,15 @@ class Login extends Command
     "AtomPackageManager/#{require('../package.json').version}"
 
   welcomeMessage: (state) =>
-    welcome =
-       """Welcome to Atom! Before you can publish packages, you'll need an API token.
-       Visit your account page on Atom.io (https://atom.io/account), copy the token
-       and paste it below when prompted.
+    welcome = """
+      Welcome to Atom!
 
-       """
+      Before you can publish packages, you'll need an API token.
+
+      Visit your account page on Atom.io #{'https://atom.io/account'.underline},
+      copy the token and paste it below when prompted.
+
+    """
     console.log welcome
 
     @prompt({prompt: "Press [Enter] to open your account page on Atom.io."})
