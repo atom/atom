@@ -564,7 +564,6 @@ describe "EditorComponent", ->
     it "assigns the overflow to 'hidden' in the opposite direction unless the editor scrollable in that direction", ->
       expect(verticalScrollbarNode.style.overflowX).toBe 'hidden'
       expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
-      return
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
