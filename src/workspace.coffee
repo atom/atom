@@ -165,7 +165,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Public: Reopen the last-closed item's URI if it hasn't already been
+  # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
   # Returns a promise that is resolved when the item is opened
@@ -174,6 +174,12 @@ class Workspace extends Model
       @open(uri)
     else
       Q()
+
+  # Deprecated
+  reopenItemSync: ->
+    deprecate("Use Workspace::reopenItem instead")
+    if uri = @destroyedItemUris.pop()
+      @openSync(uri)
 
   # Public: Register an opener for a uri.
   #
