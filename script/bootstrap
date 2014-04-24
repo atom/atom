@@ -25,8 +25,8 @@ function executeCommands(commands, done, index) {
     done(null);
 }
 
-var apmVendorPath = path.resolve(__dirname, '..', 'vendor', 'apm');
 var apmInstallPath = path.resolve(__dirname, '..', 'apm');
+var apmVersion = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'))).apmVersion;
 if (!fs.existsSync(apmInstallPath))
   fs.mkdirSync(apmInstallPath);
 if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
@@ -42,11 +42,8 @@ var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'sea
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
 var commands = [
-  'git submodule --quiet sync',
-  'git submodule --quiet update --recursive --init',
   {command: 'npm' + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-  {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmVendorPath, ignoreStdout: true}},
-  {command: npmPath + npmFlags + 'install --quiet ' + apmVendorPath, options: {cwd: apmInstallPath, ignoreStdout: true}},
+  {command: npmPath + npmFlags + 'install --quiet atom-package-manager@' + apmVersion, options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
   apmPath + ' install --quiet ' + apmFlags,
