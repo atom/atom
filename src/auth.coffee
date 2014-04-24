@@ -15,6 +15,6 @@ module.exports =
       return
 
     callback """
-      No GitHub API token in keychain
+      No Atom.io API token in keychain
       Run `apm login` or set the `ATOM_ACCESS_TOKEN` environment variable.
     """
