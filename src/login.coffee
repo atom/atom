@@ -18,7 +18,7 @@ class Login extends Command
     options.usage """
       Usage: apm login
 
-      Create and save an API token to the keychain. This token will
+      Enter your Atom.io API token and save it to the keychain. This token will
       be used to identify you when publishing packages to atom.io.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
