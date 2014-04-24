@@ -1895,6 +1895,8 @@ class Editor extends Model
 
   verticallyScrollable: -> @displayBuffer.verticallyScrollable()
 
+  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
+
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
     deprecate("Use Editor::joinLines() instead")
