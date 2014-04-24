@@ -547,6 +547,26 @@ describe "EditorComponent", ->
       bottomOfEditor = node.getBoundingClientRect().bottom
       expect(bottomOfLastLine).toBe bottomOfEditor
 
+    it "assigns the overflow to 'hidden' in the opposite direction unless the editor scrollable in that direction", ->
+      expect(verticalScrollbarNode.style.overflowX).toBe 'hidden'
+      expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
+      return
+
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.overflowX).toBe 'hidden'
+      expect(horizontalScrollbarNode.style.overflowY).toBe ''
+
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.overflowX).toBe ''
+      expect(horizontalScrollbarNode.style.overflowY).toBe ''
+
+      node.style.height = 20 * lineHeightInPixels + 'px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.overflowX).toBe ''
+      expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
+
     describe "when a mousewheel event occurs on the editor", ->
       it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'

@@ -182,17 +182,19 @@ EditorScrollViewComponent = React.createClass
   measureHeightAndWidth: ->
     return unless @isMounted()
 
-    node = @getDOMNode()
-    computedStyle = getComputedStyle(node)
     {editor} = @props
+    node = @getDOMNode()
+    editorNode = node.parentNode
+    {position} = getComputedStyle(editorNode)
+    {width, height} = editorNode.style
 
-    unless computedStyle.height is '0px'
-      clientHeight = node.clientHeight
+    if position is 'absolute' or height
+      clientHeight =  node.clientHeight
       editor.setHeight(clientHeight) if clientHeight > 0
 
-    unless computedStyle.width is '0px'
+    if position is 'absolute' or width
       clientWidth = node.clientWidth
-      editor.setWidth(clientWidth) if clientHeight > 0
+      editor.setWidth(clientWidth) if clientWidth > 0
 
   focus: ->
     @refs.input.focus()

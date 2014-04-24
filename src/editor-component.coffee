@@ -55,6 +55,7 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
+        scrollableInOppositeDirection: editor.horizontallyScrollable() if @isMounted()
 
       ScrollbarComponent
         ref: 'horizontalScrollbar'
@@ -63,6 +64,7 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth
+        scrollableInOppositeDirection: editor.verticallyScrollable() if @isMounted()
 
   getRenderedRowRange: ->
     renderedRowRange = @props.editor.getVisibleRowRange()

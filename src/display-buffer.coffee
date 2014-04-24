@@ -123,9 +123,14 @@ class DisplayBuffer extends Model
   horizontallyScrollable: ->
     not @getSoftWrap() and @getScrollWidth() > @getWidth()
 
+  verticallyScrollable: ->
+    @getScrollHeight() > @getClientHeight()
+
   getHorizontalScrollbarHeight: -> 15
 
-  getWidth: -> @width ? @getScrollWidth()
+  getWidth: ->
+    @width ? @getScrollWidth()
+
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
@@ -149,6 +154,8 @@ class DisplayBuffer extends Model
   setScrollLeft: (scrollLeft) ->
     if @manageScrollPosition
       @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
+      console.log @scrollLeft
+      @scrollLeft
     else
       @scrollLeft = scrollLeft
 

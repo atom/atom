@@ -1,13 +1,20 @@
 React = require 'react'
 {div} = require 'reactionary'
-{isEqualForProperties} = require 'underscore-plus'
+{extend, isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 ScrollbarComponent = React.createClass
   render: ->
-    {orientation, className, scrollHeight, scrollWidth} = @props
+    {orientation, className, scrollHeight, scrollWidth, scrollableInOppositeDirection} = @props
 
-    div {className, @onScroll},
+    style = {}
+    switch orientation
+      when 'vertical'
+        style.overflowX = 'hidden' unless scrollableInOppositeDirection
+      when 'horizontal'
+        style.overflowY = 'hidden' unless scrollableInOppositeDirection
+
+    div {className, style, @onScroll},
       switch orientation
         when 'vertical'
           div className: 'scrollbar-content', style: {height: scrollHeight}
@@ -23,9 +30,9 @@ ScrollbarComponent = React.createClass
   shouldComponentUpdate: (newProps) ->
     switch @props.orientation
       when 'vertical'
-        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop')
+        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection')
       when 'horizontal'
-        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft')
+        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection')
 
   componentDidUpdate: ->
     {orientation, scrollTop, scrollLeft} = @props
