@@ -188,6 +188,20 @@ describe "EditorComponent", ->
       expect(lines[4].textContent).toBe "#{nbsp}3"
       expect(lines[5].textContent).toBe "#{nbsp}•"
 
+    it "pads line numbers to be right justified based on the maximum number of line number digits", ->
+      editor.getBuffer().setText([1..10].join('\n'))
+      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
+
+      for node, i in lineNumberNodes[0..8]
+        expect(node.textContent).toBe "#{nbsp}#{i + 1}"
+      expect(lineNumberNodes[9].textContent).toBe '10'
+
+      # Removes padding when the max number of digits goes down
+      editor.getBuffer().delete([[1, 0], [2, 0]])
+      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
+      for node, i in lineNumberNodes
+        expect(node.textContent).toBe "#{i + 1}"
+
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
       cursor1 = editor.getCursor()
