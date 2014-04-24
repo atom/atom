@@ -410,13 +410,13 @@ class Editor extends Model
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
   checkoutHead: ->
-    if path = @getPath()
-      atom.project.getRepo()?.checkoutHead(path)
+    if filePath = @getPath()
+      atom.project.getRepo()?.checkoutHead(filePath)
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
-    path = @getPath()
-    atom.clipboard.write(path) if path?
+    if filePath = @getPath()
+      atom.clipboard.write(filePath)
 
   # Public: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
