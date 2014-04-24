@@ -979,6 +979,7 @@ describe "DisplayBuffer", ->
   describe "::setScrollLeft", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true
+      displayBuffer.setLineHeight(10)
       displayBuffer.setDefaultCharWidth(10)
 
     it "disallows negative values", ->
@@ -1001,6 +1002,7 @@ describe "DisplayBuffer", ->
       displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeight(10)
       displayBuffer.setDefaultCharWidth(10)
+      displayBuffer.setHorizontalScrollbarHeight(0)
 
       displayBuffer.setHeight(50)
       displayBuffer.setWidth(50)

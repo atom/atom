@@ -32,6 +32,7 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
+  horizontalScrollbarHeight: 15
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
@@ -126,7 +127,9 @@ class DisplayBuffer extends Model
   verticallyScrollable: ->
     @getScrollHeight() > @getClientHeight()
 
-  getHorizontalScrollbarHeight: -> 15
+  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
+
+  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
 
   getWidth: ->
     @width ? @getScrollWidth()
