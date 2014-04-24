@@ -1,0 +1,11 @@
+{
+  "name": "atom-bundled-apm",
+  "description": "Atom's bundled APM",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/atom.git"
+  },
+  "dependencies": {
+    "atom-package-manager": "0.41.0"
+  }
+}
