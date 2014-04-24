@@ -17,7 +17,7 @@ GutterComponent = React.createClass
     [startRow, endRow] = renderedRowRange
     charWidth = editor.getDefaultCharWidth()
     lineHeight = editor.getLineHeight()
-    maxDigits = editor.getLastBufferRow().toString().length
+    maxDigits = editor.getScreenLineCount().toString().length
     style =
       width: charWidth * (maxDigits + 1.5)
       height: scrollHeight
@@ -76,4 +76,4 @@ LineNumberComponent = React.createClass
   iconDivHTML: '<div class="icon-right"></div>'
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'lineHeight', 'screenRow')
+    not isEqualForProperties(newProps, @props, 'lineHeight', 'screenRow', 'maxDigits')
