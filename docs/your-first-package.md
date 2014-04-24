@@ -21,7 +21,7 @@ To begin, press `cmd-shift-P` to bring up the [Command
 Palette](https://github.com/atom/command-palette). Type "generate package" and
 select the "Package Generator: Generate Package" command. Now we need to name
 the package. Try to avoid naming your package with the *atom-* prefix, for
-example we are going to call this package _ascii-art_. 
+example we are going to call this package _ascii-art_.
 
 Atom will open a new window with the contents of our new _ascii-art_ package
 displayed in the Tree View. Because this window is opened **after** the package
@@ -152,5 +152,5 @@ ASCII art professional!
 * [Creating a package guide](creating-a-package.html) for more information
   on the mechanics of packages
 
-* [Publishing a package guide](publish-a-package.html) for more information
+* [Publishing a package guide](publishing-a-package.html) for more information
   on publishing your package to [atom.io](https://atom.io)
