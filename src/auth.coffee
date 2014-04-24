@@ -1,5 +1,7 @@
 keytar = require 'keytar'
 
+tokenName = 'Atom.io API Token'
+
 module.exports =
   # Get the Atom.io API token from the keychain.
   #
@@ -10,7 +12,7 @@ module.exports =
       callback(null, token)
       return
 
-    if token = keytar.findPassword('Atom.io API Token')
+    if token = keytar.findPassword(tokenName)
       callback(null, token)
       return
 
@@ -18,3 +20,9 @@ module.exports =
       No Atom.io API token in keychain
       Run `apm login` or set the `ATOM_ACCESS_TOKEN` environment variable.
     """
+
+  # Save the given token to the keychain.
+  #
+  # token - A string token to save.
+  saveToken: (token) ->
+    keytar.replacePassword(tokenName, 'atom.io', token)

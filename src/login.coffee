@@ -1,11 +1,11 @@
 _ = require 'underscore-plus'
-keytar = require 'keytar'
 optimist = require 'optimist'
 Q = require 'q'
 read = require 'read'
 request = require 'request'
 open = require 'open'
 
+auth = require './auth'
 Command = require './command'
 
 module.exports =
@@ -68,6 +68,6 @@ class Login extends Command
 
   saveToken: ({token}) =>
     process.stdout.write('Saving token to Keychain ')
-    keytar.replacePassword('Atom.io API Token', 'atom.io', token)
+    auth.saveToken(token)
     process.stdout.write '\u2713\n'.green
     Q(token)
