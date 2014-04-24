@@ -1851,6 +1851,8 @@ class Editor extends Model
   setHeight: (height) -> @displayBuffer.setHeight(height)
   getHeight: -> @displayBuffer.getHeight()
 
+  getClientHeight: -> @displayBuffer.getClientHeight()
+
   setWidth: (width) -> @displayBuffer.setWidth(width)
   getWidth: -> @displayBuffer.getWidth()
 
@@ -1888,6 +1890,10 @@ class Editor extends Model
   scrollToScreenPosition: (screenPosition) -> @displayBuffer.scrollToScreenPosition(screenPosition)
 
   scrollToBufferPosition: (bufferPosition) -> @displayBuffer.scrollToBufferPosition(bufferPosition)
+
+  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
+
+  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
