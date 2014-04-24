@@ -27,7 +27,7 @@
     "fstream": "0.1.24",
     "fuzzaldrin": "~1.1",
     "git-utils": "^1.2.2",
-    "grim": "0.9.0",
+    "grim": "0.10.0",
     "guid": "0.0.10",
     "jasmine-tagged": "^1.1.1",
     "less-cache": "0.12.0",
