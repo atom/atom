@@ -20,10 +20,13 @@ EditorComponent = React.createClass
   cursorsMoved: false
   preservedRowRange: null
   scrollingVertically: false
+  gutterWidth: 0
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    maxLineNumberDigits = editor.getScreenLineCount().toString().length
+
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       scrollHeight = editor.getScrollHeight()
@@ -37,8 +40,9 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, renderedRowRange, scrollTop, scrollHeight,
-        lineHeight: lineHeightInPixels, @pendingChanges
+        editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
+        lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
+        onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
@@ -63,7 +67,7 @@ EditorComponent = React.createClass
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
-        scrollWidth: scrollWidth
+        scrollWidth: scrollWidth + @gutterWidth
         scrollableInOppositeDirection: editor.verticallyScrollable() if @isMounted()
 
   getRenderedRowRange: ->
@@ -326,6 +330,9 @@ EditorComponent = React.createClass
 
   onCursorsMoved: ->
     @cursorsMoved = true
+
+  onGutterWidthChanged: (@gutterWidth) ->
+    @requestUpdate()
 
   requestUpdate: ->
     if @batchingUpdates
