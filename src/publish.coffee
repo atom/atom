@@ -263,7 +263,7 @@ class Publish extends Command
     currentDirectory = process.cwd()
 
     repo = Git.open(currentDirectory)
-    if repo?.getWorkingDirectory() isnt currentDirectory
+    if repo?.getWorkingDirectory().toLowerCase() isnt currentDirectory.toLowerCase()
       throw new Error('Package must be in a Git repository before publishing: https://help.github.com/articles/create-a-repo')
 
     unless repo.getConfigValue('remote.origin.url')
