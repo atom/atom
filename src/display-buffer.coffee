@@ -33,6 +33,7 @@ class DisplayBuffer extends Model
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   horizontalScrollbarHeight: 15
+  verticalScrollbarWidth: 15
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
@@ -112,27 +113,58 @@ class DisplayBuffer extends Model
   getHorizontalScrollMargin: -> @horizontalScrollMargin
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHeight: -> @height ? @getScrollHeight()
+  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
+  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
+
+  getVerticalScrollbarWidth: -> @verticalScrollbarWidth
+  setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
+
+  getHeight: ->
+    if @height?
+      @height
+    else
+      if @horizontallyScrollable()
+        @getScrollHeight() + @getHorizontalScrollbarHeight()
+      else
+        @getScrollHeight()
+
   setHeight: (@height) -> @height
 
-  getClientHeight: ->
-    if @horizontallyScrollable()
+  getClientHeight: (reentrant) ->
+    if @horizontallyScrollable(reentrant)
       @getHeight() - @getHorizontalScrollbarHeight()
     else
       @getHeight()
 
-  horizontallyScrollable: ->
-    not @getSoftWrap() and @getScrollWidth() > @getWidth()
+  getClientWidth: (reentrant) ->
+    if @verticallyScrollable(reentrant)
+      @getWidth() - @getVerticalScrollbarWidth()
+    else
+      @getWidth()
 
-  verticallyScrollable: ->
-    @getScrollHeight() > @getClientHeight()
+  horizontallyScrollable: (reentrant) ->
+    return false unless @width?
+    return false if @getSoftWrap()
+    if reentrant
+      @getScrollWidth() > @getWidth()
+    else
+      @getScrollWidth() > @getClientWidth(true)
 
-  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
-
-  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
+  verticallyScrollable: (reentrant) ->
+    return false unless @height?
+    if reentrant
+      @getScrollHeight() > @getHeight()
+    else
+      @getScrollHeight() > @getClientHeight(true)
 
   getWidth: ->
-    @width ? @getScrollWidth()
+    if @width?
+      @width
+    else
+      if @verticallyScrollable()
+        @getScrollWidth() + @getVerticalScrollbarWidth()
+      else
+        @getScrollWidth()
 
   setWidth: (newWidth) ->
     oldWidth = @width
@@ -156,7 +188,7 @@ class DisplayBuffer extends Model
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
     if @manageScrollPosition
-      @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getWidth(), scrollLeft))
+      @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft))
       @scrollLeft
     else
       @scrollLeft = scrollLeft
@@ -171,6 +203,8 @@ class DisplayBuffer extends Model
 
   getDefaultCharWidth: -> @defaultCharWidth
   setDefaultCharWidth: (@defaultCharWidth) -> @defaultCharWidth
+
+  getCursorWidth: -> 1
 
   getScopedCharWidth: (scopeNames, char) ->
     @getScopedCharWidths(scopeNames)[char]
@@ -199,7 +233,7 @@ class DisplayBuffer extends Model
     @getLineCount() * @getLineHeight()
 
   getScrollWidth: ->
-    @getMaxLineLength() * @getDefaultCharWidth()
+    (@getMaxLineLength() * @getDefaultCharWidth()) + @getCursorWidth()
 
   getVisibleRowRange: ->
     unless @getLineHeight() > 0

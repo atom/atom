@@ -34,6 +34,8 @@ EditorComponent = React.createClass
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
       lineHeightInPixels = editor.getLineHeight()
+      horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
+      verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
@@ -60,6 +62,7 @@ EditorComponent = React.createClass
         scrollTop: scrollTop
         scrollHeight: scrollHeight
         scrollableInOppositeDirection: editor.horizontallyScrollable() if @isMounted()
+        horizontalScrollbarHeight: horizontalScrollbarHeight
 
       ScrollbarComponent
         ref: 'horizontalScrollbar'
@@ -69,6 +72,7 @@ EditorComponent = React.createClass
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth + @gutterWidth
         scrollableInOppositeDirection: editor.verticallyScrollable() if @isMounted()
+        verticalScrollbarWidth: verticalScrollbarWidth
 
   getRenderedRowRange: ->
     renderedRowRange = @props.editor.getVisibleRowRange()

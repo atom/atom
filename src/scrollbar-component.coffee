@@ -5,14 +5,15 @@ React = require 'react'
 module.exports =
 ScrollbarComponent = React.createClass
   render: ->
-    {orientation, className, scrollHeight, scrollWidth, scrollableInOppositeDirection} = @props
+    {orientation, className, scrollHeight, scrollWidth} = @props
+    {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
 
     style = {}
     switch orientation
       when 'vertical'
-        style.overflowX = 'hidden' unless scrollableInOppositeDirection
+        style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
       when 'horizontal'
-        style.overflowY = 'hidden' unless scrollableInOppositeDirection
+        style.right = verticalScrollbarWidth if scrollableInOppositeDirection
 
     div {className, style, @onScroll},
       switch orientation

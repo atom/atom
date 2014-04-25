@@ -561,24 +561,38 @@ describe "EditorComponent", ->
       bottomOfEditor = node.getBoundingClientRect().bottom
       expect(bottomOfLastLine).toBe bottomOfEditor
 
-    it "assigns the overflow to 'hidden' in the opposite direction unless the editor scrollable in that direction", ->
-      expect(verticalScrollbarNode.style.overflowX).toBe 'hidden'
-      expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
+    it "does not obscure the last character of the longest line with the vertical scrollbar", ->
+      node.style.height = 7 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      editor.setScrollLeft(Infinity)
+
+      lineNodes = node.querySelectorAll('.line')
+      rightOfLongestLine = lineNodes[6].getBoundingClientRect().right
+      leftOfVerticalScrollbar = verticalScrollbarNode.getBoundingClientRect().left
+
+      expect(rightOfLongestLine).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
+
+    it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
+      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe ''
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = '1000px'
       component.measureHeightAndWidth()
-      expect(verticalScrollbarNode.style.overflowX).toBe 'hidden'
-      expect(horizontalScrollbarNode.style.overflowY).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
 
       node.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      expect(verticalScrollbarNode.style.overflowX).toBe ''
-      expect(horizontalScrollbarNode.style.overflowY).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
+      expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
 
       node.style.height = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      expect(verticalScrollbarNode.style.overflowX).toBe ''
-      expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
+      expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
+      expect(horizontalScrollbarNode.style.right).toBe ''
 
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
       gutterNode = node.querySelector('.gutter')
