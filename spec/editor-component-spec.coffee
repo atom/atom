@@ -580,6 +580,13 @@ describe "EditorComponent", ->
       expect(verticalScrollbarNode.style.overflowX).toBe ''
       expect(horizontalScrollbarNode.style.overflowY).toBe 'hidden'
 
+    it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
+      gutterNode = node.querySelector('.gutter')
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
+
     describe "when a mousewheel event occurs on the editor", ->
       it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
