@@ -117,8 +117,9 @@ class Upgrade extends Command
     async.waterfall(installCommands, callback)
 
   run: (options) ->
-    {callback} = options
+    {callback, command} = options
     options = @parseOptions(options.commandArgs)
+    options.command = command
 
     @loadInstalledAtomVersion =>
       if @installedAtomVersion
