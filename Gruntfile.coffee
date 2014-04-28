@@ -3,9 +3,6 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     coffee:
-      compile:
-        files:
-          'script/download-node.js': 'src/script/download-node.coffee'
       glob_to_multiple:
         expand: true
         cwd: 'src'
