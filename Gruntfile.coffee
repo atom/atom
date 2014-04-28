@@ -1,6 +1,4 @@
 module.exports = (grunt) ->
-  grunt.loadTasks('tasks')
-
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
@@ -23,9 +21,6 @@ module.exports = (grunt) ->
       test: ['spec/*.coffee']
       gruntfile: ['Gruntfile.coffee']
 
-    node:
-      version: 'v0.10.26'
-
     shell:
       test:
         command: 'node --harmony_collections node_modules/jasmine-focused/bin/jasmine-focused --captureExceptions --coffee spec/'
@@ -45,4 +40,4 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['coffeelint'])
   grunt.registerTask('default', ['coffee', 'coffeelint:src'])
   grunt.registerTask('test', ['clean', 'default', 'coffeelint:test', 'shell:test'])
-  grunt.registerTask('prepublish', ['clean', 'node', 'coffee', 'lint'])
+  grunt.registerTask('prepublish', ['clean', 'coffee', 'lint'])

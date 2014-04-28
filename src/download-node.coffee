@@ -27,27 +27,29 @@ copyNodeBinToLocation = (callback, version, targetFilename, fromDirectory) ->
   fromPath = path.join(fromDirectory, subDir, 'bin', 'node')
   fs.rename(fromPath, targetFilename, callback)
 
-module.exports = (grunt) ->
-  grunt.registerTask 'node', 'Download node binary', ->
-    @requiresConfig("#{@name}.version")
-    done = @async()
+downloadNode = (version, done) ->
+  if process.platform is 'win32'
+    arch = if process.arch is 'x64' then 'x64/' else ''
+    downloadURL = "http://nodejs.org/dist/#{version}/#{arch}node.exe"
+    filename = path.join('bin', "node.exe")
+  else
+    arch = if process.arch == 'ia32' then 'x86' else process.arch
+    downloadURL = "http://nodejs.org/dist/#{version}/node-#{version}-#{process.platform}-#{arch}.tar.gz"
+    filename = path.join('bin', "node")
 
-    {version} = grunt.config(@name)
-    if process.platform is 'win32'
-      arch = if process.arch is 'x64' then 'x64/' else ''
-      downloadURL = "http://nodejs.org/dist/#{version}/#{arch}node.exe"
-      filename = path.join('bin', "node.exe")
-    else
-      arch = if process.arch == 'ia32' then 'x86' else process.arch
-      downloadURL = "http://nodejs.org/dist/#{version}/node-#{version}-#{process.platform}-#{arch}.tar.gz"
-      filename = path.join('bin', "node")
+  if fs.existsSync(filename)
+    done()
+    return
 
-    if fs.existsSync(filename)
-      done()
-      return
+  if process.platform is 'win32'
+    downloadFileToLocation(downloadURL, filename, done)
+  else
+    next = copyNodeBinToLocation.bind(this, done, version, filename)
+    downloadTarballAndExtract(downloadURL, filename, next)
 
-    if process.platform is 'win32'
-      downloadFileToLocation(downloadURL, filename, done)
-    else
-      next = copyNodeBinToLocation.bind(this, done, version, filename)
-      downloadTarballAndExtract(downloadURL, filename, next)
+downloadNode 'v0.10.26', (error) ->
+  if error?
+    console.error('Failed to download node', error)
+    process.exit(1)
+  else
+    process.exit(0)
