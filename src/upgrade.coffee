@@ -133,10 +133,10 @@ class Upgrade extends Command
       return callback(error) if error?
 
       if options.argv.json
-        updates = updates.map ({pack, latestVersion}) ->
+        packagesWithLatestVersion = updates.map ({pack, latestVersion}) ->
           pack.latestVersion = latestVersion
           pack
-        console.log JSON.stringify(updates)
+        console.log JSON.stringify(packagesWithLatestVersion)
       else
         console.log "Package Updates Available".cyan + " (#{updates.length})"
         tree updates, ({pack, latestVersion}) ->
