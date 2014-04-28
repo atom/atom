@@ -1,3 +1,5 @@
+# Notice: You should also commit the compiled script/download-node.js if you
+# have changed this file.
 fs = require 'fs'
 zlib = require 'zlib'
 path = require 'path'
