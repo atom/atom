@@ -15,7 +15,7 @@ tree = require './tree'
 
 module.exports =
 class Upgrade extends Command
-  @commandNames: ['upgrade']
+  @commandNames: ['upgrade', 'outdated']
 
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
@@ -26,6 +26,7 @@ class Upgrade extends Command
     options.usage """
 
       Usage: apm upgrade
+             apm upgrade --list
 
       Upgrade out of date packages installed to ~/.atom/packages
 
@@ -133,6 +134,7 @@ class Upgrade extends Command
       tree updates, ({pack, latestVersion}) ->
         "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
 
+      return callback() if options.command is 'outdated'
       return callback() if options.argv.list
       return callback() if updates.length is 0
 
