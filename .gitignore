@@ -1,5 +1,5 @@
 node_modules/
 bin/node*
-*.js
+lib/
 .DS_Store
 npm-debug.log
