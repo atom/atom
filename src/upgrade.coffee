@@ -36,6 +36,7 @@ class Upgrade extends Command
     options.alias('c', 'confirm').boolean('confirm').default('confirm', true).describe('confirm', 'Confirm before installing updates')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('l', 'list').boolean('list').describe('list', 'List but don\'t install the outdated packages')
+    options.boolean('json').describe('json', 'Output outdated packages as a JSON array')
 
   getInstalledPackages: ->
     packages = []
@@ -130,9 +131,15 @@ class Upgrade extends Command
     @getAvailableUpdates packages, (error, updates) =>
       return callback(error) if error?
 
-      console.log "Package Updates Available".cyan + " (#{updates.length})"
-      tree updates, ({pack, latestVersion}) ->
-        "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
+      if options.argv.json
+        updates = updates.map ({pack, latestVersion}) ->
+          pack.latestVersion = latestVersion
+          pack
+        console.log JSON.stringify(updates)
+      else
+        console.log "Package Updates Available".cyan + " (#{updates.length})"
+        tree updates, ({pack, latestVersion}) ->
+          "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
 
       return callback() if options.command is 'outdated'
       return callback() if options.argv.list
