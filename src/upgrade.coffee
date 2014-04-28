@@ -37,6 +37,7 @@ class Upgrade extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('l', 'list').boolean('list').describe('list', 'List but don\'t install the outdated packages')
     options.boolean('json').describe('json', 'Output outdated packages as a JSON array')
+    options.string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
 
   getInstalledPackages: ->
     packages = []
@@ -52,11 +53,16 @@ class Upgrade extends Command
       metadata = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json')))
       return metadata if metadata?.name and metadata?.version
 
-  loadInstalledAtomVersion: (callback) ->
-    config.getResourcePath (resourcePath) =>
-      try
-        @installedAtomVersion = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
-      callback()
+  loadInstalledAtomVersion: (options, callback) ->
+    if options.argv.compatible
+      process.nextTick =>
+        @installedAtomVersion = options.argv.compatible if semver.valid(options.argv.compatible)
+        callback()
+    else
+      config.getResourcePath (resourcePath) =>
+        try
+          @installedAtomVersion = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
+        callback()
 
   getLatestVersion: (pack, callback) ->
     requestSettings =
@@ -121,7 +127,7 @@ class Upgrade extends Command
     options = @parseOptions(options.commandArgs)
     options.command = command
 
-    @loadInstalledAtomVersion =>
+    @loadInstalledAtomVersion options, =>
       if @installedAtomVersion
         @upgradePackages(options, callback)
       else
