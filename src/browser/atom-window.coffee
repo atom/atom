@@ -2,7 +2,6 @@ BrowserWindow = require 'browser-window'
 ContextMenu = require './context-menu'
 app = require 'app'
 dialog = require 'dialog'
-ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -136,7 +135,7 @@ class AtomWindow
 
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
-    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
+    @browserWindow.webContents.send action, command, args...
 
   getDimensions: ->
     [x, y] = @browserWindow.getPosition()
