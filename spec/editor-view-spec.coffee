@@ -509,7 +509,7 @@ describe "EditorView", ->
 
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
-      describe "when clicking between a word and a non-word", ->
+      describe "when double-clicking between a word and a non-word", ->
         it "selects the word", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 21], originalEvent: {detail: 1})
@@ -532,7 +532,7 @@ describe "EditorView", ->
           editorView.renderedLines.trigger 'mouseup'
           expect(editor.getSelectedText()).toBe "{"
 
-      describe "when clicking in the middle of whitespace", ->
+      describe "when double-clicking on whitespace", ->
         it "selects all adjacent whitespace", ->
           editor.setText("   some  text    ")
           editor.setCursorBufferPosition([0, 2])
