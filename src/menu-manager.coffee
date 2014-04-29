@@ -112,7 +112,7 @@ class MenuManager
 
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
-    ipc.sendChannel 'update-application-menu', template, keystrokesByCommand
+    ipc.send 'update-application-menu', template, keystrokesByCommand
 
   normalizeLabel: (label) ->
     return undefined unless label?

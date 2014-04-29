@@ -340,7 +340,7 @@ class Atom extends Model
   # options - An {Object} with the following keys:
   #   :pathsToOpen -  An {Array} of {String} paths to open.
   open: (options) ->
-    ipc.sendChannel('open', options)
+    ipc.send('open', options)
 
   # Public: Open a confirm dialog.
   #
@@ -394,50 +394,50 @@ class Atom extends Model
 
   # Public: Open the dev tools for the current window.
   openDevTools: ->
-    ipc.sendChannel('call-window-method', 'openDevTools')
+    ipc.send('call-window-method', 'openDevTools')
 
   # Public: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
-    ipc.sendChannel('call-window-method', 'toggleDevTools')
+    ipc.send('call-window-method', 'toggleDevTools')
 
   # Public: Execute code in dev tools.
   executeJavaScriptInDevTools: (code) ->
-    ipc.sendChannel('call-window-method', 'executeJavaScriptInDevTools', code)
+    ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
 
   # Public: Reload the current window.
   reload: ->
-    ipc.sendChannel('call-window-method', 'restart')
+    ipc.send('call-window-method', 'restart')
 
   # Public: Focus the current window.
   focus: ->
-    ipc.sendChannel('call-window-method', 'focus')
+    ipc.send('call-window-method', 'focus')
     $(window).focus()
 
   # Public: Show the current window.
   show: ->
-    ipc.sendChannel('call-window-method', 'show')
+    ipc.send('call-window-method', 'show')
 
   # Public: Hide the current window.
   hide: ->
-    ipc.sendChannel('call-window-method', 'hide')
+    ipc.send('call-window-method', 'hide')
 
   # Public: Set the size of current window.
   #
   # width  - The {Number} of pixels.
   # height - The {Number} of pixels.
   setSize: (width, height) ->
-    ipc.sendChannel('call-window-method', 'setSize', width, height)
+    ipc.send('call-window-method', 'setSize', width, height)
 
   # Public: Set the position of current window.
   #
   # x - The {Number} of pixels.
   # y - The {Number} of pixels.
   setPosition: (x, y) ->
-    ipc.sendChannel('call-window-method', 'setPosition', x, y)
+    ipc.send('call-window-method', 'setPosition', x, y)
 
   # Public: Move current window to the center of the screen.
   center: ->
-    ipc.sendChannel('call-window-method', 'center')
+    ipc.send('call-window-method', 'center')
 
   # Schedule the window to be shown and focused on the next tick.
   #
@@ -472,7 +472,7 @@ class Atom extends Model
 
   # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
-    ipc.sendChannel('call-window-method', 'setFullScreen', fullScreen)
+    ipc.send('call-window-method', 'setFullScreen', fullScreen)
 
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
