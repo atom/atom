@@ -6,7 +6,7 @@ describe "TokenizedLine", ->
 
   describe "::getScopeTree()", ->
     it "returns a tree whose inner nodes are scopes and whose leaf nodes are tokens in those scopes", ->
-      editor = null
+      [tokens, tokenIndex] = []
 
       ensureValidScopeTree = (scopeTree, scopes=[]) ->
         if scopeTree.children?
