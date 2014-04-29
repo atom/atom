@@ -59,6 +59,7 @@ module.exports =
 
     unless options.argv.color
       colors.setTheme
+        blue: 'stripColors'
         cyan: 'stripColors'
         green: 'stripColors'
         red: 'stripColors'

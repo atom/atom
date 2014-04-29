@@ -22,7 +22,7 @@ describe 'apm command line interface', ->
 
   describe 'when the version flag is specified', ->
     it 'prints the version', ->
-      apm.run(['-v'])
+      apm.run(['-v', '--no-color'])
       expect(console.error).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
       lines = console.log.argsForCall[0][0].split('\n')
