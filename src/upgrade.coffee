@@ -11,6 +11,7 @@ Command = require './command'
 config = require './config'
 fs = require './fs'
 Install = require './install'
+Packages = require './packages'
 tree = require './tree'
 
 module.exports =
@@ -90,7 +91,7 @@ class Upgrade extends Command
 
           latestVersion = version if semver.gt(version, latestVersion)
 
-        if latestVersion isnt pack.version
+        if latestVersion isnt pack.version and Packages.getRepository(pack) is Packages.getRepository(body)
           callback(null, {pack, latestVersion})
         else
           callback()

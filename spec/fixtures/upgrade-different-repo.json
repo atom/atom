@@ -1,0 +1,12 @@
+{
+  "repository": {
+    "url": "https://github.com/hello/world"
+  },
+  "versions": {
+    "0.4.0": {
+      "engines": {
+        "atom": "*"
+      }
+    }
+  }
+}

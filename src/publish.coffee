@@ -1,5 +1,4 @@
 path = require 'path'
-url = require 'url'
 
 optimist = require 'optimist'
 Git = require 'git-utils'
@@ -10,6 +9,7 @@ fs = require './fs'
 config = require './config'
 Command = require './command'
 Login = require './login'
+Packages = require './packages'
 
 module.exports =
 class Publish extends Command
@@ -100,7 +100,7 @@ class Publish extends Command
       retryCount = 5
       interval = 1000
       requestSettings =
-        url: "https://api.github.com/repos/#{@getRepository(pack)}/tags"
+        url: "https://api.github.com/repos/#{Packages.getRepository(pack)}/tags"
         json: true
         proxy: process.env.http_proxy || process.env.https_proxy
         headers:
@@ -141,16 +141,6 @@ class Publish extends Command
         else
           callback(null, response.statusCode is 200)
 
-  # Parse the repository in `name/owner` format from the package metadata.
-  #
-  # Returns a name/owner string or null if not parseable.
-  getRepository: (pack) ->
-    if repository = pack.repository?.url ? pack.repository
-      repoPath = url.parse(repository.replace(/\.git$/, '')).pathname
-      [name, owner] = repoPath.split('/')[-2..]
-      return "#{name}/#{owner}" if name and owner
-    null
-
   # Register the current repository with the package registry.
   #
   # pack - The package metadata.
@@ -164,7 +154,7 @@ class Publish extends Command
       return callback(error) if error?
       return callback() if exists
 
-      unless repository = @getRepository(pack)
+      unless repository = Packages.getRepository(pack)
         callback('Unable to parse repository name/owner from package.json repository field')
         return
 
