@@ -58,7 +58,7 @@ describe "WorkspaceView", ->
         pane1 = atom.workspaceView.getActivePaneView()
         pane2 = pane1.splitRight()
         pane3 = pane2.splitRight()
-        pane4 = pane2.splitDown()
+        pane4 = null
 
         waitsForPromise ->
           atom.workspace.open('b').then (editor) ->
@@ -70,6 +70,7 @@ describe "WorkspaceView", ->
 
         runs ->
           pane3.activeItem.setCursorScreenPosition([2, 4])
+          pane4 = pane2.splitDown()
 
         waitsForPromise ->
           atom.workspace.open('../sample.txt').then (editor) ->
