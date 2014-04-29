@@ -92,31 +92,25 @@ class Publish extends Command
   #            or the maximum numbers of requests for the tag have been made.
   #            No arguments are passed to the callback when it is invoked.
   waitForTagToBeAvailable: (pack, tag, callback) ->
-    @getToken (error, token) =>
-      if error?
-        callback(error)
-        return
+    retryCount = 5
+    interval = 1000
+    requestSettings =
+      url: "https://api.github.com/repos/#{Packages.getRepository(pack)}/tags"
+      json: true
+      proxy: process.env.http_proxy || process.env.https_proxy
+      headers:
+        'User-Agent': "AtomApm/#{require('../package.json').version}"
 
-      retryCount = 5
-      interval = 1000
-      requestSettings =
-        url: "https://api.github.com/repos/#{Packages.getRepository(pack)}/tags"
-        json: true
-        proxy: process.env.http_proxy || process.env.https_proxy
-        headers:
-          'User-Agent': "AtomApm/#{require('../package.json').version}"
-          authorization: "token #{token}"
-
-      requestTags = ->
-        request.get requestSettings, (error, response, tags=[]) ->
-          if response.statusCode is 200
-            for {name}, index in tags when name is tag
-              return callback()
-          if --retryCount <= 0
-            callback()
-          else
-            setTimeout(requestTags, interval)
-      requestTags()
+    requestTags = ->
+      request.get requestSettings, (error, response, tags=[]) ->
+        if response.statusCode is 200
+          for {name}, index in tags when name is tag
+            return callback()
+        if --retryCount <= 0
+          callback()
+        else
+          setTimeout(requestTags, interval)
+    requestTags()
 
   # Does the given package already exist in the registry?
   #
