@@ -2,7 +2,7 @@
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
-fdescribe "EditorComponent", ->
+describe "EditorComponent", ->
   [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
