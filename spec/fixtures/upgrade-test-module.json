@@ -1,4 +1,7 @@
 {
+  "repository": {
+    "url": "https://github.com/a/b"
+  },
   "versions": {
     "0.4.0": {
       "engines": {

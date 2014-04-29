@@ -41,7 +41,7 @@ describe "apm upgrade", ->
     server.close()
 
   it "does not display updates for unpublished packages", ->
-    fs.writeFileSync(path.join(packagesDir, 'not-published', 'package.json'), JSON.stringify({name: 'not-published', version: '1.0'}))
+    fs.writeFileSync(path.join(packagesDir, 'not-published', 'package.json'), JSON.stringify({name: 'not-published', version: '1.0', repository: 'https://github.com/a/b'}))
 
     callback = jasmine.createSpy('callback')
     apm.run(['upgrade', '--list', '--no-color'], callback)
@@ -55,7 +55,7 @@ describe "apm upgrade", ->
 
 
   it "does not display updates for packages whose engine does not satisfy the installed Atom version", ->
-    fs.writeFileSync(path.join(packagesDir, 'test-module', 'package.json'), JSON.stringify({name: 'test-module', version: '0.3.0'}))
+    fs.writeFileSync(path.join(packagesDir, 'test-module', 'package.json'), JSON.stringify({name: 'test-module', version: '0.3.0', repository: 'https://github.com/a/b'}))
 
     callback = jasmine.createSpy('callback')
     apm.run(['upgrade', '--list', '--no-color'], callback)
@@ -68,7 +68,7 @@ describe "apm upgrade", ->
       expect(console.log.argsForCall[1][0]).toContain 'empty'
 
   it "displays the latest update that satisfies the installed Atom version", ->
-    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.1.0'}))
+    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.1.0', repository: 'https://github.com/a/b'}))
 
     callback = jasmine.createSpy('callback')
     apm.run(['upgrade', '--list', '--no-color'], callback)
@@ -81,7 +81,7 @@ describe "apm upgrade", ->
       expect(console.log.argsForCall[1][0]).toContain 'multi-module 0.1.0 -> 0.3.0'
 
   it "does not display updates for packages already up to date", ->
-    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.3.0'}))
+    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.3.0', repository: 'https://github.com/a/b'}))
 
     callback = jasmine.createSpy('callback')
     apm.run(['upgrade', '--list', '--no-color'], callback)
