@@ -80,7 +80,7 @@ class AtomWindow
       false
 
   handleEvents: ->
-    @browserWindow.on 'destroyed', =>
+    @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
@@ -93,7 +93,7 @@ class AtomWindow
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       @browserWindow.destroy() if chosen is 0
 
-    @browserWindow.on 'crashed', =>
+    @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @exitWhenDone
 
       chosen = dialog.showMessageBox @browserWindow,
