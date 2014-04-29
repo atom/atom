@@ -62,7 +62,8 @@ class Upgrade extends Command
     else
       config.getResourcePath (resourcePath) =>
         try
-          @installedAtomVersion = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))?.version
+          {version} = require(path.join(resourcePath, 'package.json')) ? {}
+          @installedAtomVersion = version if semver.valid(version)
         callback()
 
   getLatestVersion: (pack, callback) ->
