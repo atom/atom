@@ -20,7 +20,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, @isSpec, @exitWhenDone} = settings
+    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone} = settings
     global.atomApplication.addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
@@ -47,7 +47,7 @@ class AtomWindow
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
-    @openPath(pathToOpen, initialLine)
+    @openPath(pathToOpen, initialLine, initialColumn)
 
   getUrl: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
@@ -113,12 +113,12 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  openPath: (pathToOpen, initialLine) ->
+  openPath: (pathToOpen, initialLine, initialColumn) ->
     if @loaded
       @focus()
-      @sendCommand('window:open-path', {pathToOpen, initialLine})
+      @sendCommand('window:open-path', {pathToOpen, initialLine, initialColumn})
     else
-      @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
+      @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine, initialColumn)
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()

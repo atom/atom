@@ -301,10 +301,12 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, windowDimensions}={}) ->
     if pathToOpen
-      [basename, initialLine] = path.basename(pathToOpen).split(':')
-      if initialLine
-        pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}"
-        initialLine -= 1 # Convert line numbers to a base of 0
+      [basename, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
+      pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}" if initialLine
+
+      # Convert line numbers to a base of 0
+      initialLine -= 1 if initialLine
+      initialColumn -= 1 if initialColumn
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -320,7 +322,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode, windowDimensions})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, initialColumn, bootstrapScript, resourcePath, devMode, windowDimensions})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow

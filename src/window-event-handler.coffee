@@ -27,9 +27,9 @@ class WindowEventHandler
 
     @subscribe $(window), 'blur', -> $("body").addClass('is-blurred')
 
-    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
+    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       unless fs.isDirectorySync(pathToOpen)
-        atom.workspaceView?.open(pathToOpen, {initialLine})
+        atom.workspaceView?.open(pathToOpen, {initialLine, initialColumn})
 
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.workspaceView?.confirmClose()
