@@ -43,6 +43,19 @@ describe "Editor", ->
       runs ->
         buffer = editor.buffer
         expect(editor.getCursor().getBufferPosition().row).toEqual 5
+        expect(editor.getCursor().getBufferPosition().column).toEqual 0
+
+  describe "when the editor is constructed with an initialColumn option", ->
+    it "positions the cursor on the specified column", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
+
+      runs ->
+        buffer = editor.buffer
+        expect(editor.getCursor().getBufferPosition().row).toEqual 0
+        expect(editor.getCursor().getBufferPosition().column).toEqual 8
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
