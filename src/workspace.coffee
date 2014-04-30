@@ -114,7 +114,7 @@ class Workspace extends Model
 
   # Public: Open Atom's license in the active pane.
   openLicense: ->
-    @open(join(atom.getLoadSettings().resourcePath, 'LICENSE'))
+    @open(join(atom.getLoadSettings().resourcePath, 'LICENSE.md'))
 
   # Synchronously open the given URI in the active pane. **Only use this method
   # in specs. Calling this in production code will block the UI thread and
