@@ -6,8 +6,10 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
-      editor = atom.project.openSync('sample.js', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
@@ -112,8 +114,10 @@ describe "LanguageMode", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      editor = atom.project.openSync('coffee.coffee', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('coffee.coffee', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
@@ -161,8 +165,10 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      editor = atom.project.openSync('css.css', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('css.css', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-css')
@@ -178,13 +184,13 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(0)).toBe "/*body {"
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;*/"
-        expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
+        expect(buffer.lineForRow(2)).toBe "  /*width: 110%;*/"
         expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
         languageMode.toggleLineCommentsForBufferRows(0, 1)
         expect(buffer.lineForRow(0)).toBe "body {"
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;"
-        expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
+        expect(buffer.lineForRow(2)).toBe "  /*width: 110%;*/"
         expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
       it "uncomments lines with leading whitespace", ->
@@ -204,8 +210,10 @@ describe "LanguageMode", ->
 
   describe "less", ->
     beforeEach ->
-      editor = atom.project.openSync('sample.less', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('sample.less', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-less')
@@ -220,9 +228,11 @@ describe "LanguageMode", ->
 
   describe "xml", ->
     beforeEach ->
-      editor = atom.project.openSync('sample.xml', autoIndent: false)
-      editor.setText("<!-- test -->")
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('sample.xml', autoIndent: false).then (o) ->
+          editor = o
+          editor.setText("<!-- test -->")
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-xml')
@@ -234,8 +244,10 @@ describe "LanguageMode", ->
 
   describe "folding", ->
     beforeEach ->
-      editor = atom.project.openSync('sample.js', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
@@ -319,8 +331,10 @@ describe "LanguageMode", ->
 
   describe "folding with comments", ->
     beforeEach ->
-      editor = atom.project.openSync('sample-with-comments.js', autoIndent: false)
-      {buffer, languageMode} = editor
+      waitsForPromise ->
+        atom.workspace.open('sample-with-comments.js', autoIndent: false).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
@@ -385,7 +399,10 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      editor = atom.project.openSync('css.css', autoIndent: true)
+      waitsForPromise ->
+        atom.workspace.open('css.css', autoIndent: true).then (o) ->
+          editor = o
+          {buffer, languageMode} = editor
 
       waitsForPromise ->
         atom.packages.activatePackage('language-source')

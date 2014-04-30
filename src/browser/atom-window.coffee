@@ -2,7 +2,6 @@ BrowserWindow = require 'browser-window'
 ContextMenu = require './context-menu'
 app = require 'app'
 dialog = require 'dialog'
-ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -81,7 +80,7 @@ class AtomWindow
       false
 
   handleEvents: ->
-    @browserWindow.on 'destroyed', =>
+    @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
@@ -94,7 +93,7 @@ class AtomWindow
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       @browserWindow.destroy() if chosen is 0
 
-    @browserWindow.on 'crashed', =>
+    @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @exitWhenDone
 
       chosen = dialog.showMessageBox @browserWindow,
@@ -136,7 +135,7 @@ class AtomWindow
 
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
-    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
+    @browserWindow.webContents.send action, command, args...
 
   getDimensions: ->
     [x, y] = @browserWindow.getPosition()

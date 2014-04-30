@@ -6,7 +6,7 @@ describe "TokenizedLine", ->
 
   describe "::getScopeTree()", ->
     it "returns a tree whose inner nodes are scopes and whose leaf nodes are tokens in those scopes", ->
-      editor = atom.project.openSync('coffee.coffee')
+      [tokens, tokenIndex] = []
 
       ensureValidScopeTree = (scopeTree, scopes=[]) ->
         if scopeTree.children?
@@ -16,7 +16,11 @@ describe "TokenizedLine", ->
           expect(scopeTree).toBe tokens[tokenIndex++]
           expect(scopes).toEqual scopeTree.scopes
 
-      tokenIndex = 0
-      tokens = editor.lineForScreenRow(1).tokens
-      scopeTree = editor.lineForScreenRow(1).getScopeTree()
-      ensureValidScopeTree(scopeTree)
+      waitsForPromise ->
+        atom.project.open('coffee.coffee').then (o) -> editor = o
+
+      runs ->
+        tokenIndex = 0
+        tokens = editor.lineForScreenRow(1).tokens
+        scopeTree = editor.lineForScreenRow(1).getScopeTree()
+        ensureValidScopeTree(scopeTree)

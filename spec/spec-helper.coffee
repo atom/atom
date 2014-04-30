@@ -6,6 +6,7 @@ require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 {$, WorkspaceView, Workspace} = require 'atom'
 Config = require '../src/config'
@@ -37,6 +38,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 specPackageName = null
 specPackagePath = null
 specProjectPath = null
+isCoreSpec = false
 
 {specDirectory, resourcePath} = atom.getLoadSettings()
 
@@ -46,7 +48,10 @@ if specDirectory
     specPackageName = JSON.parse(fs.readFileSync(path.join(specPackagePath, 'package.json')))?.name
   specProjectPath = path.join(specDirectory, 'fixtures')
 
+isCoreSpec = specDirectory == fs.realpathSync(__dirname)
+
 beforeEach ->
+  Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
@@ -124,6 +129,7 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
+  ensureNoDeprecatedFunctionsCalled() if isCoreSpec
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
@@ -131,6 +137,27 @@ ensureNoPathSubscriptions = ->
   pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+
+ensureNoDeprecatedFunctionsCalled = ->
+  deprecations = Grim.getDeprecations()
+  if deprecations.length > 0
+    originalPrepareStackTrace = Error.prepareStackTrace
+    Error.prepareStackTrace = (error, stack) ->
+      output = []
+      for deprecation in deprecations
+        output.push "#{deprecation.originName} is deprecated. #{deprecation.message}"
+        output.push _.multiplyString("-", output[output.length - 1].length)
+        for stack in deprecation.getStacks()
+          for {functionName, location} in stack
+            output.push "#{functionName} -- #{location}"
+        output.push ""
+      output.join("\n")
+
+    error = new Error("Deprecated function(s) #{deprecations.map(({originName}) -> originName).join ', '}) were called.")
+    error.stack
+    Error.prepareStackTrace = originalPrepareStackTrace
+
+    throw error
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
@@ -289,7 +316,11 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => atom.keymaps.handleKeyEvent(e)
+  @on 'keydown', (e) ->
+    originalEvent = e.originalEvent ? e
+    Object.defineProperty(originalEvent, 'target', get: -> e.target) unless originalEvent.target?
+    atom.keymaps.handleKeyboardEvent(originalEvent)
+    not e.originalEvent.defaultPrevented
 
 $.fn.attachToDom = ->
   @appendTo($('#jasmine-content'))

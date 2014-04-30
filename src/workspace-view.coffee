@@ -57,7 +57,7 @@ class WorkspaceView extends View
   Delegator.includeInto(this)
 
   @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
-  @delegatesMethods 'open', 'openSync', 'reopenItemSync',
+  @delegatesMethods 'open', 'openSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
@@ -106,33 +106,33 @@ class WorkspaceView extends View
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
-    @command 'application:about', -> ipc.sendChannel('command', 'application:about')
-    @command 'application:run-all-specs', -> ipc.sendChannel('command', 'application:run-all-specs')
-    @command 'application:run-benchmarks', -> ipc.sendChannel('command', 'application:run-benchmarks')
-    @command 'application:show-settings', -> ipc.sendChannel('command', 'application:show-settings')
-    @command 'application:quit', -> ipc.sendChannel('command', 'application:quit')
-    @command 'application:hide', -> ipc.sendChannel('command', 'application:hide')
-    @command 'application:hide-other-applications', -> ipc.sendChannel('command', 'application:hide-other-applications')
-    @command 'application:unhide-all-applications', -> ipc.sendChannel('command', 'application:unhide-all-applications')
-    @command 'application:new-window', -> ipc.sendChannel('command', 'application:new-window')
-    @command 'application:new-file', -> ipc.sendChannel('command', 'application:new-file')
-    @command 'application:open', -> ipc.sendChannel('command', 'application:open')
-    @command 'application:open-file', -> ipc.sendChannel('command', 'application:open-file')
-    @command 'application:open-folder', -> ipc.sendChannel('command', 'application:open-folder')
-    @command 'application:open-dev', -> ipc.sendChannel('command', 'application:open-dev')
-    @command 'application:minimize', -> ipc.sendChannel('command', 'application:minimize')
-    @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
-    @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
-    @command 'application:open-your-config', -> ipc.sendChannel('command', 'application:open-your-config')
-    @command 'application:open-your-init-script', -> ipc.sendChannel('command', 'application:open-your-init-script')
-    @command 'application:open-your-keymap', -> ipc.sendChannel('command', 'application:open-your-keymap')
-    @command 'application:open-your-snippets', -> ipc.sendChannel('command', 'application:open-your-snippets')
-    @command 'application:open-your-stylesheet', -> ipc.sendChannel('command', 'application:open-your-stylesheet')
+    @command 'application:about', -> ipc.send('command', 'application:about')
+    @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
+    @command 'application:run-benchmarks', -> ipc.send('command', 'application:run-benchmarks')
+    @command 'application:show-settings', -> ipc.send('command', 'application:show-settings')
+    @command 'application:quit', -> ipc.send('command', 'application:quit')
+    @command 'application:hide', -> ipc.send('command', 'application:hide')
+    @command 'application:hide-other-applications', -> ipc.send('command', 'application:hide-other-applications')
+    @command 'application:unhide-all-applications', -> ipc.send('command', 'application:unhide-all-applications')
+    @command 'application:new-window', -> ipc.send('command', 'application:new-window')
+    @command 'application:new-file', -> ipc.send('command', 'application:new-file')
+    @command 'application:open', -> ipc.send('command', 'application:open')
+    @command 'application:open-file', -> ipc.send('command', 'application:open-file')
+    @command 'application:open-folder', -> ipc.send('command', 'application:open-folder')
+    @command 'application:open-dev', -> ipc.send('command', 'application:open-dev')
+    @command 'application:minimize', -> ipc.send('command', 'application:minimize')
+    @command 'application:zoom', -> ipc.send('command', 'application:zoom')
+    @command 'application:bring-all-windows-to-front', -> ipc.send('command', 'application:bring-all-windows-to-front')
+    @command 'application:open-your-config', -> ipc.send('command', 'application:open-your-config')
+    @command 'application:open-your-init-script', -> ipc.send('command', 'application:open-your-init-script')
+    @command 'application:open-your-keymap', -> ipc.send('command', 'application:open-your-keymap')
+    @command 'application:open-your-snippets', -> ipc.send('command', 'application:open-your-snippets')
+    @command 'application:open-your-stylesheet', -> ipc.send('command', 'application:open-your-stylesheet')
     @command 'application:open-license', => @model.openLicense()
 
     @command 'window:install-shell-commands', => @installShellCommands()
 
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+    @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', => @increaseFontSize()
     @command 'window:decrease-font-size', => @decreaseFontSize()
     @command 'window:reset-font-size', => @model.resetFontSize()
@@ -147,10 +147,10 @@ class WorkspaceView extends View
     @command 'window:toggle-invisibles', -> atom.config.toggle("editor.showInvisibles")
     @command 'window:log-deprecation-warnings', -> logDeprecationWarnings()
 
-    @command 'window:toggle-auto-indent', =>
+    @command 'window:toggle-auto-indent', ->
       atom.config.toggle("editor.autoIndent")
 
-    @command 'pane:reopen-closed-item', => @reopenItemSync()
+    @command 'pane:reopen-closed-item', => @getModel().reopenItem()
 
     @command 'core:close', => if @getModel().getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
     @command 'core:save', => @saveActivePaneItem()
@@ -170,11 +170,11 @@ class WorkspaceView extends View
         detailedMessage: error.message
 
     resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, true, (error) =>
+    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
       if error?
         showErrorDialog(error)
       else
-        CommandInstaller.installApmCommand resourcePath, true, (error) =>
+        CommandInstaller.installApmCommand resourcePath, true, (error) ->
           if error?
             showErrorDialog(error)
           else
@@ -320,15 +320,17 @@ class WorkspaceView extends View
     @panes.getPaneViews()
 
   # Public: Register a function to be called for every current and future
-  # editor view in the workspace.
+  # editor view in the workspace (only includes {EditorView}s that are pane
+  # items).
   #
   # callback - A {Function} with an {EditorView} as its only argument.
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditorView: (callback) ->
-    callback(editor) for editor in @getEditorViews()
-    attachedCallback = (e, editor) -> callback(editor)
+    callback(editorView) for editorView in @getEditorViews()
+    attachedCallback = (e, editorView) ->
+      callback(editorView) unless editorView.mini
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 

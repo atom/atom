@@ -357,6 +357,6 @@ class Git
       @submodules = submodules
 
       for submodulePath, submoduleRepo of @getRepo().submodules
-        submoduleRepo.upstream = submodules[submodulePath].upstream
+        submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       @emit 'statuses-changed' unless statusesUnchanged

@@ -410,13 +410,13 @@ class Editor extends Model
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
   checkoutHead: ->
-    if path = @getPath()
-      atom.project.getRepo()?.checkoutHead(path)
+    if filePath = @getPath()
+      atom.project.getRepo()?.checkoutHead(filePath)
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
-    path = @getPath()
-    atom.clipboard.write(path) if path?
+    if filePath = @getPath()
+      atom.clipboard.write(filePath)
 
   # Public: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
@@ -466,7 +466,7 @@ class Editor extends Model
   # options - An options hash with an `includeNewline` key.
   #
   # Returns a {Range}.
-  bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
+  bufferRangeForBufferRow: (row, {includeNewline}={}) -> @buffer.rangeForRow(row, includeNewline)
 
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
@@ -895,7 +895,7 @@ class Editor extends Model
           endRow = row
 
         insertPosition = Point.fromObject([startRow - insertDelta])
-        endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
+        endPosition = Point.min([endRow + 1], @buffer.getEndPosition())
         lines = @buffer.getTextInRange([[startRow], endPosition])
         if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
           lines = "#{lines}\n"
@@ -954,7 +954,7 @@ class Editor extends Model
         lines = @buffer.getTextInRange([[startRow], endPosition])
         @buffer.deleteRows(startRow, endRow)
 
-        insertPosition = Point.min([startRow + insertDelta], @buffer.getEofPosition())
+        insertPosition = Point.min([startRow + insertDelta], @buffer.getEndPosition())
         if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
           lines = "\n#{lines}"
 
@@ -1483,7 +1483,7 @@ class Editor extends Model
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(isReversed: lastSelection.isReversed())
+    @mergeIntersectingSelections(reversed: lastSelection.isReversed())
 
   # Public: Move the cursor of each selection one character rightward while
   # preserving the selection's tail position.
@@ -1710,7 +1710,7 @@ class Editor extends Model
   # Calls the given function with each selection, then merges selections in the
   # reversed orientation
   expandSelectionsBackward: (fn) ->
-    @mergeIntersectingSelections isReversed: true, =>
+    @mergeIntersectingSelections reversed: true, =>
       fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->

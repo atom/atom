@@ -22,7 +22,10 @@ describe "EditorComponent", ->
         else
           fn()
 
-      editor = atom.project.openSync('sample.js')
+    waitsForPromise ->
+      atom.project.open('sample.js').then (o) -> editor = o
+
+    runs ->
       wrapperView = new ReactEditorView(editor)
       wrapperView.attachToDom()
       {component} = wrapperView

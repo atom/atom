@@ -191,7 +191,7 @@ class AtomApplication
       @emit('application:new-window')
 
     # A request from the associated render process to open a new render process.
-    ipc.on 'open', (processId, routingId, options) =>
+    ipc.on 'open', (event, options) =>
       if options?
         if options.pathsToOpen?.length > 0
           @openPaths(options)
@@ -200,21 +200,21 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.on 'update-application-menu', (processId, routingId, template, keystrokesByCommand) =>
+    ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
       @applicationMenu.update(template, keystrokesByCommand)
 
-    ipc.on 'run-package-specs', (processId, routingId, specDirectory) =>
+    ipc.on 'run-package-specs', (event, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
 
-    ipc.on 'command', (processId, routingId, command) =>
+    ipc.on 'command', (event, command) =>
       @emit(command)
 
-    ipc.on 'window-command', (processId, routingId, command, args...) ->
-      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+    ipc.on 'window-command', (event, command, args...) ->
+      win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
 
-    ipc.on 'call-window-method', (processId, routingId, method, args...) ->
-      win = BrowserWindow.fromProcessIdAndRoutingId(processId, routingId)
+    ipc.on 'call-window-method', (event, method, args...) ->
+      win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
 
   # Public: Executes the given command.
@@ -325,7 +325,7 @@ class AtomApplication
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
 
-    openedWindow.browserWindow.on 'destroyed', =>
+    openedWindow.browserWindow.on 'closed', =>
       @killProcessForWindow(openedWindow)
 
   # Kill all processes associated with opened windows.

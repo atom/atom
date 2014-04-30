@@ -7,22 +7,30 @@ path = require 'path'
 temp = require 'temp'
 
 describe "EditorView", ->
-  [buffer, editorView, editor, cachedLineHeight, cachedCharWidth] = []
+  [buffer, editorView, editor, cachedEditor, cachedLineHeight, cachedCharWidth, fart] = []
 
   beforeEach ->
-    editor = atom.project.openSync('sample.js')
-    buffer = editor.buffer
-    editorView = new EditorView(editor)
-    editorView.lineOverdraw = 2
-    editorView.isFocused = true
-    editorView.enableKeymap()
-    editorView.calculateHeightInLines = ->
-      Math.ceil(@height() / @lineHeight)
-    editorView.attachToDom = ({ heightInLines, widthInChars } = {}) ->
-      heightInLines ?= @getEditor().getBuffer().getLineCount()
-      @height(getLineHeight() * heightInLines)
-      @width(getCharWidth() * widthInChars) if widthInChars
-      $('#jasmine-content').append(this)
+    waitsForPromise ->
+      atom.workspace.open('sample.js').then (o) -> editor = o
+
+    waitsForPromise ->
+      atom.workspace.open('sample.less').then (o) -> cachedEditor = o
+
+    runs ->
+      buffer = editor.buffer
+      editorView = new EditorView(editor)
+      editorView.lineOverdraw = 2
+      editorView.isFocused = true
+      editorView.enableKeymap()
+
+      editorView.calculateHeightInLines = ->
+        Math.ceil(@height() / @lineHeight)
+
+      editorView.attachToDom = ({ heightInLines, widthInChars } = {}) ->
+        heightInLines ?= @getEditor().getBuffer().getLineCount()
+        @height(getLineHeight() * heightInLines)
+        @width(getCharWidth() * widthInChars) if widthInChars
+        $('#jasmine-content').append(this)
 
     waitsForPromise ->
       atom.packages.activatePackage('language-text', sync: true)
@@ -41,7 +49,7 @@ describe "EditorView", ->
     cachedCharWidth
 
   calcDimensions = ->
-    editorForMeasurement = new EditorView(editor: atom.project.openSync('sample.js'))
+    editorForMeasurement = new EditorView({editor: cachedEditor})
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     cachedCharWidth = editorForMeasurement.charWidth
@@ -105,18 +113,23 @@ describe "EditorView", ->
 
   describe "when the editor's file is modified on disk", ->
     it "triggers an alert", ->
+      fileChangeHandler = null
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      editor = atom.project.openSync(filePath)
-      editorView.edit(editor)
-      editor.insertText("now the buffer is modified")
 
-      fileChangeHandler = jasmine.createSpy('fileChange')
-      editor.buffer.file.on 'contents-changed', fileChangeHandler
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (o) -> editor = o
 
-      spyOn(atom, "confirm")
+      runs ->
+        editorView.edit(editor)
+        editor.insertText("now the buffer is modified")
 
-      fs.writeFileSync(filePath, "a file change")
+        fileChangeHandler = jasmine.createSpy('fileChange')
+        editor.buffer.file.on 'contents-changed', fileChangeHandler
+
+        spyOn(atom, "confirm")
+
+        fs.writeFileSync(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -133,8 +146,11 @@ describe "EditorView", ->
     [newEditor, newBuffer] = []
 
     beforeEach ->
-      newEditor = atom.project.openSync('two-hundred.txt')
-      newBuffer = newEditor.buffer
+      waitsForPromise ->
+        atom.workspace.open('two-hundred.txt').then (o) -> newEditor = o
+
+      runs ->
+        newBuffer = newEditor.buffer
 
     it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
       editorView.attachToDom(heightInLines: 5, widthInChars: 30)
@@ -170,17 +186,24 @@ describe "EditorView", ->
       expect(editorView.lineElementForScreenRow(6).text()).toMatch /^      currentgoodbye/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
+      contentsConflictedHandler = null
       filePath = path.join(temp.dir, 'atom-changed-file.txt')
       fs.writeFileSync(filePath, "")
-      tempEditor = atom.project.openSync(filePath)
-      editorView.edit(tempEditor)
-      tempEditor.insertText("a buffer change")
+      tempEditor = null
 
-      spyOn(atom, "confirm")
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (o) -> tempEditor = o
 
-      contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
-      tempEditor.on 'contents-conflicted', contentsConflictedHandler
-      fs.writeFileSync(filePath, "a file change")
+      runs ->
+        editorView.edit(tempEditor)
+        tempEditor.insertText("a buffer change")
+
+        spyOn(atom, "confirm")
+
+        contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
+        tempEditor.on 'contents-conflicted', contentsConflictedHandler
+        fs.writeFileSync(filePath, "a file change")
+
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -281,26 +304,34 @@ describe "EditorView", ->
     it "emits event when editor view view receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editorView.on 'editor:path-changed', eventHandler
-      editorView.edit(atom.project.openSync(filePath))
-      expect(eventHandler).toHaveBeenCalled()
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (editor) ->
+          editorView.edit(editor)
+
+      runs ->
+        expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
       eventHandler = jasmine.createSpy('eventHandler')
       oldBuffer = editor.getBuffer()
-      newEditor = atom.project.openSync(filePath)
-      editorView.on 'editor:path-changed', eventHandler
+      newEditor = null
 
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (o) -> newEditor = o
 
-      editorView.edit(newEditor)
-      expect(eventHandler).toHaveBeenCalled()
+      runs ->
+        editorView.on 'editor:path-changed', eventHandler
 
-      eventHandler.reset()
-      oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
-      expect(eventHandler).not.toHaveBeenCalled()
+        editorView.edit(newEditor)
+        expect(eventHandler).toHaveBeenCalled()
 
-      eventHandler.reset()
-      newEditor.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
-      expect(eventHandler).toHaveBeenCalled()
+        eventHandler.reset()
+        oldBuffer.saveAs(path.join(temp.dir, 'atom-bad.txt'))
+        expect(eventHandler).not.toHaveBeenCalled()
+
+        eventHandler.reset()
+        newEditor.getBuffer().saveAs(path.join(temp.dir, 'atom-new.txt'))
+        expect(eventHandler).toHaveBeenCalled()
 
     it "loads the grammar for the new path", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
@@ -478,7 +509,7 @@ describe "EditorView", ->
 
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
-      describe "when clicking between a word and a non-word", ->
+      describe "when double-clicking between a word and a non-word", ->
         it "selects the word", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 21], originalEvent: {detail: 1})
@@ -500,6 +531,30 @@ describe "EditorView", ->
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 28], originalEvent: {detail: 2})
           editorView.renderedLines.trigger 'mouseup'
           expect(editor.getSelectedText()).toBe "{"
+
+      describe "when double-clicking on whitespace", ->
+        it "selects all adjacent whitespace", ->
+          editor.setText("   some  text    ")
+          editor.setCursorBufferPosition([0, 2])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 2], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 2], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
+
+          editor.setCursorBufferPosition([0, 8])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 7], [0, 9]]
+
+          editor.setCursorBufferPosition([0, 14])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 14], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 14], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 13], [0, 17]]
 
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
@@ -1529,14 +1584,18 @@ describe "EditorView", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editorView.edit(atom.project.openSync('two-hundred.txt'))
-        editorView.attachToDom(heightInLines: 5.5)
+        waitsForPromise ->
+          atom.workspace.open('two-hundred.txt').then (editor) ->
+            editorView.edit(editor)
 
-        expect(editorView.renderedLines.find('.line').length).toBe 8
+        runs ->
+          editorView.attachToDom(heightInLines: 5.5)
 
-        editor.moveCursorToBottom()
+          expect(editorView.renderedLines.find('.line').length).toBe 8
 
-        expect(editorView.renderedLines.find('.line').length).toBe 8
+          editor.moveCursorToBottom()
+
+          expect(editorView.renderedLines.find('.line').length).toBe 8
 
     describe "when line has a character that could push it to be too tall (regression)", ->
       it "does renders the line at a consistent height", ->
@@ -1784,10 +1843,14 @@ describe "EditorView", ->
       expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
     it "does not wrap the lines of any newly assigned buffers", ->
-      otherEditor = atom.project.openSync()
-      otherEditor.buffer.setText([1..100].join(''))
-      editorView.edit(otherEditor)
-      expect(editorView.renderedLines.find('.line').length).toBe(1)
+      otherEditor = null
+      waitsForPromise ->
+        atom.workspace.open().then (o) -> otherEditor = o
+
+      runs ->
+        otherEditor.buffer.setText([1..100].join(''))
+        editorView.edit(otherEditor)
+        expect(editorView.renderedLines.find('.line').length).toBe(1)
 
     it "unwraps lines when softwrap is disabled", ->
       editorView.toggleSoftWrap()
@@ -1816,15 +1879,15 @@ describe "EditorView", ->
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
     it "calls .setWidthInChars() when the editor view is attached because now its dimensions are available to calculate it", ->
-      otherEditor = new EditorView(editor: atom.project.openSync('sample.js'))
-      spyOn(otherEditor, 'setWidthInChars')
+      otherEditorView = new EditorView(editor)
+      spyOn(otherEditorView, 'setWidthInChars')
 
-      otherEditor.editor.setSoftWrap(true)
-      expect(otherEditor.setWidthInChars).not.toHaveBeenCalled()
+      otherEditorView.editor.setSoftWrap(true)
+      expect(otherEditorView.setWidthInChars).not.toHaveBeenCalled()
 
-      otherEditor.simulateDomAttachment()
-      expect(otherEditor.setWidthInChars).toHaveBeenCalled()
-      otherEditor.remove()
+      otherEditorView.simulateDomAttachment()
+      expect(otherEditorView.setWidthInChars).toHaveBeenCalled()
+      otherEditorView.remove()
 
     describe "when the editor view's width changes", ->
       it "updates the width in characters on the edit session", ->
@@ -1975,15 +2038,19 @@ describe "EditorView", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditor = atom.project.openSync(null)
-        editorView.edit(emptyEditor)
-        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
+        emptyEditor = null
+        waitsForPromise ->
+          atom.workspace.open().then (o) -> emptyEditor = o
 
-        editorView.edit(editor)
-        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
+        runs ->
+          editorView.edit(emptyEditor)
+          expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
-        editorView.edit(emptyEditor)
-        expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
+          editorView.edit(editor)
+          expect(editorView.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
+
+          editorView.edit(emptyEditor)
+          expect(editorView.gutter.lineNumbers.find('.line-number').length).toBe 1
 
     describe "when the editor view is mini", ->
       it "hides the gutter", ->
@@ -2203,10 +2270,13 @@ describe "EditorView", ->
 
   describe "folding", ->
     beforeEach ->
-      editor = atom.project.openSync('two-hundred.txt')
-      buffer = editor.buffer
-      editorView.edit(editor)
-      editorView.attachToDom()
+      waitsForPromise ->
+        atom.workspace.open('two-hundred.txt').then (o) -> editor = o
+
+      runs ->
+        buffer = editor.buffer
+        editorView.edit(editor)
+        editorView.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
       it "folds the lines covered by the selection into a single line with a fold class and marker", ->
@@ -2260,7 +2330,7 @@ describe "EditorView", ->
       it "adds/removes the 'fold-selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
-        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, isReversed: true)
+        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, reversed: true)
         expect(editorView.lineElementForScreenRow(2)).toMatchSelector('.fold.fold-selected')
 
         editor.setSelectedBufferRange([[1, 0], [1, 1]], preserveFolds: true)
@@ -2341,8 +2411,11 @@ describe "EditorView", ->
     beforeEach ->
       filePath = atom.project.resolve('git/working-dir/file.txt')
       originalPathText = fs.readFileSync(filePath, 'utf8')
-      editor = atom.project.openSync(filePath)
-      editorView.edit(editor)
+      waitsForPromise ->
+        atom.workspace.open(filePath).then (o) -> editor = o
+
+      runs ->
+        editorView.edit(editor)
 
     afterEach ->
       fs.writeFileSync(filePath, originalPathText)
@@ -2816,7 +2889,7 @@ describe "EditorView", ->
 
   describe "when the escape key is pressed on the editor view", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
-      atom.keymaps.bindKeys 'name', '.editor', {'escape': 'test-event'}
+      atom.keymaps.add 'name', '.editor': {'escape': 'test-event'}
       testEventHandler = jasmine.createSpy("testEventHandler")
 
       editorView.on 'test-event', testEventHandler
@@ -2833,22 +2906,26 @@ describe "EditorView", ->
   describe "when the editor view is attached but invisible", ->
     describe "when the editor view's text is changed", ->
       it "redraws the editor view when it is next shown", ->
+        displayUpdatedHandler = null
         atom.workspaceView = new WorkspaceView
-        atom.workspaceView.openSync('sample.js')
-        atom.workspaceView.attachToDom()
-        editorView = atom.workspaceView.getActiveView()
+        waitsForPromise ->
+          atom.workspaceView.open('sample.txt').then (o) -> editor = o
 
-        view = $$ -> @div id: 'view', tabindex: -1, 'View'
-        editorView.getPane().activateItem(view)
-        expect(editorView.isVisible()).toBeFalsy()
+        runs ->
+          atom.workspaceView.attachToDom()
+          editorView = atom.workspaceView.getActiveView()
 
-        editor.setText('hidden changes')
-        editor.setCursorBufferPosition([0,4])
+          view = $$ -> @div id: 'view', tabindex: -1, 'View'
+          editorView.getPane().activateItem(view)
+          expect(editorView.isVisible()).toBeFalsy()
 
-        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
-        editorView.on 'editor:display-updated', displayUpdatedHandler
-        editorView.getPane().activateItem(editorView.getModel())
-        expect(editorView.isVisible()).toBeTruthy()
+          editor.setText('hidden changes')
+          editor.setCursorBufferPosition([0,4])
+
+          displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+          editorView.on 'editor:display-updated', displayUpdatedHandler
+          editorView.getPane().activateItem(editorView.getModel())
+          expect(editorView.isVisible()).toBeTruthy()
 
         waitsFor ->
           displayUpdatedHandler.callCount is 1
@@ -2888,14 +2965,17 @@ describe "EditorView", ->
   describe "when the editor view is removed", ->
     it "fires a editor:will-be-removed event", ->
       atom.workspaceView = new WorkspaceView
-      atom.workspaceView.openSync('sample.js')
-      atom.workspaceView.attachToDom()
-      editorView = atom.workspaceView.getActiveView()
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
 
-      willBeRemovedHandler = jasmine.createSpy('willBeRemovedHandler')
-      editorView.on 'editor:will-be-removed', willBeRemovedHandler
-      editorView.getPane().destroyActiveItem()
-      expect(willBeRemovedHandler).toHaveBeenCalled()
+      runs ->
+        atom.workspaceView.attachToDom()
+        editorView = atom.workspaceView.getActiveView()
+
+        willBeRemovedHandler = jasmine.createSpy('willBeRemovedHandler')
+        editorView.on 'editor:will-be-removed', willBeRemovedHandler
+        editorView.getPane().destroyActiveItem()
+        expect(willBeRemovedHandler).toHaveBeenCalled()
 
   describe "when setInvisibles is toggled (regression)", ->
     it "renders inserted newlines properly", ->
