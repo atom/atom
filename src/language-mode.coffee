@@ -60,7 +60,8 @@ class LanguageMode
             buffer.setTextInRange([[end, endColumn], [end, endLength]], "")
       else
         buffer.transact ->
-          buffer.insert([start, 0], commentStartString)
+          indentLength = buffer.lineForRow(start).match(/^\s*/)?[0].length ? 0
+          buffer.insert([start, indentLength], commentStartString)
           buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
     else
       if shouldUncomment and start isnt end
