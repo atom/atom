@@ -31,16 +31,12 @@ module.exports = (gruntObject) ->
 
     zipApps buildDir, assets, (error) ->
       return done(error) if error?
-      uploadAssets release, buildDir, assets, (error) ->
+      getAtomDraftRelease (error, release) ->
         return done(error) if error?
-        publishRelease release, (error) ->
+        assetNames = (asset.assetName for asset in assets)
+        deleteExistingAssets release, assetNames, (error) ->
           return done(error) if error?
-          getAtomDraftRelease (error, release) ->
-            return done(error) if error?
-            assetNames = (asset.assetName for asset in assets)
-            deleteExistingAssets release, assetNames, (error) ->
-              return done(error) if error?
-              uploadAssets(release, buildDir, assets, done)
+          uploadAssets(release, buildDir, assets, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -127,17 +123,3 @@ uploadAssets = (release, buildDir, assets, callback) ->
     assetPath = path.join(buildDir, assetName)
     tasks.push(upload.bind(this, release, assetName, assetPath))
   async.parallel(tasks, callback)
-
-publishRelease = (release, callback) ->
-  options =
-    uri: release.url
-    method: 'POST'
-    headers: defaultHeaders
-    json:
-      draft: false
-  request options, (error, response, body={}) ->
-    if error? or response.statusCode isnt 200
-      logError('Creating release failed', error, body)
-      callback(error ? new Error(response.statusCode))
-    else
-      callback()
