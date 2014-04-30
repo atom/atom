@@ -27,10 +27,12 @@ module.exports =
 class PackageManager
   Emitter.includeInto(this)
 
-  constructor: ({configDirPath, devMode, @resourcePath}) ->
-    @packageDirPaths = [path.join(configDirPath, "packages")]
-    if devMode
-      @packageDirPaths.unshift(path.join(configDirPath, "dev", "packages"))
+  constructor: ({configDirPath, devMode, safeMode, @resourcePath}) ->
+    @packageDirPaths = []
+    unless safeMode
+      if devMode
+        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
+      @packageDirPaths.push(path.join(configDirPath, "packages"))
 
     @loadedPackages = {}
     @activePackages = {}
