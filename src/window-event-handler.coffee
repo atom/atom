@@ -29,7 +29,7 @@ class WindowEventHandler
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       unless fs.isDirectorySync(pathToOpen)
-        atom.workspaceView?.open(pathToOpen, {initialLine, initialColumn})
+        atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.workspaceView?.confirmClose()
