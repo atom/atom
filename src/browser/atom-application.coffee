@@ -302,7 +302,7 @@ class AtomApplication
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, windowDimensions}={}) ->
     if pathToOpen
       [basename, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
-      pathToOpen = "#{path.dirname(pathToOpen)}/#{basename}" if initialLine
+      pathToOpen = path.join(path.dirname(pathToOpen), basename) if initialLine
 
       # Convert line numbers to a base of 0
       initialLine -= 1 if initialLine
