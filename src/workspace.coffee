@@ -84,6 +84,8 @@ class Workspace extends Model
   # options  - An optional options {Object}
   #   :initialLine - A {Number} indicating which row to move the cursor to
   #                  initially. Defaults to `0`.
+  #   :initialColumn - A {Number} indicating which column to move the cursor to
+  #                    initially. Defaults to `0`.
   #   :split - Either 'left' or 'right'. If 'left', the item will be opened in
   #            leftmost pane of the current active pane's row. If 'right', the
   #            item will be opened in the rightmost pane of the current active
@@ -124,12 +126,14 @@ class Workspace extends Model
   # options  - An optional options {Object}
   #   :initialLine - A {Number} indicating which row to move the cursor to
   #                  initially. Defaults to `0`.
+  #   :initialColumn - A {Number} indicating which column to move the cursor to
+  #                    initially. Defaults to `0`.
   #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
   #                   the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     deprecate("Don't use the `changeFocus` option") if options.changeFocus?
 
-    {initialLine} = options
+    {initialLine, initialColumn} = options
     # TODO: Remove deprecated changeFocus option
     activatePane = options.activatePane ? options.changeFocus ? true
     uri = atom.project.resolve(uri)
@@ -137,7 +141,7 @@ class Workspace extends Model
     item = @activePane.itemForUri(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
-    item ?= atom.project.openSync(uri, {initialLine})
+    item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
     @activePane.activateItem(item)
     @itemOpened(item)

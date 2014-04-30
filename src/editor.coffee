@@ -152,7 +152,7 @@ class Editor extends Model
   @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
     super
 
     @cursors = []
@@ -170,11 +170,9 @@ class Editor extends Model
     @subscribeToDisplayBuffer()
 
     if @getCursors().length is 0 and not suppressCursorCreation
-      if initialLine
-        position = [initialLine, 0]
-      else
-        position = [0, 0]
-      @addCursorAtBufferPosition(position)
+      initialLine = Math.max(parseInt(initialLine) or 0, 0)
+      initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
+      @addCursorAtBufferPosition([initialLine, initialColumn])
 
     @languageMode = new LanguageMode(this)
 
