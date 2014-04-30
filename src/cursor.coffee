@@ -138,13 +138,13 @@ class Cursor extends Model
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
-  # "Surrounded" here means that all characters before and after the cursor is
-  # whitespace.
+  # "Surrounded" here means that the character directly before and after the
+  # cursor are both whitespace.
   #
   # Returns a {Boolean}.
   isSurroundedByWhitespace: ->
     {row, column} = @getBufferPosition()
-    range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
+    range = [[row, column - 1], [row, column + 1]]
     /^\s+$/.test @editor.getTextInBufferRange(range)
 
   # Public: Returns whether the cursor is currently between a word and non-word

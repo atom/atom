@@ -509,7 +509,7 @@ describe "EditorView", ->
 
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
-      describe "when clicking between a word and a non-word", ->
+      describe "when double-clicking between a word and a non-word", ->
         it "selects the word", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [1, 21], originalEvent: {detail: 1})
@@ -531,6 +531,30 @@ describe "EditorView", ->
           editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 28], originalEvent: {detail: 2})
           editorView.renderedLines.trigger 'mouseup'
           expect(editor.getSelectedText()).toBe "{"
+
+      describe "when double-clicking on whitespace", ->
+        it "selects all adjacent whitespace", ->
+          editor.setText("   some  text    ")
+          editor.setCursorBufferPosition([0, 2])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 2], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 2], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 3]]
+
+          editor.setCursorBufferPosition([0, 8])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 8], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 7], [0, 9]]
+
+          editor.setCursorBufferPosition([0, 14])
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 14], originalEvent: {detail: 1})
+          editorView.renderedLines.trigger 'mouseup'
+          editorView.renderedLines.trigger mousedownEvent(editorView: editorView, point: [0, 14], originalEvent: {detail: 2})
+          editorView.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 13], [0, 17]]
 
     describe "triple/quardruple/etc-click", ->
       it "selects the line under the cursor", ->
