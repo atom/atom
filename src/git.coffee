@@ -135,6 +135,7 @@ class Git
     relativePath = @relativize(path)
     currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
+    pathStatus = 0 if repo.isStatusIgnored(pathStatus)
     if pathStatus > 0
       @statuses[relativePath] = pathStatus
     else
