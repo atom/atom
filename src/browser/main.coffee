@@ -73,6 +73,7 @@ parseCommandLine = ->
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.alias('s', 'spec-directory').string('s').describe('s', 'Set the spec directory (default: Atom\'s spec directory).')
+  options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
@@ -88,6 +89,7 @@ parseCommandLine = ->
 
   executedFrom = args['executed-from']
   devMode = args['dev']
+  safeMode = args['safe']
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
@@ -107,6 +109,6 @@ parseCommandLine = ->
   catch
     resourcePath = path.dirname(path.dirname(__dirname))
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 
 start()

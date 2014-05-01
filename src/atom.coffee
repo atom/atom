@@ -148,7 +148,7 @@ class Atom extends Model
     ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
-    {devMode, resourcePath} = @getLoadSettings()
+    {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
     # Add 'src/exports' to module search path.
@@ -163,7 +163,7 @@ class Atom extends Model
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
-    @packages = new PackageManager({devMode, configDirPath, resourcePath})
+    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})

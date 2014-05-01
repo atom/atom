@@ -59,7 +59,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode} = options
+    {@resourcePath, @version, @devMode, @safeMode} = options
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -77,15 +77,15 @@ class AtomApplication
     @openWithOptions(options)
 
   # Opens a new window based on the options provided.
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, newWindow, specDirectory, logFile}) ->
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode}) for urlToOpen in urlsToOpen
+      @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
-      @openPath({pidToKillWhenClosed, newWindow, devMode}) # Always open a editor window if this is the first instance of Atom.
+      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode}) # Always open a editor window if this is the first instance of Atom.
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -140,6 +140,7 @@ class AtomApplication
     @on 'application:open-file', -> @promptForPath(type: 'file')
     @on 'application:open-folder', -> @promptForPath(type: 'folder')
     @on 'application:open-dev', -> @promptForPath(devMode: true)
+    @on 'application:open-safe', -> @promptForPath(safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
@@ -184,7 +185,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl({urlToOpen, @devMode})
+      @openUrl({urlToOpen, @devMode, @safeMode})
 
     app.on 'activate-with-no-open-windows', (event) =>
       event.preventDefault()
@@ -288,8 +289,10 @@ class AtomApplication
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
-    @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
+  #   :safeMode - Boolean to control the opened window's safe mode.
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode}) ->
+    for pathToOpen in pathsToOpen ? []
+      @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
 
   # Public: Opens a single path, in an existing window if possible.
   #
@@ -298,8 +301,9 @@ class AtomApplication
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
+  #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, windowDimensions}={}) ->
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions}={}) ->
     if pathToOpen
       [basename, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
       pathToOpen = path.join(path.dirname(pathToOpen), basename) if initialLine
@@ -322,7 +326,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, initialLine, initialColumn, bootstrapScript, resourcePath, devMode, windowDimensions})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, initialColumn, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -357,7 +361,8 @@ class AtomApplication
   # options -
   #   :urlToOpen - The atom:// url to open.
   #   :devMode - Boolean to control the opened window's dev mode.
-  openUrl: ({urlToOpen, devMode}) ->
+  #   :safeMode - Boolean to control the opened window's safe mode.
+  openUrl: ({urlToOpen, devMode, safeMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
       fs = require 'fs-plus'
@@ -373,7 +378,7 @@ class AtomApplication
         packagePath = @packages.resolvePackagePath(packageName)
         bootstrapScript = path.resolve(packagePath, pack.urlMain)
         windowDimensions = @focusedWindow()?.getDimensions()
-        new AtomWindow({bootstrapScript, @resourcePath, devMode, urlToOpen, windowDimensions})
+        new AtomWindow({bootstrapScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
@@ -416,8 +421,10 @@ class AtomApplication
   #   :type - A String which specifies the type of the dialog, could be 'file',
   #           'folder' or 'all'. The 'all' is only available on OS X.
   #   :devMode - A Boolean which controls whether any newly opened windows
-  #              should  be in dev mode or not.
-  promptForPath: ({type, devMode}={}) ->
+  #              should be in dev mode or not.
+  #   :safeMode - A Boolean which controls whether any newly opened windows
+  #               should be in safe mode or not.
+  promptForPath: ({type, devMode, safeMode}={}) ->
     type ?= 'all'
     properties =
       switch type
@@ -426,4 +433,4 @@ class AtomApplication
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
     dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode})
+      @openPaths({pathsToOpen, devMode, safeMode})

@@ -120,6 +120,7 @@ class WorkspaceView extends View
     @command 'application:open-file', -> ipc.send('command', 'application:open-file')
     @command 'application:open-folder', -> ipc.send('command', 'application:open-folder')
     @command 'application:open-dev', -> ipc.send('command', 'application:open-dev')
+    @command 'application:open-safe', -> ipc.send('command', 'application:open-safe')
     @command 'application:minimize', -> ipc.send('command', 'application:minimize')
     @command 'application:zoom', -> ipc.send('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.send('command', 'application:bring-all-windows-to-front')
