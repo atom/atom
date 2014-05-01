@@ -140,6 +140,7 @@ class AtomApplication
     @on 'application:open-file', -> @promptForPath(type: 'file')
     @on 'application:open-folder', -> @promptForPath(type: 'folder')
     @on 'application:open-dev', -> @promptForPath(devMode: true)
+    @on 'application:open-safe', -> @promptForPath(safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
@@ -420,8 +421,10 @@ class AtomApplication
   #   :type - A String which specifies the type of the dialog, could be 'file',
   #           'folder' or 'all'. The 'all' is only available on OS X.
   #   :devMode - A Boolean which controls whether any newly opened windows
-  #              should  be in dev mode or not.
-  promptForPath: ({type, devMode}={}) ->
+  #              should be in dev mode or not.
+  #   :safeMode - A Boolean which controls whether any newly opened windows
+  #               should be in safe mode or not.
+  promptForPath: ({type, devMode, safeMode}={}) ->
     type ?= 'all'
     properties =
       switch type
@@ -430,4 +433,4 @@ class AtomApplication
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
     dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode})
+      @openPaths({pathsToOpen, devMode, safeMode})
