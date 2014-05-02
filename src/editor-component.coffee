@@ -22,6 +22,7 @@ EditorComponent = React.createClass
   preservedRowRange: null
   scrollingVertically: false
   gutterWidth: 0
+  refreshingScrollbars: false
   measuringScrollbars: true
 
   render: ->
@@ -65,7 +66,7 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
-        visible: not @measuringScrollbars and verticallyScrollable
+        visible: verticallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
         scrollableInOppositeDirection: horizontallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
@@ -77,7 +78,7 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth + @gutterWidth
-        visible: not @measuringScrollbars and horizontallyScrollable
+        visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
         scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
@@ -85,7 +86,7 @@ EditorComponent = React.createClass
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
         ref: 'scrollbarCorner'
-        visible: @measuringScrollbars or horizontallyScrollable and verticallyScrollable
+        visible: not @refreshingScrollbars and (@measuringScrollbars or horizontallyScrollable and verticallyScrollable)
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
@@ -127,6 +128,7 @@ EditorComponent = React.createClass
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
+    @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
 
@@ -323,13 +325,23 @@ EditorComponent = React.createClass
     event.preventDefault()
 
   onStylesheetsChanged: ->
-    # Request that scrollbars be re-measured. This hides both scrollbars and
-    # measures the scrollbar corner.
+    # Believe it or not, proper handling of changes to scrollbar styles requires
+    # three DOM updates.
+
+    # Scrollbar style changes won't apply to scrollbars that are already
+    # visible, so first we need to hide scrollbars so we can redisplay them and
+    # force Chromium to apply updates.
+    @refreshingScrollbars = true
+    @requestUpdate()
+
+    # Next, we display only the scrollbar corner so we can measure the new
+    # scrollbar dimensions. The ::measuringScrollbars property will be set back
+    # to false after the scrollbars are measured.
     @measuringScrollbars = true
     @requestUpdate()
 
-    # Update again now that the scrollbars have been measured. This makes them
-    # visible again if necessary, and ensures they are the correct width/height.
+    # Finally, we restore the scrollbars based on the newly-measured dimensions
+    # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
 
   clearPreservedRowRange: ->
