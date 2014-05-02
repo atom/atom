@@ -5,6 +5,7 @@ React = require 'react'
 GutterComponent = require './gutter-component'
 EditorScrollViewComponent = require './editor-scroll-view-component'
 ScrollbarComponent = require './scrollbar-component'
+ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
@@ -36,6 +37,8 @@ EditorComponent = React.createClass
       lineHeightInPixels = editor.getLineHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
+      verticallyScrollable = editor.verticallyScrollable()
+      horizontallyScrollable = editor.horizontallyScrollable()
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
@@ -61,7 +64,7 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
-        scrollableInOppositeDirection: editor.horizontallyScrollable() if @isMounted()
+        scrollableInOppositeDirection: horizontallyScrollable
         horizontalScrollbarHeight: horizontalScrollbarHeight
 
       ScrollbarComponent
@@ -71,8 +74,13 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth + @gutterWidth
-        scrollableInOppositeDirection: editor.verticallyScrollable() if @isMounted()
+        scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
+
+      ScrollbarCornerComponent
+        visible: horizontallyScrollable and verticallyScrollable
+        height: horizontalScrollbarHeight
+        width: verticalScrollbarWidth
 
   getRenderedRowRange: ->
     renderedRowRange = @props.editor.getVisibleRowRange()

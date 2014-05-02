@@ -581,6 +581,8 @@ describe "EditorComponent", ->
       expect(rightOfLongestLine).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
 
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
+      scrollbarCornerNode = node.querySelector('.scrollbar-corner')
+
       expect(verticalScrollbarNode.style.bottom).toBe ''
       expect(horizontalScrollbarNode.style.right).toBe ''
 
@@ -589,16 +591,19 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
       expect(verticalScrollbarNode.style.bottom).toBe ''
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
+      expect(scrollbarCornerNode.style.display).toBe 'none'
 
       node.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
+      expect(scrollbarCornerNode.style.display).toBe ''
 
       node.style.height = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(scrollbarCornerNode.style.display).toBe 'none'
 
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
       gutterNode = node.querySelector('.gutter')
