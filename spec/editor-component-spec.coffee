@@ -3,7 +3,7 @@ ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
-  [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [contentNode, editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
@@ -26,6 +26,9 @@ describe "EditorComponent", ->
       atom.project.open('sample.js').then (o) -> editor = o
 
     runs ->
+      contentNode = document.querySelector('#jasmine-content')
+      contentNode.style.width = '1000px'
+
       wrapperView = new ReactEditorView(editor)
       wrapperView.attachToDom()
       {component} = wrapperView
@@ -37,6 +40,9 @@ describe "EditorComponent", ->
       node = component.getDOMNode()
       verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
+
+  afterEach ->
+    contentNode.style.width = ''
 
   describe "line rendering", ->
     it "renders only the currently-visible lines", ->
