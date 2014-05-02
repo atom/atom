@@ -4,7 +4,12 @@ React = require 'react'
 module.exports =
 ScrollbarComponent = React.createClass
   render: ->
-    {visible, width, height} = @props
+    {visible, measuringScrollbars, width, height} = @props
+
+    if measuringScrollbars
+      height = 25
+      width = 25
+
     display = 'none' unless visible
 
     div className: 'scrollbar-corner', style: {display, width, height},

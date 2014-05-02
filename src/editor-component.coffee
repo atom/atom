@@ -22,6 +22,7 @@ EditorComponent = React.createClass
   preservedRowRange: null
   scrollingVertically: false
   gutterWidth: 0
+  measuringScrollbars: true
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
@@ -64,8 +65,9 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
-        visible: verticallyScrollable
+        visible: not @measuringScrollbars and verticallyScrollable
         scrollableInOppositeDirection: horizontallyScrollable
+        verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
 
       ScrollbarComponent
@@ -75,12 +77,16 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth + @gutterWidth
-        visible: horizontallyScrollable
+        visible: not @measuringScrollbars and horizontallyScrollable
         scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
+        horizontalScrollbarHeight: horizontalScrollbarHeight
 
+      # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
-        visible: horizontallyScrollable and verticallyScrollable
+        ref: 'scrollbarCorner'
+        visible: @measuringScrollbars or horizontallyScrollable and verticallyScrollable
+        measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
 
@@ -106,6 +112,8 @@ EditorComponent = React.createClass
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
+    @measureScrollbars()
+    @subscribe atom.themes, 'stylesheets-changed', @onStylesheetsChanged
     @props.editor.setVisible(true)
     @requestUpdate()
 
@@ -119,6 +127,7 @@ EditorComponent = React.createClass
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
+    @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
 
   observeEditor: ->
@@ -250,6 +259,14 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
 
+  measureScrollbars: ->
+    @measuringScrollbars = false
+
+    {editor} = @props
+    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
+    editor.setVerticalScrollbarWidth(scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth)
+    editor.setHorizontalScrollbarHeight(scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight)
+
   setFontSize: (fontSize) ->
     @setState({fontSize})
 
@@ -304,6 +321,16 @@ EditorComponent = React.createClass
       @refs.verticalScrollbar.getDOMNode().scrollTop -= wheelDeltaY
 
     event.preventDefault()
+
+  onStylesheetsChanged: ->
+    # Request that scrollbars be re-measured. This hides both scrollbars and
+    # measures the scrollbar corner.
+    @measuringScrollbars = true
+    @requestUpdate()
+
+    # Update again now that the scrollbars have been measured. This makes them
+    # visible again if necessary, and ensures they are the correct width/height.
+    @requestUpdate()
 
   clearPreservedRowRange: ->
     @preservedRowRange = null
