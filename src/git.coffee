@@ -346,6 +346,8 @@ class Git
   # updates the relevant properties.
   refreshStatus: ->
     handlerPath = require.resolve('./repository-status-handler')
+
+    @statusTask?.terminate()
     @statusTask = Task.once handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and
                           _.isEqual(upstream, @upstream) and
