@@ -580,6 +580,29 @@ describe "EditorComponent", ->
 
       expect(rightOfLongestLine).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
 
+    it "only displays dummy scrollbars when scrollable in that direction", ->
+      expect(verticalScrollbarNode.style.display).toBe 'none'
+      expect(horizontalScrollbarNode.style.display).toBe 'none'
+
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = '1000px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe ''
+      expect(horizontalScrollbarNode.style.display).toBe 'none'
+
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe ''
+      expect(horizontalScrollbarNode.style.display).toBe ''
+
+      node.style.height = 20 * lineHeightInPixels + 'px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe 'none'
+      expect(horizontalScrollbarNode.style.display).toBe ''
+
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
       scrollbarCornerNode = node.querySelector('.scrollbar-corner')
 

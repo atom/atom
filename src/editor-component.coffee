@@ -64,6 +64,7 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
+        visible: verticallyScrollable
         scrollableInOppositeDirection: horizontallyScrollable
         horizontalScrollbarHeight: horizontalScrollbarHeight
 
@@ -74,6 +75,7 @@ EditorComponent = React.createClass
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth + @gutterWidth
+        visible: horizontallyScrollable
         scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
 
