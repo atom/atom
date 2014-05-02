@@ -5,10 +5,11 @@ React = require 'react'
 module.exports =
 ScrollbarComponent = React.createClass
   render: ->
-    {orientation, className, scrollHeight, scrollWidth} = @props
+    {orientation, className, scrollHeight, scrollWidth, visible} = @props
     {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
 
     style = {}
+    style.display = 'none' unless visible
     switch orientation
       when 'vertical'
         style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
@@ -29,6 +30,8 @@ ScrollbarComponent = React.createClass
       throw new Error("Must specify an orientation property of 'vertical' or 'horizontal'")
 
   shouldComponentUpdate: (newProps) ->
+    return true if newProps.visible isnt @props.visible
+
     switch @props.orientation
       when 'vertical'
         not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection')
