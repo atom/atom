@@ -151,6 +151,26 @@ describe "Workspace", ->
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
+        describe "when a pane axis is to the right of the current pane", ->
+          it "opens the new item in a new pane split to the right of the current pane", ->
+            editor = null
+            pane1 = workspace.activePane
+            pane2 = pane1.splitRight()
+            pane3 = pane2.splitDown()
+            pane1.activate()
+            expect(workspace.activePane).toBe pane1
+            pane4 = null
+
+            waitsForPromise ->
+              workspace.open('a', split: 'right').then (o) -> editor = o
+
+            runs ->
+              pane4 = workspace.getPanes().filter((p) -> p != pane1)[0]
+              expect(workspace.activePane).toBe pane4
+              expect(pane4.items).toEqual [editor]
+              expect(workspace.paneContainer.root.children[0]).toBe pane1
+              expect(workspace.paneContainer.root.children[1]).toBe pane4
+
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)

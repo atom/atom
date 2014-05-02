@@ -351,6 +351,10 @@ class Pane extends Model
   # otherwise returns a new pane created by splitting this pane rightward.
   findOrCreateRightmostSibling: ->
     if @parent.orientation is 'horizontal'
-      last(@parent.children)
+      rightmostSibling = last(@parent.children)
+      if rightmostSibling instanceof PaneAxis
+        @splitRight()
+      else
+        rightmostSibling
     else
       @splitRight()
