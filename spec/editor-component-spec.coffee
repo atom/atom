@@ -604,6 +604,10 @@ describe "EditorComponent", ->
       expect(horizontalScrollbarNode.style.display).toBe ''
 
     it "makes the dummy scrollbar divs only as tall/wide as the actual scrollbars", ->
+      node.style.height = 4 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
       atom.themes.applyStylesheet "test", """
         ::-webkit-scrollbar {
           width: 8px;
@@ -611,12 +615,11 @@ describe "EditorComponent", ->
         }
       """
 
-      node.style.height = 4 * lineHeightInPixels + 'px'
-      node.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
-
+      scrollbarCornerNode = node.querySelector('.scrollbar-corner')
       expect(verticalScrollbarNode.offsetWidth).toBe 8
       expect(horizontalScrollbarNode.offsetHeight).toBe 8
+      expect(scrollbarCornerNode.offsetWidth).toBe 8
+      expect(scrollbarCornerNode.offsetHeight).toBe 8
 
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
       scrollbarCornerNode = node.querySelector('.scrollbar-corner')
