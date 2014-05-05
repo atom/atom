@@ -339,18 +339,26 @@ class Pane extends Model
     newPane.activate()
     newPane
 
-  # If the parent is a horizontal axis, returns its first child;
-  # otherwise this pane.
+  # If the parent is a horizontal axis, returns its first child if it is a pane;
+  # otherwise returns this pane.
   findLeftmostSibling: ->
     if @parent.orientation is 'horizontal'
-      @parent.children[0]
+      [leftmostSibling] = @parent.children
+      if leftmostSibling instanceof PaneAxis
+        this
+      else
+        leftmostSibling
     else
       this
 
-  # If the parent is a horizontal axis, returns its last child;
+  # If the parent is a horizontal axis, returns its last child if it is a pane;
   # otherwise returns a new pane created by splitting this pane rightward.
   findOrCreateRightmostSibling: ->
     if @parent.orientation is 'horizontal'
-      last(@parent.children)
+      rightmostSibling = last(@parent.children)
+      if rightmostSibling instanceof PaneAxis
+        @splitRight()
+      else
+        rightmostSibling
     else
       @splitRight()
