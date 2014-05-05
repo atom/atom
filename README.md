@@ -22,7 +22,7 @@ Atom will automatically update when a new release is available.
 **OS X Requirements**
   * OS X 10.8 or later
   * [node.js](http://nodejs.org/)
-  * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/)
+  * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (Run `xcode-select --install`)
 
 **Linux Requirements**
   * Ubuntu LTS 12.04 64-bit is the recommended platform
@@ -30,7 +30,7 @@ Atom will automatically update when a new release is available.
   * `sudo apt-get install libgnome-keyring-dev`
 
 **Windows Requirements**
-  * [node 0.10.x - 32bit](http://nodejs.org)
+  * [node.js - 32bit](http://nodejs.org/)
   * Visual C++ 2010 Express from Microsoft
   * [python 2.7.x - 32 bit](http://python.org)
 
