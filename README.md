@@ -16,7 +16,7 @@ Atom will automatically update when a new release is available.
 
 ## Building
 
-```
+```sh
 git clone git@github.com:atom/atom.git
 cd atom
 script/build # Creates application at /Applications/Atom.app
