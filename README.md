@@ -18,6 +18,12 @@ Atom will automatically update when a new release is available.
 
 ## Building
 
+
+**OS X Requirements**
+  * OS X 10.8 or later
+  * [node.js](http://nodejs.org/)
+  * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/)
+
 ```sh
 git clone git@github.com:atom/atom.git
 cd atom
