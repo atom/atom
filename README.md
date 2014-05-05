@@ -30,9 +30,15 @@ Atom will automatically update when a new release is available.
   * `sudo apt-get install libgnome-keyring-dev`
 
 **Windows Requirements**
-  * [node.js - 32bit](http://nodejs.org/)
-  * Visual C++ 2010 Express from Microsoft
-  * [python 2.7.x - 32 bit](http://python.org)
+  * [Visual C++ 2010 Express][http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express]
+  * [node.js - 32bit][http://nodejs.org/]
+  * [Python 2.7.x][ http://www.python.org/download/]
+  * [GitHub for Windows][http://windows.github.com/]
+  * Clone [atom/atom][https://github.com/atom/atom/] to `C:\Users\<user>\github\atom\`
+  * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
+    to your PATH
+  * Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
+  * Run `script\bootstrap`
 
 ```sh
 git clone git@github.com:atom/atom.git
