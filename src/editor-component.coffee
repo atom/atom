@@ -266,8 +266,10 @@ EditorComponent = React.createClass
 
     {editor} = @props
     scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
-    editor.setVerticalScrollbarWidth(scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth)
-    editor.setHorizontalScrollbarHeight(scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight)
+    width = (scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth) or 15
+    height = (scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight) or 15
+    editor.setVerticalScrollbarWidth(width)
+    editor.setHorizontalScrollbarHeight(height)
 
   setFontSize: (fontSize) ->
     @setState({fontSize})
