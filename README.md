@@ -25,7 +25,9 @@ Atom will automatically update when a new release is available.
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/)
 
 **Linux Requirements**
+  * Ubuntu LTS 12.04 64-bit is the recommended platform
   * [node.js](http://nodejs.org/)
+  * `sudo apt-get install libgnome-keyring-dev`
 
 **Windows Requirements**
   * [node.js](http://nodejs.org/)
