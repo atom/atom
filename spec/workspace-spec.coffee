@@ -127,6 +127,22 @@ describe "Workspace", ->
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
+      describe "when a pane axis is to the left of the current pane", ->
+        it "opens the new item in the current pane", ->
+          editor = null
+          pane1 = workspace.activePane
+          pane2 = pane1.splitLeft()
+          pane3 = pane2.splitDown()
+          pane1.activate()
+          expect(workspace.activePane).toBe pane1
+
+          waitsForPromise ->
+            workspace.open('a', split: 'left').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.activePane).toBe pane1
+            expect(pane1.items).toEqual [editor]
+
       describe "when the 'split' option is 'right'", ->
         it "opens the editor in the rightmost pane of the current pane axis", ->
           editor = null
