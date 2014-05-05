@@ -8,8 +8,7 @@ Atom is designed to be customizable, but also usable without needing to edit a c
 
 Atom is modern, approachable, and hackable to the core.
 
-Visit [atom.io](http://atom.io)
-to learn more.
+Visit [atom.io](http://atom.io) to learn more.
 
 ## Installing
 
