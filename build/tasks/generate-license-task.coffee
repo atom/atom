@@ -26,7 +26,7 @@ module.exports = (grunt) ->
 getLicenseText = (dependencyLicenses) ->
   {keys} = require 'underscore-plus'
   text = """
-    Copyright 2014 GitHub, Inc.
+    #{fs.readFileSync('LICENSE.md')}
 
     This application bundles the following third-party packages in accordance
     with the following licenses:\n\n
