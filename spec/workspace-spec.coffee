@@ -127,7 +127,7 @@ describe "Workspace", ->
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
-      describe "when a pane axis is to the left of the current pane", ->
+      describe "when a pane axis is the leftmost sibling of the current pane", ->
         it "opens the new item in the current pane", ->
           editor = null
           pane1 = workspace.activePane
@@ -167,7 +167,7 @@ describe "Workspace", ->
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
-        describe "when a pane axis is to the right of the current pane", ->
+        describe "when a pane axis is the rightmost sibling of the current pane", ->
           it "opens the new item in a new pane split to the right of the current pane", ->
             editor = null
             pane1 = workspace.activePane
