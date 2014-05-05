@@ -24,6 +24,12 @@ Atom will automatically update when a new release is available.
   * [node.js](http://nodejs.org/)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/)
 
+**Linux Requirements**
+  * [node.js](http://nodejs.org/)
+
+**Windows Requirements**
+  * [node.js](http://nodejs.org/)
+
 ```sh
 git clone git@github.com:atom/atom.git
 cd atom
