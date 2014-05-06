@@ -25,7 +25,7 @@ Atom will automatically update when a new release is available.
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (Run `xcode-select --install`)
 
   ```sh
-  git clone git@github.com:atom/atom.git
+  git clone https://github.com/atom/atom
   cd atom
   script/build # Creates application at /Applications/Atom.app
   ```
@@ -36,7 +36,7 @@ Atom will automatically update when a new release is available.
   * `sudo apt-get install libgnome-keyring-dev`
 
   ```sh
-  git clone git@github.com:atom/atom.git
+  git clone https://github.com/atom/atom
   cd atom
   script/build # Creates application at /tmp/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
