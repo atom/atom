@@ -725,13 +725,24 @@ class Editor extends Model
   # Public: For each selection, replace the selected text with the contents of
   # the clipboard.
   #
+  # If the clipboard contains the same number of selection as the current
+  # editor, each selection will be replaced with the content of the
+  # corresponding clipboard selection text.
+  #
   # options - See {Selection::insertText}.
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
     containsNewlines = text.indexOf('\n') isnt -1
 
-    if atom.config.get('editor.normalizeIndentOnPaste') and metadata
+    if metadata?.selections? and metadata.selections.length is @getSelections().length
+      @mutateSelectedText (selection, index) =>
+        text = metadata.selections[index]
+        selection.insertText(text, options)
+
+      return
+
+    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
@@ -1007,7 +1018,7 @@ class Editor extends Model
   #
   # fn - A {Function} that will be called with each {Selection}.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection) for selection in @getSelections()
+    @transact => fn(selection,index) for selection,index in @getSelections()
 
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
