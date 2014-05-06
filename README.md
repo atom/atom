@@ -19,4 +19,4 @@ learn more about a specific command.
 
 The common commands are `apm install <package_name>` to install a new package,
 `apm featured` to see all the featured packages, and `apm publish` to publish
-a package to the [atom.io](https://atom.io).
+a package to [atom.io](https://atom.io).
