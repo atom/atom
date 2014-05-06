@@ -30,7 +30,7 @@ in the proper package's repository.
   * Follow the [CoffeeScript](#coffeescript-styleguide),
     [JavaScript](https://github.com/styleguide/javascript),
     and [CSS](https://github.com/styleguide/css) styleguides
-  * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine)
+  * Include thoughtfully worded [Jasmine](http://jasmine.github.io/)
     specs
   * Avoid placing files in `vendor`. 3rd-party packages should be added as a
     `package.json` dependency.
