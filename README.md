@@ -59,7 +59,7 @@ Atom will automatically update when a new release is available.
 
   ```bat
   cd C:\Users\<user>\github\atom
-  script/build
+  script\build
   ```
 
 ## Developing
