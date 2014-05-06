@@ -24,10 +24,22 @@ Atom will automatically update when a new release is available.
   * [node.js](http://nodejs.org/)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (Run `xcode-select --install`)
 
+  ```sh
+  git clone git@github.com:atom/atom.git
+  cd atom
+  script/build # Creates application at /Applications/Atom.app
+  ```
+
 **Linux Requirements**
   * Ubuntu LTS 12.04 64-bit is the recommended platform
   * [node.js](http://nodejs.org/)
   * `sudo apt-get install libgnome-keyring-dev`
+
+  ```sh
+  git clone git@github.com:atom/atom.git
+  cd atom
+  script/build # Creates application at /Applications/Atom.app
+  ```
 
 **Windows Requirements**
   * Windows 7 or later
@@ -38,14 +50,12 @@ Atom will automatically update when a new release is available.
   * Clone [atom/atom][https://github.com/atom/atom/] to `C:\Users\<user>\github\atom\`
   * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
     to your PATH
-  * Use the Windows GitHub shell and cd into `C:\Users\<user>\github\atom`
-  * Run `script\bootstrap`
-
-```sh
-git clone git@github.com:atom/atom.git
-cd atom
-script/build # Creates application at /Applications/Atom.app
-```
+  * Open the Windows GitHub shell
+  
+  ```sh
+  cd C:\Users\<user>\github\atom
+  script/build
+  ```
 
 ## Developing
 Check out the [guides](https://atom.io/docs/latest) and the [API reference](atom.io/docs/api).
