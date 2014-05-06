@@ -30,7 +30,13 @@ var copyNodeBinToLocation = function(callback, version, targetFilename, fromDire
   var arch = process.arch === 'ia32' ? 'x86' : process.arch;
   var subDir = "node-" + version + "-" + process.platform + "-" + arch;
   var fromPath = path.join(fromDirectory, subDir, 'bin', 'node');
-  return mv(fromPath, targetFilename, callback);
+  return mv(fromPath, targetFilename, function(err) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    fs.chmod(targetFilename, "755", callback);
+  });
 };
 
 var downloadNode = function(version, done) {
