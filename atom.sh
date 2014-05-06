@@ -76,7 +76,13 @@ elif [ $OS == 'Linux' ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
-    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /dev/null 2>&1 &
+    (
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /tmp/atom-nohup.out 2>&1
+    if [ $? -ne 0 ]; then
+      cat /tmp/atom-nohup.out
+      exit $?
+    fi
+    ) &
   fi
 fi
 
