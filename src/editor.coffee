@@ -725,7 +725,7 @@ class Editor extends Model
   # Public: For each selection, replace the selected text with the contents of
   # the clipboard.
   #
-  # If the clipboard contains the same number of selection as the current
+  # If the clipboard contains the same number of selections as the current
   # editor, each selection will be replaced with the content of the
   # corresponding clipboard selection text.
   #
