@@ -32,6 +32,7 @@ Atom will automatically update when a new release is available.
 
 **Linux Requirements**
   * Ubuntu LTS 12.04 64-bit is the recommended platform
+  * OS with 64-bit architecture
   * [node.js](http://nodejs.org/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x
   * `sudo apt-get install libgnome-keyring-dev`
