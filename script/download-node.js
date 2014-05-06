@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var fs = require('fs');
+var mv = require('mv');
 var zlib = require('zlib');
 var path = require('path');
 var request = require('request');
@@ -29,7 +30,7 @@ var copyNodeBinToLocation = function(callback, version, targetFilename, fromDire
   var arch = process.arch === 'ia32' ? 'x86' : process.arch;
   var subDir = "node-" + version + "-" + process.platform + "-" + arch;
   var fromPath = path.join(fromDirectory, subDir, 'bin', 'node');
-  return fs.rename(fromPath, targetFilename, callback);
+  return mv(fromPath, targetFilename, callback);
 };
 
 var downloadNode = function(version, done) {

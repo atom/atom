@@ -46,6 +46,7 @@
     "tar": "~0.1.19",
     "git-utils": "1.x",
     "semver": "~2.2.1",
+    "mv": "2.0.0",
     "open": "0.0.4"
   },
   "devDependencies": {
