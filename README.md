@@ -38,7 +38,8 @@ Atom will automatically update when a new release is available.
   ```sh
   git clone git@github.com:atom/atom.git
   cd atom
-  script/build # Creates application at /Applications/Atom.app
+  script/build # Creates application at /tmp/atom-build/Atom
+  sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
 
 **Windows Requirements**
@@ -51,7 +52,7 @@ Atom will automatically update when a new release is available.
   * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
     to your PATH
   * Open the Windows GitHub shell
-  
+
   ```sh
   cd C:\Users\<user>\github\atom
   script/build
