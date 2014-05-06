@@ -53,7 +53,7 @@ Atom will automatically update when a new release is available.
     to your PATH
   * Open the Windows GitHub shell
 
-  ```sh
+  ```bat
   cd C:\Users\<user>\github\atom
   script/build
   ```
