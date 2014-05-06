@@ -54,6 +54,16 @@ class Install extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
+  updateWindowsEnv: (env) ->
+    env.USERPROFILE = env.HOME
+
+    # Make sure node-gyp is always on the PATH
+    localModuleBins = path.resolve(__dirname, '..', 'node_modules', '.bin')
+    if env.PATH
+      env.PATH += "#{path.delimiter}#{localModuleBins}"
+    else
+      env.PATH = localModuleBins
+
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
@@ -66,7 +76,8 @@ class Install extends Command
       installArgs.push(vsArgs)
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
-    env.USERPROFILE = env.HOME if config.isWin32()
+    @updateWindowsEnv(env) if config.isWin32()
+
     nodeBinFolder = path.resolve(__dirname, '..', 'bin')
     if env.PATH
       env.PATH = "#{nodeBinFolder}#{path.delimiter}#{env.PATH}"
@@ -128,7 +139,8 @@ class Install extends Command
       installArgs.push(vsArgs)
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
-    env.USERPROFILE = env.HOME if config.isWin32()
+    @updateWindowsEnv(env) if config.isWin32()
+
     installOptions = {env}
     installOptions.cwd = options.cwd if options.cwd
 
