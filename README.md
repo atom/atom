@@ -59,4 +59,4 @@ Atom will automatically update when a new release is available.
   ```
 
 ## Developing
-Check out the [guides](https://atom.io/docs/latest) and the [API reference](atom.io/docs/api).
+Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).
