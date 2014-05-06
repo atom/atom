@@ -384,10 +384,10 @@ EditorComponent = React.createClass
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
   onScrollTopChanged: ->
-    @preservedRowRange = @getRenderedRowRange()
+    # @preservedRowRange = @getRenderedRowRange()
     @scrollingVertically = true
-    @clearPreservedRowRangeAfterDelay ?= debounce(@clearPreservedRowRange, 200)
-    @clearPreservedRowRangeAfterDelay()
+    # @clearPreservedRowRangeAfterDelay ?= debounce(@clearPreservedRowRange, 200)
+    # @clearPreservedRowRangeAfterDelay()
     @requestUpdate()
 
   onSelectionRemoved: (selection) ->

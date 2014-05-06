@@ -106,8 +106,7 @@ LineComponent = React.createClass
     {screenRow, lineHeight} = @props
 
     style =
-      top: screenRow * lineHeight
-      position: 'absolute'
+      WebkitTransform: "translate3d(0, #{screenRow * lineHeight}px, 0)"
 
     div className: 'line', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
