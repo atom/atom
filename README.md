@@ -45,6 +45,20 @@ Atom will automatically update when a new release is available.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
 
+  In case you get the following error message (for example on Ubuntu LTS 14.04 64-bit):
+
+  ```
+  usr/local/share/atom/atom: error while loading shared libraries:
+  libudev.so.0: cannot open shared object file:
+  No such file or directory
+  ```
+
+  Run:
+  ```sh
+  cd /lib/x86_64-linux-gnu/
+  sudo ln -s libudev.so.1 libudev.so.0
+  ```
+
 ### Windows Requirements
   * Windows 7 or later
   * [Visual C++ 2010 Express](http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express)
