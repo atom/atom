@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 
       licenseText = getLicenseText(dependencyLicenses)
       if mode is 'save'
-        targetPath = path.join(grunt.config.get('atom.appDir'), 'LICENSE')
+        targetPath = path.join(grunt.config.get('atom.appDir'), 'LICENSE.md')
         fs.writeFileSync(targetPath, licenseText)
       else
         console.log licenseText
@@ -26,7 +26,7 @@ module.exports = (grunt) ->
 getLicenseText = (dependencyLicenses) ->
   {keys} = require 'underscore-plus'
   text = """
-    Copyright 2014 GitHub, Inc.
+    #{fs.readFileSync('LICENSE.md', 'utf8')}
 
     This application bundles the following third-party packages in accordance
     with the following licenses:\n\n
