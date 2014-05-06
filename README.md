@@ -49,7 +49,7 @@ Atom will automatically update when a new release is available.
   * [Python 2.7.x](http://www.python.org/download/)
   * [GitHub for Windows](http://windows.github.com/)
   * [Git for Windows](http://git-scm.com/download/win)
-  * * When installing, select the option "**Use Git from the Windows Command Prompt**" (Git needs to be in your `PATH`)
+    * Select the option **Use Git from the Windows Command Prompt** when installing (Git needs to be in your `PATH`)
   * Clone [atom/atom](https://github.com/atom/atom/) to `C:\Users\<user>\github\atom\`
   * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
     to your PATH
