@@ -59,10 +59,18 @@ class Install extends Command
 
     # Make sure node-gyp is always on the PATH
     localModuleBins = path.resolve(__dirname, '..', 'node_modules', '.bin')
-    if env.PATH
-      env.PATH += "#{path.delimiter}#{localModuleBins}"
+    if env.Path
+      env.Path += "#{path.delimiter}#{localModuleBins}"
     else
-      env.PATH = localModuleBins
+      env.Path = localModuleBins
+
+  addNodeBinToEnv: (env) ->
+    nodeBinFolder = path.resolve(__dirname, '..', 'bin')
+    pathKey = if config.isWin32() then 'Path' else 'PATH'
+    if env[pathKey]
+      env[pathKey] = "#{nodeBinFolder}#{path.delimiter}#{env[pathKey]}"
+    else
+      env[pathKey]= nodeBinFolder
 
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
@@ -77,12 +85,7 @@ class Install extends Command
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
-
-    nodeBinFolder = path.resolve(__dirname, '..', 'bin')
-    if env.PATH
-      env.PATH = "#{nodeBinFolder}#{path.delimiter}#{env.PATH}"
-    else
-      env.PATH = nodeBinFolder
+    @addNodeBinToEnv(env)
     installOptions = {env}
 
     installGlobally = options.installGlobally ? true
@@ -140,7 +143,7 @@ class Install extends Command
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
-
+    @addNodeBinToEnv(env)
     installOptions = {env}
     installOptions.cwd = options.cwd if options.cwd
 
