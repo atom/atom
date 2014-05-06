@@ -30,6 +30,7 @@ Atom will automatically update when a new release is available.
   * `sudo apt-get install libgnome-keyring-dev`
 
 **Windows Requirements**
+  * Windows 7 or later
   * [Visual C++ 2010 Express][http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express]
   * [node.js - 32bit][http://nodejs.org/]
   * [Python 2.7.x][ http://www.python.org/download/]
