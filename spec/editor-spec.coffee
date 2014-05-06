@@ -2065,6 +2065,10 @@ describe "Editor", ->
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
           expect(clipboard.readText()).toBe 'quicksort\nsort'
+          expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+            'quicksort'
+            'sort'
+          ])
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
@@ -2072,6 +2076,25 @@ describe "Editor", ->
           editor.pasteText()
           expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
+
+        describe 'when the clipboard have many selections', ->
+          it "pastes each selection separately into the buffer", ->
+            atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
+            editor.pasteText()
+            expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
+            expect(buffer.lineForRow(1)).toBe "  var second = function(items) {"
+
+          describe 'and the selections count does not match', ->
+            it "pastes the whole text into the buffer", ->
+              atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
+              editor.pasteText()
+              expect(editor.buffer.lineForRow(0)).toBe "var first"
+              expect(buffer.lineForRow(1)).toBe "second"
+              expect(buffer.lineForRow(2)).toBe "third = function () {"
+
+              expect(editor.buffer.lineForRow(3)).toBe "  var first"
+              expect(buffer.lineForRow(4)).toBe "second"
+              expect(buffer.lineForRow(5)).toBe "third = function(items) {"
 
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
