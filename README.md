@@ -34,6 +34,7 @@ Atom will automatically update when a new release is available.
   * Ubuntu LTS 12.04 64-bit is the recommended platform
   * [node.js](http://nodejs.org/)
   * `sudo apt-get install libgnome-keyring-dev`
+  * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
 
   ```sh
   git clone https://github.com/atom/atom
