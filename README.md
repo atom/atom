@@ -19,7 +19,7 @@ Atom will automatically update when a new release is available.
 ## Building
 
 
-**OS X Requirements**
+### OS X Requirements
   * OS X 10.8 or later
   * [node.js](http://nodejs.org/)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (Run `xcode-select --install`)
@@ -30,7 +30,7 @@ Atom will automatically update when a new release is available.
   script/build # Creates application at /Applications/Atom.app
   ```
 
-**Linux Requirements**
+### Linux Requirements
   * Ubuntu LTS 12.04 64-bit is the recommended platform
   * OS with 64-bit architecture
   * [node.js](http://nodejs.org/) v0.10.x
@@ -45,7 +45,7 @@ Atom will automatically update when a new release is available.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
 
-**Windows Requirements**
+### Windows Requirements
   * Windows 7 or later
   * [Visual C++ 2010 Express](http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express)
   * [node.js - 32bit](http://nodejs.org/)
