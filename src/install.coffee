@@ -101,10 +101,10 @@ class Install extends Command
   getVisualStudioFlags: ->
     return null unless config.isWin32()
 
-    if vsVersion = config.isVs2010Installed() || config.isVs2012Installed()
-      '--msvs_version=' + vsVersion
+    if vsVersion = config.getInstalledVisualStudioFlag()
+      "--msvs_version=#{vsVersion}"
     else
-      throw new Error('You must have Visual Studio 2010 or higher version installed')
+      throw new Error('You must have Visual Studio 2010 or 2012 installed')
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '

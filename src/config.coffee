@@ -53,14 +53,11 @@ module.exports =
   x86ProgramFilesDirectory: ->
     process.env["ProgramFiles(x86)"] or process.env["ProgramFiles"]
 
-  isVs2010Installed: ->
-    return false unless @isWin32()
+  getInstalledVisualStudioFlag: ->
+    return null unless @isWin32()
 
-    vsPath = path.join @x86ProgramFilesDirectory(), "Microsoft Visual Studio 10.0", "Common7", "IDE"
-    if fs.existsSync vsPath then '2010' else ''
+    vs2010Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 10.0", "Common7", "IDE")
+    return '2010' if fs.existsSync(vs2010Path)
 
-  isVs2012Installed: ->
-    return false unless @isWin32()
-
-    vsPath = path.join @x86ProgramFilesDirectory(), "Microsoft Visual Studio 11.0", "Common7", "IDE"
-    if fs.existsSync vsPath then '2012' else ''
+    vs2012Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 11.0", "Common7", "IDE")
+    return '2012' if fs.existsSync(vs2012Path)

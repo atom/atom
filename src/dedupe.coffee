@@ -47,14 +47,13 @@ class Dedupe extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
-  # Private
   getVisualStudioFlags: ->
     return null unless config.isWin32()
 
-    if config.isVs2010Installed()
-      '--msvs_version=2010'
+    if vsVersion = config.getInstalledVisualStudioFlag()
+      "--msvs_version=#{vsVersion}"
     else
-      throw new Error('You must have Visual Studio 2010 installed')
+      throw new Error('You must have Visual Studio 2010 or 2012 installed')
 
   dedupeModules: (options, callback) ->
     process.stdout.write 'Deduping modules '
