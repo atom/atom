@@ -21,8 +21,8 @@ Atom will automatically update when a new release is available.
 
 ### OS X Requirements
   * OS X 10.8 or later
-  * [node.js](http://nodejs.org/)
-  * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (Run `xcode-select --install`)
+  * [node.js](http://nodejs.org/download/) v0.10.x
+  * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
   ```sh
   git clone https://github.com/atom/atom
@@ -33,7 +33,7 @@ Atom will automatically update when a new release is available.
 ### Linux Requirements
   * Ubuntu LTS 12.04 64-bit is the recommended platform
   * OS with 64-bit architecture
-  * [node.js](http://nodejs.org/) v0.10.x
+  * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x
   * `sudo apt-get install libgnome-keyring-dev`
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
@@ -48,7 +48,7 @@ Atom will automatically update when a new release is available.
 ### Windows Requirements
   * Windows 7 or later
   * [Visual C++ 2010 Express](http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express)
-  * [node.js - 32bit](http://nodejs.org/)
+  * [node.js - 32bit](http://nodejs.org/download/) v0.10.x
   * [Python 2.7.x](http://www.python.org/download/)
   * [GitHub for Windows](http://windows.github.com/)
   * [Git for Windows](http://git-scm.com/download/win)
