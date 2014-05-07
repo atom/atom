@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
 fs = require 'fs-plus'
 Q = require 'q'
+os = require 'os'
 
 Package = require './package'
 ThemePackage = require './theme-package'
@@ -43,7 +44,10 @@ class PackageManager
 
   # Public: Get the path to the apm command
   getApmPath: ->
-    @apmPath ?= path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
+    @commandName = 'apm'
+    if os.platform() == 'win32'
+      @commandName += '.cmd'
+    @apmPath ?= path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', @commandName)
 
   # Public: Get the paths being used to look for packages.
   #
