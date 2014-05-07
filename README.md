@@ -35,6 +35,8 @@ Atom will automatically update when a new release is available.
   * OS with 64-bit architecture
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x
+
+#### Ubuntu instructions
   * `sudo apt-get install libgnome-keyring-dev`
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
 
@@ -45,6 +47,9 @@ Atom will automatically update when a new release is available.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   script/grunt mkdeb # Generates a .deb package at /tmp/atom-build
   ```
+
+#### Arch Linux instructions
+  * Install [atom-editor](https://aur.archlinux.org/packages/atom-editor/) from the Arch User Repository
 
 ### Windows Requirements
   * Windows 7 or later
