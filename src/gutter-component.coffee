@@ -25,16 +25,17 @@ GutterComponent = React.createClass
       WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
 
     lineNumbers = []
-    tokenizedLines = editor.linesForScreenRows(startRow, endRow - 1)
-    tokenizedLines.push({id: 0}) if tokenizedLines.length is 0
+    wrapCount = 0
     for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       if bufferRow is lastBufferRow
         lineNumber = '•'
+        key = "#{bufferRow + 1}-#{++wrapCount}"
       else
         lastBufferRow = bufferRow
+        wrapCount = 0
         lineNumber = (bufferRow + 1).toString()
+        key = lineNumber
 
-      key = tokenizedLines[i].id
       screenRow = startRow + i
       lineNumbers.push(LineNumberComponent({key, lineNumber, maxLineNumberDigits, bufferRow, screenRow, lineHeight}))
       lastBufferRow = bufferRow
