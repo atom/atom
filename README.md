@@ -41,7 +41,7 @@ Atom will automatically update when a new release is available.
   ```sh
   git clone https://github.com/atom/atom
   cd atom
-  script/build # Creates application at /tmp/atom-build/Atom
+  sudo script/build # Creates application at /tmp/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
 
