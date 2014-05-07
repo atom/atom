@@ -36,7 +36,7 @@ Atom will automatically update when a new release is available.
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x
   * `sudo apt-get install libgnome-keyring-dev`
-  * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
+  * `sudo npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
 
   ```sh
   git clone https://github.com/atom/atom
