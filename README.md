@@ -1,14 +1,8 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-Atom is a hackable text editor for the 21st century.
+Atom is a hackable text editor for the 21st century, built on [atom-shell](http://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed to be deeply customizable, but completely usable without editing a single config file.
 
-Atom is open source and built on top of [atom-shell](http://github.com/atom/atom-shell).
-
-Atom is designed to be customizable, but also usable without needing to edit a config file.
-
-Atom is modern, approachable, and hackable to the core.
-
-Visit [atom.io](http://atom.io) to learn more.
+Visit [atom.i](https://atom.io/) to learn more.
 
 ## Installing
 
