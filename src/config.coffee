@@ -61,3 +61,6 @@ module.exports =
 
     vs2012Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 11.0", "Common7", "IDE")
     return '2012' if fs.existsSync(vs2012Path)
+
+    vs2013Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 12.0", "Common7", "IDE")
+    return '2013' if fs.existsSync(vs2013Path)
