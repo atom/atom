@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 request = require 'request'
+open = require 'open'
 
 View = require './view'
 config = require './config'
@@ -9,7 +10,7 @@ tree = require './tree'
 module.exports =
 class Docs extends View
   @commandNames: ['docs', 'home', 'open']
-  open: require 'open'
+  open: open
 
   parseOptions: (argv) ->
     options = optimist(argv)
