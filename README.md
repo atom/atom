@@ -43,6 +43,7 @@ Atom will automatically update when a new release is available.
   cd atom
   script/build # Creates application at /tmp/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
+  script/grunt mkdeb # Generates a .deb package at /tmp/atom-build
   ```
 
 ### Windows Requirements
