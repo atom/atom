@@ -12,7 +12,7 @@ ChildProcess = require 'child_process'
 # args = ['-ef']
 # stdout = (output) -> console.log(output)
 # exit = (code) -> console.log("ps -ef exited with #{code}")
-# process = new BufferredProcess({command, args, stdout, exit})
+# process = new BufferedProcess({command, args, stdout, exit})
 # ```
 module.exports =
 class BufferedProcess

@@ -34,7 +34,7 @@ apm help install
 
 You should see a message print out with details about the `apm install` command.
 
-If you do not, launch Atom and run the _Atom > Install Shell Commmands_ menu
+If you do not, launch Atom and run the _Atom > Install Shell Commands_ menu
 to install the `apm` and `atom` commands.
 
 You can also install packages by using the `apm install` command:

@@ -460,6 +460,9 @@ class EditorView extends View
         @hiddenInput.val(lastInput)
         false
 
+    # Ignore paste event, on Linux is wrongly emitted when user presses ctrl-v.
+    @on "paste", -> false
+
   bringHiddenInputIntoView: ->
     @hiddenInput.css(top: @scrollTop(), left: @scrollLeft())
 

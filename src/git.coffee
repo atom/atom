@@ -13,7 +13,7 @@ Task = require './task'
 # `atom.project` global and calling `getRepo()`. Note that this will only be
 # available when the project is backed by a Git repository.
 #
-# This class handles submodules automically by taking a `path` argument to many
+# This class handles submodules automatically by taking a `path` argument to many
 # of the methods.  This `path` argument will determine which underlying
 # repository is used.
 #
