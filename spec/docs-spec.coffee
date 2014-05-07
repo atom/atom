@@ -58,6 +58,21 @@ describe 'apm docs', ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[0][0]).toContain 'https://github.com/atom/wrap-guide'
 
+  it "prints the package URL if called with the -p short option (and does not open it)", ->
+    Docs = require('../lib/docs')
+    spyOn(Docs.prototype, 'open')
+    callback = jasmine.createSpy('callback')
+    apm.run(['docs', '-p', 'wrap-guide'], callback)
+
+    waitsFor 'waiting for command to complete', ->
+      callback.callCount > 0
+
+    runs ->
+      expect(Docs.prototype.open).not.toHaveBeenCalled()
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[0][0]).toContain 'https://github.com/atom/wrap-guide'
+
+
   it "opens the package URL", ->
     Docs = require('../lib/docs')
     spyOn(Docs.prototype, 'open')

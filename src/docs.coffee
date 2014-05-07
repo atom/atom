@@ -15,12 +15,12 @@ class Docs extends View
     options = optimist(argv)
     options.usage """
 
-      Usage: apm docs <package_name>
+      Usage: apm docs [options] <package_name>
 
       Opens a package's homepage in the default browser.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.boolean('print').describe('print', 'Just print the URL, do not open it')
+    options.boolean('p').alias('p', 'print').describe('print', 'Just print the URL, do not open it')
 
   run: (options) ->
     {callback} = options
