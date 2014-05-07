@@ -239,7 +239,7 @@ class DisplayBuffer extends Model
     unless @getLineHeight() > 0
       throw new Error("You must assign a non-zero lineHeight before calling ::getVisibleRowRange()")
 
-    heightInLines = Math.ceil(@getClientHeight() / @getLineHeight()) + 1
+    heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
     endRow = Math.min(@getLineCount(), Math.ceil(startRow + heightInLines))
     [startRow, endRow]
