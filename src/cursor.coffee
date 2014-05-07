@@ -465,7 +465,7 @@ class Cursor extends Model
   getCurrentParagraphBufferRange: ->
     @editor.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
 
-  # Public: Returns the characters preceeding the cursor in the current word.
+  # Public: Returns the characters preceding the cursor in the current word.
   getCurrentWordPrefix: ->
     @editor.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
 

@@ -10,7 +10,7 @@ Pane = require './pane'
 # Items can be almost anything however most commonly they're {EditorView}s.
 #
 # Most packages won't need to use this class, unless you're interested in
-# building a package that deals with switching between panes or tiems.
+# building a package that deals with switching between panes or items.
 module.exports =
 class PaneView extends View
   Delegator.includeInto(this)

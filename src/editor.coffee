@@ -264,7 +264,7 @@ class Editor extends Model
     else
       'untitled'
 
-  # Controls visiblity based on the given {Boolean}.
+  # Controls visibility based on the given {Boolean}.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
   # Set the number of characters that can be displayed horizontally in the
@@ -275,7 +275,7 @@ class Editor extends Model
   setEditorWidthInChars: (editorWidthInChars) ->
     @displayBuffer.setEditorWidthInChars(editorWidthInChars)
 
-  # Public: Sets the column at which columsn will soft wrap
+  # Public: Sets the column at which column will soft wrap
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
   # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
@@ -564,7 +564,7 @@ class Editor extends Model
   bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
 
   # Public: Get the syntactic scopes for the most the given position in buffer
-  # coorditanates.
+  # coordinates.
   #
   # For example, if called with a position inside the parameter list of an
   # anonymous CoffeeScript function, the method returns the following array:
@@ -1269,7 +1269,7 @@ class Editor extends Model
   # Public: Determine if a given range in buffer coordinates intersects a
   # selection.
   #
-  # bufferRange - A {Range} or range-comptatible {Array}.
+  # bufferRange - A {Range} or range-compatible {Array}.
   #
   # Returns a {Boolean}.
   selectionIntersectsBufferRange: (bufferRange) ->
@@ -1543,28 +1543,28 @@ class Editor extends Model
   # cursor is already on the first character of the line, move it to the
   # beginning of the line.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToFirstCharacterOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToFirstCharacterOfLine()
 
   # Public: Move the cursor of each selection to the end of its line while
   # preserving the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
   # Public: For each selection, move its cursor to the preceding word boundary
   # while maintaining the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToPreviousWordBoundary: ->
     @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundary()
 
   # Public: For each selection, move its cursor to the next word boundary while
   # maintaining the selection's tail position.
   #
-  # This method may merge selections that end up intesecting.
+  # This method may merge selections that end up intersecting.
   selectToNextWordBoundary: ->
     @expandSelectionsForward (selection) => selection.selectToNextWordBoundary()
 
@@ -1574,7 +1574,7 @@ class Editor extends Model
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
-  # Public: Add a similarly-shaped selection to the next elibible line below
+  # Public: Add a similarly-shaped selection to the next eligible line below
   # each selection.
   #
   # Operates on all selections. If the selection is empty, adds an empty
@@ -1585,7 +1585,7 @@ class Editor extends Model
   addSelectionBelow: ->
     @expandSelectionsForward (selection) => selection.addSelectionBelow()
 
-  # Public: Add a similarly-shaped selection to the next elibible line above
+  # Public: Add a similarly-shaped selection to the next eligible line above
   # each selection.
   #
   # Operates on all selections. If the selection is empty, adds an empty
