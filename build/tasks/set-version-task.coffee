@@ -5,7 +5,9 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   getVersion = (callback) ->
-    if !fs.existsSync('../../.git') or (process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master')
+    onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
+    inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
+    if onBuildMachine or not inRepository
       {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
       callback(null, version)
     else
