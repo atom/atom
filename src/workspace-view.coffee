@@ -64,7 +64,7 @@ class WorkspaceView extends View
   @version: 4
 
   @configDefaults:
-    ignoredNames: [".git", ".svn", ".DS_Store", "Thumbs.db"]
+    ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
     excludeVcsIgnoredPaths: true
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
