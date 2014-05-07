@@ -7,7 +7,7 @@ Publishing a package allows other people to install it and use it in Atom. It
 is a great way to share what you've made and get feedback and contributions from
 others.
 
-This guide assumes your package's name is `my-package` and but you should pick a
+This guide assumes your package's name is `my-package` but you should pick a
 better name.
 
 ### Install apm
@@ -42,7 +42,7 @@ If not, there are a few things you should check before publishing:
   * Your package is in a Git repository that has been pushed to
     [GitHub][github]. Follow [this guide][repo-guide] if your package isn't
     already on GitHub.
-  
+
 ### Publish Your Package
 
 Before you publish a package it is a good idea to check ahead of time if
@@ -59,7 +59,7 @@ Now let's review what the `apm publish` command does:
   3. Creates a new [Git tag][git-tag] for the version being published.
   4. Pushes the tag and current branch up to GitHub.
   5. Updates atom.io with the new version being published.
-  
+
 Now run the following commands to publish your package:
 
 ```sh
