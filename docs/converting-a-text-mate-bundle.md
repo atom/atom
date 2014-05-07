@@ -20,7 +20,7 @@ apm help init
 
 You should see a message print out with details about the `apm init` command.
 
-If you do not, launch Atom and run the _Atom > Install Shell Commmands_ menu
+If you do not, launch Atom and run the _Atom > Install Shell Commands_ menu
 to install the `apm` and `atom` commands.
 
 ### Convert the Package

@@ -24,7 +24,7 @@ apm help publish
 
 You should see a message print out with details about the `apm publish` command.
 
-If you do not, launch Atom and run the _Atom > Install Shell Commmands_ menu
+If you do not, launch Atom and run the _Atom > Install Shell Commands_ menu
 to install the `apm` and `atom` commands.
 
 ### Prepare Your Package
@@ -80,7 +80,7 @@ digit of the version before publishing so the published version will be `0.1.0`
 and the Git tag created will be `v0.1.0`.
 
 In the future you can run `apm publish major` to publish the `1.0.0` version but
-since this was the first version being published it is a good idead to start
+since this was the first version being published it is a good idea to start
 with a minor release.
 
 ### Further Reading

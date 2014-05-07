@@ -24,9 +24,9 @@ Editor = require './editor'
 # with the model object when possible, but it won't always be possible with the
 # current API.
 #
-# ## Adding Perimiter Panels
+# ## Adding Perimeter Panels
 #
-# Use the following methods if possible to attach panels to the perimiter of the
+# Use the following methods if possible to attach panels to the perimeter of the
 # workspace rather than manipulating the DOM directly to better insulate you to
 # changes in the workspace markup:
 #
