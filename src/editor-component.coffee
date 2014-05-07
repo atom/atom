@@ -1,6 +1,7 @@
 React = require 'react'
 {div, span} = require 'reactionary'
 {debounce} = require 'underscore-plus'
+scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
 EditorScrollViewComponent = require './editor-scroll-view-component'
@@ -115,6 +116,7 @@ EditorComponent = React.createClass
     @listenForCommands()
     @measureScrollbars()
     @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
+    @subscribe scrollbarStyle.changes, @refreshScrollbars
     @props.editor.setVisible(true)
     @requestUpdate()
 
@@ -327,9 +329,15 @@ EditorComponent = React.createClass
     event.preventDefault()
 
   onStylesheetsChanged: (stylesheet) ->
-    # Only update when the scrollbar is changed
-    return unless @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
 
+  containsScrollbarSelector: (stylesheet) ->
+    for rule in stylesheet.cssRules
+      if rule.selectorText?.indexOf('scrollbar') > -1
+        return true
+    false
+
+  refreshScrollbars: ->
     # Believe it or not, proper handling of changes to scrollbar styles requires
     # three DOM updates.
 
@@ -348,12 +356,6 @@ EditorComponent = React.createClass
     # Finally, we restore the scrollbars based on the newly-measured dimensions
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
-
-  containsScrollbarSelector: (stylesheet) ->
-    for rule in stylesheet.cssRules
-      if rule.selectorText?.indexOf('scrollbar') > -1
-        return true
-    false
 
   clearPreservedRowRange: ->
     @preservedRowRange = null
