@@ -22,7 +22,7 @@ GutterComponent = React.createClass
     style =
       width: charWidth * (maxLineNumberDigits + 1.5)
       height: scrollHeight
-      WebkitTransform: "translate3d(0, #{-scrollTop}px, 0)"
+      WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
 
     lineNumbers = []
     tokenizedLines = editor.linesForScreenRows(startRow, endRow - 1)

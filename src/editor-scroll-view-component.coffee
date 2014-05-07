@@ -27,7 +27,7 @@ EditorScrollViewComponent = React.createClass
       contentStyle =
         height: scrollHeight
         minWidth: scrollWidth
-        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
+        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0px)"
 
     div className: 'scroll-view',
       InputComponent

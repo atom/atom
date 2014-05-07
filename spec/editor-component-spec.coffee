@@ -57,28 +57,29 @@ describe "EditorComponent", ->
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate3d(0px, #{-2.5 * lineHeightInPixels}px, 0)"
+      expect(node.querySelector('.scroll-view-content').style['-webkit-transform']).toBe "translate3d(0px, #{-2.5 * lineHeightInPixels}px, 0px)"
 
       lineNodes = node.querySelectorAll('.line')
       expect(lineNodes.length).toBe 6
-      expect(lineNodes[0].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
       expect(lineNodes[0].textContent).toBe editor.lineForScreenRow(2).text
       expect(lineNodes[5].textContent).toBe editor.lineForScreenRow(7).text
 
-    it "updates absolute positions of subsequent lines when lines are inserted or removed", ->
+    it "updates transforms of subsequent lines when lines are inserted or removed", ->
       editor.getBuffer().deleteRows(0, 1)
       lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes[0].offsetTop).toBe 0
-      expect(lineNodes[1].offsetTop).toBe 1 * lineHeightInPixels
-      expect(lineNodes[2].offsetTop).toBe 2 * lineHeightInPixels
+      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{0 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
 
       editor.getBuffer().insert([0, 0], '\n\n')
       lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes[0].offsetTop).toBe 0
-      expect(lineNodes[1].offsetTop).toBe 1 * lineHeightInPixels
-      expect(lineNodes[2].offsetTop).toBe 2 * lineHeightInPixels
-      expect(lineNodes[3].offsetTop).toBe 3 * lineHeightInPixels
-      expect(lineNodes[4].offsetTop).toBe 4 * lineHeightInPixels
+
+      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{0 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
+      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
 
     describe "when indent guides are enabled", ->
       beforeEach ->
@@ -152,7 +153,7 @@ describe "EditorComponent", ->
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translate3d(0, #{-2.5 * lineHeightInPixels}px, 0)"
+      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translate3d(0px, #{-2.5 * lineHeightInPixels}px, 0px)"
 
       lineNumberNodes = node.querySelectorAll('.line-number')
       expect(lineNumberNodes.length).toBe 6
@@ -532,11 +533,11 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
 
       scrollViewContentNode = node.querySelector('.scroll-view-content')
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0)"
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0)"
+      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
