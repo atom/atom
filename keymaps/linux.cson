@@ -27,7 +27,6 @@
   'ctrl-y': 'core:redo'
   'ctrl-x': 'core:cut'
   'ctrl-c': 'core:copy'
-  'ctrl-v': 'core:paste'
   'shift-up': 'core:select-up'
   'shift-down': 'core:select-down'
   'shift-left': 'core:select-left'
