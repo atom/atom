@@ -2,7 +2,7 @@
 
 Atom is a hackable text editor for the 21st century, built on [atom-shell](http://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed to be deeply customizable, but completely usable without editing a single config file.
 
-Visit [atom.i](https://atom.io/) to learn more.
+Visit [atom.io](https://atom.io/) to learn more.
 
 ## Installing
 
