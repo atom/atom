@@ -1,6 +1,7 @@
 *.swp
 *~
 .DS_Store
+Thumbs.db
 .project
 .svn
 .nvm-version
