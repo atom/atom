@@ -7,7 +7,7 @@ config = require './config'
 tree = require './tree'
 
 module.exports =
-class Search extends Command
+class View extends Command
   @commandNames: ['view', 'show']
 
   parseOptions: (argv) ->
