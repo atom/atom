@@ -48,7 +48,7 @@ Atom will automatically update when a new release is available.
 
 ### Windows Requirements
   * Windows 7 or later
-  * [Visual C++ 2010 SP1 Express](http://www.microsoft.com/visualstudio/eng/products/visual-studio-2010-express)
+  * [Visual C++ 2010 SP1 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
   * [node.js - 32bit](http://nodejs.org/download/) v0.10.x
   * [Python 2.7.x](http://www.python.org/download/)
   * [GitHub for Windows](http://windows.github.com/)
