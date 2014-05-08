@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ $(whoami) != "root" ]
+    then
+        echo "please run this script as root."
+        exit 1
+fi
+
+sudo apt-get install libgnome-keyring-dev && sudo npm config set python /usr/bin/python2 -g && sudo script/build && sudo script/grunt install

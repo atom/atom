@@ -20,7 +20,7 @@ Atom will automatically update when a new release is available.
 
 
 ### OS X Requirements
-  * OS X 10.8 or later
+  1. OS X 10.8 or later
   * [node.js](http://nodejs.org/download/) v0.10.x
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
@@ -31,7 +31,7 @@ Atom will automatically update when a new release is available.
   ```
 
 ### Linux Requirements
-  * Ubuntu LTS 12.04 64-bit is the recommended platform
+  1. Ubuntu LTS 12.04 64-bit is the recommended platform
   * OS with 64-bit architecture
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x
@@ -43,11 +43,26 @@ Atom will automatically update when a new release is available.
   cd atom
   script/build # Creates application at /tmp/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
+  ```
+
+  Last step can be replaced with the following command to get a `.deb` package
+
+  ```
   script/grunt mkdeb # Generates a .deb package at /tmp/atom-build
   ```
 
+#### Debian based distributions
+  If [Linux Requirements](#linux-requirements) 1-4 are met,
+  the following commands will care about 5+6, building and installing
+  on Debian based distributions.
+  ```sh
+  git clone https://github.com/atom/atom
+  cd atom
+  sudo script/deb/install
+  ```
+
 ### Windows Requirements
-  * Windows 7 or later
+  1. Windows 7 or later
   * [Visual C++ 2010 SP1 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
   * [node.js - 32bit](http://nodejs.org/download/) v0.10.x
   * [Python 2.7.x](http://www.python.org/download/)

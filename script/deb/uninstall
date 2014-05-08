@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $(whoami) != "root" ]
+    then
+        echo "please run this script as root."
+        exit 1
+fi
+
+rm -R ~/.atom
+sudo rm -R /usr/local/share/atom
+sudo rm /usr/local/bin/atom
