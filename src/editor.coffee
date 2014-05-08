@@ -563,7 +563,7 @@ class Editor extends Model
 
   bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
 
-  # Public: Get the syntactic scopes for the most the given position in buffer
+  # Public: Get the syntactic scopes for the given position in buffer
   # coordinates.
   #
   # For example, if called with a position inside the parameter list of an
