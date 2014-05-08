@@ -512,10 +512,9 @@ class Selection extends Model
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
     if maintainClipboard
-      {text: clipboardText, metadata: clipboardMetadata} = atom.clipboard.readWithMetadata()
+      {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
 
       if clipboardMetadata? and clipboardMetadata.selections?
-        metadata = clipboardMetadata
         clipboardMetadata.selections.push(text)
       else
         metadata = { selections: [clipboardText, text] }
