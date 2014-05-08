@@ -61,11 +61,16 @@ Atom will automatically update when a new release is available.
   
   * And then run command like this, in the cloned atom repository
 
-  command:
+  commands:
   
       script/mkdeb 0.00-build20140507-140514 resources/linux/debian/control.in \
       resources/linux/Atom.desktop.in resources/atom.png ../
-      
+  
+  * After packaging, you can install it with dpkg
+  
+  commmands:
+
+      sudo dpkg -i atom-0.00-build20140507-140514-amd64.deb
 
 ### Windows Requirements
   * Windows 7 or later
