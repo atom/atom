@@ -33,6 +33,7 @@
   'pageup': 'core:page-up'
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
+  'shift-backspace': 'core:backspace'
   'ctrl-tab': 'pane:show-next-item'
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-shift-up': 'core:move-up'
