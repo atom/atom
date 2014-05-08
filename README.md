@@ -37,6 +37,7 @@ Atom will automatically update when a new release is available.
   * [npm](http://www.npmjs.org/) v1.4.x
   * `sudo apt-get install libgnome-keyring-dev`
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
+  * `sudo apt-get remove gyp` on Ubuntu LTS 14.04 you should also remove system gyp if installed
 
   ```sh
   git clone https://github.com/atom/atom
@@ -45,6 +46,8 @@ Atom will automatically update when a new release is available.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   script/grunt mkdeb # Generates a .deb package at /tmp/atom-build
   ```
+  
+  * `sudo ln -s /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0` Atom depends on libudev.so.0 while libudev.so.1 only exists on some systems. So if Atom doesn't start, create symlink.
 
 ### Windows Requirements
   * Windows 7 or later
