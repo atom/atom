@@ -18,7 +18,9 @@ Atom will automatically update when a new release is available.
 
 ## Building
 
-See the [build instructions](docs/advanced/build-instructions) docs.
+* [Linux](docs/build-instructions/linux.md)
+* [OS X](docs/build-instructions/os-x.md)
+* [Windows](docs/build-instructions/windows.md)
 
 ## Developing
 Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).
