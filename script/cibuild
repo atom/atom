@@ -1,44 +1,12 @@
 #!/usr/bin/env node
 var cp = require('./utils/child-process-wrapper.js');
-var fs = require('fs');
 var path = require('path');
 
 process.chdir(path.dirname(__dirname));
 
-if (process.platform == 'linux')
-  throw new Error('cibuild can not run on linux yet!');
-
-var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
-
-function loadEnvironmentVariables(filePath) {
-  try {
-    var lines = fs.readFileSync(filePath, 'utf8').trim().split('\n');
-    for (i in lines) {
-      var parts = lines[i].split('=');
-      var key = parts[0].trim();
-      var value = parts[1].trim().substr(1, parts[1].length - 2);
-      process.env[key] = value;
-    }
-  } catch(error) { }
-}
-
-function readEnvironmentVariables() {
-  loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials')
-  loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain')
-}
-
-readEnvironmentVariables();
-cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
-  if (error)
-    process.exit(1);
-  require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom'))
-  var async = require('async');
-  var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-  var tasks = [
-    cp.safeExec.bind(global, 'git clean -dff'),
-    cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
-  ]
-  async.series(tasks, function(error) {
-    process.exit(error ? 1 : 0);
+cp.safeExec('node script/bootstrap', function() {
+  var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt');
+  cp.safeExec(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color', function() {
+    process.exit(0);
   });
-})();
+});
