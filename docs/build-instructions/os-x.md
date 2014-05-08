@@ -1,14 +1,12 @@
 # OS X
 
-## Instructions
-
-#### Requirements
+## Requirements
 
   * OS X 10.8 or later
   * [node.js](http://nodejs.org/download/) v0.10.x
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
-#### Instructions
+## Instructions
 
   ```sh
   git clone https://github.com/atom/atom

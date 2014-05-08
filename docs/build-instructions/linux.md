@@ -1,10 +1,8 @@
 # Linux
 
-## Instructions
-
 Ubuntu LTS 12.04 64-bit is the recommended platform.
 
-#### Requirements
+## Requirements
 
   * OS with 64-bit architecture
   * [node.js](http://nodejs.org/download/) v0.10.x
@@ -12,7 +10,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * libgnome-keyring-dev `sudo apt-get install libgnome-keyring-dev`
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
 
-#### Instructions
+## Instructions
 
   ```sh
   git clone https://github.com/atom/atom

@@ -1,8 +1,6 @@
 # Windows
 
-## Instructions
-
-#### Requirements
+## Requirements
 
   * Windows 7 or later
   * [Visual C++ 2010 SP1 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
@@ -14,7 +12,7 @@
   * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
     to your PATH
 
-#### Instructions
+## Instructions
 
   ```bat
   cd C:\Users\<user>\github
