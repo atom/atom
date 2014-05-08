@@ -3,8 +3,7 @@
 var nodeVersion = process.versions.node.split('.')
 var nodeMajorVersion = +nodeVersion[0]
 var nodeMinorVersion = +nodeVersion[1]
-// TODO: replace that when node 1.0 come around
-if (nodeMajorVersion !== 0 || nodeMinorVersion < 10) {
+if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
   console.warn("You must run script/bootstrap and script/build with node v0.10 or above");
   process.exit(1);
 }
