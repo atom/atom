@@ -736,7 +736,7 @@ class Editor extends Model
     containsNewlines = text.indexOf('\n') isnt -1
 
     if metadata?.selections? and metadata.selections.length is @getSelections().length
-      @mutateSelectedText (selection, index) =>
+      @mutateSelectedText (selection, index) ->
         text = metadata.selections[index]
         selection.insertText(text, options)
 
