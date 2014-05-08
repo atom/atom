@@ -5,6 +5,5 @@ notifications:
     on_success: never
     on_failure: change
 
-script: script/bootstrap
-
-
+install: script/bootstrap
+script: script/cibuild
