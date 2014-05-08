@@ -1,9 +1,21 @@
 #!/bin/bash
-# mkdeb version control-file-path deb-file-path
+# Usage: mkdeb version control-file-path desktop-file-path \
+#         icon-file-path deb-file-path
+# 
+# You must edit control file under resource/linux/debian directory 
 
 SCRIPT=`readlink -f "$0"`
 ROOT=`readlink -f $(dirname $SCRIPT)/..`
 cd $ROOT
+
+# parameter check
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+[ "$#" -eq 5 ] || die " Usage: mkdeb version control-file-path desktop-file-path \
+icon-file-path deb-file-path"
 
 VERSION="$1"
 CONTROL_FILE="$2"
@@ -18,10 +30,10 @@ mkdir -p "$TARGET/usr"
 env INSTALL_PREFIX="$TARGET/usr" script/grunt install
 
 mkdir -p "$TARGET/DEBIAN"
-mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
+cp "$CONTROL_FILE" "$TARGET/DEBIAN/control"
 
 mkdir -p "$TARGET/usr/share/applications"
-mv "$DESKTOP_FILE" "$TARGET/usr/share/applications"
+cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 
 mkdir -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
