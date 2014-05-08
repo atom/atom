@@ -55,7 +55,7 @@ Atom will automatically update when a new release is available.
   * [Git for Windows](http://git-scm.com/download/win)
     * Select the option **Use Git from the Windows Command Prompt** when installing (Git needs to be in your `PATH`)
   * Clone [atom/atom](https://github.com/atom/atom/) to `C:\Users\<user>\github\atom\`
-  * Add `C:\Python27;C:\Program Files\nodejs;C:\Users\<user>\github\atom\node_modules\`
+  * Add `C:\Python27;C:\Program Files (x86)\nodejs;C:\Users\<user>\github\atom\node_modules\`
     to your PATH
   * Open the Windows GitHub shell
 
