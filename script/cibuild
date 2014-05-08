@@ -6,7 +6,7 @@ process.chdir(path.dirname(__dirname));
 
 cp.safeExec('node script/bootstrap', function() {
   var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt');
-  cp.safeExec(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color', function() {
+  cp.safeExec(gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color', function() {
     process.exit(0);
   });
 });
