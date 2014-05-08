@@ -160,7 +160,7 @@ class Editor extends Model
 
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
-    @softTabs = @buffer.usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -316,6 +316,19 @@ class Editor extends Model
 
   # Public: Set the on-screen length of tab characters.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
+
+  # Public: Determine if the buffer uses hard or soft tabs.
+  #
+  # Returns `true` if the first non-comment line with leading whitespace starts
+  # with a space character. Returns `false` if it starts with a hard tab (`\t`).
+  #
+  # Returns a {Boolean},
+  usesSoftTabs: ->
+    for bufferRow in [0..@buffer.getLastRow()]
+      continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+      if match = @buffer.lineForRow(bufferRow).match(/^\s/)
+        return match[0][0] != '\t'
+    undefined
 
   # Public: Clip the given {Point} to a valid position in the buffer.
   #
