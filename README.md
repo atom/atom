@@ -50,22 +50,22 @@ Atom will automatically update when a new release is available.
   
   example:
 
-
-  ```Package: atom
-  Version: 0.00-build20140507-140514
-  Section: editors
-  Priority: optional
-  Architecture: amd64
-  Installed-Size: \`du -ks usr|cut -f 1\`
-  Maintainer: John Doe <johndoe@example.com>
-  Description: atom editor
-  ```
+      Package: atom
+      Version: 0.00-build20140507-140514
+      Section: editors
+      Priority: optional
+      Architecture: amd64
+      Installed-Size: \`du -ks usr|cut -f 1\`
+      Maintainer: John Doe <johndoe@example.com>
+      Description: atom editor
   
   * And then run command like this, in the cloned atom repository
-  
 
-  ``` script/mkdeb 0.00-build20140507-140514 resources/linux/debian/control.in resources/linux/Atom.desktop.in resources/atom.png ../
-  ```
+  command:
+  
+      script/mkdeb 0.00-build20140507-140514 resources/linux/debian/control.in \
+      resources/linux/Atom.desktop.in resources/atom.png ../
+      
 
 ### Windows Requirements
   * Windows 7 or later
