@@ -8,6 +8,15 @@ SCRIPT=`readlink -f "$0"`
 ROOT=`readlink -f $(dirname $SCRIPT)/..`
 cd $ROOT
 
+# parameter check
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+[ "$#" -eq 5 ] || die " Usage: mkdeb version control-file-path desktop-file-path \
+icon-file-path deb-file-path"
+
 VERSION="$1"
 CONTROL_FILE="$2"
 DESKTOP_FILE="$3"
