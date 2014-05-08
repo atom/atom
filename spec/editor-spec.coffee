@@ -2070,7 +2070,7 @@ describe "Editor", ->
             'sort'
           ])
 
-      fdescribe ".pasteText()", ->
+      describe ".pasteText()", ->
         it "pastes text into the buffer", ->
           atom.clipboard.write('first')
           editor.pasteText()
