@@ -2077,7 +2077,7 @@ describe "Editor", ->
           expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
-        describe 'when the clipboard have many selections', ->
+        describe 'when the clipboard has many selections', ->
           it "pastes each selection separately into the buffer", ->
             atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
             editor.pasteText()
