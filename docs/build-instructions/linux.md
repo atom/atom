@@ -31,5 +31,3 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 You can solve this by make a symlink
 
 x64 `sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0`
-
-x86 `sudo ln -sf /lib/i386-linux-gnu/libudev.so.1 /lib/i386-linux-gnu/libudev.so.0`
