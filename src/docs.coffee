@@ -21,7 +21,7 @@ class Docs extends View
       Opens a package's homepage in the default browser.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.boolean('p').alias('p', 'print').describe('print', 'Just print the URL, do not open it')
+    options.boolean('p').alias('p', 'print').describe('print', 'Print the URL but do not open it')
 
   run: (options) ->
     {callback} = options
