@@ -1,11 +1,8 @@
-_ = require 'underscore-plus'
 optimist = require 'optimist'
-request = require 'request'
 open = require 'open'
 
 View = require './view'
 config = require './config'
-tree = require './tree'
 
 module.exports =
 class Docs extends View
