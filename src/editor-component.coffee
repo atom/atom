@@ -24,6 +24,8 @@ EditorComponent = React.createClass
   gutterWidth: 0
   refreshingScrollbars: false
   measuringScrollbars: true
+  pendingVerticalScrollDelta: 0
+  pendingHorizontalScrollDelta: 0
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
@@ -311,14 +313,24 @@ EditorComponent = React.createClass
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
+    event.preventDefault()
+
+    animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
+
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
-      @refs.horizontalScrollbar.getDOMNode().scrollLeft -= wheelDeltaX
+      @pendingHorizontalScrollDelta -= wheelDeltaX
     else
-      @refs.verticalScrollbar.getDOMNode().scrollTop -= wheelDeltaY
+      @pendingVerticalScrollDelta -= wheelDeltaY
 
-    event.preventDefault()
+    unless animationFramePending
+      requestAnimationFrame =>
+        {editor} = @props
+        editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
+        editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
+        @pendingVerticalScrollDelta = 0
+        @pendingHorizontalScrollDelta = 0
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
