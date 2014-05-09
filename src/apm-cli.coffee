@@ -7,6 +7,7 @@ commandClasses = [
   require './clean'
   require './dedupe'
   require './develop'
+  require './docs'
   require './featured'
   require './init'
   require './install'
