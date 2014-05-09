@@ -21,3 +21,15 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   ```
 
 ## Troubleshooting
+
+ * On Ubuntu 14.04 LTS when you get error message 
+ 
+
+  ```sh
+  /usr/local/share/atom/atom: error while loading shared libraries: libudev.so.0: cannot open shared object file: No such file or directory
+  ```
+You can solve this by make a symlink
+
+x64 `sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0`
+
+x86 `sudo ln -sf /lib/i386-linux-gnu/libudev.so.1 /lib/i386-linux-gnu/libudev.so.0`
