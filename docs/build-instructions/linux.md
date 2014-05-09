@@ -31,3 +31,15 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 You can solve this by make a symlink
 
 x64 `sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0`
+
+ * On Debian GNU/Linux 7.3 (wheezy) 64x when you get the error message
+
+ ```sh
+  /usr/bin/env: node: No such file or directory
+ ```
+
+ You can solve it by make a link 
+ 
+ ```sh
+  sudo ln -s /your/path/to/node/bin/node /usr/bin/node
+ ```
