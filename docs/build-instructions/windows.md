@@ -25,3 +25,18 @@
 You totally can! GitHub for Windows's Git Shell just takes less work to set up. You need to have Posix tools in your `%PATH%` (i.e. `grep`, `sed`, et al.), which isn't the default configuration when you install Git. To fix this, you probably need to fiddle with your system PATH.
 
 ## Troubleshooting
+
+Some of the most common errors include:
+
+    gyp WARN install got an error, rolling back install
+and
+
+    >> The system cannot find the path specified.
+
+These two error messages can usually be ignored. The solution to these errors is to re-run `script\build`, possibly several times.
+
+If your Visual Studio is in a non-standard location, and you get the error `You must have Visual Studio 2010 or 2012 installed`, you need to modify `apm\node_modules\atom-package-manager\lib\config.js` around line 90 and replace the variable with your Visual Studio directory plus Common7/IDE.
+
+Example:
+
+    vs2010Path = "H:/VS2010/Common7/IDE"
