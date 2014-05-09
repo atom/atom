@@ -473,6 +473,7 @@ class Atom extends Model
   # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     ipc.send('call-window-method', 'setFullScreen', fullScreen)
+    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
 
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
