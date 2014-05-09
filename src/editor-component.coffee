@@ -383,6 +383,14 @@ EditorComponent = React.createClass
   onScrollTopChanged: ->
     @scrollingVertically = true
     @requestUpdate()
+    @stopScrollingAfterDelay ?= debounce(@onStoppedScrolling, 100)
+    @stopScrollingAfterDelay()
+
+  onStoppedScrolling: ->
+    @scrollingVertically = false
+    @requestUpdate()
+
+  stopScrollingAfterDelay: null # created lazily
 
   onSelectionRemoved: (selection) ->
     {editor} = @props

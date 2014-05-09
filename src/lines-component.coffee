@@ -28,7 +28,7 @@ LinesComponent = React.createClass
     @measureLineHeightAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide', 'scrollingVertically')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
