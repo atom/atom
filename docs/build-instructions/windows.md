@@ -19,5 +19,9 @@
   cd atom
   script\build
   ```
+  
+## Why do I have to use GitHub for Windows? Can't I just use my existing Git?
+
+You totally can! GitHub for Windows's Git Shell just takes less work to set up. You need to have Posix tools in your `%PATH%` (i.e. `grep`, `sed`, et al.), which isn't the default configuration when you install Git. To fix this, you probably need to fiddle with your system PATH.
 
 ## Troubleshooting
