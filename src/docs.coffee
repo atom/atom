@@ -14,7 +14,7 @@ class Docs extends View
 
       Usage: apm docs [options] <package_name>
 
-      Opens a package's homepage in the default browser.
+      Open a package's homepage in the default browser.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.boolean('p').alias('p', 'print').describe('print', 'Print the URL instead of opening it')
