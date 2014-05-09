@@ -34,7 +34,10 @@ class ContextMenuManager
   add: (name, object, {devMode}={}) ->
     for selector, items of object
       for label, command of items
-        @addBySelector(selector, {label, command}, {devMode})
+        if (typeof command == 'object')
+          @addBySelector(selector, command, {devMode})
+        else
+          @addBySelector(selector, {label, command}, {devMode})
 
   # Registers a command to be displayed when the relevant item is right
   # clicked.
@@ -48,6 +51,8 @@ class ContextMenuManager
   addBySelector: (selector, definition, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
     (definitions[selector] ?= []).push(definition)
+
+
 
   # Returns definitions which match the element and devMode.
   definitionsForElement: (element, {devMode}={}) ->

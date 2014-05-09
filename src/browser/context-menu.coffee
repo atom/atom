@@ -19,4 +19,6 @@ class ContextMenu
         do (item) =>
           item.click = =>
             global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandOptions)
+      else if item.submenu
+        @createClickHandlers(item.submenu)
       item
