@@ -33,18 +33,13 @@ class Docs extends View
       return
 
     @getPackage packageName, (error, pack) =>
-      if error?
-        callback(error)
-        return
+      return callback(error) if error?
 
       if repository = @getRepository(pack)
         if options.argv.print
           console.log repository
         else
           @open(repository)
-
+        callback()
       else
         callback("Package \"#{packageName}\" does not contain a repository URL")
-        return
-      callback()
-
