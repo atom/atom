@@ -7,7 +7,6 @@ config = require './config'
 module.exports =
 class Docs extends View
   @commandNames: ['docs', 'home', 'open']
-  open: open
 
   parseOptions: (argv) ->
     options = optimist(argv)
@@ -19,6 +18,9 @@ class Docs extends View
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.boolean('p').alias('p', 'print').describe('print', 'Print the URL but do not open it')
+
+  openRepositoryUrl: (repositoryUrl) ->
+    open(repositoryUrl)
 
   run: (options) ->
     {callback} = options
@@ -36,7 +38,7 @@ class Docs extends View
         if options.argv.print
           console.log repository
         else
-          @open(repository)
+          @openRepositoryUrl(repository)
         callback()
       else
         callback("Package \"#{packageName}\" does not contain a repository URL")

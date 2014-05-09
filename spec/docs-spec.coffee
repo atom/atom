@@ -2,6 +2,7 @@ path = require 'path'
 express = require 'express'
 http = require 'http'
 apm = require '../lib/apm-cli'
+Docs = require('../lib/docs')
 
 describe 'apm docs', ->
   server = null
@@ -45,8 +46,7 @@ describe 'apm docs', ->
       expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
 
   it "prints the package URL if called with the --print option (and does not open it)", ->
-    Docs = require('../lib/docs')
-    spyOn(Docs.prototype, 'open')
+    spyOn(Docs.prototype, 'openRepositoryUrl')
     callback = jasmine.createSpy('callback')
     apm.run(['docs', '--print', 'wrap-guide'], callback)
 
@@ -54,13 +54,13 @@ describe 'apm docs', ->
       callback.callCount > 0
 
     runs ->
-      expect(Docs.prototype.open).not.toHaveBeenCalled()
+      expect(Docs::openRepositoryUrl).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[0][0]).toContain 'https://github.com/atom/wrap-guide'
 
   it "prints the package URL if called with the -p short option (and does not open it)", ->
     Docs = require('../lib/docs')
-    spyOn(Docs.prototype, 'open')
+    spyOn(Docs.prototype, 'openRepositoryUrl')
     callback = jasmine.createSpy('callback')
     apm.run(['docs', '-p', 'wrap-guide'], callback)
 
@@ -68,14 +68,13 @@ describe 'apm docs', ->
       callback.callCount > 0
 
     runs ->
-      expect(Docs.prototype.open).not.toHaveBeenCalled()
+      expect(Docs::openRepositoryUrl).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[0][0]).toContain 'https://github.com/atom/wrap-guide'
 
 
   it "opens the package URL", ->
-    Docs = require('../lib/docs')
-    spyOn(Docs.prototype, 'open')
+    spyOn(Docs.prototype, 'openRepositoryUrl')
     callback = jasmine.createSpy('callback')
     apm.run(['docs', 'wrap-guide'], callback)
 
@@ -83,5 +82,4 @@ describe 'apm docs', ->
       callback.callCount > 0
 
     runs ->
-      expect(Docs.prototype.open).toHaveBeenCalled()
-
+      expect(Docs::openRepositoryUrl).toHaveBeenCalled()
