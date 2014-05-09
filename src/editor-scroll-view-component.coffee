@@ -17,17 +17,12 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {scrollHeight, scrollWidth, renderedRowRange, pendingChanges, scrollingVertically} = @props
+    {renderedRowRange, lineOverdraw, pendingChanges, scrollTop, scrollLeft, scrollingVertically} = @props
     {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       inputStyle = @getHiddenInputPosition()
       inputStyle.WebkitTransform = 'translateZ(0)'
-
-      contentStyle =
-        height: scrollHeight
-        minWidth: scrollWidth
-        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
 
     div className: 'scroll-view',
       InputComponent
@@ -38,11 +33,11 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      div className: 'scroll-view-content', style: contentStyle, onMouseDown: @onMouseDown,
+      div className: 'scroll-view-content', style: {top: -lineOverdraw * lineHeight}, onMouseDown: @onMouseDown,
         CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
         LinesComponent {
           ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-          renderedRowRange, pendingChanges, scrollingVertically
+          renderedRowRange, lineOverdraw, pendingChanges, scrollTop, scrollLeft, scrollingVertically
         }
         div className: 'underlayer',
           SelectionsComponent({editor})

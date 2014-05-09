@@ -12,12 +12,20 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, renderedRowRange, lineHeight, showIndentGuide} = @props
+      {editor, renderedRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
       [startRow, endRow] = renderedRowRange
+      firstVisibleRow = Math.floor(scrollTop / lineHeight)
+
+
+      offset = -scrollTop % lineHeight
+
+      if firstVisibleRow < lineOverdraw
+        offset += (lineOverdraw - firstVisibleRow) * lineHeight
 
       lines =
-        for tokenizedLine, i in editor.linesForScreenRows(startRow, endRow - 1)
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, screenRow: startRow + i})
+        for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
+          screenRow = startRow + index
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, offset, screenRow})
 
     div {className: 'lines'}, lines
 
@@ -28,7 +36,7 @@ LinesComponent = React.createClass
     @measureLineHeightAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'showIndentGuide', 'scrollingVertically')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -103,11 +111,10 @@ LineComponent = React.createClass
   displayName: 'LineComponent'
 
   render: ->
-    {screenRow, lineHeight} = @props
+    {index, screenRow, offset, lineHeight} = @props
 
-    style =
-      top: screenRow * lineHeight
-      position: 'absolute'
+    top = index * lineHeight + offset
+    style = WebkitTransform: "translate3d(0px, #{top}px, 0px)"
 
     div className: 'line', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
@@ -137,4 +144,4 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow')
+    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'offset')

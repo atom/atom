@@ -34,7 +34,7 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   horizontalScrollbarHeight: 15
   verticalScrollbarWidth: 15
-  lineOverdraw: 8
+  lineOverdraw: 4
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
@@ -246,6 +246,8 @@ class DisplayBuffer extends Model
     startRow = Math.max(0, startRow - @lineOverdraw)
 
     [startRow, endRow]
+
+  getLineOverdraw: -> @lineOverdraw
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()

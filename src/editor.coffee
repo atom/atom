@@ -1883,6 +1883,7 @@ class Editor extends Model
   getScrollWidth: (scrollWidth) -> @displayBuffer.getScrollWidth(scrollWidth)
 
   getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
+  getLineOverdraw: -> @displayBuffer.getLineOverdraw()
 
   intersectsVisibleRowRange: (startRow, endRow) -> @displayBuffer.intersectsVisibleRowRange(startRow, endRow)
 
