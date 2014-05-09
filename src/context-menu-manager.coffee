@@ -52,8 +52,6 @@ class ContextMenuManager
     definitions = if devMode then @devModeDefinitions else @definitions
     (definitions[selector] ?= []).push(definition)
 
-
-
   # Returns definitions which match the element and devMode.
   definitionsForElement: (element, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
