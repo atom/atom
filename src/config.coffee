@@ -59,14 +59,10 @@ module.exports =
     return argv['msvs_version']
 
   getInstalledVisualStudioFlag: ->
-    msvsVersion = @getMsvsVersion()
-    if msvsVersion != undefined
+    msvsVersion = @getMsvsVersion() || process.env.GYP_MSVS_VERSION
+    if msvsVersion
       return msvsVersion
-    
-    msvsVersion = process.env.GYP_MSVS_VERSION
-    if msvsVersion != undefined
-      return msvsVersion
-    
+
     vs2012Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 11.0", "Common7", "IDE")
     return '2012' if fs.existsSync(vs2012Path)
 
