@@ -94,6 +94,12 @@
   'cmd-9': 'pane:show-item-9'
 
 '.editor':
+  # Platform Bindings
+  'alt-left': 'editor:move-to-beginning-of-word'
+  'alt-right': 'editor:move-to-end-of-word'
+  'alt-shift-left': 'editor:select-to-beginning-of-word'
+  'alt-shift-right': 'editor:select-to-end-of-word'
+
   # Apple Specific
   'cmd-backspace': 'editor:backspace-to-beginning-of-line'
   'cmd-shift-backspace': 'editor:backspace-to-beginning-of-line'

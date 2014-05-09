@@ -60,8 +60,13 @@
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
 '.workspace .editor':
-  # Windows specific
-  'ctrl-delete': 'editor:backspace-to-beginning-of-word'
+  # Platform Bindings
+  'ctrl-left': 'editor:move-to-beginning-of-word'
+  'ctrl-right': 'editor:move-to-end-of-word'
+  'ctrl-shift-left': 'editor:select-to-beginning-of-word'
+  'ctrl-shift-right': 'editor:select-to-end-of-word'
+  'ctrl-backspace': 'editor:backspace-to-beginning-of-word'
+  'ctrl-delete': 'editor:delete-to-end-of-word'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
