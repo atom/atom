@@ -32,5 +32,5 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 On x64 systems you can solve this error by making a symlink
 
   ```sh
-  sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0`
+  sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0
   ```
