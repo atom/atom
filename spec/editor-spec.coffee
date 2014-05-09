@@ -2595,6 +2595,10 @@ describe "Editor", ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
       waitsForPromise ->
+        atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
+          expect(editor.getSoftTabs()).toBeFalsy()
+
+      waitsForPromise ->
         atom.workspace.open(null, softTabs: false).then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
