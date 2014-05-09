@@ -20,7 +20,6 @@ EditorComponent = React.createClass
   batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
-  preservedRowRange: null
   scrollingVertically: false
   gutterWidth: 0
   refreshingScrollbars: false
@@ -32,7 +31,7 @@ EditorComponent = React.createClass
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
     if @isMounted()
-      renderedRowRange = @getRenderedRowRange()
+      renderedRowRange = editor.getVisibleRowRange()
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -91,13 +90,6 @@ EditorComponent = React.createClass
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
-
-  getRenderedRowRange: ->
-    renderedRowRange = @props.editor.getVisibleRowRange()
-    if @preservedRowRange?
-      renderedRowRange[0] = Math.min(@preservedRowRange[0], renderedRowRange[0])
-      renderedRowRange[1] = Math.max(@preservedRowRange[1], renderedRowRange[1])
-    renderedRowRange
 
   getInitialState: -> {}
 
@@ -357,13 +349,6 @@ EditorComponent = React.createClass
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
 
-  clearPreservedRowRange: ->
-    @preservedRowRange = null
-    @scrollingVertically = false
-    @requestUpdate()
-
-  clearPreservedRowRangeAfterDelay: null # Created lazily
-
   onBatchedUpdatesStarted: ->
     @batchingUpdates = true
 
@@ -384,10 +369,7 @@ EditorComponent = React.createClass
     @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
   onScrollTopChanged: ->
-    @preservedRowRange = @getRenderedRowRange()
     @scrollingVertically = true
-    @clearPreservedRowRangeAfterDelay ?= debounce(@clearPreservedRowRange, 200)
-    @clearPreservedRowRangeAfterDelay()
     @requestUpdate()
 
   onSelectionRemoved: (selection) ->
