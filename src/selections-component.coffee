@@ -7,10 +7,10 @@ SelectionsComponent = React.createClass
   displayName: 'SelectionsComponent'
 
   render: ->
-    {editor} = @props
+    {editor, scrollTop, scrollLeft} = @props
 
     div className: 'selections',
       if @isMounted()
         for selection in editor.getSelections()
           if not selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection)
-            SelectionComponent({key: selection.id, selection})
+            SelectionComponent({key: selection.id, selection, scrollTop, scrollLeft})

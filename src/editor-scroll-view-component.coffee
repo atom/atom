@@ -39,7 +39,7 @@ EditorScrollViewComponent = React.createClass
         renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically
       }
       div className: 'underlayer',
-        SelectionsComponent({editor})
+        SelectionsComponent({editor, scrollTop, scrollLeft})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
