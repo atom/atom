@@ -11,7 +11,7 @@ else
   exit 1
 fi
 
-while getopts ":wtfvhs-:" opt; do
+while getopts ":wtfvh-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
