@@ -33,7 +33,7 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
+      CursorsComponent({editor, scrollTop, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
       LinesComponent {
         ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
         renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically
