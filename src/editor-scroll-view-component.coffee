@@ -17,14 +17,14 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {renderedRowRange, lineOverdraw, pendingChanges, scrollTop, scrollLeft, scrollingVertically} = @props
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically} = @props
     {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       inputStyle = @getHiddenInputPosition()
       inputStyle.WebkitTransform = 'translateZ(0)'
 
-    div className: 'scroll-view',
+    div className: 'scroll-view', onMouseDown: @onMouseDown,
       InputComponent
         ref: 'input'
         className: 'hidden-input'
@@ -33,14 +33,13 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      div className: 'scroll-view-content', style: {top: -lineOverdraw * lineHeight}, onMouseDown: @onMouseDown,
-        CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
-        LinesComponent {
-          ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-          renderedRowRange, lineOverdraw, pendingChanges, scrollTop, scrollLeft, scrollingVertically
-        }
-        div className: 'underlayer',
-          SelectionsComponent({editor})
+      CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
+      LinesComponent {
+        ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
+        renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically
+      }
+      div className: 'underlayer',
+        SelectionsComponent({editor})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged

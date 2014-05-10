@@ -34,7 +34,6 @@ EditorComponent = React.createClass
 
     if @isMounted()
       renderedRowRange = editor.getVisibleRowRange()
-      lineOverdraw = editor.getLineOverdraw()
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -57,7 +56,7 @@ EditorComponent = React.createClass
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide
-        lineHeight: lineHeightInPixels, renderedRowRange, lineOverdraw, @pendingChanges
+        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges
         scrollTop, scrollLeft, @scrollingVertically, @cursorsMoved,
         cursorBlinkPeriod, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
       }
