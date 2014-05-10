@@ -11,36 +11,29 @@ GutterComponent = React.createClass
   lastMeasuredWidth: null
 
   render: ->
+    if @isMounted()
+      {editor, renderedRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
+      [startRow, endRow] = renderedRowRange
+      scrollOffset = -scrollTop % lineHeight
+      maxLineNumberDigits = editor.getLineCount().toString().length
+
+      wrapCount = 0
+      lineNumbers =
+        for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
+          if bufferRow is lastBufferRow
+            lineNumber = '•'
+            key = "#{bufferRow + 1}-#{++wrapCount}"
+          else
+            lastBufferRow = bufferRow
+            wrapCount = 0
+            lineNumber = "#{bufferRow + 1}"
+            key = lineNumber
+
+          LineNumberComponent({key, lineNumber, maxLineNumberDigits, index, lineHeight, scrollOffset})
+
     div className: 'gutter',
-      @renderLineNumbers() if @isMounted()
-
-  renderLineNumbers: ->
-    {editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight} = @props
-    [startRow, endRow] = renderedRowRange
-    charWidth = editor.getDefaultCharWidth()
-    lineHeight = editor.getLineHeight()
-    style =
-      width: charWidth * (maxLineNumberDigits + 1.5)
-      height: scrollHeight
-      WebkitTransform: "translate3d(0, #{-scrollTop}px, 0)"
-
-    lineNumbers = []
-    tokenizedLines = editor.linesForScreenRows(startRow, endRow - 1)
-    tokenizedLines.push({id: 0}) if tokenizedLines.length is 0
-    for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-      if bufferRow is lastBufferRow
-        lineNumber = '•'
-      else
-        lastBufferRow = bufferRow
-        lineNumber = (bufferRow + 1).toString()
-
-      key = tokenizedLines[i].id
-      screenRow = startRow + i
-      lineNumbers.push(LineNumberComponent({key, lineNumber, maxLineNumberDigits, bufferRow, screenRow, lineHeight}))
-      lastBufferRow = bufferRow
-
-    div className: 'line-numbers', style: style,
-      lineNumbers
+      div className: 'line-numbers',
+        lineNumbers
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -65,12 +58,10 @@ LineNumberComponent = React.createClass
   displayName: 'LineNumberComponent'
 
   render: ->
-    {bufferRow, screenRow, lineHeight} = @props
+    {index, lineHeight, scrollOffset} = @props
     div
-      className: "line-number line-number-#{bufferRow}"
-      style: {top: screenRow * lineHeight}
-      'data-buffer-row': bufferRow
-      'data-screen-row': screenRow
+      className: "line-number"
+      style: {WebkitTransform: "translate3d(0px, #{index * lineHeight + scrollOffset}px, 0px)"}
       dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
@@ -84,4 +75,4 @@ LineNumberComponent = React.createClass
   iconDivHTML: '<div class="icon-right"></div>'
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'lineHeight', 'screenRow', 'maxLineNumberDigits')
+    not isEqualForProperties(newProps, @props, 'index', 'lineHeight', 'scrollOffset')
