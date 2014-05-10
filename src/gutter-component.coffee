@@ -11,29 +11,46 @@ GutterComponent = React.createClass
   lastMeasuredWidth: null
 
   render: ->
-    if @isMounted()
-      {editor, renderedRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
-      [startRow, endRow] = renderedRowRange
-      scrollOffset = -scrollTop % lineHeight
-      maxLineNumberDigits = editor.getLineCount().toString().length
+    {width} = @props
 
-      wrapCount = 0
-      lineNumbers =
-        for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-          if bufferRow is lastBufferRow
-            lineNumber = '•'
-            key = "#{bufferRow + 1}-#{++wrapCount}"
-          else
-            lastBufferRow = bufferRow
-            wrapCount = 0
-            lineNumber = "#{bufferRow + 1}"
-            key = lineNumber
+    div className: 'gutter', style: {width},
+      div className: 'line-numbers', ref: 'lineNumbers',
+        if @isMounted()
+          @renderLineNumbers()
+        else
+          @renderLineNumberForMeasurement()
 
-          LineNumberComponent({key, lineNumber, maxLineNumberDigits, index, lineHeight, scrollOffset})
+  renderLineNumbers: ->
+    {editor, renderedRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
+    [startRow, endRow] = renderedRowRange
+    maxLineNumberDigits = @getMaxLineNumberDigits()
+    scrollOffset = -scrollTop % lineHeight
+    wrapCount = 0
 
-    div className: 'gutter',
-      div className: 'line-numbers',
-        lineNumbers
+    for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
+      if bufferRow is lastBufferRow
+        lineNumber = '•'
+        key = "#{bufferRow + 1}-#{++wrapCount}"
+      else
+        lastBufferRow = bufferRow
+        wrapCount = 0
+        lineNumber = "#{bufferRow + 1}"
+        key = lineNumber
+
+      LineNumberComponent({key, lineNumber, maxLineNumberDigits, index, lineHeight, scrollOffset})
+
+  renderLineNumberForMeasurement: ->
+    LineNumberComponent(
+      key: 'forMeasurement'
+      lineNumber: '•'
+      maxLineNumberDigits: @getMaxLineNumberDigits()
+      index: 0
+      lineHeight: 0
+      scrollOffset: 0
+    )
+
+  getMaxLineNumberDigits: ->
+    @props.editor.getLineCount().toString().length
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -49,7 +66,7 @@ GutterComponent = React.createClass
 
   componentDidUpdate: (oldProps) ->
     unless @lastMeasuredWidth? and isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'fontSize', 'fontFamily')
-      width = @getDOMNode().offsetWidth
+      width = @refs.lineNumbers.getDOMNode().firstChild.offsetWidth
       if width isnt @lastMeasuredWidth
         @lastMeasuredWidth = width
         @props.onWidthChanged(width)

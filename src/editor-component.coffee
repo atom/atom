@@ -51,7 +51,7 @@ EditorComponent = React.createClass
       GutterComponent {
         editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
         lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
-        onWidthChanged: @onGutterWidthChanged
+        width: @gutterWidth, onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
