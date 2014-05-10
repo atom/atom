@@ -12,14 +12,15 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, renderedRowRange, scrollTop, lineHeight, showIndentGuide} = @props
+      {editor, renderedRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide} = @props
       [startRow, endRow] = renderedRowRange
-      scrollOffset = -scrollTop % lineHeight
+      verticalScrollOffset = -scrollTop % lineHeight
+      horizontalScrollOffset = -scrollLeft
 
       lines =
         for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
           screenRow = startRow + index
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, scrollOffset, screenRow})
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow})
 
     div {className: 'lines'}, lines
 
@@ -105,10 +106,11 @@ LineComponent = React.createClass
   displayName: 'LineComponent'
 
   render: ->
-    {index, screenRow, scrollOffset, lineHeight} = @props
+    {index, screenRow, verticalScrollOffset, horizontalScrollOffset, lineHeight} = @props
 
-    top = index * lineHeight + scrollOffset
-    style = WebkitTransform: "translate3d(0px, #{top}px, 0px)"
+    top = index * lineHeight + verticalScrollOffset
+    left = horizontalScrollOffset
+    style = WebkitTransform: "translate3d(#{left}px, #{top}px, 0px)"
 
     div className: 'line', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
@@ -138,4 +140,4 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'scrollOffset')
+    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')
