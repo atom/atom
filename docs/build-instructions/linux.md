@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * OS with 64-bit architecture
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x  
-  * libgnome-keyring-dev `sudo apt-get install libgnome-keyring-dev`
+  * libgnome-keyring-dev `sudo apt-get install libgnome-keyring-dev` (refer to your distribution's manual on how to install packages if you are not on Debian or Ubuntu-based systems)
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
 
 ## Instructions

@@ -14,6 +14,7 @@ Atom will automatically update when a new release is available.
 
 * [Linux](docs/build-instructions/linux.md)
 * [OS X](docs/build-instructions/os-x.md)
+* [FreeBSD](docs/build-instructions/freebsd.md)
 * [Windows](docs/build-instructions/windows.md)
 
 ## Developing
