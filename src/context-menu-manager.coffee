@@ -33,11 +33,11 @@ class ContextMenuManager
   # Returns nothing.
   add: (name, object, {devMode}={}) ->
     for selector, items of object
-      for label, command of items
-        if (typeof command == 'object')
-          @addBySelector(selector, command, {devMode})
+      for label, commandOrSubmenu of items
+        if (typeof commandOrSubmenu == 'object')
+          @addBySelector(selector, commandOrSubmenu, {devMode})
         else
-          @addBySelector(selector, {label, command}, {devMode})
+          @addBySelector(selector, {label, commandOrSubmenu}, {devMode})
 
   # Registers a command to be displayed when the relevant item is right
   # clicked.
