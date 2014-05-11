@@ -514,7 +514,7 @@ class Selection extends Model
     if maintainClipboard
       {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
 
-      if metadata? and metadata.selections?
+      if metadata?.selections?
         metadata.selections.push(text)
       else
         metadata = { selections: [clipboardText, text] }
