@@ -7,14 +7,16 @@ module.exports = (grunt) ->
   getVersion = (callback) ->
     onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
     inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
+    {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
     if onBuildMachine or not inRepository
-      {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
       callback(null, version)
     else
       cmd = 'git'
       args = ['rev-parse', '--short', 'HEAD']
       spawn {cmd, args}, (error, {stdout}={}, code) ->
-        callback(error, stdout?.trim?())
+        commitHash = stdout?.trim?()
+        combinedVersion = "#{version}-#{commitHash}"
+        callback(error, combinedVersion)
 
   grunt.registerTask 'set-version', 'Set the version in the plist and package.json', ->
     done = @async()
