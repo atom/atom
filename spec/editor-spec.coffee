@@ -2061,13 +2061,17 @@ describe "Editor", ->
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
+          editor.setSelectedBufferRanges([[[0,4], [0,13]], [[1,6], [1, 10]], [[2,8], [2, 13]]])
+
           editor.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect(clipboard.readText()).toBe 'quicksort\nsort'
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
           expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
             'quicksort'
             'sort'
+            'items'
           ])
 
       describe ".pasteText()", ->
