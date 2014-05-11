@@ -50,7 +50,7 @@ class EditorView extends View
     showLineNumbers: true
     autoIndent: true
     normalizeIndentOnPaste: true
-    nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
+    nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
     preferredLineLength: 80
     tabLength: 2
     softWrap: false
