@@ -33,6 +33,7 @@
   'pageup': 'core:page-up'
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
+  'shift-backspace': 'core:backspace'
   'ctrl-tab': 'pane:show-next-item'
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-shift-up': 'core:move-up'
@@ -57,7 +58,12 @@
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
 '.workspace .editor':
-  # Windows specific
+  # Platform Bindings
+  'ctrl-left': 'editor:move-to-beginning-of-word'
+  'ctrl-right': 'editor:move-to-end-of-word'
+  'ctrl-shift-left': 'editor:select-to-beginning-of-word'
+  'ctrl-shift-right': 'editor:select-to-end-of-word'
+  'ctrl-backspace': 'editor:backspace-to-beginning-of-word'
   'ctrl-delete': 'editor:backspace-to-beginning-of-word'
 
   # Sublime Parity

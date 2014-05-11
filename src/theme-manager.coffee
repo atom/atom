@@ -158,10 +158,10 @@ class ThemeManager
   #                  load path.
   #
   # Returns the absolute path to the required stylesheet.
-  requireStylesheet: (stylesheetPath, ttype = 'bundled', htmlElement) ->
+  requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, ttype = 'bundled', htmlElement)
+      @applyStylesheet(fullPath, content, type = 'bundled', htmlElement)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -192,16 +192,24 @@ class ThemeManager
 
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
-    @stylesheetElementForId(@stringToId(fullPath)).remove()
-    @emit 'stylesheets-changed'
+    element = @stylesheetElementForId(@stringToId(fullPath))
+    if element.length > 0
+      stylesheet = element[0].sheet
+      element.remove()
+      @emit 'stylesheet-removed', stylesheet
+      @emit 'stylesheets-changed'
 
-  applyStylesheet: (path, text, ttype = 'bundled', htmlElement=$('html')) ->
+  applyStylesheet: (path, text, type = 'bundled', htmlElement=$('html')) ->
     styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
     if styleElement.length
+      @emit 'stylesheet-removed', styleElement[0].sheet
       styleElement.text(text)
     else
-      if htmlElement.find("head style.#{ttype}").length
-        htmlElement.find("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
+      styleElement = $("<style class='#{type}' id='#{@stringToId(path)}'>#{text}</style>")
+      if htmlElement.find("head style.#{type}").length
+        htmlElement.find("head style.#{type}:last").after(styleElement)
       else
-        htmlElement.find("head").append "<style class='#{ttype}' id='#{@stringToId(path)}'>#{text}</style>"
+        htmlElement.find("head").append(styleElement)
+
+    @emit 'stylesheet-added', styleElement[0].sheet
     @emit 'stylesheets-changed'

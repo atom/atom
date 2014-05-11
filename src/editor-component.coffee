@@ -1,10 +1,12 @@
 React = require 'react'
 {div, span} = require 'reactionary'
 {debounce} = require 'underscore-plus'
+scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
 EditorScrollViewComponent = require './editor-scroll-view-component'
 ScrollbarComponent = require './scrollbar-component'
+ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
@@ -20,10 +22,15 @@ EditorComponent = React.createClass
   cursorsMoved: false
   preservedRowRange: null
   scrollingVertically: false
+  gutterWidth: 0
+  refreshingScrollbars: false
+  measuringScrollbars: true
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    maxLineNumberDigits = editor.getScreenLineCount().toString().length
+
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       scrollHeight = editor.getScrollHeight()
@@ -31,14 +38,19 @@ EditorComponent = React.createClass
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
       lineHeightInPixels = editor.getLineHeight()
+      horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
+      verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
+      verticallyScrollable = editor.verticallyScrollable()
+      horizontallyScrollable = editor.horizontallyScrollable()
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, renderedRowRange, scrollTop, scrollHeight,
-        lineHeight: lineHeightInPixels, @pendingChanges
+        editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
+        lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
+        onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
@@ -55,6 +67,10 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
+        visible: verticallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+        scrollableInOppositeDirection: horizontallyScrollable
+        verticalScrollbarWidth: verticalScrollbarWidth
+        horizontalScrollbarHeight: horizontalScrollbarHeight
 
       ScrollbarComponent
         ref: 'horizontalScrollbar'
@@ -62,7 +78,19 @@ EditorComponent = React.createClass
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
         scrollLeft: scrollLeft
-        scrollWidth: scrollWidth
+        scrollWidth: scrollWidth + @gutterWidth
+        visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+        scrollableInOppositeDirection: verticallyScrollable
+        verticalScrollbarWidth: verticalScrollbarWidth
+        horizontalScrollbarHeight: horizontalScrollbarHeight
+
+      # Also used to measure the height/width of scrollbars after the initial render
+      ScrollbarCornerComponent
+        ref: 'scrollbarCorner'
+        visible: not @refreshingScrollbars and (@measuringScrollbars or horizontallyScrollable and verticallyScrollable)
+        measuringScrollbars: @measuringScrollbars
+        height: horizontalScrollbarHeight
+        width: verticalScrollbarWidth
 
   getRenderedRowRange: ->
     renderedRowRange = @props.editor.getVisibleRowRange()
@@ -86,6 +114,9 @@ EditorComponent = React.createClass
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
+    @measureScrollbars()
+    @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
+    @subscribe scrollbarStyle.changes, @refreshScrollbars
     @props.editor.setVisible(true)
     @requestUpdate()
 
@@ -99,6 +130,8 @@ EditorComponent = React.createClass
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
+    @refreshingScrollbars = false
+    @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
 
   observeEditor: ->
@@ -230,6 +263,16 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
 
+  measureScrollbars: ->
+    @measuringScrollbars = false
+
+    {editor} = @props
+    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
+    width = (scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth) or 15
+    height = (scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight) or 15
+    editor.setVerticalScrollbarWidth(width)
+    editor.setHorizontalScrollbarHeight(height)
+
   setFontSize: (fontSize) ->
     @setState({fontSize})
 
@@ -285,6 +328,35 @@ EditorComponent = React.createClass
 
     event.preventDefault()
 
+  onStylesheetsChanged: (stylesheet) ->
+    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+
+  containsScrollbarSelector: (stylesheet) ->
+    for rule in stylesheet.cssRules
+      if rule.selectorText?.indexOf('scrollbar') > -1
+        return true
+    false
+
+  refreshScrollbars: ->
+    # Believe it or not, proper handling of changes to scrollbar styles requires
+    # three DOM updates.
+
+    # Scrollbar style changes won't apply to scrollbars that are already
+    # visible, so first we need to hide scrollbars so we can redisplay them and
+    # force Chromium to apply updates.
+    @refreshingScrollbars = true
+    @requestUpdate()
+
+    # Next, we display only the scrollbar corner so we can measure the new
+    # scrollbar dimensions. The ::measuringScrollbars property will be set back
+    # to false after the scrollbars are measured.
+    @measuringScrollbars = true
+    @requestUpdate()
+
+    # Finally, we restore the scrollbars based on the newly-measured dimensions
+    # if the editor's content and dimensions require them to be visible.
+    @requestUpdate()
+
   clearPreservedRowRange: ->
     @preservedRowRange = null
     @scrollingVertically = false
@@ -324,6 +396,9 @@ EditorComponent = React.createClass
 
   onCursorsMoved: ->
     @cursorsMoved = true
+
+  onGutterWidthChanged: (@gutterWidth) ->
+    @requestUpdate()
 
   requestUpdate: ->
     if @batchingUpdates

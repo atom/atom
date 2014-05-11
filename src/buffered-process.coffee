@@ -12,7 +12,7 @@ ChildProcess = require 'child_process'
 # args = ['-ef']
 # stdout = (output) -> console.log(output)
 # exit = (code) -> console.log("ps -ef exited with #{code}")
-# process = new BufferredProcess({command, args, stdout, exit})
+# process = new BufferedProcess({command, args, stdout, exit})
 # ```
 module.exports =
 class BufferedProcess
@@ -39,7 +39,14 @@ class BufferedProcess
   #           containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
-    @process = ChildProcess.spawn(command, args, options)
+    # Quick hack. Killing @process will only kill cmd.exe, and not the child
+    # process and will just orphan it. Does not escape ^ (cmd's escape symbol).
+    # Related to joyent/node#2318
+    if process.platform is "win32"
+      @process = ChildProcess.spawn(process.env.comspec || "cmd.exe",
+        [ "/c", command ].concat(args), options)
+    else
+      @process = ChildProcess.spawn(command, args, options)
     @killed = false
 
     stdoutClosed = true

@@ -1,13 +1,24 @@
 React = require 'react'
 {div} = require 'reactionary'
-{isEqualForProperties} = require 'underscore-plus'
+{extend, isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 ScrollbarComponent = React.createClass
   render: ->
-    {orientation, className, scrollHeight, scrollWidth} = @props
+    {orientation, className, scrollHeight, scrollWidth, visible} = @props
+    {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
 
-    div {className, @onScroll},
+    style = {}
+    style.display = 'none' unless visible
+    switch orientation
+      when 'vertical'
+        style.width = verticalScrollbarWidth
+        style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
+      when 'horizontal'
+        style.height = horizontalScrollbarHeight
+        style.right = verticalScrollbarWidth if scrollableInOppositeDirection
+
+    div {className, style, @onScroll},
       switch orientation
         when 'vertical'
           div className: 'scrollbar-content', style: {height: scrollHeight}
@@ -21,11 +32,13 @@ ScrollbarComponent = React.createClass
       throw new Error("Must specify an orientation property of 'vertical' or 'horizontal'")
 
   shouldComponentUpdate: (newProps) ->
+    return true if newProps.visible isnt @props.visible
+
     switch @props.orientation
       when 'vertical'
-        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop')
+        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection')
       when 'horizontal'
-        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft')
+        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection')
 
   componentDidUpdate: ->
     {orientation, scrollTop, scrollLeft} = @props

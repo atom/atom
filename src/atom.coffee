@@ -39,7 +39,7 @@ class Atom extends Model
   # Public: Load or create the Atom environment in the given mode.
   #
   # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
-  #         want to build.
+  #   want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
@@ -473,12 +473,15 @@ class Atom extends Model
   # Public: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     ipc.send('call-window-method', 'setFullScreen', fullScreen)
+    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
 
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
   # Public: Get the version of the Atom application.
+  #
+  # Returns the version text {String}.
   getVersion: ->
     @constructor.getVersion()
 
@@ -488,7 +491,7 @@ class Atom extends Model
 
   # Public: Get the directory path to Atom's configuration area.
   #
-  # Returns the absolute path to ~/.atom
+  # Returns the absolute path to `~/.atom`.
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 

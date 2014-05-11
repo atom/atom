@@ -1,9 +1,9 @@
-{extend, flatten, toArray} = require 'underscore-plus'
+{extend, flatten, toArray, last} = require 'underscore-plus'
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
-  [editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [contentNode, editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
 
   beforeEach ->
@@ -26,6 +26,9 @@ describe "EditorComponent", ->
       atom.project.open('sample.js').then (o) -> editor = o
 
     runs ->
+      contentNode = document.querySelector('#jasmine-content')
+      contentNode.style.width = '1000px'
+
       wrapperView = new ReactEditorView(editor)
       wrapperView.attachToDom()
       {component} = wrapperView
@@ -37,6 +40,9 @@ describe "EditorComponent", ->
       node = component.getDOMNode()
       verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
+
+  afterEach ->
+    contentNode.style.width = ''
 
   describe "line rendering", ->
     it "renders only the currently-visible lines", ->
@@ -187,6 +193,20 @@ describe "EditorComponent", ->
       expect(lines[3].textContent).toBe "#{nbsp}•"
       expect(lines[4].textContent).toBe "#{nbsp}3"
       expect(lines[5].textContent).toBe "#{nbsp}•"
+
+    it "pads line numbers to be right justified based on the maximum number of line number digits", ->
+      editor.getBuffer().setText([1..10].join('\n'))
+      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
+
+      for node, i in lineNumberNodes[0..8]
+        expect(node.textContent).toBe "#{nbsp}#{i + 1}"
+      expect(lineNumberNodes[9].textContent).toBe '10'
+
+      # Removes padding when the max number of digits goes down
+      editor.getBuffer().delete([[1, 0], [2, 0]])
+      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
+      for node, i in lineNumberNodes
+        expect(node.textContent).toBe "#{i + 1}"
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
@@ -528,6 +548,110 @@ describe "EditorComponent", ->
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       expect(editor.getScrollLeft()).toBe 100
+
+    it "does not obscure the last line with the horizontal scrollbar", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      editor.setScrollBottom(editor.getScrollHeight())
+      lastLineNode = last(node.querySelectorAll('.line'))
+      bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
+      topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
+      expect(bottomOfLastLine).toBe topOfHorizontalScrollbar
+
+      # Scroll so there's no space below the last line when the horizontal scrollbar disappears
+      node.style.width = 100 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      lastLineNode = last(node.querySelectorAll('.line'))
+      bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
+      bottomOfEditor = node.getBoundingClientRect().bottom
+      expect(bottomOfLastLine).toBe bottomOfEditor
+
+    it "does not obscure the last character of the longest line with the vertical scrollbar", ->
+      node.style.height = 7 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      editor.setScrollLeft(Infinity)
+
+      lineNodes = node.querySelectorAll('.line')
+      rightOfLongestLine = lineNodes[6].getBoundingClientRect().right
+      leftOfVerticalScrollbar = verticalScrollbarNode.getBoundingClientRect().left
+
+      expect(rightOfLongestLine).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
+
+    it "only displays dummy scrollbars when scrollable in that direction", ->
+      expect(verticalScrollbarNode.style.display).toBe 'none'
+      expect(horizontalScrollbarNode.style.display).toBe 'none'
+
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = '1000px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe ''
+      expect(horizontalScrollbarNode.style.display).toBe 'none'
+
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe ''
+      expect(horizontalScrollbarNode.style.display).toBe ''
+
+      node.style.height = 20 * lineHeightInPixels + 'px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.style.display).toBe 'none'
+      expect(horizontalScrollbarNode.style.display).toBe ''
+
+    it "makes the dummy scrollbar divs only as tall/wide as the actual scrollbars", ->
+      node.style.height = 4 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      atom.themes.applyStylesheet "test", """
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+      """
+
+      scrollbarCornerNode = node.querySelector('.scrollbar-corner')
+      expect(verticalScrollbarNode.offsetWidth).toBe 8
+      expect(horizontalScrollbarNode.offsetHeight).toBe 8
+      expect(scrollbarCornerNode.offsetWidth).toBe 8
+      expect(scrollbarCornerNode.offsetHeight).toBe 8
+
+    it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
+      scrollbarCornerNode = node.querySelector('.scrollbar-corner')
+
+      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe ''
+
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = '1000px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
+      expect(scrollbarCornerNode.style.display).toBe 'none'
+
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
+      expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
+      expect(scrollbarCornerNode.style.display).toBe ''
+
+      node.style.height = 20 * lineHeightInPixels + 'px'
+      component.measureHeightAndWidth()
+      expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
+      expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(scrollbarCornerNode.style.display).toBe 'none'
+
+    it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
+      gutterNode = node.querySelector('.gutter')
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
 
     describe "when a mousewheel event occurs on the editor", ->
       it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->

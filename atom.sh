@@ -1,17 +1,17 @@
 #!/bin/bash
 
-if [ "`uname`" == 'Darwin' ]; then
+if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
-elif [ "`expr substr $(uname -s) 1 5`" == 'Linux' ]; then
+elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
   OS='Linux'
-elif [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
+elif [ "$(expr substr $(uname -s) 1 10)" == 'MINGW32_NT' ]; then
   OS='Cygwin'
 else
-  echo "Your platform (`uname -a`) is not supported."
+  echo "Your platform ($(uname -a)) is not supported."
   exit 1
 fi
 
-while getopts ":wtfvhs-:" opt; do
+while getopts ":wtfvh-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
@@ -66,8 +66,8 @@ if [ $OS == 'Mac' ]; then
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
   fi
 elif [ $OS == 'Linux' ]; then
-  SCRIPT=`readlink -f "$0"`
-  USR_DIRECTORY=`readlink -f $(dirname $SCRIPT)/..`
+  SCRIPT=$(readlink -f "$0")
+  USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
   ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
 
   [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/Atom/atom'
