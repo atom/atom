@@ -143,40 +143,41 @@ describe "EditorComponent", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
 
-      lines = node.querySelectorAll('.line-number')
-      expect(lines.length).toBe 6
-      expect(lines[0].textContent).toBe "#{nbsp}1"
-      expect(lines[5].textContent).toBe "#{nbsp}6"
+      lineNumberNodes = node.querySelectorAll('.line-number')
+      expect(lineNumberNodes.length).toBe 6
+      expect(lineNumberNodes[0].textContent).toBe "#{nbsp}1"
+      expect(lineNumberNodes[5].textContent).toBe "#{nbsp}6"
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      expect(node.querySelector('.line-numbers').style['-webkit-transform']).toBe "translate3d(0, #{-2.5 * lineHeightInPixels}px, 0)"
-
       lineNumberNodes = node.querySelectorAll('.line-number')
       expect(lineNumberNodes.length).toBe 6
-      expect(lineNumberNodes[0].offsetTop).toBe 2 * lineHeightInPixels
-      expect(lineNumberNodes[5].offsetTop).toBe 7 * lineHeightInPixels
+
       expect(lineNumberNodes[0].textContent).toBe "#{nbsp}3"
+      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{-.5 * lineHeightInPixels}px, 0px)"
       expect(lineNumberNodes[5].textContent).toBe "#{nbsp}8"
+      expect(lineNumberNodes[5].style['-webkit-transform']).toBe "translate3d(0px, #{4.5 * lineHeightInPixels}px, 0px)"
 
-    it "updates absolute positions of subsequent line numbers when lines are inserted or removed", ->
+    it "updates the translation of subsequent line numbers when lines are inserted or removed", ->
       editor.getBuffer().insert([0, 0], '\n\n')
 
       lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes[0].offsetTop).toBe 0
-      expect(lineNumberNodes[1].offsetTop).toBe 1 * lineHeightInPixels
-      expect(lineNumberNodes[2].offsetTop).toBe 2 * lineHeightInPixels
-      expect(lineNumberNodes[3].offsetTop).toBe 3 * lineHeightInPixels
-      expect(lineNumberNodes[4].offsetTop).toBe 4 * lineHeightInPixels
+      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
+      expect(lineNumberNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
 
       editor.getBuffer().insert([0, 0], '\n\n')
       lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes[0].offsetTop).toBe 0
-      expect(lineNumberNodes[1].offsetTop).toBe 1 * lineHeightInPixels
-      expect(lineNumberNodes[2].offsetTop).toBe 2 * lineHeightInPixels
-      expect(lineNumberNodes[3].offsetTop).toBe 3 * lineHeightInPixels
-      expect(lineNumberNodes[4].offsetTop).toBe 4 * lineHeightInPixels
+      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
+      expect(lineNumberNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[5].style['-webkit-transform']).toBe "translate3d(0px, #{5 * lineHeightInPixels}px, 0px)"
+      expect(lineNumberNodes[6].style['-webkit-transform']).toBe "translate3d(0px, #{6 * lineHeightInPixels}px, 0px)"
 
     it "renders • characters for soft-wrapped lines", ->
       editor.setSoftWrap(true)
