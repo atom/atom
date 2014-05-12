@@ -5,10 +5,10 @@
   * Windows 7 or later
   * [Visual C++ 2010 SP1 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
   * [node.js - 32bit](http://nodejs.org/download/) v0.10.x
-  * [Python 2.7.x](http://www.python.org/download/)
+  * [Python 2.7.x](http://www.python.org/download/) (won't work with Python 3.4.x)
   * [GitHub for Windows](http://windows.github.com/)
     to your PATH
-  * Open the Windows GitHub shell (NOT the Standard PowerShell, the shortcut labeled 'Git Shell' - make sure you have logged in at least once to the GitHub for Windows GUI App)
+  * Open the Windows GitHub shell (NOT the Standard PowerShell or Windows Command Prompt, but the shortcut labeled 'Git Shell' or 'Git Bash' - make sure you have logged in at least once to the GitHub for Windows GUI App)
   * `$env:Path = $env:Path + ";C:\path\to\atom\repo\node_modules"`
 
 ## Instructions
@@ -35,8 +35,13 @@ and
 
 These two error messages can usually be ignored. The solution to these errors is to re-run `script\build`, possibly several times.
 
+If you got some git clone errors during building (npm error 128), you are probably behind a firewall. Try building with a direct connection to the Internet.
+
 If your Visual Studio is in a non-standard location, and you get the error `You must have Visual Studio 2010 or 2012 installed`, you need to modify `apm\node_modules\atom-package-manager\lib\config.js` around line 90 and replace the variable with your Visual Studio directory plus Common7/IDE.
 
 Example:
 
     vs2010Path = "H:/VS2010/Common7/IDE"
+    
+    
+If you have an error with the 'runas' module of nodejs, be sure to use Python 2.7.x because it won't work with Python 3.4.x.
