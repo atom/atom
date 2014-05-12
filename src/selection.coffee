@@ -553,6 +553,12 @@ class Selection extends Model
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
 
+  intersectsScreenRowRange: (startRow, endRow) ->
+    @getScreenRange().intersectsRowRange(startRow, endRow)
+
+  intersectsScreenRow: (screenRow) ->
+    @getScreenRange().intersectsRow(screenRow)
+
   # Public: Identifies if a selection intersects with another selection.
   #
   # otherSelection - A {Selection} to check against.
@@ -625,6 +631,19 @@ class Selection extends Model
       rects.push {top: endPixelPosition.top, height: lineHeight, left: 0, width: endPixelPosition.left }
 
     rects
+
+  regionRectForScreenRow: (screenRow) ->
+    {start, end} = @getScreenRange()
+    region = {height: @editor.getLineHeight(), top: 0, left: 0}
+
+    if screenRow is start.row
+      region.left = @editor.pixelPositionForScreenPosition(start).left
+
+    if screenRow is end.row
+      region.width = @editor.pixelPositionForScreenPosition(end).left - region.left
+
+    region.right = 0 unless region.width?
+    region
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()

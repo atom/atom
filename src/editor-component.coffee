@@ -20,6 +20,7 @@ EditorComponent = React.createClass
   batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
+  selectionChanged: false
   scrollingVertically: false
   gutterWidth: 0
   refreshingScrollbars: false
@@ -55,9 +56,9 @@ EditorComponent = React.createClass
       }
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide
-        lineHeight: lineHeightInPixels, visibleRowRange, @pendingChanges
-        scrollTop, scrollLeft, @scrollingVertically, @cursorsMoved,
+        ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
+        lineHeight: lineHeightInPixels, visibleRowRange, @pendingChanges,
+        scrollTop, scrollLeft, @scrollingVertically, @cursorsMoved, @selectionChanged,
         cursorBlinkPeriod, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
       }
 
@@ -124,6 +125,7 @@ EditorComponent = React.createClass
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
+    @selectionChanged = false
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
@@ -134,9 +136,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'cursors-moved', @onCursorsMoved
-    @subscribe editor, 'selection-screen-range-changed', @requestUpdate
-    @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'selection-removed', @onSelectionAdded
+    @subscribe editor, 'selection-added selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -376,9 +376,11 @@ EditorComponent = React.createClass
     @pendingChanges.push(change)
     @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
-  onSelectionAdded: (selection) ->
+  onSelectionChanged: (selection) ->
     {editor} = @props
-    @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @requestUpdate()
 
   onScrollTopChanged: ->
     @scrollingVertically = true
@@ -391,10 +393,6 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   stopScrollingAfterDelay: null # created lazily
-
-  onSelectionRemoved: (selection) ->
-    {editor} = @props
-    @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
 
   onCursorsMoved: ->
     @cursorsMoved = true

@@ -17,7 +17,7 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically} = @props
+    {visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically, selectionChanged} = @props
     {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
@@ -36,7 +36,8 @@ EditorScrollViewComponent = React.createClass
       CursorsComponent({editor, scrollTop, scrollLeft, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
       LinesComponent {
         ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-        visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically
+        visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
+        selectionChanged
       }
       div className: 'underlayer',
         SelectionsComponent({editor, scrollTop, scrollLeft})

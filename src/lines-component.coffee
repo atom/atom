@@ -12,15 +12,17 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide} = @props
+      {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide, selectionChanged} = @props
       [startRow, endRow] = visibleRowRange
+      visibleSelections = editor.selectionsForScreenRows(startRow, endRow - 1)
       verticalScrollOffset = -scrollTop % lineHeight
       horizontalScrollOffset = -scrollLeft
 
       lines =
         for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
           screenRow = startRow + index
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow})
+          selections = visibleSelections.filter (selection) -> selection.intersectsScreenRow(screenRow)
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow, selections, selectionChanged})
 
     div {className: 'lines'}, lines
 
@@ -31,6 +33,7 @@ LinesComponent = React.createClass
     @measureLineHeightAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
+    return true if newProps.selectionChanged
     return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
 
     {visibleRowRange, pendingChanges} = newProps
@@ -112,9 +115,11 @@ LineComponent = React.createClass
     left = horizontalScrollOffset
     style = WebkitTransform: "translate3d(#{left}px, #{top}px, 0px)"
 
-    div className: 'line editor-colors', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    div className: 'line editor-colors', style: style, 'data-screen-row': screenRow,
+      span dangerouslySetInnerHTML: {__html: @buildTokensHTML()}
+      @renderSelections()
 
-  buildInnerHTML: ->
+  buildTokensHTML: ->
     if @props.tokenizedLine.text.length is 0
       @buildEmptyLineHTML()
     else
@@ -139,5 +144,12 @@ LineComponent = React.createClass
     else
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
+  renderSelections: ->
+    {selections, screenRow} = @props
+    for selection in selections
+      div className: 'selection', key: selection.id,
+        div className: 'region', style: selection.regionRectForScreenRow(screenRow)
+
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')
+    return true unless isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')
+    newProps.selectionChanged and (newProps.selections.length > 0 or @props.selections.length > 0)

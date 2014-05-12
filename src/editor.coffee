@@ -1259,6 +1259,9 @@ class Editor extends Model
   # Returns: An {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
 
+  selectionsForScreenRows: (startRow, endRow) ->
+    @getSelections().filter (selection) -> selection.intersectsScreenRowRange(startRow, endRow)
+
   # Public: Get the most recent {Selection} or the selection at the given
   # index.
   #
