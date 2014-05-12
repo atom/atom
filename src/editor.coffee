@@ -144,6 +144,7 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
+  isPreview: false
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -161,6 +162,7 @@ class Editor extends Model
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+    @isPreview = true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -1776,6 +1778,15 @@ class Editor extends Model
 
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
+
+  closePreview: ->
+    longname = @getUri()
+    console.log @isPreview
+    console.log @isModified()
+    console.log longname
+    if @isPreview and not @isModified()
+      console.log "#{longname} should close"
+      @destroy()
 
   # Public: Batch multiple operations as a single undo/redo step.
   #

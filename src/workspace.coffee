@@ -99,6 +99,9 @@ class Workspace extends Model
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (uri, options={}) ->
+
+    editor.closePreview() for editor in @getEditors()
+
     searchAllPanes = options.searchAllPanes
     split = options.split
     uri = atom.project.resolve(uri)
