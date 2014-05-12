@@ -8,8 +8,6 @@ async = require 'async'
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
 
-  packageSpecQueue = null
-
   runPackageSpecs = (callback) ->
     failedPackages = []
     rootDir = grunt.config.get('atom.shellAppDir')
@@ -19,6 +17,8 @@ module.exports = (grunt) ->
       appPath = path.join(contentsDir, 'MacOS', 'Atom')
     else if process.platform is 'win32'
       appPath = path.join(contentsDir, 'atom.exe')
+    else
+      appPath = path.join(contentsDir, 'atom')
 
     packageSpecQueue = async.queue (packagePath, callback) ->
       if process.platform is 'darwin'
@@ -31,7 +31,15 @@ module.exports = (grunt) ->
       else if process.platform is 'win32'
         options =
           cmd: process.env.comspec
+          # FIXME: CI settings should have their own flag
           args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
+          opts:
+            cwd: packagePath
+            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+      else
+        options =
+          cmd: appPath
+          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
           opts:
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
@@ -39,23 +47,32 @@ module.exports = (grunt) ->
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
         if process.platform is 'win32'
+          # FIXME: This is CI dependent, not platform dependent
           process.stderr.write(fs.readFileSync(path.join(packagePath, 'ci.log')))
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
         callback()
 
+    # TODO: Check concurrency on other platforms
+    if process.platform is 'win32'
+      packageSpecQueue.concurrency = 2
+    else
+      packageSpecQueue.concurrency = 1
+
+    # When all specs are finished, report the results
+    packageSpecQueue.drain = -> callback(null, failedPackages)
+    # First gather package specs
+    tasks = []
     modulesDirectory = path.resolve('node_modules')
     for packageDirectory in fs.readdirSync(modulesDirectory)
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
-      packageSpecQueue.push(packagePath)
-
-    # TODO: Restore concurrency on Windows
-    packageSpecQueue.concurrency = 1 unless process.platform is 'win32'
-
-    packageSpecQueue.drain = -> callback(null, failedPackages)
+      tasks.push(packagePath)
+    # Now add them all in one go to avoid race conditions between pushing and
+    # drain
+    packageSpecQueue.push(tasks)
 
   runCoreSpecs = (callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
@@ -63,25 +80,25 @@ module.exports = (grunt) ->
       appPath = path.join(contentsDir, 'MacOS', 'Atom')
     else if process.platform is 'win32'
       appPath = path.join(contentsDir, 'atom.exe')
+    else
+      appPath = path.join(contentsDir, 'atom')
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
-    if process.platform is 'darwin'
-      options =
-        cmd: appPath
-        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
-    else if process.platform is 'win32'
+    if process.platform is 'win32'
       options =
         cmd: process.env.comspec
         args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
+    else
+      options =
+        cmd: appPath
+        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
 
     spawn options, (error, results, code) ->
       if process.platform is 'win32'
+        # FIXME: This is CI dependent, not platform dependent
         process.stderr.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
-      else
-        # TODO: Restore concurrency on Windows
-        packageSpecQueue.concurrency = 2
 
       callback(null, error)
 
@@ -93,7 +110,7 @@ module.exports = (grunt) ->
     # fixtures step on each others toes currently.
     if process.platform is 'darwin'
       method = async.parallel
-    else if process.platform is 'win32'
+    else
       method = async.series
 
     method [runCoreSpecs, runPackageSpecs], (error, results) ->
@@ -106,7 +123,7 @@ module.exports = (grunt) ->
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
       # TODO: Mark the build as green on Windows until specs pass.
-      if process.platform is 'darwin'
-        done(!coreSpecFailed and failedPackages.length == 0)
-      else if process.platform is 'win32'
+      if process.platform is 'win32'
         done(true)
+      else
+        done(!coreSpecFailed and failedPackages.length == 0)
