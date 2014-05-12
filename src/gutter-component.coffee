@@ -21,8 +21,8 @@ GutterComponent = React.createClass
           @renderLineNumberForMeasurement()
 
   renderLineNumbers: ->
-    {editor, renderedRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
-    [startRow, endRow] = renderedRowRange
+    {editor, visibleRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
+    [startRow, endRow] = visibleRowRange
     maxLineNumberDigits = @getMaxLineNumberDigits()
     scrollOffset = -scrollTop % lineHeight
     wrapCount = 0
@@ -56,11 +56,11 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeight', 'fontSize')
+    return true unless isEqualForProperties(newProps, @props, 'visibleRowRange', 'scrollTop', 'lineHeight', 'fontSize')
 
-    {renderedRowRange, pendingChanges} = newProps
+    {visibleRowRange, pendingChanges} = newProps
     for change in pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
-      return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
+      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
 
     false
 

@@ -33,7 +33,7 @@ EditorComponent = React.createClass
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
     if @isMounted()
-      renderedRowRange = editor.getVisibleRowRange()
+      visibleRowRange = editor.getVisibleRowRange()
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -49,14 +49,14 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
+        editor, visibleRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
         lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
         width: @gutterWidth, onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide
-        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges
+        lineHeight: lineHeightInPixels, visibleRowRange, @pendingChanges
         scrollTop, scrollLeft, @scrollingVertically, @cursorsMoved,
         cursorBlinkPeriod, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
       }
