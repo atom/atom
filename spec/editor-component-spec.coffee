@@ -209,19 +209,19 @@ describe "EditorComponent", ->
         expect(node.textContent).toBe "#{i + 1}"
 
   describe "cursor rendering", ->
-    it "renders the currently visible cursors", ->
+    it "renders the currently visible cursors, translated relative to the scroll position", ->
       cursor1 = editor.getCursor()
       cursor1.setScreenPosition([0, 5])
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
       expect(cursorNodes[0].offsetHeight).toBe lineHeightInPixels
       expect(cursorNodes[0].offsetWidth).toBe charWidth
-      expect(cursorNodes[0].offsetTop).toBe 0
-      expect(cursorNodes[0].offsetLeft).toBe 5 * charWidth
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
 
       cursor2 = editor.addCursorAtScreenPosition([6, 11])
       cursor3 = editor.addCursorAtScreenPosition([4, 10])
@@ -229,25 +229,23 @@ describe "EditorComponent", ->
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
       expect(cursorNodes[0].offsetTop).toBe 0
-      expect(cursorNodes[0].offsetLeft).toBe 5 * charWidth
-      expect(cursorNodes[1].offsetTop).toBe 4 * lineHeightInPixels
-      expect(cursorNodes[1].offsetLeft).toBe 10 * charWidth
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{10 * charWidth}px, #{4 * lineHeightInPixels}px, 0px)"
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
+      horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
-      expect(cursorNodes[0].offsetTop).toBe 6 * lineHeightInPixels
-      expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
-      expect(cursorNodes[1].offsetTop).toBe 4 * lineHeightInPixels
-      expect(cursorNodes[1].offsetLeft).toBe 10 * charWidth
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(6 - 2.5) * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 2.5) * lineHeightInPixels}px, 0px)"
 
       cursor3.destroy()
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
-      expect(cursorNodes[0].offsetTop).toBe 6 * lineHeightInPixels
-      expect(cursorNodes[0].offsetLeft).toBe 11 * charWidth
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(6 - 2.5) * lineHeightInPixels}px, 0px)"
 
     it "accounts for character widths when positioning cursors", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
@@ -330,8 +328,7 @@ describe "EditorComponent", ->
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
-      expect(cursorNodes[0].offsetTop).toBe 6 * lineHeightInPixels
-      expect(cursorNodes[0].offsetLeft).toBe 8 * charWidth
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{8 * charWidth}px, #{6 * lineHeightInPixels}px, 0px)"
 
   describe "selection rendering", ->
     scrollViewClientLeft = null

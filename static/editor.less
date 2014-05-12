@@ -13,9 +13,15 @@
   }
 
   .lines {
+    z-index: 0;
+
     > .line {
       position: absolute;
     }
+  }
+
+  .cursor {
+    z-index: 1;
   }
 
   .horizontal-scrollbar {
@@ -47,6 +53,7 @@
 
   .scroll-view {
     overflow: hidden;
+    z-index: 0;
   }
 
   .scroll-view-content {

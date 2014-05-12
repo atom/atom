@@ -13,7 +13,7 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {editor, scrollTop} = @props
+    {editor, scrollTop, scrollLeft} = @props
     blinkOff = @state.blinkCursorsOff
 
     div className: 'cursors',
@@ -21,7 +21,7 @@ CursorsComponent = React.createClass
         for selection in editor.getSelections()
           if selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection)
             {cursor} = selection
-            CursorComponent({key: cursor.id, cursor, scrollTop, blinkOff})
+            CursorComponent({key: cursor.id, cursor, scrollTop, scrollLeft, blinkOff})
 
   getInitialState: ->
     blinkCursorsOff: false

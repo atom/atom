@@ -6,9 +6,10 @@ CursorComponent = React.createClass
   displayName: 'CursorComponent'
 
   render: ->
-    {cursor, scrollTop} = @props
+    {cursor, scrollTop, scrollLeft} = @props
     {top, left, height, width} = cursor.getPixelRect()
     top -= scrollTop
+    left -= scrollLeft
 
     className = 'cursor'
     className += ' blink-off' if @props.blinkOff
