@@ -20,6 +20,8 @@ module.exports =
         child_process.exec 'mdfind "kMDItemCFBundleIdentifier == \'com.github.atom\'"', (error, stdout='', stderr) ->
           appLocation = stdout.split('\n')[0] ? '/Applications/Atom.app'
           callback("#{appLocation}/Contents/Resources/app")
+      if process.platform is 'win32'
+        process.nextTick -> callback('../../../..')
       else
         process.nextTick -> callback('/usr/local/share/atom/resources/app')
 
