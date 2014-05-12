@@ -2063,17 +2063,44 @@ describe "Editor", ->
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
+          editor.setSelectedBufferRanges([[[0,4], [0,13]], [[1,6], [1, 10]], [[2,8], [2, 13]]])
+
           editor.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect(clipboard.readText()).toBe 'quicksort\nsort'
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
+          expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+            'quicksort'
+            'sort'
+            'items'
+          ])
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
           atom.clipboard.write('first')
           editor.pasteText()
-          expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
-          expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
+          expect(editor.lineForBufferRow(0)).toBe "var first = function () {"
+          expect(editor.lineForBufferRow(1)).toBe "  var first = function(items) {"
+
+        describe 'when the clipboard has many selections', ->
+          it "pastes each selection separately into the buffer", ->
+            atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
+            editor.pasteText()
+            expect(editor.lineForBufferRow(0)).toBe "var first = function () {"
+            expect(editor.lineForBufferRow(1)).toBe "  var second = function(items) {"
+
+          describe 'and the selections count does not match', ->
+            it "pastes the whole text into the buffer", ->
+              atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
+              editor.pasteText()
+              expect(editor.lineForBufferRow(0)).toBe "var first"
+              expect(editor.lineForBufferRow(1)).toBe "second"
+              expect(editor.lineForBufferRow(2)).toBe "third = function () {"
+
+              expect(editor.lineForBufferRow(3)).toBe "  var first"
+              expect(editor.lineForBufferRow(4)).toBe "second"
+              expect(editor.lineForBufferRow(5)).toBe "third = function(items) {"
 
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
