@@ -41,6 +41,10 @@ describe "EditorComponent", ->
       verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = node.querySelector('.horizontal-scrollbar')
 
+      node.style.height = editor.getLineCount() * lineHeightInPixels + 'px'
+      node.style.width = '1000px'
+      component.measureHeightAndWidth()
+
   afterEach ->
     contentNode.style.width = ''
 
