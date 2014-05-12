@@ -77,7 +77,7 @@ LineNumberComponent = React.createClass
   render: ->
     {index, lineHeight, scrollOffset} = @props
     div
-      className: "line-number"
+      className: "line-number editor-colors"
       style: {WebkitTransform: "translate3d(0px, #{index * lineHeight + scrollOffset}px, 0px)"}
       dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 

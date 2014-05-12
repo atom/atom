@@ -112,7 +112,7 @@ LineComponent = React.createClass
     left = horizontalScrollOffset
     style = WebkitTransform: "translate3d(#{left}px, #{top}px, 0px)"
 
-    div className: 'line', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    div className: 'line editor-colors', style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   buildInnerHTML: ->
     if @props.tokenizedLine.text.length is 0
