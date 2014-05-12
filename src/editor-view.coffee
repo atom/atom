@@ -56,6 +56,7 @@ class EditorView extends View
     softWrap: false
     softTabs: true
     softWrapAtPreferredLineLength: false
+    previewMode: false
 
   @nextEditorId: 1
 

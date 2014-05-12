@@ -162,7 +162,7 @@ class Editor extends Model
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-    @isPreview = true
+    @isPreview = atom.config.get('editor.previewMode') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -1779,13 +1779,10 @@ class Editor extends Model
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
 
+  # Close editors in preview mode
   closePreview: ->
     longname = @getUri()
-    console.log @isPreview
-    console.log @isModified()
-    console.log longname
     if @isPreview and not @isModified()
-      console.log "#{longname} should close"
       @destroy()
 
   # Public: Batch multiple operations as a single undo/redo step.
