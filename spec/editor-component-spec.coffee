@@ -524,16 +524,18 @@ describe "EditorComponent", ->
       editor.setScrollTop(10)
       expect(verticalScrollbarNode.scrollTop).toBe 10
 
-    it "updates the horizontal scrollbar and scroll view content x transform based on the scrollLeft of the model", ->
+    it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       node.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
 
-      scrollViewContentNode = node.querySelector('.scroll-view-content')
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0)"
+      lineNodes = node.querySelectorAll('.line')
+      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
+      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
-      expect(scrollViewContentNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0)"
+      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
+      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(-100px, #{4 * lineHeightInPixels}px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
