@@ -1,4 +1,8 @@
 'body':
+  # Platform Bindings
+  'ctrl-pageup': 'pane:show-previous-item'
+  'ctrl-pagedown': 'pane:show-next-item'
+
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -10,8 +14,6 @@
   'ctrl-alt-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
   'ctrl-alt-s': 'application:run-all-specs'
-  'ctrl-pageup': 'pane:show-previous-item'
-  'ctrl-pagedown': 'pane:show-next-item'
 
   # Sublime Parity
   'ctrl-N': 'application:new-window'
