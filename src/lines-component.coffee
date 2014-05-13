@@ -14,17 +14,40 @@ LinesComponent = React.createClass
     if @isMounted()
       {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide, selectionChanged} = @props
       [startRow, endRow] = visibleRowRange
-      visibleSelections = editor.selectionsForScreenRows(startRow, endRow - 1)
+      selectionRegionsByScreenRow = @getVisibleSelectionRegions()
       verticalScrollOffset = -scrollTop % lineHeight
       horizontalScrollOffset = -scrollLeft
 
       lines =
         for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
           screenRow = startRow + index
-          selections = visibleSelections.filter (selection) -> not selection.isEmpty() and selection.intersectsScreenRow(screenRow)
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow, selections, selectionChanged})
+          selectionRegions = selectionRegionsByScreenRow[screenRow]
+          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow, selectionRegions})
 
     div {className: 'lines'}, lines
+
+  getVisibleSelectionRegions: ->
+    {editor, visibleRowRange, lineHeight} = @props
+    [visibleStartRow, visibleEndRow] = visibleRowRange
+    regions = {}
+
+    for selection in editor.selectionsForScreenRows(visibleStartRow, visibleEndRow - 1) when not selection.isEmpty()
+      {start, end} = selection.getScreenRange()
+
+      for screenRow in [start.row..end.row]
+        region = {id: selection.id, top: 0, left: 0, height: lineHeight}
+
+        if screenRow is start.row
+          region.left = editor.pixelPositionForScreenPosition(start).left
+        if screenRow is end.row
+          region.width = editor.pixelPositionForScreenPosition(end).left - region.left
+        else
+          region.right = 0
+
+        regions[screenRow] ?= []
+        regions[screenRow].push(region)
+
+    regions
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -145,11 +168,11 @@ LineComponent = React.createClass
       "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
 
   renderSelections: ->
-    {selections, screenRow} = @props
-    for selection in selections
-      div className: 'selection', key: selection.id,
-        div className: 'region', style: selection.regionRectForScreenRow(screenRow)
+    {selectionRegions} = @props
+    if selectionRegions?
+      for region in selectionRegions
+        div className: 'selection', key: region.id,
+          div className: 'region', style: region
 
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')
-    newProps.selectionChanged and (newProps.selections.length > 0 or @props.selections.length > 0)
+    return true unless isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'selectionRegions', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')

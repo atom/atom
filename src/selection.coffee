@@ -591,19 +591,6 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  regionRectForScreenRow: (screenRow) ->
-    {start, end} = @getScreenRange()
-    region = {height: @editor.getLineHeight(), top: 0, left: 0}
-
-    if screenRow is start.row
-      region.left = @editor.pixelPositionForScreenPosition(start).left
-
-    if screenRow is end.row
-      region.width = @editor.pixelPositionForScreenPosition(end).left - region.left
-
-    region.right = 0 unless region.width?
-    region
-
   getBackgroundRect: ->
     {start, end} = @getScreenRange()
     return if start.row is end.row
