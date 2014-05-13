@@ -335,62 +335,57 @@ describe "EditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{8 * charWidth}px, #{6 * lineHeightInPixels}px, 0px)"
 
   describe "selection rendering", ->
-    scrollViewClientLeft = null
+    [scrollViewNode, scrollViewClientLeft] = []
 
     beforeEach ->
+      scrollViewNode = node.querySelector('.scroll-view')
       scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
 
-    it "renders 1 region for 1-line selections", ->
-      # 1-line selection
-      editor.setSelectedScreenRange([[1, 6], [1, 10]])
-      regions = node.querySelectorAll('.selection .region')
+    describe "for single line selections", ->
+      it "renders 1 region on the line and no background region", ->
+        # 1-line selection
+        editor.setSelectedScreenRange([[1, 6], [1, 10]])
+        lineNodes = node.querySelectorAll('.line')
+        line1Region = lineNodes[1].querySelector('.selection .region')
+        regionRect = line1Region.getBoundingClientRect()
+        expect(regionRect.top).toBe 1 * lineHeightInPixels
+        expect(regionRect.height).toBe 1 * lineHeightInPixels
+        expect(regionRect.left).toBe scrollViewClientLeft + 6 * charWidth
+        expect(regionRect.width).toBe 4 * charWidth
 
-      expect(regions.length).toBe 1
-      regionRect = regions[0].getBoundingClientRect()
-      expect(regionRect.top).toBe 1 * lineHeightInPixels
-      expect(regionRect.height).toBe 1 * lineHeightInPixels
-      expect(regionRect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(regionRect.width).toBe 4 * charWidth
+        expect(node.querySelectorAll('.underlayer .selection .region').length).toBe 0
 
-    it "renders 2 regions for 2-line selections", ->
-      editor.setSelectedScreenRange([[1, 6], [2, 10]])
-      regions = node.querySelectorAll('.selection .region')
-      expect(regions.length).toBe 2
+    describe "for multi-line selections", ->
+      it "renders a region on each line and a full-width background region from the first line to the penultimate line", ->
+        editor.setSelectedScreenRange([[1, 6], [3, 10]])
 
-      region1Rect = regions[0].getBoundingClientRect()
-      expect(region1Rect.top).toBe 1 * lineHeightInPixels
-      expect(region1Rect.height).toBe 1 * lineHeightInPixels
-      expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(Math.ceil(region1Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
+        lineNodes = node.querySelectorAll('.line')
+        region1Rect = lineNodes[1].querySelector('.selection .region').getBoundingClientRect()
+        expect(region1Rect.top).toBe 1 * lineHeightInPixels
+        expect(region1Rect.height).toBe 1 * lineHeightInPixels
+        expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
+        expect(region1Rect.right).toBe scrollViewClientLeft + lineNodes[1].offsetWidth
 
-      region2Rect = regions[1].getBoundingClientRect()
-      expect(region2Rect.top).toBe 2 * lineHeightInPixels
-      expect(region2Rect.height).toBe 1 * lineHeightInPixels
-      expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(region2Rect.width).toBe 10 * charWidth
+        region2Rect = lineNodes[2].querySelector('.selection .region').getBoundingClientRect()
+        expect(region2Rect.top).toBe 2 * lineHeightInPixels
+        expect(region2Rect.height).toBe 1 * lineHeightInPixels
+        expect(region2Rect.left).toBe scrollViewClientLeft
+        expect(region2Rect.width).toBe lineNodes[2].offsetWidth
 
-    it "renders 3 regions for selections with more than 2 lines", ->
-      editor.setSelectedScreenRange([[1, 6], [5, 10]])
-      regions = node.querySelectorAll('.selection .region')
-      expect(regions.length).toBe 3
+        region3Rect = lineNodes[3].querySelector('.selection .region').getBoundingClientRect()
+        expect(region3Rect.top).toBe 3 * lineHeightInPixels
+        expect(region3Rect.height).toBe 1 * lineHeightInPixels
+        expect(region3Rect.left).toBe scrollViewClientLeft + 0
+        expect(region3Rect.width).toBe 10 * charWidth
 
-      region1Rect = regions[0].getBoundingClientRect()
-      expect(region1Rect.top).toBe 1 * lineHeightInPixels
-      expect(region1Rect.height).toBe 1 * lineHeightInPixels
-      expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(Math.ceil(region1Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
+        backgroundNodes = node.querySelectorAll('.underlayer .selection .region')
+        expect(backgroundNodes.length).toBe 1
+        backgroundRegionRect = backgroundNodes[0].getBoundingClientRect()
 
-      region2Rect = regions[1].getBoundingClientRect()
-      expect(region2Rect.top).toBe 2 * lineHeightInPixels
-      expect(region2Rect.height).toBe 3 * lineHeightInPixels
-      expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(Math.ceil(region2Rect.right)).toBe node.clientWidth # TODO: Remove ceiling when react-wrapper is removed
-
-      region3Rect = regions[2].getBoundingClientRect()
-      expect(region3Rect.top).toBe 5 * lineHeightInPixels
-      expect(region3Rect.height).toBe 1 * lineHeightInPixels
-      expect(region3Rect.left).toBe scrollViewClientLeft + 0
-      expect(region3Rect.width).toBe 10 * charWidth
+        expect(backgroundRegionRect.top).toBe 1 * lineHeightInPixels
+        expect(backgroundRegionRect.left).toBe scrollViewClientLeft
+        expect(backgroundRegionRect.width).toBe scrollViewNode.offsetWidth
+        expect(backgroundRegionRect.height).toBe 2 * lineHeightInPixels
 
     it "does not render empty selections", ->
       expect(editor.getSelection().isEmpty()).toBe true
