@@ -205,6 +205,8 @@ class Editor extends Model
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
+    @subscribe @buffer, "contents-modified", (obj) => @disablePreview(obj)
+    @subscribe @buffer, "saved", (obj) => @disablePreview(obj)
     @subscribe @buffer, "destroyed", => @destroy()
     @preserveCursorPositionOnBufferReload()
 
@@ -1781,9 +1783,13 @@ class Editor extends Model
 
   # Close editors in preview mode
   closePreview: ->
-    longname = @getUri()
     if @isPreview and not @isModified()
       @destroy()
+
+  #disable preview after
+  disablePreview: (obj) ->
+    if obj is true or typeof obj is "object"
+      @isPreview = false
 
   # Public: Batch multiple operations as a single undo/redo step.
   #
