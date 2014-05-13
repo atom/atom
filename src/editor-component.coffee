@@ -21,6 +21,7 @@ EditorComponent = React.createClass
   updateRequested: false
   cursorsMoved: false
   selectionChanged: false
+  selectionAdded: false
   scrollingVertically: false
   gutterWidth: 0
   refreshingScrollbars: false
@@ -59,7 +60,7 @@ EditorComponent = React.createClass
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
         lineHeight: lineHeightInPixels, visibleRowRange, @pendingChanges,
         scrollTop, scrollLeft, @scrollingVertically, @cursorsMoved, @selectionChanged,
-        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
+        @selectionAdded, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
       }
 
       ScrollbarComponent
@@ -125,6 +126,7 @@ EditorComponent = React.createClass
     @pendingChanges.length = 0
     @cursorsMoved = false
     @selectionChanged = false
+    @selectionAdded = false
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
@@ -135,7 +137,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'cursors-moved', @onCursorsMoved
-    @subscribe editor, 'selection-added selection-removed selection-screen-range-changed', @onSelectionChanged
+    @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
+    @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -379,6 +382,13 @@ EditorComponent = React.createClass
     {editor} = @props
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
+      @requestUpdate()
+
+  onSelectionAdded: (selection) ->
+    {editor} = @props
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @selectionAdded = true
       @requestUpdate()
 
   onScrollTopChanged: ->

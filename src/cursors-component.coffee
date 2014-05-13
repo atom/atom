@@ -1,6 +1,6 @@
 React = require 'react'
 {div} = require 'reactionary'
-{debounce} = require 'underscore-plus'
+{debounce, toArray} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
 CursorComponent = require './cursor-component'
 
@@ -37,6 +37,9 @@ CursorsComponent = React.createClass
   componentWillUpdate: ({cursorsMoved}) ->
     @pauseCursorBlinking() if cursorsMoved
 
+  componentDidUpdate: ->
+    @syncCursorAnimations() if @props.selectionAdded
+
   startBlinkingCursors: ->
     @setState(blinking: true) if @isMounted()
 
@@ -46,3 +49,9 @@ CursorsComponent = React.createClass
     @state.blinking = false
     @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
     @startBlinkingCursorsAfterDelay()
+
+  syncCursorAnimations: ->
+    node = @getDOMNode()
+    cursorNodes = toArray(node.children)
+    node.removeChild(cursorNode) for cursorNode in cursorNodes
+    node.appendChild(cursorNode) for cursorNode in cursorNodes
