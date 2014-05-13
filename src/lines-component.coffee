@@ -3,6 +3,8 @@ React = require 'react'
 {debounce, isEqual, isEqualForProperties, multiplyString} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
+EditorView = require './editor-view'
+
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 
@@ -11,20 +13,7 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    if @isMounted()
-      {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide, selectionChanged} = @props
-      [startRow, endRow] = visibleRowRange
-      selectionRegionsByScreenRow = @getVisibleSelectionRegions()
-      verticalScrollOffset = -scrollTop % lineHeight
-      horizontalScrollOffset = -scrollLeft
-
-      lines =
-        for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
-          screenRow = startRow + index
-          selectionRegions = selectionRegionsByScreenRow[screenRow]
-          LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow, selectionRegions})
-
-    div {className: 'lines'}, lines
+    div {className: 'lines'}
 
   getVisibleSelectionRegions: ->
     {editor, visibleRowRange, lineHeight} = @props
@@ -51,6 +40,7 @@ LinesComponent = React.createClass
 
   componentWillMount: ->
     @measuredLines = new WeakSet
+    @lineNodesByLineId = {}
 
   componentDidMount: ->
     @measureLineHeightAndCharWidth()
@@ -66,9 +56,66 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
+    @updateRenderedLines()
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically
+
+  updateRenderedLines: ->
+    {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide, selectionChanged} = @props
+    [startRow, endRow] = visibleRowRange
+    verticalScrollOffset = -scrollTop % lineHeight
+    horizontalScrollOffset = -scrollLeft
+
+    node = @getDOMNode()
+
+    currentLineIds = new Set
+    lines = editor.linesForScreenRows(startRow, endRow - 1)
+    for line in lines
+      currentLineIds.add(line.id.toString())
+
+    for id, domNode of @lineNodesByLineId
+      unless currentLineIds.has(id)
+        delete @lineNodesByLineId[id]
+        node.removeChild(domNode)
+
+    for line, index in lines
+      top = (index * lineHeight) + verticalScrollOffset
+      left = horizontalScrollOffset
+      screenRow = startRow + index
+
+      if @hasNodeForLine(line.id)
+        @updateNodeForLine(line, screenRow, top, left)
+      else
+        @buildNodeForLine(line, screenRow, top, left)
+
+  hasNodeForLine: (id) ->
+    @lineNodesByLineId[id]?
+
+  buildNodeForLine: (tokenizedLine, screenRow, top, left) ->
+    {editor} = @props
+    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} =  tokenizedLine
+    if fold
+      attributes = {class: 'fold line', 'fold-id': fold.id}
+    else
+      attributes = {class: 'line'}
+
+    invisibles = {}
+    eolInvisibles = {}
+    htmlEolInvisibles = []
+    indentation = indentLevel
+
+    wrapper = document.createElement('div')
+    wrapper.innerHTML = EditorView.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, indentation, editor})
+    lineNode = wrapper.children[0]
+    lineNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
+
+    @lineNodesByLineId[tokenizedLine.id] = lineNode
+    @getDOMNode().appendChild(lineNode)
+
+  updateNodeForLine: (tokenizedLine, screenRow, top, left) ->
+    lineNode = @lineNodesByLineId[tokenizedLine.id]
+    lineNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
 
   measureLineHeightAndCharWidth: ->
     node = @getDOMNode()
@@ -85,9 +132,9 @@ LinesComponent = React.createClass
     [visibleStartRow, visibleEndRow] = @props.visibleRowRange
     node = @getDOMNode()
 
-    for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+    for tokenizedLine in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
       unless @measuredLines.has(tokenizedLine)
-        lineNode = node.children[i]
+        lineNode = @lineNodesByLineId[tokenizedLine.id]
         @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
