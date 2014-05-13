@@ -57,6 +57,13 @@ in the proper package's repository.
     * :non-potable_water: `:non-potable_water:` when plugging memory leaks
     * :memo: `:memo:` when writing docs
     * :penguin: `:penguin:` when fixing something on Linux
+    * :green_apple: `:green_apple:` when fixing something on Mac OS
+    * :bug: `:bug:` when fixing a bug 
+    * :fire: whitespace `:fire: whitespace` when removing whitespace
+    * :green_heart: `:green_heart:` when fixing the CI build
+    * :white_check_mark: `:white_check_mark:` when adding tests
+    * :recycle: `:recycle:` when refactoring (or removing code, moving around etc.)
+    * :guardsman: `:guardsman:` when dealing with security
 
 ## CoffeeScript Styleguide
 
