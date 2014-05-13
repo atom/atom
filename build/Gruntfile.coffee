@@ -231,7 +231,7 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build'])
+  grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
 
   defaultTasks = ['download-atom-shell', 'build', 'set-version']
