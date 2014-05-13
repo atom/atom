@@ -591,47 +591,6 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  # Get the pixel dimensions of rectangular regions that cover selection's area
-  # on the screen. Used by SelectionComponent for rendering.
-  getRegionRects: ->
-    lineHeight = @editor.getLineHeight()
-    {start, end} = @getScreenRange()
-    rowCount = end.row - start.row + 1
-    startPixelPosition = @editor.pixelPositionForScreenPosition(start)
-    endPixelPosition = @editor.pixelPositionForScreenPosition(end)
-
-    if rowCount is 1
-      # Single line selection
-      rects = [{
-        top: startPixelPosition.top
-        height: lineHeight
-        left: startPixelPosition.left
-        width: endPixelPosition.left - startPixelPosition.left
-      }]
-    else
-      # Multi-line selection
-      rects = []
-
-      # First row, extending from selection start to the right side of screen
-      rects.push {
-        top: startPixelPosition.top
-        left: startPixelPosition.left
-        height: lineHeight
-        right: 0
-      }
-      if rowCount > 2
-        # Middle rows, extending from left side to right side of screen
-        rects.push {
-          top: startPixelPosition.top + lineHeight
-          height: (rowCount - 2) * lineHeight
-          left: 0
-          right: 0
-        }
-      # Last row, extending from left side of screen to selection end
-      rects.push {top: endPixelPosition.top, height: lineHeight, left: 0, width: endPixelPosition.left }
-
-    rects
-
   regionRectForScreenRow: (screenRow) ->
     {start, end} = @getScreenRange()
     region = {height: @editor.getLineHeight(), top: 0, left: 0}
@@ -644,6 +603,17 @@ class Selection extends Model
 
     region.right = 0 unless region.width?
     region
+
+  getBackgroundRect: ->
+    {start, end} = @getScreenRange()
+    return if start.row is end.row
+
+    lineHeight = @editor.getLineHeight()
+    height = (end.row - start.row) * lineHeight
+    top = start.row * lineHeight
+    left = 0
+    right = 0
+    {top, left, right, height}
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()

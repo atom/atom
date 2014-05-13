@@ -5,7 +5,7 @@ React = require 'react'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 CursorsComponent = require './cursors-component'
-SelectionsComponent = require './selections-component'
+SelectionBackgroundsComponent = require './selection-backgrounds-component'
 
 module.exports =
 EditorScrollViewComponent = React.createClass
@@ -40,7 +40,7 @@ EditorScrollViewComponent = React.createClass
         selectionChanged
       }
       div className: 'underlayer',
-        SelectionsComponent({editor, scrollTop, scrollLeft})
+        SelectionBackgroundsComponent({editor, scrollTop, scrollLeft})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
