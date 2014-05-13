@@ -591,17 +591,6 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  getBackgroundRect: ->
-    {start, end} = @getScreenRange()
-    return if start.row is end.row
-
-    lineHeight = @editor.getLineHeight()
-    height = (end.row - start.row) * lineHeight
-    top = start.row * lineHeight
-    left = 0
-    right = 0
-    {top, left, right, height}
-
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange

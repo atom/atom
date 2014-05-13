@@ -40,7 +40,7 @@ EditorScrollViewComponent = React.createClass
         selectionChanged
       }
       div className: 'underlayer',
-        SelectionBackgroundsComponent({editor, scrollTop, scrollLeft})
+        SelectionBackgroundsComponent({editor, lineHeight, scrollTop})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
