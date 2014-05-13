@@ -10,10 +10,6 @@ CursorComponent = React.createClass
     {top, left, height, width} = cursor.getPixelRect()
     top -= scrollTop
     left -= scrollLeft
-
-    className = 'cursor'
-    className += ' blink-off' if @props.blinkOff
-
     WebkitTransform = "translate3d(#{left}px, #{top}px, 0px)"
 
-    div className: className, style: {height, width, WebkitTransform}
+    div className: 'cursor', style: {height, width, WebkitTransform}

@@ -268,44 +268,19 @@ describe "EditorComponent", ->
       expect(cursorRect.width).toBe rangeRect.width
 
     it "blinks cursors when they aren't moving", ->
-      editor.addCursorAtScreenPosition([1, 0])
-      [cursorNode1, cursorNode2] = node.querySelectorAll('.cursor')
-      expect(cursorNode1.classList.contains('blink-off')).toBe false
-      expect(cursorNode2.classList.contains('blink-off')).toBe false
+      jasmine.unspy(window, 'setTimeout')
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe true
-      expect(cursorNode2.classList.contains('blink-off')).toBe true
+      cursorsNode = node.querySelector('.cursors')
+      expect(cursorsNode.classList.contains('blinking')).toBe true
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe false
-      expect(cursorNode2.classList.contains('blink-off')).toBe false
-
-      advanceClock(component.props.cursorBlinkPeriod / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe true
-      expect(cursorNode2.classList.contains('blink-off')).toBe true
-
-      # Stop blinking immediately when cursors move
-      advanceClock(component.props.cursorBlinkPeriod / 4)
-      expect(cursorNode1.classList.contains('blink-off')).toBe true
-      expect(cursorNode2.classList.contains('blink-off')).toBe true
-
-      # Stop blinking for one full period after moving the cursor
+      # Stop blinking after moving the cursor
       editor.moveCursorRight()
-      expect(cursorNode1.classList.contains('blink-off')).toBe false
-      expect(cursorNode2.classList.contains('blink-off')).toBe false
+      expect(cursorsNode.classList.contains('blinking')).toBe false
 
-      advanceClock(component.props.cursorBlinkResumeDelay / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe false
-      expect(cursorNode2.classList.contains('blink-off')).toBe false
-
-      advanceClock(component.props.cursorBlinkResumeDelay / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe true
-      expect(cursorNode2.classList.contains('blink-off')).toBe true
-
-      advanceClock(component.props.cursorBlinkPeriod / 2)
-      expect(cursorNode1.classList.contains('blink-off')).toBe false
-      expect(cursorNode2.classList.contains('blink-off')).toBe false
+      # Resume blinking after resume delay passes
+      waits component.props.cursorBlinkResumeDelay
+      runs ->
+        expect(cursorsNode.classList.contains('blinking')).toBe true
 
     it "renders the hidden input field at the position of the last cursor if it is on screen", ->
       inputNode = node.querySelector('.hidden-input')
