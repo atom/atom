@@ -21,7 +21,7 @@ LinesComponent = React.createClass
       lines =
         for tokenizedLine, index in editor.linesForScreenRows(startRow, endRow - 1)
           screenRow = startRow + index
-          selections = visibleSelections.filter (selection) -> selection.intersectsScreenRow(screenRow)
+          selections = visibleSelections.filter (selection) -> not selection.isEmpty() and selection.intersectsScreenRow(screenRow)
           LineComponent({key: tokenizedLine.id, tokenizedLine, showIndentGuide, lineHeight, index, verticalScrollOffset, horizontalScrollOffset, screenRow, selections, selectionChanged})
 
     div {className: 'lines'}, lines
