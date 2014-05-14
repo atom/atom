@@ -57,12 +57,12 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    @updateRenderedLines()
+    @updateLines()
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically
 
-  updateRenderedLines: ->
+  updateLines: ->
     {editor, visibleRowRange, showIndentGuide, selectionChanged} = @props
     [startRow, endRow] = visibleRowRange
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
