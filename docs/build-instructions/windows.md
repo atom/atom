@@ -32,11 +32,3 @@ probably need to fiddle with your system PATH.
 
   * If you just installed node you need to restart your computer before node is
   available on your Path.
-
-
-* `gyp WARN install got an error, rolling back install` or `The system cannot
-  find the path specified.`
-
-  * These two error messages can usually be ignored. An admittedly hacky
-  solution to these errors   is to re-run `script\build`, possibly several
-  times.
