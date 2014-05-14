@@ -1,7 +1,9 @@
 React = require 'react'
 {div} = require 'reactionary'
-{isEqual, isEqualForProperties, multiplyString} = require 'underscore-plus'
+{isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
+
+WrapperDiv = document.createElement('div')
 
 module.exports =
 GutterComponent = React.createClass
@@ -14,43 +16,10 @@ GutterComponent = React.createClass
     {width} = @props
 
     div className: 'gutter', style: {width},
-      div className: 'line-numbers', ref: 'lineNumbers',
-        if @isMounted()
-          @renderLineNumbers()
-        else
-          @renderLineNumberForMeasurement()
+      div className: 'line-numbers', ref: 'lineNumbers'
 
-  renderLineNumbers: ->
-    {editor, visibleRowRange, lineOverdraw, scrollTop, lineHeight, showIndentGuide} = @props
-    [startRow, endRow] = visibleRowRange
-    maxLineNumberDigits = @getMaxLineNumberDigits()
-    scrollOffset = -scrollTop % lineHeight
-    wrapCount = 0
-
-    for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-      if bufferRow is lastBufferRow
-        lineNumber = '•'
-        key = "#{bufferRow + 1}-#{++wrapCount}"
-      else
-        lastBufferRow = bufferRow
-        wrapCount = 0
-        lineNumber = "#{bufferRow + 1}"
-        key = lineNumber
-
-      LineNumberComponent({key, lineNumber, maxLineNumberDigits, index, lineHeight, scrollOffset})
-
-  renderLineNumberForMeasurement: ->
-    LineNumberComponent(
-      key: 'forMeasurement'
-      lineNumber: '•'
-      maxLineNumberDigits: @getMaxLineNumberDigits()
-      index: 0
-      lineHeight: 0
-      scrollOffset: 0
-    )
-
-  getMaxLineNumberDigits: ->
-    @props.editor.getLineCount().toString().length
+  componentWillMount: ->
+    @lineNumberNodesById = {}
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -59,37 +28,94 @@ GutterComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props, 'visibleRowRange', 'scrollTop', 'lineHeight', 'fontSize')
 
     {visibleRowRange, pendingChanges} = newProps
-    for change in pendingChanges when change.screenDelta > 0 or change.bufferDelta > 0
+    for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
 
     false
 
   componentDidUpdate: (oldProps) ->
+    @updateLineNumbers()
     unless @lastMeasuredWidth? and isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'fontSize', 'fontFamily')
-      width = @refs.lineNumbers.getDOMNode().firstChild.offsetWidth
-      if width isnt @lastMeasuredWidth
-        @lastMeasuredWidth = width
-        @props.onWidthChanged(width)
+      @measureWidth()
 
-LineNumberComponent = React.createClass
-  displayName: 'LineNumberComponent'
+  updateLineNumbers: ->
+    visibleLineNumberIds = @appendOrUpdateVisibleLineNumberNodes()
+    @removeNonVisibleLineNumberNodes(visibleLineNumberIds)
 
-  render: ->
-    {index, lineHeight, scrollOffset} = @props
-    div
-      className: "line-number editor-colors"
-      style: {WebkitTransform: "translate3d(0px, #{index * lineHeight + scrollOffset}px, 0px)"}
-      dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+  appendOrUpdateVisibleLineNumberNodes: ->
+    {editor, visibleRowRange, scrollTop, lineHeight} = @props
+    [startRow, endRow] = visibleRowRange
+    maxLineNumberDigits = editor.getLineCount().toString().length
+    verticalScrollOffset = -scrollTop % lineHeight
+    newLineNumberIds = null
+    newLineNumbersHTML = null
+    visibleLineNumberIds = new Set
 
-  buildInnerHTML: ->
-    {lineNumber, maxLineNumberDigits} = @props
-    if lineNumber.length < maxLineNumberDigits
-      padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-      padding + lineNumber + @iconDivHTML
+    wrapCount = 0
+    for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
+      if bufferRow is lastBufferRow
+        id = "#{bufferRow}-#{wrapCount++}"
+      else
+        id = bufferRow.toString()
+        lastBufferRow = bufferRow
+        wrapCount = 0
+
+      visibleLineNumberIds.add(id)
+
+      top = (index * lineHeight) + verticalScrollOffset
+
+      if @hasLineNumberNode(id)
+        @updateLineNumberNode(id, top)
+      else
+        newLineNumberIds ?= []
+        newLineNumbersHTML ?= ""
+        newLineNumberIds.push(id)
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, top)
+
+    if newLineNumberIds?
+      WrapperDiv.innerHTML = newLineNumbersHTML
+      newLineNumberNodes = toArray(WrapperDiv.children)
+
+      node = @refs.lineNumbers.getDOMNode()
+      for lineNumberId, i in newLineNumberIds
+        lineNumberNode = newLineNumberNodes[i]
+        @lineNumberNodesById[lineNumberId] = lineNumberNode
+        node.appendChild(lineNumberNode)
+
+    visibleLineNumberIds
+
+  removeNonVisibleLineNumberNodes: (visibleLineNumberIds) ->
+    node = @refs.lineNumbers.getDOMNode()
+    for id, lineNumberNode of @lineNumberNodesById when not visibleLineNumberIds.has(id)
+      delete @lineNumberNodesById[id]
+      node.removeChild(lineNumberNode)
+
+  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, top) ->
+    if softWrapped
+      lineNumber = "•"
     else
-      lineNumber + @iconDivHTML
+      lineNumber = (bufferRow + 1).toString()
 
-  iconDivHTML: '<div class="icon-right"></div>'
+    padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
+    iconHTML = '<div class="icon-right"></div>'
+    innerHTML = padding + lineNumber + iconHTML
+    translate3d = @buildTranslate3d(top)
 
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'index', 'lineHeight', 'scrollOffset')
+    "<div class=\"line-number editor-colors\" style=\"-webkit-transform: #{translate3d};\">#{innerHTML}</div>"
+
+  updateLineNumberNode: (lineNumberId, top) ->
+    @lineNumberNodesById[lineNumberId].style['-webkit-transform'] = @buildTranslate3d(top)
+
+  hasLineNumberNode: (lineNumberId) ->
+    @lineNumberNodesById.hasOwnProperty(lineNumberId)
+
+  buildTranslate3d: (top) ->
+    "translate3d(0px, #{top}px, 0px)"
+
+  measureWidth: ->
+    lineNumberNode = @refs.lineNumbers.getDOMNode().firstChild
+    # return unless lineNumberNode?
+
+    width = lineNumberNode.offsetWidth
+    if width isnt @lastMeasuredWidth
+      @props.onWidthChanged(@lastMeasuredWidth = width)
