@@ -3127,3 +3127,17 @@ describe "Editor", ->
 
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 0
+      
+  describe ".closePreview()", ->
+    it "destroys current editor if in preview mode", ->
+      editor.isPreview = true
+      editor.closePreview()
+      expect(editor.alive).toBe false
+      
+  describe ".disablePreview()", ->
+    it "changes preview mode to false", ->
+      editor.isPreview = true
+      editor.disablePreview()
+      expect(editor.isPreview).toBe false
+  
+      
