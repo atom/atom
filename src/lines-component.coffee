@@ -113,28 +113,33 @@ LinesComponent = React.createClass
     "translate3d(#{left}px, #{top}px, 0px)"
 
   buildLineHTML: (line, top, left) ->
-    {editor, mini, showIndentGuide, invisibles} = @props
+    {editor, mini, showIndentGuide} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
     translate3d = @buildTranslate3d(top, left)
-    line = "<div class=\"line editor-colors\" style=\"-webkit-transform: #{translate3d};\">"
+    lineHTML = "<div class=\"line editor-colors\" style=\"-webkit-transform: #{translate3d};\">"
 
     if text is ""
-      line += "&nbsp;"
+      lineHTML += "&nbsp;"
     else
-      scopeStack = []
-      firstTrailingWhitespacePosition = text.search(/\s*$/)
-      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
-      for token in tokens
-        line += @updateScopeStack(scopeStack, token.scopes)
-        hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
-        line += token.getValueAsHtml({invisibles, hasIndentGuide})
-      line += @popScope(scopeStack) while scopeStack.length > 0
+      lineHTML += @buildLineInnerHTML(line)
 
-    # line.push(htmlEolInvisibles) unless text == ''
-    # line.push("<span class='fold-marker'/>") if fold
+    lineHTML += "</div>"
+    lineHTML
 
-    line += "</div>"
-    line
+  buildLineInnerHTML: (line) ->
+    {invisibles, mini, showIndentGuide} = @props
+    {tokens, text} = line
+    innerHTML = ""
+
+    scopeStack = []
+    firstTrailingWhitespacePosition = text.search(/\s*$/)
+    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+    for token in tokens
+      innerHTML += @updateScopeStack(scopeStack, token.scopes)
+      hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
+      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
+    innerHTML
 
   updateScopeStack: (scopeStack, desiredScopes) ->
     html = ""
