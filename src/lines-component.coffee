@@ -14,7 +14,14 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    div {className: 'lines'}
+    if @isMounted()
+      {editor, scrollTop, scrollLeft} = @props
+      style =
+        height: editor.getScrollHeight()
+        width: editor.getScrollWidth()
+        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
+
+    div {className: 'lines editor-colors', style}
 
   getVisibleSelectionRegions: ->
     {editor, visibleRowRange, lineHeight} = @props
@@ -65,9 +72,13 @@ LinesComponent = React.createClass
   updateLines: ->
     {editor, visibleRowRange, showIndentGuide, selectionChanged} = @props
     [startRow, endRow] = visibleRowRange
+
+    startRow = Math.max(0, startRow - 8)
+    endRow = Math.min(editor.getLineCount(), endRow + 8)
+
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
     @removeNonVisibleLineNodes(visibleLines)
-    @appendOrUpdateVisibleLineNodes(visibleLines)
+    @appendOrUpdateVisibleLineNodes(visibleLines, startRow)
 
   removeNonVisibleLineNodes: (visibleLines) ->
     visibleLineIds = new Set
@@ -77,24 +88,22 @@ LinesComponent = React.createClass
       delete @lineNodesByLineId[lineId]
       node.removeChild(lineNode)
 
-  appendOrUpdateVisibleLineNodes: (visibleLines) ->
-    {scrollTop, scrollLeft, lineHeight} = @props
+  appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
+    {lineHeight} = @props
     newLines = null
     newLinesHTML = null
-    verticalScrollOffset = -scrollTop % lineHeight
-    horizontalScrollOffset = -scrollLeft
 
     for line, index in visibleLines
-      top = (index * lineHeight) + verticalScrollOffset
-      left = horizontalScrollOffset
+      screenRow = startRow + index
+      top = (screenRow * lineHeight)
 
       if @hasLineNode(line.id)
-        @updateLineNode(line, top, left)
+        @updateLineNode(line, top)
       else
         newLines ?= []
         newLinesHTML ?= ""
         newLines.push(line)
-        newLinesHTML += @buildLineHTML(line, top, left)
+        newLinesHTML += @buildLineHTML(line, top)
 
     return unless newLines?
 
@@ -109,14 +118,14 @@ LinesComponent = React.createClass
   hasLineNode: (lineId) ->
     @lineNodesByLineId.hasOwnProperty(lineId)
 
-  buildTranslate3d: (top, left) ->
-    "translate3d(#{left}px, #{top}px, 0px)"
+  buildTranslate3d: (top) ->
+    "translate3d(0px, #{top}px, 0px)"
 
   buildLineHTML: (line, top, left) ->
     {editor, mini, showIndentGuide} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
     translate3d = @buildTranslate3d(top, left)
-    lineHTML = "<div class=\"line editor-colors\" style=\"-webkit-transform: #{translate3d};\">"
+    lineHTML = "<div class=\"line editor-colors\" style=\"top: #{top}px;\">"
 
     if text is ""
       lineHTML += "&nbsp;"
@@ -166,9 +175,9 @@ LinesComponent = React.createClass
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-  updateLineNode: (tokenizedLine, top, left) ->
+  updateLineNode: (tokenizedLine, top) ->
     lineNode = @lineNodesByLineId[tokenizedLine.id]
-    lineNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
+    lineNode.style.top = top + 'px'
 
   measureLineHeightAndCharWidth: ->
     node = @getDOMNode()
