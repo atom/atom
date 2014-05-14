@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
+
 var nodeMinorVersion = process.versions.node.split('.')[1]
 if (nodeMinorVersion !== '10') {
   console.warn("You must run script/bootstrap and script/build with node v0.10.x");
