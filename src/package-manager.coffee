@@ -33,7 +33,7 @@ class PackageManager
     @packageDirPaths = []
     unless safeMode
       if devMode
-        @packageDirPaths.push(path.join(@devPackagePath)
+        @packageDirPaths.push(@devPackagePath)
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
     @loadedPackages = {}
