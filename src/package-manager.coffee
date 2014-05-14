@@ -28,10 +28,12 @@ class PackageManager
   Emitter.includeInto(this)
 
   constructor: ({configDirPath, devMode, safeMode, @resourcePath}) ->
+    @devPackagePath = path.join(configDirPath, "dev", "packages")
+
     @packageDirPaths = []
     unless safeMode
       if devMode
-        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
+        @packageDirPaths.push(@devPackagePath)
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
     @loadedPackages = {}
@@ -53,6 +55,13 @@ class PackageManager
   # Returns an Array of String directory paths.
   getPackageDirPaths: ->
     _.clone(@packageDirPaths)
+
+  # Public: Get the path that's used to store packages that are only loaded in
+  # dev mode.
+  #
+  # Returns a String containing the absolute path of the dev package directory.
+  getDevPackagePath: ->
+    @devPackagePath
 
   getPackageState: (name) ->
     @packageStates[name]
