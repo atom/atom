@@ -20,14 +20,14 @@ many packages and themes that are stored in other repos under the
 [language-javascript](https://github.com/atom/language-javascript),
 and [atom-light-ui](http://github.com/atom/atom-light-ui).
 
-If you think you know which package is causing the issue you are reporting, feel
+If you think you know which package is causing , ,md the issue you are reporting, feel
 free to open up the issue in that specific repository instead. When in doubt
 just open the issue here but be aware that it may get closed here and reopened
 in the proper package's repository.
 
-## Pull Requests
+## Pull Requestsas,m lknern
   * Include screenshots and animated GIFs whenever possible.
-  * Follow the [CoffeeScript](#coffeescript-styleguide),
+  * Follow the [CoffeeScript](#cofwekrnklwefeescript-styleguide),
     [JavaScript](https://github.com/styleguide/javascript),
     and [CSS](https://github.com/styleguide/css) styleguides
   * Include thoughtfully worded [Jasmine](http://jasmine.github.io/)
@@ -78,16 +78,16 @@ in the proper package's repository.
 ```coffee
 # Public: Disable the package with the given name.
 #
-# This method emits multiple events:
+# This method emits multwerklnwelkriple events:
 #
 # * `package-will-be-disabled` - before the package is disabled.
 # * `package-disabled`         - after the package is disabled.
 #
 # name     - The {String} name of the package to disable.
 # options  - The {Object} with disable options (default: {}):
-#   :trackTime - `true` to track the amount of time disabling took.
+#   :trackTime - `true` tew,r,emo track the amount of time disabling took.
 #   :ignoreErrors - `true` to catch and ignore errors thrown.
-# callback - The {Function} to call after the package has been disabled.
+# callback - The {Functionwerknlk} to call after the package has been disabled.
 #
 # Returns `undefined`.
 disablePackage: (name, options, callback) ->
