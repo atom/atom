@@ -42,16 +42,19 @@ class Token
   whitespaceRegexForTabLength: (tabLength) ->
     WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
-  breakOutAtomicTokens: (tabLength, breakOutLeadingSoftTabs) ->
+  breakOutAtomicTokens: (tabLength, breakOutLeadingSoftTabs, startColumn) ->
     if @hasSurrogatePair
       outputTokens = []
+      column = startColumn
 
       for token in @breakOutSurrogatePairs()
+        nextColumn += token.value.length
         if token.isAtomic
           outputTokens.push(token)
         else
-          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs)...)
+          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs, column)...)
         breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
+        column = nextColumn
 
       outputTokens
     else
@@ -64,17 +67,21 @@ class Token
 
       outputTokens = []
       regex = @whitespaceRegexForTabLength(tabLength)
+      column = startColumn
       while match = regex.exec(@value)
         [fullMatch, softTab, hardTab] = match
+        token = null
         if softTab and breakOutLeadingSoftTabs
-          outputTokens.push(@buildSoftTabToken(tabLength))
+          token = @buildSoftTabToken(tabLength)
         else if hardTab
           breakOutLeadingSoftTabs = false
-          outputTokens.push(@buildHardTabToken(tabLength))
+          token = @buildHardTabToken(tabLength, column)
         else
           breakOutLeadingSoftTabs = false
           value = match[0]
-          outputTokens.push(new Token({value, @scopes}))
+          token = new Token({value, @scopes})
+        column += token.value.length
+        outputTokens.push(token)
 
       outputTokens
 
@@ -105,17 +112,18 @@ class Token
       isAtomic: true
     )
 
-  buildHardTabToken: (tabLength) ->
-    @buildTabToken(tabLength, true)
+  buildHardTabToken: (tabLength, column) ->
+    @buildTabToken(tabLength, true, column)
 
   buildSoftTabToken: (tabLength) ->
-    @buildTabToken(tabLength, false)
+    @buildTabToken(tabLength, false, 0)
 
-  buildTabToken: (tabLength, isHardTab) ->
+  buildTabToken: (tabLength, isHardTab, column) ->
+    tabStop = tabLength - column % tabLength
     new Token(
-      value: _.multiplyString(" ", tabLength)
+      value: _.multiplyString(" ", tabStop)
       scopes: @scopes
-      bufferDelta: if isHardTab then 1 else tabLength
+      bufferDelta: if isHardTab then 1 else tabStop
       isAtomic: true
       isHardTab: isHardTab
     )
