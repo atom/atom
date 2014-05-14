@@ -6,6 +6,11 @@ if (nodeMinorVersion !== '10') {
   process.exit(1);
 }
 
+if (process.platform == 'win32' && process.arch != 'ia32') {
+  console.warn("You must run script/bootstrap and script/build with the 32bit version of node");
+  process.exit(1);
+}
+
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
