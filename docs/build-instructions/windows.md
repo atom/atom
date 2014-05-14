@@ -8,6 +8,7 @@
   * [Python 2.7.x](http://www.python.org/download/)
   * [GitHub for Windows](http://windows.github.com/)
   * Open the Windows GitHub shell (NOT the Standard PowerShell, the shortcut labeled 'Git Shell' - make sure you have logged in at least once to the GitHub for Windows GUI App)
+  * Log in to the GitHub for Windows GUI App
   * `$env:Path = $env:Path + ";C:\path\to\atom\repo\node_modules"`
 
 ## Instructions
