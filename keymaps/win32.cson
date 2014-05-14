@@ -1,4 +1,8 @@
 'body':
+  # Platform Bindings
+  'ctrl-pageup': 'pane:show-previous-item'
+  'ctrl-pagedown': 'pane:show-next-item'
+
   # Atom Specific
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -64,7 +68,9 @@
   'ctrl-shift-left': 'editor:select-to-beginning-of-word'
   'ctrl-shift-right': 'editor:select-to-end-of-word'
   'ctrl-backspace': 'editor:backspace-to-beginning-of-word'
-  'ctrl-delete': 'editor:backspace-to-beginning-of-word'
+  'ctrl-delete': 'editor:delete-to-end-of-word'
+  'ctrl-home': 'core:move-to-top'
+  'ctrl-end': 'core:move-to-bottom'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
