@@ -1,12 +1,13 @@
 React = require 'react'
 {div, span} = require 'reactionary'
-{debounce, isEqual, isEqualForProperties, multiplyString} = require 'underscore-plus'
+{debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 EditorView = require './editor-view'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
+WrapperDiv = document.createElement('div')
 
 module.exports =
 LinesComponent = React.createClass
@@ -62,58 +63,105 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines() unless @props.scrollingVertically
 
   updateRenderedLines: ->
-    {editor, visibleRowRange, scrollTop, scrollLeft, lineHeight, showIndentGuide, selectionChanged} = @props
+    {editor, visibleRowRange, showIndentGuide, selectionChanged} = @props
     [startRow, endRow] = visibleRowRange
+    visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
+    @removeNonVisibleLineNodes(visibleLines)
+    @appendOrUpdateVisibleLineNodes(visibleLines)
+
+  removeNonVisibleLineNodes: (visibleLines) ->
+    visibleLineIds = new Set
+    visibleLineIds.add(line.id.toString()) for line in visibleLines
+    node = @getDOMNode()
+    for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
+      delete @lineNodesByLineId[lineId]
+      node.removeChild(lineNode)
+
+  appendOrUpdateVisibleLineNodes: (visibleLines) ->
+    {scrollTop, scrollLeft, lineHeight} = @props
+    newLines = null
+    newLinesHTML = null
     verticalScrollOffset = -scrollTop % lineHeight
     horizontalScrollOffset = -scrollLeft
 
-    node = @getDOMNode()
-
-    currentLineIds = new Set
-    lines = editor.linesForScreenRows(startRow, endRow - 1)
-    for line in lines
-      currentLineIds.add(line.id.toString())
-
-    for id, domNode of @lineNodesByLineId
-      unless currentLineIds.has(id)
-        delete @lineNodesByLineId[id]
-        node.removeChild(domNode)
-
-    for line, index in lines
+    for line, index in visibleLines
       top = (index * lineHeight) + verticalScrollOffset
       left = horizontalScrollOffset
-      screenRow = startRow + index
 
-      if @hasNodeForLine(line.id)
-        @updateNodeForLine(line, screenRow, top, left)
+      if @hasLineNode(line.id)
+        @updateLineNode(line, top, left)
       else
-        @buildNodeForLine(line, screenRow, top, left)
+        newLines ?= []
+        newLinesHTML ?= ""
+        newLines.push(line)
+        newLinesHTML += @buildLineHTML(line, top, left)
 
-  hasNodeForLine: (id) ->
-    @lineNodesByLineId[id]?
+    return unless newLines?
 
-  buildNodeForLine: (tokenizedLine, screenRow, top, left) ->
-    {editor} = @props
-    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} =  tokenizedLine
-    if fold
-      attributes = {class: 'fold line', 'fold-id': fold.id}
+    WrapperDiv.innerHTML = newLinesHTML
+    newLineNodes = toArray(WrapperDiv.children)
+    node = @getDOMNode()
+    for line, i in newLines
+      lineNode = newLineNodes[i]
+      @lineNodesByLineId[line.id] = lineNode
+      node.appendChild(lineNode)
+
+  hasLineNode: (lineId) ->
+    @lineNodesByLineId.hasOwnProperty(lineId)
+
+  buildTranslate3d: (top, left) ->
+    "translate3d(#{left}px, #{top}px, 0px)"
+
+  buildLineHTML: (line, top, left) ->
+    {editor, mini, showIndentGuide, invisibles} = @props
+    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
+    translate3d = @buildTranslate3d(top, left)
+    line = "<div class=\"line editor-colors\" style=\"-webkit-transform: #{translate3d};\">"
+
+    if text is ""
+      line += "&nbsp;"
     else
-      attributes = {class: 'line'}
+      scopeStack = []
+      firstTrailingWhitespacePosition = text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+      for token in tokens
+        line += @updateScopeStack(scopeStack, token.scopes)
+        hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
+        line += token.getValueAsHtml({invisibles, hasIndentGuide})
+      line += @popScope(scopeStack) while scopeStack.length > 0
 
-    invisibles = {}
-    eolInvisibles = {}
-    htmlEolInvisibles = []
-    indentation = indentLevel
+    # line.push(htmlEolInvisibles) unless text == ''
+    # line.push("<span class='fold-marker'/>") if fold
 
-    wrapper = document.createElement('div')
-    wrapper.innerHTML = EditorView.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, indentation, editor})
-    lineNode = wrapper.children[0]
-    lineNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
+    line += "</div>"
+    line
 
-    @lineNodesByLineId[tokenizedLine.id] = lineNode
-    @getDOMNode().appendChild(lineNode)
+  updateScopeStack: (scopeStack, desiredScopes) ->
+    html = ""
 
-  updateNodeForLine: (tokenizedLine, screenRow, top, left) ->
+    # Find a common prefix
+    for scope, i in desiredScopes
+      break unless scopeStack[i]?.scope is desiredScopes[i]
+
+    # Pop scopes until we're at the common prefx
+    until scopeStack.length is i
+      html += @popScope(scopeStack)
+
+    # Push onto common prefix until scopeStack equals desiredScopes
+    for j in [i...desiredScopes.length]
+      html += @pushScope(scopeStack, desiredScopes[j])
+
+    html
+
+  popScope: (scopeStack) ->
+    scopeStack.pop()
+    "</span>"
+
+  pushScope: (scopeStack, scope) ->
+    scopeStack.push(scope)
+    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+
+  updateLineNode: (tokenizedLine, top, left) ->
     lineNode = @lineNodesByLineId[tokenizedLine.id]
     lineNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
 
@@ -173,53 +221,3 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
-
-
-LineComponent = React.createClass
-  displayName: 'LineComponent'
-
-  render: ->
-    {index, screenRow, verticalScrollOffset, horizontalScrollOffset, lineHeight} = @props
-
-    top = index * lineHeight + verticalScrollOffset
-    left = horizontalScrollOffset
-    style = WebkitTransform: "translate3d(#{left}px, #{top}px, 0px)"
-
-    div className: 'line editor-colors', style: style, 'data-screen-row': screenRow,
-      span dangerouslySetInnerHTML: {__html: @buildTokensHTML()}
-      @renderSelections()
-
-  buildTokensHTML: ->
-    if @props.tokenizedLine.text.length is 0
-      @buildEmptyLineHTML()
-    else
-      @buildScopeTreeHTML(@props.tokenizedLine.getScopeTree())
-
-  buildEmptyLineHTML: ->
-    {showIndentGuide, tokenizedLine} = @props
-    {indentLevel, tabLength} = tokenizedLine
-
-    if showIndentGuide and indentLevel > 0
-      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
-      multiplyString(indentSpan, indentLevel + 1)
-    else
-      "&nbsp;"
-
-  buildScopeTreeHTML: (scopeTree) ->
-    if scopeTree.children?
-      html = "<span class='#{scopeTree.scope.replace(/\./g, ' ')}'>"
-      html += @buildScopeTreeHTML(child) for child in scopeTree.children
-      html += "</span>"
-      html
-    else
-      "<span>#{scopeTree.getValueAsHtml({hasIndentGuide: @props.showIndentGuide})}</span>"
-
-  renderSelections: ->
-    {selectionRegions} = @props
-    if selectionRegions?
-      for region in selectionRegions
-        div className: 'selection', key: region.id,
-          div className: 'region', style: region
-
-  shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'showIndentGuide', 'lineHeight', 'screenRow', 'selectionRegions', 'index', 'verticalScrollOffset', 'horizontalScrollOffset')
