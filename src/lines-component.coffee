@@ -16,35 +16,8 @@ LinesComponent = React.createClass
   render: ->
     if @isMounted()
       {editor, scrollTop, scrollLeft} = @props
-      style =
-        height: editor.getScrollHeight()
-        width: editor.getScrollWidth()
-        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
-    div {className: 'lines editor-colors', style}
-
-  getVisibleSelectionRegions: ->
-    {editor, visibleRowRange, lineHeight} = @props
-    [visibleStartRow, visibleEndRow] = visibleRowRange
-    regions = {}
-
-    for selection in editor.selectionsForScreenRows(visibleStartRow, visibleEndRow - 1) when not selection.isEmpty()
-      {start, end} = selection.getScreenRange()
-
-      for screenRow in [start.row..end.row]
-        region = {id: selection.id, top: 0, left: 0, height: lineHeight}
-
-        if screenRow is start.row
-          region.left = editor.pixelPositionForScreenPosition(start).left
-        if screenRow is end.row
-          region.width = editor.pixelPositionForScreenPosition(end).left - region.left
-        else
-          region.right = 0
-
-        regions[screenRow] ?= []
-        regions[screenRow].push(region)
-
-    regions
+    div {className: 'lines'}
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -125,7 +98,7 @@ LinesComponent = React.createClass
     {editor, mini, showIndentGuide} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
     translate3d = @buildTranslate3d(top, left)
-    lineHTML = "<div class=\"line editor-colors\" style=\"top: #{top}px;\">"
+    lineHTML = "<div class=\"line\" style=\"top: #{top}px;\">"
 
     if text is ""
       lineHTML += "&nbsp;"

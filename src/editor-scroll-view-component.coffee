@@ -5,7 +5,7 @@ React = require 'react'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 CursorsComponent = require './cursors-component'
-SelectionBackgroundsComponent = require './selection-backgrounds-component'
+SelectionsComponent = require './selections-component'
 
 module.exports =
 EditorScrollViewComponent = React.createClass
@@ -17,12 +17,16 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically, selectionChanged, selectionAdded} = @props
-    {cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
+    {visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, scrollingVertically} = @props
+    {selectionChanged, selectionAdded, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       inputStyle = @getHiddenInputPosition()
       inputStyle.WebkitTransform = 'translateZ(0)'
+      contentStyle =
+        height: scrollHeight
+        width: scrollWidth
+        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div className: 'scroll-view', onMouseDown: @onMouseDown,
       InputComponent
@@ -33,14 +37,14 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      CursorsComponent({editor, scrollTop, scrollLeft, cursorsMoved, selectionAdded, cursorBlinkResumeDelay})
-      LinesComponent {
-        ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-        visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
-        selectionChanged
-      }
-      div className: 'underlayer',
-        SelectionBackgroundsComponent({editor, lineHeight, scrollTop})
+      div className: 'scroll-view-content editor-colors', style: contentStyle,
+        CursorsComponent({editor, scrollTop, scrollLeft, cursorsMoved, selectionAdded, cursorBlinkResumeDelay})
+        LinesComponent {
+          ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
+          visibleRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
+          selectionChanged
+        }
+        SelectionsComponent({editor, lineHeight})
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
