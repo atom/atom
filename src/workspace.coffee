@@ -99,10 +99,8 @@ class Workspace extends Model
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (uri, options={}) ->
-    console.log uri
-    console.log options
     
-    if uri isnt `undefined` and uri.indexOf("atom:") < 0
+    if uri isnt 'undefined' and uri.indexOf("atom:") < 0
       editor.closePreview() for editor in @getEditors()
       
     searchAllPanes = options.searchAllPanes
