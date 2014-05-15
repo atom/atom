@@ -22,7 +22,7 @@ LinesComponent = React.createClass
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, lineHeight}) if @isMounted
+      SelectionsComponent({editor, lineHeight}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet

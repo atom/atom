@@ -6,8 +6,8 @@ SelectionComponent = React.createClass
   displayName: 'SelectionComponent'
 
   render: ->
-    {editor, selection, lineHeight} = @props
-    {start, end} = selection.getScreenRange()
+    {editor, screenRange, lineHeight} = @props
+    {start, end} = screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)

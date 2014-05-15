@@ -7,11 +7,37 @@ SelectionsComponent = React.createClass
   displayName: 'SelectionsComponent'
 
   render: ->
+    div className: 'selections', @renderSelections()
+
+  renderSelections: ->
     {editor, lineHeight} = @props
 
-    div className: 'selections',
-      if @isMounted()
-        for selection, index in editor.getSelections()
-          # Rendering artifacts occur on the lines GPU layer if we remove the last selection
-          if index is 0 or (not selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection))
-            SelectionComponent({key: selection.id, selection, editor, lineHeight})
+    selectionComponents = []
+    for selectionId, screenRange of @selectionRanges
+      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeight}))
+    selectionComponents
+
+  componentWillMount: ->
+    @selectionRanges = {}
+
+  shouldComponentUpdate: ->
+    {editor} = @props
+    oldSelectionRanges = @selectionRanges
+    newSelectionRanges = {}
+    @selectionRanges = newSelectionRanges
+
+    for selection, index in editor.getSelections()
+      # Rendering artifacts occur on the lines GPU layer if we remove the last selection
+      if index is 0 or (not selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection))
+        newSelectionRanges[selection.id] = selection.getScreenRange()
+
+    for id, range of newSelectionRanges
+      if oldSelectionRanges.hasOwnProperty(id)
+        return true unless range.isEqual(oldSelectionRanges[id])
+      else
+        return true
+
+    for id of oldSelectionRanges
+      return true unless newSelectionRanges.hasOwnProperty(id)
+
+    false
