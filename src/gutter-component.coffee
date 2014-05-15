@@ -22,6 +22,7 @@ GutterComponent = React.createClass
 
   componentWillMount: ->
     @lineNumberNodesById = {}
+    @lineNumberNodeTopPositions = {}
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -76,6 +77,7 @@ GutterComponent = React.createClass
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
         newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, top)
+        @lineNumberNodeTopPositions[id] = top
 
     if newLineNumberIds?
       WrapperDiv.innerHTML = newLineNumbersHTML
@@ -93,6 +95,7 @@ GutterComponent = React.createClass
     node = @refs.lineNumbers.getDOMNode()
     for id, lineNumberNode of @lineNumberNodesById when not visibleLineNumberIds.has(id)
       delete @lineNumberNodesById[id]
+      delete @lineNumberNodeTopPositions[id]
       node.removeChild(lineNumberNode)
 
   buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, top) ->
@@ -109,7 +112,9 @@ GutterComponent = React.createClass
     "<div class=\"line-number editor-colors\" style=\"top: #{top}px;\">#{innerHTML}</div>"
 
   updateLineNumberNode: (lineNumberId, top) ->
-    @lineNumberNodesById[lineNumberId].style.top = top + 'px'
+    unless @lineNumberNodeTopPositions[lineNumberId] is top
+      @lineNumberNodesById[lineNumberId].style.top = top + 'px'
+      @lineNumberNodeTopPositions[lineNumberId] = top
 
   hasLineNumberNode: (lineNumberId) ->
     @lineNumberNodesById.hasOwnProperty(lineNumberId)

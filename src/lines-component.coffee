@@ -27,6 +27,7 @@ LinesComponent = React.createClass
   componentWillMount: ->
     @measuredLines = new WeakSet
     @lineNodesByLineId = {}
+    @lineNodeTopPositions = {}
 
   componentDidMount: ->
     @measureLineHeightAndCharWidth()
@@ -63,6 +64,7 @@ LinesComponent = React.createClass
     node = @getDOMNode()
     for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
       delete @lineNodesByLineId[lineId]
+      delete @lineNodeTopPositions[lineId]
       node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
@@ -81,6 +83,7 @@ LinesComponent = React.createClass
         newLinesHTML ?= ""
         newLines.push(line)
         newLinesHTML += @buildLineHTML(line, top)
+        @lineNodeTopPositions[line.id] = top
 
     return unless newLines?
 
@@ -152,9 +155,11 @@ LinesComponent = React.createClass
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-  updateLineNode: (tokenizedLine, top) ->
-    lineNode = @lineNodesByLineId[tokenizedLine.id]
-    lineNode.style.top = top + 'px'
+  updateLineNode: (line, top) ->
+    unless @lineNodeTopPositions[line.id] is top
+      lineNode = @lineNodesByLineId[line.id]
+      lineNode.style.top = top + 'px'
+      @lineNodeTopPositions[line.id] = top
 
   measureLineHeightAndCharWidth: ->
     node = @getDOMNode()
