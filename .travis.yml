@@ -1,0 +1,9 @@
+language: objective-c
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+
+install: script/bootstrap
+script: script/cibuild
