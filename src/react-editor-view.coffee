@@ -41,7 +41,7 @@ class ReactEditorView extends View
 
     node = @component.getDOMNode()
 
-    @underlayer = $(node).find('.underlayer')
+    @underlayer = $(node).find('.selections')
 
     @gutter = $(node).find('.gutter')
     @gutter.removeClassFromAllLines = (klass) =>
