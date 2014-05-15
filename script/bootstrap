@@ -10,18 +10,10 @@ if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
   process.exit(1);
 }
 
-if (process.platform == 'win32') {
-  // Make sure it is 32bit node
-  if (process.arch != 'ia32') {
-    console.warn("You must run script/bootstrap and script/build with the 32bit version of node");
-    process.exit(1);
-  }
-
-  // Make sure python2.7 is installed
-  if (!fs.existsSync('C:\\Python27\\')) {
-    console.warn("You must have Python 2.7 installed at 'C:\\Python27\\'");
-    process.exit(1);
-  }
+// Make sure python2.7 is installed
+if (process.platform == 'win32' && !fs.existsSync('C:\\Python27\\')) {
+  console.warn("You must have Python 2.7 installed at 'C:\\Python27\\'");
+  process.exit(1);
 }
 
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
