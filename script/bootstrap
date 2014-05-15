@@ -2,9 +2,11 @@
 
 var fs = require('fs');
 
-var nodeMinorVersion = process.versions.node.split('.')[1]
-if (nodeMinorVersion !== '10') {
-  console.warn("You must run script/bootstrap and script/build with node v0.10.x");
+var nodeVersion = process.versions.node.split('.')
+var nodeMajorVersion = +nodeVersion[0]
+var nodeMinorVersion = +nodeVersion[1]
+if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
+  console.warn("You must run script/bootstrap and script/build with node v0.10 or above");
   process.exit(1);
 }
 

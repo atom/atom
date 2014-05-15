@@ -387,7 +387,7 @@ class EditorView extends View
 
       screenPosition = @screenPositionFromMouseEvent(e)
       if clickCount == 1
-        if e.metaKey
+        if e.metaKey or (process.platform isnt 'darwin' and e.ctrlKey)
           @editor.addCursorAtScreenPosition(screenPosition)
         else if e.shiftKey
           @editor.selectToScreenPosition(screenPosition)

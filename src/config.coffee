@@ -222,11 +222,13 @@ class Config
   #
   # keyPath - The {String} name of the key to observe
   # options - An optional {Object} containing the `callNow` key.
-  # callback - The {Function} that fires when the. It is given a single argument, `value`,
-  #            which is the new value of `keyPath`.
+  # callback - The {Function} to call when the value of the key changes.
+  #            The first argument will be the new value of the key and the
+  #            second argument will be an {Object} with a `previous` property
+  #            that is the prior value of the key.
   #
   # Returns an {Object} with the following keys:
-  #  :off - A {Function} that unobserves the `keyPath` with called.
+  #  :off - A {Function} that unobserves the `keyPath` when called.
   observe: (keyPath, options={}, callback) ->
     if _.isFunction(options)
       callback = options

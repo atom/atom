@@ -145,6 +145,7 @@
   {
     label: '&Help'
     submenu: [
+      { label: 'View &Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'View &License', command: 'application:open-license' }
       { label: "VERSION", enabled: false }
       { type: 'separator' }
