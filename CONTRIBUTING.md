@@ -57,7 +57,7 @@ in the proper package's repository.
     * :non-potable_water: `:non-potable_water:` when plugging memory leaks
     * :memo: `:memo:` when writing docs
     * :penguin: `:penguin:` when fixing something on Linux
-    * :green_apple: `:green_apple:` when fixing something on Mac OS
+    * :apple: `:apple:` when fixing something on Mac OS
     * :bug: `:bug:` when fixing a bug 
     * :fire: whitespace `:fire: whitespace` when removing whitespace
     * :green_heart: `:green_heart:` when fixing the CI build
