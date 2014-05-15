@@ -22,6 +22,4 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ## Troubleshooting
 
-Sometimes the command `npm config set python /usr/bin/python2 -g` does not work, in case it fails call `PYTHON=/usr/bin/python2 script/build` instead of `script/build`.
-
-On Ubuntu make sure you install the package `nodejs-legacy`.
+Sometimes the command `npm config set python /usr/bin/python2 -g` does not work, in case it fails try calling `PYTHON=/usr/bin/python2 script/build` instead of `script/build`.
