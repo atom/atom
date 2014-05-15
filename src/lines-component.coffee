@@ -105,7 +105,7 @@ LinesComponent = React.createClass
     {editor, mini, showIndentGuide} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
     translate3d = @buildTranslate3d(top, left)
-    lineHTML = "<div class=\"line\" style=\"top: #{top}px;\">"
+    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\">"
 
     if text is ""
       lineHTML += "&nbsp;"
