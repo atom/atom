@@ -3,7 +3,7 @@ React = require 'react'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-EditorView = require './editor-view'
+SelectionsComponent = require './selections-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -15,9 +15,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft} = @props
+      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeight} = @props
+      style =
+        height: scrollHeight
+        width: scrollWidth
+        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
-    div {className: 'lines'}
+    div {className: 'lines', style},
+      SelectionsComponent({editor, lineHeight}) if @isMounted
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -45,7 +50,6 @@ LinesComponent = React.createClass
   updateLines: ->
     {editor, visibleRowRange, showIndentGuide, selectionChanged} = @props
     [startRow, endRow] = visibleRowRange
-
     startRow = Math.max(0, startRow - 8)
     endRow = Math.min(editor.getLineCount(), endRow + 8)
 

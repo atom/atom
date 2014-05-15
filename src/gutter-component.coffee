@@ -13,10 +13,12 @@ GutterComponent = React.createClass
   lastMeasuredWidth: null
 
   render: ->
-    {width} = @props
+    {width, scrollHeight, scrollTop} = @props
 
     div className: 'gutter', style: {width},
-      div className: 'line-numbers', ref: 'lineNumbers'
+      div className: 'line-numbers', ref: 'lineNumbers', style:
+        height: scrollHeight
+        WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
 
   componentWillMount: ->
     @lineNumberNodesById = {}
@@ -45,8 +47,10 @@ GutterComponent = React.createClass
   appendOrUpdateVisibleLineNumberNodes: ->
     {editor, visibleRowRange, scrollTop, lineHeight} = @props
     [startRow, endRow] = visibleRowRange
+    startRow = Math.max(0, startRow - 8)
+    endRow = Math.min(editor.getLineCount(), endRow + 8)
+
     maxLineNumberDigits = editor.getLineCount().toString().length
-    verticalScrollOffset = -scrollTop % lineHeight
     newLineNumberIds = null
     newLineNumbersHTML = null
     visibleLineNumberIds = new Set
@@ -62,7 +66,8 @@ GutterComponent = React.createClass
 
       visibleLineNumberIds.add(id)
 
-      top = (index * lineHeight) + verticalScrollOffset
+      screenRow = startRow + index
+      top = screenRow * lineHeight
 
       if @hasLineNumberNode(id)
         @updateLineNumberNode(id, top)
@@ -101,10 +106,10 @@ GutterComponent = React.createClass
     innerHTML = padding + lineNumber + iconHTML
     translate3d = @buildTranslate3d(top)
 
-    "<div class=\"line-number editor-colors\" style=\"-webkit-transform: #{translate3d};\">#{innerHTML}</div>"
+    "<div class=\"line-number editor-colors\" style=\"top: #{top}px;\">#{innerHTML}</div>"
 
   updateLineNumberNode: (lineNumberId, top) ->
-    @lineNumberNodesById[lineNumberId].style['-webkit-transform'] = @buildTranslate3d(top)
+    @lineNumberNodesById[lineNumberId].style.top = top + 'px'
 
   hasLineNumberNode: (lineNumberId) ->
     @lineNumberNodesById.hasOwnProperty(lineNumberId)
