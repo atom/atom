@@ -64,7 +64,8 @@ class ReactEditorView extends View
 
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
-    @find('.scroll-view-content').prepend(view)
+    view.css('z-index', 1)
+    @find('.lines').prepend(view)
 
   beforeRemove: ->
     React.unmountComponentAtNode(@element)
