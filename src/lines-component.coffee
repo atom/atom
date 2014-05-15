@@ -49,10 +49,11 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines() unless @props.scrollingVertically
 
   updateLines: ->
-    {editor, visibleRowRange, showIndentGuide, selectionChanged} = @props
+    {editor, visibleRowRange, showIndentGuide, selectionChanged, lineOverdrawMargin} = @props
     [startRow, endRow] = visibleRowRange
-    startRow = Math.max(0, startRow - 8)
-    endRow = Math.min(editor.getLineCount(), endRow + 8)
+
+    startRow = Math.max(0, startRow - lineOverdrawMargin)
+    endRow = Math.min(editor.getLineCount(), endRow + lineOverdrawMargin)
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
     @removeNonVisibleLineNodes(visibleLines)

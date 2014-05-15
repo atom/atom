@@ -60,10 +60,10 @@ GutterComponent = React.createClass
     @removeNonVisibleLineNumberNodes(visibleLineNumberIds)
 
   appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, visibleRowRange, scrollTop, lineHeight, maxLineNumberDigits} = @props
+    {editor, visibleRowRange, scrollTop, lineHeight, maxLineNumberDigits, lineOverdrawMargin} = @props
     [startRow, endRow] = visibleRowRange
-    startRow = Math.max(0, startRow - 8)
-    endRow = Math.min(editor.getLineCount(), endRow + 8)
+    startRow = Math.max(0, startRow - lineOverdrawMargin)
+    endRow = Math.min(editor.getLineCount(), endRow + lineOverdrawMargin)
 
     newLineNumberIds = null
     newLineNumbersHTML = null

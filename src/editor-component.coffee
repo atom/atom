@@ -31,7 +31,7 @@ EditorComponent = React.createClass
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
-    {editor, cursorBlinkResumeDelay} = @props
+    {editor, cursorBlinkResumeDelay, lineOverdrawMargin} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
     if @isMounted()
@@ -51,14 +51,14 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, visibleRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
-        lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
-        width: @gutterWidth, onWidthChanged: @onGutterWidthChanged
+        editor, visibleRowRange, lineOverdrawMargin, maxLineNumberDigits, scrollTop,
+        scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
+        @pendingChanges, onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeight: lineHeightInPixels, visibleRowRange, @pendingChanges,
+        lineHeight: lineHeightInPixels, visibleRowRange, lineOverdrawMargin, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkResumeDelay,
         @onInputFocused, @onInputBlurred
@@ -100,6 +100,7 @@ EditorComponent = React.createClass
 
   getDefaultProps: ->
     cursorBlinkResumeDelay: 100
+    lineOverdrawMargin: 8
 
   componentWillMount: ->
     @pendingChanges = []
