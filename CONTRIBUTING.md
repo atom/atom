@@ -59,7 +59,7 @@ in the proper package's repository.
     * :penguin: `:penguin:` when fixing something on Linux
     * :apple: `:apple:` when fixing something on Mac OS
     * :bug: `:bug:` when fixing a bug 
-    * :fire: whitespace `:fire: whitespace` when removing whitespace
+    * :fire: `:fire:` when removing code or files
     * :green_heart: `:green_heart:` when fixing the CI build
     * :white_check_mark: `:white_check_mark:` when adding tests
     * :recycle: `:recycle:` when refactoring (or removing code, moving around etc.)
