@@ -41,3 +41,30 @@ exports.safeSpawn = function(command, args, options, callback) {
       callback(null);
   });
 }
+
+exports.readIo = function(command, args, options, callback) {
+  if(!callback) {
+    callback = options;
+    options = {};
+  }
+
+  var child = childProcess.spawn(command, args, options);
+  var io = {
+    out: null,
+    err: null
+  }
+  var aggregate = function(which, stream) {
+    var b = stream.read();
+    if(b === null)
+      return;
+    this[which] = (this[which] === null) ? b : Buffer.concat(this[which], b);
+  }
+  child.stdout.on('readable', aggregate.bind(io, 'out', child.stdout));
+  child.stderr.on('readable', aggregate.bind(io, 'err', child.stderr));
+  child.on('error', function(error) {
+    callback(error, null, null);
+  });
+  child.on('close', function(code) {
+    callback(code, io.out, io.err);
+  });
+}

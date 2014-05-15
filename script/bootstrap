@@ -6,6 +6,20 @@ if (nodeMinorVersion !== '10') {
   process.exit(1);
 }
 
+if (process.platform == 'linux') {
+  var exit = function(code) {
+    console.trace("Python ~2.7.0 is required. If the default 'python' doesn't resolve to such a Python installation, export PYTHON=</path/to/python2>");
+    process.exit(code ||1);
+  }
+  var readIo = require('./utils/child-process-wrapper.js').readIo
+  readIo(process.env.PYTHON || 'python', ['--version'], function(result, _, err) { //Python 2 prints version on stderr, Python 3 on stdout
+    if(result !== 0)
+      exit(2);
+    if(err === null || err.toString().match(/^Python 2.7/) === null)
+      exit(3)
+  });
+}
+
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
