@@ -48,13 +48,13 @@ module.exports = (grunt) ->
     installDir = path.join(process.env.ProgramFiles, appName)
   else if process.platform is 'darwin'
     appName = 'Atom.app'
-    tmpDir = '/tmp'
+    tmpDir = os.tmpdir()
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
-    atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
+    atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
     installDir = path.join('/Applications', appName)
   else
     appName = 'Atom'
