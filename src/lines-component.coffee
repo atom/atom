@@ -46,6 +46,7 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
+    @removeLineNodes() unless prevProps.showIndentGuide is @props.showIndentGuide
     @updateLines()
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically
@@ -62,10 +63,10 @@ LinesComponent = React.createClass
     endRow = Math.min(editor.getLineCount(), endRow + lineOverdrawMargin)
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
-    @removeNonVisibleLineNodes(visibleLines)
+    @removeLineNodes(visibleLines)
     @appendOrUpdateVisibleLineNodes(visibleLines, startRow)
 
-  removeNonVisibleLineNodes: (visibleLines) ->
+  removeLineNodes: (visibleLines=[]) ->
     visibleLineIds = new Set
     visibleLineIds.add(line.id.toString()) for line in visibleLines
     node = @getDOMNode()
@@ -117,12 +118,22 @@ LinesComponent = React.createClass
     lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\">"
 
     if text is ""
-      lineHTML += "&nbsp;"
+      lineHTML += @buildEmptyLineInnerHTML(line)
     else
       lineHTML += @buildLineInnerHTML(line)
 
     lineHTML += "</div>"
     lineHTML
+
+  buildEmptyLineInnerHTML: (line) ->
+    {showIndentGuide} = @props
+    {indentLevel, tabLength} = line
+
+    if showIndentGuide and indentLevel > 0
+      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
+      multiplyString(indentSpan, indentLevel + 1)
+    else
+      "&nbsp;"
 
   buildLineInnerHTML: (line) ->
     {invisibles, mini, showIndentGuide} = @props

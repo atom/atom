@@ -98,7 +98,7 @@ describe "EditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes[0].textContent).toBe '  '
         expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line2LeafNodes[1].textContent).toBe '  '
@@ -108,8 +108,7 @@ describe "EditorComponent", ->
       it "renders leading whitespace spans with the 'indent-guide' class for empty lines", ->
         editor.getBuffer().insert([1, Infinity], '\n')
 
-        lines = node.querySelectorAll('.line')
-        line2LeafNodes = getLeafNodes(lines[2])
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
 
         expect(line2LeafNodes.length).toBe 3
         expect(line2LeafNodes[0].textContent).toBe '  '
@@ -121,8 +120,7 @@ describe "EditorComponent", ->
 
       it "renders indent guides correctly on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
-        lines = node.querySelectorAll('.line')
-        line2LeafNodes = getLeafNodes(lines[2])
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe 3
         expect(line2LeafNodes[0].textContent).toBe '  '
         expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
@@ -132,9 +130,8 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
       it "does not render indent guides in trailing whitespace for lines containing non whitespace characters", ->
-        editor.getBuffer().setText ("  hi  ")
-        lines = node.querySelectorAll('.line')
-        line0LeafNodes = getLeafNodes(lines[0])
+        editor.getBuffer().setText "  hi  "
+        line0LeafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
         expect(line0LeafNodes[0].textContent).toBe '  '
         expect(line0LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line0LeafNodes[1].textContent).toBe '  '
