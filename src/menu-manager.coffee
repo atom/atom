@@ -69,7 +69,12 @@ class MenuManager
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 
-    @testEditor.webkitMatchesSelector(selector)
+    element = @testEditor
+    while element
+      return true if element.webkitMatchesSelector(selector)
+      element = element.parentElement
+
+    false
 
   # Public: Refreshes the currently visible menu.
   update: ->
