@@ -14,6 +14,7 @@ ICON_FILE="$4"
 DEB_PATH="$5"
 
 TARGET_ROOT="`mktemp -d`"
+chmod 755 "$TARGET_ROOT"
 TARGET="$TARGET_ROOT/atom-$VERSION-amd64"
 
 mkdir -p "$TARGET/usr"
