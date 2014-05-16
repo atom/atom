@@ -1731,26 +1731,26 @@ describe "Editor", ->
           editor.backspace()
           expect(editor.lineForBufferRow(0)).toBe 'var  =  () {'
 
-    describe ".backspaceToBeginningOfWord()", ->
+    describe ".deleteToBeginningOfWord()", ->
       describe "when no text is selected", ->
         it "deletes all text between the cursor and the beginning of the word", ->
           editor.setCursorBufferPosition([1, 24])
           editor.addCursorAtBufferPosition([3, 5])
           [cursor1, cursor2] = editor.getCursors()
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
           expect(buffer.lineForRow(3)).toBe '    ar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 22]
           expect(cursor2.getBufferPosition()).toEqual [3, 4]
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = functionems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return itemsar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
           expect(cursor2.getBufferPosition()).toEqual [2, 39]
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = ems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return ar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 13]
@@ -1758,24 +1758,24 @@ describe "Editor", ->
 
           editor.setText('  var sort')
           editor.setCursorBufferPosition([0, 2])
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(0)).toBe 'var sort'
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
-    describe ".backspaceToBeginningOfLine()", ->
+    describe ".deleteToBeginningOfLine()", ->
       describe "when no text is selected", ->
         it "deletes all text between the cursor and the beginning of the line", ->
           editor.setCursorBufferPosition([1, 24])
           editor.addCursorAtBufferPosition([2, 5])
           [cursor1, cursor2] = editor.getCursors()
 
-          editor.backspaceToBeginningOfLine()
+          editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
           expect(buffer.lineForRow(2)).toBe 'f (items.length <= 1) return items;'
           expect(cursor1.getBufferPosition()).toEqual [1, 0]
@@ -1784,13 +1784,13 @@ describe "Editor", ->
         describe "when at the beginning of the line", ->
           it "deletes the newline", ->
             editor.setCursorBufferPosition([2])
-            editor.backspaceToBeginningOfLine()
+            editor.deleteToBeginningOfLine()
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when text is selected", ->
         it "still deletes all text to begginning of the line", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
-          editor.backspaceToBeginningOfLine()
+          editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;'
 

@@ -174,8 +174,8 @@ EditorComponent = React.createClass
       'editor:move-to-previous-word': => editor.moveCursorToPreviousWord()
       'editor:select-word': => editor.selectWord()
       'editor:consolidate-selections': @consolidateSelections
-      'editor:backspace-to-beginning-of-word': => editor.backspaceToBeginningOfWord()
-      'editor:backspace-to-beginning-of-line': => editor.backspaceToBeginningOfLine()
+      'editor:delete-to-beginning-of-word': => editor.deleteToBeginningOfWord()
+      'editor:delete-to-beginning-of-line': => editor.deleteToBeginningOfLine()
       'editor:delete-to-end-of-word': => editor.deleteToEndOfWord()
       'editor:delete-line': => editor.deleteLine()
       'editor:cut-to-end-of-line': => editor.cutToEndOfLine()

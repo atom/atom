@@ -382,15 +382,25 @@ class Selection extends Model
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  backspaceToBeginningOfWord: ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  backspaceToBeginningOfLine: ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
+
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
-  backspaceToBeginningOfWord: ->
+  deleteToBeginningOfWord: ->
     @selectToBeginningOfWord() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes from the beginning of the line which the selection begins on
   # all the way through to the end of the selection.
-  backspaceToBeginningOfLine: ->
+  deleteToBeginningOfLine: ->
     if @isEmpty() and @cursor.isAtBeginningOfLine()
       @selectLeft()
     else
