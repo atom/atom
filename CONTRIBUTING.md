@@ -62,7 +62,7 @@ in the proper package's repository.
     * :fire: `:fire:` when removing code or files
     * :green_heart: `:green_heart:` when fixing the CI build
     * :white_check_mark: `:white_check_mark:` when adding tests
-    * :guardsman: `:guardsman:` when dealing with security
+    * :lock: `:lock:` when dealing with security
 
 ## CoffeeScript Styleguide
 
