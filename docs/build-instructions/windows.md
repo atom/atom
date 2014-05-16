@@ -32,3 +32,7 @@ probably need to fiddle with your system PATH.
 
   * If you just installed node you need to restart your computer before node is
   available on your Path.
+
+* `Running "download-atom-shell" task aborts due to warnings`
+  
+  * Run script/build again
