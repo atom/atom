@@ -58,13 +58,13 @@ module.exports = (grunt) ->
     installDir = path.join('/Applications', appName)
   else
     appName = 'Atom'
-    tmpDir = '/tmp'
+    tmpDir = os.tmpdir()
     buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
     symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
     shellAppDir = path.join(buildDir, appName)
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    atomShellDownloadDir = '/tmp/atom-cached-atom-shells'
+    atomShellDownloadDir = path.join(tmpDir, 'atom-cached-atom-shells')
     installDir = process.env.INSTALL_PREFIX ? '/usr/local'
 
   coffeeConfig =
