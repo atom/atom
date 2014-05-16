@@ -460,6 +460,10 @@ class EditorView extends View
         @hiddenInput.val(lastInput)
         false
 
+    @on "mouseup", ({which}) =>
+      if process.platform is 'linux' and which is 2
+        @editor.pasteText()
+
     # Ignore paste event, on Linux is wrongly emitted when user presses ctrl-v.
     @on "paste", -> false
 

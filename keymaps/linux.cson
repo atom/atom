@@ -71,6 +71,7 @@
   'ctrl-end': 'core:move-to-bottom'
   'cmd-shift-home': 'core:select-to-top'
   'cmd-shift-end': 'core:select-to-bottom'
+  'shift-insert': 'core:paste'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
