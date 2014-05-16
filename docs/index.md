@@ -12,6 +12,7 @@
 ### Advanced Topics
 
 * [Configuration](advanced/configuration.md)
+* [Developing Node Modules](advanced/node-modules.md)
 * [Keymaps](advanced/keymaps.md)
 * [Serialization](advanced/serialization.md)
 * [View System](advanced/view-system.md)

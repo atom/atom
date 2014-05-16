@@ -42,7 +42,7 @@ start = ->
     app.removeListener 'open-url', addUrlToOpen
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
+      path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
 
     require('coffee-script').register()
     if args.devMode
