@@ -262,7 +262,7 @@ describe "EditorComponent", ->
       cursor = node.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = node.querySelector('.storage.type.function.js').firstChild.firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
