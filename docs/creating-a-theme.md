@@ -75,7 +75,7 @@ To create an interface UI theme, do the following:
    terminal or use the _View > Developer > Open in Dev Mode_ menu
 5. Change the name of the theme in the theme's `package.json` file
 6. Name your theme end with a `-ui`. i.e. `super-white-ui`
-7. Run `apm link` to symlink your repository to `[AtomConfDir](user-dirs.md)/packages`
+7. Run `apm link` to symlink your repository to <tt>[AtomConfDir](user-dirs.md)/packages</tt>
 8. Reload Atom using `cmd-alt-ctrl-L`
 9. Enable the theme via _UI Theme_ drop-down in the _Themes_ section of the
    settings view

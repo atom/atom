@@ -93,7 +93,7 @@ class Atom extends Model
     else if process.platform is 'darwin'
       dir = '~/.atom'
     else
-      dir = (process.env.XDG_CONFIG_HOME) ? '~/.config/atom'
+      dir = (process.env.XDG_CONFIG_HOME ? '~/.config') + '/atom'
     @configDirPath ?= fs.absolute(dir)
 
   # Get the path to Atom's storage directory.

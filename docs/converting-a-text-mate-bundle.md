@@ -33,7 +33,7 @@ You can convert the R bundle with the following command:
 apm init --package ~/.atom/packages/language-r --convert https://github.com/textmate/r.tmbundle
 ```
 
-You can now browse to `[AtomConfDir](user-dirs.md)/packages/language-r` to see the converted bundle.
+You can now browse to <tt>[AtomConfDir](user-dirs.md)/packages/language-r</tt> to see the converted bundle.
 
 :tada: Your new package is now ready to use, launch Atom and open a `.r` file in
 the editor to see it in action!

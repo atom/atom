@@ -44,7 +44,7 @@ You can also install packages by using the `apm install` command:
 * `apm install <package_name>@<package_version>` to install a specific version.
 
 For example `apm install emmet@0.1.5` installs the `0.1.5` release of the
-[Emmet](https://github.com/atom/emmet) package into `[AtomConfDir](user-dirs.md)/packages`.
+[Emmet](https://github.com/atom/emmet) package into <tt>[AtomConfDir](user-dirs.md)/packages</tt>.
 
 You can also use `apm` to find new packages to install:
 
@@ -73,7 +73,7 @@ the editor to insert a newline. But if the same keystroke occurs inside of a
 select list's mini-editor, it instead emits the `core:confirm` event based on
 the binding in the more-specific selector.
 
-By default, `[AtomConfDir](user-dirs.md)/keymap.cson` is loaded when Atom is started. It will always
+By default, <tt>[AtomConfDir](user-dirs.md)/keymap.cson</tt> is loaded when Atom is started. It will always
 be loaded last, giving you the chance to override bindings that are defined by
 Atom's core keymaps or third-party packages.
 

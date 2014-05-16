@@ -40,14 +40,14 @@ Now, let's say you've downloaded the theme to `~/Downloads/MyTheme.tmTheme`,
 you can convert the theme with the following command:
 
 ```sh
-apm init --theme [AtomConfDir](user-dirs.md)/packages/my-theme --convert ~/Downloads/MyTheme.tmTheme
+apm init --theme ~/.atom/packages/my-theme --convert ~/Downloads/MyTheme.tmTheme
 ```
 
-You can browse to `[AtomConfDir](user-dirs.md)/packages/my-theme` to see the converted theme.
+You can browse to <tt>[AtomConfDir](user-dirs.md)/packages/my-theme</tt> to see the converted theme.
 
 ### Activate the Theme
 
-Now that your theme is installed to `[AtomConfDir](user-dirs.md)/packages` you can enable it
+Now that your theme is installed to <tt>[AtomConfDir](user-dirs.md)/packages</tt> you can enable it
 by launching Atom and selecting the _Atom > Preferences..._ menu.
 
 Select the _Themes_ link on the left side and choose _My Theme_ from the
