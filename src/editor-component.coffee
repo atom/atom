@@ -51,8 +51,8 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, visibleRowRange, lineOverdrawMargin, maxLineNumberDigits, scrollTop,
-        scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
+        ref: 'gutter', editor, visibleRowRange, lineOverdrawMargin, maxLineNumberDigits,
+        scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged
       }
 
@@ -424,3 +424,5 @@ EditorComponent = React.createClass
     e.abortKeyBinding() unless @props.editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) -> @refs.scrollView.lineNodeForScreenRow(screenRow)
+
+  lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)

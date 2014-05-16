@@ -151,41 +151,39 @@ describe "EditorComponent", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
 
-      lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes.length).toBe 6
-      expect(lineNumberNodes[0].textContent).toBe "#{nbsp}1"
-      expect(lineNumberNodes[5].textContent).toBe "#{nbsp}6"
+      expect(node.querySelectorAll('.line-number').length).toBe 6 + 2 + 1 # line overdraw margin below + dummy line number
+      expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
+      expect(component.lineNumberNodeForScreenRow(5).textContent).toBe "#{nbsp}6"
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes.length).toBe 6
+      expect(node.querySelectorAll('.line-number').length).toBe 6 + 4 + 1 # line overdraw margin above/below + dummy line number
 
-      expect(lineNumberNodes[0].textContent).toBe "#{nbsp}3"
-      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{-.5 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[5].textContent).toBe "#{nbsp}8"
-      expect(lineNumberNodes[5].style['-webkit-transform']).toBe "translate3d(0px, #{4.5 * lineHeightInPixels}px, 0px)"
+      expect(component.lineNumberNodeForScreenRow(2).textContent).toBe "#{nbsp}3"
+      expect(component.lineNumberNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
+      return
+      expect(component.lineNumberNodeForScreenRow(7).textContent).toBe "#{nbsp}8"
+      expect(component.lineNumberNodeForScreenRow(7).offsetTop).toBe 7 * lineHeightInPixels
 
     it "updates the translation of subsequent line numbers when lines are inserted or removed", ->
       editor.getBuffer().insert([0, 0], '\n\n')
 
       lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(lineNumberNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
+      expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0
+      expect(component.lineNumberNodeForScreenRow(1).offsetTop).toBe 1 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
       editor.getBuffer().insert([0, 0], '\n\n')
-      lineNumberNodes = node.querySelectorAll('.line-number')
-      expect(lineNumberNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(lineNumberNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[5].style['-webkit-transform']).toBe "translate3d(0px, #{5 * lineHeightInPixels}px, 0px)"
-      expect(lineNumberNodes[6].style['-webkit-transform']).toBe "translate3d(0px, #{6 * lineHeightInPixels}px, 0px)"
+      expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0
+      expect(component.lineNumberNodeForScreenRow(1).offsetTop).toBe 1 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(5).offsetTop).toBe 5 * lineHeightInPixels
+      expect(component.lineNumberNodeForScreenRow(6).offsetTop).toBe 6 * lineHeightInPixels
 
     it "renders • characters for soft-wrapped lines", ->
       editor.setSoftWrap(true)
@@ -193,28 +191,24 @@ describe "EditorComponent", ->
       node.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
 
-      lines = node.querySelectorAll('.line-number')
-      expect(lines.length).toBe 6
-      expect(lines[0].textContent).toBe "#{nbsp}1"
-      expect(lines[1].textContent).toBe "#{nbsp}•"
-      expect(lines[2].textContent).toBe "#{nbsp}2"
-      expect(lines[3].textContent).toBe "#{nbsp}•"
-      expect(lines[4].textContent).toBe "#{nbsp}3"
-      expect(lines[5].textContent).toBe "#{nbsp}•"
+      expect(node.querySelectorAll('.line-number').length).toBe 6 + lineOverdrawMargin + 1 # 1 dummy line node
+      expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
+      expect(component.lineNumberNodeForScreenRow(1).textContent).toBe "#{nbsp}•"
+      expect(component.lineNumberNodeForScreenRow(2).textContent).toBe "#{nbsp}2"
+      expect(component.lineNumberNodeForScreenRow(3).textContent).toBe "#{nbsp}•"
+      expect(component.lineNumberNodeForScreenRow(4).textContent).toBe "#{nbsp}3"
+      expect(component.lineNumberNodeForScreenRow(5).textContent).toBe "#{nbsp}•"
 
-    it "pads line numbers to be right justified based on the maximum number of line number digits", ->
+    it "pads line numbers to be right-justified based on the maximum number of line number digits", ->
       editor.getBuffer().setText([1..10].join('\n'))
-      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
-
-      for node, i in lineNumberNodes[0..8]
-        expect(node.textContent).toBe "#{nbsp}#{i + 1}"
-      expect(lineNumberNodes[9].textContent).toBe '10'
+      for screenRow in [0..8]
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{nbsp}#{screenRow + 1}"
+      expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
 
       # Removes padding when the max number of digits goes down
       editor.getBuffer().delete([[1, 0], [2, 0]])
-      lineNumberNodes = toArray(node.querySelectorAll('.line-number'))
-      for node, i in lineNumberNodes
-        expect(node.textContent).toBe "#{i + 1}"
+      for screenRow in [0..8]
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{screenRow + 1}"
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
