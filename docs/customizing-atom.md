@@ -44,7 +44,7 @@ You can also install packages by using the `apm install` command:
 * `apm install <package_name>@<package_version>` to install a specific version.
 
 For example `apm install emmet@0.1.5` installs the `0.1.5` release of the
-[Emmet](https://github.com/atom/emmet) package into `~/.atom/packages`.
+[Emmet](https://github.com/atom/emmet) package into `[AtomConfDir](user-dirs.md)/packages`.
 
 You can also use `apm` to find new packages to install:
 
@@ -73,7 +73,7 @@ the editor to insert a newline. But if the same keystroke occurs inside of a
 select list's mini-editor, it instead emits the `core:confirm` event based on
 the binding in the more-specific selector.
 
-By default, `~/.atom/keymap.cson` is loaded when Atom is started. It will always
+By default, `[AtomConfDir](user-dirs.md)/keymap.cson` is loaded when Atom is started. It will always
 be loaded last, giving you the chance to override bindings that are defined by
 Atom's core keymaps or third-party packages.
 
@@ -85,7 +85,7 @@ currently in use.
 
 ## Advanced Configuration
 
-Atom loads configuration settings from the `config.cson` file in your _~/.atom_
+Atom loads configuration settings from the `config.cson` file in your _[AtomConfDir](user-dirs.md)_
 directory, which contains [CoffeeScript-style JSON][CSON] (CSON):
 
 ```coffee
@@ -139,7 +139,7 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
 
 ### init.coffee
 
-When Atom finishes loading, it will evaluate _init.coffee_ in your _~/.atom_
+When Atom finishes loading, it will evaluate _init.coffee_ in your _[AtomConfDir](user-dirs.md)_
 directory, giving you a chance to run arbitrary personal [CoffeeScript][] code to
 make customizations. You have full access to Atom's API from code in this file.
 If customizations become extensive, consider [creating a package][creating-a-package].
@@ -148,7 +148,7 @@ You can open this file in an editor from the _Atom > Open Your Init Script_
 menu.
 
 For example, if you have the Audio Beep configuration setting enabled, you
-could add the following code to your _~/.atom/init.coffee_ file to have Atom
+could add the following code to your _[AtomConfDir](user-dirs.md)/init.coffee_ file to have Atom
 greet you with an audio beep every time it loads:
 
 ```coffee
@@ -161,12 +161,12 @@ This file can also be named _init.js_ and contain JavaScript code.
 
 If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to publish, you can add styles to the
-_styles.less_ file in your _~/.atom_ directory.
+_styles.less_ file in your _[AtomConfDir](user-dirs.md)_ directory.
 
 You can open this file in an editor from the _Atom > Open Your Stylesheet_ menu.
 
 For example, to change the color of the cursor, you could add the following
-rule to your _~/.atom/styles.less_ file:
+rule to your _[AtomConfDir](user-dirs.md)/styles.less_ file:
 
 ```less
 .editor .cursor {
