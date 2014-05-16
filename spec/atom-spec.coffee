@@ -510,22 +510,20 @@ describe "the `atom` global", ->
           # enabling of theme
           pack = atom.packages.enablePackage(packageName)
 
-          waitsFor (done) ->
-            atom.themes.once 'reloaded', done
+          waitsFor ->
+            pack in atom.packages.getActivePackages()
 
           runs ->
-            expect(atom.packages.getActivePackages()).toContain pack
             expect(atom.config.get('core.themes')).toContain packageName
             expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
             # disabling of theme
             pack = atom.packages.disablePackage(packageName)
 
-          waitsFor (done) ->
-            atom.themes.once 'reloaded', done
+          waitsFor ->
+            not (pack in atom.packages.getActivePackages())
 
           runs ->
-            expect(atom.packages.getActivePackages()).not.toContain(pack)
             expect(atom.config.get('core.themes')).not.toContain packageName
             expect(atom.config.get('core.themes')).not.toContain packageName
             expect(atom.config.get('core.disabledPackages')).not.toContain packageName
