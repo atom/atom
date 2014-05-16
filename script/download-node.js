@@ -23,7 +23,11 @@ var downloadTarballAndExtract = function(url, location, callback) {
   });
   stream.on('end', callback.bind(this, tempPath));
   stream.on('error', callback);
-  return request(url).pipe(zlib.createGunzip()).pipe(stream);
+  var requestOptions = {
+    url: url,
+    proxy: process.env.http_proxy || process.env.https_proxy
+  };
+  return request(requestOptions).pipe(zlib.createGunzip()).pipe(stream);
 };
 
 var copyNodeBinToLocation = function(callback, version, targetFilename, fromDirectory) {
