@@ -191,3 +191,5 @@ EditorScrollViewComponent = React.createClass
 
   focus: ->
     @refs.input.focus()
+
+  lineNodeForScreenRow: (screenRow) -> @refs.lines.lineNodeForScreenRow(screenRow)

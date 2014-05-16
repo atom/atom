@@ -27,7 +27,8 @@ LinesComponent = React.createClass
   componentWillMount: ->
     @measuredLines = new WeakSet
     @lineNodesByLineId = {}
-    @lineNodeTopPositions = {}
+    @screenRowsByLineId = {}
+    @lineIdsByScreenRow = {}
 
   componentDidMount: ->
     @measureLineHeightAndCharWidth()
@@ -43,10 +44,17 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
+    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+      @clearScreenRowCaches()
+      @measureLineHeightAndCharWidth()
+
     @updateLines()
-    @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically
+
+  clearScreenRowCaches: ->
+    @screenRowsByLineId = {}
+    @lineIdsByScreenRow = {}
 
   updateLines: ->
     {editor, visibleRowRange, showIndentGuide, selectionChanged, lineOverdrawMargin} = @props
@@ -65,7 +73,9 @@ LinesComponent = React.createClass
     node = @getDOMNode()
     for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
       delete @lineNodesByLineId[lineId]
-      delete @lineNodeTopPositions[lineId]
+      screenRow = @screenRowsByLineId[lineId]
+      delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
+      delete @screenRowsByLineId[lineId]
       node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
@@ -75,16 +85,16 @@ LinesComponent = React.createClass
 
     for line, index in visibleLines
       screenRow = startRow + index
-      top = (screenRow * lineHeight)
 
       if @hasLineNode(line.id)
-        @updateLineNode(line, top)
+        @updateLineNode(line, screenRow)
       else
         newLines ?= []
         newLinesHTML ?= ""
         newLines.push(line)
-        newLinesHTML += @buildLineHTML(line, top)
-        @lineNodeTopPositions[line.id] = top
+        newLinesHTML += @buildLineHTML(line, screenRow)
+        @screenRowsByLineId[line.id] = screenRow
+        @lineIdsByScreenRow[screenRow] = line.id
 
     return unless newLines?
 
@@ -102,10 +112,10 @@ LinesComponent = React.createClass
   buildTranslate3d: (top) ->
     "translate3d(0px, #{top}px, 0px)"
 
-  buildLineHTML: (line, top, left) ->
-    {editor, mini, showIndentGuide} = @props
+  buildLineHTML: (line, screenRow) ->
+    {editor, mini, showIndentGuide, lineHeight} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
-    translate3d = @buildTranslate3d(top, left)
+    top = screenRow * lineHeight
     lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\">"
 
     if text is ""
@@ -156,11 +166,16 @@ LinesComponent = React.createClass
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-  updateLineNode: (line, top) ->
-    unless @lineNodeTopPositions[line.id] is top
+  updateLineNode: (line, screenRow) ->
+    unless @screenRowsByLineId[line.id] is screenRow
+      {lineHeight} = @props
       lineNode = @lineNodesByLineId[line.id]
-      lineNode.style.top = top + 'px'
-      @lineNodeTopPositions[line.id] = top
+      lineNode.style.top = screenRow * lineHeight + 'px'
+      @screenRowsByLineId[line.id] = screenRow
+      @lineIdsByScreenRow[screenRow] = line.id
+
+  lineNodeForScreenRow: (screenRow) ->
+    @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
   measureLineHeightAndCharWidth: ->
     node = @getDOMNode()
