@@ -5,6 +5,10 @@ fs = require 'fs-plus'
 
 describe "Config", ->
   dotAtomPath = path.join(temp.dir, 'dot-atom-dir')
+  dotAtomPath = null
+
+  beforeEach ->
+    dotAtomPath = temp.path('dot-atom-dir')
 
   describe ".get(keyPath)", ->
     it "allows a key path's value to be read", ->
@@ -258,8 +262,10 @@ describe "Config", ->
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
+      if fs.existsSync(dotAtomPath)
+        fs.removeSync(dotAtomPath)
+
       atom.config.configDirPath = dotAtomPath
-      expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
 
     afterEach ->
       fs.removeSync(dotAtomPath)
