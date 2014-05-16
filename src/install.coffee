@@ -73,7 +73,7 @@ class Install extends Command
       env[pathKey]= nodeBinFolder
 
   installModule: (options, pack, modulePath, callback) ->
-    installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
+    installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push("--arch=#{config.getNodeArch()}")
@@ -132,7 +132,7 @@ class Install extends Command
         callback("#{stdout}\n#{stderr}")
 
   forkInstallCommand: (options, callback) ->
-    installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
+    installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent

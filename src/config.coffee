@@ -50,6 +50,9 @@ module.exports =
       else process.arch  # On BSD and Linux we use current machine's arch.
 
   getUserConfigPath: ->
+    path.resolve(@getAtomDirectory(), '.apmrc')
+
+  getGlobalConfigPath: ->
     path.resolve(__dirname, '..', '.apmrc')
 
   isWin32: ->

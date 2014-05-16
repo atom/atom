@@ -67,7 +67,7 @@ class Dedupe extends Command
         callback("#{stdout}\n#{stderr}")
 
   forkDedupeCommand: (options, callback) ->
-    dedupeArgs = ['--userconfig', config.getUserConfigPath(), 'dedupe']
+    dedupeArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'dedupe']
     dedupeArgs.push("--target=#{config.getNodeVersion()}")
     dedupeArgs.push('--arch=ia32')
     dedupeArgs.push('--silent') if options.argv.silent
