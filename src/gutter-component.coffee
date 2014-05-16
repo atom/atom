@@ -11,6 +11,7 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   lastMeasuredWidth: null
+  dummyLineNumberNode: null
 
   render: ->
     {scrollHeight, scrollTop} = @props
@@ -62,7 +63,7 @@ GutterComponent = React.createClass
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
   updateDummyLineNumber: ->
-    WrapperDiv.innerHTML = @buildLineNumberInnerHTML(0, false, @props.maxLineNumberDigits)
+    @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false, @props.maxLineNumberDigits)
 
   updateLineNumbers: ->
     lineNumberIdsToPreserve = @appendOrUpdateVisibleLineNumberNodes()

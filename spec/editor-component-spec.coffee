@@ -202,10 +202,21 @@ describe "EditorComponent", ->
         expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{nbsp}#{screenRow + 1}"
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
 
+      gutterNode = node.querySelector('.gutter')
+      initialGutterWidth = gutterNode.offsetWidth
+
       # Removes padding when the max number of digits goes down
       editor.getBuffer().delete([[1, 0], [2, 0]])
       for screenRow in [0..8]
         expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{screenRow + 1}"
+      expect(gutterNode.offsetWidth).toBeLessThan initialGutterWidth
+
+      # Increases padding when the max number of digits goes up
+      editor.getBuffer().insert([0, 0], '\n\n')
+      for screenRow in [0..8]
+        expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{nbsp}#{screenRow + 1}"
+      expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
+      expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
