@@ -4,9 +4,11 @@ nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
   [contentNode, editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
-  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame] = []
+  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame, lineOverdrawMargin] = []
 
   beforeEach ->
+    lineOverdrawMargin = 2
+
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
@@ -29,7 +31,7 @@ describe "EditorComponent", ->
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new ReactEditorView(editor)
+      wrapperView = new ReactEditorView(editor, {lineOverdrawMargin})
       wrapperView.attachToDom()
       {component} = wrapperView
       component.setLineHeight(1.3)
@@ -49,52 +51,54 @@ describe "EditorComponent", ->
     contentNode.style.width = ''
 
   describe "line rendering", ->
-    it "renders only the currently-visible lines, translated relative to the scroll position", ->
+    it "renders the currently-visible lines plus the overdraw margin", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
 
-      lines = node.querySelectorAll('.line')
-      expect(lines.length).toBe 6
-      expect(lines[0].textContent).toBe editor.lineForScreenRow(0).text
-      expect(lines[5].textContent).toBe editor.lineForScreenRow(5).text
+      linesNode = node.querySelector('.lines')
+      expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
+      expect(node.querySelectorAll('.line').length).toBe 6 + 2 # no margin above
+      expect(component.lineNodeForScreenRow(0).textContent).toBe editor.lineForScreenRow(0).text
+      expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0
+      expect(component.lineNodeForScreenRow(5).textContent).toBe editor.lineForScreenRow(5).text
+      expect(component.lineNodeForScreenRow(5).offsetTop).toBe 5 * lineHeightInPixels
 
-      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes.length).toBe 6
-      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, #{-.5 * lineHeightInPixels}px, 0px)"
-      expect(lineNodes[0].textContent).toBe editor.lineForScreenRow(2).text
-      expect(lineNodes[5].textContent).toBe editor.lineForScreenRow(7).text
-      expect(lineNodes[5].style['-webkit-transform']).toBe "translate3d(0px, #{4.5 * lineHeightInPixels}px, 0px)"
+      expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, #{-4.5 * lineHeightInPixels}px, 0px)"
+      expect(node.querySelectorAll('.line').length).toBe 6 + 4 # margin above and below
+      expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(2).textContent).toBe editor.lineForScreenRow(2).text
+      expect(component.lineNodeForScreenRow(9).offsetTop).toBe 9 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(9).textContent).toBe editor.lineForScreenRow(9).text
 
-    it "updates the translation of subsequent lines when lines are inserted or removed", ->
+    it "updates the top position of subsequent lines when lines are inserted or removed", ->
       editor.getBuffer().deleteRows(0, 1)
       lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(lineNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
-      expect(lineNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
+      expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
 
       editor.getBuffer().insert([0, 0], '\n\n')
       lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(lineNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * lineHeightInPixels}px, 0px)"
-      expect(lineNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * lineHeightInPixels}px, 0px)"
-      expect(lineNodes[3].style['-webkit-transform']).toBe "translate3d(0px, #{3 * lineHeightInPixels}px, 0px)"
-      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
+      expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
+      expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
     describe "when indent guides are enabled", ->
       beforeEach ->
         component.setShowIndentGuide(true)
 
       it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
-        lines = node.querySelectorAll('.line')
-        line1LeafNodes = getLeafNodes(lines[1])
+        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-        line2LeafNodes = getLeafNodes(lines[2])
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line2LeafNodes[0].textContent).toBe '  '
         expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line2LeafNodes[1].textContent).toBe '  '
@@ -502,14 +506,12 @@ describe "EditorComponent", ->
       node.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
 
-      lineNodes = node.querySelectorAll('.line')
-      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(0px, #{4 * lineHeightInPixels}px, 0px)"
+      linesNode = node.querySelector('.lines')
+      expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
-      expect(lineNodes[0].style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
-      expect(lineNodes[4].style['-webkit-transform']).toBe "translate3d(-100px, #{4 * lineHeightInPixels}px, 0px)"
+      expect(linesNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
@@ -527,7 +529,7 @@ describe "EditorComponent", ->
       node.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
       editor.setScrollBottom(editor.getScrollHeight())
-      lastLineNode = last(node.querySelectorAll('.line'))
+      lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
       expect(bottomOfLastLine).toBe topOfHorizontalScrollbar
@@ -535,7 +537,6 @@ describe "EditorComponent", ->
       # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       node.style.width = 100 * charWidth + 'px'
       component.measureHeightAndWidth()
-      lastLineNode = last(node.querySelectorAll('.line'))
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = node.getBoundingClientRect().bottom
       expect(bottomOfLastLine).toBe bottomOfEditor
@@ -547,11 +548,9 @@ describe "EditorComponent", ->
 
       editor.setScrollLeft(Infinity)
 
-      lineNodes = node.querySelectorAll('.line')
-      rightOfLongestLine = lineNodes[6].getBoundingClientRect().right
+      rightOfLongestLine = component.lineNodeForScreenRow(6).getBoundingClientRect().right
       leftOfVerticalScrollbar = verticalScrollbarNode.getBoundingClientRect().left
-
-      expect(rightOfLongestLine).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
+      expect(Math.round(rightOfLongestLine)).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
 
     it "only displays dummy scrollbars when scrollable in that direction", ->
       expect(verticalScrollbarNode.style.display).toBe 'none'
