@@ -86,13 +86,19 @@ class Atom extends Model
 
   # Get the directory path to Atom's configuration area.
   #
-  # Returns the absolute path to ~/.atom
+  # Returns the absolute path to ~/.atom according to platform standards
   @getConfigDirPath: ->
-    @configDirPath ?= fs.absolute('~/.atom')
+    if process.platform is 'win32'
+      dir = process.env.APPDATA + '/Atom'
+    else if process.platform is 'darwin'
+      dir = '~/.atom'
+    else
+      dir = (process.env.XDG_CONFIG_HOME) ? '~/.config/atom'
+    @configDirPath ?= fs.absolute(dir)
 
   # Get the path to Atom's storage directory.
   #
-  # Returns the absolute path to ~/.atom/storage
+  # Returns the absolute path to @configDirPath/storage
   @getStorageDirPath: ->
     @storageDirPath ?= path.join(@getConfigDirPath(), 'storage')
 
