@@ -24,9 +24,7 @@ describe "ContextMenuManager", ->
             'child-1': 'child-1:trigger'
             'child-2': 'child-1:trigger'
           ]
-          'parent-2': 'parent-2:trigger'   
-
-
+          'parent-2': 'parent-2:trigger'
 
     describe 'dev mode', ->
       it 'loads',  ->
@@ -130,4 +128,3 @@ describe "ContextMenuManager", ->
 
       expect(buildFn).toHaveBeenCalled()
       expect(buildFn.mostRecentCall.args[0]).toBe event
-
