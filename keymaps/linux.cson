@@ -91,7 +91,7 @@
   'ctrl-[': 'editor:outdent-selected-rows'
   'ctrl-up': 'editor:move-line-up'
   'ctrl-down': 'editor:move-line-down'
-  'ctrl-/': 'editor:toggle-line-comments'
+  'ctrl-shift-/': 'editor:toggle-line-comments'
   'ctrl-j': 'editor:join-lines'
   'ctrl-D': 'editor:duplicate-lines'
   'alt-shift-up': 'editor:add-selection-above'
