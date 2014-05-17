@@ -34,7 +34,7 @@ class ContextMenuManager
   add: (name, object, {devMode}={}) ->
     for selector, items of object
       for label, commandOrSubmenu of items
-        if (typeof commandOrSubmenu == 'object')
+        if typeof commandOrSubmenu is 'object'
           @addBySelector(selector, commandOrSubmenu, {devMode})
         else
           @addBySelector(selector, {label, commandOrSubmenu}, {devMode})
