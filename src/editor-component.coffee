@@ -31,11 +31,11 @@ EditorComponent = React.createClass
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
-    {editor, cursorBlinkResumeDelay, lineOverdrawMargin} = @props
+    {editor, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
     if @isMounted()
-      visibleRowRange = editor.getVisibleRowRange()
+      renderedRowRange = @getRenderedRowRange()
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -51,14 +51,14 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', editor, visibleRowRange, lineOverdrawMargin, maxLineNumberDigits,
+        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeight: lineHeightInPixels, visibleRowRange, lineOverdrawMargin, @pendingChanges,
+        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkResumeDelay,
         @onInputFocused, @onInputBlurred
@@ -95,6 +95,13 @@ EditorComponent = React.createClass
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
+
+  getRenderedRowRange: ->
+    {editor, lineOverdrawMargin} = @props
+    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
+    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
+    renderedEndRow = Math.min(editor.getLineCount(), visibleEndRow + lineOverdrawMargin)
+    [renderedStartRow, renderedEndRow]
 
   getInitialState: -> {}
 

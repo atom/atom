@@ -35,11 +35,11 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'visibleRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
 
-    {visibleRowRange, pendingChanges} = newProps
+    {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
-      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
+      return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
     false
 
@@ -56,11 +56,8 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
 
   updateLines: ->
-    {editor, visibleRowRange, showIndentGuide, selectionChanged, lineOverdrawMargin} = @props
-    [startRow, endRow] = visibleRowRange
-
-    startRow = Math.max(0, startRow - lineOverdrawMargin)
-    endRow = Math.min(editor.getLineCount(), endRow + lineOverdrawMargin)
+    {editor, renderedRowRange, showIndentGuide, selectionChanged} = @props
+    [startRow, endRow] = renderedRowRange
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
     @removeLineNodes(visibleLines)
@@ -198,7 +195,7 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   measureCharactersInNewLines: ->
-    [visibleStartRow, visibleEndRow] = @props.visibleRowRange
+    [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
     for tokenizedLine in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)

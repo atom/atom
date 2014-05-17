@@ -33,11 +33,11 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'visibleRowRange', 'scrollTop', 'lineHeight', 'fontSize')
+    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeight', 'fontSize')
 
-    {visibleRowRange, pendingChanges} = newProps
+    {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
-      return true unless change.end <= visibleRowRange.start or visibleRowRange.end <= change.start
+      return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
     false
 
@@ -70,10 +70,8 @@ GutterComponent = React.createClass
     @removeLineNumberNodes(lineNumberIdsToPreserve)
 
   appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, visibleRowRange, scrollTop, maxLineNumberDigits, lineOverdrawMargin} = @props
-    [startRow, endRow] = visibleRowRange
-    startRow = Math.max(0, startRow - lineOverdrawMargin)
-    endRow = Math.min(editor.getLineCount(), endRow + lineOverdrawMargin)
+    {editor, renderedRowRange, scrollTop, maxLineNumberDigits} = @props
+    [startRow, endRow] = renderedRowRange
 
     newLineNumberIds = null
     newLineNumbersHTML = null
@@ -91,7 +89,6 @@ GutterComponent = React.createClass
         wrapCount = 0
 
       visibleLineNumberIds.add(id)
-
 
       if @hasLineNumberNode(id)
         @updateLineNumberNode(id, screenRow)
