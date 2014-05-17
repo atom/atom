@@ -8,7 +8,7 @@ async = require 'async'
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
 
-  runPackageSpecs = (callback) ->
+  runPackageSpecs = (isCI, callback) ->
     failedPackages = []
     rootDir = grunt.config.get('atom.shellAppDir')
     contentsDir = grunt.config.get('atom.contentsDir')
@@ -31,8 +31,7 @@ module.exports = (grunt) ->
       else if process.platform is 'win32'
         options =
           cmd: process.env.comspec
-          # FIXME: CI settings should have their own flag
-          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
+          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
           opts:
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
@@ -44,10 +43,12 @@ module.exports = (grunt) ->
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
 
+      if isCI
+        options.args.push('--log-file=ci.log')
+
       grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
-        if process.platform is 'win32'
-          # FIXME: This is CI dependent, not platform dependent
+        if isCI
           process.stderr.write(fs.readFileSync(path.join(packagePath, 'ci.log')))
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
@@ -74,7 +75,7 @@ module.exports = (grunt) ->
     # drain
     packageSpecQueue.push(tasks)
 
-  runCoreSpecs = (callback) ->
+  runCoreSpecs = (isCI, callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
     if process.platform is 'darwin'
       appPath = path.join(contentsDir, 'MacOS', 'Atom')
@@ -88,21 +89,23 @@ module.exports = (grunt) ->
     if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
     else
       options =
         cmd: appPath
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
 
+    if isCI
+      options.args.push('--log-file=ci.log')
+
     spawn options, (error, results, code) ->
-      if process.platform is 'win32'
-        # FIXME: This is CI dependent, not platform dependent
+      if isCI
         process.stderr.write(fs.readFileSync('ci.log'))
         fs.unlinkSync('ci.log')
 
       callback(null, error)
 
-  grunt.registerTask 'run-specs', 'Run the specs', ->
+  grunt.registerTask 'run-specs', 'Run the specs', (mode) ->
     done = @async()
     startTime = Date.now()
 
@@ -113,7 +116,8 @@ module.exports = (grunt) ->
     else
       method = async.series
 
-    method [runCoreSpecs, runPackageSpecs], (error, results) ->
+    isCI = mode is 'ci' if mode
+    method [runCoreSpecs.bind(this, isCI), runPackageSpecs.bind(this, isCI)], (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.verbose.writeln("Total spec time: #{elapsedTime}s")

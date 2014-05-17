@@ -230,8 +230,12 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build'])
+  grunt.registerTask('test', (mode) ->
+    # use dynamic alias to pass the argument to run-specs task
+    specTask = 'run-specs'
+    specTask += ':' + mode if mode
+    grunt.task.run(['shell:kill-atom', specTask]))
+  grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test:ci', 'codesign', 'publish-build'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
 
   defaultTasks = ['download-atom-shell', 'build', 'set-version']
