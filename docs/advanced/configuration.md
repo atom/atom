@@ -50,7 +50,7 @@ class MyClass
 
 ### Writing Config Settings
 
-The `atom.config` database is populated on startup from `~/.atom/config.cson`,
+The `atom.config` database is populated on startup from <tt>[AtomConfDir](../user-dirs.md)/config.cson</tt>,
 but you can programmatically write to it with `atom.config.set`:
 
 ```coffeescript

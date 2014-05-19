@@ -51,7 +51,7 @@ which is normally bound to `cmd-shift-o`. You can also run dev mode from the
 command line with `atom --dev`.
 
 To load your package in development mode, create a symlink to it in
-`~/.atom/dev/packages`. This occurs automatically when you clone the package
+<tt>[AtomConfDir](user-dirs.md)/dev/packages</tt>. This occurs automatically when you clone the package
 with `apm develop`. You can also run `apm link --dev` and `apm unlink --dev`
 from the package directory to create and remove dev-mode symlinks.
 
