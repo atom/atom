@@ -140,6 +140,12 @@ LinesComponent = React.createClass
     innerHTML = ""
 
     scopeStack = []
+    invisibles =
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
+
     firstTrailingWhitespacePosition = text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
@@ -147,6 +153,7 @@ LinesComponent = React.createClass
       hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
       innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
+    innerHTML += invisibles.eol
     innerHTML
 
   updateScopeStack: (scopeStack, desiredScopes) ->

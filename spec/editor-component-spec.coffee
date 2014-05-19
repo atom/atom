@@ -88,6 +88,32 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
+    describe "when showInvisibles is enabled", ->
+      beforeEach ->
+        atom.config.set("editor.showInvisibles", true)
+
+      it "displays spaces, tabs, and newlines as visible charachters", ->
+        editor.setText " a line with tabs\tand spaces "
+        eol = '\u00ac'
+        space = '\u00b7'
+        tab = '\u00bb'
+        cr = '\u00a4'
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{space}a line with tabs#{tab} and spaces#{space}#{eol}"
+
+      it "displays newlines as their own token outside of the other tokens scope", ->
+
+      it "allows invisible glyphs to be customized via the editor.invisibles config", ->
+
+      it "displays trailing carriage return using a visible non-empty value", ->
+
+      describe "when soft wrapping is enabled", ->
+        beforeEach ->
+          editor.setSoftWrap(true)
+
+        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+
+        it "displays trailing carriage return using a visible non-empty value", ->
+
     describe "when indent guides are enabled", ->
       beforeEach ->
         component.setShowIndentGuide(true)
