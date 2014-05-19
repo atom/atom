@@ -11,8 +11,8 @@
 ## Instructions
 
   ```bat
-  # Use the `Git Shell` app which was installed by GitHub for Windows. Make sure
-  # you have logged into the GitHub for Windows GUI App.
+  # Use the `Git Shell` app which was installed by GitHub for Windows. Also Make
+  # sure you have logged into the GitHub for Windows GUI App.
   git clone https://github.com/atom/atom/
   cd atom
   script\build
