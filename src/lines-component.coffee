@@ -135,17 +135,11 @@ LinesComponent = React.createClass
       "&nbsp;"
 
   buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide} = @props
+    {invisibles, mini, showIndentGuide, invisibles} = @props
     {tokens, text} = line
     innerHTML = ""
 
     scopeStack = []
-    invisibles =
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
-
     firstTrailingWhitespacePosition = text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens

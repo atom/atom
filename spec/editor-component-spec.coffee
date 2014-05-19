@@ -89,16 +89,21 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
     describe "when showInvisibles is enabled", ->
+      invisibles = null
+
       beforeEach ->
         atom.config.set("editor.showInvisibles", true)
+        invisibles =
+          eol: 'E'
+          space: 'S'
+          tab: 'T'
+          cr: 'C'
+
+        component.setInvisibles(invisibles)
 
       it "displays spaces, tabs, and newlines as visible charachters", ->
         editor.setText " a line with tabs\tand spaces "
-        eol = '\u00ac'
-        space = '\u00b7'
-        tab = '\u00bb'
-        cr = '\u00a4'
-        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{space}a line with tabs#{tab} and spaces#{space}#{eol}"
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays newlines as their own token outside of the other tokens scope", ->
 

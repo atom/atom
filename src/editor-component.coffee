@@ -31,7 +31,7 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, invisibles} = @state
     {editor, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
@@ -62,7 +62,7 @@ EditorComponent = React.createClass
         lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkResumeDelay,
-        @onInputFocused, @onInputBlurred, @mouseWheelScreenRow
+        @onInputFocused, @onInputBlurred, @mouseWheelScreenRow, invisibles
       }
 
       ScrollbarComponent
