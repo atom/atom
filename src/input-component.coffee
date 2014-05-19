@@ -10,7 +10,7 @@ InputComponent = React.createClass
   render: ->
     {className, style, onFocus, onBlur} = @props
 
-    input {className, style, onFocus, onBlur}
+    input {className, style, onFocus, onBlur, 'data-react-skip-selection-restoration': true}
 
   getInitialState: ->
     {lastChar: ''}

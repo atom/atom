@@ -1,9 +1,8 @@
 React = require 'react'
 {div} = require 'reactionary'
-{debounce} = require 'underscore-plus'
+{debounce, toArray} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
 CursorComponent = require './cursor-component'
-
 
 module.exports =
 CursorsComponent = React.createClass
@@ -13,22 +12,24 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {editor} = @props
-    blinkOff = @state.blinkCursorsOff
+    {editor, scrollTop, scrollLeft} = @props
+    {blinking} = @state
 
-    div className: 'cursors',
+    className = 'cursors'
+    className += ' blinking' if blinking
+
+    div {className},
       if @isMounted()
         for selection in editor.getSelections()
           if selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection)
             {cursor} = selection
-            CursorComponent({key: cursor.id, cursor, blinkOff})
+            CursorComponent({key: cursor.id, cursor, scrollTop, scrollLeft})
 
   getInitialState: ->
-    blinkCursorsOff: false
+    blinking: true
 
   componentDidMount: ->
     {editor} = @props
-    @startBlinkingCursors()
 
   componentWillUnmount: ->
     clearInterval(@cursorBlinkIntervalHandle)
@@ -36,15 +37,21 @@ CursorsComponent = React.createClass
   componentWillUpdate: ({cursorsMoved}) ->
     @pauseCursorBlinking() if cursorsMoved
 
+  componentDidUpdate: ->
+    @syncCursorAnimations() if @props.selectionAdded
+
   startBlinkingCursors: ->
-    @cursorBlinkIntervalHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2)
+    @setState(blinking: true) if @isMounted()
 
   startBlinkingCursorsAfterDelay: null # Created lazily
 
-  toggleCursorBlink: -> @setState(blinkCursorsOff: not @state.blinkCursorsOff)
-
   pauseCursorBlinking: ->
-    @state.blinkCursorsOff = false
-    clearInterval(@cursorBlinkIntervalHandle)
+    @state.blinking = false
     @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
     @startBlinkingCursorsAfterDelay()
+
+  syncCursorAnimations: ->
+    node = @getDOMNode()
+    cursorNodes = toArray(node.children)
+    node.removeChild(cursorNode) for cursorNode in cursorNodes
+    node.appendChild(cursorNode) for cursorNode in cursorNodes

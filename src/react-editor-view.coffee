@@ -1,6 +1,7 @@
 {View, $} = require 'space-pen'
 React = require 'react'
 EditorComponent = require './editor-component'
+{defaults} = require 'underscore-plus'
 
 module.exports =
 class ReactEditorView extends View
@@ -8,7 +9,7 @@ class ReactEditorView extends View
 
   focusOnAttach: false
 
-  constructor: (@editor) ->
+  constructor: (@editor, @props) ->
     super
 
   getEditor: -> @editor
@@ -37,11 +38,12 @@ class ReactEditorView extends View
   afterAttach: (onDom) ->
     return unless onDom
     @attached = true
-    @component = React.renderComponent(EditorComponent({@editor, parentView: this}), @element)
+    props = defaults({@editor, parentView: this}, @props)
+    @component = React.renderComponent(EditorComponent(props), @element)
 
     node = @component.getDOMNode()
 
-    @underlayer = $(node).find('.underlayer')
+    @underlayer = $(node).find('.selections')
 
     @gutter = $(node).find('.gutter')
     @gutter.removeClassFromAllLines = (klass) =>
@@ -64,7 +66,8 @@ class ReactEditorView extends View
 
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
-    @find('.scroll-view-content').prepend(view)
+    view.css('z-index', 1)
+    @find('.lines').prepend(view)
 
   beforeRemove: ->
     React.unmountComponentAtNode(@element)
