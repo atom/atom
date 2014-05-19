@@ -45,8 +45,7 @@ in the proper package's repository.
   * Beware of platform differences
     * Use `require('atom').fs.getHomeDirectory()` to get the home directory.
     * Use `path.join()` to concatenate filenames.
-    * Temporary directory is not `/tmp` on Windows, use `os.tmpdir()` when
-      possible
+    * Use `os.tmpdir()` instead of `/tmp
 
 ## Git Commit Messages
   * Use the present tense

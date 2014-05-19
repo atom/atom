@@ -70,16 +70,18 @@ elif [ $OS == 'Linux' ]; then
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
   ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
 
-  [ -x "$ATOM_PATH" ] || ATOM_PATH='/tmp/atom-build/Atom/atom'
+  : ${TMPDIR:=/tmp}
+
+  [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/Atom/atom"
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
     (
-    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > /tmp/atom-nohup.out 2>&1
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$TMPDIR/atom-nohup.out" 2>&1
     if [ $? -ne 0 ]; then
-      cat /tmp/atom-nohup.out
+      cat "$TMPDIR/atom-nohup.out"
       exit $?
     fi
     ) &
