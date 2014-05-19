@@ -7,12 +7,12 @@
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [Python](http://www.python.org/download/) v2.7.x
   * [GitHub for Windows](http://windows.github.com/)
-  * Log in to the GitHub for Windows GUI App
-  * Open the `Git Shell` app which was installed by GitHub for Windows.
 
 ## Instructions
 
   ```bat
+  # Use the `Git Shell` app which was installed by GitHub for Windows. Make sure
+  # you have logged into the GitHub for Windows GUI App.
   git clone https://github.com/atom/atom/
   cd atom
   script\build
