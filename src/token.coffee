@@ -2,8 +2,8 @@ _ = require 'underscore-plus'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
-LeadingWhitespaceRegex = /^[ ]+/
-TrailingWhitespaceRegex = /[ ]+$/
+LeadingWhitespaceRegex = /^[ \t]+/
+TrailingWhitespaceRegex = /[ \t]+$/
 EscapeRegex = /[&"'<>]/g
 CharacterRegex = /./g
 StartCharacterRegex = /^./
