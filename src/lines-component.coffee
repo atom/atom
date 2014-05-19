@@ -179,6 +179,7 @@ LinesComponent = React.createClass
       {lineHeight} = @props
       lineNode = @lineNodesByLineId[line.id]
       lineNode.style.top = screenRow * lineHeight + 'px'
+      lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
 
