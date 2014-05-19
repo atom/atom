@@ -62,7 +62,7 @@ EditorComponent = React.createClass
         lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkResumeDelay,
-        @onInputFocused, @onInputBlurred
+        @onInputFocused, @onInputBlurred, @mouseWheelScreenRow
       }
 
       ScrollbarComponent

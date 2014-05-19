@@ -64,15 +64,17 @@ LinesComponent = React.createClass
     @appendOrUpdateVisibleLineNodes(visibleLines, startRow)
 
   removeLineNodes: (visibleLines=[]) ->
+    {mouseWheelScreenRow} = @props
     visibleLineIds = new Set
     visibleLineIds.add(line.id.toString()) for line in visibleLines
     node = @getDOMNode()
     for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
-      delete @lineNodesByLineId[lineId]
       screenRow = @screenRowsByLineId[lineId]
-      delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
-      delete @screenRowsByLineId[lineId]
-      node.removeChild(lineNode)
+      unless screenRow is mouseWheelScreenRow
+        delete @lineNodesByLineId[lineId]
+        delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
+        delete @screenRowsByLineId[lineId]
+        node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
     {lineHeight} = @props
@@ -112,7 +114,7 @@ LinesComponent = React.createClass
     {editor, mini, showIndentGuide, lineHeight} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
     top = screenRow * lineHeight
-    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\">"
+    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
