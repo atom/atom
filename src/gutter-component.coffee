@@ -113,13 +113,15 @@ GutterComponent = React.createClass
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->
+    {mouseWheelScreenRow} = @props
     node = @refs.lineNumbers.getDOMNode()
     for lineNumberId, lineNumberNode of @lineNumberNodesById when not lineNumberIdsToPreserve?.has(lineNumberId)
-      delete @lineNumberNodesById[lineNumberId]
       screenRow = @screenRowsByLineNumberId[lineNumberId]
-      delete @lineNumberIdsByScreenRow[screenRow] if @lineNumberIdsByScreenRow[screenRow] is lineNumberId
-      delete @screenRowsByLineNumberId[lineNumberId]
-      node.removeChild(lineNumberNode)
+      unless screenRow is mouseWheelScreenRow
+        delete @lineNumberNodesById[lineNumberId]
+        delete @lineNumberIdsByScreenRow[screenRow] if @lineNumberIdsByScreenRow[screenRow] is lineNumberId
+        delete @screenRowsByLineNumberId[lineNumberId]
+        node.removeChild(lineNumberNode)
 
   buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow) ->
     if screenRow?
@@ -129,7 +131,7 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    "<div class=\"line-number editor-colors\" style=\"#{style}\">#{innerHTML}</div>"
+    "<div class=\"line-number editor-colors\" style=\"#{style}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped

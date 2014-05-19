@@ -28,6 +28,7 @@ EditorComponent = React.createClass
   measuringScrollbars: true
   pendingVerticalScrollDelta: 0
   pendingHorizontalScrollDelta: 0
+  mouseWheelScreenRow: null
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
@@ -53,7 +54,7 @@ EditorComponent = React.createClass
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
-        @pendingChanges, onWidthChanged: @onGutterWidthChanged
+        @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
@@ -325,7 +326,8 @@ EditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     event.preventDefault()
-
+    screenRow = @screenRowForNode(event.target)
+    @mouseWheelScreenRow = screenRow if screenRow?
     animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
 
     # Only scroll in one direction at a time
@@ -342,6 +344,13 @@ EditorComponent = React.createClass
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
+
+  screenRowForNode: (node) ->
+    while node isnt document
+      if screenRow = node.dataset.screenRow
+        return parseInt(screenRow)
+      node = node.parentNode
+    null
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
@@ -408,6 +417,7 @@ EditorComponent = React.createClass
 
   onStoppedScrolling: ->
     @scrollingVertically = false
+    @mouseWheelScreenRow = null
     @requestUpdate()
 
   stopScrollingAfterDelay: null # created lazily
