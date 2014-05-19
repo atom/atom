@@ -37,22 +37,20 @@ module.exports = (grunt) ->
 
   [major, minor, patch] = packageJson.version.split('.')
   tmpDir = os.tmpdir()
+  appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
   if process.platform is 'win32'
-    appName = 'Atom'
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir = path.join(process.env.ProgramFiles, appName)
   else if process.platform is 'darwin'
-    appName = 'Atom.app'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     installDir = path.join('/Applications', appName)
   else
-    appName = 'Atom'
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir = process.env.INSTALL_PREFIX ? '/usr/local'
