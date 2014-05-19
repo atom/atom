@@ -653,6 +653,32 @@ describe "EditorComponent", ->
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
 
+      describe "when the mousewheel event's target is a line", ->
+        it "keeps the line on the DOM if it is scrolled off-screen", ->
+          node.style.height = 4.5 * lineHeightInPixels + 'px'
+          node.style.width = 20 * charWidth + 'px'
+          component.measureHeightAndWidth()
+
+          lineNode = node.querySelector('.line')
+          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
+          Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+          node.dispatchEvent(wheelEvent)
+
+          expect(node.contains(lineNode)).toBe true
+
+      describe "when the mousewheel event's target is a line number", ->
+        it "keeps the line number on the DOM if it is scrolled off-screen", ->
+          node.style.height = 4.5 * lineHeightInPixels + 'px'
+          node.style.width = 20 * charWidth + 'px'
+          component.measureHeightAndWidth()
+
+          lineNumberNode = node.querySelectorAll('.line-number')[1]
+          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
+          Object.defineProperty(wheelEvent, 'target', get: -> lineNumberNode)
+          node.dispatchEvent(wheelEvent)
+
+          expect(node.contains(lineNumberNode)).toBe true
+
   describe "input events", ->
     inputNode = null
 
