@@ -1,6 +1,6 @@
 React = require 'react'
 {div, span} = require 'reactionary'
-{debounce} = require 'underscore-plus'
+{debounce, defaults} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
@@ -268,6 +268,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
+    @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
 
   measureScrollbars: ->
     @measuringScrollbars = false
@@ -290,6 +291,22 @@ EditorComponent = React.createClass
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
+
+  # Public: Defines which characters are invisible.
+  #
+  # invisibles - An {Object} defining the invisible characters:
+  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
+  #   :space - The space invisible {String} (default: `\u00b7`).
+  #   :tab   - The tab invisible {String} (default: `\u00bb`).
+  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
+  setInvisibles: (invisibles={}) ->
+    defaults invisibles,
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
+
+    @setState({invisibles})
 
   onFocus: ->
     @refs.scrollView.focus()
