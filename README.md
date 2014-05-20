@@ -2,6 +2,22 @@
 
 Discover and install Atom packages powered by [atom.io](https://atom.io)
 
+## Relation to npm
+
+apm comes with [npm](https://github.com/npm/npm) and spawns `npm` processes to
+install Atom packages. The major difference is that `apm` sets multiple command
+line arguments to `npm` to ensure that native modules are built against
+Chromium's v8 headers instead of node's v8 headers.
+
+The other major difference is that Atom packages are installed to
+`~/.atom/packages` instead of a local `node_modules` folder and Atom packages
+are published to and installed from to GitHub repositories instead of
+[npmjs.org](https://www.npmjs.org)
+
+Therefore you can think of `apm` as a simple `npm` wrapper that builds on top
+of the many strengths of `npm` but is customized and optimized to be used for
+Atom packages.
+
 ## Installing
 
 apm is bundled and installed automatically with Atom.
