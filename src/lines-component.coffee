@@ -154,12 +154,13 @@ LinesComponent = React.createClass
   buildEndOfLineHTML: (line, invisibles) ->
     return '' if @props.mini or line.isSoftWrapped()
 
-    eolInvisibles = []
-    eolInvisibles.push(invisibles.cr) if invisibles.cr? and line.lineEnding is '\r\n'
-    eolInvisibles.push(invisibles.eol) if invisibles.eol?
-    eolInvisibles
-      .map((eolInvisible) -> "<span class='invisible-character'>#{eolInvisible}</span>")
-      .join("")
+    html = ''
+    if invisibles.cr? and line.lineEnding is '\r\n'
+      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
+    if invisibles.eol?
+      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
+
+    html
 
   updateScopeStack: (scopeStack, desiredScopes) ->
     html = ""
