@@ -2,11 +2,11 @@ path = require 'path'
 readline = require 'readline'
 
 optimist = require 'optimist'
-request = require 'request'
 
 auth = require './auth'
 Command = require './command'
 fs = require './fs'
+request = require './request'
 
 module.exports =
 class Unpublish extends Command
@@ -38,11 +38,9 @@ class Unpublish extends Command
         uri: "https://atom.io/api/packages/#{packageName}"
         headers:
           authorization: token
-        method: 'DELETE'
         json: true
-        proxy: process.env.http_proxy || process.env.https_proxy
 
-      request options, (error, response, body={}) ->
+      request.del options, (error, response, body={}) ->
         if error?
           process.stdout.write '\u2717\n'.red
           callback(error)

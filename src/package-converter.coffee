@@ -5,12 +5,12 @@ zlib = require 'zlib'
 _ = require 'underscore-plus'
 CSON = require 'season'
 plist = require 'plist'
-request = require 'request'
 {ScopeSelector} = require 'first-mate'
 tar = require 'tar'
 temp = require 'temp'
 
 fs = require './fs'
+request = require './request'
 
 # Convert a TextMate bundle to an Atom package
 module.exports =
@@ -47,16 +47,17 @@ class PackageConverter
 
   downloadBundle: (callback) ->
     tempPath = temp.mkdirSync('atom-bundle-')
-    request(@getDownloadUrl())
-      .on 'response', ({headers, statusCode}) ->
+    requestOptions = url: @getDownloadUrl()
+    request.createReadStream requestOptions, (readStream) =>
+      readStream.on 'response', ({headers, statusCode}) ->
         if statusCode isnt 200
           callback("Download failed (#{headers.status})")
-      .pipe(zlib.createGunzip())
-      .pipe(tar.Extract(path: tempPath))
-      .on 'error', (error) -> callback(error)
-      .on 'end', =>
-        sourcePath = path.join(tempPath, fs.readdirSync(tempPath)[0])
-        @copyDirectories(sourcePath, callback)
+
+      readStream.pipe(zlib.createGunzip()).pipe(tar.Extract(path: tempPath))
+        .on 'error', (error) -> callback(error)
+        .on 'end', =>
+          sourcePath = path.join(tempPath, fs.readdirSync(tempPath)[0])
+          @copyDirectories(sourcePath, callback)
 
   copyDirectories: (sourcePath, callback) ->
     sourcePath = path.resolve(sourcePath)

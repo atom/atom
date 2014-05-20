@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 Q = require 'q'
 read = require 'read'
-request = require 'request'
 open = require 'open'
 
 auth = require './auth'

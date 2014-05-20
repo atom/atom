@@ -1,7 +1,7 @@
 path = require 'path'
 url = require 'url'
-request = require 'request'
 fs = require './fs'
+request = require './request'
 TextMateTheme = require './text-mate-theme'
 
 # Convert a TextMate theme to an Atom theme
@@ -13,7 +13,8 @@ class ThemeConverter
   readTheme: (callback) ->
     {protocol} = url.parse(@sourcePath)
     if protocol is 'http:' or protocol is 'https:'
-      request @sourcePath, (error, response, body) =>
+      requestOptions = url: @sourcePath
+      request.get requestOptions, (error, response, body) =>
         if error?
           if error.code is 'ENOTFOUND'
             error = "Could not resolve URL: #{@sourcePath}"

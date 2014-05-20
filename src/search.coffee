@@ -1,9 +1,9 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
-request = require 'request'
 
 Command = require './command'
 config = require './config'
+request = require './request'
 tree = require './tree'
 
 module.exports =
@@ -36,7 +36,6 @@ class Search extends Command
       url: "#{config.getAtomPackagesUrl()}/search"
       qs: qs
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
 
     request.get requestSettings, (error, response, body={}) ->
       if error?

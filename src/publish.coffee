@@ -2,7 +2,6 @@ path = require 'path'
 
 optimist = require 'optimist'
 Git = require 'git-utils'
-request = require 'request'
 
 auth = require './auth'
 fs = require './fs'
@@ -10,6 +9,7 @@ config = require './config'
 Command = require './command'
 Login = require './login'
 Packages = require './packages'
+request = require './request'
 
 module.exports =
 class Publish extends Command
@@ -97,7 +97,6 @@ class Publish extends Command
     requestSettings =
       url: "https://api.github.com/repos/#{Packages.getRepository(pack)}/tags"
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
       headers:
         'User-Agent': "AtomApm/#{require('../package.json').version}"
 
@@ -126,7 +125,6 @@ class Publish extends Command
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}"
         json: true
-        proxy: process.env.http_proxy || process.env.https_proxy
         headers:
           authorization: token
       request.get requestSettings, (error, response, body={}) ->
@@ -162,13 +160,11 @@ class Publish extends Command
         requestSettings =
           url: config.getAtomPackagesUrl()
           json: true
-          method: 'POST'
-          proxy: process.env.http_proxy || process.env.https_proxy
           body:
             repository: repository
           headers:
             authorization: token
-        request.get requestSettings, (error, response, body={}) ->
+        request.post requestSettings, (error, response, body={}) ->
           if error?
             callback(error)
           else if response.statusCode isnt 201
@@ -194,13 +190,11 @@ class Publish extends Command
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}/versions"
         json: true
-        method: 'POST'
-        proxy: process.env.http_proxy || process.env.https_proxy
         body:
           tag: tag
         headers:
           authorization: token
-      request.get requestSettings, (error, response, body={}) ->
+      request.post requestSettings, (error, response, body={}) ->
         if error?
           callback(error)
         else if response.statusCode isnt 201
