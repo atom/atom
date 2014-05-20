@@ -4,7 +4,6 @@ _ = require 'underscore-plus'
 async = require 'async'
 optimist = require 'optimist'
 read = require 'read'
-request = require 'request'
 semver = require 'semver'
 
 Command = require './command'
@@ -12,6 +11,7 @@ config = require './config'
 fs = require './fs'
 Install = require './install'
 Packages = require './packages'
+request = require './request'
 tree = require './tree'
 
 module.exports =
@@ -70,7 +70,6 @@ class Upgrade extends Command
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/#{pack.name}"
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
     request.get requestSettings, (error, response, body={}) =>
       if error?
         callback("Request for package information failed: #{error.message}")
