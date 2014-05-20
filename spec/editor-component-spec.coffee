@@ -101,7 +101,7 @@ describe "EditorComponent", ->
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
 
-      it "re-renders the editor when the showInvisibles config option changes", ->
+      it "re-renders the lines when the showInvisibles config option changes", ->
         editor.setText " a line with tabs\tand spaces "
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
@@ -114,11 +114,11 @@ describe "EditorComponent", ->
         editor.setText " a line with tabs\tand spaces "
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
-      it "displays newlines as their own token outside of the other tokens scope", ->
+      it "displays newlines as their own token outside of the other tokens' scopes", ->
         editor.setText "var"
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
-      it "displays trailing carriage return using a visible non-empty value", ->
+      it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
         expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
