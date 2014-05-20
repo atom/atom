@@ -152,7 +152,7 @@ LinesComponent = React.createClass
     innerHTML
 
   buildEndOfLineHTML: (line, invisibles) ->
-    return '' if @props.mini
+    return '' if @props.mini or line.isSoftWrapped()
 
     eolInvisibles = []
     eolInvisibles.push(invisibles.cr) if invisibles.cr? and line.lineEnding is '\r\n'

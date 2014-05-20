@@ -115,9 +115,14 @@ describe "EditorComponent", ->
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->
+          editor.setText "a line that wraps "
           editor.setSoftWrap(true)
+          node.style.width = 15 * charWidth + 'px'
+          component.measureHeightAndWidth()
 
-        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+        it "doesn't show end of line invisibles at the end of wrapped lines", ->
+          expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
+          expect(component.lineNodeForScreenRow(1).textContent).toBe "wraps#{invisibles.space}#{invisibles.eol}"
 
         it "displays trailing carriage return using a visible non-empty value", ->
 
