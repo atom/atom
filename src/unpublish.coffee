@@ -64,7 +64,7 @@ class Unpublish extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    name = options.argv._[0]
+    [name] = options.argv._
     unless name?
       try
         {name} = JSON.parse(fs.readFileSync('package.json')) ? {}
