@@ -16,7 +16,7 @@ class Unpublish extends Command
     options = optimist(argv)
 
     options.usage """
-      Usage: apm unpublish <package_name>
+      Usage: apm unpublish [<package_name>]
 
       Remove a published package from the atom.io registry. The package in the
       current working directory will be unpublished if no package name is
