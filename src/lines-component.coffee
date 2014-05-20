@@ -46,7 +46,7 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
-    @removeLineNodes() unless prevProps.showIndentGuide is @props.showIndentGuide
+    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically

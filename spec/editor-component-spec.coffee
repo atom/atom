@@ -106,7 +106,7 @@ describe "EditorComponent", ->
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
         atom.config.set("editor.showInvisibles", false)
-        expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs\t and spaces "
+        expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs  and spaces "
         atom.config.set("editor.showInvisibles", true)
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
