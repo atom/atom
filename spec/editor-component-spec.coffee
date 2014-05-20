@@ -110,6 +110,8 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage return using a visible non-empty value", ->
+        editor.setText "a line that ends with a carriage return\r\n"
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->

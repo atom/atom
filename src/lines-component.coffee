@@ -148,8 +148,18 @@ LinesComponent = React.createClass
       innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += "<span class='invisible-character'>#{invisibles.eol}</span>"
+    innerHTML += @buildEndOfLineHTML(line, invisibles)
     innerHTML
+
+  buildEndOfLineHTML: (line, invisibles) ->
+    return '' if @props.mini
+
+    eolInvisibles = []
+    eolInvisibles.push(invisibles.cr) if invisibles.cr? and line.lineEnding is '\r\n'
+    eolInvisibles.push(invisibles.eol) if invisibles.eol?
+    eolInvisibles
+      .map((eolInvisible) -> "<span class='invisible-character'>#{eolInvisible}</span>")
+      .join("")
 
   updateScopeStack: (scopeStack, desiredScopes) ->
     html = ""
