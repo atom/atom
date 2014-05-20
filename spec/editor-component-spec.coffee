@@ -111,6 +111,7 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays spaces, tabs, and newlines as visible characters", ->
+        editor.setText " a line with tabs\tand spaces "
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays newlines as their own token outside of the other tokens scope", ->
