@@ -48,7 +48,7 @@ class PackageConverter
   downloadBundle: (callback) ->
     tempPath = temp.mkdirSync('atom-bundle-')
     requestOptions = url: @getDownloadUrl()
-    request.createReadStream requestOptions, (readStream) ->
+    request.createReadStream requestOptions, (readStream) =>
       readStream.on 'response', ({headers, statusCode}) ->
         if statusCode isnt 200
           callback("Download failed (#{headers.status})")
