@@ -16,6 +16,7 @@ InputComponent = React.createClass
     {lastChar: ''}
 
   componentDidMount: ->
+    @getDOMNode().addEventListener 'paste', @onPaste
     @getDOMNode().addEventListener 'input', @onInput
     @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
 
@@ -31,6 +32,9 @@ InputComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     not isEqual(newProps.style, @props.style)
+
+  onPaste: (e) ->
+    e.preventDefault()
 
   onInput: (e) ->
     e.stopPropagation()
