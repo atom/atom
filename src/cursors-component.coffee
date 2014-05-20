@@ -43,11 +43,9 @@ CursorsComponent = React.createClass
   startBlinkingCursorsAfterDelay: null # Created lazily
 
   stopBlinkingCursors: ->
-    console.log "START"
     clearInterval(@toggleCursorBlinkHandle)
 
   toggleCursorBlink: ->
-    console.log "TOGGLE"
     @setState(blinkOff: not @state.blinkOff)
 
   pauseCursorBlinking: ->
