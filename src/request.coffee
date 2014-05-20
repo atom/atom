@@ -18,7 +18,6 @@ module.exports =
     loadOptionsFromNpm requestOptions, ->
       request.get(requestOptions, callback)
 
-
   del: (requestOptions, callback) ->
     loadOptionsFromNpm requestOptions, ->
       request.del(requestOptions, callback)
@@ -26,3 +25,7 @@ module.exports =
   post: (requestOptions, callback) ->
     loadOptionsFromNpm requestOptions, ->
       request.post(requestOptions, callback)
+
+  createReadStream: (requestOptions, callback) ->
+    loadOptionsFromNpm requestOptions, ->
+      callback(request.get(requestOptions))

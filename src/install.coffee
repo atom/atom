@@ -3,13 +3,13 @@ path = require 'path'
 async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
-request = require 'request'
 CSON = require 'season'
 temp = require 'temp'
 
 config = require './config'
 Command = require './command'
 fs = require './fs'
+request = require './request'
 
 module.exports =
 class Install extends Command
@@ -158,7 +158,6 @@ class Install extends Command
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/#{packageName}"
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback("Request for package information failed: #{error.message}")
@@ -179,32 +178,30 @@ class Install extends Command
   #            as the first argument and a string path to the downloaded file
   #            as the second.
   downloadPackage: (packageUrl, installGlobally, callback) ->
-    requestSettings =
-      url: packageUrl
-      proxy: process.env.http_proxy || process.env.https_proxy
-    readStream = request.get(requestSettings)
-    readStream.on 'error', (error) ->
-      callback("Unable to download #{packageUrl}: #{error.message}")
-    readStream.on 'response', (response) ->
-      if response.statusCode is 200
-        filePath = path.join(temp.mkdirSync(), 'package.tgz')
-        writeStream = fs.createWriteStream(filePath)
-        readStream.pipe(writeStream)
-        writeStream.on 'error', (errror) ->
-          callback("Unable to download #{packageUrl}: #{error.message}")
-        writeStream.on 'close', -> callback(null, filePath)
-      else
-        chunks = []
-        response.on 'data', (chunk) -> chunks.push(chunk)
-        response.on 'end', ->
-          try
-            error = JSON.parse(Buffer.concat(chunks))
-            message = error.message ? error.error ? error
-            process.stdout.write('\u2717\n'.red) if installGlobally
-            callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode} #{message}")
-          catch parseError
-            process.stdout.write('\u2717\n'.red) if installGlobally
-            callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode}")
+    requestSettings = url: packageUrl
+    request.createReadStream requestSettings, (readStream) ->
+      readStream.on 'error', (error) ->
+        callback("Unable to download #{packageUrl}: #{error.message}")
+      readStream.on 'response', (response) ->
+        if response.statusCode is 200
+          filePath = path.join(temp.mkdirSync(), 'package.tgz')
+          writeStream = fs.createWriteStream(filePath)
+          readStream.pipe(writeStream)
+          writeStream.on 'error', (errror) ->
+            callback("Unable to download #{packageUrl}: #{error.message}")
+          writeStream.on 'close', -> callback(null, filePath)
+        else
+          chunks = []
+          response.on 'data', (chunk) -> chunks.push(chunk)
+          response.on 'end', ->
+            try
+              error = JSON.parse(Buffer.concat(chunks))
+              message = error.message ? error.error ? error
+              process.stdout.write('\u2717\n'.red) if installGlobally
+              callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode} #{message}")
+            catch parseError
+              process.stdout.write('\u2717\n'.red) if installGlobally
+              callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode}")
 
   # Get the path to the package from the local cache.
   #
