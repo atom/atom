@@ -160,12 +160,11 @@ class Publish extends Command
         requestSettings =
           url: config.getAtomPackagesUrl()
           json: true
-          method: 'POST'
           body:
             repository: repository
           headers:
             authorization: token
-        request.get requestSettings, (error, response, body={}) ->
+        request.post requestSettings, (error, response, body={}) ->
           if error?
             callback(error)
           else if response.statusCode isnt 201
@@ -191,12 +190,11 @@ class Publish extends Command
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}/versions"
         json: true
-        method: 'POST'
         body:
           tag: tag
         headers:
           authorization: token
-      request.get requestSettings, (error, response, body={}) ->
+      request.post requestSettings, (error, response, body={}) ->
         if error?
           callback(error)
         else if response.statusCode isnt 201

@@ -22,3 +22,7 @@ module.exports =
   del: (requestOptions, callback) ->
     loadOptionsFromNpm requestOptions, ->
       request.del(requestOptions, callback)
+
+  post: (requestOptions, callback) ->
+    loadOptionsFromNpm requestOptions, ->
+      request.post(requestOptions, callback)
