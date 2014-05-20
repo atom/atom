@@ -102,7 +102,7 @@ EditorComponent = React.createClass
     {editor, lineOverdrawMargin} = @props
     [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
     renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
-    renderedEndRow = Math.min(editor.getLineCount(), visibleEndRow + lineOverdrawMargin)
+    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
     [renderedStartRow, renderedEndRow]
 
   getInitialState: -> {}
