@@ -92,14 +92,14 @@ describe "EditorComponent", ->
       invisibles = null
 
       beforeEach ->
-        atom.config.set("editor.showInvisibles", true)
         invisibles =
           eol: 'E'
           space: 'S'
           tab: 'T'
           cr: 'C'
 
-        component.setInvisibles(invisibles)
+        atom.config.set("editor.showInvisibles", true)
+        atom.config.set("editor.invisibles", invisibles)
 
       it "displays spaces, tabs, and newlines as visible charachters", ->
         editor.setText " a line with tabs\tand spaces "
