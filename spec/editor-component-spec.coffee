@@ -101,8 +101,16 @@ describe "EditorComponent", ->
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
 
-      it "displays spaces, tabs, and newlines as visible characters", ->
+      it "re-renders the editor when the showInvisibles config option changes", ->
         editor.setText " a line with tabs\tand spaces "
+
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
+        atom.config.set("editor.showInvisibles", false)
+        expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs\t and spaces "
+        atom.config.set("editor.showInvisibles", true)
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
+
+      it "displays spaces, tabs, and newlines as visible characters", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays newlines as their own token outside of the other tokens scope", ->
