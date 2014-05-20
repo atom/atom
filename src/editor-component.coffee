@@ -31,9 +31,10 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, invisibles} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles} = @state
     {editor, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
+    invisibles = if showInvisibles then @state.invisibles else {}
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
@@ -269,6 +270,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
+    @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
 
   measureScrollbars: ->
     @measuringScrollbars = false
@@ -307,6 +309,9 @@ EditorComponent = React.createClass
       cr: '\u00a4'
 
     @setState({invisibles})
+
+  setShowInvisibles: (showInvisibles) ->
+    @setState({showInvisibles})
 
   onFocus: ->
     @refs.scrollView.focus()

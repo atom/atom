@@ -147,7 +147,7 @@ LinesComponent = React.createClass
       hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
       innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += invisibles.eol
+    innerHTML += invisibles.eol if invisibles.eol?
     innerHTML
 
   updateScopeStack: (scopeStack, desiredScopes) ->
