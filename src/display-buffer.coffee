@@ -241,7 +241,8 @@ class DisplayBuffer extends Model
 
     heightInLines = Math.ceil(@getHeight() / @getLineHeight()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
-    endRow = Math.min(@getLineCount(), Math.ceil(startRow + heightInLines))
+    endRow = Math.min(@getLineCount(), startRow + heightInLines)
+
     [startRow, endRow]
 
   intersectsVisibleRowRange: (startRow, endRow) ->

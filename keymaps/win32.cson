@@ -68,7 +68,7 @@
   'ctrl-right': 'editor:move-to-end-of-word'
   'ctrl-shift-left': 'editor:select-to-beginning-of-word'
   'ctrl-shift-right': 'editor:select-to-end-of-word'
-  'ctrl-backspace': 'editor:backspace-to-beginning-of-word'
+  'ctrl-backspace': 'editor:delete-to-beginning-of-word'
   'ctrl-delete': 'editor:delete-to-end-of-word'
   'ctrl-home': 'core:move-to-top'
   'ctrl-end': 'core:move-to-bottom'

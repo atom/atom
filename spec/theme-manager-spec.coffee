@@ -286,5 +286,10 @@ describe "ThemeManager", ->
       runs ->
         spyOn(console, 'warn')
         expect(-> atom.config.set('core.themes', ['atom-light-ui', 'theme-really-does-not-exist'])).not.toThrow()
+
+      waitsFor (done) ->
+        themeManager.once 'reloaded', done
+
+      runs ->
         expect(console.warn.callCount).toBe 1
         expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0

@@ -113,6 +113,7 @@ class WorkspaceView extends View
     @command 'application:quit', -> ipc.send('command', 'application:quit')
     @command 'application:hide', -> ipc.send('command', 'application:hide')
     @command 'application:hide-other-applications', -> ipc.send('command', 'application:hide-other-applications')
+    @command 'application:install-update', -> ipc.send('command', 'application:install-update')
     @command 'application:unhide-all-applications', -> ipc.send('command', 'application:unhide-all-applications')
     @command 'application:new-window', -> ipc.send('command', 'application:new-window')
     @command 'application:new-file', -> ipc.send('command', 'application:new-file')

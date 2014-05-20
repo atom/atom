@@ -382,15 +382,25 @@ class Selection extends Model
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  backspaceToBeginningOfWord: ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  backspaceToBeginningOfLine: ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
+
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
-  backspaceToBeginningOfWord: ->
+  deleteToBeginningOfWord: ->
     @selectToBeginningOfWord() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes from the beginning of the line which the selection begins on
   # all the way through to the end of the selection.
-  backspaceToBeginningOfLine: ->
+  deleteToBeginningOfLine: ->
     if @isEmpty() and @cursor.isAtBeginningOfLine()
       @selectLeft()
     else
@@ -553,6 +563,12 @@ class Selection extends Model
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
 
+  intersectsScreenRowRange: (startRow, endRow) ->
+    @getScreenRange().intersectsRowRange(startRow, endRow)
+
+  intersectsScreenRow: (screenRow) ->
+    @getScreenRange().intersectsRow(screenRow)
+
   # Public: Identifies if a selection intersects with another selection.
   #
   # otherSelection - A {Selection} to check against.
@@ -584,47 +600,6 @@ class Selection extends Model
   # otherSelection - A {Selection} to compare against.
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
-
-  # Get the pixel dimensions of rectangular regions that cover selection's area
-  # on the screen. Used by SelectionComponent for rendering.
-  getRegionRects: ->
-    lineHeight = @editor.getLineHeight()
-    {start, end} = @getScreenRange()
-    rowCount = end.row - start.row + 1
-    startPixelPosition = @editor.pixelPositionForScreenPosition(start)
-    endPixelPosition = @editor.pixelPositionForScreenPosition(end)
-
-    if rowCount is 1
-      # Single line selection
-      rects = [{
-        top: startPixelPosition.top
-        height: lineHeight
-        left: startPixelPosition.left
-        width: endPixelPosition.left - startPixelPosition.left
-      }]
-    else
-      # Multi-line selection
-      rects = []
-
-      # First row, extending from selection start to the right side of screen
-      rects.push {
-        top: startPixelPosition.top
-        left: startPixelPosition.left
-        height: lineHeight
-        right: 0
-      }
-      if rowCount > 2
-        # Middle rows, extending from left side to right side of screen
-        rects.push {
-          top: startPixelPosition.top + lineHeight
-          height: (rowCount - 2) * lineHeight
-          left: 0
-          right: 0
-        }
-      # Last row, extending from left side of screen to selection end
-      rects.push {top: endPixelPosition.top, height: lineHeight, left: 0, width: endPixelPosition.left }
-
-    rects
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()

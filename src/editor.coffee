@@ -109,8 +109,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # - {::insertNewlineAbove}
 # - {::insertNewlineBelow}
 # - {::backspace}
-# - {::backspaceToBeginningOfWord}
-# - {::backspaceToBeginningOfLine}
+# - {::deleteToBeginningOfWord}
+# - {::deleteToBeginningOfLine}
 # - {::delete}
 # - {::deleteToEndOfWord}
 # - {::deleteLine}
@@ -658,17 +658,27 @@ class Editor extends Model
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
 
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  backspaceToBeginningOfWord: ->
+    deprecate("Use Editor::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  backspaceToBeginningOfLine: ->
+    deprecate("Use Editor::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
+
   # Public: For each selection, if the selection is empty, delete all characters
   # of the containing word that precede the cursor. Otherwise delete the
   # selected text.
-  backspaceToBeginningOfWord: ->
-    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
+  deleteToBeginningOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
   # Public: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
   # selected text.
-  backspaceToBeginningOfLine: ->
-    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
+  deleteToBeginningOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
 
   # Public: For each selection, if the selection is empty, delete the character
   # preceding the cursor. Otherwise delete the selected text.
@@ -1258,6 +1268,9 @@ class Editor extends Model
   #
   # Returns: An {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
+
+  selectionsForScreenRows: (startRow, endRow) ->
+    @getSelections().filter (selection) -> selection.intersectsScreenRowRange(startRow, endRow)
 
   # Public: Get the most recent {Selection} or the selection at the given
   # index.

@@ -5,7 +5,7 @@ module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
-    tmpdir = if process.platform is 'win32' then os.tmpdir() else '/tmp'
+    tmpdir = os.tmpdir()
 
     rm grunt.config.get('atom.buildDir')
     rm require('../src/coffee-cache').cacheDir

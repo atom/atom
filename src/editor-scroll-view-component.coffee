@@ -17,19 +17,14 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {scrollHeight, scrollWidth, renderedRowRange, pendingChanges, scrollingVertically} = @props
-    {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, scrollingVertically, mouseWheelScreenRow} = @props
+    {selectionChanged, selectionAdded, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       inputStyle = @getHiddenInputPosition()
       inputStyle.WebkitTransform = 'translateZ(0)'
 
-      contentStyle =
-        height: scrollHeight
-        minWidth: scrollWidth
-        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
-
-    div className: 'scroll-view',
+    div className: 'scroll-view', onMouseDown: @onMouseDown,
       InputComponent
         ref: 'input'
         className: 'hidden-input'
@@ -38,14 +33,12 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      div className: 'scroll-view-content', style: contentStyle, onMouseDown: @onMouseDown,
-        CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
-        LinesComponent {
-          ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-          renderedRowRange, pendingChanges, scrollingVertically
-        }
-        div className: 'underlayer',
-          SelectionsComponent({editor})
+      CursorsComponent({editor, scrollTop, scrollLeft, cursorsMoved, selectionAdded, cursorBlinkResumeDelay})
+      LinesComponent {
+        ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
+        renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
+        selectionChanged, scrollHeight, scrollWidth, mouseWheelScreenRow
+      }
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
@@ -198,3 +191,5 @@ EditorScrollViewComponent = React.createClass
 
   focus: ->
     @refs.input.focus()
+
+  lineNodeForScreenRow: (screenRow) -> @refs.lines.lineNodeForScreenRow(screenRow)
