@@ -1,9 +1,9 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
-request = require 'request'
 
 Command = require './command'
 config = require './config'
+request = require './request'
 tree = require './tree'
 
 module.exports =
@@ -32,7 +32,6 @@ class Featured extends Command
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/featured"
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
     requestSettings.qs = engine: atomVersion if atomVersion
 
     request.get requestSettings, (error, response, body={}) ->
