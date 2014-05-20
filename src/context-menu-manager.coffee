@@ -98,5 +98,6 @@ class ContextMenuManager
   showForEvent: (event) ->
     @activeElement = event.target
     menuTemplate = @combinedMenuTemplateForElement(event.target)
+    return unless menuTemplate?.length > 0
     @executeBuildHandlers(event, menuTemplate)
     remote.getCurrentWindow().emit('context-menu', menuTemplate)

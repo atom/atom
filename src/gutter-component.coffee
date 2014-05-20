@@ -147,6 +147,7 @@ GutterComponent = React.createClass
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeight} = @props
       @lineNumberNodesById[lineNumberId].style.top = screenRow * lineHeight + 'px'
+      @lineNumberNodesById[lineNumberId].dataset.screenRow = screenRow
       @screenRowsByLineNumberId[lineNumberId] = screenRow
       @lineNumberIdsByScreenRow[screenRow] = lineNumberId
 

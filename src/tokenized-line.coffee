@@ -7,10 +7,21 @@ class TokenizedLine
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
     @tokens = @breakOutAtomicTokens(tokens)
     @startBufferColumn ?= 0
-    @text = _.pluck(@tokens, 'value').join('')
-    @bufferDelta = _.sum(_.pluck(@tokens, 'bufferDelta'))
+    @text = @buildText()
+    @bufferDelta = @buildBufferDelta()
+
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
+
+  buildText: ->
+    text = ""
+    text += token.value for token in @tokens
+    text
+
+  buildBufferDelta: ->
+    delta = 0
+    delta += token.bufferDelta for token in @tokens
+    delta
 
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})

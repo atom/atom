@@ -107,9 +107,6 @@ LinesComponent = React.createClass
   hasLineNode: (lineId) ->
     @lineNodesByLineId.hasOwnProperty(lineId)
 
-  buildTranslate3d: (top) ->
-    "translate3d(0px, #{top}px, 0px)"
-
   buildLineHTML: (line, screenRow) ->
     {editor, mini, showIndentGuide, lineHeight} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
@@ -192,6 +189,7 @@ LinesComponent = React.createClass
       {lineHeight} = @props
       lineNode = @lineNodesByLineId[line.id]
       lineNode.style.top = screenRow * lineHeight + 'px'
+      lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
 
