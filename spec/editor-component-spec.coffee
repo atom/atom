@@ -106,6 +106,8 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays newlines as their own token outside of the other tokens scope", ->
+        editor.setText "var"
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "allows invisible glyphs to be customized via the editor.invisibles config", ->
 

@@ -146,8 +146,9 @@ LinesComponent = React.createClass
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
       innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += invisibles.eol if invisibles.eol?
+    innerHTML += "<span class='invisible-character'>#{invisibles.eol}</span>"
     innerHTML
 
   updateScopeStack: (scopeStack, desiredScopes) ->
