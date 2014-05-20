@@ -124,8 +124,6 @@ describe "EditorComponent", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
           expect(component.lineNodeForScreenRow(1).textContent).toBe "wraps#{invisibles.space}#{invisibles.eol}"
 
-        it "displays trailing carriage return using a visible non-empty value", ->
-
     describe "when indent guides are enabled", ->
       beforeEach ->
         component.setShowIndentGuide(true)
