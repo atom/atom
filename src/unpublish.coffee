@@ -23,7 +23,7 @@ class Unpublish extends Command
       specified.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('f', 'force').boolean('force').describe('force', 'Do not prompt for confirmation.')
+    options.alias('f', 'force').boolean('force').describe('force', 'Do not prompt for confirmation')
 
   unpublishPackage: (packageName, callback) ->
     process.stdout.write "Unpublishing #{packageName} "
