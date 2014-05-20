@@ -20,16 +20,8 @@
     z-index: 1;
   }
 
-  &.is-focused .cursors.blinking .cursor {
-    -webkit-animation: blink 0.8s;
-    -webkit-animation-iteration-count: infinite;
-  }
-
-  @-webkit-keyframes blink {
-    0% { opacity: .7; }
-    50% { opacity: .7; }
-    51% { opacity: 0; }
-    100% { opacity: 0; }
+  &.is-focused .cursors.blink-off .cursor {
+    visibility: hidden;
   }
 
   .horizontal-scrollbar {
