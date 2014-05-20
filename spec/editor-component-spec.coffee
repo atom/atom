@@ -1,4 +1,6 @@
-{extend, flatten, toArray, last} = require 'underscore-plus'
+_ = require 'underscore-plus'
+{extend, flatten, toArray, last} = _
+
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
@@ -274,19 +276,22 @@ describe "EditorComponent", ->
       expect(cursorRect.width).toBe rangeRect.width
 
     it "blinks cursors when they aren't moving", ->
-      jasmine.unspy(window, 'setTimeout')
-
+      spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
       cursorsNode = node.querySelector('.cursors')
-      expect(cursorsNode.classList.contains('blinking')).toBe true
+
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe true
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
       editor.moveCursorRight()
-      expect(cursorsNode.classList.contains('blinking')).toBe false
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      # Resume blinking after resume delay passes
-      waits component.props.cursorBlinkResumeDelay
-      runs ->
-        expect(cursorsNode.classList.contains('blinking')).toBe true
+      advanceClock(component.props.cursorBlinkResumeDelay)
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe true
 
     it "renders the hidden input field at the position of the last cursor if it is on screen", ->
       inputNode = node.querySelector('.hidden-input')

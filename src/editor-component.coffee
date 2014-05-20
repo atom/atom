@@ -32,7 +32,7 @@ EditorComponent = React.createClass
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
-    {editor, cursorBlinkResumeDelay} = @props
+    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
 
     if @isMounted()
@@ -61,8 +61,8 @@ EditorComponent = React.createClass
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
         lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
-        @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkResumeDelay,
-        @onInputFocused, @onInputBlurred, @mouseWheelScreenRow
+        @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
+        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow
       }
 
       ScrollbarComponent
@@ -107,6 +107,7 @@ EditorComponent = React.createClass
   getInitialState: -> {}
 
   getDefaultProps: ->
+    cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 100
     lineOverdrawMargin: 8
 
