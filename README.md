@@ -2,6 +2,9 @@
 
 Discover and install Atom packages powered by [atom.io](https://atom.io)
 
+You can configure apm via a `~/.atom/.apmrc` file similarly to
+[npm config](https://www.npmjs.org/doc/misc/npm-config.html).
+
 ## Relation to npm
 
 apm comes with [npm](https://github.com/npm/npm) and spawns `npm` processes to
