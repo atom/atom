@@ -109,8 +109,6 @@ describe "EditorComponent", ->
         editor.setText "var"
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
-      it "allows invisible glyphs to be customized via the editor.invisibles config", ->
-
       it "displays trailing carriage return using a visible non-empty value", ->
 
       describe "when soft wrapping is enabled", ->
