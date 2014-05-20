@@ -3,12 +3,12 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 optimist = require 'optimist'
-request = require 'request'
 
 config = require './config'
 Command = require './command'
 Install = require './install'
 Link = require './link'
+request = require './request'
 
 module.exports =
 class Develop extends Command
@@ -41,7 +41,6 @@ class Develop extends Command
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/#{packageName}"
       json: true
-      proxy: process.env.http_proxy || process.env.https_proxy
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback("Request for package information failed: #{error.message}")
