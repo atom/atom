@@ -101,7 +101,7 @@ describe "EditorComponent", ->
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
 
-      it "displays spaces, tabs, and newlines as visible charachters", ->
+      it "displays spaces, tabs, and newlines as visible characters", ->
         editor.setText " a line with tabs\tand spaces "
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
 
