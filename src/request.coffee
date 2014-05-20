@@ -1,5 +1,3 @@
-url = require 'url'
-
 npm = require 'npm'
 request = require 'request'
 
