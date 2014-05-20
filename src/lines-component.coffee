@@ -35,7 +35,7 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
