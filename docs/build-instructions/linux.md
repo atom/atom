@@ -21,3 +21,5 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   ```
 
 ## Troubleshooting
+
+  * On Ubuntu 14.04 you will also need `nodejs-legacy`
