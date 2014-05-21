@@ -13,6 +13,8 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
+  measureWhenShown: false
+
   render: ->
     if @isMounted()
       {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeight} = @props
@@ -44,9 +46,7 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    {visible} = @props
-    if visible and not isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight', 'visible')
-      @measureLineHeightAndCharWidth()
+    @measureLineHeightAndCharWidthIfNeeded(prevProps)
     @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
@@ -198,7 +198,18 @@ LinesComponent = React.createClass
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
+  measureLineHeightAndCharWidthIfNeeded: (prevProps) ->
+    {visible} = @props
+
+    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+      if visible
+        @measureLineHeightAndCharWidth()
+      else
+        @measureWhenShown = true
+    @measureLineHeightAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
+
   measureLineHeightAndCharWidth: ->
+    @measureWhenShown = false
     node = @getDOMNode()
     node.appendChild(DummyLineNode)
     lineHeight = DummyLineNode.getBoundingClientRect().height
