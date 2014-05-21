@@ -33,10 +33,10 @@ describe "EditorView", ->
         $('#jasmine-content').append(this)
 
     waitsForPromise ->
-      atom.packages.activatePackage('language-text', sync: true)
+      atom.packages.activatePackage('language-text')
 
     waitsForPromise ->
-      atom.packages.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript')
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
