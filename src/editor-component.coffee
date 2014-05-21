@@ -1,5 +1,5 @@
-React = require 'react'
-{div, span} = require 'reactionary'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
 {debounce, defaults} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
