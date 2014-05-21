@@ -31,7 +31,7 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -64,7 +64,7 @@ EditorComponent = React.createClass
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles
+        invisibles, visible
       }
 
       ScrollbarComponent
@@ -106,7 +106,8 @@ EditorComponent = React.createClass
     renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
     [renderedStartRow, renderedEndRow]
 
-  getInitialState: -> {}
+  getInitialState: ->
+    visible: true
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -467,3 +468,9 @@ EditorComponent = React.createClass
   lineNodeForScreenRow: (screenRow) -> @refs.scrollView.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+
+  hide: ->
+    @setState(visible: false)
+
+  show: ->
+    @setState(visible: true)

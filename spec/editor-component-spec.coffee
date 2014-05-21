@@ -764,3 +764,24 @@ describe "EditorComponent", ->
 
         expect(editor.consolidateSelections).toHaveBeenCalled()
         expect(event.abortKeyBinding).toHaveBeenCalled()
+
+  describe "hiding and showing the editor", ->
+    describe "when fontSize, fontFamily, or lineHeight changes while the editor is hidden", ->
+      it "does not attempt to measure the lineHeight and defaultCharWidth until the editor becomes visible again", ->
+        wrapperView.hide()
+        initialLineHeight = editor.getLineHeight()
+        initialCharWidth = editor.getDefaultCharWidth()
+
+        component.setLineHeight(2)
+        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+        component.setFontSize(22)
+        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+        component.setFontFamily('monospace')
+        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+
+        wrapperView.show()
+        expect(editor.getLineHeight()).not.toBe initialLineHeight
+        expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth

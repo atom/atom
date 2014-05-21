@@ -35,7 +35,7 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -44,7 +44,9 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+    {visible} = @props
+    if visible and not isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight', 'visible')
+      @measureLineHeightAndCharWidth()
     @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()

@@ -82,3 +82,11 @@ class ReactEditorView extends View
       @component.onFocus()
     else
       @focusOnAttach = true
+
+  hide: ->
+    super
+    @component.hide()
+
+  show: ->
+    super
+    @component.show()
