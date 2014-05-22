@@ -39,7 +39,7 @@ describe "EditorComponent", ->
       component.setLineHeight(1.3)
       component.setFontSize(20)
 
-      lineHeightInPixels = editor.getLineHeight()
+      lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
       node = component.getDOMNode()
       verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
@@ -89,6 +89,35 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
+
+    it "updates the top position of lines when the line height changes", ->
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setLineHeight(2)
+
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
+
+    it "updates the top position of lines when the font size changes", ->
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setFontSize(10)
+
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
+
+    it "updates the top position of lines when the font family changes", ->
+      # Can't find a font that changes the line height, but we think one might exist
+      linesComponent = component.refs.scrollView.refs.lines
+      spyOn(linesComponent, 'measureLineHeightInPixelsAndCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
+
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setFontFamily('sans-serif')
+
+      expect(linesComponent.measureLineHeightInPixelsAndCharWidth).toHaveBeenCalled()
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
 
     it "renders the .lines div at the full height of the editor if there aren't enough lines to scroll vertically", ->
       editor.setText('')
@@ -772,3 +801,24 @@ describe "EditorComponent", ->
 
         expect(editor.consolidateSelections).toHaveBeenCalled()
         expect(event.abortKeyBinding).toHaveBeenCalled()
+
+  describe "hiding and showing the editor", ->
+    describe "when fontSize, fontFamily, or lineHeight changes while the editor is hidden", ->
+      it "does not attempt to measure the lineHeight and defaultCharWidth until the editor becomes visible again", ->
+        wrapperView.hide()
+        initialLineHeightInPixels = editor.getLineHeightInPixels()
+        initialCharWidth = editor.getDefaultCharWidth()
+
+        component.setLineHeight(2)
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+        component.setFontSize(22)
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+        component.setFontFamily('monospace')
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+
+        wrapperView.show()
+        expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
+        expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth

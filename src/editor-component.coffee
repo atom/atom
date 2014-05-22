@@ -31,7 +31,7 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -42,8 +42,8 @@ EditorComponent = React.createClass
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
+      lineHeightInPixels = editor.getLineHeightInPixels()
       scrollViewHeight = editor.getHeight()
-      lineHeightInPixels = editor.getLineHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -55,17 +55,17 @@ EditorComponent = React.createClass
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
+        scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
+        lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles, scrollViewHeight
+        invisibles, visible, scrollViewHeight
       }
 
       ScrollbarComponent
@@ -107,7 +107,8 @@ EditorComponent = React.createClass
     renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
     [renderedStartRow, renderedEndRow]
 
-  getInitialState: -> {}
+  getInitialState: ->
+    visible: true
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -158,7 +159,7 @@ EditorComponent = React.createClass
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
-    @subscribe editor.$lineHeight.changes, @requestUpdate
+    @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
   listenForDOMEvents: ->
     node = @getDOMNode()
@@ -271,6 +272,7 @@ EditorComponent = React.createClass
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
+    @subscribe atom.config.observe 'editor.lineHeight', @setLineHeight
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
@@ -468,3 +470,9 @@ EditorComponent = React.createClass
   lineNodeForScreenRow: (screenRow) -> @refs.scrollView.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+
+  hide: ->
+    @setState(visible: false)
+
+  show: ->
+    @setState(visible: true)

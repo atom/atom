@@ -6,7 +6,7 @@ SelectionComponent = React.createClass
   displayName: 'SelectionComponent'
 
   render: ->
-    {editor, screenRange, lineHeight} = @props
+    {editor, screenRange, lineHeightInPixels} = @props
     {start, end} = screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
@@ -19,18 +19,18 @@ SelectionComponent = React.createClass
         @renderMultiLineRegions(startPixelPosition, endPixelPosition, rowCount)
 
   renderSingleLineRegions: (startPixelPosition, endPixelPosition) ->
-    {lineHeight} = @props
+    {lineHeightInPixels} = @props
 
     [
       div className: 'region', key: 0, style:
         top: startPixelPosition.top
-        height: lineHeight
+        height: lineHeightInPixels
         left: startPixelPosition.left
         width: endPixelPosition.left - startPixelPosition.left
     ]
 
   renderMultiLineRegions: (startPixelPosition, endPixelPosition, rowCount) ->
-    {lineHeight} = @props
+    {lineHeightInPixels} = @props
     regions = []
     index = 0
 
@@ -39,7 +39,7 @@ SelectionComponent = React.createClass
       div className: 'region', key: index++, style:
         top: startPixelPosition.top
         left: startPixelPosition.left
-        height: lineHeight
+        height: lineHeightInPixels
         right: 0
     )
 
@@ -47,8 +47,8 @@ SelectionComponent = React.createClass
     if rowCount > 2
       regions.push(
         div className: 'region', key: index++, style:
-          top: startPixelPosition.top + lineHeight
-          height: (rowCount - 2) * lineHeight
+          top: startPixelPosition.top + lineHeightInPixels
+          height: (rowCount - 2) * lineHeightInPixels
           left: 0
           right: 0
       )
@@ -57,7 +57,7 @@ SelectionComponent = React.createClass
     regions.push(
       div className: 'region', key: index, style:
         top: endPixelPosition.top
-        height: lineHeight
+        height: lineHeightInPixels
         left: 0
         width: endPixelPosition.left
     )
