@@ -261,7 +261,9 @@ window.waitsForPromise = (args...) ->
 window.resetTimeouts = ->
   window.now = 0
   window.timeoutCount = 0
+  window.intervalCount = 0
   window.timeouts = []
+  window.intervalTimeouts = {}
 
 window.fakeSetTimeout = (callback, ms) ->
   id = ++window.timeoutCount
@@ -272,13 +274,15 @@ window.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
 
 window.fakeSetInterval = (callback, ms) ->
+  id = ++window.intervalCount
   action = ->
     callback()
-    window.fakeSetTimeout(action, ms)
-  window.fakeSetTimeout(action, ms)
+    window.intervalTimeouts[id] = window.fakeSetTimeout(action, ms)
+  window.intervalTimeouts[id] = window.fakeSetTimeout(action, ms)
+  id
 
 window.fakeClearInterval = (idToClear) ->
-  window.fakeClearTimeout(idToClear)
+  window.fakeClearTimeout(@intervalTimeouts[idToClear])
 
 window.advanceClock = (delta=1) ->
   window.now += delta

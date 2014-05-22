@@ -131,7 +131,7 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    "<div class=\"line-number editor-colors\" style=\"#{style}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"line-number\" style=\"#{style}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped

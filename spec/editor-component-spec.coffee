@@ -1,4 +1,6 @@
-{extend, flatten, toArray, last} = require 'underscore-plus'
+_ = require 'underscore-plus'
+{extend, flatten, toArray, last} = _
+
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
@@ -87,6 +89,51 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
+
+    describe "when showInvisibles is enabled", ->
+      invisibles = null
+
+      beforeEach ->
+        invisibles =
+          eol: 'E'
+          space: 'S'
+          tab: 'T'
+          cr: 'C'
+
+        atom.config.set("editor.showInvisibles", true)
+        atom.config.set("editor.invisibles", invisibles)
+
+      it "re-renders the lines when the showInvisibles config option changes", ->
+        editor.setText " a line with tabs\tand spaces "
+
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
+        atom.config.set("editor.showInvisibles", false)
+        expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs  and spaces "
+        atom.config.set("editor.showInvisibles", true)
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
+
+      it "displays spaces, tabs, and newlines as visible characters", ->
+        editor.setText " a line with tabs\tand spaces "
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab} and spaces#{invisibles.space}#{invisibles.eol}"
+
+      it "displays newlines as their own token outside of the other tokens' scopes", ->
+        editor.setText "var"
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
+
+      it "displays trailing carriage returns using a visible, non-empty value", ->
+        editor.setText "a line that ends with a carriage return\r\n"
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
+
+      describe "when soft wrapping is enabled", ->
+        beforeEach ->
+          editor.setText "a line that wraps "
+          editor.setSoftWrap(true)
+          node.style.width = 15 * charWidth + 'px'
+          component.measureHeightAndWidth()
+
+        it "doesn't show end of line invisibles at the end of wrapped lines", ->
+          expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
+          expect(component.lineNodeForScreenRow(1).textContent).toBe "wraps#{invisibles.space}#{invisibles.eol}"
 
     describe "when indent guides are enabled", ->
       beforeEach ->
@@ -274,19 +321,22 @@ describe "EditorComponent", ->
       expect(cursorRect.width).toBe rangeRect.width
 
     it "blinks cursors when they aren't moving", ->
-      jasmine.unspy(window, 'setTimeout')
-
+      spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
       cursorsNode = node.querySelector('.cursors')
-      expect(cursorsNode.classList.contains('blinking')).toBe true
+
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe true
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
       editor.moveCursorRight()
-      expect(cursorsNode.classList.contains('blinking')).toBe false
+      expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      # Resume blinking after resume delay passes
-      waits component.props.cursorBlinkResumeDelay
-      runs ->
-        expect(cursorsNode.classList.contains('blinking')).toBe true
+      advanceClock(component.props.cursorBlinkResumeDelay)
+      advanceClock(component.props.cursorBlinkPeriod / 2)
+      expect(cursorsNode.classList.contains('blink-off')).toBe true
 
     it "renders the hidden input field at the position of the last cursor if it is on screen", ->
       inputNode = node.querySelector('.hidden-input')

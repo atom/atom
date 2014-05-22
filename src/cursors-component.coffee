@@ -13,10 +13,10 @@ CursorsComponent = React.createClass
 
   render: ->
     {editor, scrollTop, scrollLeft} = @props
-    {blinking} = @state
+    {blinkOff} = @state
 
     className = 'cursors'
-    className += ' blinking' if blinking
+    className += ' blink-off' if blinkOff
 
     div {className},
       if @isMounted()
@@ -26,32 +26,30 @@ CursorsComponent = React.createClass
             CursorComponent({key: cursor.id, cursor, scrollTop, scrollLeft})
 
   getInitialState: ->
-    blinking: true
+    blinkOff: false
 
   componentDidMount: ->
-    {editor} = @props
+    @startBlinkingCursors()
 
   componentWillUnmount: ->
-    clearInterval(@cursorBlinkIntervalHandle)
+    @stopBlinkingCursors()
 
   componentWillUpdate: ({cursorsMoved}) ->
     @pauseCursorBlinking() if cursorsMoved
 
-  componentDidUpdate: ->
-    @syncCursorAnimations() if @props.selectionAdded
-
   startBlinkingCursors: ->
-    @setState(blinking: true) if @isMounted()
+    @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2) if @isMounted()
 
   startBlinkingCursorsAfterDelay: null # Created lazily
 
+  stopBlinkingCursors: ->
+    clearInterval(@toggleCursorBlinkHandle)
+
+  toggleCursorBlink: ->
+    @setState(blinkOff: not @state.blinkOff)
+
   pauseCursorBlinking: ->
-    @state.blinking = false
+    @state.blinkOff = false
+    @stopBlinkingCursors()
     @startBlinkingCursorsAfterDelay ?= debounce(@startBlinkingCursors, @props.cursorBlinkResumeDelay)
     @startBlinkingCursorsAfterDelay()
-
-  syncCursorAnimations: ->
-    node = @getDOMNode()
-    cursorNodes = toArray(node.children)
-    node.removeChild(cursorNode) for cursorNode in cursorNodes
-    node.appendChild(cursorNode) for cursorNode in cursorNodes

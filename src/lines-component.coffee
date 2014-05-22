@@ -35,7 +35,7 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically')
+    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -46,7 +46,7 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
     @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
-    @removeLineNodes() unless prevProps.showIndentGuide is @props.showIndentGuide
+    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() unless @props.scrollingVertically
@@ -132,7 +132,7 @@ LinesComponent = React.createClass
       "&nbsp;"
 
   buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide} = @props
+    {invisibles, mini, showIndentGuide, invisibles} = @props
     {tokens, text} = line
     innerHTML = ""
 
@@ -143,8 +143,21 @@ LinesComponent = React.createClass
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
       innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
+    innerHTML += @buildEndOfLineHTML(line, invisibles)
     innerHTML
+
+  buildEndOfLineHTML: (line, invisibles) ->
+    return '' if @props.mini or line.isSoftWrapped()
+
+    html = ''
+    if invisibles.cr? and line.lineEnding is '\r\n'
+      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
+    if invisibles.eol?
+      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
+
+    html
 
   updateScopeStack: (scopeStack, desiredScopes) ->
     html = ""
