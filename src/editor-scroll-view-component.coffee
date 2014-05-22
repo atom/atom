@@ -1,5 +1,5 @@
-React = require 'react'
-{div} = require 'reactionary'
+React = require 'react-atom-fork'
+{div} = require 'reactionary-atom-fork'
 {debounce} = require 'underscore-plus'
 
 InputComponent = require './input-component'
@@ -17,7 +17,7 @@ EditorScrollViewComponent = React.createClass
 
   render: ->
     {editor, fontSize, fontFamily, lineHeight, lineHeightInPixels, showIndentGuide, invisibles, visible} = @props
-    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, scrollingVertically, mouseWheelScreenRow} = @props
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, scrollViewHeight, scrollingVertically, mouseWheelScreenRow} = @props
     {selectionChanged, selectionAdded, cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
@@ -38,7 +38,7 @@ EditorScrollViewComponent = React.createClass
         ref: 'lines', editor, fontSize, fontFamily, lineHeight, lineHeightInPixels,
         showIndentGuide, renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
         selectionChanged, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-        visible
+        visible, scrollViewHeight
       }
 
   componentDidMount: ->

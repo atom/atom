@@ -1,5 +1,5 @@
-React = require 'react'
-{div} = require 'reactionary'
+React = require 'react-atom-fork'
+{div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
 

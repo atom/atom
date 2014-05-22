@@ -149,6 +149,8 @@ ASCII art professional!
 
 * [Getting your project on GitHub guide](http://guides.github.com/overviews/desktop)
 
+* [Writing specs](writing-specs.md) for your package
+
 * [Creating a package guide](creating-a-package.html) for more information
   on the mechanics of packages
 

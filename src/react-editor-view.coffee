@@ -1,5 +1,5 @@
 {View, $} = require 'space-pen'
-React = require 'react'
+React = require 'react-atom-fork'
 EditorComponent = require './editor-component'
 {defaults} = require 'underscore-plus'
 

@@ -1,5 +1,5 @@
-React = require 'react'
-{div, span} = require 'reactionary'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
 {debounce, defaults} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
@@ -43,6 +43,7 @@ EditorComponent = React.createClass
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
       lineHeightInPixels = editor.getLineHeightInPixels()
+      scrollViewHeight = editor.getHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -64,7 +65,7 @@ EditorComponent = React.createClass
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles, visible
+        invisibles, visible, scrollViewHeight
       }
 
       ScrollbarComponent

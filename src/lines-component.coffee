@@ -1,5 +1,5 @@
-React = require 'react'
-{div, span} = require 'reactionary'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
@@ -17,9 +17,9 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels} = @props
+      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
       style =
-        height: scrollHeight
+        height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
@@ -40,7 +40,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
-      'visible'
+      'visible', 'scrollViewHeight'
     )
 
     {renderedRowRange, pendingChanges} = newProps

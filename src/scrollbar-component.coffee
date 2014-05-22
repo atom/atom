@@ -1,5 +1,5 @@
-React = require 'react'
-{div} = require 'reactionary'
+React = require 'react-atom-fork'
+{div} = require 'reactionary-atom-fork'
 {extend, isEqualForProperties} = require 'underscore-plus'
 
 module.exports =

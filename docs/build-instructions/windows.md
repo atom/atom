@@ -3,7 +3,7 @@
 ## Requirements
 
   * Windows 7 or later
-  * [Visual C++ 2010 SP1 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
+  * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4) with [SP1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [Python](http://www.python.org/download/) v2.7.x
   * [GitHub for Windows](http://windows.github.com/)
