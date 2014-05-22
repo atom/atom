@@ -200,6 +200,8 @@ class EditorView extends View
         'core:select-down': => @editor.selectDown()
         'core:select-to-top': => @editor.selectToTop()
         'core:select-to-bottom': => @editor.selectToBottom()
+        'core:select-page-up': => @editor.selectUp(@getPageRows())
+        'core:select-page-down': => @editor.selectDown(@getPageRows())
         'editor:indent': => @editor.indent()
         'editor:auto-indent': => @editor.autoIndentSelectedRows()
         'editor:indent-selected-rows': => @editor.indentSelectedRows()
