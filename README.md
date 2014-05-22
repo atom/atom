@@ -14,7 +14,7 @@ Chromium's v8 headers instead of node's v8 headers.
 
 The other major difference is that Atom packages are installed to
 `~/.atom/packages` instead of a local `node_modules` folder and Atom packages
-are published to and installed from to GitHub repositories instead of
+are published to and installed from GitHub repositories instead of
 [npmjs.org](https://www.npmjs.org)
 
 Therefore you can think of `apm` as a simple `npm` wrapper that builds on top
