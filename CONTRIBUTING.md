@@ -38,7 +38,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://pivotal.github.com/jasmine) specs.
+  [Jasmine](http://jasmine.github.io/) specs.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
