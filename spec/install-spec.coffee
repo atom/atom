@@ -29,8 +29,12 @@ describe 'apm install', ->
         response.sendfile path.join(__dirname, 'fixtures', 'node_x64.lib')
       app.get '/tarball/test-module-1.0.0.tgz', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'test-module-1.0.0.tgz')
+      app.get '/tarball/test-module2-2.0.0.tgz', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'test-module2-2.0.0.tgz')
       app.get '/packages/test-module', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module.json')
+      app.get '/packages/test-module2', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'install-test-module2.json')
       server =  http.createServer(app)
       server.listen(3000)
 
@@ -73,6 +77,24 @@ describe 'apm install', ->
           expect(fs.existsSync(existingTestModuleFile)).toBeFalsy()
           expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
           expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
+          expect(callback.mostRecentCall.args[0]).toBeUndefined()
+
+    describe 'when multiple package names are specified', ->
+      it 'installs all packages', ->
+        testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
+        testModule2Directory = path.join(atomHome, 'packages', 'test-module2')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "test-module", "test-module2", "test-module"], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModule2Directory, 'index2.js'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModule2Directory, 'package.json'))).toBeTruthy()
           expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
     describe 'when no path is specified', ->

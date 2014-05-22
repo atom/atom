@@ -325,12 +325,20 @@ class Install extends Command
     options = @parseOptions(options.commandArgs)
 
     @createAtomDirectories()
-    name = options.argv._[0] ? '.'
-    if name is '.'
-      @installDependencies(options, callback)
-    else
-      atIndex = name.indexOf('@')
-      if atIndex > 0
-        version = name.substring(atIndex + 1)
-        name = name.substring(0, atIndex)
-      @installPackage({name, version}, options, callback)
+
+    installPackage = (name, callback) =>
+      if name is '.'
+        @installDependencies(options, callback)
+      else
+        atIndex = name.indexOf('@')
+        if atIndex > 0
+          version = name.substring(atIndex + 1)
+          name = name.substring(0, atIndex)
+        @installPackage({name, version}, options, callback)
+
+    commands = []
+    names = _.uniq(options.argv._)
+    names.push('.') if names.length is 0
+    names.forEach (name) ->
+      commands.push (callback) -> installPackage(name, callback)
+    async.waterfall(commands, callback)
