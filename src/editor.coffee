@@ -259,7 +259,7 @@ class Editor extends Model
   getLongTitle: ->
     if sessionPath = @getPath()
       fileName = path.basename(sessionPath)
-      directory = path.basename(path.dirname(sessionPath))
+      directory = atom.project.relativize(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
       'untitled'
