@@ -107,6 +107,10 @@ EditorComponent = React.createClass
     renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
     [renderedStartRow, renderedEndRow]
 
+  getPageRows: ->
+    {editor} = @props
+    Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
+
   getInitialState: ->
     visible: true
 
@@ -219,10 +223,14 @@ EditorComponent = React.createClass
         'core:move-down': => editor.moveCursorDown()
         'core:move-to-top': => editor.moveCursorToTop()
         'core:move-to-bottom': => editor.moveCursorToBottom()
+        'core:page-up': => editor.pageUp()
+        'core:page-down': => editor.pageDown()
         'core:select-up': => editor.selectUp()
         'core:select-down': => editor.selectDown()
         'core:select-to-top': => editor.selectToTop()
         'core:select-to-bottom': => editor.selectToBottom()
+        'core:select-page-up': => editor.selectUp(@getPageRows())
+        'core:select-page-down': => editor.selectDown(@getPageRows())
         'editor:indent': => editor.indent()
         'editor:auto-indent': => editor.autoIndentSelectedRows()
         'editor:indent-selected-rows': => editor.indentSelectedRows()
@@ -260,8 +268,6 @@ EditorComponent = React.createClass
         'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
         'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
-        'core:page-up': => editor.pageUp()
-        'core:page-down': => editor.pageDown()
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
