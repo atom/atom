@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
-{debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
+{debounce, isEqual, isEqualForProperties, multiplyString, toArray, clone} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 SelectionsComponent = require './selections-component'
@@ -29,12 +29,22 @@ LinesComponent = React.createClass
       SelectionsComponent({key: 'selections', editor, lineHeightInPixels})
 
   renderLines: ->
-    {editor, renderedRowRange, lineHeightInPixels, showIndentGuide, mini, invisibles} = @props
+    {editor, renderedRowRange, lineHeightInPixels, showIndentGuide, mini, invisibles, mouseWheelScreenRow} = @props
     [startRow, endRow] = renderedRowRange
 
-    for line, i in editor.linesForScreenRows(startRow, endRow - 1)
-      screenRow = startRow + i
-      LineComponent({key: line.id, line, screenRow, lineHeightInPixels, showIndentGuide, mini, invisibles})
+    lineComponents =
+      for line, i in editor.linesForScreenRows(startRow, endRow - 1)
+        screenRow = startRow + i
+        LineComponent({key: line.id, line, screenRow, lineHeightInPixels, showIndentGuide, mini, invisibles})
+
+    if mouseWheelScreenRow? and not (startRow <= mouseWheelScreenRow < endRow)
+      line = editor.lineForScreenRow(mouseWheelScreenRow)
+      lineComponents.push(LineComponent({
+        key: line.id, line, screenRow: mouseWheelScreenRow, screenRowOverride: endRow,
+        lineHeightInPixels, showIndentGuide, mini, invisibles
+      }))
+
+    lineComponents
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -47,7 +57,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
-      'visible', 'scrollViewHeight'
+      'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -142,13 +152,13 @@ LineComponent = React.createClass
   displayName: "LineComponent"
 
   render: ->
-    {screenRow, lineHeightInPixels} = @props
+    {screenRow, screenRowOverride, lineHeightInPixels} = @props
 
     style =
       position: "absolute"
-      top: screenRow * lineHeightInPixels
+      top: (screenRowOverride ? screenRow) * lineHeightInPixels
 
-    div className: "line", style: style, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+    div className: "line", style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
 
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'screenRow', 'lineHeightInPixels', 'showIndentGuide', 'invisibles')
