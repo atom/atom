@@ -30,7 +30,7 @@ describe 'apm install', ->
       app.get '/tarball/test-module-1.0.0.tgz', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'test-module-1.0.0.tgz')
       app.get '/packages/test-module', (request, response) ->
-        response.sendfile path.join(__dirname, 'fixtures', 'install.json')
+        response.sendfile path.join(__dirname, 'fixtures', 'install-test-module.json')
       server =  http.createServer(app)
       server.listen(3000)
 
