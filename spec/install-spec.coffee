@@ -55,8 +55,8 @@ describe 'apm install', ->
           expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
           expect(process.exit.mostRecentCall.args[0]).toBe 1
 
-    describe 'when a module name is specified', ->
-      it 'installs the module', ->
+    describe 'when a package name is specified', ->
+      it 'installs the package', ->
         testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
         fs.makeTreeSync(testModuleDirectory)
         existingTestModuleFile = path.join(testModuleDirectory, 'will-be-deleted.js')
