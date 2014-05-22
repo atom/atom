@@ -27,7 +27,7 @@
   cd C:\
   git clone https://github.com/atom/atom/
   cd atom
-  script\build
+  script\build # Creates application in the `Program Files` directory
   ```
 
 ## Why do I have to use GitHub for Windows?
