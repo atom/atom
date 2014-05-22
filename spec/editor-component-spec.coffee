@@ -90,6 +90,14 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
+    it "renders the .lines div at the full height of the editor if there aren't enough lines to scroll vertically", ->
+      editor.setText('')
+      node.style.height = '300px'
+      component.measureHeightAndWidth()
+
+      linesNode = node.querySelector('.lines')
+      expect(linesNode.offsetHeight).toBe 300
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
