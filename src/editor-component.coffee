@@ -42,6 +42,7 @@ EditorComponent = React.createClass
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
+      scrollViewHeight = editor.getHeight()
       lineHeightInPixels = editor.getLineHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
@@ -64,7 +65,7 @@ EditorComponent = React.createClass
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles
+        invisibles, scrollViewHeight
       }
 
       ScrollbarComponent

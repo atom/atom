@@ -15,9 +15,10 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeight} = @props
+      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeight, scrollViewHeight} = @props
+
       style =
-        height: scrollHeight
+        height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
@@ -35,7 +36,10 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles')
+    return true unless isEqualForProperties(newProps, @props,
+      'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft',
+      'showIndentGuide', 'scrollingVertically', 'invisibles', 'scrollViewHeight'
+    )
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
