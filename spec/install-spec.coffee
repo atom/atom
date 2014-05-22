@@ -97,6 +97,20 @@ describe 'apm install', ->
           expect(fs.existsSync(path.join(testModule2Directory, 'package.json'))).toBeTruthy()
           expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
+      it "installs them in order and stops on the first failure", ->
+        testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "test-module3", "test-module"], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeFalsy()
+          expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeFalsy()
+          expect(callback.mostRecentCall.args[0]).not.toBeUndefined()
+
     describe 'when no path is specified', ->
       it 'installs all dependent modules', ->
         moduleDirectory = path.join(temp.mkdirSync('apm-test-module-'), 'test-module-with-dependencies')
