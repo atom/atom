@@ -11,7 +11,7 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   lastMeasuredWidth: null
-  dummyLineNumberNode: null
+  wrapCountsByScreenRow: null
 
   render: ->
     {scrollHeight, scrollTop} = @props
@@ -33,30 +33,52 @@ GutterComponent = React.createClass
     LineNumberComponent({key, bufferRow, maxLineNumberDigits})
 
   renderLineNumbers: ->
-    {editor, renderedRowRange, maxLineNumberDigits, lineHeightInPixels} = @props
+    {editor, renderedRowRange, maxLineNumberDigits, lineHeightInPixels, mouseWheelScreenRow} = @props
     [startRow, endRow] = renderedRowRange
 
     lastBufferRow = null
     wrapCount = 0
 
-    for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-      if bufferRow is lastBufferRow
-        softWrapped = true
-        key = "#{bufferRow}-#{++wrapCount}"
-      else
-        softWrapped = false
-        key = bufferRow.toString()
-        lastBufferRow = bufferRow
-        wrapCount = 0
+    wrapCountsByScreenRow = {}
+    lineNumberComponents =
+      for bufferRow, i in editor.bufferRowsForScreenRows(startRow, endRow - 1)
+        if bufferRow is lastBufferRow
+          softWrapped = true
+          key = "#{bufferRow}-#{++wrapCount}"
+        else
+          softWrapped = false
+          key = bufferRow.toString()
+          lastBufferRow = bufferRow
+          wrapCount = 0
 
-      screenRow = startRow + i
-      LineNumberComponent({key, bufferRow, screenRow, softWrapped, maxLineNumberDigits, lineHeightInPixels})
+        screenRow = startRow + i
+        wrapCountsByScreenRow[screenRow] = wrapCount
+        LineNumberComponent({key, bufferRow, screenRow, softWrapped, maxLineNumberDigits, lineHeightInPixels})
+
+    # Preserve the mouse wheel target's screen row if it exists
+    if mouseWheelScreenRow? and not (startRow <= mouseWheelScreenRow < endRow)
+      screenRow = mouseWheelScreenRow
+      bufferRow = editor.bufferRowForScreenRow(screenRow)
+      wrapCount = @wrapCountsByScreenRow[screenRow]
+      wrapCountsByScreenRow[screenRow] = wrapCount
+      if softWrapped = (wrapCount > 0)
+        key = "#{bufferRow}-#{wrapCount}"
+      else
+        key = bufferRow.toString()
+
+      lineNumberComponents.push(LineNumberComponent({
+        key, bufferRow, screenRow, screenRowOverride: endRow, softWrapped,
+        maxLineNumberDigits, lineHeightInPixels
+      }))
+
+    @wrapCountsByScreenRow = wrapCountsByScreenRow
+    lineNumberComponents
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize', 'maxLineNumberDigits')
+    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize', 'maxLineNumberDigits', 'mouseWheelScreenRow')
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
@@ -88,12 +110,15 @@ LineNumberComponent = React.createClass
   innerHTML: null
 
   render: ->
-    {screenRow, lineHeightInPixels} = @props
+    {screenRow, screenRowOverride, lineHeightInPixels} = @props
 
     if screenRow?
-      style = {position: 'absolute', top: screenRow * lineHeightInPixels}
+      style =
+        position: 'absolute'
+        top: (screenRowOverride ? screenRow) * lineHeightInPixels
     else
-      style = {visibility: 'hidden'}
+      style =
+        visibility: 'hidden'
 
     @innerHTML ?= @buildInnerHTML()
 
