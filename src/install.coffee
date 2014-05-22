@@ -337,7 +337,9 @@ class Install extends Command
         @installPackage({name, version}, options, callback)
 
     commands = []
-    packageNames = _.uniq(options.argv._)
+    packageNames = options.argv._.map (packageName) -> packageName.trim()
+    packageNames = _.compact(packageNames)
+    packageNames = _.uniq(packageNames)
     packageNames.push('.') if packageNames.length is 0
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
