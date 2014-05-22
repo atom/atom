@@ -60,7 +60,7 @@ EditorComponent = React.createClass
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeightInPixels, renderedRowRange, @pendingChanges,
+        lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,

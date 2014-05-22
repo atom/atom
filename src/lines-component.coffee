@@ -33,11 +33,15 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
 
   componentDidMount: ->
-    @measurelineHeightInPixelsAndCharWidth()
+    @measureLineHeightInPixelsAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeightInPixels', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible')
+    return true unless isEqualForProperties(newProps, @props,
+      'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
+      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
+      'visible'
+    )
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -46,7 +50,7 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    @measurelineHeightInPixelsAndCharWidthIfNeeded(prevProps)
+    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevProps)
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
@@ -198,17 +202,17 @@ LinesComponent = React.createClass
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measurelineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
+  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
     {visible} = @props
 
-    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeightInPixels')
+    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
       if visible
-        @measurelineHeightInPixelsAndCharWidth()
+        @measureLineHeightInPixelsAndCharWidth()
       else
         @measureWhenShown = true
-    @measurelineHeightInPixelsAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
+    @measureLineHeightInPixelsAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
 
-  measurelineHeightInPixelsAndCharWidth: ->
+  measureLineHeightInPixelsAndCharWidth: ->
     @measureWhenShown = false
     node = @getDOMNode()
     node.appendChild(DummyLineNode)

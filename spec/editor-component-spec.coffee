@@ -90,6 +90,14 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
+    it "updates the top position of lines when the line height changes", ->
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setLineHeight(2)
+
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
