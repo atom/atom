@@ -98,6 +98,27 @@ describe "EditorComponent", ->
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
       expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
 
+    it "updates the top position of lines when the font size changes", ->
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setFontSize(10)
+
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
+
+    it "updates the top position of lines when the font family changes", ->
+      # Can't find a font that changes the line height, but we think one might exist
+      linesComponent = component.refs.scrollView.refs.lines
+      spyOn(linesComponent, 'measureLineHeightInPixelsAndCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
+
+      initialLineHeightInPixels = editor.getLineHeightInPixels()
+      component.setFontFamily('sans-serif')
+
+      expect(linesComponent.measureLineHeightInPixelsAndCharWidth).toHaveBeenCalled()
+      newLineHeightInPixels = editor.getLineHeightInPixels()
+      expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
+      expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
