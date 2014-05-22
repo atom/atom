@@ -7,7 +7,8 @@ SelectionsComponent = React.createClass
   displayName: 'SelectionsComponent'
 
   render: ->
-    div className: 'selections', @renderSelections()
+    div className: 'selections',
+      @renderSelections() if @isMounted()
 
   renderSelections: ->
     {editor, lineHeightInPixels} = @props
