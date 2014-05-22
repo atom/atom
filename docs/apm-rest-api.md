@@ -21,7 +21,7 @@ All requests that take parameters require `application/json`.
 
 ### Packages
 
-**GET** /api/packages
+#### GET /api/packages
 
 Returns a list of all packages in the following format:
 ```json
@@ -40,7 +40,7 @@ Returns a list of all packages in the following format:
   ]
 ```
 
-**GET** /api/packages/:package_name
+#### GET /api/packages/:package_name
 
 Returns package details and versions for a single package
 
@@ -68,7 +68,7 @@ Returns:
   }
 ```
 
-**POST** /api/packages
+#### POST /api/packages
 
 Create a new package; requires authentication.
 
@@ -93,7 +93,7 @@ Returns:
 - **409** - A package by that name already exists
 
 
-**DELETE** /api/packages/:package_name
+#### DELETE /api/packages/:package_name
 
 Delete a package; requires authentication.
 
@@ -105,7 +105,7 @@ Returns:
 
 ### Package Versions
 
-**GET** /api/packages/:package_name/versions/:version_name
+#### GET /api/packages/:package_name/versions/:version_name
 
 Returns `package.json` with `dist` key added for e.g. tarball download:
 
@@ -142,7 +142,7 @@ Returns `package.json` with `dist` key added for e.g. tarball download:
 
 ### Creating a new package version
 
-**POST** /api/packages/:package_name/versions
+#### POST /api/packages/:package_name/versions
 
 Creates a new package version from a git tag; requires authentication.
 
@@ -161,7 +161,7 @@ Creates a new package version from a git tag; requires authentication.
 
 ### Delete a version
 
-**DELETE** /api/packages/:package_name/versions/:version_name
+#### DELETE /api/packages/:package_name/versions/:version_name
 
 Deletes a package version; requires authentication.
 
@@ -173,7 +173,7 @@ Returns 204 No Content
 
 ### Atom updates
 
-**GET** /api/updates
+#### GET /api/updates
 
 Atom update feed, following the format expected by [Squirrel](https://github.com/Squirrel/).
 
