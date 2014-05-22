@@ -26,7 +26,7 @@ class Install extends Command
     options = optimist(argv)
     options.usage """
 
-      Usage: apm install [<package_name>]
+      Usage: apm install [<package_name>...]
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
