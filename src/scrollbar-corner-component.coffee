@@ -2,7 +2,9 @@ React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 
 module.exports =
-ScrollbarComponent = React.createClass
+ScrollbarCornerComponent = React.createClass
+  displayName: 'ScrollbarCornerComponent'
+
   render: ->
     {visible, measuringScrollbars, width, height} = @props
 

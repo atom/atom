@@ -4,6 +4,8 @@ React = require 'react-atom-fork'
 
 module.exports =
 ScrollbarComponent = React.createClass
+  displayName: 'ScrollbarComponent'
+
   render: ->
     {orientation, className, scrollHeight, scrollWidth, visible} = @props
     {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
