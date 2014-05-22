@@ -23,7 +23,9 @@ Atom packages.
 
 ## Installing
 
-apm is bundled and installed automatically with Atom.
+apm is bundled and installed automatically with Atom. You can run the
+_Atom > Install Shell Commands_ menu option to install it again if you aren't
+able to run it from a terminal.
 
 ## Building
   * Clone the repository
