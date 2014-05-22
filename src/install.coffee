@@ -26,7 +26,7 @@ class Install extends Command
     options = optimist(argv)
     options.usage """
 
-      Usage: apm install [<package_name>]
+      Usage: apm install [<package_name>...]
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
@@ -325,12 +325,22 @@ class Install extends Command
     options = @parseOptions(options.commandArgs)
 
     @createAtomDirectories()
-    name = options.argv._[0] ? '.'
-    if name is '.'
-      @installDependencies(options, callback)
-    else
-      atIndex = name.indexOf('@')
-      if atIndex > 0
-        version = name.substring(atIndex + 1)
-        name = name.substring(0, atIndex)
-      @installPackage({name, version}, options, callback)
+
+    installPackage = (name, callback) =>
+      if name is '.'
+        @installDependencies(options, callback)
+      else
+        atIndex = name.indexOf('@')
+        if atIndex > 0
+          version = name.substring(atIndex + 1)
+          name = name.substring(0, atIndex)
+        @installPackage({name, version}, options, callback)
+
+    commands = []
+    packageNames = options.argv._.map (packageName) -> packageName.trim()
+    packageNames = _.compact(packageNames)
+    packageNames = _.uniq(packageNames)
+    packageNames.push('.') if packageNames.length is 0
+    packageNames.forEach (packageName) ->
+      commands.push (callback) -> installPackage(packageName, callback)
+    async.waterfall(commands, callback)
