@@ -326,19 +326,19 @@ class Install extends Command
 
     @createAtomDirectories()
 
-    installPackage = (packageName, callback) =>
-      if packageName is '.'
+    installPackage = (name, callback) =>
+      if name is '.'
         @installDependencies(options, callback)
       else
-        atIndex = packageName.indexOf('@')
+        atIndex = name.indexOf('@')
         if atIndex > 0
-          version = packageName.substring(atIndex + 1)
-          packageName = packageName.substring(0, atIndex)
-        @installPackage({packageName, version}, options, callback)
+          version = name.substring(atIndex + 1)
+          name = name.substring(0, atIndex)
+        @installPackage({name, version}, options, callback)
 
     commands = []
-    packageName = _.uniq(options.argv._)
-    packageName.push('.') if packageName.length is 0
-    packageName.forEach (packageName) ->
+    packageNames = _.uniq(options.argv._)
+    packageNames.push('.') if packageNames.length is 0
+    packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)
