@@ -19,5 +19,13 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build
   ```
+  
+## PPA for Ubuntu 14.04
+
+```
+sudo add-apt-repository ppa:webupd8team/atom
+sudo apt-get update
+sudo apt-get install atom
+```
 
 ## Troubleshooting
