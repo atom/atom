@@ -271,6 +271,7 @@ EditorComponent = React.createClass
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
+    @subscribe atom.config.observe 'editor.lineHeight', @setLineHeight
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
