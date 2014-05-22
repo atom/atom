@@ -1,4 +1,5 @@
 child_process = require 'child_process'
+_ = require 'underscore-plus'
 
 module.exports =
 class Command
@@ -33,3 +34,8 @@ class Command
     @spawn(process.execPath, args, remaining...)
 
   showHelp: (argv) -> @parseOptions?(argv)?.showHelp()
+
+  packageNamesFromArgv: (argv) ->
+    packageNames = argv._ ? []
+    packageNames = packageNames.map (packageName) -> packageName.trim()
+    _.compact(_.uniq(packageNames))

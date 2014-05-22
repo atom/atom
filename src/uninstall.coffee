@@ -1,13 +1,13 @@
 path = require 'path'
 
-_ = require 'underscore-plus'
 config = require './config'
 optimist = require 'optimist'
 
+Command = require './command'
 fs = require './fs'
 
 module.exports =
-class Uninstall
+class Uninstall extends Command
   @commandNames: ['uninstall']
 
   parseOptions: (argv) ->
@@ -22,12 +22,10 @@ class Uninstall
     options.alias('d', 'dev').boolean('dev').describe('dev', 'Uninstall from ~/.atom/dev/packages')
     options.boolean('hard').describe('hard', 'Uninstall from ~/.atom/packages and ~/.atom/dev/packages')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    packageNames = options.argv._
+    packageNames = @packageNamesFromArgv(options.argv)
 
     if packageNames.length is 0
       callback("Must specify a package name to uninstall")
