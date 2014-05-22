@@ -479,6 +479,10 @@ EditorComponent = React.createClass
     @setState(visible: true)
 
   runScrollBenchmark: ->
+    unless process.env.NODE_ENV is 'production'
+      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
+      ReactPerf.start()
+
     node = @getDOMNode()
 
     scroll = (delta, done) ->
@@ -500,3 +504,11 @@ EditorComponent = React.createClass
             scroll 800, ->
               scroll 1600, ->
                 console.timelineEnd('scroll')
+                unless process.env.NODE_ENV is 'production'
+                  ReactPerf.stop()
+                  console.log "Inclusive"
+                  ReactPerf.printInclusive()
+                  console.log "Exclusive"
+                  ReactPerf.printExclusive()
+                  console.log "Wasted"
+                  ReactPerf.printWasted()
