@@ -39,7 +39,7 @@ describe "EditorComponent", ->
       component.setLineHeight(1.3)
       component.setFontSize(20)
 
-      lineHeightInPixels = editor.getLineHeight()
+      lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
       node = component.getDOMNode()
       verticalScrollbarNode = node.querySelector('.vertical-scrollbar')
@@ -769,19 +769,19 @@ describe "EditorComponent", ->
     describe "when fontSize, fontFamily, or lineHeight changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeight and defaultCharWidth until the editor becomes visible again", ->
         wrapperView.hide()
-        initialLineHeight = editor.getLineHeight()
+        initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
         component.setLineHeight(2)
-        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
         component.setFontSize(22)
-        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
         component.setFontFamily('monospace')
-        expect(editor.getLineHeight()).toBe initialLineHeight
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
-        expect(editor.getLineHeight()).not.toBe initialLineHeight
+        expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth

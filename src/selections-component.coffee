@@ -10,11 +10,11 @@ SelectionsComponent = React.createClass
     div className: 'selections', @renderSelections()
 
   renderSelections: ->
-    {editor, lineHeight} = @props
+    {editor, lineHeightInPixels} = @props
 
     selectionComponents = []
     for selectionId, screenRange of @selectionRanges
-      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeight}))
+      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
     selectionComponents
 
   componentWillMount: ->

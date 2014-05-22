@@ -42,7 +42,7 @@ EditorComponent = React.createClass
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
-      lineHeightInPixels = editor.getLineHeight()
+      lineHeightInPixels = editor.getLineHeightInPixels()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -54,13 +54,13 @@ EditorComponent = React.createClass
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
+        scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
+        lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
@@ -158,7 +158,7 @@ EditorComponent = React.createClass
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
-    @subscribe editor.$lineHeight.changes, @requestUpdate
+    @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
   listenForDOMEvents: ->
     node = @getDOMNode()
