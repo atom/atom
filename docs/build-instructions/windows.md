@@ -16,7 +16,7 @@
   cd C:\
   git clone https://github.com/atom/atom/
   cd atom
-  script\build
+  script/build
   ```
 
 ## Why do I have to use GitHub for Windows?
