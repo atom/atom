@@ -262,6 +262,7 @@ EditorComponent = React.createClass
         'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
         'core:page-up': => editor.pageUp()
         'core:page-down': => editor.pageDown()
+        'benchmark:scroll': @runScrollBenchmark
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
@@ -476,3 +477,26 @@ EditorComponent = React.createClass
 
   show: ->
     @setState(visible: true)
+
+  runScrollBenchmark: ->
+    node = @getDOMNode()
+
+    scroll = (delta, done) ->
+      dispatchMouseWheelEvent = ->
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
+
+      stopScrolling = ->
+        clearInterval(interval)
+        done?()
+
+      interval = setInterval(dispatchMouseWheelEvent, 10)
+      setTimeout(stopScrolling, 500)
+
+    console.timeline('scroll')
+    scroll 50, ->
+      scroll 100, ->
+        scroll 200, ->
+          scroll 400, ->
+            scroll 800, ->
+              scroll 1600, ->
+                console.timelineEnd('scroll')
