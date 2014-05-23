@@ -141,15 +141,6 @@ LineNumberComponent = React.createClass
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
-    if softWrapped
-      lineNumber = "•"
-    else
-      lineNumber = (bufferRow + 1).toString()
-
-    padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
-
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'screenRow', 'lineHeightInPixels', 'maxLineNumberDigits')
 
