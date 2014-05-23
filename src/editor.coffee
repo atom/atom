@@ -196,11 +196,11 @@ class Editor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
+      @reloadGrammar()
       unless atom.project.getPath()?
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
       @emit "path-changed"
-      @reloadGrammar()
 
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
