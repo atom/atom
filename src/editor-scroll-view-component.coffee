@@ -169,6 +169,7 @@ EditorScrollViewComponent = React.createClass
     return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
 
     {top, left, height, width} = editor.getCursor().getPixelRect()
+    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
     top -= editor.getScrollTop()
     left -= editor.getScrollLeft()
     top = Math.max(0, Math.min(editor.getHeight() - height, top))
