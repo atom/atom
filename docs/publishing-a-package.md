@@ -75,13 +75,18 @@ credentials are stored securely in your [keychain][keychain] once you login.
 :tada: Your package is now published and available on atom.io. Head on over to
 `http://atom.io/packages/my-package` to see your package's page.
 
+The `major` option to the publish command tells apm to increment the first
+digit of the version before publishing so the published version will be `1.0.0`
+and the Git tag created will be `v1.0.0`.  Though since this might be your
+first release, it's a good idea to keep to the `minor` release.
+
 The `minor` option to the publish command tells apm to increment the second
 digit of the version before publishing so the published version will be `0.1.0`
 and the Git tag created will be `v0.1.0`.
 
-In the future you can run `apm publish major` to publish the `1.0.0` version but
-since this was the first version being published it is a good idea to start
-with a minor release.
+The `patch` option to the publish command tells apm to increment the third
+digit of the version before publishing so the published version will be `0.0.1`
+and the Git tag created will be `v0.0.1`.
 
 ### Further Reading
 
