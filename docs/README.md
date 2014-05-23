@@ -1,4 +1,3 @@
-<style>del{color: #A33;}</style>
 # Welcome to the Atom API Documentation  
 *Links that are ~~Struck Through~~ are broken*  
 
@@ -23,7 +22,7 @@ You can also require many of these classes in your package via:
 ```
 
 The classes available from `require 'atom'` are:
-  * <span style="color: #A33;">~~[BufferedProcess][BufferedProcess]~~</span>
+  * ~~[BufferedProcess][BufferedProcess]~~
   * ~~[BufferedNodeProcess][BufferedNodeProcess]~~
   * ~~[EditorView][EditorView]~~
   * ~~[Git][Git]~~
