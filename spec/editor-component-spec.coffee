@@ -375,25 +375,6 @@ describe "EditorComponent", ->
       advanceClock(component.props.cursorBlinkPeriod / 2)
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
-    it "renders the hidden input field at the position of the last cursor if it is on screen", ->
-      inputNode = node.querySelector('.hidden-input')
-      node.style.height = 5 * lineHeightInPixels + 'px'
-      node.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
-
-      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      editor.setScrollTop(3 * lineHeightInPixels)
-      editor.setScrollLeft(3 * charWidth)
-      expect(inputNode.offsetTop).toBe 0
-      expect(inputNode.offsetLeft).toBe 0
-
-      editor.setCursorBufferPosition([5, 5])
-      cursorRect = editor.getCursor().getPixelRect()
-      cursorTop = cursorRect.top
-      cursorLeft = cursorRect.left
-      expect(inputNode.offsetTop).toBe cursorTop - editor.getScrollTop()
-      expect(inputNode.offsetLeft).toBe cursorLeft - editor.getScrollLeft()
-
     it "does not render cursors that are associated with non-empty selections", ->
       editor.setSelectedScreenRange([[0, 4], [4, 6]])
       editor.addCursorAtScreenPosition([6, 8])
@@ -467,6 +448,48 @@ describe "EditorComponent", ->
       expect(editor.getSelection(1).isEmpty()).toBe true
 
       expect(node.querySelectorAll('.selection').length).toBe 1
+
+  describe "hidden input field", ->
+    it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
+      editor.setVerticalScrollMargin(0)
+      editor.setHorizontalScrollMargin(0)
+
+      inputNode = node.querySelector('.hidden-input')
+      node.style.height = 5 * lineHeightInPixels + 'px'
+      node.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+      editor.setScrollTop(3 * lineHeightInPixels)
+      editor.setScrollLeft(3 * charWidth)
+
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
+
+      # In bounds, not focused
+      editor.setCursorBufferPosition([5, 4])
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
+
+      # In bounds and focused
+      inputNode.focus()
+      expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - editor.getScrollTop()
+      expect(inputNode.offsetLeft).toBe (4 * charWidth) - editor.getScrollLeft()
+
+      # In bounds, not focused
+      inputNode.blur()
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
+
+      # Out of bounds, not focused
+      editor.setCursorBufferPosition([1, 2])
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
+
+      # Out of bounds, focused
+      inputNode.focus()
+      expect(inputNode.offsetTop).toBe 0
+      expect(inputNode.offsetLeft).toBe 0
 
   describe "mouse interactions", ->
     linesNode = null

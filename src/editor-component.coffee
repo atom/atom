@@ -65,7 +65,7 @@ EditorComponent = React.createClass
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles, visible, scrollViewHeight
+        invisibles, visible, scrollViewHeight, focused
       }
 
       ScrollbarComponent
