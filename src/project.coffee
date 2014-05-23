@@ -74,7 +74,7 @@ class Project extends Model
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      if @repo = Git.open(projectPath, project: this)
+      if @repo = Git.open(directory, project: this)
         @repo.refreshIndex()
         @repo.refreshStatus()
     else
