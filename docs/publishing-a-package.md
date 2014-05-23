@@ -87,6 +87,8 @@ with a minor release.
 
 * Check out [semantic versioning][semver] to learn more about versioning your
   package releases.
+* Consult the [Atom.io package API docs][apm-rest-api] to learn more about how
+  `apm` works.
 
 [atomio]: https://atom.io
 [github]: https://github.com
@@ -95,3 +97,4 @@ with a minor release.
 [repo-guide]: http://guides.github.com/overviews/desktop
 [semver]: http://semver.org
 [your-first-package]: your-first-package.html
+[apm-rest-api]: apm-rest-api.md
