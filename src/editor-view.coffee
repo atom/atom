@@ -547,7 +547,6 @@ class EditorView extends View
       @showBufferConflictAlert(@editor)
 
     @subscribe @editor, "path-changed", =>
-      @editor.reloadGrammar()
       @trigger 'editor:path-changed'
 
     @subscribe @editor, "grammar-changed", =>

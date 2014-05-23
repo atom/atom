@@ -200,6 +200,8 @@ class Editor extends Model
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
       @emit "path-changed"
+      @reloadGrammar()
+
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
