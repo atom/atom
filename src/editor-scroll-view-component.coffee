@@ -42,7 +42,9 @@ EditorScrollViewComponent = React.createClass
       }
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
+    node = @getDOMNode()
+
+    node.addEventListener 'overflowchanged', @onOverflowChanged
     window.addEventListener('resize', @onWindowResize)
 
     node.addEventListener 'scroll', ->
@@ -163,15 +165,14 @@ EditorScrollViewComponent = React.createClass
     {top, left}
 
   getHiddenInputPosition: ->
-    {editor} = @props
-    return {top: 0, left: 0} unless @isMounted() and editor.getCursor()?
+    {editor, focused} = @props
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
 
     {top, left, height, width} = editor.getCursor().getPixelRect()
-    top = top - editor.getScrollTop()
+    top -= editor.getScrollTop()
+    left -= editor.getScrollLeft()
     top = Math.max(0, Math.min(editor.getHeight() - height, top))
-    left = left - editor.getScrollLeft()
     left = Math.max(0, Math.min(editor.getWidth() - width, left))
-
     {top, left}
 
   # Measure explicitly-styled height and width and relay them to the model. If
