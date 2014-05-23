@@ -306,13 +306,7 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions}={}) ->
-    if pathToOpen
-      [basename, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
-      pathToOpen = path.join(path.dirname(pathToOpen), basename) if initialLine
-
-      # Convert line numbers to a base of 0
-      initialLine -= 1 if initialLine
-      initialColumn -= 1 if initialColumn
+    {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
 
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -414,6 +408,20 @@ class AtomApplication
 
     isSpec = true
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
+
+  locationForPathToOpen: (pathToOpen) ->
+    return {pathToOpen} unless pathToOpen
+    return {pathToOpen} if fs.existsSync(pathToOpen)
+
+    [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
+    return {pathToOpen} unless initialLine
+    return {pathToOpen} unless parseInt(initialLine) > 0
+
+    # Convert line numbers to a base of 0
+    initialLine -= 1 if initialLine
+    initialColumn -= 1 if initialColumn
+    pathToOpen = path.join(path.dirname(pathToOpen), fileToOpen)
+    {pathToOpen, initialLine, initialColumn}
 
   # Opens a native dialog to prompt the user for a path.
   #
