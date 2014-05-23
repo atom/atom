@@ -4,14 +4,14 @@
 
   * Windows 7 or later
   * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4) with [SP1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
-  * [node.js](http://nodejs.org/download/) v0.10.x
+  * [node.js](http://nodejs.org/download/) v0.10.x (32-bit version)
   * [Python](http://www.python.org/download/) v2.7.x
   * [GitHub for Windows](http://windows.github.com/)
 
 ## Instructions
 
   ```bat
-  # Use the `Git Shell` app which was installed by GitHub for Windows. Also Make
+  # Run the `Git Shell` app as administrator which was installed by GitHub for Windows. Also Make
   # sure you have logged into the GitHub for Windows GUI App.
   cd C:\
   git clone https://github.com/atom/atom/
