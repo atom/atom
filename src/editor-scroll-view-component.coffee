@@ -45,6 +45,11 @@ EditorScrollViewComponent = React.createClass
     @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
     window.addEventListener('resize', @onWindowResize)
 
+    node.addEventListener 'scroll', ->
+      console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
+      node.scrollTop = 0
+      node.scrollLeft = 0
+
     @measureHeightAndWidth()
 
   componentDidUnmount: ->
