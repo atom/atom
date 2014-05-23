@@ -1,4 +1,5 @@
-# Welcome to the Atom API Documentation
+# Welcome to the Atom API Documentation  
+*Links that are ~~Struck Through~~ are broken*  
 
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
@@ -6,7 +7,7 @@
 
 ### Where do I start?
 
-Check out [EditorView][EditorView] and [Editor][Editor] classes for a good
+Check out ~~[EditorView][EditorView]~~ and ~~[Editor][Editor]~~ classes for a good
 overview of the main editor API.
 
 ### How do I access these classes?
@@ -21,17 +22,17 @@ You can also require many of these classes in your package via:
 ```
 
 The classes available from `require 'atom'` are:
-  * [BufferedProcess][BufferedProcess]
-  * [BufferedNodeProcess][BufferedNodeProcess]
-  * [EditorView][EditorView]
-  * [Git][Git]
-  * [Point][Point]
-  * [Range][Range]
-  * [ScrollView][ScrollView]
-  * [SelectListView][SelectListView]
-  * [View][View]
-  * [WorkspaceView][WorkspaceView]
-  * [Workspace][Workspace]
+  * ~~[BufferedProcess][BufferedProcess]~~
+  * ~~[BufferedNodeProcess][BufferedNodeProcess]~~
+  * ~~[EditorView][EditorView]~~
+  * ~~[Git][Git]~~
+  * ~~[Point][Point]~~
+  * ~~[Range][Range]~~
+  * ~~[ScrollView][ScrollView]~~
+  * ~~[SelectListView][SelectListView]~~
+  * ~~[View][View]~~
+  * ~~[WorkspaceView][WorkspaceView]~~
+  * ~~[Workspace][Workspace]~~
 
 ### How do I create a package?
 
