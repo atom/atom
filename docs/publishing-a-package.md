@@ -79,6 +79,10 @@ The `minor` option to the publish command tells apm to increment the second
 digit of the version before publishing so the published version will be `0.1.0`
 and the Git tag created will be `v0.1.0`.
 
+The `patch` option to the publish command tells apm to increment the third
+digit of the version before publishing so the published version will be `0.0.1`
+and the Git tag created will be `v0.0.1`.
+
 In the future you can run `apm publish major` to publish the `1.0.0` version but
 since this was the first version being published it is a good idea to start
 with a minor release.
