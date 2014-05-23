@@ -622,6 +622,38 @@ describe "Editor", ->
         editor.moveCursorToBeginningOfNextWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 9]
 
+    describe ".moveCursorToBeginningOfNextParagraph()", ->
+      it "moves the cursor before the first line of the next paragraph", ->
+        editor.setCursorBufferPosition [0,6]
+        cursor = editor.getCursor()
+
+        editor.moveCursorToBeginningOfNextParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual  { row : 10, column : 0 }
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0,0]
+        cursor = editor.getCursor()
+        editor.moveCursorToBeginningOfNextParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 0]
+
+    describe ".moveCursorToBeginningOfPreviousParagraph()", ->
+      it "moves the cursor before the first line of the pevious paragraph", ->
+        editor.setCursorBufferPosition [10,0]
+        cursor = editor.getCursor()
+
+        editor.moveCursorToBeginningOfPreviousParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual  { row : 0, column : 0 }
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0,0]
+        cursor = editor.getCursor()
+        editor.moveCursorToBeginningOfPreviousParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 0]
+
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
         buffer.setText """

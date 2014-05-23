@@ -1488,6 +1488,14 @@ class Editor extends Model
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
+  # Public: Move every cursor to the beginning of the next paragraph.
+  moveCursorToBeginningOfNextParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
+
+  # Public: Move every cursor to the beginning of the previous paragraph.
+  moveCursorToBeginningOfPreviousParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
+
   scrollToCursorPosition: ->
     @getCursor().autoscroll()
 

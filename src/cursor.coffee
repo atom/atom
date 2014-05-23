@@ -457,6 +457,43 @@ class Cursor extends Model
   getCurrentLineBufferRange: (options) ->
     @editor.bufferRangeForBufferRow(@getBufferRow(), options)
 
+  # Public: Moves the cursor to the beginning of the next paragraph
+  moveToBeginningOfNextParagraph: ->
+    if position = @getBeginningOfNextParagraphBufferPosition()
+      @setBufferPosition(position)
+
+  # Public: Moves the cursor to the beginning of the previous paragraph
+  moveToBeginningOfPreviousParagraph: ->
+    if position = @getBeginningOfPreviousParagraphBufferPosition()
+      @setBufferPosition(position)
+
+  getBeginningOfNextParagraphBufferPosition: (editor) ->
+    start = @getBufferPosition()
+    eof = @editor.getEofBufferPosition()
+    scanRange = [start, eof]
+
+    {row, column} = eof
+    position = new Point(row, column - 1)
+
+    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) =>
+      if !range.start.isEqual(start)
+        position = range.start
+        stop()
+    @editor.screenPositionForBufferPosition(position)
+
+  getBeginningOfPreviousParagraphBufferPosition: (editor) ->
+    start = @editor.getCursorBufferPosition()
+
+    {row, column} = start
+    scanRange = [[row-1, column], [0,0]]
+    position = new Point(0, 0)
+    zero = new Point(0,0)
+    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) =>
+      if !range.start.isEqual(zero)
+        position = range.start
+        stop()
+    @editor.screenPositionForBufferPosition(position)
+
   # Public: Retrieves the range for the current paragraph.
   #
   # A paragraph is defined as a block of text surrounded by empty lines.
