@@ -2,10 +2,21 @@
 
 ## Requirements
 
-  * Windows 7 or later
-  * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4) with [SP1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
+### On Windows 7
+  * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
+  * [Visual Studio 2010 Service Pack 1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
   * [node.js](http://nodejs.org/download/) v0.10.x
+    * For 64-bit builds of node and native modules you **must** have the
+    [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279).
+    You may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
+
   * [Python](http://www.python.org/download/) v2.7.x
+  * [GitHub for Windows](http://windows.github.com/)
+
+### On Windows 8
+  * [Visual Studio Express 2013 for Windows Desktop](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2)
+  * [node.js](http://nodejs.org/download/) v0.10.x
+  * [Python](http://www.python.org/download/) v2.7.x (required by [node-gyp](https://github.com/TooTallNate/node-gyp))
   * [GitHub for Windows](http://windows.github.com/)
 
 ## Instructions
@@ -16,7 +27,7 @@
   cd C:\
   git clone https://github.com/atom/atom/
   cd atom
-  script/build
+  script/build # Creates application in the `Program Files` directory
   ```
 
 ## Why do I have to use GitHub for Windows?
