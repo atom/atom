@@ -845,3 +845,12 @@ describe "EditorComponent", ->
         wrapperView.show()
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
+
+    describe "when lines are changed while the editor is hidden", ->
+      it "does not measure new characters until the editor is shown again", ->
+        editor.setText('')
+        wrapperView.hide()
+        editor.setText('var z = 1')
+        editor.setCursorBufferPosition([0, Infinity])
+        wrapperView.show()
+        expect(node.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
