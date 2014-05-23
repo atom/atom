@@ -44,3 +44,7 @@ fix this, you probably need to fiddle with your system PATH.
 
   * If you just installed node you need to restart your computer before node is
   available on your Path.
+
+* `npm ERR! Error: Command failed: fatal: Unable to find remote helper for 'https'`
+
+  * In this case use the windows `cmd.exe` and execute `script\build` (pay attention to the baskslash!).
