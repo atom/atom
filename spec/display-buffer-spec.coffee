@@ -948,7 +948,7 @@ describe "DisplayBuffer", ->
       it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->
         marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
 
-        displayBuffer.setLineHeight(20)
+        displayBuffer.setLineHeightInPixels(20)
         displayBuffer.setDefaultCharWidth(10)
         displayBuffer.setScopedCharWidths(["source.js", "keyword.control.js"], r: 11, e: 11, t: 11, u: 11, n: 11)
 
@@ -959,7 +959,7 @@ describe "DisplayBuffer", ->
   describe "::setScrollTop", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true
-      displayBuffer.setLineHeight(10)
+      displayBuffer.setLineHeightInPixels(10)
 
     it "disallows negative values", ->
       displayBuffer.setHeight(displayBuffer.getScrollHeight() + 100)
@@ -979,7 +979,7 @@ describe "DisplayBuffer", ->
   describe "::setScrollLeft", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true
-      displayBuffer.setLineHeight(10)
+      displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
 
     it "disallows negative values", ->
@@ -1000,7 +1000,7 @@ describe "DisplayBuffer", ->
   describe "::scrollToScreenPosition(position)", ->
     it "sets the scroll top and scroll left so the given screen position is in view", ->
       displayBuffer.manageScrollPosition = true
-      displayBuffer.setLineHeight(10)
+      displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setHorizontalScrollbarHeight(0)
 

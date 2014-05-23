@@ -149,7 +149,7 @@ class Editor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
+  @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
@@ -1859,8 +1859,8 @@ class Editor extends Model
   getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
   setHorizontalScrollMargin: (horizontalScrollMargin) -> @displayBuffer.setHorizontalScrollMargin(horizontalScrollMargin)
 
-  getLineHeight: -> @displayBuffer.getLineHeight()
-  setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
+  getLineHeightInPixels: -> @displayBuffer.getLineHeightInPixels()
+  setLineHeightInPixels: (lineHeightInPixels) -> @displayBuffer.setLineHeightInPixels(lineHeightInPixels)
 
   getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
   setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
