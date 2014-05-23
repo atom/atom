@@ -159,6 +159,8 @@ class EditorView extends View
       'editor:delete-to-end-of-word': => @editor.deleteToEndOfWord()
       'editor:delete-line': => @editor.deleteLine()
       'editor:cut-to-end-of-line': => @editor.cutToEndOfLine()
+      'editor:move-to-beginning-of-next-paragraph': => @editor.moveCursorToBeginningOfNextParagraph()
+      'editor:move-to-beginning-of-previous-paragraph': => @editor.moveCursorToBeginningOfPreviousParagraph()
       'editor:move-to-beginning-of-screen-line': => @editor.moveCursorToBeginningOfScreenLine()
       'editor:move-to-beginning-of-line': => @editor.moveCursorToBeginningOfLine()
       'editor:move-to-end-of-screen-line': => @editor.moveCursorToEndOfScreenLine()
