@@ -1,5 +1,5 @@
-React = require 'react'
-{div, span} = require 'reactionary'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
@@ -13,16 +13,18 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
+  measureWhenShown: false
+
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeight} = @props
+      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
       style =
-        height: scrollHeight
+        height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, lineHeight}) if @isMounted()
+      SelectionsComponent({editor, lineHeightInPixels}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -31,11 +33,15 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
 
   componentDidMount: ->
-    @measureLineHeightAndCharWidth()
+    @measureLineHeightInPixelsAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.selectionChanged
-    return true unless isEqualForProperties(newProps, @props,  'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles')
+    return true unless isEqualForProperties(newProps, @props,
+      'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
+      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
+      'visible', 'scrollViewHeight'
+    )
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges
@@ -44,8 +50,8 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    @measureLineHeightAndCharWidth() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
-    @clearScreenRowCaches() unless prevProps.lineHeight is @props.lineHeight
+    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevProps)
+    @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
@@ -77,7 +83,6 @@ LinesComponent = React.createClass
         node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
-    {lineHeight} = @props
     newLines = null
     newLinesHTML = null
 
@@ -108,9 +113,10 @@ LinesComponent = React.createClass
     @lineNodesByLineId.hasOwnProperty(lineId)
 
   buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeight} = @props
+    {editor, mini, showIndentGuide, lineHeightInPixels} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
-    top = screenRow * lineHeight
+
+    top = screenRow * lineHeightInPixels
     lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
@@ -186,9 +192,9 @@ LinesComponent = React.createClass
 
   updateLineNode: (line, screenRow) ->
     unless @screenRowsByLineId[line.id] is screenRow
-      {lineHeight} = @props
+      {lineHeightInPixels} = @props
       lineNode = @lineNodesByLineId[line.id]
-      lineNode.style.top = screenRow * lineHeight + 'px'
+      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
@@ -196,15 +202,26 @@ LinesComponent = React.createClass
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measureLineHeightAndCharWidth: ->
+  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
+    {visible} = @props
+
+    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
+      if visible
+        @measureLineHeightInPixelsAndCharWidth()
+      else
+        @measureWhenShown = true
+    @measureLineHeightInPixelsAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
+
+  measureLineHeightInPixelsAndCharWidth: ->
+    @measureWhenShown = false
     node = @getDOMNode()
     node.appendChild(DummyLineNode)
-    lineHeight = DummyLineNode.getBoundingClientRect().height
+    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
     charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
     node.removeChild(DummyLineNode)
 
     {editor} = @props
-    editor.setLineHeight(lineHeight)
+    editor.setLineHeightInPixels(lineHeightInPixels)
     editor.setDefaultCharWidth(charWidth)
 
   measureCharactersInNewLines: ->

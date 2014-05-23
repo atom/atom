@@ -24,7 +24,7 @@ WindowEventHandler = require './window-event-handler'
 #  * `atom.config`        - A {Config} instance
 #  * `atom.contextMenu`   - A {ContextMenuManager} instance
 #  * `atom.deserializers` - A {DeserializerManager} instance
-#  * `atom.keymaps`        - A {Keymap} instance
+#  * `atom.keymaps`        - A {KeymapManager} instance
 #  * `atom.menu`          - A {MenuManager} instance
 #  * `atom.packages`      - A {PackageManager} instance
 #  * `atom.project`       - A {Project} instance
@@ -38,8 +38,8 @@ class Atom extends Model
 
   # Public: Load or create the Atom environment in the given mode.
   #
-  # - mode: Pass 'editor' or 'spec' depending on the kind of environment you
-  #   want to build.
+  # mode - Pass 'editor' or 'spec' depending on the kind of environment you
+  #        want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
@@ -212,11 +212,11 @@ class Atom extends Model
   # in the dimensions parameter. If x or y are omitted the window will be
   # centered. If height or width are omitted only the position will be changed.
   #
-  # * dimensions:
-  #    + x: The new x coordinate.
-  #    + y: The new y coordinate.
-  #    + width: The new width.
-  #    + height: The new height.
+  # dimensions - An {Object} with the following keys:
+  #   :x - The new x coordinate.
+  #   :y - The new y coordinate.
+  #   :width - The new width.
+  #   :height - The new height.
   setWindowDimensions: ({x, y, width, height}) ->
     if width? and height?
       @setSize(width, height)

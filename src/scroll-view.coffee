@@ -6,6 +6,8 @@
 # the following events won't be handled by the ScrollView.
 #
 # ## Events
+#   * `core:move-up`
+#   * `core:move-down`
 #   * `core:page-up`
 #   * `core:page-down`
 #   * `core:move-to-top`
@@ -19,6 +21,8 @@
 module.exports =
 class ScrollView extends View
   initialize: ->
+    @on 'core:move-up', => @scrollUp()
+    @on 'core:move-down', => @scrollDown()
     @on 'core:page-up', => @pageUp()
     @on 'core:page-down', => @pageDown()
     @on 'core:move-to-top', => @scrollToTop()

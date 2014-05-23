@@ -728,7 +728,7 @@ describe "Editor", ->
         editor.manageScrollPosition = true
         editor.setVerticalScrollMargin(2)
         editor.setHorizontalScrollMargin(2)
-        editor.setLineHeight(10)
+        editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
         editor.setHorizontalScrollbarHeight(0)
         editor.setHeight(5.5 * 10)
@@ -1167,7 +1167,7 @@ describe "Editor", ->
       describe "when the 'autoscroll' option is true", ->
         it "autoscrolls to the selection", ->
           editor.manageScrollPosition = true
-          editor.setLineHeight(10)
+          editor.setLineHeightInPixels(10)
           editor.setDefaultCharWidth(10)
           editor.setHeight(50)
           editor.setWidth(50)
@@ -3155,7 +3155,7 @@ describe "Editor", ->
   describe ".scrollToCursorPosition()", ->
     it "scrolls the last cursor into view", ->
       editor.setCursorScreenPosition([8, 8])
-      editor.setLineHeight(10)
+      editor.setLineHeightInPixels(10)
       editor.setDefaultCharWidth(10)
       editor.setHeight(50)
       editor.setWidth(50)
@@ -3171,7 +3171,7 @@ describe "Editor", ->
     it "scrolls one screen height up or down", ->
       editor.manageScrollPosition = true
 
-      editor.setLineHeight(10)
+      editor.setLineHeightInPixels(10)
       editor.setHeight(50)
       expect(editor.getScrollHeight()).toBe 130
 

@@ -149,7 +149,7 @@ class PaneView extends View
     hasFocus = @hasFocus()
     item.on? 'title-changed', @activeItemTitleChanged
     view = @viewForItem(item)
-    @itemViews.children().not(view).hide()
+    otherView.hide() for otherView in @itemViews.children().not(view).views()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
     view.focus() if hasFocus

@@ -1,5 +1,5 @@
-React = require 'react'
-{div, span} = require 'reactionary'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
 {debounce, defaults} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
@@ -31,7 +31,7 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -42,7 +42,8 @@ EditorComponent = React.createClass
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
-      lineHeightInPixels = editor.getLineHeight()
+      lineHeightInPixels = editor.getLineHeightInPixels()
+      scrollViewHeight = editor.getHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -54,17 +55,17 @@ EditorComponent = React.createClass
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, scrollHeight, lineHeight: lineHeightInPixels, fontSize, fontFamily,
+        scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
-        lineHeight: lineHeightInPixels, renderedRowRange, @pendingChanges,
+        lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
         cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
-        invisibles
+        invisibles, visible, scrollViewHeight
       }
 
       ScrollbarComponent
@@ -106,7 +107,8 @@ EditorComponent = React.createClass
     renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
     [renderedStartRow, renderedEndRow]
 
-  getInitialState: -> {}
+  getInitialState: ->
+    visible: true
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -157,7 +159,7 @@ EditorComponent = React.createClass
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
-    @subscribe editor.$lineHeight.changes, @requestUpdate
+    @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
   listenForDOMEvents: ->
     node = @getDOMNode()
@@ -262,6 +264,7 @@ EditorComponent = React.createClass
         'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
         'core:page-up': => editor.pageUp()
         'core:page-down': => editor.pageDown()
+        'benchmark:scroll': @runScrollBenchmark
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
@@ -272,6 +275,7 @@ EditorComponent = React.createClass
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
+    @subscribe atom.config.observe 'editor.lineHeight', @setLineHeight
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
@@ -469,3 +473,44 @@ EditorComponent = React.createClass
   lineNodeForScreenRow: (screenRow) -> @refs.scrollView.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+
+  hide: ->
+    @setState(visible: false)
+
+  show: ->
+    @setState(visible: true)
+
+  runScrollBenchmark: ->
+    unless process.env.NODE_ENV is 'production'
+      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
+      ReactPerf.start()
+
+    node = @getDOMNode()
+
+    scroll = (delta, done) ->
+      dispatchMouseWheelEvent = ->
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
+
+      stopScrolling = ->
+        clearInterval(interval)
+        done?()
+
+      interval = setInterval(dispatchMouseWheelEvent, 10)
+      setTimeout(stopScrolling, 500)
+
+    console.timeline('scroll')
+    scroll 50, ->
+      scroll 100, ->
+        scroll 200, ->
+          scroll 400, ->
+            scroll 800, ->
+              scroll 1600, ->
+                console.timelineEnd('scroll')
+                unless process.env.NODE_ENV is 'production'
+                  ReactPerf.stop()
+                  console.log "Inclusive"
+                  ReactPerf.printInclusive()
+                  console.log "Exclusive"
+                  ReactPerf.printExclusive()
+                  console.log "Wasted"
+                  ReactPerf.printWasted()

@@ -1,5 +1,5 @@
-React = require 'react'
-{div} = require 'reactionary'
+React = require 'react-atom-fork'
+{div} = require 'reactionary-atom-fork'
 SelectionComponent = require './selection-component'
 
 module.exports =
@@ -10,11 +10,11 @@ SelectionsComponent = React.createClass
     div className: 'selections', @renderSelections()
 
   renderSelections: ->
-    {editor, lineHeight} = @props
+    {editor, lineHeightInPixels} = @props
 
     selectionComponents = []
     for selectionId, screenRange of @selectionRanges
-      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeight}))
+      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
     selectionComponents
 
   componentWillMount: ->
