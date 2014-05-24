@@ -622,6 +622,38 @@ describe "Editor", ->
         editor.moveCursorToBeginningOfNextWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 9]
 
+    describe ".moveCursorToBeginningOfNextParagraph()", ->
+      it "moves the cursor before the first line of the next paragraph", ->
+        editor.setCursorBufferPosition [0,6]
+        cursor = editor.getCursor()
+
+        editor.moveCursorToBeginningOfNextParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual  { row : 10, column : 0 }
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0,0]
+        cursor = editor.getCursor()
+        editor.moveCursorToBeginningOfNextParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 0]
+
+    describe ".moveCursorToBeginningOfPreviousParagraph()", ->
+      it "moves the cursor before the first line of the pevious paragraph", ->
+        editor.setCursorBufferPosition [10,0]
+        cursor = editor.getCursor()
+
+        editor.moveCursorToBeginningOfPreviousParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual  { row : 0, column : 0 }
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0,0]
+        cursor = editor.getCursor()
+        editor.moveCursorToBeginningOfPreviousParagraph()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 0]
+
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
         buffer.setText """
@@ -696,7 +728,7 @@ describe "Editor", ->
         editor.manageScrollPosition = true
         editor.setVerticalScrollMargin(2)
         editor.setHorizontalScrollMargin(2)
-        editor.setLineHeight(10)
+        editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
         editor.setHorizontalScrollbarHeight(0)
         editor.setHeight(5.5 * 10)
@@ -1135,7 +1167,7 @@ describe "Editor", ->
       describe "when the 'autoscroll' option is true", ->
         it "autoscrolls to the selection", ->
           editor.manageScrollPosition = true
-          editor.setLineHeight(10)
+          editor.setLineHeightInPixels(10)
           editor.setDefaultCharWidth(10)
           editor.setHeight(50)
           editor.setWidth(50)
@@ -1731,26 +1763,26 @@ describe "Editor", ->
           editor.backspace()
           expect(editor.lineForBufferRow(0)).toBe 'var  =  () {'
 
-    describe ".backspaceToBeginningOfWord()", ->
+    describe ".deleteToBeginningOfWord()", ->
       describe "when no text is selected", ->
         it "deletes all text between the cursor and the beginning of the word", ->
           editor.setCursorBufferPosition([1, 24])
           editor.addCursorAtBufferPosition([3, 5])
           [cursor1, cursor2] = editor.getCursors()
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
           expect(buffer.lineForRow(3)).toBe '    ar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 22]
           expect(cursor2.getBufferPosition()).toEqual [3, 4]
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = functionems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return itemsar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
           expect(cursor2.getBufferPosition()).toEqual [2, 39]
 
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = ems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return ar pivot = items.shift(), current, left = [], right = [];'
           expect(cursor1.getBufferPosition()).toEqual [1, 13]
@@ -1758,24 +1790,24 @@ describe "Editor", ->
 
           editor.setText('  var sort')
           editor.setCursorBufferPosition([0, 2])
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(0)).toBe 'var sort'
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
-          editor.backspaceToBeginningOfWord()
+          editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
-    describe ".backspaceToBeginningOfLine()", ->
+    describe ".deleteToBeginningOfLine()", ->
       describe "when no text is selected", ->
         it "deletes all text between the cursor and the beginning of the line", ->
           editor.setCursorBufferPosition([1, 24])
           editor.addCursorAtBufferPosition([2, 5])
           [cursor1, cursor2] = editor.getCursors()
 
-          editor.backspaceToBeginningOfLine()
+          editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
           expect(buffer.lineForRow(2)).toBe 'f (items.length <= 1) return items;'
           expect(cursor1.getBufferPosition()).toEqual [1, 0]
@@ -1784,13 +1816,13 @@ describe "Editor", ->
         describe "when at the beginning of the line", ->
           it "deletes the newline", ->
             editor.setCursorBufferPosition([2])
-            editor.backspaceToBeginningOfLine()
+            editor.deleteToBeginningOfLine()
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when text is selected", ->
         it "still deletes all text to begginning of the line", ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
-          editor.backspaceToBeginningOfLine()
+          editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe 'ems) {'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;'
 
@@ -2063,17 +2095,44 @@ describe "Editor", ->
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
+          editor.setSelectedBufferRanges([[[0,4], [0,13]], [[1,6], [1, 10]], [[2,8], [2, 13]]])
+
           editor.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect(clipboard.readText()).toBe 'quicksort\nsort'
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
+          expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+            'quicksort'
+            'sort'
+            'items'
+          ])
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
           atom.clipboard.write('first')
           editor.pasteText()
-          expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
-          expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
+          expect(editor.lineForBufferRow(0)).toBe "var first = function () {"
+          expect(editor.lineForBufferRow(1)).toBe "  var first = function(items) {"
+
+        describe 'when the clipboard has many selections', ->
+          it "pastes each selection separately into the buffer", ->
+            atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
+            editor.pasteText()
+            expect(editor.lineForBufferRow(0)).toBe "var first = function () {"
+            expect(editor.lineForBufferRow(1)).toBe "  var second = function(items) {"
+
+          describe 'and the selections count does not match', ->
+            it "pastes the whole text into the buffer", ->
+              atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
+              editor.pasteText()
+              expect(editor.lineForBufferRow(0)).toBe "var first"
+              expect(editor.lineForBufferRow(1)).toBe "second"
+              expect(editor.lineForBufferRow(2)).toBe "third = function () {"
+
+              expect(editor.lineForBufferRow(3)).toBe "  var first"
+              expect(editor.lineForBufferRow(4)).toBe "second"
+              expect(editor.lineForBufferRow(5)).toBe "third = function(items) {"
 
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
@@ -3096,7 +3155,7 @@ describe "Editor", ->
   describe ".scrollToCursorPosition()", ->
     it "scrolls the last cursor into view", ->
       editor.setCursorScreenPosition([8, 8])
-      editor.setLineHeight(10)
+      editor.setLineHeightInPixels(10)
       editor.setDefaultCharWidth(10)
       editor.setHeight(50)
       editor.setWidth(50)
@@ -3112,7 +3171,7 @@ describe "Editor", ->
     it "scrolls one screen height up or down", ->
       editor.manageScrollPosition = true
 
-      editor.setLineHeight(10)
+      editor.setLineHeightInPixels(10)
       editor.setHeight(50)
       expect(editor.getScrollHeight()).toBe 130
 

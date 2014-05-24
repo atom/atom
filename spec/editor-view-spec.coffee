@@ -33,10 +33,10 @@ describe "EditorView", ->
         $('#jasmine-content').append(this)
 
     waitsForPromise ->
-      atom.packages.activatePackage('language-text', sync: true)
+      atom.packages.activatePackage('language-text')
 
     waitsForPromise ->
-      atom.packages.activatePackage('language-javascript', sync: true)
+      atom.packages.activatePackage('language-javascript')
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
@@ -1802,6 +1802,13 @@ describe "EditorView", ->
           expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editorView.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
           expect(editorView.renderedLines.find('.line:eq(10) .invisible-character').text()).toBe eol
+
+    describe "when editor.showIndentGuide is set to false", ->
+      it "does not render the indent guide on whitespace only lines (regression)", ->
+        editorView.attachToDom()
+        editor.setText('    ')
+        atom.config.set('editor.showIndentGuide', false)
+        expect(editorView.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->

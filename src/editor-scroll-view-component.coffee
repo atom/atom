@@ -1,5 +1,5 @@
-React = require 'react'
-{div} = require 'reactionary'
+React = require 'react-atom-fork'
+{div} = require 'reactionary-atom-fork'
 {debounce} = require 'underscore-plus'
 
 InputComponent = require './input-component'
@@ -16,20 +16,15 @@ EditorScrollViewComponent = React.createClass
   overflowChangedWhilePaused: false
 
   render: ->
-    {editor, fontSize, fontFamily, lineHeight, showIndentGuide} = @props
-    {scrollHeight, scrollWidth, renderedRowRange, pendingChanges, scrollingVertically} = @props
-    {cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
+    {editor, fontSize, fontFamily, lineHeight, lineHeightInPixels, showIndentGuide, invisibles, visible} = @props
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, scrollViewHeight, scrollingVertically, mouseWheelScreenRow} = @props
+    {selectionChanged, selectionAdded, cursorBlinkPeriod, cursorBlinkResumeDelay, cursorsMoved, onInputFocused, onInputBlurred} = @props
 
     if @isMounted()
       inputStyle = @getHiddenInputPosition()
       inputStyle.WebkitTransform = 'translateZ(0)'
 
-      contentStyle =
-        height: scrollHeight
-        minWidth: scrollWidth
-        WebkitTransform: "translate3d(#{-editor.getScrollLeft()}px, #{-editor.getScrollTop()}px, 0)"
-
-    div className: 'scroll-view',
+    div className: 'scroll-view', onMouseDown: @onMouseDown,
       InputComponent
         ref: 'input'
         className: 'hidden-input'
@@ -38,18 +33,24 @@ EditorScrollViewComponent = React.createClass
         onFocus: onInputFocused
         onBlur: onInputBlurred
 
-      div className: 'scroll-view-content', style: contentStyle, onMouseDown: @onMouseDown,
-        CursorsComponent({editor, cursorsMoved, cursorBlinkPeriod, cursorBlinkResumeDelay})
-        LinesComponent {
-          ref: 'lines', editor, fontSize, fontFamily, lineHeight, showIndentGuide,
-          renderedRowRange, pendingChanges, scrollingVertically
-        }
-        div className: 'underlayer',
-          SelectionsComponent({editor})
+      CursorsComponent({editor, scrollTop, scrollLeft, cursorsMoved, selectionAdded, cursorBlinkPeriod, cursorBlinkResumeDelay})
+      LinesComponent {
+        ref: 'lines', editor, fontSize, fontFamily, lineHeight, lineHeightInPixels,
+        showIndentGuide, renderedRowRange, pendingChanges, scrollTop, scrollLeft, scrollingVertically,
+        selectionChanged, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+        visible, scrollViewHeight
+      }
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'overflowchanged', @onOverflowChanged
+    node = @getDOMNode()
+
+    node.addEventListener 'overflowchanged', @onOverflowChanged
     window.addEventListener('resize', @onWindowResize)
+
+    node.addEventListener 'scroll', ->
+      console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
+      node.scrollTop = 0
+      node.scrollLeft = 0
 
     @measureHeightAndWidth()
 
@@ -164,15 +165,15 @@ EditorScrollViewComponent = React.createClass
     {top, left}
 
   getHiddenInputPosition: ->
-    {editor} = @props
-    return {top: 0, left: 0} unless @isMounted() and editor.getCursor()?
+    {editor, focused} = @props
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
 
     {top, left, height, width} = editor.getCursor().getPixelRect()
-    top = top - editor.getScrollTop()
+    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
+    top -= editor.getScrollTop()
+    left -= editor.getScrollLeft()
     top = Math.max(0, Math.min(editor.getHeight() - height, top))
-    left = left - editor.getScrollLeft()
     left = Math.max(0, Math.min(editor.getWidth() - width, left))
-
     {top, left}
 
   # Measure explicitly-styled height and width and relay them to the model. If
@@ -198,3 +199,5 @@ EditorScrollViewComponent = React.createClass
 
   focus: ->
     @refs.input.focus()
+
+  lineNodeForScreenRow: (screenRow) -> @refs.lines.lineNodeForScreenRow(screenRow)

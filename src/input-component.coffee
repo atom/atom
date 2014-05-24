@@ -1,7 +1,7 @@
 punycode = require 'punycode'
 {last, isEqual} = require 'underscore-plus'
-React = require 'react'
-{input} = require 'reactionary'
+React = require 'react-atom-fork'
+{input} = require 'reactionary-atom-fork'
 
 module.exports =
 InputComponent = React.createClass
@@ -10,12 +10,13 @@ InputComponent = React.createClass
   render: ->
     {className, style, onFocus, onBlur} = @props
 
-    input {className, style, onFocus, onBlur}
+    input {className, style, onFocus, onBlur, 'data-react-skip-selection-restoration': true}
 
   getInitialState: ->
     {lastChar: ''}
 
   componentDidMount: ->
+    @getDOMNode().addEventListener 'paste', @onPaste
     @getDOMNode().addEventListener 'input', @onInput
     @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
 
@@ -31,6 +32,9 @@ InputComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     not isEqual(newProps.style, @props.style)
+
+  onPaste: (e) ->
+    e.preventDefault()
 
   onInput: (e) ->
     e.stopPropagation()

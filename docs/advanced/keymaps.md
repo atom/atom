@@ -10,8 +10,8 @@ keystrokes pass through elements with the class `.editor`:
 
 ```coffee
 '.editor':
-  'cmd-delete': 'editor:backspace-to-beginning-of-line'
-  'alt-backspace': 'editor:backspace-to-beginning-of-word'
+  'cmd-delete': 'editor:delete-to-beginning-of-line'
+  'alt-backspace': 'editor:delete-to-beginning-of-word'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-shift-e': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
@@ -24,7 +24,7 @@ keystrokes pass through elements with the class `.editor`:
 Beneath the first selector are several bindings, mapping specific *keystroke
 patterns* to *commands*. When an element with the `.editor` class is focused and
 `cmd-delete` is pressed, an custom DOM event called
-`editor:backspace-to-beginning-of-line` is emitted on the `.editor` element.
+`editor:delete-to-beginning-of-line` is emitted on the `.editor` element.
 
 The second selector group also targets editors, but only if they don't have the
 `.mini` class. In this example, the commands for code folding don't really make

@@ -1,6 +1,6 @@
-React = require 'react'
-{div, span} = require 'reactionary'
-{debounce} = require 'underscore-plus'
+React = require 'react-atom-fork'
+{div, span} = require 'reactionary-atom-fork'
+{debounce, defaults} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
@@ -20,16 +20,21 @@ EditorComponent = React.createClass
   batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
-  preservedRowRange: null
+  selectionChanged: false
+  selectionAdded: false
   scrollingVertically: false
   gutterWidth: 0
   refreshingScrollbars: false
   measuringScrollbars: true
+  pendingVerticalScrollDelta: 0
+  pendingHorizontalScrollDelta: 0
+  mouseWheelScreenRow: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
+    invisibles = if showInvisibles then @state.invisibles else {}
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
@@ -37,7 +42,8 @@ EditorComponent = React.createClass
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
-      lineHeightInPixels = editor.getLineHeight()
+      lineHeightInPixels = editor.getLineHeightInPixels()
+      scrollViewHeight = editor.getHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -48,16 +54,18 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        editor, renderedRowRange, maxLineNumberDigits, scrollTop, scrollHeight,
-        lineHeight: lineHeightInPixels, fontSize, fontFamily, @pendingChanges,
-        onWidthChanged: @onGutterWidthChanged
+        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
+        scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
+        @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
-        ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide
-        scrollHeight, scrollWidth, lineHeight: lineHeightInPixels,
-        renderedRowRange, @pendingChanges, @scrollingVertically, @cursorsMoved,
-        cursorBlinkPeriod, cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred
+        ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
+        lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
+        scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
+        @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
+        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
+        invisibles, visible, scrollViewHeight, focused
       }
 
       ScrollbarComponent
@@ -93,17 +101,19 @@ EditorComponent = React.createClass
         width: verticalScrollbarWidth
 
   getRenderedRowRange: ->
-    renderedRowRange = @props.editor.getVisibleRowRange()
-    if @preservedRowRange?
-      renderedRowRange[0] = Math.min(@preservedRowRange[0], renderedRowRange[0])
-      renderedRowRange[1] = Math.max(@preservedRowRange[1], renderedRowRange[1])
-    renderedRowRange
+    {editor, lineOverdrawMargin} = @props
+    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
+    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
+    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
+    [renderedStartRow, renderedEndRow]
 
-  getInitialState: -> {}
+  getInitialState: ->
+    visible: true
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
-    cursorBlinkResumeDelay: 200
+    cursorBlinkResumeDelay: 100
+    lineOverdrawMargin: 8
 
   componentWillMount: ->
     @pendingChanges = []
@@ -130,6 +140,8 @@ EditorComponent = React.createClass
   componentDidUpdate: ->
     @pendingChanges.length = 0
     @cursorsMoved = false
+    @selectionChanged = false
+    @selectionAdded = false
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
     @props.parentView.trigger 'editor:display-updated'
@@ -140,15 +152,14 @@ EditorComponent = React.createClass
     @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'cursors-moved', @onCursorsMoved
-    @subscribe editor, 'selection-screen-range-changed', @requestUpdate
+    @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'selection-removed', @onSelectionAdded
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
-    @subscribe editor.$lineHeight.changes, @requestUpdate
+    @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
   listenForDOMEvents: ->
     node = @getDOMNode()
@@ -174,11 +185,13 @@ EditorComponent = React.createClass
       'editor:move-to-previous-word': => editor.moveCursorToPreviousWord()
       'editor:select-word': => editor.selectWord()
       'editor:consolidate-selections': @consolidateSelections
-      'editor:backspace-to-beginning-of-word': => editor.backspaceToBeginningOfWord()
-      'editor:backspace-to-beginning-of-line': => editor.backspaceToBeginningOfLine()
+      'editor:delete-to-beginning-of-word': => editor.deleteToBeginningOfWord()
+      'editor:delete-to-beginning-of-line': => editor.deleteToBeginningOfLine()
       'editor:delete-to-end-of-word': => editor.deleteToEndOfWord()
       'editor:delete-line': => editor.deleteLine()
       'editor:cut-to-end-of-line': => editor.cutToEndOfLine()
+      'editor:move-to-beginning-of-next-paragraph': => editor.moveCursorToBeginningOfNextParagraph()
+      'editor:move-to-beginning-of-previous-paragraph': => editor.moveCursorToBeginningOfPreviousParagraph()
       'editor:move-to-beginning-of-screen-line': => editor.moveCursorToBeginningOfScreenLine()
       'editor:move-to-beginning-of-line': => editor.moveCursorToBeginningOfLine()
       'editor:move-to-end-of-screen-line': => editor.moveCursorToEndOfScreenLine()
@@ -251,6 +264,7 @@ EditorComponent = React.createClass
         'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
         'core:page-up': => editor.pageUp()
         'core:page-down': => editor.pageDown()
+        'benchmark:scroll': @runScrollBenchmark
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
@@ -261,7 +275,10 @@ EditorComponent = React.createClass
   observeConfig: ->
     @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
     @subscribe atom.config.observe 'editor.fontSize', @setFontSize
+    @subscribe atom.config.observe 'editor.lineHeight', @setLineHeight
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
+    @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
+    @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
 
   measureScrollbars: ->
     @measuringScrollbars = false
@@ -284,6 +301,25 @@ EditorComponent = React.createClass
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
+
+  # Public: Defines which characters are invisible.
+  #
+  # invisibles - An {Object} defining the invisible characters:
+  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
+  #   :space - The space invisible {String} (default: `\u00b7`).
+  #   :tab   - The tab invisible {String} (default: `\u00bb`).
+  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
+  setInvisibles: (invisibles={}) ->
+    defaults invisibles,
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
+
+    @setState({invisibles})
+
+  setShowInvisibles: (showInvisibles) ->
+    @setState({showInvisibles})
 
   onFocus: ->
     @refs.scrollView.focus()
@@ -319,14 +355,32 @@ EditorComponent = React.createClass
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
+    event.preventDefault()
+    screenRow = @screenRowForNode(event.target)
+    @mouseWheelScreenRow = screenRow if screenRow?
+    animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
+
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
-      @refs.horizontalScrollbar.getDOMNode().scrollLeft -= wheelDeltaX
+      @pendingHorizontalScrollDelta -= wheelDeltaX
     else
-      @refs.verticalScrollbar.getDOMNode().scrollTop -= wheelDeltaY
+      @pendingVerticalScrollDelta -= wheelDeltaY
 
-    event.preventDefault()
+    unless animationFramePending
+      requestAnimationFrame =>
+        {editor} = @props
+        editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
+        editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
+        @pendingVerticalScrollDelta = 0
+        @pendingHorizontalScrollDelta = 0
+
+  screenRowForNode: (node) ->
+    while node isnt document
+      if screenRow = node.dataset.screenRow
+        return parseInt(screenRow)
+      node = node.parentNode
+    null
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
@@ -357,13 +411,6 @@ EditorComponent = React.createClass
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
 
-  clearPreservedRowRange: ->
-    @preservedRowRange = null
-    @scrollingVertically = false
-    @requestUpdate()
-
-  clearPreservedRowRangeAfterDelay: null # Created lazily
-
   onBatchedUpdatesStarted: ->
     @batchingUpdates = true
 
@@ -379,20 +426,31 @@ EditorComponent = React.createClass
     @pendingChanges.push(change)
     @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
+  onSelectionChanged: (selection) ->
+    {editor} = @props
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @requestUpdate()
+
   onSelectionAdded: (selection) ->
     {editor} = @props
-    @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @selectionAdded = true
+      @requestUpdate()
 
   onScrollTopChanged: ->
-    @preservedRowRange = @getRenderedRowRange()
     @scrollingVertically = true
-    @clearPreservedRowRangeAfterDelay ?= debounce(@clearPreservedRowRange, 200)
-    @clearPreservedRowRangeAfterDelay()
+    @requestUpdate()
+    @stopScrollingAfterDelay ?= debounce(@onStoppedScrolling, 100)
+    @stopScrollingAfterDelay()
+
+  onStoppedScrolling: ->
+    @scrollingVertically = false
+    @mouseWheelScreenRow = null
     @requestUpdate()
 
-  onSelectionRemoved: (selection) ->
-    {editor} = @props
-    @requestUpdate() if editor.selectionIntersectsVisibleRowRange(selection)
+  stopScrollingAfterDelay: null # created lazily
 
   onCursorsMoved: ->
     @cursorsMoved = true
@@ -411,3 +469,48 @@ EditorComponent = React.createClass
 
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @props.editor.consolidateSelections()
+
+  lineNodeForScreenRow: (screenRow) -> @refs.scrollView.lineNodeForScreenRow(screenRow)
+
+  lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+
+  hide: ->
+    @setState(visible: false)
+
+  show: ->
+    @setState(visible: true)
+
+  runScrollBenchmark: ->
+    unless process.env.NODE_ENV is 'production'
+      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
+      ReactPerf.start()
+
+    node = @getDOMNode()
+
+    scroll = (delta, done) ->
+      dispatchMouseWheelEvent = ->
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
+
+      stopScrolling = ->
+        clearInterval(interval)
+        done?()
+
+      interval = setInterval(dispatchMouseWheelEvent, 10)
+      setTimeout(stopScrolling, 500)
+
+    console.timeline('scroll')
+    scroll 50, ->
+      scroll 100, ->
+        scroll 200, ->
+          scroll 400, ->
+            scroll 800, ->
+              scroll 1600, ->
+                console.timelineEnd('scroll')
+                unless process.env.NODE_ENV is 'production'
+                  ReactPerf.stop()
+                  console.log "Inclusive"
+                  ReactPerf.printInclusive()
+                  console.log "Exclusive"
+                  ReactPerf.printExclusive()
+                  console.log "Wasted"
+                  ReactPerf.printWasted()

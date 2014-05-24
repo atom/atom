@@ -8,7 +8,7 @@ var productName = require('../package.json').productName;
 
 process.chdir(path.dirname(__dirname));
 var home = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-var tmpdir = process.platform === 'win32' ? os.tmpdir() : '/tmp';
+var tmpdir = os.tmpdir();
 
 // Windows: Use START as a way to ignore error if Atom.exe isnt running
 var killatom = process.platform === 'win32' ? 'START taskkill /F /IM ' + productName + '.exe' : 'pkill -9 ' + productName + ' || true';

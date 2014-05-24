@@ -20,7 +20,7 @@ describe "ThemeManager", ->
 
   describe "theme getters and setters", ->
     beforeEach ->
-      atom.packages.loadPackages(sync: true)
+      atom.packages.loadPackages()
 
     it 'getLoadedThemes get all the loaded themes', ->
       themes = themeManager.getLoadedThemes()
@@ -280,11 +280,18 @@ describe "ThemeManager", ->
 
   describe "when a non-existent theme is present in the config", ->
     it "logs a warning but does not throw an exception (regression)", ->
+      reloaded = false
+
       waitsForPromise ->
         themeManager.activateThemes()
 
       runs ->
+        themeManager.once 'reloaded', -> reloaded = true
         spyOn(console, 'warn')
         expect(-> atom.config.set('core.themes', ['atom-light-ui', 'theme-really-does-not-exist'])).not.toThrow()
+
+      waitsFor -> reloaded
+
+      runs ->
         expect(console.warn.callCount).toBe 1
         expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0

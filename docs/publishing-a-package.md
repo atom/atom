@@ -75,18 +75,34 @@ credentials are stored securely in your [keychain][keychain] once you login.
 :tada: Your package is now published and available on atom.io. Head on over to
 `http://atom.io/packages/my-package` to see your package's page.
 
+With `apm publish`, you can bump the version and publish by using
+```sh
+apm publish <version-type>
+```
+where `<version-type>` can be `major`, `minor` and `patch`.
+
+The `major` option to the publish command tells apm to increment the first
+digit of the version before publishing so the published version will be `1.0.0`
+and the Git tag created will be `v1.0.0`.
+
 The `minor` option to the publish command tells apm to increment the second
 digit of the version before publishing so the published version will be `0.1.0`
 and the Git tag created will be `v0.1.0`.
 
-In the future you can run `apm publish major` to publish the `1.0.0` version but
-since this was the first version being published it is a good idea to start
-with a minor release.
+The `patch` option to the publish command tells apm to increment the third
+digit of the version before publishing so the published version will be `0.0.1`
+and the Git tag created will be `v0.0.1`.
+
+Use `major` when you make a huge change, like a rewrite, or a large change to the functionality or interface.
+Use `minor` when adding or removing a feature.
+Use `patch` when you make a small change like a bug fix that does not add or remove features.
 
 ### Further Reading
 
 * Check out [semantic versioning][semver] to learn more about versioning your
   package releases.
+* Consult the [Atom.io package API docs][apm-rest-api] to learn more about how
+  `apm` works.
 
 [atomio]: https://atom.io
 [github]: https://github.com
@@ -95,3 +111,4 @@ with a minor release.
 [repo-guide]: http://guides.github.com/overviews/desktop
 [semver]: http://semver.org
 [your-first-package]: your-first-package.html
+[apm-rest-api]: apm-rest-api.md

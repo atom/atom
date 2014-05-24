@@ -78,7 +78,11 @@ class CursorView extends View
   setVisible: (visible) ->
     unless @visible is visible
       @visible = visible
-      @toggle(@visible)
+      hiddenCursor = 'hidden-cursor'
+      if visible
+        @removeClass hiddenCursor
+      else
+        @addClass hiddenCursor
 
   stopBlinking: ->
     @constructor.stopBlinking(this) if @blinking

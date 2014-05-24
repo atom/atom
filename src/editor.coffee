@@ -109,8 +109,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # - {::insertNewlineAbove}
 # - {::insertNewlineBelow}
 # - {::backspace}
-# - {::backspaceToBeginningOfWord}
-# - {::backspaceToBeginningOfLine}
+# - {::deleteToBeginningOfWord}
+# - {::deleteToBeginningOfLine}
 # - {::delete}
 # - {::deleteToEndOfWord}
 # - {::deleteLine}
@@ -150,7 +150,7 @@ class Editor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesProperties '$lineHeight', '$defaultCharWidth', '$height', '$width',
+  @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
@@ -662,17 +662,27 @@ class Editor extends Model
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
 
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  backspaceToBeginningOfWord: ->
+    deprecate("Use Editor::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  backspaceToBeginningOfLine: ->
+    deprecate("Use Editor::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
+
   # Public: For each selection, if the selection is empty, delete all characters
   # of the containing word that precede the cursor. Otherwise delete the
   # selected text.
-  backspaceToBeginningOfWord: ->
-    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
+  deleteToBeginningOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
   # Public: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
   # selected text.
-  backspaceToBeginningOfLine: ->
-    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
+  deleteToBeginningOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
 
   # Public: For each selection, if the selection is empty, delete the character
   # preceding the cursor. Otherwise delete the selected text.
@@ -742,13 +752,24 @@ class Editor extends Model
   # Public: For each selection, replace the selected text with the contents of
   # the clipboard.
   #
+  # If the clipboard contains the same number of selections as the current
+  # editor, each selection will be replaced with the content of the
+  # corresponding clipboard selection text.
+  #
   # options - See {Selection::insertText}.
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
     containsNewlines = text.indexOf('\n') isnt -1
 
-    if atom.config.get('editor.normalizeIndentOnPaste') and metadata
+    if metadata?.selections? and metadata.selections.length is @getSelections().length
+      @mutateSelectedText (selection, index) ->
+        text = metadata.selections[index]
+        selection.insertText(text, options)
+
+      return
+
+    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
@@ -1024,7 +1045,7 @@ class Editor extends Model
   #
   # fn - A {Function} that will be called with each {Selection}.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection) for selection in @getSelections()
+    @transact => fn(selection,index) for selection,index in @getSelections()
 
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
@@ -1252,6 +1273,9 @@ class Editor extends Model
   # Returns: An {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
 
+  selectionsForScreenRows: (startRow, endRow) ->
+    @getSelections().filter (selection) -> selection.intersectsScreenRowRange(startRow, endRow)
+
   # Public: Get the most recent {Selection} or the selection at the given
   # index.
   #
@@ -1467,6 +1491,14 @@ class Editor extends Model
   # Public: Move every cursor to the next word boundary.
   moveCursorToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
+
+  # Public: Move every cursor to the beginning of the next paragraph.
+  moveCursorToBeginningOfNextParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
+
+  # Public: Move every cursor to the beginning of the previous paragraph.
+  moveCursorToBeginningOfPreviousParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
 
   scrollToCursorPosition: ->
     @getCursor().autoscroll()
@@ -1848,8 +1880,8 @@ class Editor extends Model
   getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
   setHorizontalScrollMargin: (horizontalScrollMargin) -> @displayBuffer.setHorizontalScrollMargin(horizontalScrollMargin)
 
-  getLineHeight: -> @displayBuffer.getLineHeight()
-  setLineHeight: (lineHeight) -> @displayBuffer.setLineHeight(lineHeight)
+  getLineHeightInPixels: -> @displayBuffer.getLineHeightInPixels()
+  setLineHeightInPixels: (lineHeightInPixels) -> @displayBuffer.setLineHeightInPixels(lineHeightInPixels)
 
   getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
   setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)

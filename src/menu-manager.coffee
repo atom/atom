@@ -58,7 +58,7 @@ class MenuManager
       testBody = document.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
-      testWorkspace = document.createElement('body')
+      testWorkspace = document.createElement('div')
       workspaceClasses = @classesForElement(document.body.querySelector('.workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
@@ -69,7 +69,12 @@ class MenuManager
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 
-    @testEditor.webkitMatchesSelector(selector)
+    element = @testEditor
+    while element
+      return true if element.webkitMatchesSelector(selector)
+      element = element.parentElement
+
+    false
 
   # Public: Refreshes the currently visible menu.
   update: ->
