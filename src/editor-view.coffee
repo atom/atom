@@ -28,7 +28,7 @@ LongLineLength = 1000
 # ## Iterating over the open editor views
 #
 # ```coffee
-# for editorView in atom.workspace.getEditorViews()
+# for editorView in atom.workspaceView.getEditorViews()
 #   console.log(editorView.getEditor().getPath())
 # ```
 #
