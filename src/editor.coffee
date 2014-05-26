@@ -864,6 +864,7 @@ class Editor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtCursorRow: ->
+    return false unless @getCursor()?
     @isFoldedAtScreenRow(@getCursorScreenRow())
 
   # Public: Determine whether the given row in buffer coordinates is folded.
