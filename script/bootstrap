@@ -51,6 +51,7 @@ var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'sea
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
 var commands = [
+  "sh -c \"python --version |& grep -q '^Python 2.7'\"",
   {command: 'npm' + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
