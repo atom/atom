@@ -1,4 +1,6 @@
-# :tada: Contributing to Atom :tada:
+# Contributing to Atom
+
+:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
 The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
