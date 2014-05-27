@@ -44,7 +44,7 @@
     "plist": "git://github.com/nathansobo/node-plist.git",
     "first-mate": "1.x",
     "tar": "~0.1.19",
-    "git-utils": "1.x",
+    "git-utils": ">=1.4 <2.0",
     "semver": "~2.2.1",
     "mv": "2.0.0",
     "open": "0.0.4"
