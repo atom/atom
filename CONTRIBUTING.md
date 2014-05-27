@@ -68,6 +68,7 @@ For more information on how to work with Atom's official packages, see
     * :memo: `:memo:` when writing docs
     * :penguin: `:penguin:` when fixing something on Linux
     * :apple: `:apple:` when fixing something on Mac OS
+    * :checkered_flag: `:checkered_flag:` when fixing something on Windows
     * :bug: `:bug:` when fixing a bug
     * :fire: `:fire:` when removing code or files
     * :green_heart: `:green_heart:` when fixing the CI build
