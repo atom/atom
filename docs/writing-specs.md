@@ -47,7 +47,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
       expect("oranges").not.toEqual("apples")
   ```
 
-## Runnings specs
+## Running specs
 
 Most of the time you'll want to run specs by triggering the `window:run-package-specs` command. This command is not only to run package specs, it is also for Atom core specs. This will run all the specs in the current project's spec directory. If you want to run the Atom core specs and **all** the default package specs trigger the `window:run-all-specs` command.
 
