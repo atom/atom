@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
+var path = require('path');
+var extend = require('util')._extend;
+var execFile = require('child_process').execFile;
+var which = require('./vendor/which/which');
 
 var nodeVersion = process.versions.node.split('.')
 var nodeMajorVersion = +nodeVersion[0]
@@ -11,10 +15,9 @@ if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
 }
 
 // Make sure python2.7 is installed
-if (process.platform == 'win32' && !fs.existsSync('C:\\Python27\\')) {
-  console.warn("You must have Python 2.7 installed at 'C:\\Python27\\'");
-  process.exit(1);
-}
+var python;
+var win = process.platform == 'win32'
+checkPython();
 
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
@@ -62,3 +65,93 @@ var commands = [
 
 process.chdir(path.dirname(__dirname));
 executeCommands(commands, process.exit);
+
+
+// Python checker
+// source: https://github.com/TooTallNate/node-gyp/blob/52e8d9f70d/lib/configure.js
+
+// Check if Python is in the $PATH
+function checkPython () {
+  python = process.env.PYTHON || 'python';
+  // log.verbose('check python', 'checking for Python executable "%s" in the PATH', python)
+  which(python, function (err, execPath) {
+    if (err) {
+      // log.verbose('`which` failed', python, err)
+      if (win) {
+        guessPython()
+      } else {
+        failNoPython()
+      }
+    } else {
+      // log.verbose('`which` succeeded', python, execPath)
+      checkPythonVersion()
+    }
+  })
+}
+
+// Called on Windows when "python" isn't available in the current $PATH.
+// We're gonna check if "%SystemDrive%\python27\python.exe" exists.
+function guessPython () {
+  // log.verbose('could not find "' + python + '". guessing location')
+  var rootDir = process.env.SystemDrive || 'C:\\'
+  if (rootDir[rootDir.length - 1] !== '\\') {
+    rootDir += '\\'
+  }
+  var pythonPath = path.resolve(rootDir, 'Python27', 'python.exe')
+  // log.verbose('ensuring that file exists:', pythonPath)
+  fs.stat(pythonPath, function (err, stat) {
+    if (err) {
+      if (err.code == 'ENOENT') {
+        failNoPython()
+      } else {
+        console.warn(err)
+	process.exit(1)
+      }
+      return
+    }
+    python = pythonPath
+    checkPythonVersion()
+  })
+}
+
+function checkPythonVersion () {
+  var env = extend({}, process.env);
+  env.TERM = 'dumb';
+
+  execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: env }, function (err, stdout) {
+    if (err) {
+      console.warn(err)
+      process.exit(1)
+      return
+    }
+    // log.verbose('check python version', '`%s -c "import platform; print(platform.python_version());"` returned: %j', python, stdout)
+    var version = stdout.trim()
+    if (~version.indexOf('+')) {
+      // log.silly('stripping "+" sign(s) from version')
+      version = version.replace(/\+/g, '')
+    }
+    if (~version.indexOf('rc')) {
+      // log.silly('stripping "rc" identifier from version')
+      version = version.replace(/rc(.*)$/ig, '')
+    }
+    var range = new RegExp('^\w*2.(5|6|7).[0-9]+\w*$') // semver.Range('>=2.5.0 <3.0.0')
+    if (range.test(version)) {
+      // getNodeDir()
+    } else {
+      failPythonVersion(version)
+    }
+  })
+}
+
+function failNoPython () {
+  console.warn('Can\'t find Python executable "' + python +
+        '", you can set the PYTHON env variable.')
+  process.exit(1)
+}
+
+function failPythonVersion (badVersion) {
+  console.warn('Python executable "' + python +
+        '" is v' + badVersion + ', which is not supported by gyp.\n' +
+        'You can pass the --python switch to point to Python >= v2.5.0 & < 3.0.0.')
+  process.exit(1)
+}
