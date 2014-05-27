@@ -66,6 +66,8 @@ class Login extends Command
         Q(state)
 
   saveToken: ({token}) =>
+    throw new Error("Token is required") unless token
+
     process.stdout.write('Saving token to Keychain ')
     auth.saveToken(token)
     process.stdout.write '\u2713\n'.green
