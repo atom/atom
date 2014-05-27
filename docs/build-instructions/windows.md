@@ -44,3 +44,22 @@ fix this, you probably need to fiddle with your system PATH.
 
   * If you just installed node you need to restart your computer before node is
   available on your Path.
+
+
+* `You must have Visual Studio 2010 or 2012 installed`
+
+   * If your Visual Studio is in a non-standard location, and you get the error `You must have Visual Studio 2010 or 2012 installed`, you need to modify `apm\node_modules\atom-package-manager\lib\config.js` around line 110 and replace the variable with your Visual Studio directory plus Common7/IDE. Make sure your path does not contain unescaped backward slashes that appear in normal Windows paths.
+
+   Examples:
+        * if you have Visual Studio 2010
+            ```
+            vs2010Path = "H:/VS2010/Common7/IDE"
+            ```
+        * if you have Visual Studio 2012
+           ```
+            vs2012Path = "H:/VS2012/Common7/IDE"
+            ```
+        * if you have Visual Studio 2013
+           ```
+            vs2013Path = "H:/VS2013/Common7/IDE"
+            ```
