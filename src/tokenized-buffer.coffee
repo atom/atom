@@ -124,7 +124,10 @@ class TokenizedBuffer extends Model
       @invalidateRow(row + 1) unless filledRegion
       @emit "changed", { start: invalidRow, end: row, delta: 0 }
 
-    @tokenizeInBackground() if @firstInvalidRow()?
+    if @firstInvalidRow()?
+      @tokenizeInBackground()
+    else
+      @emit "tokenized"
 
   firstInvalidRow: ->
     @invalidRows[0]

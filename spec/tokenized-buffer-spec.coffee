@@ -385,6 +385,20 @@ describe "TokenizedBuffer", ->
       expect(tokens[1].value).toBeTruthy()
       expect(tokens[2].value).toBe 'xyz'
 
+  describe "when the grammar tokenized", ->
+    it "emits the `tokenized` event", ->
+      buffer = null
+      tokenizedBuffer = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('sample.js').then (editor) -> buffer = editor.getBuffer()
+
+      runs ->
+        tokenizedBuffer = new TokenizedBuffer({buffer})
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
 
