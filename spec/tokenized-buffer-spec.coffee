@@ -385,7 +385,7 @@ describe "TokenizedBuffer", ->
       expect(tokens[1].value).toBeTruthy()
       expect(tokens[2].value).toBe 'xyz'
 
-  describe "when the grammar tokenized", ->
+  describe "when the grammar is tokenized", ->
     it "emits the `tokenized` event", ->
       editor = null
       tokenizedHandler = jasmine.createSpy("tokenized handler")
@@ -399,7 +399,7 @@ describe "TokenizedBuffer", ->
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
 
-    it "doesn't re-emit the `tokenized` event when a line is edited", ->
+    it "doesn't re-emit the `tokenized` event when it is re-tokenized", ->
       editor = null
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
