@@ -260,6 +260,7 @@ class Editor extends Model
     if sessionPath = @getPath()
       fileName = path.basename(sessionPath)
       directory = atom.project.relativize(path.dirname(sessionPath))
+      directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
       'untitled'
