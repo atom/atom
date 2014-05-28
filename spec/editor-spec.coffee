@@ -2876,6 +2876,18 @@ describe "Editor", ->
       expect(editor.lineForBufferRow(4)).toBe "    }"
       expect(editor.lineForBufferRow(5)).toBe "    i=1"
 
+  describe "soft and hard tabs", ->
+    it "resets the tab style when tokenization is complete", ->
+      editor.destroy()
+      atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+      expect(editor.softTabs).toBe true
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        expect(editor.softTabs).toBe false
+
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
