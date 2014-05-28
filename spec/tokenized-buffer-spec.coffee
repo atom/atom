@@ -414,19 +414,29 @@ describe "TokenizedBuffer", ->
         editor.getBuffer().insert([0, 0], "'")
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler).not.toHaveBeenCalled()
-      buffer = null
+
+  describe "when the grammar is updated because a grammar it includes is activated", ->
+    it "re-emits the `tokenized` event", ->
+      editor = null
       tokenizedBuffer = null
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('sample.js').then (editor) -> buffer = editor.getBuffer()
+        atom.project.open('coffee.coffee').then (o) -> editor = o
 
       runs ->
-        tokenizedBuffer = new TokenizedBuffer({buffer})
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
         tokenizedBuffer.on 'tokenized', tokenizedHandler
         fullyTokenize(tokenizedBuffer)
+        tokenizedHandler.reset()
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
-  describe "when the grammar is updated because a grammar it includes is activated", ->
+
     it "retokenizes the buffer", ->
 
       waitsForPromise ->
