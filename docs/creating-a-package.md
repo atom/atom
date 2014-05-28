@@ -226,7 +226,7 @@ In the example above, the `Add file` item will only appear when the focused item
 or one of its parents has the `tree-view` class applied to it.
 
 You can also add separators and submenus to your context menus.
-To add a submenu, pass in context menu object instead of a command:
+To add a submenu, pass in a `context-menu` object instead of a command:
 
 ```coffeescript
 'context-menu':
@@ -237,7 +237,7 @@ To add a submenu, pass in context menu object instead of a command:
     'Inspect Element': 'core:inspect'
 ```
 
-To add a separator, use the '-': '-' structure:
+To add a separator, use a `'-': '-'` structure:
 
 ```coffeescript
 'context-menu':
