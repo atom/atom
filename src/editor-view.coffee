@@ -28,7 +28,7 @@ LongLineLength = 1000
 # ## Iterating over the open editor views
 #
 # ```coffee
-# for editorView in atom.workspace.getEditorViews()
+# for editorView in atom.workspaceView.getEditorViews()
 #   console.log(editorView.getEditor().getPath())
 # ```
 #
@@ -548,7 +548,6 @@ class EditorView extends View
       @showBufferConflictAlert(@editor)
 
     @subscribe @editor, "path-changed", =>
-      @editor.reloadGrammar()
       @trigger 'editor:path-changed'
 
     @subscribe @editor, "grammar-changed", =>

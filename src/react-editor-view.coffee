@@ -16,6 +16,8 @@ class ReactEditorView extends View
 
   Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeightInPixels()
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
+  Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
+  Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
 
   scrollTop: (scrollTop) ->
     if scrollTop?
@@ -90,3 +92,5 @@ class ReactEditorView extends View
   show: ->
     super
     @component.show()
+
+  requestDisplayUpdate: -> # No-op shim for find-and-replace

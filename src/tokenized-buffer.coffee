@@ -31,7 +31,9 @@ class TokenizedBuffer extends Model
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", => @bufferPath = @buffer.getPath()
+    @subscribe @buffer, "path-changed", =>
+      @bufferPath = @buffer.getPath()
+      @reloadGrammar()
 
     @subscribe @$tabLength.changes, (tabLength) =>
       lastRow = @buffer.getLastRow()

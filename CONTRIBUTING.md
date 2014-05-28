@@ -1,12 +1,13 @@
-# :tada: Contributing to Atom :tada:
+# Contributing to Atom
+
+:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
 The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 If you're unsure which package is causing your problem or if you're having an
-issue with Atom core, please use the feedback form in the application or email
-[atom@github.com](mailto:atom@github.com). These are just guidelines, not rules,
-use your best judgement and feel free to propose changes to this document in a
-pull request.
+issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
+These are just guidelines, not rules, use your best judgement and feel free to
+propose changes to this document in a pull request.
 
 ## Submitting Issues
 
@@ -68,6 +69,7 @@ For more information on how to work with Atom's official packages, see
     * :memo: `:memo:` when writing docs
     * :penguin: `:penguin:` when fixing something on Linux
     * :apple: `:apple:` when fixing something on Mac OS
+    * :checkered_flag: `:checkered_flag:` when fixing something on Windows
     * :bug: `:bug:` when fixing a bug
     * :fire: `:fire:` when removing code or files
     * :green_heart: `:green_heart:` when fixing the CI build
