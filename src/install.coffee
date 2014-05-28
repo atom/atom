@@ -48,11 +48,18 @@ class Install extends Command
     env.USERPROFILE = env.HOME if config.isWin32()
 
     fs.makeTreeSync(@atomDirectory)
-    @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
-      if code is 0
-        callback()
-      else
-        callback("#{stdout}\n#{stderr}")
+
+    request.useStrictSsl (error, useStrictSsl=true) =>
+      # node-gyp doesn't currently have an option for this so just set the
+      # environment variable to bypass strict SSL
+      # https://github.com/TooTallNate/node-gyp/issues/448
+      env.NODE_TLS_REJECT_UNAUTHORIZED = 0 unless useStrictSsl
+
+      @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
+        if code is 0
+          callback()
+        else
+          callback("#{stdout}\n#{stderr}")
 
   updateWindowsEnv: (env) ->
     env.USERPROFILE = env.HOME

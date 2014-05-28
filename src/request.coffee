@@ -3,29 +3,35 @@ request = require 'request'
 
 config = require './config'
 
-loadOptionsFromNpm = (requestOptions, callback) ->
+loadNpm = (callback) ->
   npmOptions =
     userconfig: config.getUserConfigPath()
     globalconfig: config.getGlobalConfigPath()
+  npm.load(npmOptions, callback)
 
-  npm.load npmOptions, ->
+configureRequest = (requestOptions, callback) ->
+  loadNpm ->
     requestOptions.proxy ?= npm.config.get('https-proxy') or npm.config.get('proxy')
     requestOptions.strictSSL ?= npm.config.get('strict-ssl')
-    request.get(requestOptions, callback)
+    callback()
 
 module.exports =
   get: (requestOptions, callback) ->
-    loadOptionsFromNpm requestOptions, ->
+    configureRequest requestOptions, ->
       request.get(requestOptions, callback)
 
   del: (requestOptions, callback) ->
-    loadOptionsFromNpm requestOptions, ->
+    configureRequest requestOptions, ->
       request.del(requestOptions, callback)
 
   post: (requestOptions, callback) ->
-    loadOptionsFromNpm requestOptions, ->
+    configureRequest requestOptions, ->
       request.post(requestOptions, callback)
 
   createReadStream: (requestOptions, callback) ->
-    loadOptionsFromNpm requestOptions, ->
+    configureRequest requestOptions, ->
       callback(request.get(requestOptions))
+
+  useStrictSsl: (callback) ->
+    loadNpm ->
+      callback(null, npm.config.get('strict-ssl'))
