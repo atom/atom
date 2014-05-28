@@ -28,7 +28,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
 
 0. Add one or more `it` method
 
-  The `it` method also takes two arugments, a description and a function. Try and make the description flow with the `it` method. For example, a description of `this should work` doesn't read well as `it this should work`. But a description of `should work` sounds great as `it should work`.
+  The `it` method also takes two arguments, a description and a function. Try and make the description flow with the `it` method. For example, a description of `this should work` doesn't read well as `it this should work`. But a description of `should work` sounds great as `it should work`.
 
   ```coffee
   describe "when a test is written", ->
@@ -38,7 +38,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
 
 0. Add one or more expectations
 
-  The best way to learn about expectations is to read the [jamsine documentation](http://jasmine.github.io/2.0/introduction.html#section-Expectations) about them. Below is a simple example.
+  The best way to learn about expectations is to read the [jasmine documentation](http://jasmine.github.io/2.0/introduction.html#section-Expectations) about them. Below is a simple example.
 
   ```coffee
   describe "when a test is written", ->
