@@ -387,6 +387,17 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar tokenized", ->
     it "emits the `tokenized` event", ->
+      editor = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('sample.js').then (o) -> editor = o
+
+      runs ->
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
       buffer = null
       tokenizedBuffer = null
       tokenizedHandler = jasmine.createSpy("tokenized handler")
