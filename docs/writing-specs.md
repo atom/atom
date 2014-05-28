@@ -10,7 +10,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
 
   Spec files **must** end with `-spec` so add `sample-spec.coffee` to `atom/spec`.
 
-0. Add one or more `describe` method
+0. Add one or more `describe` methods
 
   The `describe` method takes two arguments, a description and a function. If the description explains a behavior it typically begins with `when` if it is more like a unit test it begins with the method name.
 
