@@ -104,8 +104,9 @@ function guessPython () {
       if (err.code == 'ENOENT') {
         failNoPython()
       } else {
-        console.warn(err)
-	process.exit(1)
+        console.warn('fs.stat on python executable failed: ' + err)
+        console.warn('Did you install python correctly?')
+        process.exit(1)
       }
       return
     }
@@ -120,7 +121,8 @@ function checkPythonVersion () {
 
   execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: env }, function (err, stdout) {
     if (err) {
-      console.warn(err)
+      console.warn('Could not run python: ' + err)
+      console.warn('Did you install python correctly?')
       process.exit(1)
       return
     }
@@ -146,12 +148,13 @@ function checkPythonVersion () {
 function failNoPython () {
   console.warn('Can\'t find Python executable "' + python +
         '", you can set the PYTHON env variable.')
+  console.warn('Did you install python2 >= 2.5.0?')
   process.exit(1)
 }
 
 function failPythonVersion (badVersion) {
   console.warn('Python executable "' + python +
-        '" is v' + badVersion + ', which is not supported by gyp.\n' +
-        'You can pass the --python switch to point to Python >= v2.5.0 & < 3.0.0.')
+        '" is v' + badVersion + ', which is not supported by gyp (requires python >= v2.5.0 & 3.0.0).\n' +
+        'The recommended python version is 2.7.x.')
   process.exit(1)
 }
