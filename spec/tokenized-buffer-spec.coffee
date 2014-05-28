@@ -398,6 +398,22 @@ describe "TokenizedBuffer", ->
         tokenizedBuffer.on 'tokenized', tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
+
+    it "doesn't re-emit the `tokenized` event when a line is edited", ->
+      editor = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('sample.js').then (o) -> editor = o
+
+      runs ->
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        fullyTokenize(tokenizedBuffer)
+
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        editor.getBuffer().insert([0, 0], "'")
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler).not.toHaveBeenCalled()
       buffer = null
       tokenizedBuffer = null
       tokenizedHandler = jasmine.createSpy("tokenized handler")
