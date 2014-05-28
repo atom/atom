@@ -144,6 +144,7 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
+  isPreview: false
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -161,6 +162,7 @@ class Editor extends Model
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+    @isPreview = atom.config.get('editor.previewMode') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -203,6 +205,8 @@ class Editor extends Model
     @subscribe @buffer, "contents-modified", => @emit "contents-modified"
     @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
     @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
+    @subscribe @buffer, "contents-modified", (modified) => @disablePreview() if modified
+    @subscribe @buffer, "saved", => @disablePreview()
     @subscribe @buffer, "destroyed", => @destroy()
     @preserveCursorPositionOnBufferReload()
 
@@ -1808,6 +1812,15 @@ class Editor extends Model
 
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
+
+  # Close editors in preview mode
+  closePreview: ->
+    if @isPreview and not @isModified()
+      @destroy()
+
+  #disable preview after
+  disablePreview: ->
+    @isPreview = false
 
   # Public: Batch multiple operations as a single undo/redo step.
   #
