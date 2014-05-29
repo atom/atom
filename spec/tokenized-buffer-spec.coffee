@@ -385,7 +385,58 @@ describe "TokenizedBuffer", ->
       expect(tokens[1].value).toBeTruthy()
       expect(tokens[2].value).toBe 'xyz'
 
+  describe "when the grammar is tokenized", ->
+    it "emits the `tokenized` event", ->
+      editor = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('sample.js').then (o) -> editor = o
+
+      runs ->
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
+
+    it "doesn't re-emit the `tokenized` event when it is re-tokenized", ->
+      editor = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('sample.js').then (o) -> editor = o
+
+      runs ->
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        fullyTokenize(tokenizedBuffer)
+
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        editor.getBuffer().insert([0, 0], "'")
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler).not.toHaveBeenCalled()
+
   describe "when the grammar is updated because a grammar it includes is activated", ->
+    it "re-emits the `tokenized` event", ->
+      editor = null
+      tokenizedBuffer = null
+      tokenizedHandler = jasmine.createSpy("tokenized handler")
+
+      waitsForPromise ->
+        atom.project.open('coffee.coffee').then (o) -> editor = o
+
+      runs ->
+        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        fullyTokenize(tokenizedBuffer)
+        tokenizedHandler.reset()
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        fullyTokenize(tokenizedBuffer)
+        expect(tokenizedHandler.callCount).toBe(1)
+
     it "retokenizes the buffer", ->
 
       waitsForPromise ->

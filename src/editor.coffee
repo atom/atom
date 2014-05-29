@@ -211,6 +211,7 @@ class Editor extends Model
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
+    @subscribe @displayBuffer, 'tokenized', => @handleTokenization()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
 
   getViewClass: ->
@@ -1850,6 +1851,9 @@ class Editor extends Model
     "<Editor #{@id}>"
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
+
+  handleTokenization: ->
+    @softTabs = @usesSoftTabs() ? @softTabs
 
   handleGrammarChange: ->
     @unfoldAll()

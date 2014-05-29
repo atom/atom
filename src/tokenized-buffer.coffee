@@ -78,6 +78,7 @@ class TokenizedBuffer extends Model
     @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, @buffer.getLastRow())
     @invalidRows = []
     @invalidateRow(0)
+    @fullyTokenized = false
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -124,7 +125,11 @@ class TokenizedBuffer extends Model
       @invalidateRow(row + 1) unless filledRegion
       @emit "changed", { start: invalidRow, end: row, delta: 0 }
 
-    @tokenizeInBackground() if @firstInvalidRow()?
+    if @firstInvalidRow()?
+      @tokenizeInBackground()
+    else
+      @emit "tokenized" unless @fullyTokenized
+      @fullyTokenized = true
 
   firstInvalidRow: ->
     @invalidRows[0]
