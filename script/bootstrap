@@ -45,15 +45,14 @@ var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package
 var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
 
 var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
+var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
 var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 
 var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
-var firstNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
-
 var commands = [
-  {command: firstNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+  {command: initialNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
