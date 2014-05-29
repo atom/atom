@@ -50,8 +50,10 @@ var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
 var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
+var firstNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
+
 var commands = [
-  {command: 'npm' + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+  {command: firstNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
