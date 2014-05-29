@@ -41,3 +41,20 @@ learn more about a specific command.
 The common commands are `apm install <package_name>` to install a new package,
 `apm featured` to see all the featured packages, and `apm publish` to publish
 a package to [atom.io](https://atom.io).
+
+## Behind a firewall?
+
+If you are behind a firewall and seeing SSL errors when installing packages
+you can disable strict SSL by putting the following in your `~/.atom/.apmrc`
+file:
+
+```
+strict-ssl = false
+```
+
+If you are using a proxy you can configure `apm` to use it by setting the
+`https-proxy` config in your `~/.atom/.apmrc` file like so:
+
+```
+https-proxy = https://9.0.2.1:0
+```
