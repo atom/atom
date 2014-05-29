@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
-{debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
+{debounce, isEqual, isEqualForProperties, multiplyString, toArray, clone} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 SelectionsComponent = require './selections-component'
@@ -16,21 +16,38 @@ LinesComponent = React.createClass
   measureWhenShown: false
 
   render: ->
+    {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
+
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, lineHeightInPixels}) if @isMounted()
+      @renderLines() if @isMounted()
+      SelectionsComponent({key: 'selections', editor, lineHeightInPixels})
+
+  renderLines: ->
+    {editor, renderedRowRange, lineHeightInPixels, showIndentGuide, mini, invisibles, mouseWheelScreenRow} = @props
+    [startRow, endRow] = renderedRowRange
+
+    lineComponents =
+      for line, i in editor.linesForScreenRows(startRow, endRow - 1)
+        screenRow = startRow + i
+        LineComponent({key: line.id, line, screenRow, lineHeightInPixels, showIndentGuide, mini, invisibles})
+
+    if mouseWheelScreenRow? and not (startRow <= mouseWheelScreenRow < endRow)
+      line = editor.lineForScreenRow(mouseWheelScreenRow)
+      lineComponents.push(LineComponent({
+        key: line.id, line, screenRow: mouseWheelScreenRow, screenRowOverride: endRow,
+        lineHeightInPixels, showIndentGuide, mini, invisibles
+      }))
+
+    lineComponents
 
   componentWillMount: ->
     @measuredLines = new WeakSet
-    @lineNodesByLineId = {}
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
 
   componentDidMount: ->
     @measureLineHeightInPixelsAndCharWidth()
@@ -40,7 +57,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
-      'visible', 'scrollViewHeight'
+      'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -53,156 +70,17 @@ LinesComponent = React.createClass
     {visible, scrollingVertically} = @props
 
     @measureLineHeightInPixelsAndCharWidthIfNeeded(prevProps)
-    @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
-    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
-    @updateLines()
     @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
-  clearScreenRowCaches: ->
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
-
-  updateLines: ->
-    {editor, renderedRowRange, showIndentGuide, selectionChanged} = @props
+  lineNodeForScreenRow: (screenRow) ->
+    {renderedRowRange} = @props
     [startRow, endRow] = renderedRowRange
 
-    visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
-    @removeLineNodes(visibleLines)
-    @appendOrUpdateVisibleLineNodes(visibleLines, startRow)
+    unless startRow <= screenRow < endRow
+      throw new Error("Requested screenRow #{screenRow} is not currently rendered")
 
-  removeLineNodes: (visibleLines=[]) ->
-    {mouseWheelScreenRow} = @props
-    visibleLineIds = new Set
-    visibleLineIds.add(line.id.toString()) for line in visibleLines
-    node = @getDOMNode()
-    for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
-      screenRow = @screenRowsByLineId[lineId]
-      unless screenRow is mouseWheelScreenRow
-        delete @lineNodesByLineId[lineId]
-        delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
-        delete @screenRowsByLineId[lineId]
-        node.removeChild(lineNode)
-
-  appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
-    newLines = null
-    newLinesHTML = null
-
-    for line, index in visibleLines
-      screenRow = startRow + index
-
-      if @hasLineNode(line.id)
-        @updateLineNode(line, screenRow)
-      else
-        newLines ?= []
-        newLinesHTML ?= ""
-        newLines.push(line)
-        newLinesHTML += @buildLineHTML(line, screenRow)
-        @screenRowsByLineId[line.id] = screenRow
-        @lineIdsByScreenRow[screenRow] = line.id
-
-    return unless newLines?
-
-    WrapperDiv.innerHTML = newLinesHTML
-    newLineNodes = toArray(WrapperDiv.children)
-    node = @getDOMNode()
-    for line, i in newLines
-      lineNode = newLineNodes[i]
-      @lineNodesByLineId[line.id] = lineNode
-      node.appendChild(lineNode)
-
-  hasLineNode: (lineId) ->
-    @lineNodesByLineId.hasOwnProperty(lineId)
-
-  buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeightInPixels} = @props
-    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
-
-    top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
-
-    if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(line)
-    else
-      lineHTML += @buildLineInnerHTML(line)
-
-    lineHTML += "</div>"
-    lineHTML
-
-  buildEmptyLineInnerHTML: (line) ->
-    {showIndentGuide} = @props
-    {indentLevel, tabLength} = line
-
-    if showIndentGuide and indentLevel > 0
-      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
-      multiplyString(indentSpan, indentLevel + 1)
-    else
-      "&nbsp;"
-
-  buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide, invisibles} = @props
-    {tokens, text} = line
-    innerHTML = ""
-
-    scopeStack = []
-    firstTrailingWhitespacePosition = text.search(/\s*$/)
-    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
-    for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
-      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
-
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += @buildEndOfLineHTML(line, invisibles)
-    innerHTML
-
-  buildEndOfLineHTML: (line, invisibles) ->
-    return '' if @props.mini or line.isSoftWrapped()
-
-    html = ''
-    if invisibles.cr? and line.lineEnding is '\r\n'
-      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
-    if invisibles.eol?
-      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
-
-    html
-
-  updateScopeStack: (scopeStack, desiredScopes) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i]?.scope is desiredScopes[i]
-
-    # Pop scopes until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      html += @pushScope(scopeStack, desiredScopes[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
-
-  updateLineNode: (line, screenRow) ->
-    unless @screenRowsByLineId[line.id] is screenRow
-      {lineHeightInPixels} = @props
-      lineNode = @lineNodesByLineId[line.id]
-      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
-      lineNode.dataset.screenRow = screenRow
-      @screenRowsByLineId[line.id] = screenRow
-      @lineIdsByScreenRow[screenRow] = line.id
-
-  lineNodeForScreenRow: (screenRow) ->
-    @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
+    @getDOMNode().children[screenRow - startRow]
 
   measureLineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
     {visible} = @props
@@ -230,9 +108,9 @@ LinesComponent = React.createClass
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
-    for tokenizedLine in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+    for tokenizedLine, i in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
       unless @measuredLines.has(tokenizedLine)
-        lineNode = @lineNodesByLineId[tokenizedLine.id]
+        lineNode = node.children[i]
         @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
@@ -271,3 +149,94 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
+
+LineComponent = React.createClass
+  displayName: "LineComponent"
+
+  render: ->
+    {screenRow, screenRowOverride, lineHeightInPixels} = @props
+
+    style =
+      position: "absolute"
+      top: (screenRowOverride ? screenRow) * lineHeightInPixels
+
+    div className: "line", style: style, 'data-screen-row': screenRow, dangerouslySetInnerHTML: {__html: @buildInnerHTML()}
+
+  shouldComponentUpdate: (newProps) ->
+    not isEqualForProperties(newProps, @props, 'screenRow', 'lineHeightInPixels', 'showIndentGuide', 'invisibles')
+
+  componentWillUpdate: (newProps) ->
+    unless isEqualForProperties(newProps, @props, 'showIndentGuide', 'invisibles')
+      @innerHTML = null
+
+  buildInnerHTML: ->
+    {line} = @props
+
+    if line.text is ""
+      @innerHTML ?= @buildEmptyInnerHTML()
+    else
+      @innerHTML ?= @buildNonEmptyInnerHTML()
+
+  buildEmptyInnerHTML: ->
+    {line, showIndentGuide} = @props
+    {indentLevel, tabLength} = line
+
+    if showIndentGuide and indentLevel > 0
+      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
+      multiplyString(indentSpan, indentLevel + 1)
+    else
+      "&nbsp;"
+
+  buildNonEmptyInnerHTML: ->
+    {line, invisibles, mini, showIndentGuide, invisibles} = @props
+    {tokens, text} = line
+    innerHTML = ""
+
+    scopeStack = []
+    firstTrailingWhitespacePosition = text.search(/\s*$/)
+    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+    for token in tokens
+      innerHTML += @updateScopeStack(scopeStack, token.scopes)
+      hasIndentGuide = not mini and showIndentGuide and token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly)
+      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+
+    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
+    innerHTML += @buildEndOfLineHTML(line, invisibles)
+    innerHTML
+
+  buildEndOfLineHTML: ->
+    {line, invisibles, mini} = @props
+    return '' if mini or line.isSoftWrapped()
+
+    html = ''
+    if invisibles.cr? and line.lineEnding is '\r\n'
+      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
+    if invisibles.eol?
+      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
+
+    html
+
+  updateScopeStack: (scopeStack, desiredScopes) ->
+    html = ""
+
+    # Find a common prefix
+    for scope, i in desiredScopes
+      break unless scopeStack[i]?.scope is desiredScopes[i]
+
+    # Pop scopes until we're at the common prefx
+    until scopeStack.length is i
+      html += @popScope(scopeStack)
+
+    # Push onto common prefix until scopeStack equals desiredScopes
+    for j in [i...desiredScopes.length]
+      html += @pushScope(scopeStack, desiredScopes[j])
+
+    html
+
+  popScope: (scopeStack) ->
+    scopeStack.pop()
+    "</span>"
+
+  pushScope: (scopeStack, scope) ->
+    scopeStack.push(scope)
+    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
