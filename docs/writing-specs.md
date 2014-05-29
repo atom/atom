@@ -1,4 +1,4 @@
-# Writting specs
+# Writing specs
 
 Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec framework. Any new functionality should have specs to guard against regressions.
 
