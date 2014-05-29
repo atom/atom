@@ -776,6 +776,18 @@ describe "EditorComponent", ->
 
           expect(node.contains(lineNode)).toBe true
 
+        it "does not set the mouseWheelScreenRow if scrolling horizontally", ->
+          node.style.height = 4.5 * lineHeightInPixels + 'px'
+          node.style.width = 20 * charWidth + 'px'
+          component.measureHeightAndWidth()
+
+          lineNode = node.querySelector('.line')
+          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
+          Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+          node.dispatchEvent(wheelEvent)
+
+          expect(component.mouseWheelScreenRow).toBe null
+
       describe "when the mousewheel event's target is a line number", ->
         it "keeps the line number on the DOM if it is scrolled off-screen", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'

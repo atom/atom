@@ -356,16 +356,17 @@ EditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     event.preventDefault()
-    screenRow = @screenRowForNode(event.target)
-    @mouseWheelScreenRow = screenRow if screenRow?
     animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+      # Scrolling horizontally
       @pendingHorizontalScrollDelta -= wheelDeltaX
     else
+      # Scrolling vertically
       @pendingVerticalScrollDelta -= wheelDeltaY
+      @mouseWheelScreenRow = @screenRowForNode(event.target)
 
     unless animationFramePending
       requestAnimationFrame =>
