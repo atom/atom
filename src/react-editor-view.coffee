@@ -5,7 +5,9 @@ EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
-  @content: -> @div class: 'editor react-wrapper'
+  # The `overlayer` class is included for backwards compatibility with
+  # context menus. It should be removed in v1.0.0
+  @content: -> @div class: 'editor react-wrapper overlayer'
 
   focusOnAttach: false
 
