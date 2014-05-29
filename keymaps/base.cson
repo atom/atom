@@ -12,6 +12,7 @@
   # Sublime Parity
   'tab': 'editor:indent'
   'enter': 'editor:newline'
+  'num-enter': 'editor:newline'
   'shift-tab': 'editor:outdent-selected-rows'
   'ctrl-K': 'editor:delete-line'
 
@@ -26,6 +27,7 @@
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
   'enter': 'native!'
+  'num-enter': 'native!'
   'backspace': 'native!'
   'shift-backspace': 'native!'
   'delete': 'native!'
