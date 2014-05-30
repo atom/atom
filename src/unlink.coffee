@@ -3,11 +3,12 @@ path = require 'path'
 CSON = require 'season'
 optimist = require 'optimist'
 
-fs = require './fs'
+Command = require './command'
 config = require './config'
+fs = require './fs'
 
 module.exports =
-class Unlink
+class Unlink extends Command
   @commandNames: ['unlink']
 
   constructor: ->
@@ -29,8 +30,6 @@ class Unlink
     options.alias('d', 'dev').boolean('dev').describe('dev', 'Unlink package from ~/.atom/dev/packages')
     options.boolean('hard').describe('hard', 'Unlink package from ~/.atom/packages and ~/.atom/dev/packages')
     options.alias('a', 'all').boolean('all').describe('all', 'Unlink all packages in ~/.atom/packages and ~/.atom/dev/packages')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getDevPackagePath: (packageName) -> path.join(@devPackagesPath, packageName)
 
