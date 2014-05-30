@@ -2413,19 +2413,20 @@ describe "EditorView", ->
       expect(editorView.getFirstVisibleScreenRow()).toBe(0)
 
   describe ".checkoutHead()", ->
-    [filePath, originalPathText] = []
+    [filePath] = []
 
     beforeEach ->
-      filePath = atom.project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
+      workingDirPath = temp.mkdirSync('atom-working-dir')
+      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      atom.project.setPath(workingDirPath)
+      filePath = atom.project.resolve('file.txt')
+
       waitsForPromise ->
         atom.workspace.open(filePath).then (o) -> editor = o
 
       runs ->
         editorView.edit(editor)
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
 
     it "restores the contents of the editor view to the HEAD revision", ->
       editor.setText('')
@@ -2440,7 +2441,7 @@ describe "EditorView", ->
         fileChangeHandler.callCount > 0
 
       runs ->
-        expect(editor.getText()).toBe(originalPathText)
+        expect(editor.getText()).toBe('undefined')
 
   describe ".pixelPositionForBufferPosition(position)", ->
     describe "when the editor view is detached", ->
