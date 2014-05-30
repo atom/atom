@@ -1,21 +1,7 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
-
-var nodeVersion = process.versions.node.split('.')
-var nodeMajorVersion = +nodeVersion[0]
-var nodeMinorVersion = +nodeVersion[1]
-if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
-  console.warn("You must run script/bootstrap and script/build with node v0.10 or above");
-  process.exit(1);
-}
-
-// Make sure python2.7 is installed
-if (process.platform == 'win32' && !fs.existsSync('C:\\Python27\\')) {
-  console.warn("You must have Python 2.7 installed at 'C:\\Python27\\'");
-  process.exit(1);
-}
-
+var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var fs = require('fs');
 var path = require('path');
@@ -34,6 +20,8 @@ function executeCommands(commands, done, index) {
   } else
     done(null);
 }
+
+verifyRequirements();
 
 var apmInstallPath = path.resolve(__dirname, '..', 'apm');
 if (!fs.existsSync(apmInstallPath))
