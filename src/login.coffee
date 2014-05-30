@@ -70,5 +70,5 @@ class Login extends Command
 
     process.stdout.write('Saving token to Keychain ')
     auth.saveToken(token)
-    process.stdout.write '\u2713\n'.green
+    @logSuccess()
     Q(token)
