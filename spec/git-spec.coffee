@@ -88,48 +88,37 @@ describe "Git", ->
         expect(repo.isPathNew(filePath)).toBeFalsy()
 
   describe ".checkoutHead(path)", ->
-    [path1, path2, originalPath1Text, originalPath2Text] = []
+    [filePath, workingDirPath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      path1 = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPath1Text = fs.readFileSync(path1, 'utf8')
-      path2 = require.resolve('./fixtures/git/working-dir/other.txt')
-      originalPath2Text = fs.readFileSync(path2, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(path1, originalPath1Text)
-      fs.writeFileSync(path2, originalPath2Text)
+      workingDirPath = temp.mkdirSync('atom-working-dir')
+      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
 
     it "no longer reports a path as modified after checkout", ->
-      expect(repo.isPathModified(path1)).toBeFalsy()
-      fs.writeFileSync(path1, '')
-      expect(repo.isPathModified(path1)).toBeTruthy()
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(repo.isPathModified(path1)).toBeFalsy()
+      expect(repo.isPathModified(filePath)).toBeFalsy()
+      fs.writeFileSync(filePath, 'ch ch changes')
+      expect(repo.isPathModified(filePath)).toBeTruthy()
+      expect(repo.checkoutHead(filePath)).toBeTruthy()
+      expect(repo.isPathModified(filePath)).toBeFalsy()
 
     it "restores the contents of the path to the original text", ->
-      fs.writeFileSync(path1, '')
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readFileSync(path1, 'utf8')).toBe(originalPath1Text)
-
-    it "only restores the path specified", ->
-      fs.writeFileSync(path2, 'path 2 is edited')
-      expect(repo.isPathModified(path2)).toBeTruthy()
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readFileSync(path2, 'utf8')).toBe('path 2 is edited')
-      expect(repo.isPathModified(path2)).toBeTruthy()
+      fs.writeFileSync(filePath, 'ch ch changes')
+      expect(repo.checkoutHead(filePath)).toBeTruthy()
+      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "fires a status-changed event if the checkout completes successfully", ->
-      fs.writeFileSync(path1, '')
-      repo.getPathStatus(path1)
+      fs.writeFileSync(filePath, 'ch ch changes')
+      repo.getPathStatus(filePath)
       statusHandler = jasmine.createSpy('statusHandler')
       repo.on 'status-changed', statusHandler
-      repo.checkoutHead(path1)
+      repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0..1]).toEqual [path1, 0]
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [filePath, 0]
 
-      repo.checkoutHead(path1)
+      repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
 
   describe ".destroy()", ->
