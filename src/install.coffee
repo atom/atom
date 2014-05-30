@@ -109,13 +109,13 @@ class Install extends Command
             source = path.join(nodeModulesDirectory, child)
             destination = path.join(@atomPackagesDirectory, child)
             fs.cp(source, destination, forceDelete: true)
-          process.stdout.write '\u2713\n'.green
+          @logSuccess()
 
         callback()
       else
         if installGlobally
           fs.removeSync(installDirectory)
-          process.stdout.write '\u2717\n'.red
+          @logFailure()
 
         callback("#{stdout}\n#{stderr}")
 
@@ -130,13 +130,8 @@ class Install extends Command
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
 
-    @forkInstallCommand options, (code, stderr='', stdout='') =>
-      if code is 0
-        process.stdout.write '\u2713\n'.green
-        callback()
-      else
-        process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}")
+    @forkInstallCommand options, (args...) =>
+      @logCommandResults(callback, args...)
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
@@ -186,10 +181,10 @@ class Install extends Command
   #            as the second.
   downloadPackage: (packageUrl, installGlobally, callback) ->
     requestSettings = url: packageUrl
-    request.createReadStream requestSettings, (readStream) ->
+    request.createReadStream requestSettings, (readStream) =>
       readStream.on 'error', (error) ->
         callback("Unable to download #{packageUrl}: #{error.message}")
-      readStream.on 'response', (response) ->
+      readStream.on 'response', (response) =>
         if response.statusCode is 200
           filePath = path.join(temp.mkdirSync(), 'package.tgz')
           writeStream = fs.createWriteStream(filePath)
@@ -200,14 +195,14 @@ class Install extends Command
         else
           chunks = []
           response.on 'data', (chunk) -> chunks.push(chunk)
-          response.on 'end', ->
+          response.on 'end', =>
             try
               error = JSON.parse(Buffer.concat(chunks))
               message = error.message ? error.error ? error
-              process.stdout.write('\u2717\n'.red) if installGlobally
+              @logFailure() if installGlobally
               callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode} #{message}")
             catch parseError
-              process.stdout.write('\u2717\n'.red) if installGlobally
+              @logFailure() if installGlobally
               callback("Unable to download #{packageUrl}: #{response.headers.status ? response.statusCode}")
 
   # Get the path to the package from the local cache.
@@ -258,14 +253,14 @@ class Install extends Command
 
     @requestPackage packageName, (error, pack) =>
       if error?
-        process.stdout.write '\u2717\n'.red
+        @logFailure()
         callback(error)
       else
         commands = []
         packageVersion ?= pack.releases.latest
         {tarball} = pack.versions[packageVersion]?.dist ? {}
         unless tarball
-          process.stdout.write '\u2717\n'.red
+          @logFailure()
           callback("Package version: #{packageVersion} not found")
           return
 
@@ -281,12 +276,12 @@ class Install extends Command
         commands.push (packagePath, callback) =>
           @installModule(options, pack, packagePath, callback)
 
-        async.waterfall commands, (error) ->
+        async.waterfall commands, (error) =>
           unless installGlobally
             if error?
-              process.stdout.write '\u2717\n'.red
+              @logSuccess()
             else
-              process.stdout.write '\u2713\n'.green
+              @logFailure()
           callback(error)
 
   # Install all the package dependencies found in the package.json file.
