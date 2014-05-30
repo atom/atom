@@ -54,7 +54,7 @@ class ReactEditorView extends View
       @gutter.find('.line-number').removeClass(klass)
 
     @gutter.addClassToLine = (bufferRow, klass) =>
-      lines = @gutter.find("[data-buffer-row='#{bufferRow}']");
+      lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
       lines.addClass(klass)
       lines.length > 0
 
