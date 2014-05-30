@@ -188,17 +188,13 @@ describe "Git", ->
         expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
 
   describe "buffer events", ->
-    [originalContent, editor] = []
+    [editor] = []
 
     beforeEach ->
+      atom.project.setPath(copyRepository())
+
       waitsForPromise ->
-        atom.workspace.open('sample.js').then (o) -> editor = o
-
-      runs ->
-        originalContent = editor.getText()
-
-    afterEach ->
-      fs.writeFileSync(editor.getPath(), originalContent)
+        atom.workspace.open('other.txt').then (o) -> editor = o
 
     it "emits a status-changed event when a buffer is saved", ->
       editor.insertNewline()
@@ -232,15 +228,16 @@ describe "Git", ->
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->
-    [originalContent, buffer, project2] = []
+    [buffer, project2] = []
 
     afterEach ->
-      fs.writeFileSync(buffer.getPath(), originalContent)
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
+      atom.project.setPath(copyRepository())
+
       waitsForPromise ->
-        atom.workspace.open('sample.js')
+        atom.workspace.open('file.txt')
 
       runs ->
         project2 = atom.project.testSerialization()
