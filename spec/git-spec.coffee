@@ -5,6 +5,12 @@ path = require 'path'
 Task = require '../src/task'
 
 describe "Git", ->
+copyRepository = ->
+  workingDirPath = temp.mkdirSync('atom-working-dir')
+  fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+  fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+  workingDirPath
+
   repo = null
 
   beforeEach ->
@@ -44,9 +50,7 @@ describe "Git", ->
     [repo, filePath, newPath] = []
 
     beforeEach ->
-      workingDirPath = temp.mkdirSync('atom-working-dir')
-      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      workingDirPath = copyRepository()
       repo = new Git(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
@@ -70,9 +74,7 @@ describe "Git", ->
     [filePath, newPath] = []
 
     beforeEach ->
-      workingDirPath = temp.mkdirSync('atom-working-dir')
-      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      workingDirPath = copyRepository()
       repo = new Git(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
@@ -86,12 +88,10 @@ describe "Git", ->
         expect(repo.isPathNew(filePath)).toBeFalsy()
 
   describe ".checkoutHead(path)", ->
-    [filePath, workingDirPath] = []
+    [filePath] = []
 
     beforeEach ->
-      workingDirPath = temp.mkdirSync('atom-working-dir')
-      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      workingDirPath = copyRepository()
       repo = new Git(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
 
