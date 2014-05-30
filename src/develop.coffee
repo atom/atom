@@ -59,11 +59,11 @@ class Develop extends Command
     process.stdout.write "Cloning #{repoUrl} "
     @spawn command, args, (code, stderr='', stdout='') =>
       if code is 0
-        process.stdout.write '\u2713\n'.green
+        @logSuccess()
         @installDependencies(packageDirectory, options)
       else
-        process.stdout.write '\u2717\n'.red
-        options.callback("#{stdout}\n#{stderr}")
+        @logFailure()
+        options.callback("#{stdout}\n#{stderr}".trim())
 
   installDependencies: (packageDirectory, options) ->
     process.chdir(packageDirectory)
