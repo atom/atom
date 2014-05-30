@@ -2,12 +2,13 @@ path = require 'path'
 
 optimist = require 'optimist'
 
+Command = require './command'
 config = require './config'
 fs = require './fs'
 tree = require './tree'
 
 module.exports =
-class Links
+class Links extends Command
   @commandNames: ['linked', 'links', 'lns']
 
   constructor: ->
@@ -24,8 +25,6 @@ class Links
       ~/.atom/dev/packages.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getDevPackagePath: (packageName) -> path.join(@devPackagesPath, packageName)
 

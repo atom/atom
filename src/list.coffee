@@ -4,12 +4,13 @@ _ = require 'underscore-plus'
 CSON = require 'season'
 optimist = require 'optimist'
 
+Command = require './command'
 fs = require './fs'
 config = require './config'
 tree = require './tree'
 
 module.exports =
-class List
+class List extends Command
   @commandNames: ['list', 'ls']
 
   constructor: ->
@@ -31,8 +32,6 @@ class List
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
