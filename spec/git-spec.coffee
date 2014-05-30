@@ -125,22 +125,6 @@ copyRepository = ->
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
-  describe ".getDiffStats(path)", ->
-    [filePath, originalPathText] = []
-
-    beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
-
-    it "returns the number of lines added and deleted", ->
-      expect(repo.getDiffStats(filePath)).toEqual {added: 0, deleted: 0}
-      fs.writeFileSync(filePath, "#{originalPathText} edited line")
-      expect(repo.getDiffStats(filePath)).toEqual {added: 1, deleted: 1}
-
   describe ".getPathStatus(path)", ->
     [filePath, originalPathText] = []
 
