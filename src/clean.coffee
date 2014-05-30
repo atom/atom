@@ -68,13 +68,8 @@ class Clean extends Command
 
   removeModule: (module, callback) ->
     process.stdout.write("Removing #{module} ")
-    @fork @atomNpmPath, ['uninstall', module], (code, stderr='', stdout='') =>
-      if code is 0
-        process.stdout.write '\u2713\n'.green
-        callback()
-      else
-        process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}".trim())
+    @fork @atomNpmPath, ['uninstall', module], (args...) =>
+      @logCommandResults(callback, args...)
 
   run: (options) ->
     uninstallCommands = []
