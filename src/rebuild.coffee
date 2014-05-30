@@ -41,10 +41,10 @@ class Rebuild extends Command
         env = _.extend({}, process.env, HOME: @atomNodeDirectory)
         env.USERPROFILE = env.HOME if config.isWin32()
 
-        @fork @atomNpmPath, rebuildArgs, {env}, (code, stderr='') ->
+        @fork @atomNpmPath, rebuildArgs, {env}, (code, stderr='') =>
           if code is 0
-            process.stdout.write '\u2713\n'.green
+            @logSuccess()
             callback()
           else
-            process.stdout.write '\u2717\n'.red
+            @logFailure()
             callback(stderr)
