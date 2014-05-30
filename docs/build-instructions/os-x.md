@@ -9,7 +9,7 @@
 ## Instructions
 
   ```sh
-  git clone https://github.com/atom/atom
+  git clone https://github.com/atom/atom.git
   cd atom
   script/build # Creates application at /Applications/Atom.app
   ```
