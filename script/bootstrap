@@ -3,7 +3,6 @@
 var fs = require('fs');
 var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
-var fs = require('fs');
 var path = require('path');
 
 // Executes an array of commands one by one.
