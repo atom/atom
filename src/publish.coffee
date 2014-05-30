@@ -206,7 +206,7 @@ class Publish extends Command
   #            first argument.
   publishPackage: (pack, tag, callback) ->
     process.stdout.write "Publishing #{pack.name}@#{tag} "
-    @createPackageVersion pack.name, tag, (error) ->
+    @createPackageVersion pack.name, tag, (error) =>
       if error?
         @logFailure()
         callback(error)
