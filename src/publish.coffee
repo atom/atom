@@ -73,7 +73,7 @@ class Publish extends Command
   pushVersion: (tag, callback) ->
     process.stdout.write "Pushing #{tag} tag "
     pushArgs = ['push', 'origin', 'HEAD', tag]
-    @spawn 'git', pushArgs, (args...) ->
+    @spawn 'git', pushArgs, (args...) =>
       @logCommandResults(callback, args...)
 
   # Check for the tag being available from the GitHub API before notifying
