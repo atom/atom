@@ -126,15 +126,12 @@ describe "Git", ->
       expect(-> repo.getShortHead()).toThrow()
 
   describe ".getPathStatus(path)", ->
-    [filePath, originalPathText] = []
+    [filePath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      filePath = path.join(workingDirectory, 'file.txt')
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
@@ -149,16 +146,13 @@ describe "Git", ->
       expect(statusHandler.callCount).toBe 1
 
   describe ".getDirectoryStatus(path)", ->
-    [directoryPath, filePath, originalPathText] = []
+    [directoryPath, filePath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      directoryPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'dir')
-      filePath = require.resolve('./fixtures/git/working-dir/dir/b.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      directoryPath = path.join(workingDirectory, 'dir')
+      filePath = path.join(directoryPath, 'b.txt')
 
     it "gets the status based on the files inside the directory", ->
       expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe false
@@ -170,17 +164,14 @@ describe "Git", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      modifiedPath = atom.project.resolve('git/working-dir/file.txt')
-      originalModifiedPathText = fs.readFileSync(modifiedPath, 'utf8')
-      newPath = atom.project.resolve('git/working-dir/untracked.txt')
-      cleanPath = atom.project.resolve('git/working-dir/other.txt')
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      modifiedPath = path.join(workingDirectory, 'file.txt')
+      newPath = path.join(workingDirectory, 'untracked.txt')
+      cleanPath = path.join(workingDirectory, 'other.txt')
+      fs.writeFileSync(cleanPath, 'Full of text')
       fs.writeFileSync(newPath, '')
       newPath = fs.absolute newPath  # specs could be running under symbol path.
-
-    afterEach ->
-      fs.writeFileSync(modifiedPath, originalModifiedPathText)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     it "returns status information for all new and modified files", ->
       fs.writeFileSync(modifiedPath, 'making this path modified')
