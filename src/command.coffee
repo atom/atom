@@ -50,7 +50,7 @@ class Command
     if process.platform is 'win32'
       process.stdout.write 'failed\n'.green
     else
-      process.stdout.write '\u2713\n'.green
+      process.stdout.write '\u2717\n'.green
 
   logCommandResults: (callback, code, stderr='', stdout='') =>
     if code is 0
