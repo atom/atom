@@ -43,9 +43,9 @@ class Uninstall extends Command
         if options.argv.hard or options.argv.dev
           fs.removeSync(path.join(devPackagesDirectory, packageName))
 
-        process.stdout.write '\u2713\n'.green
+        @logSuccess()
       catch error
-        process.stdout.write '\u2717\n'.red
+        @logFailure()
         callback("Failed to delete #{packageName}: #{error.message}")
         return
 

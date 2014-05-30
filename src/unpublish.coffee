@@ -28,9 +28,9 @@ class Unpublish extends Command
   unpublishPackage: (packageName, callback) ->
     process.stdout.write "Unpublishing #{packageName} "
 
-    auth.getToken (error, token) ->
+    auth.getToken (error, token) =>
       if error?
-        process.stdout.write '\u2717\n'.red
+        @logFailure()
         callback(error)
         return
 
@@ -40,16 +40,16 @@ class Unpublish extends Command
           authorization: token
         json: true
 
-      request.del options, (error, response, body={}) ->
+      request.del options, (error, response, body={}) =>
         if error?
-          process.stdout.write '\u2717\n'.red
+          @logFailure()
           callback(error)
         else if response.statusCode isnt 204
-          process.stdout.write '\u2717\n'.red
+          @logFailure()
           message = body.message ? body.error ? body
           callback("Unpublishing failed: #{message}")
         else
-          process.stdout.write '\u2713\n'.green
+          @logSuccess()
           callback()
 
   promptForConfirmation: (packageName, callback) ->

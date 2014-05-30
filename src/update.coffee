@@ -1,10 +1,11 @@
 optimist = require 'optimist'
 
 Clean = require './clean'
+Command = require './command'
 Install = require './install'
 
 module.exports =
-class Update
+class Update extends Command
   @commandNames: ['update']
 
   parseOptions: (argv) ->
@@ -18,8 +19,6 @@ class Update
       See `apm help clean` and `apm help install` for more information.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
     finalCallback = options.callback

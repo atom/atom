@@ -58,13 +58,8 @@ class Dedupe extends Command
   dedupeModules: (options, callback) ->
     process.stdout.write 'Deduping modules '
 
-    @forkDedupeCommand options, (code, stderr='', stdout='') =>
-      if code is 0
-        process.stdout.write '\u2713\n'.green
-        callback()
-      else
-        process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}")
+    @forkDedupeCommand options, (args...) =>
+      @logCommandResults(callback, args...)
 
   forkDedupeCommand: (options, callback) ->
     dedupeArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'dedupe']

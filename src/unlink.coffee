@@ -3,11 +3,12 @@ path = require 'path'
 CSON = require 'season'
 optimist = require 'optimist'
 
-fs = require './fs'
+Command = require './command'
 config = require './config'
+fs = require './fs'
 
 module.exports =
-class Unlink
+class Unlink extends Command
   @commandNames: ['unlink']
 
   constructor: ->
@@ -30,8 +31,6 @@ class Unlink
     options.boolean('hard').describe('hard', 'Unlink package from ~/.atom/packages and ~/.atom/dev/packages')
     options.alias('a', 'all').boolean('all').describe('all', 'Unlink all packages in ~/.atom/packages and ~/.atom/dev/packages')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   getDevPackagePath: (packageName) -> path.join(@devPackagesPath, packageName)
 
   getPackagePath: (packageName) -> path.join(@packagesPath, packageName)
@@ -40,9 +39,9 @@ class Unlink
     try
       process.stdout.write "Unlinking #{pathToUnlink} "
       fs.unlinkSync(pathToUnlink) if fs.isSymbolicLinkSync(pathToUnlink)
-      process.stdout.write '\u2713\n'.green
+      @logSuccess()
     catch error
-      process.stdout.write '\u2717\n'.red
+      @logFailure()
       throw error
 
   unlinkAll: (options, callback) ->
