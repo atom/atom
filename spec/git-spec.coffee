@@ -41,17 +41,15 @@ describe "Git", ->
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
 
   describe ".isPathModified(path)", ->
-    [repo, filePath, newPath, originalPathText] = []
+    [repo, filePath, newPath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
+      workingDirPath = temp.mkdirSync('atom-working-dir')
+      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
+      newPath = path.join(workingDirPath, 'new-path.txt')
 
     describe "when the path is unstaged", ->
       it "returns false if the path has not been modified", ->
@@ -72,13 +70,13 @@ describe "Git", ->
     [filePath, newPath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
+      workingDirPath = temp.mkdirSync('atom-working-dir')
+      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
+      newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
-
-    afterEach ->
-      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns true if the path is new", ->
