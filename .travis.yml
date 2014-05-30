@@ -1,7 +1,9 @@
 language: node_js
 
 notifications:
-  email: false
+  email:
+    on_success: never
+    on_failure: change
 
 node_js:
   - 0.10
