@@ -25,7 +25,7 @@ function verifyPython27() {
     }
 
     if (!fs.existsSync(pythonPath)) {
-      console.warn("Python 2.7 is required to build Atom. Python 2.7 must be installed at '" + pythonPath + "' or the PYTHON env var must be set to '/path/to/executable/python2.7'");
+      console.warn("Python 2.7 is required to build Atom. Python 2.7 must be installed at '" + pythonPath + "' or the PYTHON env var must be set to '/path/to/Python27/python.exe'");
       process.exit(1);
     }
   }
