@@ -788,6 +788,21 @@ describe "EditorComponent", ->
 
           expect(component.mouseWheelScreenRow).toBe null
 
+        it "does not preserve the line if it is on screen", ->
+          expect(node.querySelectorAll('.line-number').length).toBe 14 # dummy line
+          lineNodes = node.querySelectorAll('.line')
+          expect(lineNodes.length).toBe 13
+          lineNode = lineNodes[0]
+
+          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
+          Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+          node.dispatchEvent(wheelEvent)
+
+          expect(component.mouseWheelScreenRow).toBe 0
+          editor.insertText("hello")
+          expect(node.querySelectorAll('.line-number').length).toBe 14 # dummy line
+          expect(node.querySelectorAll('.line').length).toBe 13
+
       describe "when the mousewheel event's target is a line number", ->
         it "keeps the line number on the DOM if it is scrolled off-screen", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'

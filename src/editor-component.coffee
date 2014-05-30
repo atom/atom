@@ -38,6 +38,7 @@ EditorComponent = React.createClass
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
+      [renderedStartRow, renderedEndRow] = renderedRowRange
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -48,6 +49,8 @@ EditorComponent = React.createClass
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
       horizontallyScrollable = editor.horizontallyScrollable()
+      if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
+        mouseWheelScreenRow = @mouseWheelScreenRow
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
@@ -56,7 +59,7 @@ EditorComponent = React.createClass
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
-        @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
+        @pendingChanges, onWidthChanged: @onGutterWidthChanged, mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
@@ -64,7 +67,7 @@ EditorComponent = React.createClass
         lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
-        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
+        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, mouseWheelScreenRow,
         invisibles, visible, scrollViewHeight, focused
       }
 
