@@ -39,3 +39,23 @@ class Command
     packageNames = argv._ ? []
     packageNames = packageNames.map (packageName) -> packageName.trim()
     _.compact(_.uniq(packageNames))
+
+  logSuccess: =>
+    if process.platform is 'win32'
+      process.stdout.write 'done\n'.green
+    else
+      process.stdout.write '\u2713\n'.green
+
+  logFailure: =>
+    if process.platform is 'win32'
+      process.stdout.write 'failed\n'.green
+    else
+      process.stdout.write '\u2713\n'.green
+
+  logCommandResult: (callback, code, stderr='', stdout='') =>
+    if code is 0
+      @logSuccess()
+      callback()
+    else
+      @logFailure()
+      callback("#{stdout}\n#{stderr}".trim())
