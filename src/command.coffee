@@ -52,7 +52,7 @@ class Command
     else
       process.stdout.write '\u2713\n'.green
 
-  logCommandResult: (callback, code, stderr='', stdout='') =>
+  logCommandResults: (callback, code, stderr='', stdout='') =>
     if code is 0
       @logSuccess()
       callback()
