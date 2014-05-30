@@ -57,13 +57,13 @@ class Publish extends Command
   versionPackage: (version, callback) ->
     process.stdout.write 'Preparing and tagging a new version '
     versionArgs = ['version', version, '-m', 'Prepare %s release']
-    @fork @atomNpmPath, versionArgs, (code, stderr='', stdout='') ->
+    @fork @atomNpmPath, versionArgs, (code, stderr='', stdout='') =>
       if code is 0
-        process.stdout.write '\u2713\n'.green
+        @logSuccess()
         callback(null, stdout.trim())
       else
-        process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}")
+        @logFailure()
+        callback("#{stdout}\n#{stderr}".trim())
 
   # Push a tag to the remote repository.
   #
@@ -73,13 +73,8 @@ class Publish extends Command
   pushVersion: (tag, callback) ->
     process.stdout.write "Pushing #{tag} tag "
     pushArgs = ['push', 'origin', 'HEAD', tag]
-    @spawn 'git', pushArgs, (code, stderr='', stdout='') ->
-      if code is 0
-        process.stdout.write '\u2713\n'.green
-        callback()
-      else
-        process.stdout.write '\u2717\n'.red
-        callback("#{stdout}\n#{stderr}")
+    @spawn 'git', pushArgs, (args...) ->
+      @logCommandResults(callback, args...)
 
   # Check for the tag being available from the GitHub API before notifying
   # atom.io about the new version.
@@ -151,9 +146,9 @@ class Publish extends Command
         return
 
       process.stdout.write "Registering #{pack.name} "
-      @getToken (error, token) ->
+      @getToken (error, token) =>
         if error?
-          process.stdout.write '\u2717\n'.red
+          @logFailure()
           callback(error)
           return
 
@@ -164,15 +159,15 @@ class Publish extends Command
             repository: repository
           headers:
             authorization: token
-        request.post requestSettings, (error, response, body={}) ->
+        request.post requestSettings, (error, response, body={}) =>
           if error?
             callback(error)
           else if response.statusCode isnt 201
             message = body.message ? body.error ? body
-            process.stdout.write '\u2717\n'.red
+            @logFailure()
             callback("Registering package in #{repository} repository failed: #{message}")
           else
-            process.stdout.write '\u2713\n'.green
+            @logSuccess()
             callback(null, true)
 
   # Create a new package version at the given Git tag.
@@ -213,10 +208,10 @@ class Publish extends Command
     process.stdout.write "Publishing #{pack.name}@#{tag} "
     @createPackageVersion pack.name, tag, (error) ->
       if error?
-        process.stdout.write '\u2717\n'.red
+        @logFailure()
         callback(error)
       else
-        process.stdout.write '\u2713\n'.green
+        @logSuccess()
         callback()
 
   logFirstTimePublishMessage: (pack) ->
