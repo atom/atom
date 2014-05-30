@@ -40,9 +40,9 @@ class Unlink
     try
       process.stdout.write "Unlinking #{pathToUnlink} "
       fs.unlinkSync(pathToUnlink) if fs.isSymbolicLinkSync(pathToUnlink)
-      process.stdout.write '\u2713\n'.green
+      @logSuccess()
     catch error
-      process.stdout.write '\u2717\n'.red
+      @logFailure()
       throw error
 
   unlinkAll: (options, callback) ->
