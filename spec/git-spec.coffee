@@ -4,13 +4,13 @@ fs = require 'fs-plus'
 path = require 'path'
 Task = require '../src/task'
 
-describe "Git", ->
 copyRepository = ->
   workingDirPath = temp.mkdirSync('atom-working-dir')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
 
+describe "Git", ->
   repo = null
 
   beforeEach ->
