@@ -380,8 +380,8 @@ describe "the `atom` global", ->
 
           runs ->
             atom.packages.deactivatePackage('package-with-keymaps')
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:$$ -> @div class: 'test-1'[0])).toHaveLength 0
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:$$ -> @div class: 'test-2'[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
 
         it "removes the package's stylesheets", ->
           waitsForPromise ->
