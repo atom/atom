@@ -1616,6 +1616,13 @@ describe "Editor", ->
         expect(editor.lineForBufferRow(1)).toBe '  '
         expect(editor.lineForBufferRow(2)).toBe '}'
 
+    describe "when a new line is appended before a closing tag (e.g. by pressing enter before a selection)", ->
+      it "moves the line down and keeps the indentation level the same when editor.autoIndent is true", ->
+        atom.config.set('editor.autoIndent', true)
+        editor.setCursorBufferPosition([9,2])
+        editor.insertNewline()
+        expect(editor.lineForBufferRow(10)).toBe '  };'
+        
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null

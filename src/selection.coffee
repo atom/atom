@@ -305,7 +305,10 @@ class Selection extends Model
     if options.autoIndent
       @editor.autoIndentBufferRow(row) for row in newBufferRange.getRows()
     else if options.autoIndentNewline and text == '\n'
+      currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true)
+      if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
+        @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
     else if options.autoDecreaseIndent and /\S/.test text
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
