@@ -29,6 +29,7 @@ EditorComponent = React.createClass
   pendingVerticalScrollDelta: 0
   pendingHorizontalScrollDelta: 0
   mouseWheelScreenRow: null
+  mouseWheelScreenRowClearDelay: 150
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -370,6 +371,8 @@ EditorComponent = React.createClass
       # Scrolling vertically
       @pendingVerticalScrollDelta -= wheelDeltaY
       @mouseWheelScreenRow = @screenRowForNode(event.target)
+      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
+      @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
       requestAnimationFrame =>
@@ -378,6 +381,13 @@ EditorComponent = React.createClass
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
+
+  clearMouseWheelScreenRow: ->
+    if @mouseWheelScreenRow?
+      @mouseWheelScreenRow = null
+      @requestUpdate()
+
+  clearMouseWheelScreenRowAfterDelay: null # created lazily
 
   screenRowForNode: (node) ->
     while node isnt document

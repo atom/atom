@@ -790,6 +790,22 @@ describe "EditorComponent", ->
 
         expect(component.mouseWheelScreenRow).toBe null
 
+      it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
+        spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
+
+        expect(editor.getScrollTop()).toBe 0
+
+        lineNode = node.querySelector('.line')
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+        node.dispatchEvent(wheelEvent)
+
+        expect(editor.getScrollTop()).toBe 0
+
+        expect(component.mouseWheelScreenRow).toBe 0
+        advanceClock(component.mouseWheelScreenRowClearDelay)
+        expect(component.mouseWheelScreenRow).toBe null
+
       it "does not preserve the line if it is on screen", ->
         expect(node.querySelectorAll('.line-number').length).toBe 14 # dummy line
         lineNodes = node.querySelectorAll('.line')
