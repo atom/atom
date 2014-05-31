@@ -279,9 +279,9 @@ class Install extends Command
         async.waterfall commands, (error) =>
           unless installGlobally
             if error?
-              @logSuccess()
-            else
               @logFailure()
+            else
+              @logSuccess()
           callback(error)
 
   # Install all the package dependencies found in the package.json file.
