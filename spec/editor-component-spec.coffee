@@ -747,47 +747,92 @@ describe "EditorComponent", ->
       expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
 
     describe "when a mousewheel event occurs on the editor", ->
-      it "updates the horizontal or vertical scrollbar depending on which delta is greater (x or y)", ->
+
+  describe "mousewheel events", ->
+    it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      node.style.width = 20 * charWidth + 'px'
+      component.measureHeightAndWidth()
+
+      expect(verticalScrollbarNode.scrollTop).toBe 0
+      expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+      node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
+      expect(verticalScrollbarNode.scrollTop).toBe 10
+      expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+      node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
+      expect(verticalScrollbarNode.scrollTop).toBe 10
+      expect(horizontalScrollbarNode.scrollLeft).toBe 15
+
+    describe "when the mousewheel event's target is a line", ->
+      it "keeps the line on the DOM if it is scrolled off-screen", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
         component.measureHeightAndWidth()
 
-        expect(verticalScrollbarNode.scrollTop).toBe 0
-        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+        lineNode = node.querySelector('.line')
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+        node.dispatchEvent(wheelEvent)
 
-        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        expect(verticalScrollbarNode.scrollTop).toBe 10
-        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+        expect(node.contains(lineNode)).toBe true
 
-        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        expect(verticalScrollbarNode.scrollTop).toBe 10
-        expect(horizontalScrollbarNode.scrollLeft).toBe 15
+      it "does not set the mouseWheelScreenRow if scrolling horizontally", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 20 * charWidth + 'px'
+        component.measureHeightAndWidth()
 
-      describe "when the mousewheel event's target is a line", ->
-        it "keeps the line on the DOM if it is scrolled off-screen", ->
-          node.style.height = 4.5 * lineHeightInPixels + 'px'
-          node.style.width = 20 * charWidth + 'px'
-          component.measureHeightAndWidth()
+        lineNode = node.querySelector('.line')
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+        node.dispatchEvent(wheelEvent)
 
-          lineNode = node.querySelector('.line')
-          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
-          Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
-          node.dispatchEvent(wheelEvent)
+        expect(component.mouseWheelScreenRow).toBe null
 
-          expect(node.contains(lineNode)).toBe true
+      it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
+        spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
 
-      describe "when the mousewheel event's target is a line number", ->
-        it "keeps the line number on the DOM if it is scrolled off-screen", ->
-          node.style.height = 4.5 * lineHeightInPixels + 'px'
-          node.style.width = 20 * charWidth + 'px'
-          component.measureHeightAndWidth()
+        expect(editor.getScrollTop()).toBe 0
 
-          lineNumberNode = node.querySelectorAll('.line-number')[1]
-          wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
-          Object.defineProperty(wheelEvent, 'target', get: -> lineNumberNode)
-          node.dispatchEvent(wheelEvent)
+        lineNode = node.querySelector('.line')
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+        node.dispatchEvent(wheelEvent)
 
-          expect(node.contains(lineNumberNode)).toBe true
+        expect(editor.getScrollTop()).toBe 0
+
+        expect(component.mouseWheelScreenRow).toBe 0
+        advanceClock(component.mouseWheelScreenRowClearDelay)
+        expect(component.mouseWheelScreenRow).toBe null
+
+      it "does not preserve the line if it is on screen", ->
+        expect(node.querySelectorAll('.line-number').length).toBe 14 # dummy line
+        lineNodes = node.querySelectorAll('.line')
+        expect(lineNodes.length).toBe 13
+        lineNode = lineNodes[0]
+
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
+        node.dispatchEvent(wheelEvent)
+
+        expect(component.mouseWheelScreenRow).toBe 0
+        editor.insertText("hello")
+        expect(node.querySelectorAll('.line-number').length).toBe 14 # dummy line
+        expect(node.querySelectorAll('.line').length).toBe 13
+
+    describe "when the mousewheel event's target is a line number", ->
+      it "keeps the line number on the DOM if it is scrolled off-screen", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 20 * charWidth + 'px'
+        component.measureHeightAndWidth()
+
+        lineNumberNode = node.querySelectorAll('.line-number')[1]
+        wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
+        Object.defineProperty(wheelEvent, 'target', get: -> lineNumberNode)
+        node.dispatchEvent(wheelEvent)
+
+        expect(node.contains(lineNumberNode)).toBe true
 
   describe "input events", ->
     inputNode = null

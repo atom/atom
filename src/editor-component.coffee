@@ -29,6 +29,7 @@ EditorComponent = React.createClass
   pendingVerticalScrollDelta: 0
   pendingHorizontalScrollDelta: 0
   mouseWheelScreenRow: null
+  mouseWheelScreenRowClearDelay: 150
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -38,6 +39,7 @@ EditorComponent = React.createClass
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
+      [renderedStartRow, renderedEndRow] = renderedRowRange
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -48,6 +50,8 @@ EditorComponent = React.createClass
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
       horizontallyScrollable = editor.horizontallyScrollable()
+      if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
+        mouseWheelScreenRow = @mouseWheelScreenRow
 
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
@@ -56,7 +60,7 @@ EditorComponent = React.createClass
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
-        @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
+        @pendingChanges, onWidthChanged: @onGutterWidthChanged, mouseWheelScreenRow
       }
 
       EditorScrollViewComponent {
@@ -64,7 +68,7 @@ EditorComponent = React.createClass
         lineHeight, lineHeightInPixels, renderedRowRange, @pendingChanges,
         scrollTop, scrollLeft, scrollHeight, scrollWidth, @scrollingVertically,
         @cursorsMoved, @selectionChanged, @selectionAdded, cursorBlinkPeriod,
-        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, @mouseWheelScreenRow,
+        cursorBlinkResumeDelay, @onInputFocused, @onInputBlurred, mouseWheelScreenRow,
         invisibles, visible, scrollViewHeight, focused
       }
 
@@ -356,16 +360,19 @@ EditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     event.preventDefault()
-    screenRow = @screenRowForNode(event.target)
-    @mouseWheelScreenRow = screenRow if screenRow?
     animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+      # Scrolling horizontally
       @pendingHorizontalScrollDelta -= wheelDeltaX
     else
+      # Scrolling vertically
       @pendingVerticalScrollDelta -= wheelDeltaY
+      @mouseWheelScreenRow = @screenRowForNode(event.target)
+      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
+      @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
       requestAnimationFrame =>
@@ -374,6 +381,13 @@ EditorComponent = React.createClass
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
+
+  clearMouseWheelScreenRow: ->
+    if @mouseWheelScreenRow?
+      @mouseWheelScreenRow = null
+      @requestUpdate()
+
+  clearMouseWheelScreenRowAfterDelay: null # created lazily
 
   screenRowForNode: (node) ->
     while node isnt document

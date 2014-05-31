@@ -33,7 +33,10 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize')
+    return true unless isEqualForProperties(newProps, @props,
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize',
+      'mouseWheelScreenRow'
+    )
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
