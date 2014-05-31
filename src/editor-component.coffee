@@ -49,6 +49,18 @@ EditorComponent = React.createClass
       verticallyScrollable = editor.verticallyScrollable()
       horizontallyScrollable = editor.horizontallyScrollable()
 
+    # Whoa.
+    extensionProps = {
+      editor, cursorBlinkPeriod, cursorBlinkResumeDelay,
+      focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible
+      renderedRowRange, scrollHeight, scrollWidth, scrollTop, scrollLeft,
+      lineHeightInPixels, scrollViewHeight, horizontalScrollbarHeight,
+      verticalScrollbarWidth, verticallyScrollable, horizontallyScrollable,
+      maxLineNumberDigits, invisibles,
+      @pendingChanges, @mouseWheelScreenRow
+    }
+    extensions = (extension.render(extensionProps) for extension in (@extensions or []))
+
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
@@ -58,6 +70,8 @@ EditorComponent = React.createClass
         scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, @mouseWheelScreenRow
       }
+
+      extensions
 
       EditorScrollViewComponent {
         ref: 'scrollView', editor, fontSize, fontFamily, showIndentGuide,
@@ -99,6 +113,9 @@ EditorComponent = React.createClass
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
+
+  setExtensions: (@extensions) ->
+    @requestUpdate()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
