@@ -119,13 +119,6 @@ EditorComponent = React.createClass
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
 
-  getRenderedRowRange: ->
-    {editor, lineOverdrawMargin} = @props
-    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
-    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
-    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
-    [renderedStartRow, renderedEndRow]
-
   getInitialState: ->
     visible: true
 
@@ -307,47 +300,6 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
 
-  measureScrollbars: ->
-    @measuringScrollbars = false
-
-    {editor} = @props
-    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
-    width = (scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth) or 15
-    height = (scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight) or 15
-    editor.setVerticalScrollbarWidth(width)
-    editor.setHorizontalScrollbarHeight(height)
-
-  setFontSize: (fontSize) ->
-    @setState({fontSize})
-
-  setLineHeight: (lineHeight) ->
-    @setState({lineHeight})
-
-  setFontFamily: (fontFamily) ->
-    @setState({fontFamily})
-
-  setShowIndentGuide: (showIndentGuide) ->
-    @setState({showIndentGuide})
-
-  # Public: Defines which characters are invisible.
-  #
-  # invisibles - An {Object} defining the invisible characters:
-  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
-  #   :space - The space invisible {String} (default: `\u00b7`).
-  #   :tab   - The tab invisible {String} (default: `\u00bb`).
-  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
-  setInvisibles: (invisibles={}) ->
-    defaults invisibles,
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
-
-    @setState({invisibles})
-
-  setShowInvisibles: (showInvisibles) ->
-    @setState({showInvisibles})
-
   onFocus: ->
     @refs.input.focus()
 
@@ -405,13 +357,6 @@ EditorComponent = React.createClass
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
 
-  clearMouseWheelScreenRow: ->
-    if @mouseWheelScreenRow?
-      @mouseWheelScreenRow = null
-      @requestUpdate()
-
-  clearMouseWheelScreenRowAfterDelay: null # created lazily
-
   onScrollViewOverflowChanged: ->
     if @overflowChangedEventsPaused
       @overflowChangedWhilePaused = true
@@ -454,6 +399,56 @@ EditorComponent = React.createClass
 
     @selectToMousePositionUntilMouseUp(event)
 
+  onStylesheetsChanged: (stylesheet) ->
+    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+
+  onBatchedUpdatesStarted: ->
+    @batchingUpdates = true
+
+  onBatchedUpdatesEnded: ->
+    updateRequested = @updateRequested
+    @updateRequested = false
+    @batchingUpdates = false
+    if updateRequested
+      @requestUpdate()
+
+  onScreenLinesChanged: (change) ->
+    {editor} = @props
+    @pendingChanges.push(change)
+    @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
+
+  onSelectionChanged: (selection) ->
+    {editor} = @props
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @requestUpdate()
+
+  onSelectionAdded: (selection) ->
+    {editor} = @props
+    if editor.selectionIntersectsVisibleRowRange(selection)
+      @selectionChanged = true
+      @selectionAdded = true
+      @requestUpdate()
+
+  onScrollTopChanged: ->
+    @scrollingVertically = true
+    @requestUpdate()
+    @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 100)
+    @onStoppedScrollingAfterDelay()
+
+  onStoppedScrolling: ->
+    @scrollingVertically = false
+    @mouseWheelScreenRow = null
+    @requestUpdate()
+
+  onStoppedScrollingAfterDelay: null # created lazily
+
+  onCursorsMoved: ->
+    @cursorsMoved = true
+
+  onGutterWidthChanged: (@gutterWidth) ->
+    @requestUpdate()
+
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props
     dragging = false
@@ -489,31 +484,13 @@ EditorComponent = React.createClass
   selectToMousePosition: (event) ->
     @props.editor.selectToScreenPosition(@screenPositionForMouseEvent(event))
 
-  screenPositionForMouseEvent: (event) ->
-    pixelPosition = @pixelPositionForMouseEvent(event)
-    @props.editor.screenPositionForPixelPosition(pixelPosition)
+  requestScrollViewMeasurement: ->
+    return if @measurementPending
 
-  pixelPositionForMouseEvent: (event) ->
-    {editor} = @props
-    {clientX, clientY} = event
-
-    scrollViewClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
-    top = clientY - scrollViewClientRect.top + editor.getScrollTop()
-    left = clientX - scrollViewClientRect.left + editor.getScrollLeft()
-    {top, left}
-
-  getHiddenInputPosition: ->
-    {editor} = @props
-    {focused} = @state
-    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
-
-    {top, left, height, width} = editor.getCursor().getPixelRect()
-    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
-    top -= editor.getScrollTop()
-    left -= editor.getScrollLeft()
-    top = Math.max(0, Math.min(editor.getHeight() - height, top))
-    left = Math.max(0, Math.min(editor.getWidth() - width, left))
-    {top, left}
+    @scrollViewMeasurementRequested = true
+    requestAnimationFrame =>
+      @scrollViewMeasurementRequested = false
+      @measureScrollView()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
@@ -536,15 +513,15 @@ EditorComponent = React.createClass
       clientWidth = scrollViewNode.clientWidth
       editor.setWidth(clientWidth) if clientWidth > 0
 
-  screenRowForNode: (node) ->
-    while node isnt document
-      if screenRow = node.dataset.screenRow
-        return parseInt(screenRow)
-      node = node.parentNode
-    null
+  measureScrollbars: ->
+    @measuringScrollbars = false
 
-  onStylesheetsChanged: (stylesheet) ->
-    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    {editor} = @props
+    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
+    width = (scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth) or 15
+    height = (scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight) or 15
+    editor.setVerticalScrollbarWidth(width)
+    editor.setHorizontalScrollbarHeight(height)
 
   containsScrollbarSelector: (stylesheet) ->
     for rule in stylesheet.cssRules
@@ -572,66 +549,11 @@ EditorComponent = React.createClass
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
 
-  onBatchedUpdatesStarted: ->
-    @batchingUpdates = true
-
-  onBatchedUpdatesEnded: ->
-    updateRequested = @updateRequested
-    @updateRequested = false
-    @batchingUpdates = false
-    if updateRequested
-      @requestUpdate()
-
-  onScreenLinesChanged: (change) ->
-    {editor} = @props
-    @pendingChanges.push(change)
-    @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
-
-  onSelectionChanged: (selection) ->
-    {editor} = @props
-    if editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-      @requestUpdate()
-
-  onSelectionAdded: (selection) ->
-    {editor} = @props
-    if editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-      @selectionAdded = true
-      @requestUpdate()
-
-  onScrollTopChanged: ->
-    @scrollingVertically = true
-    @requestUpdate()
-    @stopScrollingAfterDelay ?= debounce(@onStoppedScrolling, 100)
-    @stopScrollingAfterDelay()
-
-  onStoppedScrolling: ->
-    @scrollingVertically = false
-    @mouseWheelScreenRow = null
-    @requestUpdate()
-
-  stopScrollingAfterDelay: null # created lazily
-
-  onCursorsMoved: ->
-    @cursorsMoved = true
-
-  onGutterWidthChanged: (@gutterWidth) ->
-    @requestUpdate()
-
   requestUpdate: ->
     if @batchingUpdates
       @updateRequested = true
     else
       @forceUpdate()
-
-  requestScrollViewMeasurement: ->
-    return if @measurementPending
-
-    @scrollViewMeasurementRequested = true
-    requestAnimationFrame =>
-      @scrollViewMeasurementRequested = false
-      @measureScrollView()
 
   pauseOverflowChangedEvents: ->
     @overflowChangedEventsPaused = true
@@ -645,12 +567,26 @@ EditorComponent = React.createClass
 
   resumeOverflowChangedEventsAfterDelay: null
 
+  clearMouseWheelScreenRow: ->
+    if @mouseWheelScreenRow?
+      @mouseWheelScreenRow = null
+      @requestUpdate()
+
+  clearMouseWheelScreenRowAfterDelay: null # created lazily
+
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @props.editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) -> @refs.lines.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+
+  screenRowForNode: (node) ->
+    while node isnt document
+      if screenRow = node.dataset.screenRow
+        return parseInt(screenRow)
+      node = node.parentNode
+    null
 
   hide: ->
     @setState(visible: false)
@@ -692,3 +628,67 @@ EditorComponent = React.createClass
                   ReactPerf.printExclusive()
                   console.log "Wasted"
                   ReactPerf.printWasted()
+
+  setFontSize: (fontSize) ->
+    @setState({fontSize})
+
+  setLineHeight: (lineHeight) ->
+    @setState({lineHeight})
+
+  setFontFamily: (fontFamily) ->
+    @setState({fontFamily})
+
+  setShowIndentGuide: (showIndentGuide) ->
+    @setState({showIndentGuide})
+
+  # Public: Defines which characters are invisible.
+  #
+  # invisibles - An {Object} defining the invisible characters:
+  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
+  #   :space - The space invisible {String} (default: `\u00b7`).
+  #   :tab   - The tab invisible {String} (default: `\u00bb`).
+  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
+  setInvisibles: (invisibles={}) ->
+    defaults invisibles,
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
+
+    @setState({invisibles})
+
+  setShowInvisibles: (showInvisibles) ->
+    @setState({showInvisibles})
+
+  screenPositionForMouseEvent: (event) ->
+    pixelPosition = @pixelPositionForMouseEvent(event)
+    @props.editor.screenPositionForPixelPosition(pixelPosition)
+
+  pixelPositionForMouseEvent: (event) ->
+    {editor} = @props
+    {clientX, clientY} = event
+
+    scrollViewClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
+    top = clientY - scrollViewClientRect.top + editor.getScrollTop()
+    left = clientX - scrollViewClientRect.left + editor.getScrollLeft()
+    {top, left}
+
+  getHiddenInputPosition: ->
+    {editor} = @props
+    {focused} = @state
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
+
+    {top, left, height, width} = editor.getCursor().getPixelRect()
+    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
+    top -= editor.getScrollTop()
+    left -= editor.getScrollLeft()
+    top = Math.max(0, Math.min(editor.getHeight() - height, top))
+    left = Math.max(0, Math.min(editor.getWidth() - width, left))
+    {top, left}
+
+  getRenderedRowRange: ->
+    {editor, lineOverdrawMargin} = @props
+    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
+    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
+    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
+    [renderedStartRow, renderedEndRow]
