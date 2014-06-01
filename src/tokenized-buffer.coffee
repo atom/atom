@@ -44,6 +44,14 @@ class TokenizedBuffer extends Model
 
     @reloadGrammar()
 
+  # Public: interface for token creation, see class Token for arguments
+  createToken: ->
+    new Token.apply(undefined, arguments)
+
+  # Public: interface for tokenized line creation
+  createTokenizedLine: ->
+    new TokenizedLine.apply(undefined, arguments)
+
   serializeParams: ->
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
@@ -120,6 +128,8 @@ class TokenizedBuffer extends Model
 
       @validateRow(row)
       @invalidateRow(row + 1) unless filledRegion
+
+      @emit "tokenized-lines", { tokenizedBuffer: @, start: invalidRow, end: row, delta: 0}
       @emit "changed", { start: invalidRow, end: row, delta: 0 }
 
     @tokenizeInBackground() if @firstInvalidRow()?
@@ -159,6 +169,7 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
+    @emit "tokenized-lines", { tokenizedBuffer: @, start, end, delta, bufferChange: e }
     @emit "changed", { start, end, delta, bufferChange: e }
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
