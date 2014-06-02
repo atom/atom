@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
-{isEqual} = require 'underscore-plus'
+{isEqualForProperties} = require 'underscore-plus'
 SelectionComponent = require './selection-component'
 
 module.exports =
@@ -22,4 +22,4 @@ SelectionsComponent = React.createClass
     @selectionRanges = {}
 
   shouldComponentUpdate: (newProps) ->
-    not isEqual(newProps.selectionScreenRanges, @props.selectionScreenRanges)
+    not isEqualForProperties(newProps, @props, 'selectionScreenRanges', 'lineHeightInPixels')

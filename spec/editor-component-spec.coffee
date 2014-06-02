@@ -456,6 +456,12 @@ describe "EditorComponent", ->
 
       expect(node.querySelectorAll('.selection').length).toBe 1
 
+    it "updates selections when the line height changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setLineHeight(2)
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)
