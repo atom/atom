@@ -95,8 +95,8 @@ class WindowEventHandler
     bindCommandToAction('core:redo', 'redo:')
     bindCommandToAction('core:select-all', 'selectAll:')
 
-  openLink: (event) ->
-    location = $(event.target).attr('href')
+  openLink: ({target, currentTarget}) ->
+    location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
     if location and location[0] isnt '#' and /^https?:\/\//.test(location)
       shell.openExternal(location)
     false
