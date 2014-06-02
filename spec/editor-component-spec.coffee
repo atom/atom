@@ -476,6 +476,20 @@ describe "EditorComponent", ->
       selectionNode = node.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
 
+    it "updates selections when the font size changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setFontSize(10)
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+      expect(selectionNode.offsetLeft).toBe 6 * editor.getDefaultCharWidth()
+
+    it "updates selections when the font family changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setFontFamily('sans-serif')
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+      expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)

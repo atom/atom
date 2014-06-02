@@ -22,4 +22,4 @@ SelectionsComponent = React.createClass
     @selectionRanges = {}
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'selectionScreenRanges', 'lineHeightInPixels')
+    not isEqualForProperties(newProps, @props, 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth')

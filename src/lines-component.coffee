@@ -15,14 +15,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
+      {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels}) if @isMounted()
+      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
