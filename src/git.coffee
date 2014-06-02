@@ -1,4 +1,4 @@
-{join, sep} = require 'path'
+{join} = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
@@ -246,7 +246,7 @@ class Git
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getDirectoryStatus: (directoryPath)  ->
-    directoryPath = "#{@relativize(directoryPath)}#{sep}"
+    directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
     for path, status of @statuses
       directoryStatus |= status if path.indexOf(directoryPath) is 0

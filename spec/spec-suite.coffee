@@ -27,11 +27,6 @@ setSpecDirectory = (specDirectory) ->
 runAllSpecs = ->
   {resourcePath} = atom.getLoadSettings()
 
-  # Only run core specs when resource path is the Atom repository
-  if Git.exists(resourcePath)
-    requireSpecs(path.join(resourcePath, 'spec'))
-    setSpecType('core')
-
   fixturesPackagesPath = path.join(__dirname, 'fixtures', 'packages')
   packagePaths = atom.packages.getAvailablePackageNames().map (packageName) ->
     atom.packages.resolvePackagePath(packageName)

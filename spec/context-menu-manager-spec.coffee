@@ -105,7 +105,7 @@ describe "ContextMenuManager", ->
           expect(menu[2].command).toEqual 'dev-command'
           expect(menu[3]).toBeUndefined()
 
-  describe "#executeBuildHandlers", ->
+  describe "executeBuildHandlers", ->
     menuTemplate = [
         label: 'label'
         executeAtBuild: ->
@@ -119,4 +119,3 @@ describe "ContextMenuManager", ->
 
       expect(buildFn).toHaveBeenCalled()
       expect(buildFn.mostRecentCall.args[0]).toBe event
-

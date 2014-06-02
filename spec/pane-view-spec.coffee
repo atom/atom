@@ -166,7 +166,8 @@ describe "PaneView", ->
     it "removes the pane item", ->
       editor = null
       jasmine.unspy(window, 'setTimeout')
-      filePath = temp.openSync('atom').path
+      filePath = path.join(temp.mkdirSync(), 'file.txt')
+      fs.writeFileSync(filePath, '')
 
       waitsForPromise ->
         atom.workspace.open(filePath).then (o) -> editor = o

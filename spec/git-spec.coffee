@@ -4,6 +4,12 @@ fs = require 'fs-plus'
 path = require 'path'
 Task = require '../src/task'
 
+copyRepository = ->
+  workingDirPath = temp.mkdirSync('atom-working-dir')
+  fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+  fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+  workingDirPath
+
 describe "Git", ->
   repo = null
 
@@ -41,17 +47,13 @@ describe "Git", ->
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
 
   describe ".isPathModified(path)", ->
-    [repo, filePath, newPath, originalPathText] = []
+    [repo, filePath, newPath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
+      workingDirPath = copyRepository()
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
+      newPath = path.join(workingDirPath, 'new-path.txt')
 
     describe "when the path is unstaged", ->
       it "returns false if the path has not been modified", ->
@@ -72,13 +74,11 @@ describe "Git", ->
     [filePath, newPath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      newPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'new-path.txt')
+      workingDirPath = copyRepository()
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
+      newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
-
-    afterEach ->
-      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns true if the path is new", ->
@@ -88,48 +88,35 @@ describe "Git", ->
         expect(repo.isPathNew(filePath)).toBeFalsy()
 
   describe ".checkoutHead(path)", ->
-    [path1, path2, originalPath1Text, originalPath2Text] = []
+    [filePath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      path1 = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPath1Text = fs.readFileSync(path1, 'utf8')
-      path2 = require.resolve('./fixtures/git/working-dir/other.txt')
-      originalPath2Text = fs.readFileSync(path2, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(path1, originalPath1Text)
-      fs.writeFileSync(path2, originalPath2Text)
+      workingDirPath = copyRepository()
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
 
     it "no longer reports a path as modified after checkout", ->
-      expect(repo.isPathModified(path1)).toBeFalsy()
-      fs.writeFileSync(path1, '')
-      expect(repo.isPathModified(path1)).toBeTruthy()
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(repo.isPathModified(path1)).toBeFalsy()
+      expect(repo.isPathModified(filePath)).toBeFalsy()
+      fs.writeFileSync(filePath, 'ch ch changes')
+      expect(repo.isPathModified(filePath)).toBeTruthy()
+      expect(repo.checkoutHead(filePath)).toBeTruthy()
+      expect(repo.isPathModified(filePath)).toBeFalsy()
 
     it "restores the contents of the path to the original text", ->
-      fs.writeFileSync(path1, '')
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readFileSync(path1, 'utf8')).toBe(originalPath1Text)
-
-    it "only restores the path specified", ->
-      fs.writeFileSync(path2, 'path 2 is edited')
-      expect(repo.isPathModified(path2)).toBeTruthy()
-      expect(repo.checkoutHead(path1)).toBeTruthy()
-      expect(fs.readFileSync(path2, 'utf8')).toBe('path 2 is edited')
-      expect(repo.isPathModified(path2)).toBeTruthy()
+      fs.writeFileSync(filePath, 'ch ch changes')
+      expect(repo.checkoutHead(filePath)).toBeTruthy()
+      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "fires a status-changed event if the checkout completes successfully", ->
-      fs.writeFileSync(path1, '')
-      repo.getPathStatus(path1)
+      fs.writeFileSync(filePath, 'ch ch changes')
+      repo.getPathStatus(filePath)
       statusHandler = jasmine.createSpy('statusHandler')
       repo.on 'status-changed', statusHandler
-      repo.checkoutHead(path1)
+      repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0..1]).toEqual [path1, 0]
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [filePath, 0]
 
-      repo.checkoutHead(path1)
+      repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
 
   describe ".destroy()", ->
@@ -138,32 +125,13 @@ describe "Git", ->
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
-  describe ".getDiffStats(path)", ->
-    [filePath, originalPathText] = []
-
-    beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
-
-    it "returns the number of lines added and deleted", ->
-      expect(repo.getDiffStats(filePath)).toEqual {added: 0, deleted: 0}
-      fs.writeFileSync(filePath, "#{originalPathText} edited line")
-      expect(repo.getDiffStats(filePath)).toEqual {added: 1, deleted: 1}
-
   describe ".getPathStatus(path)", ->
-    [filePath, originalPathText] = []
+    [filePath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      filePath = require.resolve('./fixtures/git/working-dir/file.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      filePath = path.join(workingDirectory, 'file.txt')
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
@@ -178,16 +146,13 @@ describe "Git", ->
       expect(statusHandler.callCount).toBe 1
 
   describe ".getDirectoryStatus(path)", ->
-    [directoryPath, filePath, originalPathText] = []
+    [directoryPath, filePath] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      directoryPath = path.join(__dirname, 'fixtures', 'git', 'working-dir', 'dir')
-      filePath = require.resolve('./fixtures/git/working-dir/dir/b.txt')
-      originalPathText = fs.readFileSync(filePath, 'utf8')
-
-    afterEach ->
-      fs.writeFileSync(filePath, originalPathText)
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      directoryPath = path.join(workingDirectory, 'dir')
+      filePath = path.join(directoryPath, 'b.txt')
 
     it "gets the status based on the files inside the directory", ->
       expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe false
@@ -199,17 +164,14 @@ describe "Git", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'working-dir'))
-      modifiedPath = atom.project.resolve('git/working-dir/file.txt')
-      originalModifiedPathText = fs.readFileSync(modifiedPath, 'utf8')
-      newPath = atom.project.resolve('git/working-dir/untracked.txt')
-      cleanPath = atom.project.resolve('git/working-dir/other.txt')
+      workingDirectory = copyRepository()
+      repo = new Git(workingDirectory)
+      modifiedPath = path.join(workingDirectory, 'file.txt')
+      newPath = path.join(workingDirectory, 'untracked.txt')
+      cleanPath = path.join(workingDirectory, 'other.txt')
+      fs.writeFileSync(cleanPath, 'Full of text')
       fs.writeFileSync(newPath, '')
       newPath = fs.absolute newPath  # specs could be running under symbol path.
-
-    afterEach ->
-      fs.writeFileSync(modifiedPath, originalModifiedPathText)
-      fs.removeSync(newPath) if fs.existsSync(newPath)
 
     it "returns status information for all new and modified files", ->
       fs.writeFileSync(modifiedPath, 'making this path modified')
@@ -226,17 +188,13 @@ describe "Git", ->
         expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
 
   describe "buffer events", ->
-    [originalContent, editor] = []
+    [editor] = []
 
     beforeEach ->
+      atom.project.setPath(copyRepository())
+
       waitsForPromise ->
-        atom.workspace.open('sample.js').then (o) -> editor = o
-
-      runs ->
-        originalContent = editor.getText()
-
-    afterEach ->
-      fs.writeFileSync(editor.getPath(), originalContent)
+        atom.workspace.open('other.txt').then (o) -> editor = o
 
     it "emits a status-changed event when a buffer is saved", ->
       editor.insertNewline()
@@ -270,15 +228,16 @@ describe "Git", ->
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->
-    [originalContent, buffer, project2] = []
+    [buffer, project2] = []
 
     afterEach ->
-      fs.writeFileSync(buffer.getPath(), originalContent)
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
+      atom.project.setPath(copyRepository())
+
       waitsForPromise ->
-        atom.workspace.open('sample.js')
+        atom.workspace.open('file.txt')
 
       runs ->
         project2 = atom.project.testSerialization()
