@@ -144,6 +144,7 @@ class Editor extends Model
   cursors: null
   selections: null
   suppressSelectionMerging: false
+  updateBatchDepth: 0
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -1842,9 +1843,11 @@ class Editor extends Model
   abortTransaction: -> @buffer.abortTransaction()
 
   batchUpdates: (fn) ->
-    @emit 'batched-updates-started'
+    @emit 'batched-updates-started' if @updateBatchDepth is 0
+    @updateBatchDepth++
     result = fn()
-    @emit 'batched-updates-ended'
+    @updateBatchDepth--
+    @emit 'batched-updates-ended' if @updateBatchDepth is 0
     result
 
   inspect: ->
