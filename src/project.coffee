@@ -98,8 +98,8 @@ class Project extends Model
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
-    else
-      uri = path.join(@getPath(), uri) unless fs.isAbsolute(uri)
+    else if projectPath = @getPath()
+      uri = path.join(projectPath, uri) unless fs.isAbsolute(uri)
       fs.absolute(uri)
 
   # Public: Make the given path relative to the project directory.

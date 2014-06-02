@@ -156,10 +156,18 @@ describe "Project", ->
         expect(atom.project.resolve('a')).toBe absolutePath
         expect(atom.project.resolve(absolutePath + '/../a')).toBe absolutePath
         expect(atom.project.resolve('a/../a')).toBe absolutePath
+        expect(atom.project.resolve()).toBeUndefined()
 
     describe "when passed a uri with a scheme", ->
       it "does not modify uris that begin with a scheme", ->
         expect(atom.project.resolve('http://zombo.com')).toBe 'http://zombo.com'
+        atom.project.setPath()
+        expect(atom.project.resolve('http://github.com')).toBe 'http://github.com'
+
+    describe "when the project has no path", ->
+      it "returns undefined", ->
+        atom.project.setPath()
+        expect(atom.project.resolve('test.txt')).toBeUndefined()
 
   describe ".setPath(path)", ->
     describe "when path is a file", ->
