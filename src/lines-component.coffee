@@ -46,7 +46,7 @@ LinesComponent = React.createClass
     {renderedRowRange, pendingChanges} = newProps
     [renderedStartRow, renderedEndRow] = renderedRowRange
     for change in pendingChanges
-      return true unless change.end <= renderedStartRow or renderedEndRow <= change.start
+      return true unless change.end < renderedStartRow or renderedEndRow <= change.start
 
     false
 
