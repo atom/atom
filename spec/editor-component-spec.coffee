@@ -389,6 +389,11 @@ describe "EditorComponent", ->
       component.setLineHeight(2)
       cursorNode = node.querySelector('.cursor')
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
+
+    it "updates cursor positions when the font size changes", ->
+      editor.setCursorBufferPosition([1, 10])
+      component.setFontSize(10)
+      cursorNode = node.querySelector('.cursor')
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
   describe "selection rendering", ->
