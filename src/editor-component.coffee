@@ -85,7 +85,7 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           editor, scrollTop, scrollLeft, cursorScreenRanges, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          fontSize, fontFamily, lineHeightInPixels
+          lineHeightInPixels, defaultCharWidth
         }
         LinesComponent {
           ref: 'lines', editor, lineHeightInPixels, defaultCharWidth,
