@@ -396,6 +396,14 @@ describe "EditorComponent", ->
       cursorNode = node.querySelector('.cursor')
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
+    it "updates cursor positions when the font family changes", ->
+      editor.setCursorBufferPosition([1, 10])
+      component.setFontFamily('sans-serif')
+      cursorNode = node.querySelector('.cursor')
+
+      {left} = editor.pixelPositionForScreenPosition([1, 10])
+      expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{left}px, #{editor.getLineHeightInPixels()}px, 0px)"
+
   describe "selection rendering", ->
     [scrollViewNode, scrollViewClientLeft] = []
 
