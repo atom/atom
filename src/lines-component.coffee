@@ -13,8 +13,6 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
-  measureWhenShown: false
-
   render: ->
     if @isMounted()
       {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
@@ -37,9 +35,9 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'selectionScreenRanges', 'fontSize', 'fontFamily', 'lineHeight',
-      'lineHeightInPixels', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically',
-      'invisibles', 'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
+      'renderedRowRange', 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth',
+      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
+      'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -52,11 +50,9 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     {visible, scrollingVertically} = @props
 
-    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevProps)
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
-    @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
   clearScreenRowCaches: ->
@@ -203,16 +199,6 @@ LinesComponent = React.createClass
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
-
-  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
-    {visible} = @props
-
-    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
-      if visible
-        @measureLineHeightInPixelsAndCharWidth()
-      else
-        @measureWhenShown = true
-    @measureLineHeightInPixelsAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
 
   measureLineHeightInPixelsAndCharWidth: ->
     @measureWhenShown = false

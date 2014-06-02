@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
-{debounce, defaults} = require 'underscore-plus'
+{debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
@@ -35,6 +35,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementRequested: false
   overflowChangedEventsPaused: false
   overflowChangedWhilePaused: false
+  measureLineHeightInPixelsAndCharWidthWhenShown: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -52,6 +53,7 @@ EditorComponent = React.createClass
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
       lineHeightInPixels = editor.getLineHeightInPixels()
+      defaultCharWidth = editor.getDefaultCharWidth()
       scrollViewHeight = editor.getHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
@@ -86,7 +88,7 @@ EditorComponent = React.createClass
           fontSize, fontFamily, lineHeightInPixels
         }
         LinesComponent {
-          ref: 'lines', editor, fontSize, fontFamily, lineHeight, lineHeightInPixels,
+          ref: 'lines', editor, lineHeightInPixels, defaultCharWidth,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
           selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
@@ -161,11 +163,15 @@ EditorComponent = React.createClass
   componentWillUpdate: ->
     @props.parentView.trigger 'cursor:moved' if @cursorsMoved
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps, prevState) ->
     @pendingChanges.length = 0
-    @cursorsMoved = false
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
+    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevState)
+    unless isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
+      @refs.lines.clearScopedCharWidths()
+      @refs.lines.measureCharactersInNewLines()
+
     @pauseOverflowChangedEvents()
     @props.parentView.trigger 'editor:display-updated'
 
@@ -565,6 +571,21 @@ EditorComponent = React.createClass
     if position is 'absolute' or width
       clientWidth = scrollViewNode.clientWidth
       editor.setWidth(clientWidth) if clientWidth > 0
+
+  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevState) ->
+    unless isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
+      if @state.visible
+        @measureLineHeightInPixelsAndCharWidth()
+      else
+        @measureLineHeightInPixelsAndCharWidthWhenShown = true
+      return
+
+    if @measureLineHeightInPixelsAndCharWidthWhenShown and @state.visible and not prevState.visible
+      @measureLineHeightInPixelsAndCharWidth()
+
+  measureLineHeightInPixelsAndCharWidth: ->
+    @measureLineHeightInPixelsAndCharWidthWhenShown = false
+    @refs.lines.measureLineHeightInPixelsAndCharWidth()
 
   measureScrollbars: ->
     @measuringScrollbars = false
