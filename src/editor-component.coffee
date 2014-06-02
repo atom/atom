@@ -35,7 +35,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementRequested: false
   overflowChangedEventsPaused: false
   overflowChangedWhilePaused: false
-  measureLineHeightInPixelsAndCharWidthWhenShown: false
+  measureLineHeightAndDefaultCharWidthWhenShown: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -140,17 +140,21 @@ EditorComponent = React.createClass
     @observeConfig()
 
   componentDidMount: ->
+    {editor} = @props
+
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
-    @measureScrollbars()
+
     @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
-    @props.editor.setVisible(true)
 
-    @measureScrollView()
+    editor.setVisible(true)
 
-    @requestUpdate()
+    editor.batchUpdates =>
+      @measureLineHeightAndDefaultCharWidth()
+      @measureScrollView()
+      @measureScrollbars()
 
   componentWillUnmount: ->
     @unsubscribe()
@@ -163,11 +167,7 @@ EditorComponent = React.createClass
     @pendingChanges.length = 0
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
-    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevState)
-    unless isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
-      @refs.lines.clearScopedCharWidths()
-      @refs.lines.measureCharactersInNewLines()
-
+    @measureLineHeightAndCharWidthsIfNeeded(prevState)
     @pauseOverflowChangedEvents()
     @props.parentView.trigger 'editor:display-updated'
 
@@ -573,20 +573,24 @@ EditorComponent = React.createClass
       clientWidth = scrollViewNode.clientWidth
       editor.setWidth(clientWidth) if clientWidth > 0
 
-  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevState) ->
-    unless isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      if @state.visible
-        @measureLineHeightInPixelsAndCharWidth()
-      else
-        @measureLineHeightInPixelsAndCharWidthWhenShown = true
-      return
+  measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
+    if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
+      @props.editor.batchUpdates =>
+        if @state.visible
+          @measureLineHeightAndDefaultCharWidth()
+        else
+          @measureLineHeightAndDefaultCharWidthWhenShown = true
 
-    if @measureLineHeightInPixelsAndCharWidthWhenShown and @state.visible and not prevState.visible
-      @measureLineHeightInPixelsAndCharWidth()
+        unless isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
+          @refs.lines.clearScopedCharWidths()
+          @refs.lines.measureCharactersInNewLines()
 
-  measureLineHeightInPixelsAndCharWidth: ->
-    @measureLineHeightInPixelsAndCharWidthWhenShown = false
-    @refs.lines.measureLineHeightInPixelsAndCharWidth()
+    else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
+      @measureLineHeightAndDefaultCharWidth()
+
+  measureLineHeightAndDefaultCharWidth: ->
+    @measureLineHeightAndDefaultCharWidthWhenShown = false
+    @refs.lines.measureLineHeightAndDefaultCharWidth()
 
   measureScrollbars: ->
     @measuringScrollbars = false

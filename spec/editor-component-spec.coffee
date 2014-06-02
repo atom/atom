@@ -109,12 +109,12 @@ describe "EditorComponent", ->
     it "updates the top position of lines when the font family changes", ->
       # Can't find a font that changes the line height, but we think one might exist
       linesComponent = component.refs.lines
-      spyOn(linesComponent, 'measureLineHeightInPixelsAndCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
+      spyOn(linesComponent, 'measureLineHeightAndDefaultCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
 
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setFontFamily('sans-serif')
 
-      expect(linesComponent.measureLineHeightInPixelsAndCharWidth).toHaveBeenCalled()
+      expect(linesComponent.measureLineHeightAndDefaultCharWidth).toHaveBeenCalled()
       newLineHeightInPixels = editor.getLineHeightInPixels()
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
       expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
@@ -386,8 +386,9 @@ describe "EditorComponent", ->
 
     it "updates cursor positions when the line height changes", ->
       editor.setCursorBufferPosition([1, 10])
-      cursorNode = node.querySelector('.cursor')
       component.setLineHeight(2)
+      cursorNode = node.querySelector('.cursor')
+      expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
   describe "selection rendering", ->

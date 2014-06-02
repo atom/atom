@@ -30,9 +30,6 @@ LinesComponent = React.createClass
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
 
-  componentDidMount: ->
-    @measureLineHeightInPixelsAndCharWidth()
-
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth',
@@ -200,8 +197,7 @@ LinesComponent = React.createClass
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measureLineHeightInPixelsAndCharWidth: ->
-    @measureWhenShown = false
+  measureLineHeightAndDefaultCharWidth: ->
     node = @getDOMNode()
     node.appendChild(DummyLineNode)
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
@@ -209,8 +205,9 @@ LinesComponent = React.createClass
     node.removeChild(DummyLineNode)
 
     {editor} = @props
-    editor.setLineHeightInPixels(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
+    editor.batchUpdates ->
+      editor.setLineHeightInPixels(lineHeightInPixels)
+      editor.setDefaultCharWidth(charWidth)
 
   measureCharactersInNewLines: ->
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
