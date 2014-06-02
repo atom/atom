@@ -33,7 +33,10 @@ GutterComponent = React.createClass
   # non-zero-delta change to the screen lines has occurred within the current
   # visible row range.
   shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props, 'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize')
+    return true unless isEqualForProperties(newProps, @props,
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize',
+      'mouseWheelScreenRow'
+    )
 
     {renderedRowRange, pendingChanges} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
@@ -131,7 +134,7 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    "<div class=\"line-number\" style=\"#{style}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"line-number\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped

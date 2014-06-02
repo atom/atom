@@ -164,11 +164,9 @@
   {
     label: '&Help'
     submenu: [
-      { label: '&About Atom...', command: 'application:about' }
       { label: 'View &Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'View &License', command: 'application:open-license' }
       { label: "VERSION", enabled: false }
-      { label: "Install &update", command: 'application:install-update', visible: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
       { type: 'separator' }
