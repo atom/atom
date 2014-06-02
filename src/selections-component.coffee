@@ -1,5 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{isEqual} = require 'underscore-plus'
 SelectionComponent = require './selection-component'
 
 module.exports =
@@ -10,34 +11,15 @@ SelectionsComponent = React.createClass
     div className: 'selections', @renderSelections()
 
   renderSelections: ->
-    {editor, lineHeightInPixels} = @props
+    {editor, selectionScreenRanges, lineHeightInPixels} = @props
 
     selectionComponents = []
-    for selectionId, screenRange of @selectionRanges
+    for selectionId, screenRange of selectionScreenRanges
       selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
     selectionComponents
 
   componentWillMount: ->
     @selectionRanges = {}
 
-  shouldComponentUpdate: ->
-    {editor} = @props
-    oldSelectionRanges = @selectionRanges
-    newSelectionRanges = {}
-    @selectionRanges = newSelectionRanges
-
-    for selection, index in editor.getSelections()
-      # Rendering artifacts occur on the lines GPU layer if we remove the last selection
-      if index is 0 or (not selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection))
-        newSelectionRanges[selection.id] = selection.getScreenRange()
-
-    for id, range of newSelectionRanges
-      if oldSelectionRanges.hasOwnProperty(id)
-        return true unless range.isEqual(oldSelectionRanges[id])
-      else
-        return true
-
-    for id of oldSelectionRanges
-      return true unless newSelectionRanges.hasOwnProperty(id)
-
-    false
+  shouldComponentUpdate: (newProps) ->
+    not isEqual(newProps.selectionScreenRanges, @props.selectionScreenRanges)

@@ -17,14 +17,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
+      {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, lineHeightInPixels}) if @isMounted()
+      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -36,11 +36,10 @@ LinesComponent = React.createClass
     @measureLineHeightInPixelsAndCharWidth()
 
   shouldComponentUpdate: (newProps) ->
-    return true if newProps.selectionChanged
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
-      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
-      'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
+      'renderedRowRange', 'selectionScreenRanges', 'fontSize', 'fontFamily', 'lineHeight',
+      'lineHeightInPixels', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically',
+      'invisibles', 'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps

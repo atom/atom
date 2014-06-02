@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
-{debounce, toArray} = require 'underscore-plus'
+{debounce, toArray, isEqualForProperties, isEqual} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
 CursorComponent = require './cursor-component'
 
@@ -12,7 +12,7 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {editor, scrollTop, scrollLeft} = @props
+    {editor, cursorScreenRanges, scrollTop, scrollLeft} = @props
     {blinkOff} = @state
 
     className = 'cursors'
@@ -20,10 +20,8 @@ CursorsComponent = React.createClass
 
     div {className},
       if @isMounted()
-        for selection in editor.getSelections()
-          if selection.isEmpty() and editor.selectionIntersectsVisibleRowRange(selection)
-            {cursor} = selection
-            CursorComponent({key: cursor.id, cursor, scrollTop, scrollLeft})
+        for key, screenRange of cursorScreenRanges
+          CursorComponent({key, editor, screenRange, scrollTop, scrollLeft})
 
   getInitialState: ->
     blinkOff: false
@@ -34,8 +32,12 @@ CursorsComponent = React.createClass
   componentWillUnmount: ->
     @stopBlinkingCursors()
 
-  componentWillUpdate: ({cursorsMoved}) ->
-    @pauseCursorBlinking() if cursorsMoved
+  shouldComponentUpdate: (newProps, newState) ->
+    not isEqualForProperties(newProps, @props, 'cursorScreenRanges', 'scrollTop', 'scrollLeft') or
+      not newState.blinkOff is @state.blinkOff
+
+  componentWillUpdate: (newProps) ->
+    @pauseCursorBlinking() if @props.cursorScreenRanges and not isEqual(newProps.cursorScreenRanges, @props.cursorScreenRanges)
 
   startBlinkingCursors: ->
     @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2) if @isMounted()

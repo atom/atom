@@ -317,7 +317,7 @@ describe "EditorComponent", ->
       expect(cursorNodes[0].offsetWidth).toBe charWidth
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
 
-      cursor2 = editor.addCursorAtScreenPosition([6, 11])
+      cursor2 = editor.addCursorAtScreenPosition([8, 11])
       cursor3 = editor.addCursorAtScreenPosition([4, 10])
 
       cursorNodes = node.querySelectorAll('.cursor')
@@ -326,15 +326,15 @@ describe "EditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{10 * charWidth}px, #{4 * lineHeightInPixels}px, 0px)"
 
-      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
-      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(6 - 2.5) * lineHeightInPixels}px, 0px)"
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 2.5) * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(8 - 4.5) * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 4.5) * lineHeightInPixels}px, 0px)"
 
       cursor3.destroy()
       cursorNodes = node.querySelectorAll('.cursor')
@@ -364,6 +364,7 @@ describe "EditorComponent", ->
       expect(cursorsNode.classList.contains('blink-off')).toBe false
       advanceClock(component.props.cursorBlinkPeriod / 2)
       expect(cursorsNode.classList.contains('blink-off')).toBe true
+
       advanceClock(component.props.cursorBlinkPeriod / 2)
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
