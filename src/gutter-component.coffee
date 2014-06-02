@@ -34,7 +34,7 @@ GutterComponent = React.createClass
   # visible row range.
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize',
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'defaultCharWidth',
       'mouseWheelScreenRow'
     )
 
@@ -49,7 +49,7 @@ GutterComponent = React.createClass
       @updateDummyLineNumber()
       @removeLineNumberNodes()
 
-    @measureWidth() unless @lastMeasuredWidth? and isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'fontSize', 'fontFamily')
+    @measureWidth() unless @lastMeasuredWidth? and isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
     @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
 
