@@ -98,9 +98,13 @@ class Project extends Model
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
-    else if projectPath = @getPath()
-      uri = path.join(projectPath, uri) unless fs.isAbsolute(uri)
-      fs.absolute(uri)
+    else
+      if fs.isAbsolute(uri)
+        fs.absolute(uri)
+      else if projectPath = @getPath()
+        fs.absolute(path.join(projectPath, uri))
+      else
+        undefined
 
   # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
