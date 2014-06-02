@@ -148,10 +148,6 @@ EditorComponent = React.createClass
     @subscribe scrollbarStyle.changes, @refreshScrollbars
     @props.editor.setVisible(true)
 
-    scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
-    scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener('resize', @onWindowResize)
     @measureScrollView()
 
     @requestUpdate()
@@ -244,6 +240,11 @@ EditorComponent = React.createClass
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
+
+    scrollViewNode = @refs.scrollView.getDOMNode()
+    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
+    scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
+    window.addEventListener('resize', @onWindowResize)
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
