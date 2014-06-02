@@ -60,6 +60,18 @@ EditorComponent = React.createClass
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
 
+    # Whoa.
+    extensionProps = {
+      editor, cursorBlinkPeriod, cursorBlinkResumeDelay,
+      focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible
+      renderedRowRange, scrollHeight, scrollWidth, scrollTop, scrollLeft,
+      lineHeightInPixels, scrollViewHeight, horizontalScrollbarHeight,
+      verticalScrollbarWidth, verticallyScrollable, horizontallyScrollable,
+      maxLineNumberDigits, invisibles,
+      @pendingChanges, @mouseWheelScreenRow
+    }
+    extensions = (extension.render(extensionProps) for extension in (@extensions or []))
+
     className = 'editor editor-colors react'
     className += ' is-focused' if focused
 
@@ -69,6 +81,8 @@ EditorComponent = React.createClass
         scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, mouseWheelScreenRow
       }
+
+      extensions
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
@@ -118,6 +132,9 @@ EditorComponent = React.createClass
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
+
+  setExtensions: (@extensions) ->
+    @requestUpdate()
 
   getInitialState: ->
     visible: true

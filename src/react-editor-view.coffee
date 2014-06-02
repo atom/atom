@@ -39,11 +39,19 @@ class ReactEditorView extends View
   scrollToBufferPosition: (bufferPosition) ->
     @editor.scrollToBufferPosition(bufferPosition)
 
+  registerComponent: (componentRenderFunction) ->
+    @extensionComponents ?= []
+    @extensionComponents.push
+      render: componentRenderFunction
+    @component.setExtensions(@extensionComponents)
+
   afterAttach: (onDom) ->
+    console.log 'after attach'
     return unless onDom
     @attached = true
     props = defaults({@editor, parentView: this}, @props)
     @component = React.renderComponent(EditorComponent(props), @element)
+    @component.setExtensions(@extensionComponents)
 
     node = @component.getDOMNode()
 
