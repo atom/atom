@@ -33,8 +33,8 @@ CursorsComponent = React.createClass
     @stopBlinkingCursors()
 
   shouldComponentUpdate: (newProps, newState) ->
-    not isEqualForProperties(newProps, @props, 'cursorScreenRanges', 'scrollTop', 'scrollLeft') or
-      not newState.blinkOff is @state.blinkOff
+    not newState.blinkOff is @state.blinkOff or
+      not isEqualForProperties(newProps, @props, 'cursorScreenRanges', 'scrollTop', 'scrollLeft', 'lineHeightInPixels')
 
   componentWillUpdate: (newProps) ->
     @pauseCursorBlinking() if @props.cursorScreenRanges and not isEqual(newProps.cursorScreenRanges, @props.cursorScreenRanges)
