@@ -45,6 +45,8 @@
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-shift-up': 'core:move-up'
   'ctrl-shift-down': 'core:move-down'
+  'ctrl-alt-up': 'editor:add-selection-above'
+  'ctrl-alt-down': 'editor:add-selection-below'
   'ctrl-=': 'window:increase-font-size'
   'ctrl-+': 'window:increase-font-size'
   'ctrl--': 'window:decrease-font-size'
