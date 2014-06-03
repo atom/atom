@@ -21,6 +21,9 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
 
+  overlayer: ->
+    this
+
   append: (view) ->
     @appendToLinesView(view)
 
