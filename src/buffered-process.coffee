@@ -43,8 +43,13 @@ class BufferedProcess
     # process and will just orphan it. Does not escape ^ (cmd's escape symbol).
     # Related to joyent/node#2318
     if process.platform is "win32"
-      @process = ChildProcess.spawn(process.env.comspec || "cmd.exe",
-        [ "/c", command ].concat(args), options)
+      # Quote all arguments and escapes inner quotes
+      cmdArgs = args.map (arg) -> "\"#{arg.replace(/"/g, '\\"')}\""
+      cmdArgs.unshift("\"#{command}\"")
+      cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
+      cmdOptions = _.clone(options)
+      cmdOptions.windowsVerbatimArguments = true
+      @process = ChildProcess.spawn(process.env.comspec or 'cmd.exe', cmdArgs, cmdOptions)
     else
       @process = ChildProcess.spawn(command, args, options)
     @killed = false
