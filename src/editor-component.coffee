@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
-{debounce, defaults} = require 'underscore-plus'
+{debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
@@ -35,6 +35,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementRequested: false
   overflowChangedEventsPaused: false
   overflowChangedWhilePaused: false
+  measureLineHeightAndDefaultCharWidthWhenShown: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -45,11 +46,14 @@ EditorComponent = React.createClass
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
+      cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
+      selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
       scrollLeft = editor.getScrollLeft()
       lineHeightInPixels = editor.getLineHeightInPixels()
+      defaultCharWidth = editor.getDefaultCharWidth()
       scrollViewHeight = editor.getHeight()
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
@@ -65,9 +69,8 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
-        @pendingChanges, onWidthChanged: @onGutterWidthChanged, mouseWheelScreenRow
+        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
+        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -79,11 +82,14 @@ EditorComponent = React.createClass
           onFocus: @onInputFocused
           onBlur: @onInputBlurred
 
-        CursorsComponent({editor, scrollTop, scrollLeft, @cursorsMoved, @selectionAdded, cursorBlinkPeriod, cursorBlinkResumeDelay})
+        CursorsComponent {
+          editor, scrollTop, scrollLeft, cursorScreenRanges, cursorBlinkPeriod, cursorBlinkResumeDelay,
+          lineHeightInPixels, defaultCharWidth
+        }
         LinesComponent {
-          ref: 'lines', editor, fontSize, fontFamily, lineHeight, lineHeightInPixels,
+          ref: 'lines', editor, lineHeightInPixels, defaultCharWidth,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
-          @selectionChanged, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+          selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
         }
 
@@ -133,21 +139,21 @@ EditorComponent = React.createClass
     @observeConfig()
 
   componentDidMount: ->
+    {editor} = @props
+
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
-    @measureScrollbars()
+
     @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
-    @props.editor.setVisible(true)
 
-    scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
-    scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener('resize', @onWindowResize)
-    @measureScrollView()
+    editor.setVisible(true)
 
-    @requestUpdate()
+    editor.batchUpdates =>
+      @measureLineHeightAndDefaultCharWidth()
+      @measureScrollView()
+      @measureScrollbars()
 
   componentWillUnmount: ->
     @unsubscribe()
@@ -156,15 +162,63 @@ EditorComponent = React.createClass
   componentWillUpdate: ->
     @props.parentView.trigger 'cursor:moved' if @cursorsMoved
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps, prevState) ->
     @pendingChanges.length = 0
-    @cursorsMoved = false
-    @selectionChanged = false
-    @selectionAdded = false
     @refreshingScrollbars = false
     @measureScrollbars() if @measuringScrollbars
+    @measureLineHeightAndCharWidthsIfNeeded(prevState)
     @pauseOverflowChangedEvents()
     @props.parentView.trigger 'editor:display-updated'
+
+  requestUpdate: ->
+    if @batchingUpdates
+      @updateRequested = true
+    else
+      @forceUpdate()
+
+  getRenderedRowRange: ->
+    {editor, lineOverdrawMargin} = @props
+    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
+    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
+    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
+    [renderedStartRow, renderedEndRow]
+
+  getHiddenInputPosition: ->
+    {editor} = @props
+    {focused} = @state
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
+
+    {top, left, height, width} = editor.getCursor().getPixelRect()
+    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
+    top -= editor.getScrollTop()
+    left -= editor.getScrollLeft()
+    top = Math.max(0, Math.min(editor.getHeight() - height, top))
+    left = Math.max(0, Math.min(editor.getWidth() - width, left))
+    {top, left}
+
+  getCursorScreenRanges: (renderedRowRange) ->
+    {editor} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+
+    cursorScreenRanges = {}
+    for selection in editor.getSelections() when selection.isEmpty()
+      {cursor} = selection
+      screenRange = cursor.getScreenRange()
+      if renderedStartRow <= screenRange.start.row < renderedEndRow
+        cursorScreenRanges[cursor.id] = screenRange
+    cursorScreenRanges
+
+  getSelectionScreenRanges: (renderedRowRange) ->
+    {editor} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+
+    selectionScreenRanges = {}
+    for selection, index in editor.getSelections()
+      # Rendering artifacts occur on the lines GPU layer if we remove the last selection
+      screenRange = selection.getScreenRange()
+      if index is 0 or (not screenRange.isEmpty() and screenRange.intersectsRowRange(renderedStartRow, renderedEndRow))
+        selectionScreenRanges[selection.id] = screenRange
+    selectionScreenRanges
 
   observeEditor: ->
     {editor} = @props
@@ -185,6 +239,11 @@ EditorComponent = React.createClass
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
+
+    scrollViewNode = @refs.scrollView.getDOMNode()
+    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
+    scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
+    window.addEventListener('resize', @onWindowResize)
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
@@ -446,9 +505,6 @@ EditorComponent = React.createClass
   onCursorsMoved: ->
     @cursorsMoved = true
 
-  onGutterWidthChanged: (@gutterWidth) ->
-    @requestUpdate()
-
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props
     dragging = false
@@ -513,6 +569,37 @@ EditorComponent = React.createClass
       clientWidth = scrollViewNode.clientWidth
       editor.setWidth(clientWidth) if clientWidth > 0
 
+  measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
+    if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
+      {editor} = @props
+
+      editor.batchUpdates =>
+        oldDefaultCharWidth = editor.getDefaultCharWidth()
+
+        if @state.visible
+          @measureLineHeightAndDefaultCharWidth()
+        else
+          @measureLineHeightAndDefaultCharWidthWhenShown = true
+
+        unless oldDefaultCharWidth is editor.getDefaultCharWidth()
+          @remeasureCharacterWidths()
+          @measureGutter()
+
+    else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
+      @measureLineHeightAndDefaultCharWidth()
+
+  measureLineHeightAndDefaultCharWidth: ->
+    @measureLineHeightAndDefaultCharWidthWhenShown = false
+    @refs.lines.measureLineHeightAndDefaultCharWidth()
+
+  remeasureCharacterWidths: ->
+    @refs.lines.remeasureCharacterWidths()
+
+  measureGutter: ->
+    oldGutterWidth = @gutterWidth
+    @gutterWidth = @refs.gutter.getDOMNode().offsetWidth
+    @requestUpdate() if @gutterWidth isnt oldGutterWidth
+
   measureScrollbars: ->
     @measuringScrollbars = false
 
@@ -548,12 +635,6 @@ EditorComponent = React.createClass
     # Finally, we restore the scrollbars based on the newly-measured dimensions
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
-
-  requestUpdate: ->
-    if @batchingUpdates
-      @updateRequested = true
-    else
-      @forceUpdate()
 
   pauseOverflowChangedEvents: ->
     @overflowChangedEventsPaused = true
@@ -672,23 +753,3 @@ EditorComponent = React.createClass
     top = clientY - scrollViewClientRect.top + editor.getScrollTop()
     left = clientX - scrollViewClientRect.left + editor.getScrollLeft()
     {top, left}
-
-  getHiddenInputPosition: ->
-    {editor} = @props
-    {focused} = @state
-    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
-
-    {top, left, height, width} = editor.getCursor().getPixelRect()
-    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
-    top -= editor.getScrollTop()
-    left -= editor.getScrollLeft()
-    top = Math.max(0, Math.min(editor.getHeight() - height, top))
-    left = Math.max(0, Math.min(editor.getWidth() - width, left))
-    {top, left}
-
-  getRenderedRowRange: ->
-    {editor, lineOverdrawMargin} = @props
-    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
-    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
-    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
-    [renderedStartRow, renderedEndRow]

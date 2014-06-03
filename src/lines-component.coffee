@@ -13,18 +13,16 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
-  measureWhenShown: false
-
   render: ->
     if @isMounted()
-      {editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, scrollViewHeight} = @props
+      {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines', style},
-      SelectionsComponent({editor, lineHeightInPixels}) if @isMounted()
+      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -32,15 +30,11 @@ LinesComponent = React.createClass
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
 
-  componentDidMount: ->
-    @measureLineHeightInPixelsAndCharWidth()
-
   shouldComponentUpdate: (newProps) ->
-    return true if newProps.selectionChanged
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'fontSize', 'fontFamily', 'lineHeight', 'lineHeightInPixels',
-      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles',
-      'visible', 'scrollViewHeight', 'mouseWheelScreenRow'
+      'renderedRowRange', 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth',
+      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
+      'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -53,11 +47,9 @@ LinesComponent = React.createClass
   componentDidUpdate: (prevProps) ->
     {visible, scrollingVertically} = @props
 
-    @measureLineHeightInPixelsAndCharWidthIfNeeded(prevProps)
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
     @updateLines()
-    @clearScopedCharWidths() unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily')
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
   clearScreenRowCaches: ->
@@ -205,18 +197,7 @@ LinesComponent = React.createClass
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measureLineHeightInPixelsAndCharWidthIfNeeded: (prevProps) ->
-    {visible} = @props
-
-    unless isEqualForProperties(prevProps, @props, 'fontSize', 'fontFamily', 'lineHeight')
-      if visible
-        @measureLineHeightInPixelsAndCharWidth()
-      else
-        @measureWhenShown = true
-    @measureLineHeightInPixelsAndCharWidth() if visible and not prevProps.visible and @measureWhenShown
-
-  measureLineHeightInPixelsAndCharWidth: ->
-    @measureWhenShown = false
+  measureLineHeightAndDefaultCharWidth: ->
     node = @getDOMNode()
     node.appendChild(DummyLineNode)
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
@@ -224,8 +205,13 @@ LinesComponent = React.createClass
     node.removeChild(DummyLineNode)
 
     {editor} = @props
-    editor.setLineHeightInPixels(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
+    editor.batchUpdates ->
+      editor.setLineHeightInPixels(lineHeightInPixels)
+      editor.setDefaultCharWidth(charWidth)
+
+  remeasureCharacterWidths: ->
+    @clearScopedCharWidths()
+    @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange

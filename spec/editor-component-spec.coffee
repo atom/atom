@@ -109,12 +109,12 @@ describe "EditorComponent", ->
     it "updates the top position of lines when the font family changes", ->
       # Can't find a font that changes the line height, but we think one might exist
       linesComponent = component.refs.lines
-      spyOn(linesComponent, 'measureLineHeightInPixelsAndCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
+      spyOn(linesComponent, 'measureLineHeightAndDefaultCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
 
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setFontFamily('sans-serif')
 
-      expect(linesComponent.measureLineHeightInPixelsAndCharWidth).toHaveBeenCalled()
+      expect(linesComponent.measureLineHeightAndDefaultCharWidth).toHaveBeenCalled()
       newLineHeightInPixels = editor.getLineHeightInPixels()
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
       expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
@@ -317,7 +317,7 @@ describe "EditorComponent", ->
       expect(cursorNodes[0].offsetWidth).toBe charWidth
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
 
-      cursor2 = editor.addCursorAtScreenPosition([6, 11])
+      cursor2 = editor.addCursorAtScreenPosition([8, 11])
       cursor3 = editor.addCursorAtScreenPosition([4, 10])
 
       cursorNodes = node.querySelectorAll('.cursor')
@@ -326,15 +326,15 @@ describe "EditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{5 * charWidth}px, #{0 * lineHeightInPixels}px, 0px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{10 * charWidth}px, #{4 * lineHeightInPixels}px, 0px)"
 
-      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
-      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(6 - 2.5) * lineHeightInPixels}px, 0px)"
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 2.5) * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(8 - 4.5) * lineHeightInPixels}px, 0px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 4.5) * lineHeightInPixels}px, 0px)"
 
       cursor3.destroy()
       cursorNodes = node.querySelectorAll('.cursor')
@@ -364,6 +364,7 @@ describe "EditorComponent", ->
       expect(cursorsNode.classList.contains('blink-off')).toBe false
       advanceClock(component.props.cursorBlinkPeriod / 2)
       expect(cursorsNode.classList.contains('blink-off')).toBe true
+
       advanceClock(component.props.cursorBlinkPeriod / 2)
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
@@ -382,6 +383,26 @@ describe "EditorComponent", ->
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{8 * charWidth}px, #{6 * lineHeightInPixels}px, 0px)"
+
+    it "updates cursor positions when the line height changes", ->
+      editor.setCursorBufferPosition([1, 10])
+      component.setLineHeight(2)
+      cursorNode = node.querySelector('.cursor')
+      expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
+
+    it "updates cursor positions when the font size changes", ->
+      editor.setCursorBufferPosition([1, 10])
+      component.setFontSize(10)
+      cursorNode = node.querySelector('.cursor')
+      expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
+
+    it "updates cursor positions when the font family changes", ->
+      editor.setCursorBufferPosition([1, 10])
+      component.setFontFamily('sans-serif')
+      cursorNode = node.querySelector('.cursor')
+
+      {left} = editor.pixelPositionForScreenPosition([1, 10])
+      expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{left}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
   describe "selection rendering", ->
     [scrollViewNode, scrollViewClientLeft] = []
@@ -448,6 +469,26 @@ describe "EditorComponent", ->
       expect(editor.getSelection(1).isEmpty()).toBe true
 
       expect(node.querySelectorAll('.selection').length).toBe 1
+
+    it "updates selections when the line height changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setLineHeight(2)
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+
+    it "updates selections when the font size changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setFontSize(10)
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+      expect(selectionNode.offsetLeft).toBe 6 * editor.getDefaultCharWidth()
+
+    it "updates selections when the font family changes", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      component.setFontFamily('sans-serif')
+      selectionNode = node.querySelector('.region')
+      expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
+      expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->

@@ -10,7 +10,6 @@ GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
 
-  lastMeasuredWidth: null
   dummyLineNumberNode: null
 
   render: ->
@@ -34,8 +33,7 @@ GutterComponent = React.createClass
   # visible row range.
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'fontSize',
-      'mouseWheelScreenRow'
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -49,7 +47,6 @@ GutterComponent = React.createClass
       @updateDummyLineNumber()
       @removeLineNumberNodes()
 
-    @measureWidth() unless @lastMeasuredWidth? and isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'fontSize', 'fontFamily')
     @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
 
@@ -159,11 +156,3 @@ GutterComponent = React.createClass
 
   lineNumberNodeForScreenRow: (screenRow) ->
     @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
-
-  measureWidth: ->
-    lineNumberNode = @refs.lineNumbers.getDOMNode().firstChild
-    # return unless lineNumberNode?
-
-    width = lineNumberNode.offsetWidth
-    if width isnt @lastMeasuredWidth
-      @props.onWidthChanged(@lastMeasuredWidth = width)
