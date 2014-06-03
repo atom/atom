@@ -270,6 +270,8 @@ class Workspace extends Model
   # Public: Destroy (close) the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
+    if @getPanes.length == 0
+      atom.close()
 
   # Public: Get the active item if it is an {Editor}.
   #
