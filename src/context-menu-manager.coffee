@@ -35,11 +35,11 @@ class ContextMenuManager
     for selector, items of object
       for label, commandOrSubmenu of items
         if typeof commandOrSubmenu is 'object'
-          submenu = [];
+          submenu = []
           for submenuLabel, command of commandOrSubmenu
             if submenuLabel is command is '-'
-              submenu.push({type: 'separator'});
-            else 
+              submenu.push({type: 'separator'})
+            else
               submenu.push({label: submenuLabel, command: command})
           @addBySelector(selector, {label: label, submenu: submenu}, {devMode})
         else
