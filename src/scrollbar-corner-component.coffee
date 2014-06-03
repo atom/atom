@@ -1,5 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 ScrollbarCornerComponent = React.createClass
@@ -18,3 +19,6 @@ ScrollbarCornerComponent = React.createClass
       div style:
         height: height + 1
         width: width + 1
+
+  shouldComponentUpdate: (newProps) ->
+    not isEqualForProperties(newProps, @props, 'measuringScrollbars', 'visible', 'width', 'height')
