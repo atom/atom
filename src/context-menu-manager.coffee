@@ -37,16 +37,17 @@ class ContextMenuManager
         if typeof commandOrSubmenu is 'object'
           submenu = []
           for submenuLabel, command of commandOrSubmenu
-            if submenuLabel is command is '-'
-              submenu.push({type: 'separator'})
-            else
-              submenu.push({label: submenuLabel, command: command})
+            submenu.push(@buildMenuItem(submenuLabel, command))
           @addBySelector(selector, {label: label, submenu: submenu}, {devMode})
         else
-          if label is commandOrSubmenu is '-'
-            @addBySelector(selector, {type: 'separator'}, {devMode})
-          else
-            @addBySelector(selector, {label: label, command: commandOrSubmenu}, {devMode})
+          menuItem = @buildMenuItem(label, commandOrSubmenu)
+          @addBySelector(selector, menuItem, {devMode})
+
+  buildMenuItem: (label, command) ->
+    if label is command is '-'
+      {type: 'separator'}
+    else
+      {label, command}
 
   # Registers a command to be displayed when the relevant item is right
   # clicked.
