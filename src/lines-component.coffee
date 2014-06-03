@@ -209,6 +209,10 @@ LinesComponent = React.createClass
       editor.setLineHeightInPixels(lineHeightInPixels)
       editor.setDefaultCharWidth(charWidth)
 
+  remeasureCharacterWidths: ->
+    @clearScopedCharWidths()
+    @measureCharactersInNewLines()
+
   measureCharactersInNewLines: ->
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()

@@ -575,15 +575,18 @@ EditorComponent = React.createClass
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      @props.editor.batchUpdates =>
+      {editor} = @props
+
+      editor.batchUpdates =>
+        oldDefaultCharWidth = editor.getDefaultCharWidth()
+
         if @state.visible
           @measureLineHeightAndDefaultCharWidth()
         else
           @measureLineHeightAndDefaultCharWidthWhenShown = true
 
-        unless isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
-          @refs.lines.clearScopedCharWidths()
-          @refs.lines.measureCharactersInNewLines()
+        unless oldDefaultCharWidth is editor.getDefaultCharWidth()
+          @remeasureCharacterWidths()
 
     else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
       @measureLineHeightAndDefaultCharWidth()
@@ -591,6 +594,9 @@ EditorComponent = React.createClass
   measureLineHeightAndDefaultCharWidth: ->
     @measureLineHeightAndDefaultCharWidthWhenShown = false
     @refs.lines.measureLineHeightAndDefaultCharWidth()
+
+  remeasureCharacterWidths: ->
+    @refs.lines.remeasureCharacterWidths()
 
   measureScrollbars: ->
     @measuringScrollbars = false
