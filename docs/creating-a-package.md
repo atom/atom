@@ -225,28 +225,18 @@ elements until reaching the top of the DOM tree.
 In the example above, the `Add file` item will only appear when the focused item
 or one of its parents has the `tree-view` class applied to it.
 
-You can also add separators and submenus to your context menus.
-To add a submenu, pass in a `context-menu` object instead of a command:
+You can also add separators and submenus to your context menus. To add a
+submenu, pass in another object instead of a command. To add a separator, use
+`-` for the name and command of the item.
 
 ```coffeescript
 'context-menu':
-  '.tree-view':
-    'Files':
-      'Add file': 'tree-view:add-file'
   '.workspace':
     'Inspect Element': 'core:inspect'
-```
-
-To add a separator, use a `'-': '-'` structure:
-
-```coffeescript
-'context-menu':
-  '.tree-view':
-    'Add file': 'tree-view:add-file'
     '-': '-'
-    'Remove file': 'tree-view:remove-file'
-  '.workspace':
-    'Inspect Element': 'core:inspect'
+    'Text':
+      'Select All': 'core:select-all'
+      'Deleted Selected Text': 'core:delete'
 ```
 
 ## Snippets
