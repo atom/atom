@@ -47,3 +47,6 @@ and restart Atom.  If Atom now works fine, you can make this setting permanent:
   ```
 
 See also https://github.com/atom/atom/issues/2082.
+
+### Linux build error reports in atom/atom
+* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues) to get a list of reports about build errors on Linux.
