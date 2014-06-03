@@ -21,6 +21,9 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
 
+  append: (view) ->
+    @appendToLinesView(view)
+
   scrollTop: (scrollTop) ->
     if scrollTop?
       @editor.setScrollTop(scrollTop)
