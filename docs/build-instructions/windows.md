@@ -44,3 +44,6 @@ fix this, you probably need to fiddle with your system PATH.
 
   * If you just installed node you need to restart your computer before node is
   available on your Path.
+
+### Windows build error reports in atom/atom
+* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows.
