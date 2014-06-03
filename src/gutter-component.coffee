@@ -120,7 +120,7 @@ GutterComponent = React.createClass
     node = @refs.lineNumbers.getDOMNode()
     for lineNumberId, lineNumberNode of @lineNumberNodesById when not lineNumberIdsToPreserve?.has(lineNumberId)
       screenRow = @screenRowsByLineNumberId[lineNumberId]
-      unless screenRow is mouseWheelScreenRow
+      if not screenRow? or screenRow isnt mouseWheelScreenRow
         delete @lineNumberNodesById[lineNumberId]
         delete @lineNumberIdsByScreenRow[screenRow] if @lineNumberIdsByScreenRow[screenRow] is lineNumberId
         delete @screenRowsByLineNumberId[lineNumberId]

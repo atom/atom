@@ -79,7 +79,7 @@ LinesComponent = React.createClass
     node = @getDOMNode()
     for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
       screenRow = @screenRowsByLineId[lineId]
-      unless screenRow is mouseWheelScreenRow
+      if not screenRow? or screenRow isnt mouseWheelScreenRow
         delete @lineNodesByLineId[lineId]
         delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
         delete @screenRowsByLineId[lineId]
