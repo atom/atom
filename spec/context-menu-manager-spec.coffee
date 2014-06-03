@@ -15,7 +15,7 @@ describe "ContextMenuManager", ->
           'label': 'command'
 
       expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
-      expect(contextMenu.definitions['.selector'][0].commandOrSubmenu).toEqual 'command'
+      expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
 
     it "loads submenus", ->
       contextMenu.add 'file-path',
@@ -33,7 +33,7 @@ describe "ContextMenuManager", ->
         , devMode: true
 
         expect(contextMenu.devModeDefinitions['.selector'][0].label).toEqual 'label'
-        expect(contextMenu.devModeDefinitions['.selector'][0].commandOrSubmenu).toEqual 'command'
+        expect(contextMenu.devModeDefinitions['.selector'][0].command).toEqual 'command'
 
   describe "building a menu template", ->
     beforeEach ->
