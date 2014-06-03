@@ -8,6 +8,7 @@ WrapperDiv = document.createElement('div')
 module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
+  lineClassName: 'line-number'
   mixins: [SubscriberMixin]
 
   lastMeasuredWidth: null
@@ -132,11 +133,11 @@ GutterComponent = React.createClass
       style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
     else
       style = "visibility: hidden;"
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
+    innerHTML = @buildLineInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    "<div class=\"line-number\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{@lineClassName}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
+  buildLineInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
       lineNumber = "•"
     else
@@ -166,4 +167,4 @@ GutterComponent = React.createClass
 
     width = lineNumberNode.offsetWidth
     if width isnt @lastMeasuredWidth
-      @props.onWidthChanged(@lastMeasuredWidth = width)
+      @props.onWidthChanged?(@lastMeasuredWidth = width)

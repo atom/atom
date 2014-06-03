@@ -15,6 +15,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$ = $
   module.exports.$$ = $$
   module.exports.$$$ = $$$
+  module.exports.React = require 'react-atom-fork'
   module.exports.EditorView = require '../src/editor-view'
   module.exports.GutterComponent = require '../src/gutter-component'
   module.exports.ScrollView = require '../src/scroll-view'

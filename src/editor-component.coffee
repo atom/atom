@@ -1,6 +1,6 @@
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
-{debounce, defaults} = require 'underscore-plus'
+{debounce, defaults, multiplyString} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
@@ -76,13 +76,13 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+      extensions
+
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeight, lineHeightInPixels, fontSize, fontFamily,
         @pendingChanges, onWidthChanged: @onGutterWidthChanged, mouseWheelScreenRow
       }
-
-      extensions
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
