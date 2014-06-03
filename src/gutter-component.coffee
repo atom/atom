@@ -162,7 +162,6 @@ GutterComponent = React.createClass
 
   measureWidth: ->
     lineNumberNode = @refs.lineNumbers.getDOMNode().firstChild
-    # return unless lineNumberNode?
 
     width = lineNumberNode.offsetWidth
     if width isnt @lastMeasuredWidth
