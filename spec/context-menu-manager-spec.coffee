@@ -22,8 +22,16 @@ describe "ContextMenuManager", ->
         '.selector':
           'parent':
             'child-1': 'child-1:trigger'
-            'child-2': 'child-1:trigger'
+            'child-2': 'child-2:trigger'
           'parent-2': 'parent-2:trigger'
+
+      expect(contextMenu.definitions['.selector'].length).toBe 2
+      expect(contextMenu.definitions['.selector'][0].label).toEqual 'parent'
+      expect(contextMenu.definitions['.selector'][0].submenu.length).toBe 2
+      expect(contextMenu.definitions['.selector'][0].submenu[0].label).toBe 'child-1'
+      expect(contextMenu.definitions['.selector'][0].submenu[0].command).toBe 'child-1:trigger'
+      expect(contextMenu.definitions['.selector'][0].submenu[1].label).toBe 'child-2'
+      expect(contextMenu.definitions['.selector'][0].submenu[1].command).toBe 'child-2:trigger'
 
     describe 'dev mode', ->
       it 'loads',  ->
