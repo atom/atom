@@ -2,6 +2,7 @@ React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
+{Range, Point} = require 'text-buffer'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
@@ -214,10 +215,14 @@ EditorComponent = React.createClass
 
     selectionScreenRanges = {}
     for selection, index in editor.getSelections()
-      # Rendering artifacts occur on the lines GPU layer if we remove the last selection
       screenRange = selection.getScreenRange()
-      if index is 0 or (not screenRange.isEmpty() and screenRange.intersectsRowRange(renderedStartRow, renderedEndRow))
+
+      if not screenRange.isEmpty() and screenRange.intersectsRowRange(renderedStartRow, renderedEndRow)
         selectionScreenRanges[selection.id] = screenRange
+
+      else if index is 0 # Rendering artifacts occur on the lines GPU layer if we remove the last selection
+        selectionScreenRanges[selection.id] = new Range(new Point(renderedStartRow, 0), new Point(renderedStartRow, 0))
+
     selectionScreenRanges
 
   observeEditor: ->
