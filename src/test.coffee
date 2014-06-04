@@ -35,7 +35,7 @@ class Test extends Command
     testArgs = ['--dev', '--test', "--spec-directory=#{path.join(packagePath, 'spec')}"]
 
     if process.platform is 'win32'
-      logFile = temp.openSync(suffix: '.log', prefix: path.basename(packagePath))
+      logFile = temp.openSync(suffix: '.log', prefix: "#{path.basename(packagePath)}-")
       fs.closeSync(logFile.fd)
       logFilePath = logFile.path
 
