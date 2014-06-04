@@ -91,7 +91,7 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, screenRow)
+        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0)
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
@@ -131,7 +131,10 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    "<div class=\"line-number\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    classes = "line-number"
+    classes += ' foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
+    classes += ' folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
+    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
@@ -143,11 +146,16 @@ GutterComponent = React.createClass
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
-  updateLineNumberNode: (lineNumberId, screenRow) ->
+  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped) ->
+    node = @lineNumberNodesById[lineNumberId]
+
+    @toggleClass node, 'foldable', not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
+    @toggleClass node, 'folded', @props.editor.isFoldedAtBufferRow(bufferRow)
+
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @props
-      @lineNumberNodesById[lineNumberId].style.top = screenRow * lineHeightInPixels + 'px'
-      @lineNumberNodesById[lineNumberId].dataset.screenRow = screenRow
+      node.style.top = screenRow * lineHeightInPixels + 'px'
+      node.dataset.screenRow = screenRow
       @screenRowsByLineNumberId[lineNumberId] = screenRow
       @lineNumberIdsByScreenRow[screenRow] = lineNumberId
 
@@ -156,3 +164,7 @@ GutterComponent = React.createClass
 
   lineNumberNodeForScreenRow: (screenRow) ->
     @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
+
+  toggleClass: (node, klass, condition) ->
+    if condition then node.classList.add(klass) else node.classList.remove(klass)
+
