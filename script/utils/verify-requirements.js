@@ -20,18 +20,15 @@ function verifyNode() {
 }
 
 function verifyPython27(cb) {
-  if (process.platform !== 'win32') {
+  if (false && process.platform !== 'win32') {
     cb();
   }
   else {
     if (!pythonExecutable) {
       var systemDrive = process.env.SystemDrive || 'C:\\';
-      pythonExecutable = path.join(systemDrive, 'Python27');
+      pythonExecutable = path.join(systemDrive, 'Python27', 'python.exe');
 
-      if (fs.existsSync(pythonExecutable)) {
-        pythonExecutable = path.join(pythonExecutable, 'python');
-      }
-      else {
+      if (!fs.existsSync(pythonExecutable)) {
         pythonExecutable = 'python';
       }
     }
