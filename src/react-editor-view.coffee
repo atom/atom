@@ -82,6 +82,26 @@ class ReactEditorView extends View
     @attached = false
     @trigger 'editor:detached', this
 
+  # Public: Split the editor view left.
+  splitLeft: ->
+    pane = @getPane()
+    pane?.splitLeft(pane?.copyActiveItem()).activeView
+
+  # Public: Split the editor view right.
+  splitRight: ->
+    pane = @getPane()
+    pane?.splitRight(pane?.copyActiveItem()).activeView
+
+  # Public: Split the editor view up.
+  splitUp: ->
+    pane = @getPane()
+    pane?.splitUp(pane?.copyActiveItem()).activeView
+
+  # Public: Split the editor view down.
+  splitDown: ->
+    pane = @getPane()
+    pane?.splitDown(pane?.copyActiveItem()).activeView
+
   getPane: ->
     @closest('.pane').view()
 
