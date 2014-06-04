@@ -56,7 +56,7 @@ start = ->
 
 global.devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
 # Normalize to make sure drive letter case is consistent on Windows
-globa.devResourcePath = path.normalize(global.devResourcePath) if global.devResourcePath
+global.devResourcePath = path.normalize(global.devResourcePath) if global.devResourcePath
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
