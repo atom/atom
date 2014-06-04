@@ -54,7 +54,7 @@ function bootstrap() {
 verifyRequirements(function(error, successMessage) {
   if (error) {
     console.log(error);
-    exit(1);
+    process.exit(1);
   }
 
   console.log(successMessage);
