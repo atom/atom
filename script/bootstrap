@@ -16,7 +16,8 @@ function executeCommands(commands, done, index) {
       command = command.command;
     }
     safeExec(command, options, executeCommands.bind(this, commands, done, index + 1));
-  } else
+  }
+  else
     done(null);
 }
 

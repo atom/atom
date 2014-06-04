@@ -22,7 +22,8 @@ function verifyNode() {
 function verifyPython27(cb) {
   if (process.platform !== 'win32') {
     cb();
-  } else {
+  }
+  else {
     var pythonExecutable;
     if (!pythonPath) {
       var systemDrive = process.env.SystemDrive || 'C:\\';
@@ -30,10 +31,12 @@ function verifyPython27(cb) {
 
       if (fs.existsSync(pythonPath)) {
         pythonExecutable = path.join(pythonPath, 'python');
-      } else {
+      }
+      else {
         pythonExecutable = 'python';
       }
-    } else {
+    }
+    else {
       pythonExecutable = pythonPath;
     }
 
