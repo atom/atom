@@ -50,7 +50,7 @@
     "open": "0.0.4"
   },
   "devDependencies": {
-    "jasmine-focused": "1.x",
+    "jasmine-focused": ">=1.0.5 <2.0",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.9.0",
     "grunt-cli": "~0.1.8",
