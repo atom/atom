@@ -20,32 +20,34 @@ function executeCommands(commands, done, index) {
     done(null);
 }
 
-verifyRequirements();
-
-var apmInstallPath = path.resolve(__dirname, '..', 'apm');
-if (!fs.existsSync(apmInstallPath))
+function postVerification() {
+  var apmInstallPath = path.resolve(__dirname, '..', 'apm');
+  if (!fs.existsSync(apmInstallPath))
   fs.mkdirSync(apmInstallPath);
-if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
+  if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
   fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
-var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
-var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
+  var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
+  var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
 
-var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
-var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
-var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
+  var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
+  var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
+  var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 
-var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
-var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
+  var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season'];
+  var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
-var commands = [
+  var commands = [
   {command: initialNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
   {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
   echoNewLine,
   apmPath + ' clean ' + apmFlags,
   apmPath + ' install --quiet ' + apmFlags,
   apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
-];
+  ];
 
-process.chdir(path.dirname(__dirname));
-executeCommands(commands, process.exit);
+  process.chdir(path.dirname(__dirname));
+  executeCommands(commands, process.exit);
+}
+
+verifyRequirements(postVerification);
