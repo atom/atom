@@ -109,6 +109,9 @@ parseCommandLine = ->
   catch
     resourcePath = path.dirname(path.dirname(__dirname))
 
+  # Normalize to make sure drive letter case is consistent on Windows
+  resourcePath = path.normalize(resourcePath) if resourcePath
+
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 
 start()
