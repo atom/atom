@@ -20,8 +20,6 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'overlayer', get: -> this
-
   append: (view) ->
     @appendToLinesView(view)
 
@@ -52,6 +50,7 @@ class ReactEditorView extends View
     node = @component.getDOMNode()
 
     @underlayer = $(node).find('.selections')
+    @overlayer = $(node).find('.lines')
 
     @gutter = $(node).find('.gutter')
     @gutter.removeClassFromAllLines = (klass) =>
