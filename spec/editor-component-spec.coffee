@@ -303,6 +303,12 @@ describe "EditorComponent", ->
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
     fdescribe "when decorations are used", ->
+      {lineHasClass, gutter} = {}
+      beforeEach ->
+        gutter = component.refs.gutter
+        lineHasClass = (screenRow, klass) ->
+          component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
       it "renders the gutter-class decorations", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         component.measureScrollView()
@@ -315,30 +321,27 @@ describe "EditorComponent", ->
         verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-        expect(component.lineNumberNodeForScreenRow(9).classList.contains('fancy-class')).toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(9).classList.contains('nope-class')).toBeFalsy()
+        expect(lineHasClass(9, 'fancy-class')).toBeTruthy()
+        expect(lineHasClass(9, 'nope-class')).toBeFalsy()
 
       it "handles updates to gutter-class decorations", ->
-        gutter = component.refs.gutter
-
         editor.addDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
         editor.addDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
 
         advanceClock(gutter.decorationRenderDelay)
 
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
+        expect(lineHasClass(2, 'fancy-class')).toBeTruthy()
+        expect(lineHasClass(2, 'nope-class')).toBeFalsy()
 
         editor.removeDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
         editor.removeDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
 
         advanceClock(gutter.decorationRenderDelay)
 
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
+        expect(lineHasClass(2, 'fancy-class')).toBeFalsy()
+        expect(lineHasClass(2, 'nope-class')).toBeFalsy()
 
       it "handles softWrap decorations", ->
-        gutter = component.refs.gutter
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
 
@@ -347,30 +350,105 @@ describe "EditorComponent", ->
         node.style.width = 30 * charWidth + 'px'
         component.measureScrollView()
 
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeTruthy()
+        expect(lineHasClass(2, 'no-wrap')).toBeTruthy()
+        expect(lineHasClass(2, 'wrap-me')).toBeTruthy()
+        expect(lineHasClass(3, 'no-wrap')).toBeFalsy()
+        expect(lineHasClass(3, 'wrap-me')).toBeTruthy()
 
         # should remove the wrapped decorations
         editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me'})
         advanceClock(gutter.decorationRenderDelay)
 
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeFalsy()
+        expect(lineHasClass(2, 'no-wrap')).toBeFalsy()
+        expect(lineHasClass(2, 'wrap-me')).toBeFalsy()
+        expect(lineHasClass(3, 'no-wrap')).toBeFalsy()
+        expect(lineHasClass(3, 'wrap-me')).toBeFalsy()
 
         # should add them back when the nodes are not recreated
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
         advanceClock(gutter.decorationRenderDelay)
 
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeTruthy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
-        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeTruthy()
+        expect(lineHasClass(2, 'no-wrap')).toBeTruthy()
+        expect(lineHasClass(2, 'wrap-me')).toBeTruthy()
+        expect(lineHasClass(3, 'no-wrap')).toBeFalsy()
+        expect(lineHasClass(3, 'wrap-me')).toBeTruthy()
+
+      describe "when markers are used", ->
+        {marker, decoration} = {}
+        beforeEach ->
+          marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
+          decoration = {type: 'gutter-class', class: 'someclass'}
+          editor.addDecorationForMarker(marker, decoration)
+          advanceClock(gutter.decorationRenderDelay)
+
+        it "tracks the marker's movements", ->
+          expect(lineHasClass(1, 'someclass')).toBeFalsy()
+          expect(lineHasClass(2, 'someclass')).toBeTruthy()
+          expect(lineHasClass(3, 'someclass')).toBeTruthy()
+          expect(lineHasClass(4, 'someclass')).toBeFalsy()
+
+          editor.getBuffer().insert([0, 0], '\n')
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(lineHasClass(2, 'someclass')).toBeFalsy()
+          expect(lineHasClass(3, 'someclass')).toBeTruthy()
+          expect(lineHasClass(4, 'someclass')).toBeTruthy()
+          expect(lineHasClass(5, 'someclass')).toBeFalsy()
+
+          editor.getBuffer().deleteRows(0, 1)
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(lineHasClass(0, 'someclass')).toBeFalsy()
+          expect(lineHasClass(1, 'someclass')).toBeTruthy()
+          expect(lineHasClass(2, 'someclass')).toBeTruthy()
+          expect(lineHasClass(3, 'someclass')).toBeFalsy()
+
+        it "removes the classes when marker is invalidated", ->
+          t = editor.getBuffer().getText()
+          # invalidate this thing
+          editor.getBuffer().insert([3, 2], 'n')
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(marker.isValid()).toBeFalsy()
+          expect(lineHasClass(1, 'someclass')).toBeFalsy()
+          expect(lineHasClass(2, 'someclass')).toBeFalsy()
+          expect(lineHasClass(3, 'someclass')).toBeFalsy()
+          expect(lineHasClass(4, 'someclass')).toBeFalsy()
+
+          # Back to valid
+          editor.getBuffer().undo()
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(marker.isValid()).toBeTruthy()
+          expect(lineHasClass(1, 'someclass')).toBeFalsy()
+          expect(lineHasClass(2, 'someclass')).toBeTruthy()
+          expect(lineHasClass(3, 'someclass')).toBeTruthy()
+          expect(lineHasClass(4, 'someclass')).toBeFalsy()
+
+        it "removes the classes and unsubscribes from the marker when decoration is removed", ->
+          editor.removeDecorationForMarker(marker, decoration)
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(lineHasClass(1, 'someclass')).toBeFalsy()
+          expect(lineHasClass(2, 'someclass')).toBeFalsy()
+          expect(lineHasClass(3, 'someclass')).toBeFalsy()
+          expect(lineHasClass(4, 'someclass')).toBeFalsy()
+
+          editor.getBuffer().insert([0, 0], '\n')
+          advanceClock(gutter.decorationRenderDelay)
+          expect(lineHasClass(2, 'someclass')).toBeFalsy()
+          expect(lineHasClass(3, 'someclass')).toBeFalsy()
+
+        it "removes the decoration when the marker is destroyed", ->
+          marker.destroy()
+          advanceClock(gutter.decorationRenderDelay)
+
+          expect(lineHasClass(1, 'someclass')).toBeFalsy()
+          expect(lineHasClass(2, 'someclass')).toBeFalsy()
+          expect(lineHasClass(3, 'someclass')).toBeFalsy()
+          expect(lineHasClass(4, 'someclass')).toBeFalsy()
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
