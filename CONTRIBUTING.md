@@ -11,6 +11,7 @@ propose changes to this document in a pull request.
 
 ## Submitting Issues
 
+* Include the version of Atom you are using and the OS.
 * Include screenshots and animated GIFs whenever possible; they are immensely
   helpful.
 * Include the behavior you expected and other places you've seen that behavior
