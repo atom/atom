@@ -114,9 +114,15 @@ class AtomWindow
       new ContextMenu(menuTemplate, this)
 
     if @isSpec
+      # Workaround for https://github.com/atom/atom-shell/issues/380
+      # Don't focus the window when it is being blurred during close or
+      # else the app will crash on Windows.
+      if process.platform is 'win32'
+        @browserWindow.on 'close', => @isWindowClosing = true
+
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
-        @browserWindow.focusOnWebView()
+        @browserWindow.focusOnWebView() unless @isWindowClosing
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     if @loaded
