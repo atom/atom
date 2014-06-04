@@ -55,7 +55,7 @@ function checkPythonVersion (python, cb) {
 
   execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
     if (err) {
-      error = "Python 2.7 is required to build Atom. An error occured when checking the version of '" + python + "'\n " + err + ". ";
+      error = "Python 2.7 is required to build Atom. An error (" + err + ") occured when checking the version of '" + python + "'. ";
       error += pythonHelpMessage;
       cb(error);
       return;
