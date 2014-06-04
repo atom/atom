@@ -27,6 +27,13 @@ GutterComponent = React.createClass
 
   componentDidMount: ->
     @appendDummyLineNumber()
+    @subscribeToEditor()
+
+  componentWillUnmount: ->
+    @unsubscribe()
+
+  subscribeToEditor: ->
+    @subscribe @props.editor, 'decoration-changed', @onDecorationChanged
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -168,3 +175,5 @@ GutterComponent = React.createClass
   toggleClass: (node, klass, condition) ->
     if condition then node.classList.add(klass) else node.classList.remove(klass)
 
+  onDecorationChanged: (change) ->
+    @forceUpdate()

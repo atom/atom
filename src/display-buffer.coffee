@@ -43,6 +43,7 @@ class DisplayBuffer extends Model
     @charWidthsByScope = {}
     @markers = {}
     @foldsByMarkerId = {}
+    @decorations = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
@@ -717,6 +718,30 @@ class DisplayBuffer extends Model
   # Returns a {Range}.
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
+
+  decorationsForBufferRow: (bufferRow) ->
+    @decorations[bufferRow] ? []
+
+  addDecorationForBufferRow: (bufferRow, decoration) ->
+    @decorations[bufferRow] ?= []
+    for current in @decorations[bufferRow]
+      return if _.isEqual(current, decoration)
+    @decorations[bufferRow].push(decoration)
+    @emit 'decoration-changed', {bufferRow, add: decoration}
+
+  removeDecorationForBufferRow: (bufferRow, decoration) ->
+    return unless @decorations[bufferRow]
+
+    removed = @findDecorationsForBufferRow(bufferRow, decoration)
+    @decorations[bufferRow] = _.without(@decorations, removed)
+    @emit 'decoration-changed', {bufferRow, remove: removed}
+
+  findDecorationsForBufferRow: (bufferRow, options) ->
+    return unless @decorations[bufferRow]
+    (dec for dec in @decorations[bufferRow] when _.isEqual(options, _.pick(decoration, _.keys(options))))
+
+  addGutterClassForMarker: (bufferRow) ->
+  removeGutterClassForMarker: (bufferRow) ->
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #

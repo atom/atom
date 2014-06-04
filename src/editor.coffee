@@ -1057,6 +1057,15 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
+  decorationsForBufferRow: (bufferRow) ->
+    @displayBuffer.decorationsForBufferRow(bufferRow)
+
+  addDecorationForBufferRow: (bufferRow, decoration) ->
+    @displayBuffer.addDecorationForBufferRow(bufferRow, decoration)
+
+  removeDecorationForBufferRow: (bufferRow, decoration) ->
+    @displayBuffer.removeDecorationForBufferRow(bufferRow, decoration)
+
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)

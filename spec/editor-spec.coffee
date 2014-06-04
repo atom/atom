@@ -1622,7 +1622,7 @@ describe "Editor", ->
         editor.setCursorBufferPosition([9,2])
         editor.insertNewline()
         expect(editor.lineForBufferRow(10)).toBe '  };'
-        
+
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null
@@ -3205,3 +3205,13 @@ describe "Editor", ->
 
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 0
+
+  fdescribe "decorations", ->
+    it "can add decorations", ->
+      decoration = {type: 'gutter-class', class: 'one'}
+      editor.addDecorationForBufferRow(2, decoration)
+      editor.addDecorationForBufferRow(2, decoration)
+
+      decorations = editor.decorationsForBufferRow(2)
+      expect(decorations).toHaveLength 1
+      expect(decorations).toContain decoration
