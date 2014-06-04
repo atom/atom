@@ -21,6 +21,10 @@ class AtomWindow
 
   constructor: (settings={}) ->
     {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone} = settings
+
+    # Normalize to make sure drive letter case is consistent on Windows
+    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+
     global.atomApplication.addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
@@ -29,6 +33,7 @@ class AtomWindow
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
+    loadSettings.resourcePath = @resourcePath
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
