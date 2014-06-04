@@ -125,7 +125,7 @@ class Install extends Command
     if vsVersion = config.getInstalledVisualStudioFlag()
       "--msvs_version=#{vsVersion}"
     else
-      throw new Error('You must have Visual Studio 2010 or 2012 installed')
+      throw new Error('You must have Visual Studio 2010, 2012, or 2013 installed')
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
