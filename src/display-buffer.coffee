@@ -44,6 +44,7 @@ class DisplayBuffer extends Model
     @markers = {}
     @foldsByMarkerId = {}
     @decorations = {}
+    @decorationMarkerSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
@@ -740,9 +741,12 @@ class DisplayBuffer extends Model
     for decoration in removed
       @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
-  findDecorationsForBufferRow: (bufferRow, options) ->
+  findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
-    (dec for dec in @decorations[bufferRow] when _.isEqual(options, _.pick(dec, _.keys(options))))
+    (dec for dec in @decorations[bufferRow] when @decorationEqualsPattern(dec, decorationPattern))
+
+  decorationEqualsPattern: (decoration, decorationPattern) ->
+    _.isEqual(decorationPattern, _.pick(decoration, _.keys(decorationPattern)))
 
   addDecorationForMarker: (marker, decoration) ->
     head = marker.getHeadBufferPosition().row
@@ -751,7 +755,7 @@ class DisplayBuffer extends Model
     while head <= tail
       @addDecorationForBufferRow(head++, decoration)
 
-    @subscribe marker, 'changed', (e) =>
+    changedSubscription = @subscribe marker, 'changed', (e) =>
       oldHead = e.oldHeadBufferPosition.row
       oldTail = e.oldTailBufferPosition.row
       newHead = e.newHeadBufferPosition.row
@@ -775,12 +779,28 @@ class DisplayBuffer extends Model
         @addDecorationForBufferRow(newHead, decoration)
         newHead++
 
-    @subscribe marker, 'destroyed', (e) =>
-      console.log 'destroyed', e
+    destroyedSubscription = @subscribe marker, 'destroyed', (e) =>
       @removeDecorationForMarker(marker, decoration)
 
+    @decorationMarkerSubscriptions[marker.id] ?= []
+    @decorationMarkerSubscriptions[marker.id].push {decoration, changedSubscription, destroyedSubscription}
+
   removeDecorationForMarker: (marker, decoration) ->
-    # TODO: unsubscribe from the change event for the marker + decoration combo
+    return unless @decorationMarkerSubscriptions[marker.id]
+
+    head = marker.getHeadBufferPosition().row
+    tail = marker.getTailBufferPosition().row
+    [tail, head] = [head, tail] if head > tail
+    while head <= tail
+      @removeDecorationForBufferRow(head++, decoration)
+
+    for sub in _.clone(@decorationMarkerSubscriptions[marker.id])
+      if @decorationEqualsPattern(sub.decoration, decoration)
+        sub.changedSubscription.off()
+        sub.destroyedSubscription.off()
+        @decorationMarkerSubscriptions[marker.id] = _.without(@decorationMarkerSubscriptions[marker.id], sub)
+
+    return
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #

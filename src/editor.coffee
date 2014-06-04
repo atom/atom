@@ -1070,6 +1070,9 @@ class Editor extends Model
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)
 
+  removeDecorationForMarker: (marker, decoration) ->
+    @displayBuffer.removeDecorationForMarker(marker, decoration)
+
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
