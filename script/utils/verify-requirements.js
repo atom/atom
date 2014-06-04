@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
-var cp = require('child_process');
-var execFile = cp.execFile;
+var childProcess = require('child_process');
+
 var pythonExecutable = process.env.PYTHON;
 
 module.exports = function(cb) {
@@ -53,7 +53,7 @@ function verifyPython27(cb) {
 function checkPythonVersion (python, cb) {
   var pythonHelpMessage = "Set the PYTHON env var to '/path/to/Python27/python.exe' if your python is installed in a non-default location.";
 
-  execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
+  childProcess.execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
     if (err) {
       error = "Python 2.7 is required to build Atom. An error (" + err + ") occured when checking the version of '" + python + "'. ";
       error += pythonHelpMessage;
