@@ -31,7 +31,8 @@ class Test extends Command
     env = process.env
 
     atomCommand = args.argv.path ? 'atom'
-    testArgs = ['--dev', '--test', "--spec-directory=#{path.join(process.cwd(), 'spec')}"]
+    packagePath = process.cwd()
+    testArgs = ['--dev', '--test', "--spec-directory=#{path.join(packagePath, 'spec')}"]
 
     if process.platform is 'win32'
       logFile = temp.openSync(suffix: '.log', prefix: path.basename(packagePath))
