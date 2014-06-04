@@ -228,8 +228,7 @@ class DisplayBuffer extends Model
     @charWidthsByScope = {}
 
   getScrollHeight: ->
-    unless @getLineHeightInPixels() > 0
-      throw new Error("You must assign lineHeightInPixels before calling ::getScrollHeight()")
+    return 0 unless @getLineHeightInPixels() > 0
 
     @getLineCount() * @getLineHeightInPixels()
 
@@ -237,8 +236,7 @@ class DisplayBuffer extends Model
     (@getMaxLineLength() * @getDefaultCharWidth()) + @getCursorWidth()
 
   getVisibleRowRange: ->
-    unless @getLineHeightInPixels() > 0
-      throw new Error("You must assign a non-zero lineHeightInPixels before calling ::getVisibleRowRange()")
+    return [0, 0] unless @getLineHeightInPixels() > 0
 
     heightInLines = Math.ceil(@getHeight() / @getLineHeightInPixels()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
