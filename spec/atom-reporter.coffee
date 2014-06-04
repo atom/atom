@@ -7,8 +7,8 @@ sourceMaps = {}
 formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
 
-  jasminePattern = /^\s*at\s+.*\(?.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
-  firstJasmineLinePattern = /^\s*at \/.*\/jasmine(-[^\/]*)?\.js:\d+:\d+\)?\s*$/
+  jasminePattern = /^\s*at\s+.*\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
+  firstJasmineLinePattern = /^\s*at [/\\].*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
   convertedLines = []
   for line in stackTrace.split('\n')
     convertedLines.push(line) unless jasminePattern.test(line)
@@ -23,7 +23,7 @@ formatStackTrace = (spec, message='', stackTrace) ->
 
   for line, index in lines
     # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
-    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^\)]+)\)/)
+    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^)]+)\)/)
     line = "at #{prefixMatch[1]}" if prefixMatch
 
     # Relativize locations to spec directory
