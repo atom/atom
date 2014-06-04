@@ -53,7 +53,7 @@ class Test extends Command
       @spawn cmd, cmdArgs, cmdOptions, (code) ->
         try
           loggedOutput = fs.readFileSync(logFilePath, 'utf8')
-          process.stderr.write("#{loggedOutput}\n") if loggedOutput
+          process.stdout.write("#{loggedOutput}\n") if loggedOutput
 
         if code is 0
           process.stdout.write 'Tests passed\n'.green
