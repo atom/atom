@@ -33,10 +33,7 @@ function verifyNode(cb) {
 }
 
 function verifyPython27(cb) {
-  if (process.platform !== 'win32') {
-    cb(null, "Python: <not verified>");
-  }
-  else {
+  if (process.platform == 'win32') {
     if (!pythonExecutable) {
       var systemDrive = process.env.SystemDrive || 'C:\\';
       pythonExecutable = path.join(systemDrive, 'Python27', 'python.exe');
@@ -47,6 +44,9 @@ function verifyPython27(cb) {
     }
 
     checkPythonVersion(pythonExecutable, cb);
+  }
+  else {
+    cb(null, "Python: <not verified>");
   }
 }
 
