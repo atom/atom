@@ -77,7 +77,7 @@
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
-  'ctrl-alt-p': 'editor:log-cursor-scope'
+  'ctrl-alt-shift-p': 'editor:log-cursor-scope'
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
 
