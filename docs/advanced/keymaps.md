@@ -91,10 +91,10 @@ the current keystroke sequence and continue searching from its parent. If you
 want to remove a binding from a keymap you don't control, such as keymaps in
 Atom core or in packages, use the `unset!` directive.
 
-```coffee
-# remove the 'a' keybinding in the Tree View, which is
-# normally bound to the tree-view:add-file command
+For example, the following code removes the keybinding for `a` in the Tree View, 
+which is normally used to trigger the `tree-view:add-file` command:
 
+```coffee
 '.tree-view':
     'a': 'unset!'
 ```
