@@ -5,23 +5,36 @@ var execFile = cp.execFile;
 var pythonExecutable = process.env.PYTHON;
 
 module.exports = function(cb) {
-  verifyNode();
-  verifyPython27(cb);
+  verifyNode(function(error, nodeSuccessMessage) {
+    if (error) {
+      cb(error);
+      return;
+    }
+
+    verifyPython27(function(error, pythonSuccessMessage) {
+      cb(error, nodeSuccessMessage + "\n" + pythonSuccessMessage);
+    });
+  });
+
 };
 
-function verifyNode() {
-  var nodeVersion = process.versions.node.split('.');
-  var nodeMajorVersion = +nodeVersion[0];
-  var nodeMinorVersion = +nodeVersion[1];
+function verifyNode(cb) {
+  var nodeVersion = process.versions.node;
+  var versionArray = nodeVersion.split('.');
+  var nodeMajorVersion = +versionArray[0];
+  var nodeMinorVersion = +versionArray[1];
   if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
-    console.warn("node v0.10 is required to build Atom.");
-    process.exit(1);
+    error = "node v0.10 is required to build Atom.";
+    cb(error);
+  }
+  else {
+    cb(null, "Node: v" + nodeVersion);
   }
 }
 
 function verifyPython27(cb) {
-  if (false && process.platform !== 'win32') {
-    cb();
+  if (process.platform !== 'win32') {
+    cb(null, "Python: <not verified>");
   }
   else {
     if (!pythonExecutable) {
@@ -42,9 +55,10 @@ function checkPythonVersion (python, cb) {
 
   execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
     if (err) {
-      console.log("Python 2.7 is required to build Atom. An error occured when checking for python '" + err + "'");
-      console.log(pythonHelpMessage);
-      process.exit(1);
+      error = "Python 2.7 is required to build Atom. An error occured when checking for python '" + err + "'. ";
+      error += pythonHelpMessage;
+      cb(error);
+      return;
     }
 
     var version = stdout.trim();
@@ -59,12 +73,13 @@ function checkPythonVersion (python, cb) {
     var versionArray = version.split('.').map(function(num) { return +num; });
     var goodPythonVersion = (versionArray[0] === 2 && versionArray[1] >= 7);
     if (!goodPythonVersion) {
-      console.log("Python 2.7 is required to build Atom. '" + python + "' returns version " + version);
-      console.log(pythonHelpMessage);
-      process.exit(1);
+      error = "Python 2.7 is required to build Atom. '" + python + "' returns version " + version + ". ";
+      error += pythonHelpMessage;
+      cb(error);
+      return;
     }
 
     // Finally, if we've gotten this far, callback to resume the install process.
-    cb();
+    cb(null, "Python: v" + version);
   });
 }

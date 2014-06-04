@@ -51,4 +51,12 @@ function bootstrap() {
   executeCommands(commands, process.exit);
 }
 
-verifyRequirements(bootstrap);
+verifyRequirements(function(error, successMessage) {
+  if (error) {
+    console.log(error);
+    exit(1);
+  }
+
+  console.log(successMessage);
+  bootstrap();
+});
