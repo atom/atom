@@ -93,13 +93,13 @@ class ReactEditorView extends View
 
   hide: ->
     super
-    @component.hide()
+    @component?.hide()
 
   show: ->
     super
-    @component.show()
+    @component?.show()
 
   getModel: ->
-    @component.getModel()
+    @component?.getModel()
 
   requestDisplayUpdate: -> # No-op shim for find-and-replace
