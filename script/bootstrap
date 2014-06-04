@@ -20,7 +20,7 @@ function executeCommands(commands, done, index) {
     done(null);
 }
 
-function postVerification() {
+function bootstrap() {
   var apmInstallPath = path.resolve(__dirname, '..', 'apm');
   if (!fs.existsSync(apmInstallPath))
   fs.mkdirSync(apmInstallPath);
@@ -50,4 +50,4 @@ function postVerification() {
   executeCommands(commands, process.exit);
 }
 
-verifyRequirements(postVerification);
+verifyRequirements(bootstrap);
