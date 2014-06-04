@@ -27,6 +27,9 @@ setSpecDirectory = (specDirectory) ->
 runAllSpecs = ->
   {resourcePath} = atom.getLoadSettings()
 
+  requireSpecs(path.join(resourcePath, 'spec'))
+  setSpecType('core')
+
   fixturesPackagesPath = path.join(__dirname, 'fixtures', 'packages')
   packagePaths = atom.packages.getAvailablePackageNames().map (packageName) ->
     atom.packages.resolvePackagePath(packageName)
