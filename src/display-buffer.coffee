@@ -727,18 +727,20 @@ class DisplayBuffer extends Model
     for current in @decorations[bufferRow]
       return if _.isEqual(current, decoration)
     @decorations[bufferRow].push(decoration)
-    @emit 'decoration-changed', {bufferRow, add: decoration}
+    @emit 'decoration-changed', {bufferRow, decoration, action: 'add'}
 
   removeDecorationForBufferRow: (bufferRow, decoration) ->
     return unless @decorations[bufferRow]
 
     removed = @findDecorationsForBufferRow(bufferRow, decoration)
-    @decorations[bufferRow] = _.without(@decorations, removed)
-    @emit 'decoration-changed', {bufferRow, remove: removed}
+    @decorations[bufferRow] = _.without(@decorations[bufferRow], removed...)
+
+    for decoration in removed
+      @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
   findDecorationsForBufferRow: (bufferRow, options) ->
     return unless @decorations[bufferRow]
-    (dec for dec in @decorations[bufferRow] when _.isEqual(options, _.pick(decoration, _.keys(options))))
+    (dec for dec in @decorations[bufferRow] when _.isEqual(options, _.pick(dec, _.keys(options))))
 
   addGutterClassForMarker: (bufferRow) ->
   removeGutterClassForMarker: (bufferRow) ->

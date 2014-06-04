@@ -214,6 +214,7 @@ class Editor extends Model
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
     @subscribe @displayBuffer, 'tokenized', => @handleTokenization()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
+    @subscribe @displayBuffer, "decoration-changed", (e) => @emit 'decoration-changed', e
 
   getViewClass: ->
     if atom.config.get('core.useReactEditor')

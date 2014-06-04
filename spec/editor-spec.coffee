@@ -3207,7 +3207,7 @@ describe "Editor", ->
       expect(editor.getScrollTop()).toBe 0
 
   fdescribe "decorations", ->
-    it "can add decorations", ->
+    it "can add and remove decorations", ->
       decoration = {type: 'gutter-class', class: 'one'}
       editor.addDecorationForBufferRow(2, decoration)
       editor.addDecorationForBufferRow(2, decoration)
@@ -3215,3 +3215,7 @@ describe "Editor", ->
       decorations = editor.decorationsForBufferRow(2)
       expect(decorations).toHaveLength 1
       expect(decorations).toContain decoration
+
+      editor.removeDecorationForBufferRow(2, decoration)
+      decorations = editor.decorationsForBufferRow(2)
+      expect(decorations).toHaveLength 0

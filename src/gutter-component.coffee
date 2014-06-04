@@ -24,6 +24,7 @@ GutterComponent = React.createClass
     @lineNumberNodesById = {}
     @lineNumberIdsByScreenRow = {}
     @screenRowsByLineNumberId = {}
+    @decoratorUpdates = {}
 
   componentDidMount: ->
     @appendDummyLineNumber()
@@ -141,6 +142,7 @@ GutterComponent = React.createClass
     classes = "line-number"
     classes += ' foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
     classes += ' folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
+
     "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
@@ -159,6 +161,11 @@ GutterComponent = React.createClass
     @toggleClass node, 'foldable', not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
     @toggleClass node, 'folded', @props.editor.isFoldedAtBufferRow(bufferRow)
 
+    if @decoratorUpdates[bufferRow]?
+      for change in @decoratorUpdates[bufferRow]
+        node.classList[change.action](change.decoration.class)
+      delete @decoratorUpdates[bufferRow]
+
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @props
       node.style.top = screenRow * lineHeightInPixels + 'px'
@@ -176,4 +183,7 @@ GutterComponent = React.createClass
     if condition then node.classList.add(klass) else node.classList.remove(klass)
 
   onDecorationChanged: (change) ->
-    @forceUpdate()
+    if change.decoration.type == 'gutter-class'
+      @decoratorUpdates[change.bufferRow] ?= []
+      @decoratorUpdates[change.bufferRow].push change
+      @forceUpdate()
