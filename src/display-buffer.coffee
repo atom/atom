@@ -744,8 +744,43 @@ class DisplayBuffer extends Model
     return unless @decorations[bufferRow]
     (dec for dec in @decorations[bufferRow] when _.isEqual(options, _.pick(dec, _.keys(options))))
 
-  addGutterClassForMarker: (bufferRow) ->
-  removeGutterClassForMarker: (bufferRow) ->
+  addDecorationForMarker: (marker, decoration) ->
+    head = marker.getHeadBufferPosition().row
+    tail = marker.getTailBufferPosition().row
+    [tail, head] = [head, tail] if head > tail
+    while head <= tail
+      @addDecorationForBufferRow(head++, decoration)
+
+    @subscribe marker, 'changed', (e) =>
+      oldHead = e.oldHeadBufferPosition.row
+      oldTail = e.oldTailBufferPosition.row
+      newHead = e.newHeadBufferPosition.row
+      newTail = e.newTailBufferPosition.row
+
+      # swap so head is always <= than tail
+      [oldTail, oldHead] = [oldHead, oldTail] if oldHead > oldTail
+      [newTail, newHead] = [newHead, newTail] if newHead > newTail
+
+      # TODO: we could only update the rows that change by tracking an overlap,
+      # then update only those outside of the overlap. I had something to do
+      # this, but it's complicated by marker validity. When invlaid, I removed
+      # all decorations, then when markers becoming valid, some of the
+      # overlap was not visible.
+
+      while oldHead <= oldTail
+        @removeDecorationForBufferRow(oldHead, decoration)
+        oldHead++
+
+      while e.isValid and newHead <= newTail
+        @addDecorationForBufferRow(newHead, decoration)
+        newHead++
+
+    @subscribe marker, 'destroyed', (e) =>
+      console.log 'destroyed', e
+      @removeDecorationForMarker(marker, decoration)
+
+  removeDecorationForMarker: (marker, decoration) ->
+    # TODO: unsubscribe from the change event for the marker + decoration combo
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #
