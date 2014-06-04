@@ -49,6 +49,7 @@ class Test extends Command
         env: env
         windowsVerbatimArguments: true
       cmd = process.env.comspec or 'cmd.exe'
+
       @spawn cmd, cmdArgs, cmdOptions, (code) ->
         try
           loggedOutput = fs.readFileSync(logFilePath, 'utf8')
