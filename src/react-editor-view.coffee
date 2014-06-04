@@ -99,4 +99,7 @@ class ReactEditorView extends View
     super
     @component.show()
 
+  getModel: ->
+    @component.getModel()
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
