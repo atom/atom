@@ -319,8 +319,12 @@ describe "EditorComponent", ->
         expect(component.lineNumberNodeForScreenRow(9).classList.contains('nope-class')).toBeFalsy()
 
       it "handles updates to gutter-class decorations", ->
+        gutter = component.refs.gutter
+
         editor.addDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
         editor.addDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
+
+        advanceClock(gutter.decorationRenderDelay)
 
         expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeTruthy()
         expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
@@ -328,10 +332,13 @@ describe "EditorComponent", ->
         editor.removeDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
         editor.removeDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
 
+        advanceClock(gutter.decorationRenderDelay)
+
         expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeFalsy()
         expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
 
       it "handles softWrap decorations", ->
+        gutter = component.refs.gutter
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
 
@@ -348,6 +355,7 @@ describe "EditorComponent", ->
         # should remove the wrapped decorations
         editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me'})
+        advanceClock(gutter.decorationRenderDelay)
 
         expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeFalsy()
         expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeFalsy()
@@ -357,6 +365,7 @@ describe "EditorComponent", ->
         # should add them back when the nodes are not recreated
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
         editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
+        advanceClock(gutter.decorationRenderDelay)
 
         expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeTruthy()
         expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeTruthy()

@@ -10,6 +10,7 @@ GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
   decorationType: 'gutter-class'
+  decorationRenderDelay: 100
 
   dummyLineNumberNode: null
 
@@ -194,4 +195,11 @@ GutterComponent = React.createClass
     if change.decoration.type == @decorationType
       @decoratorUpdates[change.bufferRow] ?= []
       @decoratorUpdates[change.bufferRow].push change
+      @renderDecorations()
+
+  renderDecorations: ->
+    clearTimeout(@decorationRenderTimeout) if @decorationRenderTimeout
+    render = =>
       @forceUpdate()
+      @decorationRenderTimeout = null
+    @decorationRenderTimeout = setTimeout(render, @decorationRenderDelay)
