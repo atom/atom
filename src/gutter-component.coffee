@@ -9,6 +9,7 @@ module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
+  decorationType: 'gutter-class'
 
   dummyLineNumberNode: null
 
@@ -118,6 +119,7 @@ GutterComponent = React.createClass
         @lineNumberNodesById[lineNumberId] = lineNumberNode
         node.appendChild(lineNumberNode)
 
+    @decoratorUpdates = {}
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->
@@ -139,11 +141,15 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    classes = "line-number"
-    classes += ' foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
-    classes += ' folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
+    classes = ['line-number']
+    classes.push 'foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
+    classes.push 'folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
 
-    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    decorations = @props.editor.decorationsForBufferRow(bufferRow, @decorationType)
+    for decoration in decorations
+      classes.push(decoration.class) if not softWrapped or softWrapped and decoration.softWrap
+
+    "<div class=\"#{classes.join(' ')}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
@@ -163,8 +169,10 @@ GutterComponent = React.createClass
 
     if @decoratorUpdates[bufferRow]?
       for change in @decoratorUpdates[bufferRow]
-        node.classList[change.action](change.decoration.class)
-      delete @decoratorUpdates[bufferRow]
+        if change.action == 'add' and (not softWrapped or softWrapped and change.decoration.softWrap)
+          node.classList.add(change.decoration.class)
+        else if change.action == 'remove'
+          node.classList.remove(change.decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @props
@@ -183,7 +191,7 @@ GutterComponent = React.createClass
     if condition then node.classList.add(klass) else node.classList.remove(klass)
 
   onDecorationChanged: (change) ->
-    if change.decoration.type == 'gutter-class'
+    if change.decoration.type == @decorationType
       @decoratorUpdates[change.bufferRow] ?= []
       @decoratorUpdates[change.bufferRow].push change
       @forceUpdate()

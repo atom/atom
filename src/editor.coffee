@@ -1058,8 +1058,8 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  decorationsForBufferRow: (bufferRow) ->
-    @displayBuffer.decorationsForBufferRow(bufferRow)
+  decorationsForBufferRow: (bufferRow, decorationType) ->
+    @displayBuffer.decorationsForBufferRow(bufferRow, decorationType)
 
   addDecorationForBufferRow: (bufferRow, decoration) ->
     @displayBuffer.addDecorationForBufferRow(bufferRow, decoration)

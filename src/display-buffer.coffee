@@ -719,8 +719,10 @@ class DisplayBuffer extends Model
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
-  decorationsForBufferRow: (bufferRow) ->
-    @decorations[bufferRow] ? []
+  decorationsForBufferRow: (bufferRow, decorationType) ->
+    decorations = @decorations[bufferRow] ? []
+    decorations = (dec for dec in decorations when dec.type == decorationType) if decorationType?
+    decorations
 
   addDecorationForBufferRow: (bufferRow, decoration) ->
     @decorations[bufferRow] ?= []

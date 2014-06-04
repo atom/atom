@@ -302,6 +302,67 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
+    fdescribe "when decorations are used", ->
+      it "renders the gutter-class decorations", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        component.measureScrollView()
+
+        expect(component.lineNumberNodeForScreenRow(9)).toBeFalsy()
+
+        editor.addDecorationForBufferRow(9, {type: 'gutter-class', class: 'fancy-class'})
+        editor.addDecorationForBufferRow(9, {type: 'someother-type', class: 'nope-class'})
+
+        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+        expect(component.lineNumberNodeForScreenRow(9).classList.contains('fancy-class')).toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(9).classList.contains('nope-class')).toBeFalsy()
+
+      it "handles updates to gutter-class decorations", ->
+        editor.addDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
+        editor.addDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
+
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
+
+        editor.removeDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
+        editor.removeDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
+
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains('fancy-class')).toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains('nope-class')).toBeFalsy()
+
+      it "handles softWrap decorations", ->
+        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
+        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
+
+        editor.setSoftWrap(true)
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 30 * charWidth + 'px'
+        component.measureScrollView()
+
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeTruthy()
+
+        # should remove the wrapped decorations
+        editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
+        editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me'})
+
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeFalsy()
+
+        # should add them back when the nodes are not recreated
+        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
+        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
+
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'no-wrap').toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(2).classList.contains 'wrap-me').toBeTruthy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'no-wrap').toBeFalsy()
+        expect(component.lineNumberNodeForScreenRow(3).classList.contains 'wrap-me').toBeTruthy()
+
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
       cursor1 = editor.getCursor()
