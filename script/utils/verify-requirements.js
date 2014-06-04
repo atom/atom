@@ -2,7 +2,7 @@ var path = require('path');
 var fs = require('fs');
 var cp = require('child_process');
 var execFile = cp.execFile;
-var pythonPath = process.env.PYTHON;
+var pythonExecutable = process.env.PYTHON;
 
 module.exports = function(cb) {
   verifyNode();
@@ -24,20 +24,16 @@ function verifyPython27(cb) {
     cb();
   }
   else {
-    var pythonExecutable;
-    if (!pythonPath) {
+    if (!pythonExecutable) {
       var systemDrive = process.env.SystemDrive || 'C:\\';
-      pythonPath = path.join(systemDrive, 'Python27');
+      pythonExecutable = path.join(systemDrive, 'Python27');
 
-      if (fs.existsSync(pythonPath)) {
-        pythonExecutable = path.join(pythonPath, 'python');
+      if (fs.existsSync(pythonExecutable)) {
+        pythonExecutable = path.join(pythonExecutable, 'python');
       }
       else {
         pythonExecutable = 'python';
       }
-    }
-    else {
-      pythonExecutable = pythonPath;
     }
 
     checkPythonVersion(pythonExecutable, cb);
