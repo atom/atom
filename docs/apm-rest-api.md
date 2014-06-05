@@ -190,7 +190,7 @@ Return value is similar to **GET /api/packages**
 
 Stars a package; requires authentication.
 
-Returns package.
+Returns a package.
 
 #### DELETE /api/packages/:name/star
 
