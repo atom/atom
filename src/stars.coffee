@@ -34,7 +34,7 @@ class Stars extends Command
 
     if user
       requestSettings.url = "#{config.getAtomApiUrl()}/users/#{user}/stars"
-      @requestStarredPackages(requestSettings)
+      @requestStarredPackages(requestSettings, callback)
     else
       requestSettings.url = "#{config.getAtomApiUrl()}/stars"
       Login.getTokenOrLogin (error, token) =>
