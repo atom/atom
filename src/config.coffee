@@ -67,6 +67,9 @@ module.exports =
   getInstalledVisualStudioFlag: ->
     return null unless @isWin32()
 
+    # Use the explictly-configured version when set
+    return process.env.GYP_MSVS_VERSION if process.env.GYP_MSVS_VERSION
+
     vs2010Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 10.0", "Common7", "IDE")
     return '2010' if fs.existsSync(vs2010Path)
 
