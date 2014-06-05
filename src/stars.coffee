@@ -1,9 +1,11 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 
+auth = require './auth'
 Command = require './command'
-Install = require './install'
 config = require './config'
+Install = require './install'
+Login = require './login'
 request = require './request'
 tree = require './tree'
 
@@ -33,9 +35,17 @@ class Stars extends Command
 
     if user
       requestSettings.url = "#{config.getAtomApiUrl()}/users/#{user}/stars"
+      @requestStarredPackages(requestSettings)
     else
       requestSettings.url = "#{config.getAtomApiUrl()}/stars"
+      @getToken (error, token) =>
+        if token?
+          requestSettings.headers = authorization: token
+          @requestStarredPackages(requestSettings, callback)
+        else
+          callback(error)
 
+  requestStarredPackages: (requestSettings, callback) ->
     request.get requestSettings, (error, response, body={}) ->
       if error?
         callback(error)
@@ -47,6 +57,13 @@ class Stars extends Command
       else
         message = body.message ? body.error ? body
         callback("Requesting packages failed: #{message}")
+
+  getToken: (callback) ->
+    auth.getToken (error, token) ->
+      if error?
+        new Login().run({callback, commandArgs: []})
+      else
+        callback(null, token)
 
   run: (options) ->
     {callback} = options
@@ -68,10 +85,11 @@ class Stars extends Command
         console.log(JSON.stringify(packages))
         callback()
       else
+        userLabel = user ? 'you'
         if options.argv.themes
-          label = "Themes starred by #{user}"
+          label = "Themes starred by #{userLabel}"
         else
-          label = "Packages starred by #{user}"
+          label = "Packages starred by #{userLabel}"
         console.log "#{label.cyan} (#{packages.length})"
 
         tree packages, ({name, version, description, downloads}) ->
