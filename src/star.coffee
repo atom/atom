@@ -28,6 +28,7 @@ class Star extends Command
     process.stdout.write '\u2B50  ' if process.platform is 'darwin'
     process.stdout.write "Starring #{packageName} "
     requestSettings =
+      json: true
       url: "#{config.getAtomPackagesUrl()}/#{packageName}/star"
       headers:
         authorization: token
