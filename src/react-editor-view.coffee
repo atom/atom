@@ -5,7 +5,7 @@ EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
-  @content: -> @div class: 'editor react-wrapper'
+  @content: -> @div class: 'react-wrapper'
 
   focusOnAttach: false
 
