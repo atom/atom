@@ -3,30 +3,76 @@ React = require 'react-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 SubscriberMixin = require './subscriber-mixin'
 
-WrapperDiv = document.createElement('div')
+
+LineComponent = React.createClass
+  displayName: 'LineComponent'
+  render: ->
+    {id, softWrapped, bufferRow, screenRow, style, maxLineNumberDigits} = @props
+    {foldable, folded} = @props
+
+    if softWrapped
+      text = '\u2022' # a Dot
+    else
+      text = bufferRow
+
+    className = 'line-number'
+    className += ' foldable' if foldable
+    className += ' folded' if folded
+
+    div key: id, className: className, 'data-buffer-row': bufferRow, 'data-screen-row': screenRow, style: style,
+      text
+      div className: 'icon-right', onMouseDown: @toggleFold
+
+  toggleFold: ->
+    if @props.foldable
+      @props.editor.toggleFoldAtBufferRow(@props.bufferRow)
+
 
 module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
 
-  dummyLineNumberNode: null
-
   render: ->
-    {scrollHeight, scrollTop} = @props
+    {editor, scrollHeight, scrollTop, renderedRowRange, lineHeightInPixels, maxLineNumberDigits} = @props
+    style =
+      height: scrollHeight
+      WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
+      position: 'absolute'
+      width: "#{maxLineNumberDigits}em"
+
+    rows = []
+    if renderedRowRange
+      [startRow, endRow] = renderedRowRange
+
+      style.top = "#{startRow * lineHeightInPixels}px"
+
+      wrapCount = 0
+      lastBufferRow = null
+      rows = for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
+        if bufferRow is lastBufferRow
+          id = "#{bufferRow}-#{wrapCount++}"
+        else
+          id = bufferRow
+          wrapCount = 0
+
+        foldable = bufferRow isnt lastBufferRow and editor.isFoldableAtBufferRow(bufferRow)
+        folded = editor.isFoldedAtBufferRow(bufferRow)
+
+        lastBufferRow = bufferRow
+        LineComponent {editor, id, bufferRow, maxLineNumberDigits, foldable, folded, softWrapped: wrapCount > 0}
+
+    dummyLineStyle =
+      visibility: 'hidden'
+      width: "#{maxLineNumberDigits}em"
 
     div className: 'gutter',
-      div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: scrollHeight
-        WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
+      # This dummy line number element holds the gutter to the appropriate width,
+      # since the real line numbers are absolutely positioned for performance reasons.
+      LineComponent {bufferRow:0, maxLineNumberDigits, style: dummyLineStyle}
 
-  componentWillMount: ->
-    @lineNumberNodesById = {}
-    @lineNumberIdsByScreenRow = {}
-    @screenRowsByLineNumberId = {}
+      div className: 'line-numbers', ref: 'lineNumbers', style:style, rows...
 
-  componentDidMount: ->
-    @appendDummyLineNumber()
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -41,118 +87,3 @@ GutterComponent = React.createClass
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
     false
-
-  componentDidUpdate: (oldProps) ->
-    unless oldProps.maxLineNumberDigits is @props.maxLineNumberDigits
-      @updateDummyLineNumber()
-      @removeLineNumberNodes()
-
-    @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
-    @updateLineNumbers()
-
-  clearScreenRowCaches: ->
-    @lineNumberIdsByScreenRow = {}
-    @screenRowsByLineNumberId = {}
-
-  # This dummy line number element holds the gutter to the appropriate width,
-  # since the real line numbers are absolutely positioned for performance reasons.
-  appendDummyLineNumber: ->
-    {maxLineNumberDigits} = @props
-    WrapperDiv.innerHTML = @buildLineNumberHTML(0, false, maxLineNumberDigits)
-    @dummyLineNumberNode = WrapperDiv.children[0]
-    @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
-
-  updateDummyLineNumber: ->
-    @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false, @props.maxLineNumberDigits)
-
-  updateLineNumbers: ->
-    lineNumberIdsToPreserve = @appendOrUpdateVisibleLineNumberNodes()
-    @removeLineNumberNodes(lineNumberIdsToPreserve)
-
-  appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, renderedRowRange, scrollTop, maxLineNumberDigits} = @props
-    [startRow, endRow] = renderedRowRange
-
-    newLineNumberIds = null
-    newLineNumbersHTML = null
-    visibleLineNumberIds = new Set
-
-    wrapCount = 0
-    for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-      screenRow = startRow + index
-
-      if bufferRow is lastBufferRow
-        id = "#{bufferRow}-#{wrapCount++}"
-      else
-        id = bufferRow.toString()
-        lastBufferRow = bufferRow
-        wrapCount = 0
-
-      visibleLineNumberIds.add(id)
-
-      if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, screenRow)
-      else
-        newLineNumberIds ?= []
-        newLineNumbersHTML ?= ""
-        newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow)
-        @screenRowsByLineNumberId[id] = screenRow
-        @lineNumberIdsByScreenRow[screenRow] = id
-
-    if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = toArray(WrapperDiv.children)
-
-      node = @refs.lineNumbers.getDOMNode()
-      for lineNumberId, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[lineNumberId] = lineNumberNode
-        node.appendChild(lineNumberNode)
-
-    visibleLineNumberIds
-
-  removeLineNumberNodes: (lineNumberIdsToPreserve) ->
-    {mouseWheelScreenRow} = @props
-    node = @refs.lineNumbers.getDOMNode()
-    for lineNumberId, lineNumberNode of @lineNumberNodesById when not lineNumberIdsToPreserve?.has(lineNumberId)
-      screenRow = @screenRowsByLineNumberId[lineNumberId]
-      if not screenRow? or screenRow isnt mouseWheelScreenRow
-        delete @lineNumberNodesById[lineNumberId]
-        delete @lineNumberIdsByScreenRow[screenRow] if @lineNumberIdsByScreenRow[screenRow] is lineNumberId
-        delete @screenRowsByLineNumberId[lineNumberId]
-        node.removeChild(lineNumberNode)
-
-  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow) ->
-    if screenRow?
-      {lineHeightInPixels} = @props
-      style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
-    else
-      style = "visibility: hidden;"
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
-
-    "<div class=\"line-number\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
-
-  buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
-    if softWrapped
-      lineNumber = "•"
-    else
-      lineNumber = (bufferRow + 1).toString()
-
-    padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
-
-  updateLineNumberNode: (lineNumberId, screenRow) ->
-    unless @screenRowsByLineNumberId[lineNumberId] is screenRow
-      {lineHeightInPixels} = @props
-      @lineNumberNodesById[lineNumberId].style.top = screenRow * lineHeightInPixels + 'px'
-      @lineNumberNodesById[lineNumberId].dataset.screenRow = screenRow
-      @screenRowsByLineNumberId[lineNumberId] = screenRow
-      @lineNumberIdsByScreenRow[screenRow] = lineNumberId
-
-  hasLineNumberNode: (lineNumberId) ->
-    @lineNumberNodesById.hasOwnProperty(lineNumberId)
-
-  lineNumberNodeForScreenRow: (screenRow) ->
-    @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
