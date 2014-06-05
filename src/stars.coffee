@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 
-auth = require './auth'
 Command = require './command'
 config = require './config'
 Install = require './install'
@@ -38,7 +37,7 @@ class Stars extends Command
       @requestStarredPackages(requestSettings)
     else
       requestSettings.url = "#{config.getAtomApiUrl()}/stars"
-      @getToken (error, token) =>
+      Login.getTokenOrLogin (error, token) =>
         if token?
           requestSettings.headers = authorization: token
           @requestStarredPackages(requestSettings, callback)
@@ -57,13 +56,6 @@ class Stars extends Command
       else
         message = body.message ? body.error ? body
         callback("Requesting packages failed: #{message}")
-
-  getToken: (callback) ->
-    auth.getToken (error, token) ->
-      if error?
-        new Login().run({callback, commandArgs: []})
-      else
-        callback(null, token)
 
   run: (options) ->
     {callback} = options
