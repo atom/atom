@@ -40,6 +40,9 @@ module.exports =
   getAtomPackagesUrl: ->
     process.env.ATOM_PACKAGES_URL ? 'https://atom.io/api/packages'
 
+  getAtomApiUrl: ->
+    process.env.ATOM_API_URL ? 'https://atom.io/api'
+
   getNodeVersion: ->
     process.env.ATOM_NODE_VERSION ? '0.11.10'
 
