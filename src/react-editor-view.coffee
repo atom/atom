@@ -120,4 +120,10 @@ class ReactEditorView extends View
   getModel: ->
     @component?.getModel()
 
+  getFirstVisibleScreenRow: ->
+    @component.getRenderedRowRange()[0]
+
+  getLastVisibleScreenRow: ->
+    @component.getRenderedRowRange()[1]
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
