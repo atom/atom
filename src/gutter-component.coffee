@@ -9,7 +9,6 @@ module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
-  decorationType: 'gutter'
   decorationRenderDelay: 100
 
   dummyLineNumberNode: null
@@ -146,7 +145,7 @@ GutterComponent = React.createClass
     classes.push 'foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
     classes.push 'folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
 
-    decorations = @props.editor.decorationsForBufferRow(bufferRow, @decorationType)
+    decorations = @props.editor.decorationsForBufferRow(bufferRow, 'gutter')
     for decoration in decorations
       classes.push(decoration.class) if not softWrapped or softWrapped and decoration.softWrap
 
@@ -192,7 +191,7 @@ GutterComponent = React.createClass
     if condition then node.classList.add(klass) else node.classList.remove(klass)
 
   onDecorationChanged: (change) ->
-    if change.decoration.type == @decorationType
+    if change.decoration.type is 'gutter'
       @decoratorUpdates[change.bufferRow] ?= []
       @decoratorUpdates[change.bufferRow].push change
       @renderDecorations()
