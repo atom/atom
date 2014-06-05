@@ -12,7 +12,7 @@ module.exports = function(cb) {
     }
 
     verifyPython27(function(error, pythonSuccessMessage) {
-      cb(error, nodeSuccessMessage + "\n" + pythonSuccessMessage);
+      cb(error, (nodeSuccessMessage + "\n" + pythonSuccessMessage).trim());
     });
   });
 
@@ -46,7 +46,7 @@ function verifyPython27(cb) {
     checkPythonVersion(pythonExecutable, cb);
   }
   else {
-    cb(null, "Python: <not verified>");
+    cb(null, '');
   }
 }
 
