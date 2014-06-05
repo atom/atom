@@ -19,6 +19,7 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPane().activeView)
+  Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
 
   scrollTop: (scrollTop) ->
     if scrollTop?
