@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 
 Command = require './command'
+Install = require './install'
 config = require './config'
 request = require './request'
 tree = require './tree'
@@ -50,19 +51,22 @@ class Stars extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-
     user = options.argv.user?.toString().trim()
 
     @getStarredPackages user, (error, packages) ->
-      if error?
-        callback(error)
-        return
+      return callback(error) if error?
 
       if options.argv.themes
         packages = packages.filter ({theme}) -> theme
 
-      if options.argv.json
+      if options.argv.install
+        return callback() if packages.length is 0
+
+        commandArgs = packages.map ({name}) -> name
+        new Install().run({commandArgs, callback})
+      else if options.argv.json
         console.log(JSON.stringify(packages))
+        callback()
       else
         if options.argv.themes
           label = "Themes starred by #{user}"
@@ -80,5 +84,4 @@ class Stars extends Command
         console.log()
         console.log "Use `apm install` to install them or visit #{'http://atom.io/packages'.underline} to read more about them."
         console.log()
-
-      callback()
+        callback()
