@@ -11,7 +11,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
     * on Ubuntu/Debian: `sudo apt-get install libgnome-keyring-dev`
     * on Fedora: `sudo yum --assumeyes install libgnome-keyring-devel`
     * on other distributions refer to the manual on how to install packages
-  * `sudo npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
+  * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
+    * This command may require `sudo` depending on how you have
+      [configured npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
 
 ## Instructions
