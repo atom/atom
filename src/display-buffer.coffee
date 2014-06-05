@@ -743,27 +743,26 @@ class DisplayBuffer extends Model
 
   findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
-    (dec for dec in @decorations[bufferRow] when @decorationEqualsPattern(dec, decorationPattern))
+    decoration for decoration in @decorations[bufferRow] when @decorationMatchesPattern(decoration, decorationPattern)
 
-  decorationEqualsPattern: (decoration, decorationPattern) ->
+  decorationMatchesPattern: (decoration, decorationPattern) ->
     _.isEqual(decorationPattern, _.pick(decoration, _.keys(decorationPattern)))
 
   addDecorationForMarker: (marker, decoration) ->
-    head = marker.getHeadBufferPosition().row
-    tail = marker.getTailBufferPosition().row
-    [tail, head] = [head, tail] if head > tail
-    while head <= tail
-      @addDecorationToBufferRow(head++, decoration)
+    startRow = marker.getStartBufferPosition().row
+    endRow = marker.getEndBufferPosition().row
+    while startRow <= endRow
+      @addDecorationToBufferRow(startRow++, decoration)
 
     changedSubscription = @subscribe marker, 'changed', (e) =>
-      oldHead = e.oldHeadBufferPosition.row
-      oldTail = e.oldTailBufferPosition.row
-      newHead = e.newHeadBufferPosition.row
-      newTail = e.newTailBufferPosition.row
+      oldStartRow = e.oldHeadBufferPosition.row
+      oldEndRow = e.oldTailBufferPosition.row
+      newStartRow = e.newHeadBufferPosition.row
+      newEndRow = e.newTailBufferPosition.row
 
       # swap so head is always <= than tail
-      [oldTail, oldHead] = [oldHead, oldTail] if oldHead > oldTail
-      [newTail, newHead] = [newHead, newTail] if newHead > newTail
+      [oldEndRow, oldStartRow] = [oldStartRow, oldEndRow] if oldStartRow > oldEndRow
+      [newEndRow, newStartRow] = [newStartRow, newEndRow] if newStartRow > newEndRow
 
       # TODO: we could only update the rows that change by tracking an overlap,
       # then update only those outside of the overlap. I had something to do
@@ -771,13 +770,11 @@ class DisplayBuffer extends Model
       # all decorations, then when markers becoming valid, some of the
       # overlap was not visible.
 
-      while oldHead <= oldTail
-        @removeDecorationFromBufferRow(oldHead, decoration)
-        oldHead++
+      while oldStartRow <= oldEndRow
+        @removeDecorationFromBufferRow(oldStartRow++, decoration)
 
-      while e.isValid and newHead <= newTail
-        @addDecorationToBufferRow(newHead, decoration)
-        newHead++
+      while e.isValid and newStartRow <= newEndRow
+        @addDecorationToBufferRow(newStartRow++, decoration)
 
     destroyedSubscription = @subscribe marker, 'destroyed', (e) =>
       @removeDecorationForMarker(marker, decoration)
@@ -786,19 +783,18 @@ class DisplayBuffer extends Model
     @decorationMarkerSubscriptions[marker.id].push {decoration, changedSubscription, destroyedSubscription}
 
   removeDecorationForMarker: (marker, decoration) ->
-    return unless @decorationMarkerSubscriptions[marker.id]
+    return unless @decorationMarkerSubscriptions[marker.id]?
 
-    head = marker.getHeadBufferPosition().row
-    tail = marker.getTailBufferPosition().row
-    [tail, head] = [head, tail] if head > tail
-    while head <= tail
-      @removeDecorationFromBufferRow(head++, decoration)
+    startRow = marker.getStartBufferPosition().row
+    endRow = marker.getEndBufferPosition().row
+    while startRow <= endRow
+      @removeDecorationFromBufferRow(startRow++, decoration)
 
-    for sub in _.clone(@decorationMarkerSubscriptions[marker.id])
-      if @decorationEqualsPattern(sub.decoration, decoration)
-        sub.changedSubscription.off()
-        sub.destroyedSubscription.off()
-        @decorationMarkerSubscriptions[marker.id] = _.without(@decorationMarkerSubscriptions[marker.id], sub)
+    for subscription in _.clone(@decorationMarkerSubscriptions[marker.id])
+      if @decorationMatchesPattern(subscription.decoration, decoration)
+        subscription.changedSubscription.off()
+        subscription.destroyedSubscription.off()
+        @decorationMarkerSubscriptions[marker.id] = _.without(@decorationMarkerSubscriptions[marker.id], subscription)
 
     return
 
