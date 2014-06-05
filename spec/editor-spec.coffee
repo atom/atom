@@ -3207,8 +3207,11 @@ describe "Editor", ->
       expect(editor.getScrollTop()).toBe 0
 
   describe "decorations", ->
-    it "can add and remove decorations", ->
+    decoration = null
+    beforeEach ->
       decoration = {type: 'gutter', class: 'one'}
+
+    it "can add decorations to buffer rows and remove them", ->
       editor.addDecorationToBufferRow(2, decoration)
       editor.addDecorationToBufferRow(2, decoration)
 
@@ -3219,3 +3222,47 @@ describe "Editor", ->
       editor.removeDecorationFromBufferRow(2, decoration)
       decorations = editor.decorationsForBufferRow(2)
       expect(decorations).toHaveLength 0
+
+    it "can add decorations to buffer row ranges and remove them", ->
+      editor.addDecorationToBufferRowRange(2, 4, decoration)
+      expect(editor.decorationsForBufferRow 2).toContain decoration
+      expect(editor.decorationsForBufferRow 3).toContain decoration
+      expect(editor.decorationsForBufferRow 4).toContain decoration
+
+      editor.removeDecorationFromBufferRowRange(3, 5, decoration)
+      expect(editor.decorationsForBufferRow 2).toContain decoration
+      expect(editor.decorationsForBufferRow 3).not.toContain decoration
+      expect(editor.decorationsForBufferRow 4).not.toContain decoration
+
+    it "can add decorations associated with markers and remove them", ->
+      marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
+
+      editor.addDecorationForMarker(marker, decoration)
+      expect(editor.decorationsForBufferRow 1).not.toContain decoration
+      expect(editor.decorationsForBufferRow 2).toContain decoration
+      expect(editor.decorationsForBufferRow 3).toContain decoration
+      expect(editor.decorationsForBufferRow 4).not.toContain decoration
+
+      editor.getBuffer().insert([0, 0], '\n')
+      expect(editor.decorationsForBufferRow 2).not.toContain decoration
+      expect(editor.decorationsForBufferRow 3).toContain decoration
+      expect(editor.decorationsForBufferRow 4).toContain decoration
+      expect(editor.decorationsForBufferRow 5).not.toContain decoration
+
+      editor.getBuffer().insert([4, 2], 'n')
+      expect(editor.decorationsForBufferRow 2).not.toContain decoration
+      expect(editor.decorationsForBufferRow 3).not.toContain decoration
+      expect(editor.decorationsForBufferRow 4).not.toContain decoration
+      expect(editor.decorationsForBufferRow 5).not.toContain decoration
+
+      editor.getBuffer().undo()
+      expect(editor.decorationsForBufferRow 2).not.toContain decoration
+      expect(editor.decorationsForBufferRow 3).toContain decoration
+      expect(editor.decorationsForBufferRow 4).toContain decoration
+      expect(editor.decorationsForBufferRow 5).not.toContain decoration
+
+      editor.removeDecorationForMarker(marker, decoration)
+      expect(editor.decorationsForBufferRow 2).not.toContain decoration
+      expect(editor.decorationsForBufferRow 3).not.toContain decoration
+      expect(editor.decorationsForBufferRow 4).not.toContain decoration
+      expect(editor.decorationsForBufferRow 5).not.toContain decoration
