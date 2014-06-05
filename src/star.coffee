@@ -39,7 +39,7 @@ class Star extends Command
       else if response.statusCode isnt 200
         @logFailure()
         message = body.message ? body.error ? body
-        callback("Requesting packages failed: #{message}")
+        callback("Starring package failed: #{message}")
       else
         @logSuccess()
         callback()
