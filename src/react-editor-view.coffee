@@ -134,3 +134,5 @@ class ReactEditorView extends View
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
   requestDisplayUpdate: -> # No-op shim for find-and-replace
+
+  updateDisplay: -> # No-op shim for package specs
