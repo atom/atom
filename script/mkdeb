@@ -21,10 +21,10 @@ mkdir -p "$TARGET/usr"
 env INSTALL_PREFIX="$TARGET/usr" script/grunt install
 
 mkdir -p "$TARGET/DEBIAN"
-mv "$CONTROL_FILE" "$TARGET/DEBIAN/control"
+cp "$CONTROL_FILE" "$TARGET/DEBIAN/control"
 
 mkdir -p "$TARGET/usr/share/applications"
-mv "$DESKTOP_FILE" "$TARGET/usr/share/applications"
+cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 
 mkdir -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
