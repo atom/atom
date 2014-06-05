@@ -1,5 +1,3 @@
-path = require 'path'
-
 async = require 'async'
 optimist = require 'optimist'
 
