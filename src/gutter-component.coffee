@@ -9,7 +9,6 @@ module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
-  decorationRenderDelay: 100
 
   dummyLineNumberNode: null
 
@@ -197,8 +196,8 @@ GutterComponent = React.createClass
       @renderDecorations()
 
   renderDecorations: ->
-    clearTimeout(@decorationRenderTimeout) if @decorationRenderTimeout
+    clearImmediate(@decorationRenderImmediate) if @decorationRenderImmediate
     render = =>
       @forceUpdate()
-      @decorationRenderTimeout = null
-    @decorationRenderTimeout = setTimeout(render, @decorationRenderDelay)
+      @decorationRenderImmediate = null
+    @decorationRenderImmediate = setImmediate(render)

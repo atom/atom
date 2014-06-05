@@ -329,18 +329,18 @@ describe "EditorComponent", ->
           editor.addDecorationToBufferRow(2, type: 'gutter', class: 'fancy-class')
           editor.addDecorationToBufferRow(2, type: 'someother-type', class: 'nope-class')
 
-          advanceClock(gutter.decorationRenderDelay)
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'fancy-class')).toBe true
+            expect(lineNumberHasClass(2, 'nope-class')).toBe false
 
-          expect(lineNumberHasClass(2, 'fancy-class')).toBe true
-          expect(lineNumberHasClass(2, 'nope-class')).toBe false
+            editor.removeDecorationFromBufferRow(2, type: 'gutter', class: 'fancy-class')
+            editor.removeDecorationFromBufferRow(2, type: 'someother-type', class: 'nope-class')
 
-          editor.removeDecorationFromBufferRow(2, type: 'gutter', class: 'fancy-class')
-          editor.removeDecorationFromBufferRow(2, type: 'someother-type', class: 'nope-class')
-
-          advanceClock(gutter.decorationRenderDelay)
-
-          expect(lineNumberHasClass(2, 'fancy-class')).toBe false
-          expect(lineNumberHasClass(2, 'nope-class')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'fancy-class')).toBe false
+            expect(lineNumberHasClass(2, 'nope-class')).toBe false
 
         it "renders decorations on soft-wrapped line numbers when softWrap is true", ->
           editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
@@ -359,22 +359,24 @@ describe "EditorComponent", ->
           # should remove the wrapped decorations
           editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'no-wrap')
           editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'wrap-me')
-          advanceClock(gutter.decorationRenderDelay)
 
-          expect(lineNumberHasClass(2, 'no-wrap')).toBe false
-          expect(lineNumberHasClass(2, 'wrap-me')).toBe false
-          expect(lineNumberHasClass(3, 'no-wrap')).toBe false
-          expect(lineNumberHasClass(3, 'wrap-me')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'no-wrap')).toBe false
+            expect(lineNumberHasClass(2, 'wrap-me')).toBe false
+            expect(lineNumberHasClass(3, 'no-wrap')).toBe false
+            expect(lineNumberHasClass(3, 'wrap-me')).toBe false
 
-          # should add them back when the nodes are not recreated
-          editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
-          editor.addDecorationToBufferRow(1, type: 'gutter', class: 'wrap-me', softWrap: true)
-          advanceClock(gutter.decorationRenderDelay)
+            # should add them back when the nodes are not recreated
+            editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
+            editor.addDecorationToBufferRow(1, type: 'gutter', class: 'wrap-me', softWrap: true)
 
-          expect(lineNumberHasClass(2, 'no-wrap')).toBe true
-          expect(lineNumberHasClass(2, 'wrap-me')).toBe true
-          expect(lineNumberHasClass(3, 'no-wrap')).toBe false
-          expect(lineNumberHasClass(3, 'wrap-me')).toBe true
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'no-wrap')).toBe true
+            expect(lineNumberHasClass(2, 'wrap-me')).toBe true
+            expect(lineNumberHasClass(3, 'no-wrap')).toBe false
+            expect(lineNumberHasClass(3, 'wrap-me')).toBe true
 
       describe "when decorations are applied to markers", ->
         {marker, decoration} = {}
@@ -382,7 +384,7 @@ describe "EditorComponent", ->
           marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
           decoration = {type: 'gutter', class: 'someclass'}
           editor.addDecorationForMarker(marker, decoration)
-          advanceClock(gutter.decorationRenderDelay)
+          waitsFor -> not gutter.decorationRenderImmediate?
 
         it "updates line number classes when the marker moves", ->
           expect(lineNumberHasClass(1, 'someclass')).toBe false
@@ -391,62 +393,71 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(4, 'someclass')).toBe false
 
           editor.getBuffer().insert([0, 0], '\n')
-          advanceClock(gutter.decorationRenderDelay)
 
-          expect(lineNumberHasClass(2, 'someclass')).toBe false
-          expect(lineNumberHasClass(3, 'someclass')).toBe true
-          expect(lineNumberHasClass(4, 'someclass')).toBe true
-          expect(lineNumberHasClass(5, 'someclass')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'someclass')).toBe false
+            expect(lineNumberHasClass(3, 'someclass')).toBe true
+            expect(lineNumberHasClass(4, 'someclass')).toBe true
+            expect(lineNumberHasClass(5, 'someclass')).toBe false
 
-          editor.getBuffer().deleteRows(0, 1)
-          advanceClock(gutter.decorationRenderDelay)
+            editor.getBuffer().deleteRows(0, 1)
 
-          expect(lineNumberHasClass(0, 'someclass')).toBe false
-          expect(lineNumberHasClass(1, 'someclass')).toBe true
-          expect(lineNumberHasClass(2, 'someclass')).toBe true
-          expect(lineNumberHasClass(3, 'someclass')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(0, 'someclass')).toBe false
+            expect(lineNumberHasClass(1, 'someclass')).toBe true
+            expect(lineNumberHasClass(2, 'someclass')).toBe true
+            expect(lineNumberHasClass(3, 'someclass')).toBe false
 
         it "removes line number classes when a decoration's marker is invalidated", ->
           editor.getBuffer().insert([3, 2], 'n')
-          advanceClock(gutter.decorationRenderDelay)
 
-          expect(marker.isValid()).toBe false
-          expect(lineNumberHasClass(1, 'someclass')).toBe false
-          expect(lineNumberHasClass(2, 'someclass')).toBe false
-          expect(lineNumberHasClass(3, 'someclass')).toBe false
-          expect(lineNumberHasClass(4, 'someclass')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
 
-          editor.getBuffer().undo()
-          advanceClock(gutter.decorationRenderDelay)
+            expect(marker.isValid()).toBe false
+            expect(lineNumberHasClass(1, 'someclass')).toBe false
+            expect(lineNumberHasClass(2, 'someclass')).toBe false
+            expect(lineNumberHasClass(3, 'someclass')).toBe false
+            expect(lineNumberHasClass(4, 'someclass')).toBe false
 
-          expect(marker.isValid()).toBe true
-          expect(lineNumberHasClass(1, 'someclass')).toBe false
-          expect(lineNumberHasClass(2, 'someclass')).toBe true
-          expect(lineNumberHasClass(3, 'someclass')).toBe true
-          expect(lineNumberHasClass(4, 'someclass')).toBe false
+            editor.getBuffer().undo()
+
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(marker.isValid()).toBe true
+            expect(lineNumberHasClass(1, 'someclass')).toBe false
+            expect(lineNumberHasClass(2, 'someclass')).toBe true
+            expect(lineNumberHasClass(3, 'someclass')).toBe true
+            expect(lineNumberHasClass(4, 'someclass')).toBe false
 
         it "removes the classes and unsubscribes from the marker when decoration is removed", ->
           editor.removeDecorationForMarker(marker, decoration)
-          advanceClock(gutter.decorationRenderDelay)
 
-          expect(lineNumberHasClass(1, 'someclass')).toBe false
-          expect(lineNumberHasClass(2, 'someclass')).toBe false
-          expect(lineNumberHasClass(3, 'someclass')).toBe false
-          expect(lineNumberHasClass(4, 'someclass')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(1, 'someclass')).toBe false
+            expect(lineNumberHasClass(2, 'someclass')).toBe false
+            expect(lineNumberHasClass(3, 'someclass')).toBe false
+            expect(lineNumberHasClass(4, 'someclass')).toBe false
 
           editor.getBuffer().insert([0, 0], '\n')
-          advanceClock(gutter.decorationRenderDelay)
-          expect(lineNumberHasClass(2, 'someclass')).toBe false
-          expect(lineNumberHasClass(3, 'someclass')).toBe false
+
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(2, 'someclass')).toBe false
+            expect(lineNumberHasClass(3, 'someclass')).toBe false
 
         it "removes the line number classes when the decoration's marker is destroyed", ->
           marker.destroy()
-          advanceClock(gutter.decorationRenderDelay)
 
-          expect(lineNumberHasClass(1, 'someclass')).toBe false
-          expect(lineNumberHasClass(2, 'someclass')).toBe false
-          expect(lineNumberHasClass(3, 'someclass')).toBe false
-          expect(lineNumberHasClass(4, 'someclass')).toBe false
+          waitsFor -> not gutter.decorationRenderImmediate?
+          runs ->
+            expect(lineNumberHasClass(1, 'someclass')).toBe false
+            expect(lineNumberHasClass(2, 'someclass')).toBe false
+            expect(lineNumberHasClass(3, 'someclass')).toBe false
+            expect(lineNumberHasClass(4, 'someclass')).toBe false
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
