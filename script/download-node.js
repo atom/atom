@@ -25,7 +25,9 @@ var downloadFileToLocation = function(url, filename, callback) {
   var stream = fs.createWriteStream(filename);
   stream.on('end', callback);
   stream.on('error', callback);
-  return request(url).pipe(stream);
+  request.createReadStream({url: url}, function(requestStream) {
+    requestStream.pipe(stream);
+  });
 };
 
 var downloadTarballAndExtract = function(url, location, callback) {
