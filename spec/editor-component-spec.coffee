@@ -309,14 +309,14 @@ describe "EditorComponent", ->
         lineHasClass = (screenRow, klass) ->
           component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
-      it "renders the gutter-class decorations", ->
+      it "renders the gutter decorations", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         component.measureScrollView()
 
         expect(component.lineNumberNodeForScreenRow(9)).toBeFalsy()
 
-        editor.addDecorationForBufferRow(9, {type: 'gutter-class', class: 'fancy-class'})
-        editor.addDecorationForBufferRow(9, {type: 'someother-type', class: 'nope-class'})
+        editor.addDecorationToBufferRow(9, {type: 'gutter', class: 'fancy-class'})
+        editor.addDecorationToBufferRow(9, {type: 'someother-type', class: 'nope-class'})
 
         verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
@@ -324,17 +324,17 @@ describe "EditorComponent", ->
         expect(lineHasClass(9, 'fancy-class')).toBeTruthy()
         expect(lineHasClass(9, 'nope-class')).toBeFalsy()
 
-      it "handles updates to gutter-class decorations", ->
-        editor.addDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
-        editor.addDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
+      it "handles updates to gutter decorations", ->
+        editor.addDecorationToBufferRow(2, {type: 'gutter', class: 'fancy-class'})
+        editor.addDecorationToBufferRow(2, {type: 'someother-type', class: 'nope-class'})
 
         advanceClock(gutter.decorationRenderDelay)
 
         expect(lineHasClass(2, 'fancy-class')).toBeTruthy()
         expect(lineHasClass(2, 'nope-class')).toBeFalsy()
 
-        editor.removeDecorationForBufferRow(2, {type: 'gutter-class', class: 'fancy-class'})
-        editor.removeDecorationForBufferRow(2, {type: 'someother-type', class: 'nope-class'})
+        editor.removeDecorationFromBufferRow(2, {type: 'gutter', class: 'fancy-class'})
+        editor.removeDecorationFromBufferRow(2, {type: 'someother-type', class: 'nope-class'})
 
         advanceClock(gutter.decorationRenderDelay)
 
@@ -342,8 +342,8 @@ describe "EditorComponent", ->
         expect(lineHasClass(2, 'nope-class')).toBeFalsy()
 
       it "handles softWrap decorations", ->
-        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
-        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
+        editor.addDecorationToBufferRow(1, {type: 'gutter', class: 'no-wrap'})
+        editor.addDecorationToBufferRow(1, {type: 'gutter', class: 'wrap-me', softWrap: true})
 
         editor.setSoftWrap(true)
         node.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -356,8 +356,8 @@ describe "EditorComponent", ->
         expect(lineHasClass(3, 'wrap-me')).toBeTruthy()
 
         # should remove the wrapped decorations
-        editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
-        editor.removeDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me'})
+        editor.removeDecorationFromBufferRow(1, {type: 'gutter', class: 'no-wrap'})
+        editor.removeDecorationFromBufferRow(1, {type: 'gutter', class: 'wrap-me'})
         advanceClock(gutter.decorationRenderDelay)
 
         expect(lineHasClass(2, 'no-wrap')).toBeFalsy()
@@ -366,8 +366,8 @@ describe "EditorComponent", ->
         expect(lineHasClass(3, 'wrap-me')).toBeFalsy()
 
         # should add them back when the nodes are not recreated
-        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'no-wrap'})
-        editor.addDecorationForBufferRow(1, {type: 'gutter-class', class: 'wrap-me', softWrap: true})
+        editor.addDecorationToBufferRow(1, {type: 'gutter', class: 'no-wrap'})
+        editor.addDecorationToBufferRow(1, {type: 'gutter', class: 'wrap-me', softWrap: true})
         advanceClock(gutter.decorationRenderDelay)
 
         expect(lineHasClass(2, 'no-wrap')).toBeTruthy()
@@ -379,7 +379,7 @@ describe "EditorComponent", ->
         {marker, decoration} = {}
         beforeEach ->
           marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
-          decoration = {type: 'gutter-class', class: 'someclass'}
+          decoration = {type: 'gutter', class: 'someclass'}
           editor.addDecorationForMarker(marker, decoration)
           advanceClock(gutter.decorationRenderDelay)
 

@@ -9,7 +9,7 @@ module.exports =
 GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
-  decorationType: 'gutter-class'
+  decorationType: 'gutter'
   decorationRenderDelay: 100
 
   dummyLineNumberNode: null

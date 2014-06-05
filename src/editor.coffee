@@ -1061,11 +1061,11 @@ class Editor extends Model
   decorationsForBufferRow: (bufferRow, decorationType) ->
     @displayBuffer.decorationsForBufferRow(bufferRow, decorationType)
 
-  addDecorationForBufferRow: (bufferRow, decoration) ->
-    @displayBuffer.addDecorationForBufferRow(bufferRow, decoration)
+  addDecorationToBufferRow: (bufferRow, decoration) ->
+    @displayBuffer.addDecorationToBufferRow(bufferRow, decoration)
 
-  removeDecorationForBufferRow: (bufferRow, decoration) ->
-    @displayBuffer.removeDecorationForBufferRow(bufferRow, decoration)
+  removeDecorationFromBufferRow: (bufferRow, decoration) ->
+    @displayBuffer.removeDecorationFromBufferRow(bufferRow, decoration)
 
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)

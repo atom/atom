@@ -725,14 +725,14 @@ class DisplayBuffer extends Model
     decorations = (dec for dec in decorations when dec.type == decorationType) if decorationType?
     decorations
 
-  addDecorationForBufferRow: (bufferRow, decoration) ->
+  addDecorationToBufferRow: (bufferRow, decoration) ->
     @decorations[bufferRow] ?= []
     for current in @decorations[bufferRow]
       return if _.isEqual(current, decoration)
     @decorations[bufferRow].push(decoration)
     @emit 'decoration-changed', {bufferRow, decoration, action: 'add'}
 
-  removeDecorationForBufferRow: (bufferRow, decoration) ->
+  removeDecorationFromBufferRow: (bufferRow, decoration) ->
     return unless @decorations[bufferRow]
 
     removed = @findDecorationsForBufferRow(bufferRow, decoration)
@@ -753,7 +753,7 @@ class DisplayBuffer extends Model
     tail = marker.getTailBufferPosition().row
     [tail, head] = [head, tail] if head > tail
     while head <= tail
-      @addDecorationForBufferRow(head++, decoration)
+      @addDecorationToBufferRow(head++, decoration)
 
     changedSubscription = @subscribe marker, 'changed', (e) =>
       oldHead = e.oldHeadBufferPosition.row
@@ -772,11 +772,11 @@ class DisplayBuffer extends Model
       # overlap was not visible.
 
       while oldHead <= oldTail
-        @removeDecorationForBufferRow(oldHead, decoration)
+        @removeDecorationFromBufferRow(oldHead, decoration)
         oldHead++
 
       while e.isValid and newHead <= newTail
-        @addDecorationForBufferRow(newHead, decoration)
+        @addDecorationToBufferRow(newHead, decoration)
         newHead++
 
     destroyedSubscription = @subscribe marker, 'destroyed', (e) =>
@@ -792,7 +792,7 @@ class DisplayBuffer extends Model
     tail = marker.getTailBufferPosition().row
     [tail, head] = [head, tail] if head > tail
     while head <= tail
-      @removeDecorationForBufferRow(head++, decoration)
+      @removeDecorationFromBufferRow(head++, decoration)
 
     for sub in _.clone(@decorationMarkerSubscriptions[marker.id])
       if @decorationEqualsPattern(sub.decoration, decoration)

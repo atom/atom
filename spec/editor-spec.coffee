@@ -3208,14 +3208,14 @@ describe "Editor", ->
 
   describe "decorations", ->
     it "can add and remove decorations", ->
-      decoration = {type: 'gutter-class', class: 'one'}
-      editor.addDecorationForBufferRow(2, decoration)
-      editor.addDecorationForBufferRow(2, decoration)
+      decoration = {type: 'gutter', class: 'one'}
+      editor.addDecorationToBufferRow(2, decoration)
+      editor.addDecorationToBufferRow(2, decoration)
 
       decorations = editor.decorationsForBufferRow(2)
       expect(decorations).toHaveLength 1
       expect(decorations).toContain decoration
 
-      editor.removeDecorationForBufferRow(2, decoration)
+      editor.removeDecorationFromBufferRow(2, decoration)
       decorations = editor.decorationsForBufferRow(2)
       expect(decorations).toHaveLength 0
