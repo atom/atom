@@ -72,6 +72,7 @@ class Stars extends Command
 
         tree packages, ({name, version, description, downloads}) ->
           label = name.yellow
+          label = "\u2B50  #{label}" if process.platform is 'darwin'
           label += " #{description.replace(/\s+/g, ' ')}" if description
           label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
           label
