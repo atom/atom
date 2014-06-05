@@ -1,0 +1,12 @@
+[
+  {
+    "name": "test-module",
+    "releases": {
+      "latest": "0.4.0"
+    },
+    "metadata": {
+      "name": "test-module",
+      "version": "0.4.0"
+    }
+  }
+]
