@@ -161,4 +161,17 @@ body {
       visibility: hidden;
     }
   }
+
+  .result-message.fail, .stack-trace.padded {
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 10;
+    overflow: hidden;
+
+    &:hover {
+      -webkit-line-clamp: inherit;
+      // overflow: hidden;
+    }
+  }
 }
