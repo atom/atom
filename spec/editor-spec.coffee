@@ -3206,7 +3206,7 @@ describe "Editor", ->
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 0
 
-  fdescribe "decorations", ->
+  describe "decorations", ->
     it "can add and remove decorations", ->
       decoration = {type: 'gutter-class', class: 'one'}
       editor.addDecorationForBufferRow(2, decoration)

@@ -302,7 +302,7 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
-    fdescribe "when decorations are used", ->
+    describe "when decorations are used", ->
       {lineHasClass, gutter} = {}
       beforeEach ->
         gutter = component.refs.gutter
