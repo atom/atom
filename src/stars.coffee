@@ -57,41 +57,50 @@ class Stars extends Command
         message = body.message ? body.error ? body
         callback("Requesting packages failed: #{message}")
 
+  installPackages: (packages, callback) ->
+    return callback() if packages.length is 0
+
+    commandArgs = packages.map ({name}) -> name
+    new Install().run({commandArgs, callback})
+
+  logPackagesAsJson: (packages, callback) ->
+    console.log(JSON.stringify(packages))
+    callback()
+
+  logPackagesAsText: (user, packagesAreThemes, packages, callback) ->
+    userLabel = user ? 'you'
+    if packagesAreThemes
+      label = "Themes starred by #{userLabel}"
+    else
+      label = "Packages starred by #{userLabel}"
+    console.log "#{label.cyan} (#{packages.length})"
+
+    tree packages, ({name, version, description, downloads}) ->
+      label = name.yellow
+      label = "\u2B50  #{label}" if process.platform is 'darwin'
+      label += " #{description.replace(/\s+/g, ' ')}" if description
+      label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
+      label
+
+    console.log()
+    console.log "Use `apm install` to install them or visit #{'http://atom.io/packages'.underline} to read more about them."
+    console.log()
+    callback()
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
     user = options.argv.user?.toString().trim()
 
-    @getStarredPackages user, (error, packages) ->
+    @getStarredPackages user, (error, packages) =>
       return callback(error) if error?
 
       if options.argv.themes
         packages = packages.filter ({theme}) -> theme
 
       if options.argv.install
-        return callback() if packages.length is 0
-
-        commandArgs = packages.map ({name}) -> name
-        new Install().run({commandArgs, callback})
+        @installPackages(packages, callback)
       else if options.argv.json
-        console.log(JSON.stringify(packages))
-        callback()
+        @logPackagesAsJson(packages, callback)
       else
-        userLabel = user ? 'you'
-        if options.argv.themes
-          label = "Themes starred by #{userLabel}"
-        else
-          label = "Packages starred by #{userLabel}"
-        console.log "#{label.cyan} (#{packages.length})"
-
-        tree packages, ({name, version, description, downloads}) ->
-          label = name.yellow
-          label = "\u2B50  #{label}" if process.platform is 'darwin'
-          label += " #{description.replace(/\s+/g, ' ')}" if description
-          label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
-          label
-
-        console.log()
-        console.log "Use `apm install` to install them or visit #{'http://atom.io/packages'.underline} to read more about them."
-        console.log()
-        callback()
+        @logPackagesAsText(user, options.argv.themes, packages, callback)
