@@ -171,6 +171,33 @@ you'll need to increment the version when republishing.
 
 Returns 204 No Content
 
+
+### Stars
+
+#### GET /api/users/:login/stars
+
+List a user's starred packages.
+
+Return value is similar to **GET /api/packages**
+
+#### GET /api/stars
+
+List authenticated user's starred packages; requires authentication.
+
+Return value is similar to **GET /api/packages**
+
+#### POST /api/packages/:name/star
+
+Stars a package; requires authentication.
+
+Returns package.
+
+#### DELETE /api/packages/:name/star
+
+Unstars a package; requires authentication.
+
+Returns 204 No Content.
+
 ### Atom updates
 
 #### GET /api/updates
