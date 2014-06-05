@@ -26,7 +26,6 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build
   ```
 
-
 ## Troubleshooting
 
 
