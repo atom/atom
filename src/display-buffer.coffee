@@ -741,6 +741,14 @@ class DisplayBuffer extends Model
     for decoration in removed
       @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
+  addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
+    while startBufferRow <= endBufferRow
+      @addDecorationToBufferRow(startBufferRow++, decoration)
+
+  removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
+    while startBufferRow <= endBufferRow
+      @removeDecorationFromBufferRow(startBufferRow++, decoration)
+
   findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
     decoration for decoration in @decorations[bufferRow] when @decorationMatchesPattern(decoration, decorationPattern)
@@ -751,8 +759,7 @@ class DisplayBuffer extends Model
   addDecorationForMarker: (marker, decoration) ->
     startRow = marker.getStartBufferPosition().row
     endRow = marker.getEndBufferPosition().row
-    while startRow <= endRow
-      @addDecorationToBufferRow(startRow++, decoration)
+    @addDecorationToBufferRowRange(startRow, endRow, decoration)
 
     changedSubscription = @subscribe marker, 'changed', (e) =>
       oldStartRow = e.oldHeadBufferPosition.row
@@ -770,11 +777,8 @@ class DisplayBuffer extends Model
       # all decorations, then when markers becoming valid, some of the
       # overlap was not visible.
 
-      while oldStartRow <= oldEndRow
-        @removeDecorationFromBufferRow(oldStartRow++, decoration)
-
-      while e.isValid and newStartRow <= newEndRow
-        @addDecorationToBufferRow(newStartRow++, decoration)
+      @removeDecorationFromBufferRowRange(oldStartRow, oldEndRow, decoration)
+      @addDecorationToBufferRowRange(newStartRow, newEndRow, decoration) if e.isValid
 
     destroyedSubscription = @subscribe marker, 'destroyed', (e) =>
       @removeDecorationForMarker(marker, decoration)
