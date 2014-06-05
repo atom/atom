@@ -127,4 +127,7 @@ class ReactEditorView extends View
   getLastVisibleScreenRow: ->
     @editor.getVisibleRowRange()[1]
 
+  getFontSize: ->
+    @component?.getFontSize()
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
