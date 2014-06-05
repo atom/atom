@@ -18,6 +18,7 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
+  Object.defineProperty @::, 'active', get: -> @is(@getPane().activeView)
 
   scrollTop: (scrollTop) ->
     if scrollTop?
