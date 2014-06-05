@@ -228,6 +228,12 @@ describe "EditorComponent", ->
           [node]
 
   describe "gutter rendering", ->
+    {lineNumberHasClass, gutter} = {}
+    beforeEach ->
+      {gutter} = component.refs
+      lineNumberHasClass = (screenRow, klass) ->
+        component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureScrollView()
@@ -302,13 +308,37 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
-    describe "when decorations are used", ->
-      {lineNumberHasClass, gutter} = {}
-      beforeEach ->
-        {gutter} = component.refs
-        lineNumberHasClass = (screenRow, klass) ->
-          component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+    describe "rendering fold decorations", ->
+      it "adds the foldable class to line numbers when the line is foldable", ->
+        expect(lineNumberHasClass(0, 'foldable')).toBe true
+        expect(lineNumberHasClass(1, 'foldable')).toBe true
+        expect(lineNumberHasClass(2, 'foldable')).toBe false
+        expect(lineNumberHasClass(3, 'foldable')).toBe false
+        expect(lineNumberHasClass(4, 'foldable')).toBe true
+        expect(lineNumberHasClass(5, 'foldable')).toBe false
 
+      it "updates the foldable class on the correct line numbers when the foldable positions change", ->
+        editor.getBuffer().insert([0, 0], '\n')
+        expect(lineNumberHasClass(0, 'foldable')).toBe false
+        expect(lineNumberHasClass(1, 'foldable')).toBe true
+        expect(lineNumberHasClass(2, 'foldable')).toBe true
+        expect(lineNumberHasClass(3, 'foldable')).toBe false
+        expect(lineNumberHasClass(4, 'foldable')).toBe false
+        expect(lineNumberHasClass(5, 'foldable')).toBe true
+        expect(lineNumberHasClass(6, 'foldable')).toBe false
+
+      it "adds, updates and removes the folded class on the correct line number nodes", ->
+        editor.foldBufferRow(4)
+        expect(lineNumberHasClass(4, 'folded')).toBe true
+
+        editor.getBuffer().insert([0, 0], '\n')
+        expect(lineNumberHasClass(4, 'folded')).toBe false
+        expect(lineNumberHasClass(5, 'folded')).toBe true
+
+        editor.unfoldBufferRow(5)
+        expect(lineNumberHasClass(5, 'folded')).toBe false
+
+    describe "when decorations are used", ->
       describe "when decorations are applied to buffer rows", ->
         it "renders line number classes based on the decorations on their buffer row", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -325,7 +355,7 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(9, 'fancy-class')).toBe true
           expect(lineNumberHasClass(9, 'nope-class')).toBe false
 
-        it "handles updates to gutter decorations", ->
+        it "renders updates to gutter decorations", ->
           editor.addDecorationToBufferRow(2, type: 'gutter', class: 'fancy-class')
           editor.addDecorationToBufferRow(2, type: 'someother-type', class: 'nope-class')
 
