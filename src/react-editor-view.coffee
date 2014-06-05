@@ -130,4 +130,7 @@ class ReactEditorView extends View
   getFontSize: ->
     @component?.getFontSize()
 
+  setWidthInChars: (widthInChars) ->
+    @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
