@@ -3,7 +3,19 @@ var fs = require('fs');
 var mv = require('mv');
 var zlib = require('zlib');
 var path = require('path');
-var request = require('request');
+
+// Use whichever version of the local request helper is available
+// This might be the JavaScript or CoffeeScript version depending
+// on whether this module is being installed explictly or
+// `npm install` is being run at the root of the repository.
+var request = null;
+try {
+  request = require('../lib/request');
+} catch (error) {
+  require('coffee-script').register();
+  request = require('../src/request');
+}
+
 var tar = require('tar');
 var temp = require('temp');
 
@@ -23,11 +35,9 @@ var downloadTarballAndExtract = function(url, location, callback) {
   });
   stream.on('end', callback.bind(this, tempPath));
   stream.on('error', callback);
-  var requestOptions = {
-    url: url,
-    proxy: process.env.http_proxy || process.env.https_proxy
-  };
-  return request(requestOptions).pipe(zlib.createGunzip()).pipe(stream);
+  request.createReadStream({url: url}, function(requestStream) {
+    requestStream.pipe(zlib.createGunzip()).pipe(stream);
+  });
 };
 
 var copyNodeBinToLocation = function(callback, version, targetFilename, fromDirectory) {
