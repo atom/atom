@@ -17,7 +17,7 @@
       "url": "http://github.com/atom/atom/raw/master/LICENSE.md"
     }
   ],
-  "atomShellVersion": "0.12.7",
+  "atomShellVersion": "0.13.0",
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^0.26.0",
