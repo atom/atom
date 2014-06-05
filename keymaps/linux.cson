@@ -48,15 +48,6 @@
   'ctrl--': 'window:decrease-font-size'
   'ctrl-_': 'window:decrease-font-size'
   'ctrl-0': 'window:reset-font-size'
-  'alt-1': 'pane:show-item-1'
-  'alt-2': 'pane:show-item-2'
-  'alt-3': 'pane:show-item-3'
-  'alt-4': 'pane:show-item-4'
-  'alt-5': 'pane:show-item-5'
-  'alt-6': 'pane:show-item-6'
-  'alt-7': 'pane:show-item-7'
-  'alt-8': 'pane:show-item-8'
-  'alt-9': 'pane:show-item-9'
 
   'ctrl-k up': 'pane:split-up' # Atom Specific
   'ctrl-k down': 'pane:split-down' # Atom Specific
@@ -70,6 +61,15 @@
   'ctrl-k ctrl-down':  'window:focus-pane-below'
   'ctrl-k ctrl-left':  'window:focus-pane-on-left'
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
+  'alt-1': 'pane:show-item-1'
+  'alt-2': 'pane:show-item-2'
+  'alt-3': 'pane:show-item-3'
+  'alt-4': 'pane:show-item-4'
+  'alt-5': 'pane:show-item-5'
+  'alt-6': 'pane:show-item-6'
+  'alt-7': 'pane:show-item-7'
+  'alt-8': 'pane:show-item-8'
+  'alt-9': 'pane:show-item-9'
 
 '.workspace .editor':
   # Platform Bindings
