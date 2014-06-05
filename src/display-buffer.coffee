@@ -771,12 +771,6 @@ class DisplayBuffer extends Model
       [oldEndRow, oldStartRow] = [oldStartRow, oldEndRow] if oldStartRow > oldEndRow
       [newEndRow, newStartRow] = [newStartRow, newEndRow] if newStartRow > newEndRow
 
-      # TODO: we could only update the rows that change by tracking an overlap,
-      # then update only those outside of the overlap. I had something to do
-      # this, but it's complicated by marker validity. When invlaid, I removed
-      # all decorations, then when markers becoming valid, some of the
-      # overlap was not visible.
-
       @removeDecorationFromBufferRowRange(oldStartRow, oldEndRow, decoration)
       @addDecorationToBufferRowRange(newStartRow, newEndRow, decoration) if e.isValid
 
