@@ -480,7 +480,6 @@ EditorComponent = React.createClass
     @selectToMousePositionUntilMouseUp(event)
 
   onClickGutter: (event) ->
-    console.log 'gutter click', event
     {editor} = @props
     {target} = event
     lineNumber = target.parentNode
