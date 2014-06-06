@@ -722,7 +722,7 @@ class DisplayBuffer extends Model
 
   decorationsForBufferRow: (bufferRow, decorationType) ->
     decorations = @decorations[bufferRow] ? []
-    decorations = (dec for dec in decorations when dec.type is decorationType) if decorationType?
+    decorations = (dec for dec in decorations when not dec.type? or dec.type is decorationType) if decorationType?
     decorations
 
   decorationsForBufferRowRange: (startBufferRow, endBufferRow, decorationType) ->
