@@ -14,9 +14,9 @@ GutterComponent = React.createClass
   dummyLineNumberNode: null
 
   render: ->
-    {scrollHeight, scrollTop} = @props
+    {scrollHeight, scrollTop, onClick} = @props
 
-    div className: 'gutter',
+    div className: 'gutter', onClick: onClick,
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: scrollHeight
         WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"

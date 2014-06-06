@@ -232,7 +232,10 @@ describe "EditorComponent", ->
     beforeEach ->
       {gutter} = component.refs
       lineNumberHasClass = (screenRow, klass) ->
-        component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+        if screenRow.classList?
+          screenRow.classList.contains(klass)
+        else
+          component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -308,35 +311,69 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
-    describe "rendering fold decorations", ->
-      it "adds the foldable class to line numbers when the line is foldable", ->
-        expect(lineNumberHasClass(0, 'foldable')).toBe true
-        expect(lineNumberHasClass(1, 'foldable')).toBe true
-        expect(lineNumberHasClass(2, 'foldable')).toBe false
-        expect(lineNumberHasClass(3, 'foldable')).toBe false
-        expect(lineNumberHasClass(4, 'foldable')).toBe true
-        expect(lineNumberHasClass(5, 'foldable')).toBe false
+    describe "fold decorations", ->
+      describe "rendering fold decorations", ->
+        it "adds the foldable class to line numbers when the line is foldable", ->
+          expect(lineNumberHasClass(0, 'foldable')).toBe true
+          expect(lineNumberHasClass(1, 'foldable')).toBe true
+          expect(lineNumberHasClass(2, 'foldable')).toBe false
+          expect(lineNumberHasClass(3, 'foldable')).toBe false
+          expect(lineNumberHasClass(4, 'foldable')).toBe true
+          expect(lineNumberHasClass(5, 'foldable')).toBe false
 
-      it "updates the foldable class on the correct line numbers when the foldable positions change", ->
-        editor.getBuffer().insert([0, 0], '\n')
-        expect(lineNumberHasClass(0, 'foldable')).toBe false
-        expect(lineNumberHasClass(1, 'foldable')).toBe true
-        expect(lineNumberHasClass(2, 'foldable')).toBe true
-        expect(lineNumberHasClass(3, 'foldable')).toBe false
-        expect(lineNumberHasClass(4, 'foldable')).toBe false
-        expect(lineNumberHasClass(5, 'foldable')).toBe true
-        expect(lineNumberHasClass(6, 'foldable')).toBe false
+        it "updates the foldable class on the correct line numbers when the foldable positions change", ->
+          editor.getBuffer().insert([0, 0], '\n')
+          expect(lineNumberHasClass(0, 'foldable')).toBe false
+          expect(lineNumberHasClass(1, 'foldable')).toBe true
+          expect(lineNumberHasClass(2, 'foldable')).toBe true
+          expect(lineNumberHasClass(3, 'foldable')).toBe false
+          expect(lineNumberHasClass(4, 'foldable')).toBe false
+          expect(lineNumberHasClass(5, 'foldable')).toBe true
+          expect(lineNumberHasClass(6, 'foldable')).toBe false
 
-      it "adds, updates and removes the folded class on the correct line number nodes", ->
-        editor.foldBufferRow(4)
-        expect(lineNumberHasClass(4, 'folded')).toBe true
+        it "adds, updates and removes the folded class on the correct line number nodes", ->
+          editor.foldBufferRow(4)
+          expect(lineNumberHasClass(4, 'folded')).toBe true
 
-        editor.getBuffer().insert([0, 0], '\n')
-        expect(lineNumberHasClass(4, 'folded')).toBe false
-        expect(lineNumberHasClass(5, 'folded')).toBe true
+          editor.getBuffer().insert([0, 0], '\n')
+          expect(lineNumberHasClass(4, 'folded')).toBe false
+          expect(lineNumberHasClass(5, 'folded')).toBe true
 
-        editor.unfoldBufferRow(5)
-        expect(lineNumberHasClass(5, 'folded')).toBe false
+          editor.unfoldBufferRow(5)
+          expect(lineNumberHasClass(5, 'folded')).toBe false
+
+      describe "mouse interactions with fold indicators", ->
+        [gutterNode] = []
+
+        buildClickEvent = (target) ->
+          # FIXME: I could not get the simulated event to set the target. I tried several things, and was unable to get it set.
+          # buildMouseEvent('click', {target})
+          {target, type: 'click', bubbles: true, cancelable: true}
+
+        beforeEach ->
+          gutterNode = node.querySelector('.gutter')
+
+        it "folds and unfolds the block represented by the fold indicator when clicked", ->
+          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
+          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
+
+          target = lineNumber.querySelector('.icon-right')
+          # target.dispatchEvent(buildClickEvent(target))
+          component.onClickGutter(buildClickEvent(target))
+          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
+          expect(lineNumberHasClass(lineNumber, 'folded')).toBe true
+
+          target = lineNumber.querySelector('.icon-right')
+          # target.dispatchEvent(buildClickEvent(target))
+          component.onClickGutter(buildClickEvent(target))
+          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
+          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
+
+        it "does not fold when the line number node is clicked", ->
+          lineNumber = gutterNode.querySelectorAll('.line-number')[2]
+          component.onClickGutter(buildClickEvent(lineNumber))
+          lineNumber = gutterNode.querySelectorAll('.line-number')[2]
+          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
 
     describe "when decorations are used", ->
       describe "when decorations are applied to buffer rows", ->
