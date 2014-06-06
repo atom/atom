@@ -38,11 +38,10 @@ class Stars extends Command
     else
       requestSettings.url = "#{config.getAtomApiUrl()}/stars"
       Login.getTokenOrLogin (error, token) =>
-        if token?
-          requestSettings.headers = authorization: token
-          @requestStarredPackages(requestSettings, callback)
-        else
-          callback(error)
+        return callback(error) if error?
+
+        requestSettings.headers = authorization: token
+        @requestStarredPackages(requestSettings, callback)
 
   requestStarredPackages: (requestSettings, callback) ->
     request.get requestSettings, (error, response, body={}) ->
