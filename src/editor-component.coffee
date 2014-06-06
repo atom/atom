@@ -462,8 +462,8 @@ EditorComponent = React.createClass
         when 3 then editor.selectLine()
 
     @selectToMousePositionUntilMouseUp(event)
-    e.preventDefault()
-    e.stopPropagation()
+    event.preventDefault()
+    event.stopPropagation()
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
