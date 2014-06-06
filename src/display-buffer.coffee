@@ -739,15 +739,23 @@ class DisplayBuffer extends Model
     @emit 'decoration-changed', {bufferRow, decoration, action: 'add'}
 
   removeDecorationFromBufferRow: (bufferRow, decorationPattern) ->
-    return unless @decorations[bufferRow]
+    return unless decorations = @decorations[bufferRow]
 
-    removed = @findDecorationsForBufferRow(bufferRow, decorationPattern)
-    @decorations[bufferRow] = _.without(@decorations[bufferRow], removed...)
+    removed = []
+    i = decorations.length - 1
+    while i >= 0
+      if @decorationMatchesPattern(decorations[i], decorationPattern)
+        removed.push decorations[i]
+        decorations.splice(i, 1)
+      i--
+
+    delete @decorations[bufferRow] unless @decorations[bufferRow]?
 
     for decoration in removed
       @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
     removed
+
   addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
     for bufferRow in [startBufferRow..endBufferRow]
       @addDecorationToBufferRow(bufferRow, decoration)
@@ -758,18 +766,11 @@ class DisplayBuffer extends Model
       @removeDecorationFromBufferRow(bufferRow, decoration)
     return
 
-  # Finds all decorations on a buffer row that match a `decorationPattern`
-  #
-  # bufferRow - the {int} buffer row
-  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns an {Array} of the matching decorations
-  findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
-    return unless @decorations[bufferRow]
-    decoration for decoration in @decorations[bufferRow] when @decorationMatchesPattern(decoration, decorationPattern)
-
   decorationMatchesPattern: (decoration, decorationPattern) ->
-    _.isEqual(decorationPattern, _.pick(decoration, _.keys(decorationPattern)))
+    return false unless decoration? and decorationPattern?
+    for key, value of decorationPattern
+      return false if decoration[key] != value
+    true
 
   addDecorationForMarker: (marker, decoration) ->
     startRow = marker.getStartBufferPosition().row
