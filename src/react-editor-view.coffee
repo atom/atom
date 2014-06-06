@@ -41,6 +41,8 @@ class ReactEditorView extends View
 
   afterAttach: (onDom) ->
     return unless onDom
+    return if @attached
+
     @attached = true
     props = defaults({@editor, parentView: this}, @props)
     @component = React.renderComponent(EditorComponent(props), @element)
