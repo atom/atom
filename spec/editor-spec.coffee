@@ -863,7 +863,7 @@ describe "Editor", ->
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
         expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
 
-    fdescribe ".selectToBeginningOfNextParagraph()", ->
+    describe ".selectToBeginningOfNextParagraph()", ->
       it "selects from the cursor to first line of the next paragraph", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
         editor.addCursorAtScreenPosition([5, 6])
@@ -875,7 +875,7 @@ describe "Editor", ->
         expect(selections.length).toBe 1
         expect(selections[0].getScreenRange()).toEqual [[3, 0], [10, 0]]
 
-    fdescribe ".selectToBeginningOfPreviousParagraph()", ->
+    describe ".selectToBeginningOfPreviousParagraph()", ->
       it "selects from the cursor to the first line of the pevious paragraph", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
         editor.addCursorAtScreenPosition([5, 6])
