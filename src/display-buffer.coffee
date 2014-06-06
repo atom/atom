@@ -758,6 +758,12 @@ class DisplayBuffer extends Model
       @removeDecorationFromBufferRow(bufferRow, decoration)
     return
 
+  # Finds all decorations on a buffer row that match a `decorationPattern`
+  #
+  # bufferRow - the {int} buffer row
+  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns an {Array} of the matching decorations
   findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
     decoration for decoration in @decorations[bufferRow] when @decorationMatchesPattern(decoration, decorationPattern)
