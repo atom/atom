@@ -38,7 +38,10 @@ module.exports =
     process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist'
 
   getAtomPackagesUrl: ->
-    process.env.ATOM_PACKAGES_URL ? 'https://atom.io/api/packages'
+    process.env.ATOM_PACKAGES_URL ? "#{@getAtomApiUrl()}/packages"
+
+  getAtomApiUrl: ->
+    process.env.ATOM_API_URL ? 'https://atom.io/api'
 
   getNodeVersion: ->
     process.env.ATOM_NODE_VERSION ? '0.11.10'

@@ -3,7 +3,6 @@ path = require 'path'
 optimist = require 'optimist'
 Git = require 'git-utils'
 
-auth = require './auth'
 fs = require './fs'
 config = require './config'
 Command = require './command'
@@ -41,13 +40,6 @@ class Publish extends Command
     options.alias('t', 'tag').string('tag').describe('tag', 'Specify a tag to publish')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
-
-  getToken: (callback) ->
-    auth.getToken (error, token) ->
-      if error?
-        new Login().run({callback, commandArgs: []})
-      else
-        callback(null, token)
 
   # Create a new version and tag use the `npm version` command.
   #
@@ -112,10 +104,8 @@ class Publish extends Command
   # callback    - The callback function invoke with an error as the first
   #               argument and true/false as the second argument.
   packageExists: (packageName, callback) ->
-    @getToken (error, token) ->
-      if error?
-        callback(error)
-        return
+    Login.getTokenOrLogin (error, token) ->
+      return callback(error) if error?
 
       requestSettings =
         url: "#{config.getAtomPackagesUrl()}/#{packageName}"

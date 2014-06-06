@@ -55,15 +55,16 @@ class Featured extends Command
         callback(error)
         return
 
+      if options.argv.themes
+        packages = packages.filter ({theme}) -> theme
+
       if options.argv.json
         console.log(JSON.stringify(packages))
       else
         if options.argv.themes
-          packages = packages.filter ({theme}) -> theme
           console.log "#{'Featured Atom Themes'.cyan} (#{packages.length})"
         else
           console.log "#{'Featured Atom Packages'.cyan} (#{packages.length})"
-
 
         tree packages, ({name, version, description, downloads}) ->
           label = name.yellow

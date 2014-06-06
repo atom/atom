@@ -9,6 +9,13 @@ Command = require './command'
 
 module.exports =
 class Login extends Command
+  @getTokenOrLogin: (callback) ->
+    auth.getToken (error, token) ->
+      if error?
+        new Login().run({callback, commandArgs: []})
+      else
+        callback(null, token)
+
   @commandNames: ['login']
 
   parseOptions: (argv) ->
