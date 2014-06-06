@@ -8,7 +8,7 @@ fs = require './fs'
 
 module.exports =
 class Uninstall extends Command
-  @commandNames: ['uninstall']
+  @commandNames: ['erase', 'remove', 'rm', 'uninstall']
 
   parseOptions: (argv) ->
     options = optimist(argv)
