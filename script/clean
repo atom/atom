@@ -3,7 +3,7 @@ var cp = require('./utils/child-process-wrapper.js');
 var path = require('path');
 var os = require('os');
 
-var removeCommand = process.platform === 'win32' ? 'del /F /Q /S ' : 'rm -rf ';
+var removeCommand = process.platform === 'win32' ? 'rmdir /S /Q ' : 'rm -rf ';
 var productName = require('../package.json').productName;
 
 process.chdir(path.dirname(__dirname));
