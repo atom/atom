@@ -69,11 +69,13 @@
   .gutter {
     .line-number {
       white-space: nowrap;
-      padding: 0 .5em;
+      padding-left: .5em;
 
       .icon-right {
-        padding: 0;
-        padding-left: .1em;
+        padding: 0 .4em;
+        &:before {
+          text-align: center;
+        }
       }
     }
   }
@@ -121,7 +123,7 @@
   visibility: hidden;
   padding-left: .1em;
   padding-right: .5em;
-  opacity: .7;
+  opacity: .6;
 }
 
 .editor .gutter:hover .line-number.foldable .icon-right {
