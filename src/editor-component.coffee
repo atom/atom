@@ -237,7 +237,6 @@ EditorComponent = React.createClass
     for bufferRow in bufferRows
       decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, 'gutter')
       decorations[bufferRow].push {class: 'foldable'} if editor.isFoldableAtBufferRow(bufferRow)
-      decorations[bufferRow].push {class: 'folded'} if editor.isFoldedAtBufferRow(bufferRow)
     decorations
 
   observeEditor: ->
