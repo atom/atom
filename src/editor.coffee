@@ -1115,8 +1115,8 @@ class Editor extends Model
   # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
   #
   # Returns an {Array} of the removed decorations
-  removeDecorationFromBufferRow: (bufferRow, decoration) ->
-    @displayBuffer.removeDecorationFromBufferRow(bufferRow, decoration)
+  removeDecorationFromBufferRow: (bufferRow, decorationPattern) ->
+    @displayBuffer.removeDecorationFromBufferRow(bufferRow, decorationPattern)
 
   # Public: Adds a decoration to line numbers in a buffer row range
   #
@@ -1155,8 +1155,8 @@ class Editor extends Model
   # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
   #
   # Returns nothing
-  removeDecorationForMarker: (marker, decoration) ->
-    @displayBuffer.removeDecorationForMarker(marker, decoration)
+  removeDecorationForMarker: (marker, decorationPattern) ->
+    @displayBuffer.removeDecorationForMarker(marker, decorationPattern)
 
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->

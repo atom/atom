@@ -738,22 +738,25 @@ class DisplayBuffer extends Model
     @decorations[bufferRow].push(decoration)
     @emit 'decoration-changed', {bufferRow, decoration, action: 'add'}
 
-  removeDecorationFromBufferRow: (bufferRow, decoration) ->
+  removeDecorationFromBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
 
-    removed = @findDecorationsForBufferRow(bufferRow, decoration)
+    removed = @findDecorationsForBufferRow(bufferRow, decorationPattern)
     @decorations[bufferRow] = _.without(@decorations[bufferRow], removed...)
 
     for decoration in removed
       @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
+    removed
   addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
     for bufferRow in [startBufferRow..endBufferRow]
       @addDecorationToBufferRow(bufferRow, decoration)
+    return
 
   removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
     for bufferRow in [startBufferRow..endBufferRow]
       @removeDecorationFromBufferRow(bufferRow, decoration)
+    return
 
   findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
@@ -786,15 +789,15 @@ class DisplayBuffer extends Model
     @decorationMarkerSubscriptions[marker.id] ?= []
     @decorationMarkerSubscriptions[marker.id].push {decoration, changedSubscription, destroyedSubscription}
 
-  removeDecorationForMarker: (marker, decoration) ->
+  removeDecorationForMarker: (marker, decorationPattern) ->
     return unless @decorationMarkerSubscriptions[marker.id]?
 
     startRow = marker.getStartBufferPosition().row
     endRow = marker.getEndBufferPosition().row
-    @removeDecorationFromBufferRowRange(startRow, endRow, decoration)
+    @removeDecorationFromBufferRowRange(startRow, endRow, decorationPattern)
 
     for subscription in _.clone(@decorationMarkerSubscriptions[marker.id])
-      if @decorationMatchesPattern(subscription.decoration, decoration)
+      if @decorationMatchesPattern(subscription.decoration, decorationPattern)
         subscription.changedSubscription.off()
         subscription.destroyedSubscription.off()
         @decorationMarkerSubscriptions[marker.id] = _.without(@decorationMarkerSubscriptions[marker.id], subscription)
