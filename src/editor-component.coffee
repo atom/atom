@@ -65,7 +65,7 @@ EditorComponent = React.createClass
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
 
-    className = 'editor editor-colors react'
+    className = 'editor-contents editor-colors'
     className += ' is-focused' if focused
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,

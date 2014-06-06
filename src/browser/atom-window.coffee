@@ -21,6 +21,10 @@ class AtomWindow
 
   constructor: (settings={}) ->
     {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone} = settings
+
+    # Normalize to make sure drive letter case is consistent on Windows
+    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+
     global.atomApplication.addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
@@ -29,6 +33,7 @@ class AtomWindow
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
+    loadSettings.resourcePath = @resourcePath
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
@@ -109,9 +114,15 @@ class AtomWindow
       new ContextMenu(menuTemplate, this)
 
     if @isSpec
+      # Workaround for https://github.com/atom/atom-shell/issues/380
+      # Don't focus the window when it is being blurred during close or
+      # else the app will crash on Windows.
+      if process.platform is 'win32'
+        @browserWindow.on 'close', => @isWindowClosing = true
+
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
-        @browserWindow.focusOnWebView()
+        @browserWindow.focusOnWebView() unless @isWindowClosing
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     if @loaded

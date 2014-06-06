@@ -20,7 +20,11 @@
     z-index: 2;
   }
 
-  &.is-focused .cursors.blink-off .cursor {
+  .editor-contents.is-focused .cursor {
+    visibility: visible;
+  }
+
+  .cursors.blink-off .cursor {
     visibility: hidden;
   }
 
@@ -74,7 +78,7 @@
   }
 }
 
-.editor {
+.editor, .editor-contents {
   overflow: hidden;
   cursor: text;
   display: -webkit-flex;

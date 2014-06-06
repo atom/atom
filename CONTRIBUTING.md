@@ -11,11 +11,15 @@ propose changes to this document in a pull request.
 
 ## Submitting Issues
 
+* Include the version of Atom you are using and the OS.
 * Include screenshots and animated GIFs whenever possible; they are immensely
   helpful.
 * Include the behavior you expected and other places you've seen that behavior
   such as Emacs, vi, Xcode, etc.
-* Check the dev tools (`alt-cmd-i`) for errors and stack traces to include.
+* Check the dev tools (`alt-cmd-i`) for errors to include. If the dev tools 
+  are open _before_ the error is triggered, a full stack trace for the error
+  will be logged. If you can reproduce the error, use this approach to get the
+  full stack trace and include it in the issue.
 * On Mac, check Console.app for stack traces to include if reporting a crash.
 * Perform a cursory search to see if a similar issue has already been submitted.
 

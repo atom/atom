@@ -60,6 +60,10 @@ class AtomApplication
 
   constructor: (options) ->
     {@resourcePath, @version, @devMode, @safeMode} = options
+
+    # Normalize to make sure drive letter case is consistent on Windows
+    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+
     global.atomApplication = this
 
     @pidsToOpenWindows = {}

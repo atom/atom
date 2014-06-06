@@ -14,8 +14,8 @@ try
 
   {runSpecSuite} = require './jasmine-helper'
 
-  # Add 'src/exports' to module search path.
-  exportsPath = path.resolve(atom.getLoadSettings().resourcePath, 'exports')
+  # Add 'exports' to module search path.
+  exportsPath = path.join(atom.getLoadSettings().resourcePath, 'exports')
   require('module').globalPaths.push(exportsPath)
   # Still set NODE_PATH since tasks may need it.
   process.env.NODE_PATH = exportsPath
