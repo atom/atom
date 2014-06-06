@@ -1058,27 +1058,103 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
+  # Public: Get all the decorations for a buffer row.
+  #
+  # bufferRow - the {int} buffer row
+  # decorationType - the {String} decoration type to filter by eg. 'gutter'
+  #
+  # Returns an {Array} of decorations in the form `[{type: 'gutter', class: 'someclass'}, ...]`
+  # Returns an empty array when no decorations are found
   decorationsForBufferRow: (bufferRow, decorationType) ->
     @displayBuffer.decorationsForBufferRow(bufferRow, decorationType)
 
+  # Public: Get all the decorations for a range of buffer rows (inclusive)
+  #
+  # startBufferRow - the {int} start of the buffer row range
+  # endBufferRow - the {int} end of the buffer row range (inclusive)
+  # decorationType - the {String} decoration type to filter by eg. 'gutter'
+  #
+  # Returns an {Object} of decorations in the form `{23: [{type: 'gutter', class: 'someclass'}, ...], 24: [...]}`
+  # Returns an {Object} with keyed with all buffer rows in the range containing empty {Array}s when no decorations are found
   decorationsForBufferRowRange: (startBufferRow, endBufferRow, decorationType) ->
     @displayBuffer.decorationsForBufferRowRange(startBufferRow, endBufferRow, decorationType)
 
+  # Public: Adds a decoration to a buffer row. For example, use to mark a gutter
+  # line number with a class by using the form `{type: 'gutter', class: 'linter-error'}`
+  #
+  # bufferRow - the {int} buffer row
+  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
   addDecorationToBufferRow: (bufferRow, decoration) ->
     @displayBuffer.addDecorationToBufferRow(bufferRow, decoration)
 
+  # Public: Removes a decoration from a buffer row.
+  #
+  # ```coffee
+  # editor.removeDecorationFromBufferRow(2, {type: 'gutter', class: 'linter-error'})
+  # ```
+  #
+  # All decorations matching a pattern will be removed. For example, you might
+  # have decorations with a namespace like this attached to a row:
+  #
+  # ```coffee
+  # [
+  #   {type: 'gutter', namespace: 'myns', class: 'something'},
+  #   {type: 'gutter', namespace: 'myns', class: 'something-else'}
+  # ]
+  # ```
+  #
+  # You can remove both with:
+  #
+  # ```coffee
+  # editor.removeDecorationFromBufferRow(2, {namespace: 'myns'})
+  # ```
+  #
+  # bufferRow - the {int} buffer row
+  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns an {Array} of the removed decorations
   removeDecorationFromBufferRow: (bufferRow, decoration) ->
     @displayBuffer.removeDecorationFromBufferRow(bufferRow, decoration)
 
+  # Public: Adds a decoration to line numbers in a buffer row range
+  #
+  # startBufferRow - the {int} start of the buffer row range
+  # endBufferRow - the {int} end of the buffer row range (inclusive)
+  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
   addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
     @displayBuffer.addDecorationToBufferRowRange(startBufferRow, endBufferRow, decoration)
 
+  # Public: Removes a decoration from line numbers in a buffer row range
+  #
+  # startBufferRow - the {int} start of the buffer row range
+  # endBufferRow - the {int} end of the buffer row range (inclusive)
+  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
   removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
     @displayBuffer.removeDecorationFromBufferRowRange(startBufferRow, endBufferRow, decoration)
 
+  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
+  #
+  # marker - the {Marker} you want this decoration to follow
+  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)
 
+  # Public: Removes all decorations associated with a {Marker} that match a
+  # `decorationPattern` and stop tracking the {Marker}.
+  #
+  # marker - the {Marker} to detach from
+  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
   removeDecorationForMarker: (marker, decoration) ->
     @displayBuffer.removeDecorationForMarker(marker, decoration)
 
