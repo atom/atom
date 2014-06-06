@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var cp = require('./utils/child-process-wrapper.js');
+var fs = require('fs');
 var path = require('path');
 var os = require('os');
 
@@ -30,8 +31,14 @@ var run = function() {
   var next = commands.shift();
   if (!next)
     process.exit(0);
-  if (Array.isArray(next))
-    next = removeCommand + path.resolve.apply(path.resolve, next);
+
+  if (Array.isArray(next)) {
+    var pathToRemove = path.resolve.apply(path.resolve, next);
+    if (fs.existsSync(pathToRemove))
+      next = removeCommand + pathToRemove;
+    else
+      run();
+  }
   cp.safeExec(next, run);
 };
 run();
