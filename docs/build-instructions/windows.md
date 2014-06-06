@@ -49,7 +49,7 @@ fix this, you probably need to fiddle with your system PATH.
 * `script/build` outputs only the Node and Python versions before returning
 
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
-  This causes Weird Stuff(tm). See [issue #2200](https://github.com/atom/atom/issues/2200).
+    See [issue #2200](https://github.com/atom/atom/issues/2200).
 
 ### Windows build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows.
