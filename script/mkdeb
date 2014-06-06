@@ -8,14 +8,15 @@ ROOT=`readlink -f $(dirname $SCRIPT)/..`
 cd $ROOT
 
 VERSION="$1"
-CONTROL_FILE="$2"
-DESKTOP_FILE="$3"
-ICON_FILE="$4"
-DEB_PATH="$5"
+ARCH="$2"
+CONTROL_FILE="$3"
+DESKTOP_FILE="$4"
+ICON_FILE="$5"
+DEB_PATH="$6"
 
 TARGET_ROOT="`mktemp -d`"
 chmod 755 "$TARGET_ROOT"
-TARGET="$TARGET_ROOT/atom-$VERSION-amd64"
+TARGET="$TARGET_ROOT/atom-$VERSION-$ARCH"
 
 mkdir -p "$TARGET/usr"
 env INSTALL_PREFIX="$TARGET/usr" script/grunt install
@@ -30,5 +31,5 @@ mkdir -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 dpkg-deb -b "$TARGET"
-mv "$TARGET_ROOT/atom-$VERSION-amd64.deb" "$DEB_PATH"
+mv "$TARGET_ROOT/atom-$VERSION-$ARCH.deb" "$DEB_PATH"
 rm -rf $TARGET_ROOT
