@@ -359,7 +359,7 @@ describe "EditorComponent", ->
           editor.addDecorationToBufferRow(2, type: 'gutter', class: 'fancy-class')
           editor.addDecorationToBufferRow(2, type: 'someother-type', class: 'nope-class')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'fancy-class')).toBe true
             expect(lineNumberHasClass(2, 'nope-class')).toBe false
@@ -367,7 +367,7 @@ describe "EditorComponent", ->
             editor.removeDecorationFromBufferRow(2, type: 'gutter', class: 'fancy-class')
             editor.removeDecorationFromBufferRow(2, type: 'someother-type', class: 'nope-class')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'fancy-class')).toBe false
             expect(lineNumberHasClass(2, 'nope-class')).toBe false
@@ -390,7 +390,7 @@ describe "EditorComponent", ->
           editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'no-wrap')
           editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'wrap-me')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'no-wrap')).toBe false
             expect(lineNumberHasClass(2, 'wrap-me')).toBe false
@@ -401,7 +401,7 @@ describe "EditorComponent", ->
             editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
             editor.addDecorationToBufferRow(1, type: 'gutter', class: 'wrap-me', softWrap: true)
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'no-wrap')).toBe true
             expect(lineNumberHasClass(2, 'wrap-me')).toBe true
@@ -414,7 +414,7 @@ describe "EditorComponent", ->
           marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
           decoration = {type: 'gutter', class: 'someclass'}
           editor.addDecorationForMarker(marker, decoration)
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
 
         it "updates line number classes when the marker moves", ->
           expect(lineNumberHasClass(1, 'someclass')).toBe false
@@ -424,7 +424,7 @@ describe "EditorComponent", ->
 
           editor.getBuffer().insert([0, 0], '\n')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'someclass')).toBe false
             expect(lineNumberHasClass(3, 'someclass')).toBe true
@@ -433,7 +433,7 @@ describe "EditorComponent", ->
 
             editor.getBuffer().deleteRows(0, 1)
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(0, 'someclass')).toBe false
             expect(lineNumberHasClass(1, 'someclass')).toBe true
@@ -443,7 +443,7 @@ describe "EditorComponent", ->
         it "removes line number classes when a decoration's marker is invalidated", ->
           editor.getBuffer().insert([3, 2], 'n')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
 
             expect(marker.isValid()).toBe false
@@ -454,7 +454,7 @@ describe "EditorComponent", ->
 
             editor.getBuffer().undo()
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(marker.isValid()).toBe true
             expect(lineNumberHasClass(1, 'someclass')).toBe false
@@ -465,7 +465,7 @@ describe "EditorComponent", ->
         it "removes the classes and unsubscribes from the marker when decoration is removed", ->
           editor.removeDecorationForMarker(marker, decoration)
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(1, 'someclass')).toBe false
             expect(lineNumberHasClass(2, 'someclass')).toBe false
@@ -474,7 +474,7 @@ describe "EditorComponent", ->
 
           editor.getBuffer().insert([0, 0], '\n')
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(2, 'someclass')).toBe false
             expect(lineNumberHasClass(3, 'someclass')).toBe false
@@ -482,7 +482,7 @@ describe "EditorComponent", ->
         it "removes the line number classes when the decoration's marker is destroyed", ->
           marker.destroy()
 
-          waitsFor -> not gutter.decorationRenderImmediate?
+          waitsFor -> not component.decorationChangedImmediate?
           runs ->
             expect(lineNumberHasClass(1, 'someclass')).toBe false
             expect(lineNumberHasClass(2, 'someclass')).toBe false

@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
@@ -24,17 +25,10 @@ GutterComponent = React.createClass
     @lineNumberNodesById = {}
     @lineNumberIdsByScreenRow = {}
     @screenRowsByLineNumberId = {}
-    @decoratorUpdates = {}
+    @previousDecorations = {}
 
   componentDidMount: ->
     @appendDummyLineNumber()
-    @subscribeToEditor()
-
-  componentWillUnmount: ->
-    @unsubscribe()
-
-  subscribeToEditor: ->
-    @subscribe @props.editor, 'decoration-changed', @onDecorationChanged
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -44,9 +38,11 @@ GutterComponent = React.createClass
       'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow'
     )
 
-    {renderedRowRange, pendingChanges} = newProps
+    {renderedRowRange, pendingChanges, decorations} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
+
+    return true unless _.isEqual(@previousDecorations, decorations)
 
     false
 
@@ -78,7 +74,7 @@ GutterComponent = React.createClass
     @removeLineNumberNodes(lineNumberIdsToPreserve)
 
   appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, renderedRowRange, scrollTop, maxLineNumberDigits} = @props
+    {editor, renderedRowRange, scrollTop, maxLineNumberDigits, decorations} = @props
     [startRow, endRow] = renderedRowRange
 
     newLineNumberIds = null
@@ -99,12 +95,12 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0)
+        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorations[bufferRow])
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow)
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorations[bufferRow])
         @screenRowsByLineNumberId[id] = screenRow
         @lineNumberIdsByScreenRow[screenRow] = id
 
@@ -118,7 +114,7 @@ GutterComponent = React.createClass
         @lineNumberNodesById[lineNumberId] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    @decoratorUpdates = {}
+    @previousDecorations = decorations
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->
@@ -132,7 +128,7 @@ GutterComponent = React.createClass
         delete @screenRowsByLineNumberId[lineNumberId]
         node.removeChild(lineNumberNode)
 
-  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow) ->
+  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow, decorations) ->
     if screenRow?
       {lineHeightInPixels} = @props
       style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
@@ -140,15 +136,13 @@ GutterComponent = React.createClass
       style = "visibility: hidden;"
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    classes = ['line-number']
-    classes.push 'foldable' if not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
-    classes.push 'folded' if @props.editor.isFoldedAtBufferRow(bufferRow)
+    classes = ''
+    if decorations?
+      for decoration in decorations
+        classes += decoration.class + ' ' if not softWrapped or softWrapped and decoration.softWrap
+    classes += 'line-number'
 
-    decorations = @props.editor.decorationsForBufferRow(bufferRow, 'gutter')
-    for decoration in decorations
-      classes.push(decoration.class) if not softWrapped or softWrapped and decoration.softWrap
-
-    "<div class=\"#{classes.join(' ')}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
@@ -160,18 +154,17 @@ GutterComponent = React.createClass
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
-  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped) ->
+  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped, decorations) ->
     node = @lineNumberNodesById[lineNumberId]
+    previousDecorations = @previousDecorations[bufferRow]
 
-    @toggleClass node, 'foldable', not softWrapped and @props.editor.isFoldableAtBufferRow(bufferRow)
-    @toggleClass node, 'folded', @props.editor.isFoldedAtBufferRow(bufferRow)
+    if previousDecorations?
+      for decoration in previousDecorations
+        node.classList.remove(decoration.class) if not contains(decorations, decoration)
 
-    if @decoratorUpdates[bufferRow]?
-      for change in @decoratorUpdates[bufferRow]
-        if change.action == 'add' and (not softWrapped or softWrapped and change.decoration.softWrap)
-          node.classList.add(change.decoration.class)
-        else if change.action == 'remove'
-          node.classList.remove(change.decoration.class)
+    for decoration in decorations
+      if not contains(previousDecorations, decoration) and (not softWrapped or softWrapped and decoration.softWrap)
+        node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @props
@@ -186,18 +179,9 @@ GutterComponent = React.createClass
   lineNumberNodeForScreenRow: (screenRow) ->
     @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
 
-  toggleClass: (node, klass, condition) ->
-    if condition then node.classList.add(klass) else node.classList.remove(klass)
-
-  onDecorationChanged: (change) ->
-    if change.decoration.type is 'gutter'
-      @decoratorUpdates[change.bufferRow] ?= []
-      @decoratorUpdates[change.bufferRow].push change
-      @renderDecorations()
-
-  renderDecorations: ->
-    clearImmediate(@decorationRenderImmediate) if @decorationRenderImmediate
-    render = =>
-      @forceUpdate()
-      @decorationRenderImmediate = null
-    @decorationRenderImmediate = setImmediate(render)
+# Created because underscore uses === not _.isEqual, which we need
+contains = (array, target) ->
+  return false unless array?
+  for object in array
+    return true if _.isEqual(object, target)
+  false
