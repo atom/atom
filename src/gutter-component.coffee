@@ -162,9 +162,10 @@ GutterComponent = React.createClass
       for decoration in previousDecorations
         node.classList.remove(decoration.class) if not contains(decorations, decoration)
 
-    for decoration in decorations
-      if not contains(previousDecorations, decoration) and (not softWrapped or softWrapped and decoration.softWrap)
-        node.classList.add(decoration.class)
+    if decorations?
+      for decoration in decorations
+        if not contains(previousDecorations, decoration) and (not softWrapped or softWrapped and decoration.softWrap)
+          node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @props
