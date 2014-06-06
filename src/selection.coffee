@@ -236,6 +236,16 @@ class Selection extends Model
   selectToNextWordBoundary: ->
     @modifySelection => @cursor.moveToNextWordBoundary()
 
+  # Public: Selects all the text from the current cursor position to the
+  # beginning of the next paragraph.
+  selectToBeginningOfNextParagraph: ->
+    @modifySelection => @cursor.moveToBeginningOfNextParagraph()
+
+  # Public: Selects all the text from the current cursor position to the
+  # beginning of the previous paragraph.
+  selectToBeginningOfPreviousParagraph: ->
+    @modifySelection => @cursor.moveToBeginningOfPreviousParagraph()
+
   # Public: Moves the selection down one row.
   addSelectionBelow: ->
     range = (@getGoalBufferRange() ? @getBufferRange()).copy()

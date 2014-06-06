@@ -171,6 +171,8 @@ class EditorView extends View
       'editor:move-to-beginning-of-next-word': => @editor.moveCursorToBeginningOfNextWord()
       'editor:move-to-previous-word-boundary': => @editor.moveCursorToPreviousWordBoundary()
       'editor:move-to-next-word-boundary': => @editor.moveCursorToNextWordBoundary()
+      'editor:select-to-beginning-of-next-paragraph': => @editor.selectToBeginningOfNextParagraph()
+      'editor:select-to-beginning-of-previous-paragraph': => @editor.selectToBeginningOfPreviousParagraph()
       'editor:select-to-end-of-line': => @editor.selectToEndOfLine()
       'editor:select-to-beginning-of-line': => @editor.selectToBeginningOfLine()
       'editor:select-to-end-of-word': => @editor.selectToEndOfWord()
