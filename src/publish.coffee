@@ -136,7 +136,7 @@ class Publish extends Command
         return
 
       process.stdout.write "Registering #{pack.name} "
-      @getToken (error, token) =>
+      Login.getTokenOrLogin (error, token) =>
         if error?
           @logFailure()
           callback(error)
@@ -167,7 +167,7 @@ class Publish extends Command
   # callback - The callback function to invoke with an error as the first
   #            argument.
   createPackageVersion: (packageName, tag, callback) ->
-    @getToken (error, token) ->
+    Login.getTokenOrLogin (error, token) ->
       if error?
         callback(error)
         return
