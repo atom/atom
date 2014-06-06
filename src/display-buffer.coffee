@@ -725,6 +725,12 @@ class DisplayBuffer extends Model
     decorations = (dec for dec in decorations when dec.type is decorationType) if decorationType?
     decorations
 
+  decorationsForBufferRowRange: (startBufferRow, endBufferRow, decorationType) ->
+    decorations = {}
+    for bufferRow in [startBufferRow..endBufferRow]
+      decorations[bufferRow] = @decorationsForBufferRow(bufferRow, decorationType)
+    decorations
+
   addDecorationToBufferRow: (bufferRow, decoration) ->
     @decorations[bufferRow] ?= []
     for current in @decorations[bufferRow]
@@ -742,12 +748,12 @@ class DisplayBuffer extends Model
       @emit 'decoration-changed', {bufferRow, decoration, action: 'remove'}
 
   addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    while startBufferRow <= endBufferRow
-      @addDecorationToBufferRow(startBufferRow++, decoration)
+    for bufferRow in [startBufferRow..endBufferRow]
+      @addDecorationToBufferRow(bufferRow, decoration)
 
   removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    while startBufferRow <= endBufferRow
-      @removeDecorationFromBufferRow(startBufferRow++, decoration)
+    for bufferRow in [startBufferRow..endBufferRow]
+      @removeDecorationFromBufferRow(bufferRow, decoration)
 
   findDecorationsForBufferRow: (bufferRow, decorationPattern) ->
     return unless @decorations[bufferRow]
@@ -785,8 +791,7 @@ class DisplayBuffer extends Model
 
     startRow = marker.getStartBufferPosition().row
     endRow = marker.getEndBufferPosition().row
-    while startRow <= endRow
-      @removeDecorationFromBufferRow(startRow++, decoration)
+    @removeDecorationFromBufferRowRange(startRow, endRow, decoration)
 
     for subscription in _.clone(@decorationMarkerSubscriptions[marker.id])
       if @decorationMatchesPattern(subscription.decoration, decoration)

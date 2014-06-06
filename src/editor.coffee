@@ -1061,6 +1061,9 @@ class Editor extends Model
   decorationsForBufferRow: (bufferRow, decorationType) ->
     @displayBuffer.decorationsForBufferRow(bufferRow, decorationType)
 
+  decorationsForBufferRowRange: (startBufferRow, endBufferRow, decorationType) ->
+    @displayBuffer.decorationsForBufferRowRange(startBufferRow, endBufferRow, decorationType)
+
   addDecorationToBufferRow: (bufferRow, decoration) ->
     @displayBuffer.addDecorationToBufferRow(bufferRow, decoration)
 
