@@ -37,8 +37,9 @@ var run = function() {
     if (fs.existsSync(pathToRemove))
       next = removeCommand + pathToRemove;
     else
-      run();
+      return run();
   }
+
   cp.safeExec(next, run);
 };
 run();
