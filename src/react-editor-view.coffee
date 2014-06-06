@@ -134,6 +134,9 @@ class ReactEditorView extends View
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
+  getText: ->
+    @editor.getText()
+
   setText: (text) ->
     @editor.setText(text)
 
