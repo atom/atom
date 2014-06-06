@@ -165,7 +165,7 @@ describe "EditorComponent", ->
         beforeEach ->
           editor.setText "a line that wraps "
           editor.setSoftWrap(true)
-          node.style.width = 15 * charWidth + 'px'
+          node.style.width = 16 * charWidth + 'px'
           component.measureScrollView()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
