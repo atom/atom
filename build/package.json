@@ -18,7 +18,7 @@
     "grunt-contrib-coffee": "~0.9.0",
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.8.0",
-    "grunt-download-atom-shell": "~0.7.2",
+    "grunt-download-atom-shell": "~0.8.0",
     "grunt-lesslint": "0.13.0",
     "grunt-markdown": "~0.4.0",
     "grunt-peg": "~1.1.0",
