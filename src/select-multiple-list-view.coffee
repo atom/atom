@@ -124,4 +124,4 @@ class SelectMultipleListView extends SelectListView
   #
   # Returns a DOM element, jQuery object, or {View}.
   completed: (items) ->
-    throw new Error("Subclass must implement a completed() method")
+    throw new Error("Subclass must implement a completed(items) method")
