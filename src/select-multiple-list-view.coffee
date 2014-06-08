@@ -51,7 +51,7 @@ class SelectMultipleListView extends SelectListView
   # This method can be overridden by subclasses.
   #
   # ### Important
-  #   There must always be a button with the class `btn-complete-button` to
+  #   There must always be a button to call the function `@complete()` to
   #   confirm the selections!
   #
   # #### Example (Default)
@@ -66,7 +66,7 @@ class SelectMultipleListView extends SelectListView
   #     viewButton.appendTo(this)
   #
   #     @on 'click', 'button', ({target}) =>
-  #       @complete() if $(target).hasClass('btn-complete-b utton')
+  #       @complete() if $(target).hasClass('btn-complete-button')
   #       @cancel() if $(target).hasClass('btn-cancel-button')
   # ```
   addButtons: ->
