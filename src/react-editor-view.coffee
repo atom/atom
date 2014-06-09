@@ -124,6 +124,12 @@ class ReactEditorView extends View
     super
     @component?.show()
 
+  pageDown: ->
+    @editor.pageDown()
+
+  pageUp: ->
+    @editor.pageUp()
+
   getModel: ->
     @component?.getModel()
 
