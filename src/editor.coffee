@@ -1126,7 +1126,8 @@ class Editor extends Model
   #
   # Returns nothing
   addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    @displayBuffer.addDecorationToBufferRowRange(startBufferRow, endBufferRow, decoration)
+    @batchUpdates =>
+      @displayBuffer.addDecorationToBufferRowRange(startBufferRow, endBufferRow, decoration)
 
   # Public: Removes a decoration from line numbers in a buffer row range
   #
@@ -1136,7 +1137,8 @@ class Editor extends Model
   #
   # Returns nothing
   removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    @displayBuffer.removeDecorationFromBufferRowRange(startBufferRow, endBufferRow, decoration)
+    @batchUpdates =>
+      @displayBuffer.removeDecorationFromBufferRowRange(startBufferRow, endBufferRow, decoration)
 
   # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.

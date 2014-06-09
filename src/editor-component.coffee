@@ -177,7 +177,9 @@ EditorComponent = React.createClass
     if @batchingUpdates
       @updateRequested = true
     else
-      @forceUpdate()
+      @willUpdate ?= setImmediate =>
+        @forceUpdate()
+        @willUpdate = null
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -526,10 +528,7 @@ EditorComponent = React.createClass
     @cursorsMoved = true
 
   onDecorationChanged: ->
-    return if @decorationChangedImmediate?
-    @decorationChangedImmediate = setImmediate =>
-      @requestUpdate()
-      @decorationChangedImmediate = null
+    @requestUpdate()
 
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props
