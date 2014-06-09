@@ -228,14 +228,12 @@ describe "EditorComponent", ->
           [node]
 
   describe "gutter rendering", ->
-    {lineNumberHasClass, gutter} = {}
+    [lineNumberHasClass, gutter] = []
+
     beforeEach ->
       {gutter} = component.refs
       lineNumberHasClass = (screenRow, klass) ->
-        if screenRow.classList?
-          screenRow.classList.contains(klass)
-        else
-          component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+        component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -346,34 +344,29 @@ describe "EditorComponent", ->
         [gutterNode] = []
 
         buildClickEvent = (target) ->
-          # FIXME: I could not get the simulated event to set the target. I tried several things, and was unable to get it set.
-          # buildMouseEvent('click', {target})
-          {target, type: 'click', bubbles: true, cancelable: true}
+          buildMouseEvent('click', {target})
 
         beforeEach ->
           gutterNode = node.querySelector('.gutter')
 
         it "folds and unfolds the block represented by the fold indicator when clicked", ->
-          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
-          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
+          expect(lineNumberHasClass(1, 'folded')).toBe false
 
+          lineNumber = component.lineNumberNodeForScreenRow(1)
           target = lineNumber.querySelector('.icon-right')
-          # target.dispatchEvent(buildClickEvent(target))
-          component.onClickGutter(buildClickEvent(target))
-          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
-          expect(lineNumberHasClass(lineNumber, 'folded')).toBe true
 
+          target.dispatchEvent(buildClickEvent(target))
+          expect(lineNumberHasClass(1, 'folded')).toBe true
+
+          lineNumber = component.lineNumberNodeForScreenRow(1)
           target = lineNumber.querySelector('.icon-right')
-          # target.dispatchEvent(buildClickEvent(target))
-          component.onClickGutter(buildClickEvent(target))
-          lineNumber = gutterNode.querySelectorAll('.line-number')[2] # bufferRow 1
-          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
+
+          target.dispatchEvent(buildClickEvent(target))
+          expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number node is clicked", ->
-          lineNumber = gutterNode.querySelectorAll('.line-number')[2]
-          component.onClickGutter(buildClickEvent(lineNumber))
-          lineNumber = gutterNode.querySelectorAll('.line-number')[2]
-          expect(lineNumberHasClass(lineNumber, 'folded')).toBe false
+          component.onClickGutter(buildClickEvent(component.lineNumberNodeForScreenRow(1)))
+          expect(lineNumberHasClass(1, 'folded')).toBe false
 
     describe "when decorations are used", ->
       describe "when decorations are applied to buffer rows", ->
@@ -854,12 +847,6 @@ describe "EditorComponent", ->
       clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
       {clientX, clientY}
 
-    buildMouseEvent = (type, properties...) ->
-      properties = extend({bubbles: true, cancelable: true}, properties...)
-      event = new MouseEvent(type, properties)
-      Object.defineProperty(event, 'which', get: -> properties.which) if properties.which?
-      event
-
   describe "focus handling", ->
     inputNode = null
 
@@ -1164,3 +1151,12 @@ describe "EditorComponent", ->
         editor.setCursorBufferPosition([0, Infinity])
         wrapperView.show()
         expect(node.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
+
+  buildMouseEvent = (type, properties...) ->
+    properties = extend({bubbles: true, cancelable: true}, properties...)
+    event = new MouseEvent(type, properties)
+    Object.defineProperty(event, 'which', get: -> properties.which) if properties.which?
+    if properties.target?
+      Object.defineProperty(event, 'target', get: -> properties.target)
+      Object.defineProperty(event, 'srcObject', get: -> properties.target)
+    event
