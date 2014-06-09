@@ -727,6 +727,9 @@ EditorComponent = React.createClass
   setLineHeight: (lineHeight) ->
     @setState({lineHeight})
 
+  getFontFamily: ->
+    @state.fontFamily
+
   setFontFamily: (fontFamily) ->
     @setState({fontFamily})
 

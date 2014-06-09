@@ -133,6 +133,9 @@ class ReactEditorView extends View
   getLastVisibleScreenRow: ->
     @editor.getVisibleRowRange()[1]
 
+  getFontFamily: ->
+    @component?.getFontFamily()
+
   getFontSize: ->
     @component?.getFontSize()
 
