@@ -16,6 +16,8 @@ class ReactEditorView extends View
 
   getEditor: -> @editor
 
+  getModel: -> @editor
+
   Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeightInPixels()
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
