@@ -43,12 +43,14 @@ EditorComponent = React.createClass
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
+    hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
       selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
+      decorations = @getGutterDecorations(renderedRowRange)
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -67,11 +69,13 @@ EditorComponent = React.createClass
 
     className = 'editor-contents editor-colors'
     className += ' is-focused' if focused
+    className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
-        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
+        decorations
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -225,6 +229,18 @@ EditorComponent = React.createClass
 
     selectionScreenRanges
 
+  getGutterDecorations:  (renderedRowRange) ->
+    {editor} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+
+    bufferRows = editor.bufferRowsForScreenRows(renderedStartRow, renderedEndRow - 1)
+
+    decorations = {}
+    for bufferRow in bufferRows
+      decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, 'gutter')
+      decorations[bufferRow].push {class: 'foldable'} if editor.isFoldableAtBufferRow(bufferRow)
+    decorations
+
   observeEditor: ->
     {editor} = @props
     @subscribe editor, 'batched-updates-started', @onBatchedUpdatesStarted
@@ -233,6 +249,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'cursors-moved', @onCursorsMoved
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
+    @subscribe editor, 'decoration-changed', @onDecorationChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -509,6 +526,11 @@ EditorComponent = React.createClass
 
   onCursorsMoved: ->
     @cursorsMoved = true
+
+  onDecorationChanged: ->
+    @decorationChangedImmediate ?= setImmediate =>
+      @requestUpdate()
+      @decorationChangedImmediate = null
 
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props

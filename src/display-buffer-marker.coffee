@@ -111,6 +111,34 @@ class DisplayBufferMarker
   setTailBufferPosition: (bufferPosition) ->
     @bufferMarker.setTailPosition(bufferPosition)
 
+  # Retrieves the screen position of the marker's start. This will always be
+  # less than or equal to the result of {DisplayBufferMarker::getEndScreenPosition}.
+  #
+  # Returns a {Point}.
+  getStartScreenPosition: ->
+    @displayBuffer.screenPositionForBufferPosition(@getStartBufferPosition(), wrapAtSoftNewlines: true)
+
+  # Retrieves the buffer position of the marker's start. This will always be
+  # less than or equal to the result of {DisplayBufferMarker::getEndBufferPosition}.
+  #
+  # Returns a {Point}.
+  getStartBufferPosition: ->
+    @bufferMarker.getStartPosition()
+
+  # Retrieves the screen position of the marker's end. This will always be
+  # greater than or equal to the result of {DisplayBufferMarker::getStartScreenPosition}.
+  #
+  # Returns a {Point}.
+  getEndScreenPosition: ->
+    @displayBuffer.screenPositionForBufferPosition(@getEndBufferPosition(), wrapAtSoftNewlines: true)
+
+  # Retrieves the buffer position of the marker's end. This will always be
+  # greater than or equal to the result of {DisplayBufferMarker::getStartBufferPosition}.
+  #
+  # Returns a {Point}.
+  getEndBufferPosition: ->
+    @bufferMarker.getEndPosition()
+
   # Sets the marker's tail to the same position as the marker's head.
   #
   # This only works if there isn't already a tail position.
