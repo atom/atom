@@ -164,6 +164,18 @@ class ReactEditorView extends View
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
+  setLineHeight: (lineHeight) ->
+    @component.setLineHeight(lineHeight)
+
+  setShowIndentGuide: (showIndentGuide) ->
+    @component.setShowIndentGuide(showIndentGuide)
+
+  setSoftWrap: (softWrap) ->
+    @editor.setSoftWrap(softWrap)
+
+  setShowInvisibles: (showInvisibles) ->
+    @component.setShowInvisibles(showInvisibles)
+
   getText: ->
     @editor.getText()
 
