@@ -176,6 +176,12 @@ class ReactEditorView extends View
   setShowInvisibles: (showInvisibles) ->
     @component.setShowInvisibles(showInvisibles)
 
+  toggleSoftWrap: ->
+    @editor.toggleSoftWrap()
+
+  toggleSoftTabs: ->
+    @editor.toggleSoftTabs()
+
   getText: ->
     @editor.getText()
 
