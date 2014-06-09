@@ -374,7 +374,8 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number node is clicked", ->
-          component.onClickGutter(buildClickEvent(component.lineNumberNodeForScreenRow(1)))
+          lineNumber = component.lineNumberNodeForScreenRow(1)
+          lineNumber.dispatchEvent(buildClickEvent(lineNumber))
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
     describe "when decorations are used", ->

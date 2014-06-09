@@ -14,9 +14,9 @@ GutterComponent = React.createClass
   dummyLineNumberNode: null
 
   render: ->
-    {scrollHeight, scrollTop, onClick} = @props
+    {scrollHeight, scrollTop} = @props
 
-    div className: 'gutter', onClick: onClick,
+    div className: 'gutter', onClick: @onClick,
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: scrollHeight
         WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
@@ -179,6 +179,18 @@ GutterComponent = React.createClass
 
   lineNumberNodeForScreenRow: (screenRow) ->
     @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
+
+  onClick: (event) ->
+    {editor} = @props
+    {target} = event
+    lineNumber = target.parentNode
+
+    if target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
+      bufferRow = parseInt(lineNumber.getAttribute('data-buffer-row'))
+      if lineNumber.classList.contains('folded')
+        editor.unfoldBufferRow(bufferRow)
+      else
+        editor.foldBufferRow(bufferRow)
 
 # Created because underscore uses === not _.isEqual, which we need
 contains = (array, target) ->
