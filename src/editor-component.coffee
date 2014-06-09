@@ -724,14 +724,14 @@ EditorComponent = React.createClass
   setFontSize: (fontSize) ->
     @setState({fontSize})
 
-  setLineHeight: (lineHeight) ->
-    @setState({lineHeight})
-
   getFontFamily: ->
     @state.fontFamily
 
   setFontFamily: (fontFamily) ->
     @setState({fontFamily})
+
+  setLineHeight: (lineHeight) ->
+    @setState({lineHeight})
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})

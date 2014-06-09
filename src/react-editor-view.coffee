@@ -136,8 +136,14 @@ class ReactEditorView extends View
   getFontFamily: ->
     @component?.getFontFamily()
 
+  setFontFamily: (fontFamily)->
+    @component?.setFontFamily(fontFamily)
+
   getFontSize: ->
     @component?.getFontSize()
+
+  setFontSize: (fontSize)->
+    @component?.setFontSize(fontSize)
 
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
