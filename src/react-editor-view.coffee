@@ -53,6 +53,7 @@ class ReactEditorView extends View
 
     @underlayer = $(node).find('.selections').addClass('underlayer')
     @overlayer = $(node).find('.lines').addClass('overlayer')
+    @hiddenInput = $(node).find('.hidden-input')
 
     @gutter = $(node).find('.gutter')
     @gutter.removeClassFromAllLines = (klass) =>
