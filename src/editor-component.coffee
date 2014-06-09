@@ -161,7 +161,9 @@ EditorComponent = React.createClass
     window.removeEventListener('resize', @onWindowResize)
 
   componentWillUpdate: ->
-    @props.parentView.trigger 'cursor:moved' if @cursorsMoved
+    if @props.editor.isAlive()
+      @props.parentView.trigger 'cursor:moved' if @cursorsMoved
+      @props.parentView.trigger 'selection:changed' if @selectionChanged
 
   componentDidUpdate: (prevProps, prevState) ->
     @pendingChanges.length = 0
