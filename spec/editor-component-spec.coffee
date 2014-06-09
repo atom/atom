@@ -378,6 +378,47 @@ describe "EditorComponent", ->
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
+    describe "cursor-line decorations", ->
+      cursor = null
+      beforeEach ->
+        cursor = editor.getCursor()
+
+      it "modifies the cursor-line decoration when the cursor moves", ->
+        cursor.setScreenPosition([0, 0])
+        expect(lineNumberHasClass(0, 'cursor-line')).toBe true
+
+        cursor.setScreenPosition([1, 0])
+        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
+        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
+
+      it "updates cursor-line decorations for multiple cursors", ->
+        cursor.setScreenPosition([2, 0])
+        cursor2 = editor.addCursorAtScreenPosition([8, 0])
+        cursor3 = editor.addCursorAtScreenPosition([10, 0])
+
+        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(8, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
+
+        cursor2.destroy()
+        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
+        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
+
+        cursor3.destroy()
+        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
+        expect(lineNumberHasClass(10, 'cursor-line')).toBe false
+
+      it "adds cursor-line decorations to multiple lines when a selection is performed", ->
+        cursor.setScreenPosition([1, 0])
+        editor.selectDown(2)
+        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
+        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(3, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(4, 'cursor-line')).toBe false
+
     describe "when decorations are used", ->
       describe "when decorations are applied to buffer rows", ->
         it "renders line number classes based on the decorations on their buffer row", ->
