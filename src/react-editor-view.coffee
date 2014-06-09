@@ -166,3 +166,5 @@ class ReactEditorView extends View
   requestDisplayUpdate: -> # No-op shim for find-and-replace
 
   updateDisplay: -> # No-op shim for package specs
+
+  redraw: -> # No-op shim
