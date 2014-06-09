@@ -1,5 +1,6 @@
 {$, $$, View} = require './space-pen-extensions'
 SelectListView = require './select-list-view'
+fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that
 # filters the items. Enables you to select multiple items at once.
@@ -34,11 +35,15 @@ SelectListView = require './select-list-view'
 # ```
 module.exports =
 class SelectMultipleListView extends SelectListView
+
+  selectedItems = []
+
   #
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
     super
+    selectedItems = []
     @list.addClass('mark-active')
 
     @on 'mousedown', ({target}) =>
@@ -51,23 +56,23 @@ class SelectMultipleListView extends SelectListView
   # This method can be overridden by subclasses.
   #
   # ### Important
-  #   There must always be a button to call the function `@complete()` to
-  #   confirm the selections!
+  # There must always be a button to call the function `@complete()` to
+  # confirm the selections!
   #
   # #### Example (Default)
   # ```coffeee
   # addButtons: ->
-  #     viewButton = $$ ->
-  #       @div class: 'buttons', =>
-  #         @span class: 'pull-left', =>
-  #           @button class: 'btn btn-error inline-block-tight btn-cancel-button', 'Cancel'
-  #         @span class: 'pull-right', =>
-  #           @button class: 'btn btn-success inline-block-tight btn-complete-button', 'Confirm'
-  #     viewButton.appendTo(this)
+  #   viewButton = $$ ->
+  #     @div class: 'buttons', =>
+  #       @span class: 'pull-left', =>
+  #         @button class: 'btn btn-error inline-block-tight btn-cancel-button', 'Cancel'
+  #       @span class: 'pull-right', =>
+  #         @button class: 'btn btn-success inline-block-tight btn-complete-button', 'Confirm'
+  #   viewButton.appendTo(this)
   #
-  #     @on 'click', 'button', ({target}) =>
-  #       @complete() if $(target).hasClass('btn-complete-button')
-  #       @cancel() if $(target).hasClass('btn-cancel-button')
+  #   @on 'click', 'button', ({target}) =>
+  #     @complete() if $(target).hasClass('btn-complete-button')
+  #     @cancel() if $(target).hasClass('btn-cancel-button')
   # ```
   addButtons: ->
     viewButton = $$ ->
@@ -83,24 +88,54 @@ class SelectMultipleListView extends SelectListView
       @cancel() if $(target).hasClass('btn-cancel-button')
 
   confirmSelection: ->
+    item = @getSelectedItem()
     viewItem = @getSelectedItemView()
     if viewItem?
-      @confirmed(viewItem)
+      @confirmed(item, viewItem)
     else
       @cancel()
 
-  confirmed: (viewItem) ->
-    if viewItem.hasClass('active')
+  confirmed: (item, viewItem) ->
+    if item in selectedItems
+      selectedItems = selectedItems.filter (i) -> i isnt item
       viewItem.removeClass('active')
     else
+      selectedItems.push item
       viewItem.addClass('active')
 
   complete: ->
-    items = ($.map $(this).find('li.active'), (el) -> $(el).data('select-list-item'))
-    if items?
-      @completed(items)
+    if selectedItems.length > 0
+      @completed(selectedItems)
     else
       @cancel()
+
+  # Public: Populate the list view with the model items previously set by
+  #         calling {::setItems}.
+  #
+  # Subclasses may override this method but should always call `super`.
+  populateList: ->
+    return unless @items?
+
+    filterQuery = @getFilterQuery()
+    if filterQuery.length
+      filteredItems = fuzzyFilter(@items, filterQuery, key: @getFilterKey())
+    else
+      filteredItems = @items
+
+    @list.empty()
+    if filteredItems.length
+      @setError(null)
+
+      for i in [0...Math.min(filteredItems.length, @maxItems)]
+        item = filteredItems[i]
+        itemView = $(@viewForItem(item))
+        itemView.data('select-list-item', item)
+        itemView.addClass 'active' if item in selectedItems
+        @list.append(itemView)
+
+      @selectItemView(@list.find('li:first'))
+    else
+      @setError(@getEmptyMessage(@items.length, filteredItems.length))
 
   # Public: Create a view for the given model item.
   #
@@ -108,8 +143,8 @@ class SelectMultipleListView extends SelectListView
   #
   # This is called when the item is about to appended to the list view.
   #
-  # item - The model item being rendered. This will always be one of the items
-  #        previously passed to {::setItems}.
+  # item -  The model item being rendered. This will always be one of the items
+  #         previously passed to {::setItems}.
   #
   # Returns a String of HTML, DOM element, jQuery object, or View.
   viewForItem: (item) ->
