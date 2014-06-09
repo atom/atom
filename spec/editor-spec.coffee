@@ -3266,3 +3266,53 @@ describe "Editor", ->
       expect(editor.decorationsForBufferRow 3).not.toContain decoration
       expect(editor.decorationsForBufferRow 4).not.toContain decoration
       expect(editor.decorationsForBufferRow 5).not.toContain decoration
+
+    describe "decorationsForBufferRow", ->
+      one = {type: 'one', class: 'one'}
+      two = {type: 'two', class: 'two'}
+      typeless = {class: 'typeless'}
+
+      beforeEach ->
+        editor.addDecorationToBufferRow(2, one)
+        editor.addDecorationToBufferRow(2, two)
+        editor.addDecorationToBufferRow(2, typeless)
+
+      it "returns all decorations with no decorationType specified", ->
+        decorations = editor.decorationsForBufferRow(2)
+        expect(decorations).toContain one
+        expect(decorations).toContain two
+        expect(decorations).toContain typeless
+
+      it "returns typeless decorations with all decorationTypes", ->
+        decorations = editor.decorationsForBufferRow(2, 'one')
+        expect(decorations).toContain one
+        expect(decorations).not.toContain two
+        expect(decorations).toContain typeless
+
+    describe "decorationsForBufferRowRange", ->
+      one = {type: 'one', class: 'one'}
+      two = {type: 'two', class: 'two'}
+      typeless = {class: 'typeless'}
+
+      it "returns an object of decorations based on the decorationType", ->
+        editor.addDecorationToBufferRow(2, one)
+        editor.addDecorationToBufferRow(3, one)
+        editor.addDecorationToBufferRow(5, one)
+
+        editor.addDecorationToBufferRow(3, two)
+        editor.addDecorationToBufferRow(4, two)
+
+        editor.addDecorationToBufferRow(3, typeless)
+        editor.addDecorationToBufferRow(5, typeless)
+
+        decorations = editor.decorationsForBufferRowRange(2, 5, 'one')
+        expect(decorations[2]).toContain one
+
+        expect(decorations[3]).toContain one
+        expect(decorations[3]).not.toContain two
+        expect(decorations[3]).toContain typeless
+
+        expect(decorations[4]).toHaveLength 0
+
+        expect(decorations[5]).toContain one
+        expect(decorations[5]).toContain typeless
