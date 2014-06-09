@@ -683,41 +683,6 @@ EditorComponent = React.createClass
   show: ->
     @setState(visible: true)
 
-  runScrollBenchmark: ->
-    unless process.env.NODE_ENV is 'production'
-      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
-      ReactPerf.start()
-
-    node = @getDOMNode()
-
-    scroll = (delta, done) ->
-      dispatchMouseWheelEvent = ->
-        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
-
-      stopScrolling = ->
-        clearInterval(interval)
-        done?()
-
-      interval = setInterval(dispatchMouseWheelEvent, 10)
-      setTimeout(stopScrolling, 500)
-
-    console.timeline('scroll')
-    scroll 50, ->
-      scroll 100, ->
-        scroll 200, ->
-          scroll 400, ->
-            scroll 800, ->
-              scroll 1600, ->
-                console.timelineEnd('scroll')
-                unless process.env.NODE_ENV is 'production'
-                  ReactPerf.stop()
-                  console.log "Inclusive"
-                  ReactPerf.printInclusive()
-                  console.log "Exclusive"
-                  ReactPerf.printExclusive()
-                  console.log "Wasted"
-                  ReactPerf.printWasted()
-
   getFontSize: ->
     @state.fontSize
 
@@ -770,3 +735,38 @@ EditorComponent = React.createClass
 
   getModel: ->
     @props.editor
+
+  runScrollBenchmark: ->
+    unless process.env.NODE_ENV is 'production'
+      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
+      ReactPerf.start()
+
+    node = @getDOMNode()
+
+    scroll = (delta, done) ->
+      dispatchMouseWheelEvent = ->
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
+
+      stopScrolling = ->
+        clearInterval(interval)
+        done?()
+
+      interval = setInterval(dispatchMouseWheelEvent, 10)
+      setTimeout(stopScrolling, 500)
+
+    console.timeline('scroll')
+    scroll 50, ->
+      scroll 100, ->
+        scroll 200, ->
+          scroll 400, ->
+            scroll 800, ->
+              scroll 1600, ->
+                console.timelineEnd('scroll')
+                unless process.env.NODE_ENV is 'production'
+                  ReactPerf.stop()
+                  console.log "Inclusive"
+                  ReactPerf.printInclusive()
+                  console.log "Exclusive"
+                  ReactPerf.printExclusive()
+                  console.log "Wasted"
+                  ReactPerf.printWasted()
