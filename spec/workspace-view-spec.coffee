@@ -201,7 +201,9 @@ describe "WorkspaceView", ->
       expect(rightEditorView.find(".line:first").text()).toBe "    "
       expect(leftEditorView.find(".line:first").text()).toBe "    "
 
-      withInvisiblesShowing = "#{rightEditorView.invisibles.space}#{rightEditorView.invisibles.tab} #{rightEditorView.invisibles.space}#{rightEditorView.invisibles.eol}"
+      {invisibles} = rightEditorView.component.state
+      {space, tab, eol} = invisibles
+      withInvisiblesShowing = "#{space}#{tab} #{space}#{eol}"
 
       atom.workspaceView.trigger "window:toggle-invisibles"
       expect(rightEditorView.find(".line:first").text()).toBe withInvisiblesShowing
