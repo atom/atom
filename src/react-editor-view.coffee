@@ -23,24 +23,6 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'active', get: -> @is(@getPane().activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
 
-  scrollTop: (scrollTop) ->
-    if scrollTop?
-      @editor.setScrollTop(scrollTop)
-    else
-      @editor.getScrollTop()
-
-  scrollLeft: (scrollLeft) ->
-    if scrollLeft?
-      @editor.setScrollLeft(scrollLeft)
-    else
-      @editor.getScrollLeft()
-
-  scrollToScreenPosition: (screenPosition) ->
-    @editor.scrollToScreenPosition(screenPosition)
-
-  scrollToBufferPosition: (bufferPosition) ->
-    @editor.scrollToBufferPosition(bufferPosition)
-
   afterAttach: (onDom) ->
     return unless onDom
     return if @attached
@@ -70,6 +52,24 @@ class ReactEditorView extends View
     @focus() if @focusOnAttach
 
     @trigger 'editor:attached', [this]
+
+  scrollTop: (scrollTop) ->
+    if scrollTop?
+      @editor.setScrollTop(scrollTop)
+    else
+      @editor.getScrollTop()
+
+  scrollLeft: (scrollLeft) ->
+    if scrollLeft?
+      @editor.setScrollLeft(scrollLeft)
+    else
+      @editor.getScrollLeft()
+
+  scrollToScreenPosition: (screenPosition) ->
+    @editor.scrollToScreenPosition(screenPosition)
+
+  scrollToBufferPosition: (bufferPosition) ->
+    @editor.scrollToBufferPosition(bufferPosition)
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     @editor.pixelPositionForBufferPosition(bufferPosition)
