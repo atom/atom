@@ -65,11 +65,21 @@ class ReactEditorView extends View
     else
       @editor.getScrollLeft()
 
+  scrollToBottom: ->
+    @editor.setScrollBottom(Infinity)
+
   scrollToScreenPosition: (screenPosition) ->
     @editor.scrollToScreenPosition(screenPosition)
 
   scrollToBufferPosition: (bufferPosition) ->
     @editor.scrollToBufferPosition(bufferPosition)
+
+  scrollToCursorPosition: ->
+    @editor.scrollToCursorPosition()
+
+  scrollToPixelPosition: (pixelPosition) ->
+    screenPosition = screenPositionForPixelPosition(pixelPosition)
+    @editor.scrollToScreenPosition(screenPosition)
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     @editor.pixelPositionForBufferPosition(bufferPosition)
