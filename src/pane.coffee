@@ -334,7 +334,7 @@ class Pane extends Model
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
 
-    newPane = new @constructor(extend({focused: true}, params))
+    newPane = new @constructor(params)
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
