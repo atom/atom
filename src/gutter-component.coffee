@@ -58,7 +58,7 @@ GutterComponent = React.createClass
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
     {maxLineNumberDigits} = @props
-    WrapperDiv.innerHTML = @buildLineNumberHTML(0, false, maxLineNumberDigits)
+    WrapperDiv.innerHTML = @buildLineNumberHTML(-1, false, maxLineNumberDigits)
     @dummyLineNumberNode = WrapperDiv.children[0]
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
