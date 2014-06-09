@@ -718,7 +718,8 @@ EditorComponent = React.createClass
                   console.log "Wasted"
                   ReactPerf.printWasted()
 
-  getFontSize: -> @state.fontSize
+  getFontSize: ->
+    @state.fontSize
 
   setFontSize: (fontSize) ->
     @setState({fontSize})
