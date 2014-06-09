@@ -511,6 +511,7 @@ EditorComponent = React.createClass
 
   onCursorsMoved: ->
     @cursorsMoved = true
+    @requestUpdate()
 
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props
