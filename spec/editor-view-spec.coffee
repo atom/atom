@@ -10,6 +10,8 @@ describe "EditorView", ->
   [buffer, editorView, editor, cachedEditor, cachedLineHeight, cachedCharWidth, fart] = []
 
   beforeEach ->
+    atom.config.set 'core.useReactEditor', false
+
     waitsForPromise ->
       atom.workspace.open('sample.js').then (o) -> editor = o
 
