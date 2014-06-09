@@ -329,6 +329,15 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(5, 'foldable')).toBe true
           expect(lineNumberHasClass(6, 'foldable')).toBe false
 
+        it "updates the foldable class on a line number that becomes foldable", ->
+          expect(lineNumberHasClass(11, 'foldable')).toBe false
+
+          editor.getBuffer().insert([11, 44], '\n    fold me')
+          expect(lineNumberHasClass(11, 'foldable')).toBe true
+
+          editor.undo()
+          expect(lineNumberHasClass(11, 'foldable')).toBe false
+
         it "adds, updates and removes the folded class on the correct line number nodes", ->
           editor.foldBufferRow(4)
           expect(lineNumberHasClass(4, 'folded')).toBe true
