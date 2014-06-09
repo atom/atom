@@ -43,6 +43,7 @@ EditorComponent = React.createClass
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getScreenLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
+    hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
@@ -68,6 +69,7 @@ EditorComponent = React.createClass
 
     className = 'editor-contents editor-colors'
     className += ' is-focused' if focused
+    className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {

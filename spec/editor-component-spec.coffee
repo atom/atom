@@ -916,6 +916,22 @@ describe "EditorComponent", ->
       inputNode.blur()
       expect(node.classList.contains('is-focused')).toBe false
 
+  describe "selection handling", ->
+    cursor = null
+
+    beforeEach ->
+      cursor = editor.getCursor()
+      cursor.setScreenPosition([0, 0])
+
+    it "adds the 'has-selection' class to the editor when there is a selection", ->
+      expect(node.classList.contains('has-selection')).toBe false
+
+      editor.selectDown()
+      expect(node.classList.contains('has-selection')).toBe true
+
+      cursor.moveDown()
+      expect(node.classList.contains('has-selection')).toBe false
+
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
