@@ -145,6 +145,9 @@ class ReactEditorView extends View
   setText: (text) ->
     @editor.setText(text)
 
+  insertText: (text) ->
+    @editor.insertText(text)
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
 
   updateDisplay: -> # No-op shim for package specs
