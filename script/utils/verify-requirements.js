@@ -40,7 +40,12 @@ function verifyNode(cb) {
 }
 
 function verifyNpm(cb) {
-  childProcess.execFile('npm', ['-v'], { env: process.env }, function(err, stdout) {
+  var localNpmPath = path.resolve(__dirname, '..', '..', 'build', 'node_modules', '.bin', 'npm');
+  if (process.platform === 'win32')
+    localNpmPath += ".cmd";
+  var npmCommand = fs.existsSync(localNpmPath) ? localNpmPath : 'npm';
+
+  childProcess.execFile(npmCommand, ['-v'], { env: process.env }, function(err, stdout) {
     if (err)
       return cb("npm 1.4 is required to build Atom. An error (" + err + ") occured when checking the version.");
 
