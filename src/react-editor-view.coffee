@@ -33,6 +33,7 @@ class ReactEditorView extends View
 
     node = @component.getDOMNode()
 
+    @scrollView = $(node).find('.scroll-view')
     @underlayer = $(node).find('.selections').addClass('underlayer')
     @overlayer = $(node).find('.lines').addClass('overlayer')
     @hiddenInput = $(node).find('.hidden-input')
