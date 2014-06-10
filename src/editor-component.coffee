@@ -425,10 +425,10 @@ EditorComponent = React.createClass
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      @pendingHorizontalScrollDelta -= wheelDeltaX
+      @pendingHorizontalScrollDelta -= Math.round(wheelDeltaX * .4)
     else
       # Scrolling vertically
-      @pendingVerticalScrollDelta -= wheelDeltaY
+      @pendingVerticalScrollDelta -= Math.round(wheelDeltaY * .4)
       @mouseWheelScreenRow = @screenRowForNode(event.target)
       @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
       @clearMouseWheelScreenRowAfterDelay()
