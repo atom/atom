@@ -112,12 +112,15 @@ LinesComponent = React.createClass
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
 
     top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"line#{fold and ' fold' or ''}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
     else
       lineHTML += @buildLineInnerHTML(line)
+
+    if fold
+      lineHTML += '<span class="fold-marker"></span>'
 
     lineHTML += "</div>"
     lineHTML
