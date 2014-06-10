@@ -64,15 +64,15 @@ class LanguageMode
           buffer.insert([start, indentLength], commentStartString)
           buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
     else
-      blankRegex = new OnigRegExp("^\\s*$")
-
       allBlank = true
-      allBlankOrCommented = [start..end].every (row) ->
-        line = buffer.lineForRow(row)
-        blank = not line or blankRegex.test(line)
+      allBlankOrCommented = true
 
-        allBlank = allBlank and blank
-        blank or commentStartRegex.test(line)
+      for row in [start..end]
+        line = buffer.lineForRow(row)
+        blank = line?.match(/^\s*$/)
+
+        allBlank = false unless blank
+        allBlankOrCommented = false unless blank or commentStartRegex.test(line)
 
       shouldUncomment = allBlankOrCommented and not allBlank
 
