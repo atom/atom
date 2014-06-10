@@ -11,8 +11,15 @@ module.exports = function(cb) {
       return;
     }
 
-    verifyPython27(function(error, pythonSuccessMessage) {
-      cb(error, (nodeSuccessMessage + "\n" + pythonSuccessMessage).trim());
+    verifyNpm(function(error, npmSuccessMessage) {
+      if (error) {
+        cb(error);
+        return;
+      }
+
+      verifyPython27(function(error, pythonSuccessMessage) {
+        cb(error, (nodeSuccessMessage + "\n" + npmSuccessMessage + "\n" + pythonSuccessMessage).trim());
+      });
     });
   });
 
@@ -31,6 +38,23 @@ function verifyNode(cb) {
     cb(null, "Node: v" + nodeVersion);
   }
 }
+
+function verifyNpm(cb) {
+  childProcess.execFile('npm', ['-v'], { env: process.env }, function(err, stdout) {
+    if (err)
+      return cb("npm 1.4 is required to build Atom. An error (" + err + ") occured when checking the version.");
+
+    var npmVersion = stdout ? stdout.trim() : '';
+    var versionArray = npmVersion.split('.');
+    var npmMajorVersion = +versionArray[0] || 0;
+    var npmMinorVersion = +versionArray[1] || 0;
+    if (npmMajorVersion === 1 && npmMinorVersion < 4)
+      cb("npm v1.4+ is required to build Atom.");
+    else
+      cb(null, "npm: v" + npmVersion);
+  });
+}
+
 
 function verifyPython27(cb) {
   if (process.platform == 'win32') {
