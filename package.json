@@ -86,7 +86,7 @@
     "git-diff": "0.29.0",
     "go-to-line": "0.22.0",
     "grammar-selector": "0.27.0",
-    "image-view": "0.34.0",
+    "image-view": "0.35.0",
     "keybinding-resolver": "0.18.0",
     "link": "0.22.0",
     "markdown-preview": "0.76.0",
