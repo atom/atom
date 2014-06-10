@@ -43,7 +43,10 @@ function verifyNpm(cb) {
   var localNpmPath = path.resolve(__dirname, '..', '..', 'build', 'node_modules', '.bin', 'npm');
   if (process.platform === 'win32')
     localNpmPath += ".cmd";
+
   var npmCommand = fs.existsSync(localNpmPath) ? localNpmPath : 'npm';
+  if (npmCommand === 'npm' && process.platform === 'win32')
+    npmCommand += ".cmd";
 
   childProcess.execFile(npmCommand, ['-v'], { env: process.env }, function(err, stdout) {
     if (err)
