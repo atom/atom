@@ -108,19 +108,25 @@ LinesComponent = React.createClass
     @lineNodesByLineId.hasOwnProperty(lineId)
 
   buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeightInPixels} = @props
+    {editor, mini, showIndentGuide, lineHeightInPixels, decorations} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
 
+    bufferRow = editor.bufferRowsForScreenRows(screenRow, screenRow)[0]
+
     top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"line#{fold and ' fold' or ''}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
+
+    classes = 'line'
+    if decorations?
+      for decoration in decorations[bufferRow] or []
+        # if not isSoftWrapped() or isSoftWrapped() and decoration.softWrap
+        classes += ' ' + decoration.class
+
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
     else
       lineHTML += @buildLineInnerHTML(line)
-
-    if fold
-      lineHTML += '<span class="fold-marker"></span>'
 
     lineHTML += "</div>"
     lineHTML

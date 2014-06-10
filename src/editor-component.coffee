@@ -50,7 +50,8 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
       selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
-      decorations = @getGutterDecorations(renderedRowRange)
+      gutterDecorations = @getDecorations(renderedRowRange, 'gutter')
+      lineDecorations = @getDecorations(renderedRowRange, 'line')
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -73,9 +74,9 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
+        decorations: gutterDecorations
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
         scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
-        decorations
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -92,6 +93,7 @@ EditorComponent = React.createClass
           lineHeightInPixels, defaultCharWidth
         }
         LinesComponent {
+          decorations: lineDecorations
           ref: 'lines', editor, lineHeightInPixels, defaultCharWidth,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
           selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
@@ -229,7 +231,7 @@ EditorComponent = React.createClass
 
     selectionScreenRanges
 
-  getGutterDecorations:  (renderedRowRange) ->
+  getDecorations:  (renderedRowRange, decorationType) ->
     {editor} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
 
@@ -237,8 +239,9 @@ EditorComponent = React.createClass
 
     decorations = {}
     for bufferRow in bufferRows
-      decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, 'gutter')
+      decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, decorationType)
       decorations[bufferRow].push {class: 'foldable'} if editor.isFoldableAtBufferRow(bufferRow)
+      decorations[bufferRow].push {class: 'folded'} if editor.isFoldedAtBufferRow(bufferRow)
     decorations
 
   observeEditor: ->
