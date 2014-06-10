@@ -518,6 +518,8 @@ EditorComponent = React.createClass
     @onStoppedScrollingAfterDelay()
 
   onStoppedScrolling: ->
+    return unless @isMounted()
+
     @scrollingVertically = false
     @mouseWheelScreenRow = null
     @requestUpdate()
