@@ -5,6 +5,8 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ## Requirements
 
   * OS with 64-bit or 32-bit architecture
+  * C++ build toolchain
+    * on Ubuntu/Debian:  `sudo apt-get install build-essential`
   * [node.js](http://nodejs.org/download/) v0.10.x
   * [npm](http://www.npmjs.org/) v1.4.x  
   * libgnome-keyring-dev
@@ -14,7 +16,6 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
     * This command may require `sudo` depending on how you have
       [configured npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
-
 
 ## Instructions
 
