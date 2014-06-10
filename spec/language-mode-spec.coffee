@@ -52,11 +52,16 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
         expect(buffer.lineForRow(0)).toBe "  // "
 
-        buffer.setText ('    a\n  \n    b')
+        buffer.setText('    a\n  \n    b')
         languageMode.toggleLineCommentsForBufferRows(0, 2)
         expect(buffer.lineForRow(0)).toBe "    // a"
         expect(buffer.lineForRow(1)).toBe "    // "
         expect(buffer.lineForRow(2)).toBe "    // b"
+
+        buffer.setText('    \n    // var i;')
+        languageMode.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe '    '
+        expect(buffer.lineForRow(1)).toBe '    var i;'
 
     describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
       it "returns the start/end rows of the foldable region starting at the given row", ->
