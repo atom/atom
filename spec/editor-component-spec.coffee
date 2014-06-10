@@ -1083,21 +1083,46 @@ describe "EditorComponent", ->
       expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
 
   describe "mousewheel events", ->
-    it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
-      node.style.height = 4.5 * lineHeightInPixels + 'px'
-      node.style.width = 20 * charWidth + 'px'
-      component.measureScrollView()
+    beforeEach ->
+      atom.config.set('editor.scrollSensitivity', 100)
 
-      expect(verticalScrollbarNode.scrollTop).toBe 0
-      expect(horizontalScrollbarNode.scrollLeft).toBe 0
+    describe "updating scrollTop and scrollLeft", ->
+      beforeEach ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        node.style.width = 20 * charWidth + 'px'
+        component.measureScrollView()
 
-      node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-      expect(verticalScrollbarNode.scrollTop).toBe 10
-      expect(horizontalScrollbarNode.scrollLeft).toBe 0
+      it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
+        expect(verticalScrollbarNode.scrollTop).toBe 0
+        expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
-      node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-      expect(verticalScrollbarNode.scrollTop).toBe 10
-      expect(horizontalScrollbarNode.scrollLeft).toBe 15
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
+        expect(verticalScrollbarNode.scrollTop).toBe 10
+        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
+        expect(verticalScrollbarNode.scrollTop).toBe 10
+        expect(horizontalScrollbarNode.scrollLeft).toBe 15
+
+      it "updates the scrollLeft or scrollTop according to the scroll sensitivity", ->
+        atom.config.set('editor.scrollSensitivity', 50)
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
+        expect(verticalScrollbarNode.scrollTop).toBe 5
+        expect(horizontalScrollbarNode.scrollLeft).toBe 0
+
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
+        expect(verticalScrollbarNode.scrollTop).toBe 5
+        expect(horizontalScrollbarNode.scrollLeft).toBe 7
+
+      it "uses the previous scrollSensitivity when the value is not an int", ->
+        atom.config.set('editor.scrollSensitivity', 'nope')
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
+        expect(verticalScrollbarNode.scrollTop).toBe 10
+
+      it "parses negative scrollSensitivity values as positive", ->
+        atom.config.set('editor.scrollSensitivity', -50)
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
+        expect(verticalScrollbarNode.scrollTop).toBe 5
 
     describe "when the mousewheel event's target is a line", ->
       it "keeps the line on the DOM if it is scrolled off-screen", ->

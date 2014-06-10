@@ -33,6 +33,7 @@ EditorComponent = React.createClass
   pendingHorizontalScrollDelta: 0
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
+  scrollSensitivity: 0.4
   scrollViewMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   inputEnabled: true
@@ -141,6 +142,7 @@ EditorComponent = React.createClass
     @pendingChanges = []
     @props.editor.manageScrollPosition = true
     @observeConfig()
+    @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
   componentDidMount: ->
     {editor} = @props
@@ -383,6 +385,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
+    @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
 
   onFocus: ->
     @refs.input.focus()
@@ -425,10 +428,10 @@ EditorComponent = React.createClass
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      @pendingHorizontalScrollDelta -= Math.round(wheelDeltaX * .4)
+      @pendingHorizontalScrollDelta -= Math.round(wheelDeltaX * @scrollSensitivity)
     else
       # Scrolling vertically
-      @pendingVerticalScrollDelta -= Math.round(wheelDeltaY * .4)
+      @pendingVerticalScrollDelta -= Math.round(wheelDeltaY * @scrollSensitivity)
       @mouseWheelScreenRow = @screenRowForNode(event.target)
       @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
       @clearMouseWheelScreenRowAfterDelay()
@@ -731,6 +734,10 @@ EditorComponent = React.createClass
 
   setShowInvisibles: (showInvisibles) ->
     @setState({showInvisibles})
+
+  setScrollSensitivity: (scrollSensitivity) ->
+    if scrollSensitivity = parseInt(scrollSensitivity)
+      @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
