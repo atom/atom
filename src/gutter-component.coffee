@@ -62,7 +62,7 @@ GutterComponent = React.createClass
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
     {maxLineNumberDigits} = @props
-    WrapperDiv.innerHTML = @buildLineNumberHTML(0, false, maxLineNumberDigits)
+    WrapperDiv.innerHTML = @buildLineNumberHTML(-1, false, maxLineNumberDigits)
     @dummyLineNumberNode = WrapperDiv.children[0]
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
@@ -140,7 +140,7 @@ GutterComponent = React.createClass
     if decorations?
       for decoration in decorations
         classes += decoration.class + ' ' if not softWrapped or softWrapped and decoration.softWrap
-    classes += 'line-number'
+    classes += "line-number line-number-#{bufferRow}"
 
     "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 

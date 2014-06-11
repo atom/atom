@@ -1072,8 +1072,6 @@ describe "EditorComponent", ->
 
       expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
 
-    describe "when a mousewheel event occurs on the editor", ->
-
   describe "mousewheel events", ->
     it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -1183,6 +1181,12 @@ describe "EditorComponent", ->
       inputNode.value = 'ü'
       inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
+
+    it "does not handle input events when input is disabled", ->
+      component.setInputEnabled(false)
+      inputNode.value = 'x'
+      inputNode.dispatchEvent(new Event('input'))
+      expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
   describe "commands", ->
     describe "editor:consolidate-selections", ->

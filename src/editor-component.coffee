@@ -37,6 +37,7 @@ EditorComponent = React.createClass
   overflowChangedEventsPaused: false
   overflowChangedWhilePaused: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
+  inputEnabled: true
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -165,7 +166,9 @@ EditorComponent = React.createClass
     window.removeEventListener('resize', @onWindowResize)
 
   componentWillUpdate: ->
-    @props.parentView.trigger 'cursor:moved' if @cursorsMoved
+    if @props.editor.isAlive()
+      @props.parentView.trigger 'cursor:moved' if @cursorsMoved
+      @props.parentView.trigger 'selection:changed' if @selectionChanged
 
   componentDidUpdate: (prevProps, prevState) ->
     @pendingChanges.length = 0
@@ -457,6 +460,8 @@ EditorComponent = React.createClass
     scrollViewNode.scrollLeft = 0
 
   onInput: (char, replaceLastCharacter) ->
+    return unless @inputEnabled
+
     {editor} = @props
 
     if replaceLastCharacter
@@ -531,6 +536,7 @@ EditorComponent = React.createClass
 
   onCursorsMoved: ->
     @cursorsMoved = true
+    @requestUpdate()
 
   onDecorationChanged: ->
     @decorationChangedImmediate ?= setImmediate =>
@@ -707,49 +713,20 @@ EditorComponent = React.createClass
   show: ->
     @setState(visible: true)
 
-  runScrollBenchmark: ->
-    unless process.env.NODE_ENV is 'production'
-      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
-      ReactPerf.start()
-
-    node = @getDOMNode()
-
-    scroll = (delta, done) ->
-      dispatchMouseWheelEvent = ->
-        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
-
-      stopScrolling = ->
-        clearInterval(interval)
-        done?()
-
-      interval = setInterval(dispatchMouseWheelEvent, 10)
-      setTimeout(stopScrolling, 500)
-
-    console.timeline('scroll')
-    scroll 50, ->
-      scroll 100, ->
-        scroll 200, ->
-          scroll 400, ->
-            scroll 800, ->
-              scroll 1600, ->
-                console.timelineEnd('scroll')
-                unless process.env.NODE_ENV is 'production'
-                  ReactPerf.stop()
-                  console.log "Inclusive"
-                  ReactPerf.printInclusive()
-                  console.log "Exclusive"
-                  ReactPerf.printExclusive()
-                  console.log "Wasted"
-                  ReactPerf.printWasted()
+  getFontSize: ->
+    @state.fontSize
 
   setFontSize: (fontSize) ->
     @setState({fontSize})
 
-  setLineHeight: (lineHeight) ->
-    @setState({lineHeight})
+  getFontFamily: ->
+    @state.fontFamily
 
   setFontFamily: (fontFamily) ->
     @setState({fontFamily})
+
+  setLineHeight: (lineHeight) ->
+    @setState({lineHeight})
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
@@ -786,6 +763,48 @@ EditorComponent = React.createClass
     left = clientX - scrollViewClientRect.left + editor.getScrollLeft()
     {top, left}
 
+  getModel: ->
+    @props.editor
+
+  isInputEnabled: -> @inputEnabled
+
+  setInputEnabled: (@inputEnabled) -> @inputEnabled
+
   updateParentViewFocusedClassIfNeeded: (prevState) ->
     if prevState.focused isnt @state.focused
       @props.parentView.toggleClass('is-focused', @props.focused)
+
+  runScrollBenchmark: ->
+    unless process.env.NODE_ENV is 'production'
+      ReactPerf = require 'react-atom-fork/lib/ReactDefaultPerf'
+      ReactPerf.start()
+
+    node = @getDOMNode()
+
+    scroll = (delta, done) ->
+      dispatchMouseWheelEvent = ->
+        node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -0, wheelDeltaY: -delta))
+
+      stopScrolling = ->
+        clearInterval(interval)
+        done?()
+
+      interval = setInterval(dispatchMouseWheelEvent, 10)
+      setTimeout(stopScrolling, 500)
+
+    console.timeline('scroll')
+    scroll 50, ->
+      scroll 100, ->
+        scroll 200, ->
+          scroll 400, ->
+            scroll 800, ->
+              scroll 1600, ->
+                console.timelineEnd('scroll')
+                unless process.env.NODE_ENV is 'production'
+                  ReactPerf.stop()
+                  console.log "Inclusive"
+                  ReactPerf.printInclusive()
+                  console.log "Exclusive"
+                  ReactPerf.printExclusive()
+                  console.log "Wasted"
+                  ReactPerf.printWasted()

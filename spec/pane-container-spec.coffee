@@ -16,6 +16,7 @@ describe "PaneContainer", ->
       containerA = new PaneContainer(root: pane1A)
       pane2A = pane1A.splitRight(items: [new Item])
       pane3A = pane2A.splitDown(items: [new Item])
+      pane3A.focus()
 
     it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true

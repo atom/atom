@@ -199,6 +199,7 @@ describe "PaneView", ->
 
       it "focuses the next pane", ->
         container.attachToDom()
+        pane2.activate()
         expect(pane.hasFocus()).toBe false
         expect(pane2.hasFocus()).toBe true
         pane2Model.destroy()

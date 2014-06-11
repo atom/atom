@@ -212,7 +212,10 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
   destroy: ->
-    super unless @container?.isAlive() and @container?.getPanes().length is 1
+    if @container?.isAlive() and @container.getPanes().length is 1
+      @destroyItems()
+    else
+      super
 
   # Called by model superclass.
   destroyed: ->
@@ -331,7 +334,7 @@ class Pane extends Model
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
 
-    newPane = new @constructor(extend({focused: true}, params))
+    newPane = new @constructor(params)
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)

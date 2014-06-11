@@ -439,10 +439,11 @@ describe "Pane", ->
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane1, pane3, pane2]
 
-    it "sets up the new pane to be focused", ->
-      expect(pane1.focused).toBe false
+    it "activates the new pane", ->
+      expect(pane1.isActive()).toBe true
       pane2 = pane1.splitRight()
-      expect(pane2.focused).toBe true
+      expect(pane1.isActive()).toBe false
+      expect(pane2.isActive()).toBe true
 
   describe "::destroy()", ->
     [container, pane1, pane2] = []

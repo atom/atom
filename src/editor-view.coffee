@@ -282,7 +282,7 @@ class EditorView extends View
     @editor.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
-  # Public: Gets the number of actual page rows existing in an editor.
+  # Gets the number of actual page rows existing in an editor.
   #
   # Returns a {Number}.
   getPageRows: ->
