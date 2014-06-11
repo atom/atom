@@ -539,7 +539,7 @@ EditorComponent = React.createClass
 
   onDecorationChanged: ->
     @decorationChangedImmediate ?= setImmediate =>
-      @requestUpdate()
+      @requestUpdate() if @isMounted()
       @decorationChangedImmediate = null
 
   selectToMousePositionUntilMouseUp: (event) ->

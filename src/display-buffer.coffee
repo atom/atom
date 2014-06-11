@@ -520,7 +520,7 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth
+        left += charWidths[char] ? defaultCharWidth unless char is '\0'
         column++
     {top, left}
 
