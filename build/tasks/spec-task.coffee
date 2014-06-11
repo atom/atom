@@ -104,9 +104,4 @@ module.exports = (grunt) ->
       failures.push "atom core" if coreSpecFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
-
-      # TODO: Mark the build as green on Windows until specs pass.
-      if process.platform is 'darwin'
-        done(!coreSpecFailed and failedPackages.length == 0)
-      else if process.platform is 'win32'
-        done(true)
+      done(!coreSpecFailed and failedPackages.length == 0)
