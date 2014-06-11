@@ -2258,6 +2258,15 @@ describe "Editor", ->
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
+        it "outdents only up to the first non-space non-tab character", ->
+          editor.insertText(' \tfoo\t ')
+          editor.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "\tfoo\t var quicksort = function () {"
+          editor.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "foo\t var quicksort = function () {"
+          editor.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "foo\t var quicksort = function () {"
+
       describe "when one line is selected", ->
         it "outdents line and retains editor", ->
           editor.setSelectedBufferRange([[1,4], [1,14]])
