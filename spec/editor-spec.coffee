@@ -863,6 +863,30 @@ describe "Editor", ->
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
         expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
 
+    describe ".selectToBeginningOfNextParagraph()", ->
+      it "selects from the cursor to first line of the next paragraph", ->
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+        editor.addCursorAtScreenPosition([5, 6])
+        editor.selectToScreenPosition([6, 2])
+
+        editor.selectToBeginningOfNextParagraph()
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 1
+        expect(selections[0].getScreenRange()).toEqual [[3, 0], [10, 0]]
+
+    describe ".selectToBeginningOfPreviousParagraph()", ->
+      it "selects from the cursor to the first line of the pevious paragraph", ->
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+        editor.addCursorAtScreenPosition([5, 6])
+        editor.selectToScreenPosition([6, 2])
+
+        editor.selectToBeginningOfPreviousParagraph()
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 1
+        expect(selections[0].getScreenRange()).toEqual [[0, 0], [5, 6]]
+
       it "merges selections if they intersect, maintaining the directionality of the last selection", ->
         editor.setCursorScreenPosition([4, 10])
         editor.selectToScreenPosition([5, 27])

@@ -1829,6 +1829,20 @@ class Editor extends Model
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
 
+  # Public: Expand selections to the beginning of the next paragraph.
+  #
+  # Operates on all selections. Moves the cursor to the beginning of the next
+  # paragraph while preserving the selection's tail position.
+  selectToBeginningOfNextParagraph: ->
+    @expandSelectionsForward (selection) => selection.selectToBeginningOfNextParagraph()
+
+  # Public: Expand selections to the beginning of the next paragraph.
+  #
+  # Operates on all selections. Moves the cursor to the beginning of the next
+  # paragraph while preserving the selection's tail position.
+  selectToBeginningOfPreviousParagraph: ->
+    @expandSelectionsBackward (selection) => selection.selectToBeginningOfPreviousParagraph()
+
   # Public: Select the range of the given marker if it is valid.
   #
   # marker - A {DisplayBufferMarker}
