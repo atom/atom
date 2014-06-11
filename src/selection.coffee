@@ -495,7 +495,7 @@ class Selection extends Model
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     buffer = @editor.buffer
-    leadingTabRegex = new RegExp("^ {1,#{@editor.getTabLength()}}|\t")
+    leadingTabRegex = new RegExp("^( {1,#{@editor.getTabLength()}}|\t)")
     for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
