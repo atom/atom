@@ -2,6 +2,8 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
+    return unless process.platform is 'darwin'
+
     done = @async()
 
     if process.env.XCODE_KEYCHAIN
