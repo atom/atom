@@ -227,6 +227,11 @@ describe "EditorComponent", ->
         else
           [node]
 
+    describe "when the buffer contains null bytes", ->
+      it "excludes the null byte from character measurement", ->
+        editor.setText("a\0b")
+        expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
+
   describe "gutter rendering", ->
     [lineNumberHasClass, gutter] = []
 

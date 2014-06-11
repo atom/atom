@@ -232,6 +232,8 @@ LinesComponent = React.createClass
       charWidths = editor.getScopedCharWidths(scopes)
 
       for char in value
+        continue if char is '\0'
+
         unless charWidths[char]?
           unless textNode?
             rangeForMeasurement ?= document.createRange()
