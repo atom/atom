@@ -34,8 +34,6 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollViewMeasurementRequested: false
-  overflowChangedEventsPaused: false
-  overflowChangedWhilePaused: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   inputEnabled: true
 
@@ -176,7 +174,6 @@ EditorComponent = React.createClass
     @updateParentViewFocusedClassIfNeeded(prevState)
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
-    @pauseOverflowChangedEvents()
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
@@ -445,10 +442,7 @@ EditorComponent = React.createClass
         @pendingHorizontalScrollDelta = 0
 
   onScrollViewOverflowChanged: ->
-    if @overflowChangedEventsPaused
-      @overflowChangedWhilePaused = true
-    else
-      @requestScrollViewMeasurement()
+    @requestScrollViewMeasurement()
 
   onWindowResize: ->
     @requestScrollViewMeasurement()
@@ -673,18 +667,6 @@ EditorComponent = React.createClass
     # Finally, we restore the scrollbars based on the newly-measured dimensions
     # if the editor's content and dimensions require them to be visible.
     @requestUpdate()
-
-  pauseOverflowChangedEvents: ->
-    @overflowChangedEventsPaused = true
-    @resumeOverflowChangedEventsAfterDelay ?= debounce(@resumeOverflowChangedEvents, 500)
-    @resumeOverflowChangedEventsAfterDelay()
-
-  resumeOverflowChangedEvents: ->
-    if @overflowChangedWhilePaused
-      @overflowChangedWhilePaused = false
-      @requestScrollViewMeasurement()
-
-  resumeOverflowChangedEventsAfterDelay: null
 
   clearMouseWheelScreenRow: ->
     if @mouseWheelScreenRow?
