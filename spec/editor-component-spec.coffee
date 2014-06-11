@@ -918,8 +918,10 @@ describe "EditorComponent", ->
       expect(document.activeElement).toBe document.body
       inputNode.focus()
       expect(node.classList.contains('is-focused')).toBe true
+      expect(wrapperView.hasClass('is-focused')).toBe true
       inputNode.blur()
       expect(node.classList.contains('is-focused')).toBe false
+      expect(wrapperView.hasClass('is-focused')).toBe false
 
   describe "selection handling", ->
     cursor = null
