@@ -630,6 +630,11 @@ describe "EditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "sets the cursor to the default character width at the end of a line", ->
+      editor.setCursorScreenPosition([0, Infinity])
+      cursorNode = node.querySelector('.cursor')
+      expect(cursorNode.offsetWidth).toBe charWidth
+
     it "gives the cursor a non-zero width even if it's inside atomic tokens", ->
       editor.setCursorScreenPosition([1, 0])
       cursorNode = node.querySelector('.cursor')

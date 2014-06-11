@@ -12,7 +12,7 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {editor, cursorScreenRanges, scrollTop, scrollLeft} = @props
+    {editor, cursorScreenRanges, scrollTop, scrollLeft, defaultCharWidth} = @props
     {blinkOff} = @state
 
     className = 'cursors'
@@ -21,7 +21,7 @@ CursorsComponent = React.createClass
     div {className},
       if @isMounted()
         for key, screenRange of cursorScreenRanges
-          CursorComponent({key, editor, screenRange, scrollTop, scrollLeft})
+          CursorComponent({key, editor, screenRange, scrollTop, scrollLeft, defaultCharWidth})
 
   getInitialState: ->
     blinkOff: false
