@@ -173,6 +173,7 @@ EditorComponent = React.createClass
   componentDidUpdate: (prevProps, prevState) ->
     @pendingChanges.length = 0
     @refreshingScrollbars = false
+    @updateParentViewFocusedClassIfNeeded(prevState)
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
     @pauseOverflowChangedEvents()
@@ -768,6 +769,10 @@ EditorComponent = React.createClass
   isInputEnabled: -> @inputEnabled
 
   setInputEnabled: (@inputEnabled) -> @inputEnabled
+
+  updateParentViewFocusedClassIfNeeded: (prevState) ->
+    if prevState.focused isnt @state.focused
+      @props.parentView.toggleClass('is-focused', @props.focused)
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'
