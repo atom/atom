@@ -1175,6 +1175,12 @@ describe "EditorComponent", ->
       inputNode.dispatchEvent(new Event('input'))
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
+    it "does not handle input events when input is disabled", ->
+      component.setInputEnabled(false)
+      inputNode.value = 'x'
+      inputNode.dispatchEvent(new Event('input'))
+      expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+
   describe "commands", ->
     describe "editor:consolidate-selections", ->
       it "consolidates selections on the editor model, aborting the key binding if there is only one selection", ->

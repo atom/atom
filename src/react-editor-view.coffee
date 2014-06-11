@@ -197,6 +197,12 @@ class ReactEditorView extends View
   insertText: (text) ->
     @editor.insertText(text)
 
+  isInputEnabled: ->
+    @component.isInputEnabled()
+
+  setInputEnabled: (inputEnabled) ->
+    @component.setInputEnabled(inputEnabled)
+
   requestDisplayUpdate: -> # No-op shim for find-and-replace
 
   updateDisplay: -> # No-op shim for package specs

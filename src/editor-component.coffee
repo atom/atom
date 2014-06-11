@@ -37,6 +37,7 @@ EditorComponent = React.createClass
   overflowChangedEventsPaused: false
   overflowChangedWhilePaused: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
+  inputEnabled: true
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -456,6 +457,8 @@ EditorComponent = React.createClass
     scrollViewNode.scrollLeft = 0
 
   onInput: (char, replaceLastCharacter) ->
+    return unless @inputEnabled
+
     {editor} = @props
 
     if replaceLastCharacter
@@ -759,6 +762,10 @@ EditorComponent = React.createClass
 
   getModel: ->
     @props.editor
+
+  isInputEnabled: -> @inputEnabled
+
+  setInputEnabled: (@inputEnabled) -> @inputEnabled
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'
