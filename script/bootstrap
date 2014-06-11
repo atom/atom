@@ -24,9 +24,9 @@ function executeCommands(commands, done, index) {
 function bootstrap() {
   var apmInstallPath = path.resolve(__dirname, '..', 'apm');
   if (!fs.existsSync(apmInstallPath))
-  fs.mkdirSync(apmInstallPath);
+    fs.mkdirSync(apmInstallPath);
   if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
-  fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
+    fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
   var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
@@ -39,12 +39,12 @@ function bootstrap() {
   var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
   var commands = [
-  {command: initialNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-  {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
-  echoNewLine,
-  apmPath + ' clean ' + apmFlags,
-  apmPath + ' install --quiet ' + apmFlags,
-  apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
+    {command: initialNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+    {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
+    echoNewLine,
+    apmPath + ' clean ' + apmFlags,
+    apmPath + ' install --quiet ' + apmFlags,
+    apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
   ];
 
   process.chdir(path.dirname(__dirname));
