@@ -21,7 +21,7 @@ LinesComponent = React.createClass
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
-    div {className: 'lines', style},
+    div {className: 'lines editor-colors', style},
       SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
