@@ -24,19 +24,6 @@ describe "SpacePen extensions", ->
       expect(eventHandler).toHaveBeenCalled()
 
   describe "tooltips", ->
-    describe "humanizeKeystrokes", ->
-      humanizeKeystrokes = $.fn.setTooltip.humanizeKeystrokes
-
-      it "replaces single keystroke", ->
-        expect(humanizeKeystrokes('cmd-O')).toEqual '⌘⇧O'
-        expect(humanizeKeystrokes('cmd-shift-up')).toEqual '⌘⇧↑'
-        expect(humanizeKeystrokes('cmd-option-down')).toEqual '⌘⌥↓'
-        expect(humanizeKeystrokes('cmd-option-left')).toEqual '⌘⌥←'
-        expect(humanizeKeystrokes('cmd-option-right')).toEqual '⌘⌥→'
-
-      it "replaces multiple keystroke", ->
-        expect(humanizeKeystrokes('cmd-o ctrl-2')).toEqual '⌘O ⌃2'
-
     describe "when the window is resized", ->
       it "hides the tooltips", ->
         class TooltipView extends View
