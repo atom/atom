@@ -570,6 +570,32 @@ describe "EditorComponent", ->
             expect(lineNumberHasClass(3, 'someclass')).toBe false
             expect(lineNumberHasClass(4, 'someclass')).toBe false
 
+
+  describe "line decorator rendering", ->
+    [lineNumberHasClass, lines] = []
+
+    beforeEach ->
+      {lines} = component.refs
+      lineNumberHasClass = (screenRow, klass) ->
+        component.lineNodeForScreenRow(screenRow).classList.contains(klass)
+
+    describe "when decorations are applied to buffer rows", ->
+      it "renders line number classes based on the decorations on their buffer row", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        component.measureScrollView()
+
+        expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
+
+        editor.addDecorationToBufferRow(9, type: 'line', class: 'fancy-class')
+        editor.addDecorationToBufferRow(9, type: 'someother-type', class: 'nope-class')
+
+        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+        expect(lineNumberHasClass(9, 'fancy-class')).toBe true
+        expect(lineNumberHasClass(9, 'nope-class')).toBe false
+
+
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
       cursor1 = editor.getCursor()
