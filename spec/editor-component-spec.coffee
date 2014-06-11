@@ -1174,28 +1174,31 @@ describe "EditorComponent", ->
     beforeEach ->
       inputNode = node.querySelector('.hidden-input')
 
+    buildTextInputEvent = ({data, target}) ->
+      event = new Event('textInput')
+      event.data = data
+      Object.defineProperty(event, 'target', get: -> target)
+      event
+
     it "inserts the newest character in the input's value into the buffer", ->
-      inputNode.value = 'x'
-      inputNode.dispatchEvent(new Event('input'))
+      node.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'xvar quicksort = function () {'
 
-      inputNode.value = 'xy'
-      inputNode.dispatchEvent(new Event('input'))
+      node.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'xyvar quicksort = function () {'
 
     it "replaces the last character if the length of the input's value doesn't increase, as occurs with the accented character menu", ->
-      inputNode.value = 'u'
-      inputNode.dispatchEvent(new Event('input'))
+      node.dispatchEvent(buildTextInputEvent(data: 'u', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'uvar quicksort = function () {'
 
-      inputNode.value = 'ü'
-      inputNode.dispatchEvent(new Event('input'))
+      # simulate the accented character suggestion's selection of the previous character
+      inputNode.setSelectionRange(0, 1)
+      node.dispatchEvent(buildTextInputEvent(data: 'ü', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
     it "does not handle input events when input is disabled", ->
       component.setInputEnabled(false)
-      inputNode.value = 'x'
-      inputNode.dispatchEvent(new Event('input'))
+      node.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
   describe "commands", ->

@@ -1,4 +1,3 @@
-punycode = require 'punycode'
 {last, isEqual} = require 'underscore-plus'
 React = require 'react-atom-fork'
 {input} = require 'reactionary-atom-fork'
@@ -17,7 +16,6 @@ InputComponent = React.createClass
 
   componentDidMount: ->
     @getDOMNode().addEventListener 'paste', @onPaste
-    @getDOMNode().addEventListener 'input', @onInput
     @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
 
   # Don't let text accumulate in the input forever, but avoid excessive reflows
@@ -35,15 +33,6 @@ InputComponent = React.createClass
 
   onPaste: (e) ->
     e.preventDefault()
-
-  onInput: (e) ->
-    e.stopPropagation()
-    valueCharCodes = punycode.ucs2.decode(@getDOMNode().value)
-    valueLength = valueCharCodes.length
-    replaceLastChar = valueLength is @lastValueLength
-    @lastValueLength = valueLength
-    lastChar = String.fromCharCode(last(valueCharCodes))
-    @props.onInput?(lastChar, replaceLastChar)
 
   onFocus: ->
     @props.onFocus?()

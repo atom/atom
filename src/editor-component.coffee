@@ -82,7 +82,6 @@ EditorComponent = React.createClass
           ref: 'input'
           className: 'hidden-input'
           style: hiddenInputStyle
-          onInput: @onInput
           onFocus: @onInputFocused
           onBlur: @onInputBlurred
 
@@ -262,6 +261,7 @@ EditorComponent = React.createClass
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
+    node.addEventListener 'textInput', @onTextInput
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
@@ -387,6 +387,24 @@ EditorComponent = React.createClass
   onFocus: ->
     @refs.input.focus()
 
+  onTextInput: (event) ->
+    return unless @isInputEnabled()
+
+    {editor} = @props
+    inputNode = event.target
+
+    # Work around of the accented character suggestion feature in OS X.
+    # Text input fires before a character is inserted, and if the browser is
+    # replacing the previous un-accented character with an accented variant, it
+    # will select backward over it.
+    selectedLength = inputNode.selectionEnd - inputNode.selectionStart
+    editor.selectLeft() if selectedLength is 1
+
+    editor.insertText(event.data)
+    inputNode.value = event.data
+
+    event.preventDefault()
+
   onInputFocused: ->
     @setState(focused: true)
 
@@ -452,18 +470,6 @@ EditorComponent = React.createClass
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.scrollTop = 0
     scrollViewNode.scrollLeft = 0
-
-  onInput: (char, replaceLastCharacter) ->
-    return unless @inputEnabled
-
-    {editor} = @props
-
-    if replaceLastCharacter
-      editor.transact ->
-        editor.selectLeft()
-        editor.insertText(char)
-    else
-      editor.insertText(char)
 
   onMouseDown: (event) ->
     {editor} = @props
