@@ -289,9 +289,9 @@ class DisplayBuffer extends Model
       height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeightInPixels()
       width = @getScrollWidth()
     else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start)
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
       height = @getLineHeightInPixels()
-      width = @pixelPositionForScreenPosition(screenRange.end).left - left
+      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
 
     {top, left, width, height}
 

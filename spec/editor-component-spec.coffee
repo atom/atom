@@ -630,6 +630,11 @@ describe "EditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "gives the cursor a non-zero width even if it's inside atomic tokens", ->
+      editor.setCursorScreenPosition([1, 0])
+      cursorNode = node.querySelector('.cursor')
+      expect(cursorNode.offsetWidth).toBe charWidth
+
     it "blinks cursors when they aren't moving", ->
       spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
       cursorsNode = node.querySelector('.cursors')
