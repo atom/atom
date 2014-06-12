@@ -118,8 +118,8 @@ LinesComponent = React.createClass
     classes = 'line'
     if decorations?
       for decoration in decorations[bufferRow] or []
-        # if not isSoftWrapped() or isSoftWrapped() and decoration.softWrap
-        classes += ' ' + decoration.class
+        if not isSoftWrapped() or isSoftWrapped() and decoration.softWrap
+          classes += ' ' + decoration.class
 
     lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
@@ -127,6 +127,9 @@ LinesComponent = React.createClass
       lineHTML += @buildEmptyLineInnerHTML(line)
     else
       lineHTML += @buildLineInnerHTML(line)
+
+    if fold
+      lineHTML += '<span class="fold-marker"></span>'
 
     lineHTML += "</div>"
     lineHTML
