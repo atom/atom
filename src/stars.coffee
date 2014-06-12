@@ -29,8 +29,9 @@ class Stars extends Command
     options.alias('u', 'user').string('user').describe('user', 'GitHub username to show starred packages for')
     options.boolean('json').describe('json', 'Output packages as a JSON array')
 
-  getStarredPackages: (user, callback) ->
+  getStarredPackages: (user, atomVersion, callback) ->
     requestSettings = json: true
+    requestSettings.qs = engine: atomVersion if atomVersion
 
     if user
       requestSettings.url = "#{config.getAtomApiUrl()}/users/#{user}/stars"
@@ -91,7 +92,7 @@ class Stars extends Command
     options = @parseOptions(options.commandArgs)
     user = options.argv.user?.toString().trim()
 
-    @getStarredPackages user, (error, packages) =>
+    @getStarredPackages user, options.argv.compatible,  (error, packages) =>
       return callback(error) if error?
 
       if options.argv.themes

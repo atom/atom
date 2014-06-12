@@ -34,6 +34,7 @@ class Install extends Command
       file are installed to the node_modules folder in the current working
       directory.
     """
+    options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
