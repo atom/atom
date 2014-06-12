@@ -176,6 +176,7 @@ EditorComponent = React.createClass
     @updateParentViewFocusedClassIfNeeded(prevState)
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
+    @requestScrollViewMeasurement()
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
@@ -266,7 +267,6 @@ EditorComponent = React.createClass
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
 
     scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
     window.addEventListener('resize', @onWindowResize)
 
