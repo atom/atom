@@ -41,9 +41,9 @@ class LanguageMode
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
-    shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString
+      shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
@@ -64,10 +64,18 @@ class LanguageMode
           buffer.insert([start, indentLength], commentStartString)
           buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
     else
-      if shouldUncomment and start isnt end
-        shouldUncomment = [start+1..end].every (row) ->
-          line = buffer.lineForRow(row)
-          not line or commentStartRegex.test(line)
+      allBlank = true
+      allBlankOrCommented = true
+
+      for row in [start..end]
+        line = buffer.lineForRow(row)
+        blank = line?.match(/^\s*$/)
+
+        allBlank = false unless blank
+        allBlankOrCommented = false unless blank or commentStartRegex.test(line)
+
+      shouldUncomment = allBlankOrCommented and not allBlank
+
       if shouldUncomment
         for row in [start..end]
           if match = commentStartRegex.search(buffer.lineForRow(row))
