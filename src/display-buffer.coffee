@@ -912,6 +912,12 @@ class DisplayBuffer extends Model
           key = 'startRow'
         when 'endBufferRow'
           key = 'endRow'
+        when 'startScreenRow'
+          key = 'startRow'
+          value = @bufferRowForScreenRow(value)
+        when 'endScreenRow'
+          key = 'endRow'
+          value = @bufferRowForScreenRow(value)
         when 'containsBufferRange'
           key = 'containsRange'
         when 'containsBufferPosition'
