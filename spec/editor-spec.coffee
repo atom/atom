@@ -3211,24 +3211,29 @@ describe "Editor", ->
       expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
 
   describe ".pageUp/Down()", ->
-    it "scrolls one screen height up or down", ->
+    it "scrolls one screen height up or down and moves the cursor one page length", ->
       editor.manageScrollPosition = true
 
       editor.setLineHeightInPixels(10)
       editor.setHeight(50)
       expect(editor.getScrollHeight()).toBe 130
+      expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.pageDown()
       expect(editor.getScrollTop()).toBe 50
+      expect(editor.getCursorBufferPosition().row).toBe 5
 
       editor.pageDown()
       expect(editor.getScrollTop()).toBe 80
+      expect(editor.getCursorBufferPosition().row).toBe 10
 
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 30
+      expect(editor.getCursorBufferPosition().row).toBe 5
 
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 0
+      expect(editor.getCursorBufferPosition().row).toBe 0
 
   describe "decorations", ->
     decoration = null

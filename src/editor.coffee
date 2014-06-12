@@ -1605,10 +1605,18 @@ class Editor extends Model
     @getCursor().autoscroll()
 
   pageUp: ->
-    @setScrollTop(@getScrollTop() - @getHeight())
+    newScrollTop = @getScrollTop() - @getHeight()
+    @moveCursorUp(@getRowsPerPage())
+    @setScrollTop(newScrollTop)
 
   pageDown: ->
-    @setScrollTop(@getScrollTop() + @getHeight())
+    newScrollTop = @getScrollTop() + @getHeight()
+    @moveCursorDown(@getRowsPerPage())
+    @setScrollTop(newScrollTop)
+
+  # Returns the number of rows per page
+  getRowsPerPage: ->
+    Math.max(1, Math.ceil(@getHeight() / @getLineHeightInPixels()))
 
   moveCursors: (fn) ->
     @movingCursors = true
