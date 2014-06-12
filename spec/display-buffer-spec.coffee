@@ -992,6 +992,31 @@ describe "DisplayBuffer", ->
         expect(start.top).toBe 5 * 20
         expect(start.left).toBe (4 * 10) + (6 * 11)
 
+  describe "decorations", ->
+    it "can add decorations associated with markers and remove them", ->
+      decoration = {type: 'gutter', class: 'one'}
+      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
+      displayBuffer.addDecorationForMarker(marker, decoration)
+
+      decoration = displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]
+      expect(decoration.getScreenRange()).toEqual [[2, 13], [3, 15]]
+      expect(decoration.isValid()).toBe true
+      expect(decoration.class).toBe 'one'
+
+      buffer.insert([0, 0], '\n')
+      expect(decoration.getScreenRange()).toEqual [[3, 13], [4, 15]]
+      expect(decoration.isValid()).toBe true
+
+      buffer.insert([4, 2], 'n')
+      expect(decoration.isValid()).toBe false
+
+      buffer.undo()
+      expect(decoration.getScreenRange()).toEqual [[3, 13], [4, 15]]
+      expect(decoration.isValid()).toBe true
+
+      displayBuffer.removeDecorationForMarker(marker, decoration)
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
+
   describe "::setScrollTop", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true
