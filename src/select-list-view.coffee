@@ -255,6 +255,14 @@ class SelectListView extends View
   # Returns the property name to fuzzy filter by.
   getFilterKey: ->
 
+  # Public: Center the overlay vertically.
+  #
+  # This method should be called if the overlay produced is the detached, centered
+  # version, right after the call to `atom.workspaceView.append(this)`. Works in
+  # conjunction with the `.overlay.centered` class.
+  centerOverlay: ->
+    $(this).css "margin-top", $(this).height() / -2
+
   # Public: Focus the fuzzy filter editor view.
   focusFilterEditor: ->
     @filterEditorView.focus()
