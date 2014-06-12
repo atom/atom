@@ -567,7 +567,7 @@ class EditorView extends View
       @scrollTop(scrollTop)
 
     @subscribe @editor, 'scroll-left-changed', (scrollLeft) =>
-      @scrollLeft(scrollLeft)
+      @scrollView.scrollLeft(scrollLeft)
 
     @subscribe @editor, 'soft-wrap-changed', (softWrap) =>
       @setSoftWrap(softWrap)
