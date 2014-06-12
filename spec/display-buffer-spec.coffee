@@ -918,11 +918,35 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', startScreenRow: 6, endScreenRow: 7)).toEqual [marker2]
 
+      it "allows intersectsBufferRowRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRowRange: [5, 6])).toEqual [marker1]
+
+      it "allows intersectsScreenRowRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRowRange: [5, 10])).toEqual [marker2]
+
       it "allows containedInScreenRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
         displayBuffer.createFold(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', containedInScreenRange: [[5, 0], [7, 0]])).toEqual [marker2]
+
+      it "allows intersectsBufferRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRange: [[5, 0], [6, 0]])).toEqual [marker1]
+
+      it "allows intersectsScreenRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRange: [[5, 0], [10, 0]])).toEqual [marker2]
 
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->

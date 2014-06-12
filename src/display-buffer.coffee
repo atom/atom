@@ -918,6 +918,12 @@ class DisplayBuffer extends Model
         when 'endScreenRow'
           key = 'endRow'
           value = @bufferRowForScreenRow(value)
+        when 'intersectsBufferRowRange'
+          key = 'intersectsRowRange'
+        when 'intersectsScreenRowRange'
+          key = 'intersectsRowRange'
+          [startRow, endRow] = value
+          value = [@bufferRowForScreenRow(startRow), @bufferRowForScreenRow(endRow)]
         when 'containsBufferRange'
           key = 'containsRange'
         when 'containsBufferPosition'
@@ -927,7 +933,14 @@ class DisplayBuffer extends Model
         when 'containedInScreenRange'
           key = 'containedInRange'
           value = @bufferRangeForScreenRange(value)
+        when 'intersectsBufferRange'
+          key = 'intersectsRange'
+        when 'intersectsScreenRange'
+          key = 'intersectsRange'
+          value = @bufferRangeForScreenRange(value)
       bufferMarkerParams[key] = value
+
+    console.log bufferMarkerParams
     bufferMarkerParams
 
   findFoldMarker: (attributes) ->
