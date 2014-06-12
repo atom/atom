@@ -1,5 +1,4 @@
 {View, $} = require 'space-pen'
-Grim = require 'grim'
 React = require 'react-atom-fork'
 EditorComponent = require './editor-component'
 {defaults} = require 'underscore-plus'
@@ -43,14 +42,12 @@ class ReactEditorView extends View
 
     @gutter = $(node).find('.gutter')
     @gutter.removeClassFromAllLines = (klass) =>
-      Grim.deprecate 'You no longer need to manually add and remove classes. Use `Editor::removeDecorationFromBufferRow()` and related functions'
       @gutter.find('.line-number').removeClass(klass)
 
     @gutter.getLineNumberElement = (bufferRow) =>
       @gutter.find("[data-buffer-row='#{bufferRow}']")
 
     @gutter.addClassToLine = (bufferRow, klass) =>
-      Grim.deprecate 'You no longer need to manually add and remove classes. Use `Editor::addDecorationToBufferRow()` and related functions'
       lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
       lines.addClass(klass)
       lines.length > 0
