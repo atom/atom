@@ -1265,6 +1265,14 @@ describe "EditorComponent", ->
         wrapperView.show()
         expect(node.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
 
+  describe "when the editor component is resized", ->
+    it "updates the size in the editor model", ->
+      originalHeight = editor.getHeight()
+      fourLinesHeight = 4 * editor.getLineHeightInPixels()
+      node.style.height = "#{originalHeight - fourLinesHeight}px"
+      component.forceUpdate()
+      expect(editor.getHeight()).not.toBe originalHeight
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     event = new MouseEvent(type, properties)
