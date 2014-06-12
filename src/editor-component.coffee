@@ -41,7 +41,7 @@ EditorComponent = React.createClass
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-    maxLineNumberDigits = editor.getScreenLineCount().toString().length
+    maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
 
