@@ -924,6 +924,9 @@ class DisplayBuffer extends Model
           key = 'containsPosition'
         when 'containedInBufferRange'
           key = 'containedInRange'
+        when 'containedInScreenRange'
+          key = 'containedInRange'
+          value = @bufferRangeForScreenRange(value)
       bufferMarkerParams[key] = value
     bufferMarkerParams
 

@@ -918,6 +918,12 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', startScreenRow: 6, endScreenRow: 7)).toEqual [marker2]
 
+      it "allows containedInScreenRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', containedInScreenRange: [[5, 0], [7, 0]])).toEqual [marker2]
+
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
