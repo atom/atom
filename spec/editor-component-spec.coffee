@@ -571,90 +571,75 @@ describe "EditorComponent", ->
             expect(lineNumberHasClass(4, 'someclass')).toBe false
 
 
-  describe "line decorator rendering", ->
-    [lines, lineNumberHasClass, lineNumberHasFoldedMarkerSpan] = []
+  fdescribe "line decorator rendering", ->
+    [lines, lineHasClass, lineHasFoldedMarker] = []
 
     beforeEach ->
       {lines} = component.refs
-      lineNumberHasClass = (screenRow, klass) ->
+      lineHasClass = (screenRow, klass) ->
         component.lineNodeForScreenRow(screenRow).classList.contains(klass)
 
-      lineNumberHasFoldedMarkerSpan = (screenRow) ->
+      lineHasFoldedMarker = (screenRow) ->
         component.lineNodeForScreenRow(screenRow).querySelectorAll('.fold-marker').length is 1
 
-    describe "when decorations are applied to buffer rows", ->
-      it "renders line number classes based on the decorations on their buffer row", ->
-        node.style.height = 4.5 * lineHeightInPixels + 'px'
-        component.measureScrollView()
-
-        expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
-
-        editor.addDecorationToBufferRow(9, type: 'line', class: 'fancy-class')
-        editor.addDecorationToBufferRow(9, type: 'someother-type', class: 'nope-class')
-
-        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
-        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-        expect(lineNumberHasClass(9, 'fancy-class')).toBe true
-        expect(lineNumberHasClass(9, 'nope-class')).toBe false
-
+    describe "folded class in lines", ->
 
       it "adds and removes the folded class on the line", ->
-        expect(lineNumberHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(0, 'folded')).toBe false
         editor.foldBufferRow(0)
-        expect(lineNumberHasClass(0, 'folded')).toBe true
+        expect(lineHasClass(0, 'folded')).toBe true
         editor.unfoldBufferRow(0)
-        expect(lineNumberHasClass(0, 'folded')).toBe false
-        expect(lineNumberHasClass(1, 'folded')).toBe false
+        expect(lineHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(1, 'folded')).toBe false
 
       it "updates the folded class on the correct line when the folded positions change", ->
-        expect(lineNumberHasClass(0, 'folded')).toBe false
-        expect(lineNumberHasClass(1, 'folded')).toBe false
+        expect(lineHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(1, 'folded')).toBe false
         editor.foldBufferRow(1)
-        expect(lineNumberHasClass(0, 'folded')).toBe false
-        expect(lineNumberHasClass(1, 'folded')).toBe true
+        expect(lineHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(1, 'folded')).toBe true
 
         editor.getBuffer().insert([0, 0], '\n')
-        expect(lineNumberHasClass(0, 'folded')).toBe false
-        expect(lineNumberHasClass(1, 'folded')).toBe false
-        expect(lineNumberHasClass(2, 'folded')).toBe true
+        expect(lineHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(1, 'folded')).toBe false
+        expect(lineHasClass(2, 'folded')).toBe true
 
         editor.unfoldBufferRow(2)
-        expect(lineNumberHasClass(0, 'folded')).toBe false
-        expect(lineNumberHasClass(1, 'folded')).toBe false
-        expect(lineNumberHasClass(2, 'folded')).toBe false
+        expect(lineHasClass(0, 'folded')).toBe false
+        expect(lineHasClass(1, 'folded')).toBe false
+        expect(lineHasClass(2, 'folded')).toBe false
 
         editor.undo()
 
       it "adds a folded marker span when a row is folded", ->
-        expect(lineNumberHasFoldedMarkerSpan(0)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(2)).toBe false
+        expect(lineHasFoldedMarker(0)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe false
+        expect(lineHasFoldedMarker(2)).toBe false
 
         editor.foldBufferRow(1)
-        expect(lineNumberHasFoldedMarkerSpan(0)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe true
+        expect(lineHasFoldedMarker(0)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe true
 
         editor.unfoldBufferRow(1)
-        expect(lineNumberHasFoldedMarkerSpan(0)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(2)).toBe false
+        expect(lineHasFoldedMarker(0)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe false
+        expect(lineHasFoldedMarker(2)).toBe false
 
       it "moves the folded marker span when content changes", ->
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe false
 
         editor.foldBufferRow(1)
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe true
+        expect(lineHasFoldedMarker(1)).toBe true
 
         editor.getBuffer().insert([0, 0], '\n')
-        expect(lineNumberHasFoldedMarkerSpan(0)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(2)).toBe true
+        expect(lineHasFoldedMarker(0)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe false
+        expect(lineHasFoldedMarker(2)).toBe true
 
         editor.unfoldBufferRow(2)
-        expect(lineNumberHasFoldedMarkerSpan(0)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(1)).toBe false
-        expect(lineNumberHasFoldedMarkerSpan(2)).toBe false
+        expect(lineHasFoldedMarker(0)).toBe false
+        expect(lineHasFoldedMarker(1)).toBe false
+        expect(lineHasFoldedMarker(2)).toBe false
 
         editor.undo()
 
