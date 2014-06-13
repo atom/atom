@@ -81,6 +81,8 @@ GutterComponent = React.createClass
     newLineNumbersHTML = null
     visibleLineNumberIds = new Set
 
+    decorationsByScreenRow = decorations.decorationsByScreenRowForType('gutter')
+
     wrapCount = 0
     for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + index
@@ -95,12 +97,12 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorations[bufferRow])
+        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorationsByScreenRow[screenRow])
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorations[bufferRow])
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorationsByScreenRow[screenRow])
         @screenRowsByLineNumberId[id] = screenRow
         @lineNumberIdsByScreenRow[screenRow] = id
 
@@ -114,7 +116,7 @@ GutterComponent = React.createClass
         @lineNumberNodesById[lineNumberId] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    @previousDecorations = decorations
+    @previousDecorations = decorationsByScreenRow
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->
@@ -156,7 +158,7 @@ GutterComponent = React.createClass
 
   updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped, decorations) ->
     node = @lineNumberNodesById[lineNumberId]
-    previousDecorations = @previousDecorations[bufferRow]
+    previousDecorations = @previousDecorations[screenRow]
 
     if previousDecorations?
       for decoration in previousDecorations

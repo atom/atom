@@ -4,6 +4,7 @@ React = require 'react-atom-fork'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 
+Decorations = require './decorations'
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
@@ -50,7 +51,7 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
       selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
-      decorations = @getGutterDecorations(renderedRowRange)
+      decorations = new Decorations(editor, renderedStartRow, renderedEndRow)
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -73,9 +74,9 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
-        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
-        decorations
+        ref: 'gutter',
+        decorations, editor, renderedRowRange, maxLineNumberDigits, scrollTop,
+        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -233,7 +234,6 @@ EditorComponent = React.createClass
     selectionScreenRanges
 
   getGutterDecorations:  (renderedRowRange) ->
-    {editor} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
 
     bufferRows = editor.bufferRowsForScreenRows(renderedStartRow, renderedEndRow - 1)
@@ -252,7 +252,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'cursors-moved', @onCursorsMoved
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'decoration-changed', @onDecorationChanged
+    @subscribe editor, 'decoration-added', @onDecorationChanged
+    @subscribe editor, 'decoration-removed', @onDecorationChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
