@@ -42,7 +42,7 @@ GutterComponent = React.createClass
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
-    return true unless _.isEqual(@previousDecorations, decorations)
+    return true unless _.isEqual(@previousDecorations, decorations.decorationsByScreenRowForType('gutter'))
 
     false
 
