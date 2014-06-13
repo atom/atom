@@ -26,9 +26,7 @@ function loadEnvironmentVariables(filePath) {
 
 function readEnvironmentVariables() {
   if (process.platform === 'win32') {
-    console.log(process.env.SystemDrive);
-    console.log(path.resolve('/jenkins/config/atomcredentials'));
-    loadEnvironmentVariables('Y:\\jenkins\\config\\atomcredentials');
+    loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
   } else {
     loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
     loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
