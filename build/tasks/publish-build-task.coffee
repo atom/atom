@@ -53,7 +53,7 @@ zipApps = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
     if process.platform is 'win32'
       options = {cwd: directory, maxBuffer: Infinity}
-      child_process.exec "7za -r #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
+      child_process.exec "C:/psmodules/7z.exe -r #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
         if error?
           logError("Zipping #{sourceName} failed", error, stderr)
         callback(error)
