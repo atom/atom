@@ -8,10 +8,17 @@ GitHub = require 'github-releases'
 request = require 'request'
 
 grunt = null
-assets = [
-  {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
-  {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
-]
+
+if process.platform is 'darwin'
+  assets = [
+    {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
+    {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
+  ]
+else
+  assets = [
+    {assetName: 'atom-windows.zip', sourceName: 'Atom'}
+  ]
+
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
@@ -22,20 +29,20 @@ module.exports = (gruntObject) ->
   grunt = gruntObject
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return unless process.platform is 'darwin'
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+    return unless process.platform is 'win32'
+    # return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
 
     zipApps buildDir, assets, (error) ->
       return done(error) if error?
-      getAtomDraftRelease (error, release) ->
-        return done(error) if error?
-        assetNames = (asset.assetName for asset in assets)
-        deleteExistingAssets release, assetNames, (error) ->
-          return done(error) if error?
-          uploadAssets(release, buildDir, assets, done)
+      # getAtomDraftRelease (error, release) ->
+      #   return done(error) if error?
+      #   assetNames = (asset.assetName for asset in assets)
+      #   deleteExistingAssets release, assetNames, (error) ->
+      #     return done(error) if error?
+      #     uploadAssets(release, buildDir, assets, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -44,11 +51,18 @@ logError = (message, error, details) ->
 
 zipApps = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
-    options = {cwd: directory, maxBuffer: Infinity}
-    child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
-      if error?
-        logError("Zipping #{sourceName} failed", error, stderr)
-      callback(error)
+    if process.platform is 'win32'
+      options = {cwd: directory, maxBuffer: Infinity}
+      child_process.exec "7z -r #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
+        if error?
+          logError("Zipping #{sourceName} failed", error, stderr)
+        callback(error)
+    else
+      options = {cwd: directory, maxBuffer: Infinity}
+      child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
+        if error?
+          logError("Zipping #{sourceName} failed", error, stderr)
+        callback(error)
 
   tasks = []
   for {assetName, sourceName} in assets
