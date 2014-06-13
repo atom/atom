@@ -51,17 +51,14 @@ logError = (message, error, details) ->
 zipApps = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
     if process.platform is 'win32'
-      options = {cwd: directory, maxBuffer: Infinity}
-      child_process.exec "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
-        if error?
-          logError("Zipping #{sourceName} failed", error, stderr)
-        callback(error)
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}"
     else
-      options = {cwd: directory, maxBuffer: Infinity}
-      child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
-        if error?
-          logError("Zipping #{sourceName} failed", error, stderr)
-        callback(error)
+      zipCommand = "zip -r --symlinks #{assetName} #{sourceName}"
+    options = {cwd: directory, maxBuffer: Infinity}
+    child_process.exec zipCommand, options, (error, stdout, stderr) ->
+      if error?
+        logError("Zipping #{sourceName} failed", error, stderr)
+      callback(error)
 
   tasks = []
   for {assetName, sourceName} in assets
