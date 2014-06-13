@@ -2,8 +2,8 @@ React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 
 module.exports =
-SelectionComponent = React.createClass
-  displayName: 'SelectionComponent'
+HighlightComponent = React.createClass
+  displayName: 'HighlightComponent'
 
   render: ->
     {editor, screenRange, lineHeightInPixels} = @props

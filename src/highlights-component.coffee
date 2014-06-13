@@ -1,21 +1,21 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqualForProperties} = require 'underscore-plus'
-SelectionComponent = require './selection-component'
+HighlightComponent = require './highlight-component'
 
 module.exports =
-SelectionsComponent = React.createClass
-  displayName: 'SelectionsComponent'
+HighlightsComponent = React.createClass
+  displayName: 'HighlightsComponent'
 
   render: ->
-    div className: 'selections', @renderSelections()
+    div className: 'highlights', @renderSelections()
 
   renderSelections: ->
     {editor, selectionScreenRanges, lineHeightInPixels} = @props
 
     selectionComponents = []
     for selectionId, screenRange of selectionScreenRanges
-      selectionComponents.push(SelectionComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
+      selectionComponents.push(HighlightComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
     selectionComponents
 
   componentWillMount: ->

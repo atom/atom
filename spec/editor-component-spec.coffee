@@ -232,7 +232,7 @@ describe "EditorComponent", ->
         editor.setText("a\0b")
         expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
-  fdescribe "gutter rendering", ->
+  describe "gutter rendering", ->
     [gutter] = []
 
     lineNumberHasClass = (screenRow, klass) ->

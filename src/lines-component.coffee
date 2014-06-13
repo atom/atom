@@ -3,7 +3,7 @@ React = require 'react-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-SelectionsComponent = require './selections-component'
+HighlightsComponent = require './highlights-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -22,7 +22,7 @@ LinesComponent = React.createClass
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines editor-colors', style},
-      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
+      HighlightsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
