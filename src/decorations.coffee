@@ -18,8 +18,10 @@ class Decorations
             filteredDecorations[screenRow] ?= []
             filteredDecorations[screenRow].push decoration
 
-        # if @editor.isFoldableAtScreenRow(screenRow)
-        #   filteredDecorations[screenRow].push new Decoration(null, {class: 'foldable'})
+      for screenRow in [@startScreenRow...@endScreenRow]
+        if @editor.isFoldableAtScreenRow(screenRow)
+          filteredDecorations[screenRow] ?= []
+          filteredDecorations[screenRow].push new Decoration(null, {class: 'foldable'})
 
       @decorationsCache[decorationType] = filteredDecorations
     @decorationsCache[decorationType]

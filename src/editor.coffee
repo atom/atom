@@ -844,6 +844,10 @@ class Editor extends Model
   isFoldableAtBufferRow: (bufferRow) ->
     @languageMode.isFoldableAtBufferRow(bufferRow)
 
+  isFoldableAtScreenRow: (screenRow) ->
+    bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
+    @isFoldableAtBufferRow(bufferRow)
+
   # TODO: Rename to foldRowRange?
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
