@@ -47,15 +47,19 @@ describe "EditorComponent", ->
 
       node.style.height = editor.getLineCount() * lineHeightInPixels + 'px'
       node.style.width = '1000px'
-      component.measureScrollView()
+      measureScrollView()
 
   afterEach ->
     contentNode.style.width = ''
 
+  measureScrollView = ->
+    component.measureScrollView()
+    component.forceUpdate()
+
   describe "line rendering", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       linesNode = node.querySelector('.lines')
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
@@ -122,7 +126,7 @@ describe "EditorComponent", ->
     it "renders the .lines div at the full height of the editor if there aren't enough lines to scroll vertically", ->
       editor.setText('')
       node.style.height = '300px'
-      component.measureScrollView()
+      measureScrollView()
 
       linesNode = node.querySelector('.lines')
       expect(linesNode.offsetHeight).toBe 300
@@ -166,7 +170,7 @@ describe "EditorComponent", ->
           editor.setText "a line that wraps "
           editor.setSoftWrap(true)
           node.style.width = 16 * charWidth + 'px'
-          component.measureScrollView()
+          measureScrollView()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
@@ -242,7 +246,7 @@ describe "EditorComponent", ->
 
     it "renders the currently-visible line numbers", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(node.querySelectorAll('.line-number').length).toBe 6 + 2 + 1 # line overdraw margin below + dummy line number
       expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
@@ -282,7 +286,7 @@ describe "EditorComponent", ->
       editor.setSoftWrap(true)
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(node.querySelectorAll('.line-number').length).toBe 6 + lineOverdrawMargin + 1 # 1 dummy line node
       expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
@@ -428,7 +432,7 @@ describe "EditorComponent", ->
       describe "when decorations are applied to buffer rows", ->
         it "renders line number classes based on the decorations on their buffer row", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
-          component.measureScrollView()
+          measureScrollView()
 
           expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
 
@@ -465,7 +469,7 @@ describe "EditorComponent", ->
           editor.setSoftWrap(true)
           node.style.height = 4.5 * lineHeightInPixels + 'px'
           node.style.width = 30 * charWidth + 'px'
-          component.measureScrollView()
+          measureScrollView()
 
           expect(lineNumberHasClass(2, 'no-wrap')).toBe true
           expect(lineNumberHasClass(2, 'wrap-me')).toBe true
@@ -582,7 +586,7 @@ describe "EditorComponent", ->
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
@@ -781,7 +785,7 @@ describe "EditorComponent", ->
       inputNode = node.querySelector('.hidden-input')
       node.style.height = 5 * lineHeightInPixels + 'px'
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
       editor.setScrollTop(3 * lineHeightInPixels)
@@ -827,7 +831,7 @@ describe "EditorComponent", ->
         it "moves the cursor to the nearest screen position", ->
           node.style.height = 4.5 * lineHeightInPixels + 'px'
           node.style.width = 10 * charWidth + 'px'
-          component.measureScrollView()
+          measureScrollView()
           editor.setScrollTop(3.5 * lineHeightInPixels)
           editor.setScrollLeft(2 * charWidth)
 
@@ -952,7 +956,7 @@ describe "EditorComponent", ->
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
 
@@ -961,7 +965,7 @@ describe "EditorComponent", ->
 
     it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       node.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       linesNode = node.querySelector('.lines')
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
@@ -973,7 +977,7 @@ describe "EditorComponent", ->
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       node.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(editor.getScrollLeft()).toBe 0
       horizontalScrollbarNode.scrollLeft = 100
@@ -984,7 +988,7 @@ describe "EditorComponent", ->
     it "does not obscure the last line with the horizontal scrollbar", ->
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
       editor.setScrollBottom(editor.getScrollHeight())
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
@@ -993,7 +997,7 @@ describe "EditorComponent", ->
 
       # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       node.style.width = 100 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = node.getBoundingClientRect().bottom
       expect(bottomOfLastLine).toBe bottomOfEditor
@@ -1001,7 +1005,7 @@ describe "EditorComponent", ->
     it "does not obscure the last character of the longest line with the vertical scrollbar", ->
       node.style.height = 7 * lineHeightInPixels + 'px'
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       editor.setScrollLeft(Infinity)
 
@@ -1015,19 +1019,19 @@ describe "EditorComponent", ->
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = '1000px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe 'none'
 
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe ''
 
       node.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(verticalScrollbarNode.style.display).toBe 'none'
       expect(horizontalScrollbarNode.style.display).toBe ''
@@ -1035,7 +1039,7 @@ describe "EditorComponent", ->
     it "makes the dummy scrollbar divs only as tall/wide as the actual scrollbars", ->
       node.style.height = 4 * lineHeightInPixels + 'px'
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       atom.themes.applyStylesheet "test", """
         ::-webkit-scrollbar {
@@ -1058,19 +1062,19 @@ describe "EditorComponent", ->
 
       node.style.height = 4.5 * lineHeightInPixels + 'px'
       node.style.width = '1000px'
-      component.measureScrollView()
+      measureScrollView()
       expect(verticalScrollbarNode.style.bottom).toBe ''
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe ''
 
       node.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      measureScrollView()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe ''
       expect(scrollbarCornerNode.style.display).toBe 'none'
@@ -1078,7 +1082,7 @@ describe "EditorComponent", ->
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
       gutterNode = node.querySelector('.gutter')
       node.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      measureScrollView()
 
       expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
 
@@ -1090,7 +1094,7 @@ describe "EditorComponent", ->
       beforeEach ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        measureScrollView()
 
       it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
         expect(verticalScrollbarNode.scrollTop).toBe 0
@@ -1128,7 +1132,7 @@ describe "EditorComponent", ->
       it "keeps the line on the DOM if it is scrolled off-screen", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        measureScrollView()
 
         lineNode = node.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
@@ -1140,7 +1144,7 @@ describe "EditorComponent", ->
       it "does not set the mouseWheelScreenRow if scrolling horizontally", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        measureScrollView()
 
         lineNode = node.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
@@ -1184,7 +1188,7 @@ describe "EditorComponent", ->
       it "keeps the line number on the DOM if it is scrolled off-screen", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         node.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        measureScrollView()
 
         lineNumberNode = node.querySelectorAll('.line-number')[1]
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)

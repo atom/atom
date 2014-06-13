@@ -22,6 +22,7 @@ EditorComponent = React.createClass
   selectOnMouseMove: false
   batchingUpdates: false
   updateRequested: false
+  updatesSuppressed: false
   cursorsMoved: false
   selectionChanged: false
   selectionAdded: false
@@ -180,10 +181,16 @@ EditorComponent = React.createClass
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
-    if @batchingUpdates
-      @updateRequested = true
-    else
-      @forceUpdate()
+    unless @updatesSuppressed
+      if @batchingUpdates
+        @updateRequested = true
+      else
+        @forceUpdate()
+
+  suppressUpdates: (fn) ->
+    @updatesSuppressed = true
+    fn()
+    @updatesSuppressed = false
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -256,8 +263,6 @@ EditorComponent = React.createClass
     @subscribe editor, 'decoration-changed', @onDecorationChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
-    @subscribe editor.$height.changes, @requestUpdate
-    @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
     @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
@@ -596,13 +601,14 @@ EditorComponent = React.createClass
     {position} = getComputedStyle(editorNode)
     {width, height} = editorNode.style
 
-    if position is 'absolute' or height
-      clientHeight =  scrollViewNode.clientHeight
-      editor.setHeight(clientHeight) if clientHeight > 0
+    @suppressUpdates ->
+      if position is 'absolute' or height
+        clientHeight =  scrollViewNode.clientHeight
+        editor.setHeight(clientHeight) if clientHeight > 0
 
-    if position is 'absolute' or width
-      clientWidth = scrollViewNode.clientWidth
-      editor.setWidth(clientWidth) if clientWidth > 0
+      if position is 'absolute' or width
+        clientWidth = scrollViewNode.clientWidth
+        editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
