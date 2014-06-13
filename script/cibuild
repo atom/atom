@@ -20,7 +20,7 @@ function loadEnvironmentVariables(filePath) {
       process.env[key] = value;
     }
   } catch(error) {
-    console.error("Failed to load environment variables: " + filePath, error);
+    console.error("Failed to load environment variables: " + filePath, error.code);
   }
 }
 
