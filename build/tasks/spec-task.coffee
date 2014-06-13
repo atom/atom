@@ -87,8 +87,6 @@ module.exports = (grunt) ->
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
-    return if process.platform is 'win32'
-
     done = @async()
     startTime = Date.now()
 
