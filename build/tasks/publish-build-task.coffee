@@ -8,7 +8,6 @@ GitHub = require 'github-releases'
 request = require 'request'
 
 grunt = null
-maxReleases = 10
 assets = [
   {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
   {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
