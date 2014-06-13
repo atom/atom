@@ -425,75 +425,6 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(4, 'cursor-line')).toBe false
 
     describe "when decorations are used", ->
-      describe "when decorations are applied to buffer rows", ->
-        it "renders line number classes based on the decorations on their buffer row", ->
-          node.style.height = 4.5 * lineHeightInPixels + 'px'
-          component.measureScrollView()
-
-          expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
-
-          editor.addDecorationToBufferRow(9, type: 'gutter', class: 'fancy-class')
-          editor.addDecorationToBufferRow(9, type: 'someother-type', class: 'nope-class')
-
-          verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
-          verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-          expect(lineNumberHasClass(9, 'fancy-class')).toBe true
-          expect(lineNumberHasClass(9, 'nope-class')).toBe false
-
-        it "renders updates to gutter decorations", ->
-          editor.addDecorationToBufferRow(2, type: 'gutter', class: 'fancy-class')
-          editor.addDecorationToBufferRow(2, type: 'someother-type', class: 'nope-class')
-
-          waitsFor -> not component.decorationChangedImmediate?
-          runs ->
-            expect(lineNumberHasClass(2, 'fancy-class')).toBe true
-            expect(lineNumberHasClass(2, 'nope-class')).toBe false
-
-            editor.removeDecorationFromBufferRow(2, type: 'gutter', class: 'fancy-class')
-            editor.removeDecorationFromBufferRow(2, type: 'someother-type', class: 'nope-class')
-
-          waitsFor -> not component.decorationChangedImmediate?
-          runs ->
-            expect(lineNumberHasClass(2, 'fancy-class')).toBe false
-            expect(lineNumberHasClass(2, 'nope-class')).toBe false
-
-        it "renders decorations on soft-wrapped line numbers when softWrap is true", ->
-          editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
-          editor.addDecorationToBufferRow(1, type: 'gutter', class: 'wrap-me', softWrap: true)
-
-          editor.setSoftWrap(true)
-          node.style.height = 4.5 * lineHeightInPixels + 'px'
-          node.style.width = 30 * charWidth + 'px'
-          component.measureScrollView()
-
-          expect(lineNumberHasClass(2, 'no-wrap')).toBe true
-          expect(lineNumberHasClass(2, 'wrap-me')).toBe true
-          expect(lineNumberHasClass(3, 'no-wrap')).toBe false
-          expect(lineNumberHasClass(3, 'wrap-me')).toBe true
-
-          # should remove the wrapped decorations
-          editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'no-wrap')
-          editor.removeDecorationFromBufferRow(1, type: 'gutter', class: 'wrap-me')
-
-          waitsFor -> not component.decorationChangedImmediate?
-          runs ->
-            expect(lineNumberHasClass(2, 'no-wrap')).toBe false
-            expect(lineNumberHasClass(2, 'wrap-me')).toBe false
-            expect(lineNumberHasClass(3, 'no-wrap')).toBe false
-            expect(lineNumberHasClass(3, 'wrap-me')).toBe false
-
-            # should add them back when the nodes are not recreated
-            editor.addDecorationToBufferRow(1, type: 'gutter', class: 'no-wrap')
-            editor.addDecorationToBufferRow(1, type: 'gutter', class: 'wrap-me', softWrap: true)
-
-          waitsFor -> not component.decorationChangedImmediate?
-          runs ->
-            expect(lineNumberHasClass(2, 'no-wrap')).toBe true
-            expect(lineNumberHasClass(2, 'wrap-me')).toBe true
-            expect(lineNumberHasClass(3, 'no-wrap')).toBe false
-            expect(lineNumberHasClass(3, 'wrap-me')).toBe true
-
       describe "when decorations are applied to markers", ->
         {marker, decoration} = {}
         beforeEach ->
@@ -501,6 +432,22 @@ describe "EditorComponent", ->
           decoration = {type: 'gutter', class: 'someclass'}
           editor.addDecorationForMarker(marker, decoration)
           waitsFor -> not component.decorationChangedImmediate?
+
+        it "initially renders off screen lines with line number classes based on the decorations on their buffer row", ->
+          node.style.height = 4.5 * lineHeightInPixels + 'px'
+          component.measureScrollView()
+
+          expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
+
+          marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
+          editor.addDecorationForMarker(marker, type: 'gutter', class: 'fancy-class')
+          editor.addDecorationForMarker(marker, type: 'someother-type', class: 'nope-class')
+
+          verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+          verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+          expect(lineNumberHasClass(9, 'fancy-class')).toBe true
+          expect(lineNumberHasClass(9, 'nope-class')).toBe false
 
         it "updates line number classes when the marker moves", ->
           expect(lineNumberHasClass(1, 'someclass')).toBe false
