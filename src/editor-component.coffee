@@ -167,6 +167,7 @@ EditorComponent = React.createClass
 
   componentWillUpdate: ->
     if @props.editor.isAlive()
+      @requestScrollViewMeasurement()
       @props.parentView.trigger 'cursor:moved' if @cursorsMoved
       @props.parentView.trigger 'selection:changed' if @selectionChanged
 
@@ -176,7 +177,6 @@ EditorComponent = React.createClass
     @updateParentViewFocusedClassIfNeeded(prevState)
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
-    @requestScrollViewMeasurement()
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
