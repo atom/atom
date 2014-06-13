@@ -1053,7 +1053,7 @@ class DisplayBuffer extends Model
 
   createFoldForMarker: (marker) ->
     bufferMarker = new DisplayBufferMarker({bufferMarker: marker, displayBuffer: this})
-    @addDecorationForMarker(bufferMarker, type: 'gutter', class: 'folded')
+    @addDecorationForMarker(bufferMarker, class: 'folded')
     new Fold(this, marker)
 
   foldForMarker: (marker) ->
