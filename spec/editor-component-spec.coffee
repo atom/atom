@@ -232,13 +232,13 @@ describe "EditorComponent", ->
         editor.setText("a\0b")
         expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
-  describe "gutter rendering", ->
+  fdescribe "gutter rendering", ->
     [gutter] = []
 
     lineNumberHasClass = (screenRow, klass) ->
       component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
-    bufferRowHasClass = (bufferRow, klass) ->
+    lineNumberForBufferRowHasClass = (bufferRow, klass) ->
       screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
       component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
@@ -460,13 +460,13 @@ describe "EditorComponent", ->
 
           waitsFor -> not component.decorationChangedImmediate?
           runs ->
-            expect(bufferRowHasClass(9, 'someclass')).toBe true
+            expect(lineNumberForBufferRowHasClass(9, 'someclass')).toBe true
             editor.foldBufferRow(5)
             editor.removeDecorationForMarker(marker, decoration)
 
           waitsFor -> not component.decorationChangedImmediate?
           runs ->
-            expect(bufferRowHasClass(9, 'someclass')).toBe false
+            expect(lineNumberForBufferRowHasClass(9, 'someclass')).toBe false
 
         it "updates line number classes when the marker moves", ->
           expect(lineNumberHasClass(1, 'someclass')).toBe false
