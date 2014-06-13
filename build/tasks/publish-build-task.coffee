@@ -37,12 +37,12 @@ module.exports = (gruntObject) ->
 
     zipApps buildDir, assets, (error) ->
       return done(error) if error?
-      # getAtomDraftRelease (error, release) ->
-      #   return done(error) if error?
-      #   assetNames = (asset.assetName for asset in assets)
-      #   deleteExistingAssets release, assetNames, (error) ->
-      #     return done(error) if error?
-      #     uploadAssets(release, buildDir, assets, done)
+      getAtomDraftRelease (error, release) ->
+        return done(error) if error?
+        assetNames = (asset.assetName for asset in assets)
+        deleteExistingAssets release, assetNames, (error) ->
+          return done(error) if error?
+          uploadAssets(release, buildDir, assets, done)
 
 logError = (message, error, details) ->
   grunt.log.error(message)
@@ -52,7 +52,6 @@ logError = (message, error, details) ->
 zipApps = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
     if process.platform is 'win32'
-      console.log directory
       options = {cwd: directory, maxBuffer: Infinity}
       child_process.exec "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
         if error?
