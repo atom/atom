@@ -51,5 +51,13 @@ fix this, you probably need to fiddle with your system PATH.
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
 
+* `error MSB4025: The project file could not be loaded. Invalid character in the given encoding.`
+
+  * These can occur because your home directory (`%USERPROFILE%`) has non-ASCII
+    characters in it. This is a bug in [gyp](https://code.google.com/p/gyp/)
+    which is used to build native node modules and there is no known workaround.
+    * https://github.com/TooTallNate/node-gyp/issues/297
+    * https://code.google.com/p/gyp/issues/detail?id=393
+
 ### Windows build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows.
