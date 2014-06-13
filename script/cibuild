@@ -19,12 +19,18 @@ function loadEnvironmentVariables(filePath) {
       var value = parts[1].trim().substr(1, parts[1].length - 2);
       process.env[key] = value;
     }
-  } catch(error) { }
+  } catch(error) {
+    console.error("Failed to load environment variables: " + filePath, error);
+  }
 }
 
 function readEnvironmentVariables() {
-  loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials')
-  loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain')
+  if (process.platform === 'win32')
+    loadEnvironmentVariables('C:\\jenkins\\atomcredentials');
+  else {
+    loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
+    loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
+  }
 }
 
 readEnvironmentVariables();
