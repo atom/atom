@@ -56,8 +56,7 @@ zipApps = (buildDir, assets, callback) ->
       zipCommand = "zip -r --symlinks #{assetName} #{sourceName}"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
-      if error?
-        logError("Zipping #{sourceName} failed", error, stderr)
+      logError("Zipping #{sourceName} failed", error, stderr) if error?
       callback(error)
 
   tasks = []
