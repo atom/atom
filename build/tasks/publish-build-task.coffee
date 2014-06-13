@@ -29,8 +29,7 @@ module.exports = (gruntObject) ->
   grunt = gruntObject
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return unless process.platform is 'win32'
-    # return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
