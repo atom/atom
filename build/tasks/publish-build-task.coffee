@@ -8,11 +8,17 @@ GitHub = require 'github-releases'
 request = require 'request'
 
 grunt = null
-maxReleases = 10
-assets = [
-  {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
-  {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
-]
+
+if process.platform is 'darwin'
+  assets = [
+    {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
+    {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
+  ]
+else
+  assets = [
+    {assetName: 'atom-windows.zip', sourceName: 'Atom'}
+  ]
+
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
@@ -23,7 +29,6 @@ module.exports = (gruntObject) ->
   grunt = gruntObject
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return unless process.platform is 'darwin'
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
@@ -45,10 +50,13 @@ logError = (message, error, details) ->
 
 zipApps = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
+    if process.platform is 'win32'
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}"
+    else
+      zipCommand = "zip -r --symlinks #{assetName} #{sourceName}"
     options = {cwd: directory, maxBuffer: Infinity}
-    child_process.exec "zip -r --symlinks #{assetName} #{sourceName}", options, (error, stdout, stderr) ->
-      if error?
-        logError("Zipping #{sourceName} failed", error, stderr)
+    child_process.exec zipCommand, options, (error, stdout, stderr) ->
+      logError("Zipping #{sourceName} failed", error, stderr) if error?
       callback(error)
 
   tasks = []
