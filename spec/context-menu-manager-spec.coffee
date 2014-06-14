@@ -17,6 +17,19 @@ describe "ContextMenuManager", ->
       expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
       expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
 
+    it 'does not load duplicates',  ->
+      contextMenu.add 'file-path',
+        '.selector':
+          'label': 'command'
+
+      contextMenu.add 'file-path',
+        '.selector':
+          'another label': 'command'
+
+      expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
+      expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
+      expect(contextMenu.definitions['.selector'][1]).toBeUndefined()
+
     it "loads submenus", ->
       contextMenu.add 'file-path',
         '.selector':

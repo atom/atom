@@ -60,7 +60,8 @@ class ContextMenuManager
   #              editor is in dev mode.
   addBySelector: (selector, definition, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
-    (definitions[selector] ?= []).push(definition)
+    unless _.findWhere(definitions[selector], command: definition.command)
+      (definitions[selector] ?= []).push(definition)
 
   # Returns definitions which match the element and devMode.
   definitionsForElement: (element, {devMode}={}) ->
