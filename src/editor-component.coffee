@@ -96,7 +96,7 @@ EditorComponent = React.createClass
         }
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, decorations,
+          editor, lineHeightInPixels, defaultCharWidth, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
           selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
