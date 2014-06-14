@@ -30,9 +30,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   ```sh
   git clone https://github.com/atom/atom
   cd atom
-  script/build # Creates application at $TMPDIR/atom-build/Atom
-  sudo script/grunt install # Installs command to /usr/local/bin/atom
-  script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build
+  ./script/build # Creates application at $TMPDIR/atom-build/Atom
+  sudo ./script/grunt install # Installs command to /usr/local/bin/atom
+  ./script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build
   ```
 
 ## Troubleshooting
