@@ -35,14 +35,14 @@ GutterComponent = React.createClass
   # visible row range.
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow'
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow'#, 'decorations'
     )
 
     {renderedRowRange, pendingChanges, decorations} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
-    return true unless _.isEqual(@previousDecorations, decorations.decorationsByScreenRowForType('gutter'))
+    return true unless _.isEqual(@previousDecorations, decorations)
 
     false
 
@@ -81,8 +81,6 @@ GutterComponent = React.createClass
     newLineNumbersHTML = null
     visibleLineNumberIds = new Set
 
-    decorationsByScreenRow = decorations.decorationsByScreenRowForType('gutter')
-
     wrapCount = 0
     for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + index
@@ -97,12 +95,12 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorationsByScreenRow[screenRow])
+        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorations[screenRow])
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorationsByScreenRow[screenRow])
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorations[screenRow])
         @screenRowsByLineNumberId[id] = screenRow
         @lineNumberIdsByScreenRow[screenRow] = id
 
@@ -116,7 +114,7 @@ GutterComponent = React.createClass
         @lineNumberNodesById[lineNumberId] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    @previousDecorations = decorationsByScreenRow
+    @previousDecorations = decorations
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->

@@ -52,6 +52,8 @@ EditorComponent = React.createClass
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
       selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
       decorations = new Decorations(editor, renderedStartRow, renderedEndRow)
+      gutterDecorations = decorations.decorationsByScreenRowForType('gutter')
+      highlightDecorations = decorations.decorationsByMarkerIdForType('highlight')
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -74,9 +76,9 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter',
-        decorations, editor, renderedRowRange, maxLineNumberDigits, scrollTop,
-        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        ref: 'gutter', decorations: gutterDecorations,
+        editor, renderedRowRange, maxLineNumberDigits,
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
