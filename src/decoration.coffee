@@ -12,5 +12,7 @@ class Decoration
     @marker?.isValid()
 
   isType: (decorationType) ->
-    return true unless @type
-    decorationType is @type
+    if _.isArray(@type)
+      decorationType in @type
+    else
+      decorationType is @type
