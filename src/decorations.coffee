@@ -26,6 +26,15 @@ class Decorations
       @decorationsCache[decorationType] = filteredDecorations
     @decorationsCache[decorationType]
 
+  decorationsByMarkerIdForType: (decorationType) ->
+    filteredDecorations = {}
+    for id, decorations of @decorationsByMarkerId
+      for decoration in decorations
+        if decoration.isType(decorationType)
+          filteredDecorations[id] ?= []
+          filteredDecorations[id].push decoration
+    filteredDecorations
+
   indexDecorationsByScreenRow: (decorationsByMarkerId) ->
     decorationsByScreenRow = {}
     for id, decorations of decorationsByMarkerId

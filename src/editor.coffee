@@ -1260,6 +1260,7 @@ class Editor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
+      @addDecorationForMarker(marker, type: 'highlight', class: 'selection')
       @emit 'selection-added', selection
       selection
 

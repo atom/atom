@@ -8,18 +8,18 @@ HighlightsComponent = React.createClass
   displayName: 'HighlightsComponent'
 
   render: ->
-    div className: 'highlights', @renderSelections()
+    div className: 'highlights', @renderHighlights()
 
-  renderSelections: ->
-    {editor, selectionScreenRanges, lineHeightInPixels} = @props
+  renderHighlights: ->
+    {editor, decorations, lineHeightInPixels} = @props
+    decorationsbyMarkerId = decorations.decorationsByMarkerIdForType('highlight')
 
-    selectionComponents = []
-    for selectionId, screenRange of selectionScreenRanges
-      selectionComponents.push(HighlightComponent({key: selectionId, screenRange, editor, lineHeightInPixels}))
-    selectionComponents
-
-  componentWillMount: ->
-    @selectionRanges = {}
+    highlightComponents = []
+    for markerId, decorations of decorationsbyMarkerId
+      if decorations?
+        for decoration in decorations
+          highlightComponents.push(HighlightComponent({key: markerId + decoration.class, decoration, editor, lineHeightInPixels}))
+    highlightComponents
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth')
+    not isEqualForProperties(newProps, @props, 'decorations', 'lineHeightInPixels', 'defaultCharWidth')
