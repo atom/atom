@@ -112,6 +112,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # - {::deleteToBeginningOfWord}
 # - {::deleteToBeginningOfLine}
 # - {::delete}
+# - {::deleteToEndOfLine}
 # - {::deleteToEndOfWord}
 # - {::deleteLine}
 # - {::cutSelectedText}
@@ -688,6 +689,12 @@ class Editor extends Model
   # preceding the cursor. Otherwise delete the selected text.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
+
+  # Public: For each selection, if the selection is empty, delete all characters
+  # of the containing line following the cursor. Otherwise delete the selected
+  # text.
+  deleteToEndOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
 
   # Public: For each selection, if the selection is empty, delete all characters
   # of the containing word following the cursor. Otherwise delete the selected

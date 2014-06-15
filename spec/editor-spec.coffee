@@ -1831,6 +1831,32 @@ describe "Editor", ->
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
+    describe '.deleteToEndOfLine()', ->
+      describe 'when no text is selected', ->
+        it 'deletes all text between the cursor and the end of the line', ->
+          editor.setCursorBufferPosition([1, 24])
+          editor.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editor.getCursors()
+
+          editor.deleteToEndOfLine()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it'
+          expect(buffer.lineForRow(2)).toBe '    i'
+          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+
+        describe 'when at the end of the line', ->
+          it 'deletes the next newline', ->
+            editor.setCursorBufferPosition([1, 30])
+            editor.deleteToEndOfLine()
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+
+      describe 'when text is selected', ->
+        it 'deletes all text to end of the line starting from selection', ->
+          editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
+          editor.deleteToEndOfLine()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it'
+          expect(buffer.lineForRow(2)).toBe ''
+
     describe ".deleteToBeginningOfLine()", ->
       describe "when no text is selected", ->
         it "deletes all text between the cursor and the beginning of the line", ->
