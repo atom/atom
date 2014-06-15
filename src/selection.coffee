@@ -431,6 +431,12 @@ class Selection extends Model
     @deleteSelectedText()
 
   # Public: Removes the selection or all characters from the start of the
+  # selection to the end of the current line if nothing is selected.
+  deleteToEndOfLine: ->
+    @selectToEndOfLine() if @isEmpty()
+    @deleteSelectedText()
+
+  # Public: Removes the selection or all characters from the start of the
   # selection to the end of the current word if nothing is selected.
   deleteToEndOfWord: ->
     @selectToEndOfWord() if @isEmpty()

@@ -157,6 +157,7 @@ class EditorView extends View
       'editor:consolidate-selections': (event) => @consolidateSelections(event)
       'editor:delete-to-beginning-of-word': => @editor.deleteToBeginningOfWord()
       'editor:delete-to-beginning-of-line': => @editor.deleteToBeginningOfLine()
+      'editor:delete-to-end-of-line': => @editor.deleteToEndOfLine()
       'editor:delete-to-end-of-word': => @editor.deleteToEndOfWord()
       'editor:delete-line': => @editor.deleteLine()
       'editor:cut-to-end-of-line': => @editor.cutToEndOfLine()
