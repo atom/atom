@@ -61,10 +61,9 @@ module.exports = (grunt) ->
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
-    # Put patterns here that shouldn't be escaped
-    ignoredPaths.push _.escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb'
     # Add .* to avoid matching hunspell_dictionaries.
     ignoredPaths.push _.escapeRegExp(path.join('spellchecker', 'vendor', 'hunspell') + path.sep) + ".*"
+    ignoredPaths.push _.escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb'
 
     # Hunspell dictionaries are only not needed on OS X.
     if process.platform is 'darwin'
