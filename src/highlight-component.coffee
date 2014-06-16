@@ -6,13 +6,15 @@ HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
 
   render: ->
-    {editor, decoration, lineHeightInPixels} = @props
+    {editor, decoration} = @props
     {start, end} = decoration.screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)
 
-    div className: "highlight #{decoration.class or ''}",
+    className = 'highlight'
+    className += " #{decoration.class}" if decoration.class?
+    div {className},
       if rowCount is 1
         @renderSingleLineRegions(startPixelPosition, endPixelPosition)
       else
