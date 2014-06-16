@@ -437,7 +437,7 @@ describe "EditorComponent", ->
         editor.addDecorationForMarker(marker, decoration)
         waitsFor -> not component.decorationChangedImmediate?
 
-      it "initially renders off screen lines with line number classes based on the decorations on their buffer row", ->
+      it "does not render off-screen lines with line number classes until they are with in the rendered row range", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         component.measureScrollView()
 
@@ -453,7 +453,7 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(9, 'fancy-class')).toBe true
         expect(lineNumberHasClass(9, 'nope-class')).toBe false
 
-      it "initially renders off screen lines with line number classes based on the decorations on their buffer row", ->
+      it "renders classes on correct screen lines when the user folds a block of code", ->
         marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
         editor.addDecorationForMarker(marker, decoration)
 
