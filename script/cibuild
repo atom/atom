@@ -39,6 +39,7 @@ cp.safeExec.bind(global, 'npm install npm', {cwd: path.resolve(__dirname, '..', 
     if (error)
       process.exit(1);
     require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom'))
+    require('fs-plus').removeSync(path.resolve(__dirname, '..', 'spec', 'fixtures'))
     var async = require('async');
     var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
     var tasks = [
