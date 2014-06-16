@@ -789,6 +789,15 @@ describe "EditorComponent", ->
         regions = node.querySelectorAll('.test-highlight .region')
         expect(regions.length).toBe 0
 
+    it "does not render a highlight that is within a fold", ->
+      editor.foldBufferRow(1)
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        console.log editor.logScreenLines()
+        regionStyle = node.querySelector('.test-highlight .region').style
+        expect(regionStyle.width).toBe '0px'
+
     it "moves rendered highlights when the marker moves", ->
       regionStyle = node.querySelector('.test-highlight .region').style
       originalTop = parseInt(regionStyle.top)
