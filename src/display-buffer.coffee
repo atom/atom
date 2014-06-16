@@ -722,7 +722,7 @@ class DisplayBuffer extends Model
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
 
-    for marker in @findMarkers()
+    for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
       if decorations = @decorationsByMarkerId[marker.id]
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
