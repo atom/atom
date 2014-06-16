@@ -56,6 +56,7 @@ module.exports = (grunt) ->
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
+      path.join('build', 'Release', '.*\\.pdb')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
