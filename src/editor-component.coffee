@@ -469,6 +469,8 @@ EditorComponent = React.createClass
       editor.insertText(char)
 
   onMouseDown: (event) ->
+    return unless event.button is 0 # only handle the left mouse button
+
     {editor} = @props
     {detail, shiftKey, metaKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
