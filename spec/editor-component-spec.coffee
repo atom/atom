@@ -760,7 +760,6 @@ describe "EditorComponent", ->
         expect(component.getRenderedRowRange()[1]).toBeLessThan 9
 
         regions = node.querySelectorAll('.some-highlight .region')
-        console.log component.getRenderedRowRange(), regions
 
         # Nothing when outside the rendered row range
         expect(regions.length).toBe 0
@@ -794,7 +793,6 @@ describe "EditorComponent", ->
 
       waitsFor -> not component.decorationChangedImmediate?
       runs ->
-        console.log editor.logScreenLines()
         regionStyle = node.querySelector('.test-highlight .region').style
         expect(regionStyle.width).toBe '0px'
 
