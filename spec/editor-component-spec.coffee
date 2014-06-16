@@ -738,6 +738,93 @@ describe "EditorComponent", ->
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
+  describe "decoration highlight rendering", ->
+    [marker, decoration, scrollViewClientLeft] = []
+    beforeEach ->
+      scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
+      marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
+      decoration = {type: 'highlight', class: 'test-highlight'}
+      editor.addDecorationForMarker(marker, decoration)
+      waitsFor -> not component.decorationChangedImmediate?
+
+    it "does not render highlights for off-screen lines until they come on-screen", ->
+      node.style.height = 2.5 * lineHeightInPixels + 'px'
+      component.measureScrollView()
+
+      marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
+      editor.addDecorationForMarker(marker, type: 'highlight', class: 'some-highlight')
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        # Should not be rendering range containing the marker
+        expect(component.getRenderedRowRange()[1]).toBeLessThan 9
+
+        regions = node.querySelectorAll('.some-highlight .region')
+        console.log component.getRenderedRowRange(), regions
+
+        # Nothing when outside the rendered row range
+        expect(regions.length).toBe 0
+
+        verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+        regions = node.querySelectorAll('.some-highlight .region')
+
+        expect(regions.length).toBe 1
+        regionRect = regions[0].style
+        expect(regionRect.top).toBe 9 * lineHeightInPixels + 'px'
+        expect(regionRect.height).toBe 1 * lineHeightInPixels + 'px'
+        expect(regionRect.left).toBe 2 * charWidth + 'px'
+        expect(regionRect.width).toBe 2 * charWidth + 'px'
+
+    it "renders highlights decoration's marker is added", ->
+      regions = node.querySelectorAll('.test-highlight .region')
+      expect(regions.length).toBe 2
+
+    it "removes highlights when a decoration is removed", ->
+      editor.removeDecorationForMarker(marker, decoration)
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        regions = node.querySelectorAll('.test-highlight .region')
+        expect(regions.length).toBe 0
+
+    it "moves rendered highlights when the marker moves", ->
+      regionStyle = node.querySelector('.test-highlight .region').style
+      originalTop = parseInt(regionStyle.top)
+
+      editor.getBuffer().insert([0, 0], '\n')
+
+      regionStyle = node.querySelector('.test-highlight .region').style
+      newTop = parseInt(regionStyle.top)
+
+      expect(newTop).toBe originalTop + lineHeightInPixels
+
+    it "removes highlights when a decoration's marker is destroyed", ->
+      marker.destroy()
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        regions = node.querySelectorAll('.test-highlight .region')
+        expect(regions.length).toBe 0
+
+    it "only renders highlights when a decoration's marker is valid", ->
+      editor.getBuffer().insert([3, 2], 'n')
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        expect(marker.isValid()).toBe false
+        regions = node.querySelectorAll('.test-highlight .region')
+        expect(regions.length).toBe 0
+
+        editor.getBuffer().undo()
+
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        expect(marker.isValid()).toBe true
+        regions = node.querySelectorAll('.test-highlight .region')
+        expect(regions.length).toBe 2
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)
