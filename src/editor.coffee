@@ -691,8 +691,9 @@ class Editor extends Model
     @mutateSelectedText (selection) -> selection.delete()
 
   # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing line following the cursor. Otherwise delete the selected
-  # text.
+  # of the containing line following the cursor, or if the cursor is at the end
+  # of the line, delete the following newline. If not empty, delete the
+  # selected text.
   deleteToEndOfLine: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
 

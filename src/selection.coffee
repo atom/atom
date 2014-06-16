@@ -430,15 +430,14 @@ class Selection extends Model
         @selectRight()
     @deleteSelectedText()
 
-  # Public: Removes all characters from the end of the selection to the end of
-  # the current line (if no selection then the rest of the line).
-  # If the cursor is at the end of the line, deletes the newline.
+  # Public: If nothing selected, removes all characters from cursor
+  # until the end of the current line, unless already at the end of
+  # the line, in which case removes the following newline.
+  # If there is a selection, deletes only the selection.
   deleteToEndOfLine: ->
-    if @isEmpty() and @cursor.isAtEndOfLine()
-      @delete()
-    else
-      @selectToEndOfLine()
-      @deleteSelectedText()
+    return @delete() if @isEmpty() and @cursor.isAtEndOfLine()
+    @selectToEndOfLine() if @isEmpty()
+    @deleteSelectedText()
 
   # Public: Removes the selection or all characters from the start of the
   # selection to the end of the current word if nothing is selected.

@@ -1851,11 +1851,11 @@ describe "Editor", ->
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe 'when text is selected', ->
-        it 'deletes all text to end of the line starting from selection', ->
+        it 'deletes only the text in the selection', ->
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToEndOfLine()
-          expect(buffer.lineForRow(1)).toBe '  var sort = function(it'
-          expect(buffer.lineForRow(2)).toBe ''
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
     describe ".deleteToBeginningOfLine()", ->
       describe "when no text is selected", ->
