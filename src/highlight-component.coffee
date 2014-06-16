@@ -7,7 +7,7 @@ HighlightComponent = React.createClass
 
   render: ->
     {editor, decoration, lineHeightInPixels} = @props
-    {start, end} = decoration.getScreenRange()
+    {start, end} = decoration.screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)

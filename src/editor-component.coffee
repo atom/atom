@@ -239,8 +239,11 @@ EditorComponent = React.createClass
     for id, decorations of decorationsByMarkerId
       for decoration in decorations
         if decoration.isType(decorationType)
+          # Using decoration.toObject() for comparability sake. This effectively
+          # caches the current state of the decoration object (importantly, the range).
+          # We need to cache the range because the Decoration's marker's range changes.
           filteredDecorations[id] ?= []
-          filteredDecorations[id].push decoration
+          filteredDecorations[id].push decoration.toObject()
     filteredDecorations
 
   decorationsByScreenRowForType: (decorationsByScreenRow, decorationType) ->
@@ -251,13 +254,13 @@ EditorComponent = React.createClass
       for decoration in decorations
         if decoration.isType(decorationType)
           filteredDecorations[screenRow] ?= []
-          filteredDecorations[screenRow].push decoration
+          filteredDecorations[screenRow].push decoration.toObject()
 
     [startScreenRow, endScreenRow] = @getRenderedRowRange()
     for screenRow in [startScreenRow...endScreenRow]
       if editor.isFoldableAtScreenRow(screenRow)
         filteredDecorations[screenRow] ?= []
-        filteredDecorations[screenRow].push new Decoration(null, class: 'foldable')
+        filteredDecorations[screenRow].push {class: 'foldable'}
 
     filteredDecorations
 
