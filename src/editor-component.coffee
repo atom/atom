@@ -238,7 +238,7 @@ EditorComponent = React.createClass
     filteredDecorations = {}
     for id, decorations of decorationsByMarkerId
       for decoration in decorations
-        if decoration.isType(decorationType)
+        if decoration.isType(decorationType) and decoration.isValid()
           # Using decoration.toObject() for comparability sake. This effectively
           # caches the current state of the decoration object (importantly, the range).
           # We need to cache the range because the Decoration's marker's range changes.
