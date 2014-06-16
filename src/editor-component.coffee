@@ -278,17 +278,6 @@ EditorComponent = React.createClass
 
     filteredDecorations
 
-  getGutterDecorations:  (renderedRowRange) ->
-    [renderedStartRow, renderedEndRow] = renderedRowRange
-
-    bufferRows = editor.bufferRowsForScreenRows(renderedStartRow, renderedEndRow - 1)
-
-    decorations = {}
-    for bufferRow in bufferRows
-      decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, 'gutter')
-      decorations[bufferRow].push {class: 'foldable'} if editor.isFoldableAtBufferRow(bufferRow)
-    decorations
-
   observeEditor: ->
     {editor} = @props
     @subscribe editor, 'batched-updates-started', @onBatchedUpdatesStarted
