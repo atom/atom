@@ -50,7 +50,6 @@ EditorComponent = React.createClass
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
-      selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
 
       decorationsByMarkerId = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @decorationsByMarkerIdForType(decorationsByMarkerId, 'highlight')
@@ -101,8 +100,8 @@ EditorComponent = React.createClass
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, highlightDecorations,
-          showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
-          selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+          showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
+          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
         }
 
@@ -223,22 +222,6 @@ EditorComponent = React.createClass
       if renderedStartRow <= screenRange.start.row < renderedEndRow
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
-
-  getSelectionScreenRanges: (renderedRowRange) ->
-    {editor} = @props
-    [renderedStartRow, renderedEndRow] = renderedRowRange
-
-    selectionScreenRanges = {}
-    for selection, index in editor.getSelections()
-      screenRange = selection.getScreenRange()
-
-      if not screenRange.isEmpty() and screenRange.intersectsRowRange(renderedStartRow, renderedEndRow)
-        selectionScreenRanges[selection.id] = screenRange
-
-      else if index is 0 # Rendering artifacts occur on the lines GPU layer if we remove the last selection
-        selectionScreenRanges[selection.id] = new Range(new Point(renderedStartRow, 0), new Point(renderedStartRow, 0))
-
-    selectionScreenRanges
 
   indexDecorationsByScreenRow: (decorationsByMarkerId) ->
     decorationsByScreenRow = {}
