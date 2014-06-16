@@ -105,7 +105,4 @@ module.exports = (grunt) ->
       failures.push "atom core" if coreSpecFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
-      if process.platform is 'win32'
-        done() # TODO remove once all specs consistently pass
-      else
-        done(!coreSpecFailed and failedPackages.length == 0)
+      done(!coreSpecFailed and failedPackages.length == 0)
