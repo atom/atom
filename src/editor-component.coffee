@@ -4,7 +4,7 @@ React = require 'react-atom-fork'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 
-Decorations = require './decorations'
+Decoration = require './decoration'
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
@@ -51,9 +51,13 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
       selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
-      decorations = new Decorations(editor, renderedStartRow, renderedEndRow)
-      gutterDecorations = decorations.decorationsByScreenRowForType('gutter')
-      highlightDecorations = decorations.decorationsByMarkerIdForType('highlight')
+
+      decorationsByMarkerId = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
+      highlightDecorations = @decorationsByMarkerIdForType(decorationsByMarkerId, 'highlight')
+
+      decorationsByScreenRow = @indexDecorationsByScreenRow(decorationsByMarkerId)
+      gutterDecorations = @decorationsByScreenRowForType(decorationsByScreenRow, 'gutter')
+
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -235,6 +239,44 @@ EditorComponent = React.createClass
         selectionScreenRanges[selection.id] = new Range(new Point(renderedStartRow, 0), new Point(renderedStartRow, 0))
 
     selectionScreenRanges
+
+  indexDecorationsByScreenRow: (decorationsByMarkerId) ->
+    decorationsByScreenRow = {}
+    for id, decorations of decorationsByMarkerId
+      for decoration in decorations
+        continue unless decoration.isValid()
+        range = decoration.getScreenRange()
+        for screenRow in [range.start.row..range.end.row]
+          decorationsByScreenRow[screenRow] ?= []
+          decorationsByScreenRow[screenRow].push(decoration)
+    decorationsByScreenRow
+
+  decorationsByMarkerIdForType: (decorationsByMarkerId, decorationType) ->
+    filteredDecorations = {}
+    for id, decorations of decorationsByMarkerId
+      for decoration in decorations
+        if decoration.isType(decorationType)
+          filteredDecorations[id] ?= []
+          filteredDecorations[id].push decoration
+    filteredDecorations
+
+  decorationsByScreenRowForType: (decorationsByScreenRow, decorationType) ->
+    {editor} = @props
+    filteredDecorations = {}
+
+    for screenRow, decorations of decorationsByScreenRow
+      for decoration in decorations
+        if decoration.isType(decorationType)
+          filteredDecorations[screenRow] ?= []
+          filteredDecorations[screenRow].push decoration
+
+    [startScreenRow, endScreenRow] = @getRenderedRowRange()
+    for screenRow in [startScreenRow...endScreenRow]
+      if editor.isFoldableAtScreenRow(screenRow)
+        filteredDecorations[screenRow] ?= []
+        filteredDecorations[screenRow].push new Decoration(null, class: 'foldable')
+
+    filteredDecorations
 
   getGutterDecorations:  (renderedRowRange) ->
     [renderedStartRow, renderedEndRow] = renderedRowRange
