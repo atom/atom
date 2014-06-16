@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
   {cp, isAtomPackage, mkdir, rm} = require('./task-helpers')(grunt)
@@ -49,18 +50,22 @@ module.exports = (grunt) ->
       path.join('bootstrap', 'examples')
       path.join('pegjs', 'examples')
       path.join('plist', 'tests')
-      # Add .* to avoid matching hunspell_dictionaries.
-      path.join('spellchecker', 'vendor', 'hunspell', '.*')
       path.join('xmldom', 'test')
       path.join('jasmine-reporters', 'ext')
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
-      path.join('build', 'Release', '.*\\.pdb')
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
     ]
+    ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
+
+    # Put patterns here that shouldn't be escaped
+    ignoredPaths.push _.escapeRegExp(path.join('build', 'Release') + path.sep) + '.*\\.pdb'
+    # Add .* to avoid matching hunspell_dictionaries.
+    ignoredPaths.push _.escapeRegExp(path.join('spellchecker', 'vendor', 'hunspell') + path.sep) + ".*"
+
     # Hunspell dictionaries are only not needed on OS X.
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
