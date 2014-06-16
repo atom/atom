@@ -36,7 +36,7 @@ module.exports = (grunt) ->
     grunt.log.write = (args...) -> grunt.log
 
   [major, minor, patch] = packageJson.version.split('.')
-  tmpDir = os.tmpdir()
+  tmpDir = process.env.BUILD_DIR ? os.tmpdir()
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
