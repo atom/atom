@@ -51,11 +51,9 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
 
-      decorationsByMarkerId = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
-      highlightDecorations = @decorationsByMarkerIdForType(decorationsByMarkerId, 'highlight')
-
-      decorationsByScreenRow = @indexDecorationsByScreenRow(decorationsByMarkerId)
-      gutterDecorations = @decorationsByScreenRowForType(decorationsByScreenRow, 'gutter')
+      decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
+      decorationsByMarkerId = @filterDecorationsByMarkerId(decorations)
+      decorationsByScreenRow = @filterDecorationsByScreenRow(decorations)
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -79,7 +77,7 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', decorations: gutterDecorations,
+        ref: 'gutter', decorations: decorationsByScreenRow,
         editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
@@ -99,7 +97,7 @@ EditorComponent = React.createClass
         }
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, highlightDecorations,
+          editor, lineHeightInPixels, defaultCharWidth, decorationsByScreenRow, decorationsByMarkerId,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
@@ -223,45 +221,27 @@ EditorComponent = React.createClass
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
 
-  indexDecorationsByScreenRow: (decorationsByMarkerId) ->
+  filterDecorationsByScreenRow: (decorationsByMarkerId) ->
     decorationsByScreenRow = {}
     for id, decorations of decorationsByMarkerId
       for decoration in decorations
-        continue unless decoration.isValid()
-        range = decoration.getScreenRange()
-        for screenRow in [range.start.row..range.end.row]
-          decorationsByScreenRow[screenRow] ?= []
-          decorationsByScreenRow[screenRow].push(decoration)
+        if decoration.isValid() and decoration.isType('gutter') or decoration.isType('line')
+          range = decoration.getScreenRange()
+          for screenRow in [range.start.row..range.end.row]
+            decorationsByScreenRow[screenRow] ?= []
+            decorationsByScreenRow[screenRow].push decoration.toObject()
     decorationsByScreenRow
 
-  decorationsByMarkerIdForType: (decorationsByMarkerId, decorationType) ->
+  filterDecorationsByMarkerId: (decorationsByMarkerId) ->
     filteredDecorations = {}
     for id, decorations of decorationsByMarkerId
       for decoration in decorations
-        if decoration.isType(decorationType) and decoration.isValid()
+        if decoration.isValid() and decoration.isType('highlight')
           # Using decoration.toObject() for comparability sake. This effectively
           # caches the current state of the decoration object (importantly, the range).
           # We need to cache the range because the Decoration's marker's range changes.
           filteredDecorations[id] ?= []
           filteredDecorations[id].push decoration.toObject()
-    filteredDecorations
-
-  decorationsByScreenRowForType: (decorationsByScreenRow, decorationType) ->
-    {editor} = @props
-    filteredDecorations = {}
-
-    for screenRow, decorations of decorationsByScreenRow
-      for decoration in decorations
-        if decoration.isType(decorationType)
-          filteredDecorations[screenRow] ?= []
-          filteredDecorations[screenRow].push decoration.toObject()
-
-    [startScreenRow, endScreenRow] = @getRenderedRowRange()
-    for screenRow in [startScreenRow...endScreenRow]
-      if editor.isFoldableAtScreenRow(screenRow)
-        filteredDecorations[screenRow] ?= []
-        filteredDecorations[screenRow].push {class: 'foldable'}
-
     filteredDecorations
 
   observeEditor: ->

@@ -11,14 +11,14 @@ HighlightsComponent = React.createClass
     div className: 'highlights', @renderHighlights()
 
   renderHighlights: ->
-    {editor, highlightDecorations, lineHeightInPixels} = @props
+    {editor, decorationsByMarkerId, lineHeightInPixels} = @props
 
     highlightComponents = []
-    for markerId, decorations of highlightDecorations
+    for markerId, decorations of decorationsByMarkerId
       if decorations?
         for decoration in decorations
           highlightComponents.push(HighlightComponent({key: "#{markerId}-#{decoration.class}", decoration, editor, lineHeightInPixels}))
     highlightComponents
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth')
+    not isEqualForProperties(newProps, @props, 'decorationsByMarkerId', 'lineHeightInPixels', 'defaultCharWidth')

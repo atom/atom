@@ -2,6 +2,12 @@ _ = require 'underscore-plus'
 
 module.exports =
 class Decoration
+  @isType: (decoration, decorationType) ->
+    if _.isArray(decoration.type)
+      decorationType in decoration.type
+    else
+      decorationType is decoration.type
+
   constructor: (@marker, properties) ->
     _.extend(this, properties)
 
@@ -12,10 +18,7 @@ class Decoration
     @marker?.isValid()
 
   isType: (decorationType) ->
-    if _.isArray(@type)
-      decorationType in @type
-    else
-      decorationType is @type
+    Decoration.isType(this, decorationType)
 
   toObject: ->
     copy = {}

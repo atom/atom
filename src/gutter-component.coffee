@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
+Decoration = require './decoration'
 SubscriberMixin = require './subscriber-mixin'
 
 WrapperDiv = document.createElement('div')
@@ -127,8 +128,8 @@ GutterComponent = React.createClass
         node.removeChild(lineNumberNode)
 
   buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow, decorations) ->
+    {editor, lineHeightInPixels} = @props
     if screenRow?
-      {lineHeightInPixels} = @props
       style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
     else
       style = "visibility: hidden;"
@@ -137,7 +138,10 @@ GutterComponent = React.createClass
     classes = ''
     if decorations?
       for decoration in decorations
-        classes += decoration.class + ' ' if not softWrapped or softWrapped and decoration.softWrap
+        if Decoration.isType(decoration, 'gutter')
+          classes += decoration.class + ' ' if not softWrapped or softWrapped and decoration.softWrap
+
+    classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
     classes += "line-number line-number-#{bufferRow}"
 
     "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
@@ -153,16 +157,22 @@ GutterComponent = React.createClass
     padding + lineNumber + iconHTML
 
   updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped, decorations) ->
+    {editor} = @props
     node = @lineNumberNodesById[lineNumberId]
     previousDecorations = @previousDecorations[screenRow]
 
+    if editor.isFoldableAtBufferRow(bufferRow)
+      node.classList.add('foldable')
+    else
+      node.classList.remove('foldable')
+
     if previousDecorations?
       for decoration in previousDecorations
-        node.classList.remove(decoration.class) if not contains(decorations, decoration)
+        node.classList.remove(decoration.class) if Decoration.isType(decoration, 'gutter') and not contains(decorations, decoration)
 
     if decorations?
       for decoration in decorations
-        if not contains(previousDecorations, decoration) and (not softWrapped or softWrapped and decoration.softWrap)
+        if Decoration.isType(decoration, 'gutter') and not contains(previousDecorations, decoration) and (not softWrapped or softWrapped and decoration.softWrap)
           node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
