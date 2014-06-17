@@ -53,7 +53,7 @@ class AtomReporter extends View
         @div outlet: "message", class: 'message'
       @div outlet: "results", class: 'results'
 
-      @div outlet: "deprecations", class: 'status alert alert-warning', =>
+      @div outlet: "deprecations", class: 'status alert alert-warning', style: 'display: none', =>
         @span outlet: 'deprecationStatus', '0 deprecations'
         @div class: 'deprecation-toggle'
       @div outlet: 'deprecationList', class: 'deprecation-list'
@@ -98,6 +98,7 @@ class AtomReporter extends View
   addDeprecations: (spec) ->
     deprecations = grim.getDeprecations()
     @deprecationCount += deprecations.length
+    @deprecations.show() if @deprecationCount > 0
     if @deprecationCount is 1
       @deprecationStatus.text("1 deprecation")
     else
