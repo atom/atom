@@ -856,6 +856,12 @@ describe "EditorComponent", ->
         regions = node.querySelectorAll('.test-highlight .region')
         expect(regions.length).toBe 2
 
+    it "allows the same marker to be decorated with multiple highlights of the same class", ->
+      editor.addDecorationForMarker(marker, type: 'highlight', class: 'test-highlight')
+      waitsFor -> not component.decorationChangedImmediate?
+      runs ->
+        expect(node.querySelectorAll('.test-highlight').length).toBe 2
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)

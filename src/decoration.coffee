@@ -1,5 +1,7 @@
 _ = require 'underscore-plus'
 
+IdCounter = 1
+
 module.exports =
 class Decoration
   @isType: (decoration, decorationType) ->
@@ -9,6 +11,7 @@ class Decoration
       decorationType is decoration.type
 
   constructor: (@marker, properties) ->
+    @id = IdCounter++
     _.extend(this, properties)
 
   getScreenRange: ->
@@ -22,6 +25,7 @@ class Decoration
 
   toObject: ->
     copy = {}
+    copy.id = @id
     copy.valid = @isValid()
     copy.screenRange = @getScreenRange().copy()
 

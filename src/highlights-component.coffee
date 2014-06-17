@@ -17,7 +17,8 @@ HighlightsComponent = React.createClass
     for markerId, decorations of highlightDecorations
       if decorations?
         for decoration in decorations
-          highlightComponents.push(HighlightComponent({key: "#{markerId}-#{decoration.class}", decoration, editor, lineHeightInPixels}))
+          highlightComponents.push(HighlightComponent({key: decoration.id, decoration, editor, lineHeightInPixels}))
+
     highlightComponents
 
   shouldComponentUpdate: (newProps) ->
