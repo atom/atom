@@ -52,8 +52,8 @@ EditorComponent = React.createClass
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
-      decorationsByMarkerId = @filterDecorationsByMarkerId(decorations)
       decorationsByScreenRow = @filterDecorationsByScreenRow(decorations)
+      highlightDecorations = @getHighlightDecorations(decorations)
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -97,7 +97,7 @@ EditorComponent = React.createClass
         }
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, decorationsByScreenRow, decorationsByMarkerId,
+          editor, lineHeightInPixels, defaultCharWidth, decorationsByScreenRow, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
@@ -232,7 +232,7 @@ EditorComponent = React.createClass
             decorationsByScreenRow[screenRow].push decoration.toObject()
     decorationsByScreenRow
 
-  filterDecorationsByMarkerId: (decorationsByMarkerId) ->
+  getHighlightDecorations: (decorationsByMarkerId) ->
     filteredDecorations = {}
     for id, decorations of decorationsByMarkerId
       for decoration in decorations

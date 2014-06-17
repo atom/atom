@@ -15,14 +15,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, decorationsByMarkerId, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
+      {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines editor-colors', style},
-      HighlightsComponent({editor, decorationsByMarkerId, lineHeightInPixels, defaultCharWidth}) if @isMounted()
+      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -32,7 +32,7 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'decorationsByMarkerId', 'lineHeightInPixels', 'defaultCharWidth',
+      'renderedRowRange', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow'
     )
