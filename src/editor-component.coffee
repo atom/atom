@@ -600,9 +600,7 @@ EditorComponent = React.createClass
 
     if position is 'absolute' or width
       clientWidth = scrollViewNode.clientWidth
-      if clientWidth > 0
-        overflowExpander.style.height = clientHeight + "px"
-        editor.setWidth(clientWidth)
+      editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
