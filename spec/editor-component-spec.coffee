@@ -1271,11 +1271,16 @@ describe "EditorComponent", ->
 
   describe "when the editor component is resized", ->
     it "updates the size in the editor model", ->
+      spyOn(editor, 'setHeight').andCallThrough()
       originalHeight = editor.getHeight()
       fourLinesHeight = 4 * editor.getLineHeightInPixels()
       node.style.height = "#{originalHeight - fourLinesHeight}px"
-      component.forceUpdate()
-      expect(editor.getHeight()).not.toBe originalHeight
+
+      waitsFor ->
+        editor.setHeight.callCount > 0
+
+      runs ->
+        expect(editor.getHeight()).not.toBe originalHeight
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
