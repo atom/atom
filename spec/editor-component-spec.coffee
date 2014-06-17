@@ -540,6 +540,31 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(3, 'someclass')).toBe false
           expect(lineNumberHasClass(4, 'someclass')).toBe false
 
+      describe "when soft wrapping is enabled", ->
+        beforeEach ->
+          editor.setText "a line that wraps, ok"
+          editor.setSoftWrap(true)
+          node.style.width = 16 * charWidth + 'px'
+          component.measureScrollView()
+
+        it "applies decoration only to the first row when marker range does not wrap", ->
+          marker = editor.displayBuffer.markBufferRange([[0, 0], [0, 0]])
+          editor.addDecorationForMarker(marker, type: 'gutter', class: 'someclass')
+
+          waitsFor -> not component.decorationChangedImmediate?
+          runs ->
+            expect(lineNumberHasClass(0, 'someclass')).toBe true
+            expect(lineNumberHasClass(1, 'someclass')).toBe false
+
+        it "applies decoration to both rows when marker wraps", ->
+          marker = editor.displayBuffer.markBufferRange([[0, 0], [0, Infinity]])
+          editor.addDecorationForMarker(marker, type: 'gutter', class: 'someclass')
+
+          waitsFor -> not component.decorationChangedImmediate?
+          runs ->
+            expect(lineNumberHasClass(0, 'someclass')).toBe true
+            expect(lineNumberHasClass(1, 'someclass')).toBe true
+
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
       cursor1 = editor.getCursor()
