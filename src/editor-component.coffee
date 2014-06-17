@@ -37,6 +37,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   inputEnabled: true
+  scrollViewMeasurementInterval: 100
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -72,9 +73,6 @@ EditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      div ref: 'overflowTester', className: 'overflow-tester', (div ref: 'overflowExpander', className: 'overflow-expander')
-
-
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
         scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
@@ -150,6 +148,8 @@ EditorComponent = React.createClass
   componentDidMount: ->
     {editor} = @props
 
+    @scrollViewMeasurementIntervalId = setInterval(@requestScrollViewMeasurement, @scrollViewMeasurementInterval)
+
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
@@ -166,6 +166,8 @@ EditorComponent = React.createClass
 
   componentWillUnmount: ->
     @unsubscribe()
+    clearInterval(@scrollViewMeasurementIntervalId)
+    @scrollViewMeasurementIntervalId = null
 
   componentWillUpdate: ->
     if @props.editor.isAlive()
@@ -255,6 +257,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-changed', @onDecorationChanged
+    @subscribe editor.$height.changes, @requestUpdate
+    @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
@@ -264,9 +268,6 @@ EditorComponent = React.createClass
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
-
-    overflowTester = @refs.overflowTester.getDOMNode()
-    overflowTester.addEventListener 'overflowchanged', @requestScrollViewMeasurement
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
@@ -587,20 +588,18 @@ EditorComponent = React.createClass
 
     {editor} = @props
     editorNode = @getDOMNode()
-    overflowExpander = @refs.overflowExpander.getDOMNode()
     scrollViewNode = @refs.scrollView.getDOMNode()
     {position} = getComputedStyle(editorNode)
     {width, height} = editorNode.style
 
-    if position is 'absolute' or height
-      clientHeight =  scrollViewNode.clientHeight
-      if clientHeight > 0
-        overflowExpander.style.height = clientHeight + "px"
-        editor.setHeight(clientHeight)
+    editor.batchUpdates ->
+      if position is 'absolute' or height
+        clientHeight =  scrollViewNode.clientHeight
+        editor.setHeight(clientHeight) if clientHeight > 0
 
-    if position is 'absolute' or width
-      clientWidth = scrollViewNode.clientWidth
-      editor.setWidth(clientWidth) if clientWidth > 0
+      if position is 'absolute' or width
+        clientWidth = scrollViewNode.clientWidth
+        editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')

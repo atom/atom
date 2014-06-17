@@ -1270,17 +1270,19 @@ describe "EditorComponent", ->
         expect(node.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
 
   describe "when the editor component is resized", ->
-    it "updates the size in the editor model", ->
-      spyOn(editor, 'setHeight').andCallThrough()
-      originalHeight = editor.getHeight()
-      fourLinesHeight = 4 * editor.getLineHeightInPixels()
-      node.style.height = "#{originalHeight - fourLinesHeight}px"
+    it "updates the component based on a new size", ->
+      editor.setSoftWrap(true)
+      newHeight = 4 * editor.getLineHeightInPixels() + "px"
+      expect(newHeight).toBeLessThan node.style.height
+      node.style.height = newHeight
 
-      waitsFor ->
-        editor.setHeight.callCount > 0
+      advanceClock(component.scrollViewMeasurementInterval)
+      expect(node.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
-      runs ->
-        expect(editor.getHeight()).not.toBe originalHeight
+      gutterWidth = node.querySelector('.gutter').offsetWidth
+      node.style.width = gutterWidth + 14 * charWidth + 'px'
+      advanceClock(component.scrollViewMeasurementInterval)
+      expect(node.querySelector('.line').textContent).toBe "var quicksort "
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
