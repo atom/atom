@@ -23,7 +23,9 @@ module.exports = (grunt) ->
     {name, version, description} = grunt.file.readJSON('package.json')
     section = 'devel'
     maintainer = 'GitHub <atom@github.com>'
-    data = {name, version, description, section, arch, maintainer}
+    installDir = '/usr'
+    iconName = 'atom'
+    data = {name, version, description, section, arch, maintainer, installDir, iconName}
 
     control = path.join('resources', 'linux', 'debian', 'control')
     fillTemplate(control, data)
