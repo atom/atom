@@ -736,12 +736,12 @@ describe "EditorComponent", ->
       expect(region3Rect.left).toBe scrollViewClientLeft + 0
       expect(region3Rect.width).toBe 10 * charWidth
 
-    it "does not render empty selections unless they are the first selection (to prevent a Chromium rendering artifact caused by removing it)", ->
+    it "does not render empty selections", ->
       editor.addSelectionForBufferRange([[2, 2], [2, 2]])
       expect(editor.getSelection(0).isEmpty()).toBe true
       expect(editor.getSelection(1).isEmpty()).toBe true
 
-      expect(node.querySelectorAll('.selection').length).toBe 1
+      expect(node.querySelectorAll('.selection').length).toBe 0
 
     it "updates selections when the line height changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
@@ -818,8 +818,7 @@ describe "EditorComponent", ->
 
       waitsFor -> not component.decorationChangedImmediate?
       runs ->
-        regionStyle = node.querySelector('.test-highlight .region').style
-        expect(regionStyle.width).toBe '0px'
+        expect(node.querySelectorAll('.test-highlight').length).toBe 0
 
     it "moves rendered highlights when the marker moves", ->
       regionStyle = node.querySelector('.test-highlight .region').style

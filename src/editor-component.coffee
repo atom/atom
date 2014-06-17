@@ -233,15 +233,17 @@ EditorComponent = React.createClass
     decorationsByScreenRow
 
   getHighlightDecorations: (decorationsByMarkerId) ->
+    {editor} = @props
     filteredDecorations = {}
-    for id, decorations of decorationsByMarkerId
-      for decoration in decorations
-        if decoration.isValid() and decoration.isType('highlight')
-          # Using decoration.toObject() for comparability sake. This effectively
-          # caches the current state of the decoration object (importantly, the range).
-          # We need to cache the range because the Decoration's marker's range changes.
-          filteredDecorations[id] ?= []
-          filteredDecorations[id].push decoration.toObject()
+    for markerId, decorations of decorationsByMarkerId
+      unless editor.getMarker(markerId).getScreenRange().isEmpty()
+        for decoration in decorations
+          if decoration.isValid() and decoration.isType('highlight')
+            # Using decoration.toObject() for comparability sake. This effectively
+            # caches the current state of the decoration object (importantly, the range).
+            # We need to cache the range because the Decoration's marker's range changes.
+            filteredDecorations[markerId] ?= []
+            filteredDecorations[markerId].push decoration.toObject()
     filteredDecorations
 
   observeEditor: ->
