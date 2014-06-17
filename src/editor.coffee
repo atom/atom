@@ -1063,20 +1063,38 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  # Public: Get all the decorations for a buffer row.
+  # Public: Get all the decorations within a screen row range.
   #
-  # bufferRow - the {int} buffer row
-  # decorationType - the {String} decoration type to filter by eg. 'gutter'
+  # startScreenRow - the {int} beginning screen row
+  # endScreenRow - the {int} end screen row (inclusive)
   #
-  # Returns an {Array} of decorations in the form `[{type: 'gutter', class: 'someclass'}, ...]`
-  # Returns an empty array when no decorations are found
+  # Returns an {Object} of decorations in the form `{1: [{type: 'gutter', class: 'someclass'}], 2: ...}`
+  #   where the keys are markerIds, and the values are an array of {Decoration} objects attached to the marker.
+  # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
-  # Public: Removes a decoration from a buffer row.
+  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
+  #
+  # There are a few supported decoration types:
+  # * `gutter`: `{type: 'gutter', class: 'linter-error'}` Will add a class to the gutter rows associated with the marker.
+  # * `line`: `{type: 'line', class: 'linter-error'}` Will add a class to the editor lines associated with the marker.
+  # * `highlight`: `{type: 'highlight', class: 'linter-error'}` Will highlight the region of the buffer associated with the marker. Your specified class will be added to the highlight.
+  #
+  # marker - the {Marker} you want this decoration to follow
+  # decoration - the {Object} decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  #
+  # Returns nothing
+  addDecorationForMarker: (marker, decoration) ->
+    @displayBuffer.addDecorationForMarker(marker, decoration)
+
+  # Public: Removes all decorations associated with a {Marker} that match a
+  # `decorationPattern` and stop tracking the {Marker}.
   #
   # ```coffee
-  # editor.removeDecorationFromBufferRow(2, {type: 'gutter', class: 'linter-error'})
+  # marker = editor.markBufferRange([[4, 13], [5, 17]])
+  # editor.removeDecorationForMarker(marker, {type: 'gutter', class: 'linter-error'})
   # ```
   #
   # All decorations matching a pattern will be removed. For example, you might
@@ -1092,34 +1110,8 @@ class Editor extends Model
   # You can remove both with:
   #
   # ```coffee
-  # editor.removeDecorationFromBufferRow(2, {namespace: 'myns'})
+  # editor.removeDecorationForMarker(marker, {namespace: 'myns'})
   # ```
-  #
-  # bufferRow - the {int} buffer row
-  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns an {Array} of the removed decorations
-
-  # Public: Adds a decoration to line numbers in a buffer row range
-  #
-  # startBufferRow - the {int} start of the buffer row range
-  # endBufferRow - the {int} end of the buffer row range (inclusive)
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-
-  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
-  #
-  # marker - the {Marker} you want this decoration to follow
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-  addDecorationForMarker: (marker, decoration) ->
-    @displayBuffer.addDecorationForMarker(marker, decoration)
-
-  # Public: Removes all decorations associated with a {Marker} that match a
-  # `decorationPattern` and stop tracking the {Marker}.
   #
   # marker - the {Marker} to detach from
   # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
