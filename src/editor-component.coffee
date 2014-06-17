@@ -73,6 +73,9 @@ EditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+      div ref: 'overflowTester', className: 'overflow-tester', (div ref: 'overflowExpander', className: 'overflow-expander')
+
+
       GutterComponent {
         ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
         scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
@@ -164,11 +167,9 @@ EditorComponent = React.createClass
 
   componentWillUnmount: ->
     @unsubscribe()
-    window.removeEventListener('resize', @onWindowResize)
 
   componentWillUpdate: ->
     if @props.editor.isAlive()
-      @requestScrollViewMeasurement()
       @props.parentView.trigger 'cursor:moved' if @cursorsMoved
       @props.parentView.trigger 'selection:changed' if @selectionChanged
 
@@ -271,9 +272,11 @@ EditorComponent = React.createClass
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
 
+    overflowTester = @refs.overflowTester.getDOMNode()
+    overflowTester.addEventListener 'overflowchanged', @requestScrollViewMeasurement
+
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener('resize', @onWindowResize)
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
@@ -449,12 +452,6 @@ EditorComponent = React.createClass
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
 
-  onScrollViewOverflowChanged: ->
-    @requestScrollViewMeasurement()
-
-  onWindowResize: ->
-    @requestScrollViewMeasurement()
-
   onScrollViewScroll: ->
     console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
     scrollViewNode = @refs.scrollView.getDOMNode()
@@ -597,18 +594,22 @@ EditorComponent = React.createClass
 
     {editor} = @props
     editorNode = @getDOMNode()
+    overflowExpander = @refs.overflowExpander.getDOMNode()
     scrollViewNode = @refs.scrollView.getDOMNode()
     {position} = getComputedStyle(editorNode)
     {width, height} = editorNode.style
 
-    @suppressUpdates ->
-      if position is 'absolute' or height
-        clientHeight =  scrollViewNode.clientHeight
-        editor.setHeight(clientHeight) if clientHeight > 0
+    if position is 'absolute' or height
+      clientHeight =  scrollViewNode.clientHeight
+      if clientHeight > 0
+        overflowExpander.style.height = clientHeight + "px"
+        editor.setHeight(clientHeight)
 
-      if position is 'absolute' or width
-        clientWidth = scrollViewNode.clientWidth
-        editor.setWidth(clientWidth) if clientWidth > 0
+    if position is 'absolute' or width
+      clientWidth = scrollViewNode.clientWidth
+      if clientWidth > 0
+        overflowExpander.style.height = clientHeight + "px"
+        editor.setWidth(clientWidth)
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
