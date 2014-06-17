@@ -98,10 +98,10 @@ class AtomReporter extends View
   addDeprecations: (spec) ->
     deprecations = grim.getDeprecations()
     @deprecationCount += deprecations.length
-    if @deprecationCount > 1
-      @deprecationStatus.text("#{@deprecationCount} deprecations")
-    else
+    if @deprecationCount is 1
       @deprecationStatus.text("1 deprecation")
+    else
+      @deprecationStatus.text("#{@deprecationCount} deprecations")
 
     for deprecation in deprecations
       @deprecationList.append $$ ->
