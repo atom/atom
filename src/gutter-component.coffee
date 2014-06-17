@@ -36,10 +36,10 @@ GutterComponent = React.createClass
   # visible row range.
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'decorations'
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations'
     )
 
-    {renderedRowRange, pendingChanges, decorations} = newProps
+    {renderedRowRange, pendingChanges, lineDecorations} = newProps
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
@@ -73,7 +73,7 @@ GutterComponent = React.createClass
     @removeLineNumberNodes(lineNumberIdsToPreserve)
 
   appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, renderedRowRange, scrollTop, maxLineNumberDigits, decorations} = @props
+    {editor, renderedRowRange, scrollTop, maxLineNumberDigits, lineDecorations} = @props
     [startRow, endRow] = renderedRowRange
 
     newLineNumberIds = null
@@ -94,12 +94,12 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, decorations[screenRow])
+        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0, lineDecorations[screenRow])
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, decorations[screenRow])
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow, lineDecorations[screenRow])
         @screenRowsByLineNumberId[id] = screenRow
         @lineNumberIdsByScreenRow[screenRow] = id
 
@@ -113,7 +113,7 @@ GutterComponent = React.createClass
         @lineNumberNodesById[lineNumberId] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    @previousDecorations = decorations
+    @previousDecorations = lineDecorations
     visibleLineNumberIds
 
   removeLineNumberNodes: (lineNumberIdsToPreserve) ->

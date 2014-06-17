@@ -52,8 +52,8 @@ EditorComponent = React.createClass
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
-      decorationsByScreenRow = @filterDecorationsByScreenRow(decorations)
       highlightDecorations = @getHighlightDecorations(decorations)
+      lineDecorations = @getLineDecorations(decorations)
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -77,7 +77,7 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', decorations: decorationsByScreenRow,
+        ref: 'gutter', lineDecorations,
         editor, renderedRowRange, maxLineNumberDigits,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
@@ -97,7 +97,7 @@ EditorComponent = React.createClass
         }
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, decorationsByScreenRow, highlightDecorations,
+          editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
@@ -221,7 +221,7 @@ EditorComponent = React.createClass
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
 
-  filterDecorationsByScreenRow: (decorationsByMarkerId) ->
+  getLineDecorations: (decorationsByMarkerId) ->
     decorationsByScreenRow = {}
     for id, decorations of decorationsByMarkerId
       for decoration in decorations
