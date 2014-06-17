@@ -763,7 +763,7 @@ describe "EditorComponent", ->
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
-  describe "decoration highlight rendering", ->
+  describe "highlight decoration rendering", ->
     [marker, decoration, scrollViewClientLeft] = []
     beforeEach ->
       scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
