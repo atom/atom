@@ -9,7 +9,6 @@ RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 DisplayBufferMarker = require './display-buffer-marker'
-Decoration = require './decoration'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -727,17 +726,21 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
+  decorationMatchesType: (decoration, type) ->
+    if _.isArray(decoration.type)
+      type in decoration.type
+    else
+      type is decoration.type
+
   decorationMatchesPattern: (decoration, decorationPattern) ->
     return false unless decoration? and decorationPattern?
     for key, value of decorationPattern
       return false if decoration[key] != value
     true
 
-  addDecorationForMarker: (marker, properties) ->
+  addDecorationForMarker: (marker, decoration) ->
     marker = @getMarker(marker.id)
     @decorationMarkerSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
-
-    decoration = new Decoration(marker, properties)
 
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)

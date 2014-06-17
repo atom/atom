@@ -4,7 +4,6 @@ React = require 'react-atom-fork'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 
-Decoration = require './decoration'
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
@@ -222,28 +221,30 @@ EditorComponent = React.createClass
     cursorScreenRanges
 
   getLineDecorations: (decorationsByMarkerId) ->
+    {editor} = @props
     decorationsByScreenRow = {}
-    for id, decorations of decorationsByMarkerId
-      for decoration in decorations
-        if decoration.isValid() and decoration.isType('gutter') or decoration.isType('line')
-          range = decoration.getScreenRange()
-          for screenRow in [range.start.row..range.end.row]
-            decorationsByScreenRow[screenRow] ?= []
-            decorationsByScreenRow[screenRow].push decoration.toObject()
+    for markerId, decorations of decorationsByMarkerId
+      marker = editor.getMarker(markerId)
+      screenRange = null
+      if marker.isValid()
+        for decoration in decorations
+          if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
+            screenRange ?= marker.getScreenRange()
+            for screenRow in [screenRange.start.row..screenRange.end.row]
+              decorationsByScreenRow[screenRow] ?= []
+              decorationsByScreenRow[screenRow].push decoration
     decorationsByScreenRow
 
   getHighlightDecorations: (decorationsByMarkerId) ->
     {editor} = @props
     filteredDecorations = {}
     for markerId, decorations of decorationsByMarkerId
-      unless editor.getMarker(markerId).getScreenRange().isEmpty()
+      marker = editor.getMarker(markerId)
+      if marker.isValid() and not marker.getScreenRange().isEmpty()
         for decoration in decorations
-          if decoration.isValid() and decoration.isType('highlight')
-            # Using decoration.toObject() for comparability sake. This effectively
-            # caches the current state of the decoration object (importantly, the range).
-            # We need to cache the range because the Decoration's marker's range changes.
-            filteredDecorations[markerId] ?= []
-            filteredDecorations[markerId].push decoration.toObject()
+          if editor.decorationMatchesType(decoration, 'highlight')
+            filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
+            filteredDecorations[markerId].decorations.push decoration
     filteredDecorations
 
   observeEditor: ->

@@ -6,8 +6,8 @@ HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
 
   render: ->
-    {editor, decoration} = @props
-    {start, end} = decoration.screenRange
+    {editor, screenRange, decoration} = @props
+    {start, end} = screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)

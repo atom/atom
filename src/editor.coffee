@@ -1120,6 +1120,9 @@ class Editor extends Model
   removeDecorationForMarker: (marker, decorationPattern) ->
     @displayBuffer.removeDecorationForMarker(marker, decorationPattern)
 
+  decorationMatchesType: (decoration, type) ->
+    @displayBuffer.decorationMatchesType(decoration, type)
+
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)

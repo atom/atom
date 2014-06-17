@@ -995,24 +995,10 @@ describe "DisplayBuffer", ->
   describe "decorations", ->
     it "can add decorations associated with markers and remove them", ->
       decoration = {type: 'gutter', class: 'one'}
-      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
+      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
+
       displayBuffer.addDecorationForMarker(marker, decoration)
-
-      decoration = displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]
-      expect(decoration.getScreenRange()).toEqual [[2, 13], [3, 15]]
-      expect(decoration.isValid()).toBe true
-      expect(decoration.class).toBe 'one'
-
-      buffer.insert([0, 0], '\n')
-      expect(decoration.getScreenRange()).toEqual [[3, 13], [4, 15]]
-      expect(decoration.isValid()).toBe true
-
-      buffer.insert([4, 2], 'n')
-      expect(decoration.isValid()).toBe false
-
-      buffer.undo()
-      expect(decoration.getScreenRange()).toEqual [[3, 13], [4, 15]]
-      expect(decoration.isValid()).toBe true
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
       displayBuffer.removeDecorationForMarker(marker, decoration)
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()

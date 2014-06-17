@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
-Decoration = require './decoration'
 SubscriberMixin = require './subscriber-mixin'
 
 WrapperDiv = document.createElement('div')
@@ -138,7 +137,7 @@ GutterComponent = React.createClass
     classes = ''
     if decorations?
       for decoration in decorations
-        if Decoration.isType(decoration, 'gutter')
+        if editor.decorationMatchesType(decoration, 'gutter')
           classes += decoration.class + ' '
 
     classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
@@ -168,11 +167,11 @@ GutterComponent = React.createClass
 
     if previousDecorations?
       for decoration in previousDecorations
-        node.classList.remove(decoration.class) if Decoration.isType(decoration, 'gutter') and not contains(decorations, decoration)
+        node.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'gutter') and not contains(decorations, decoration)
 
     if decorations?
       for decoration in decorations
-        if Decoration.isType(decoration, 'gutter') and not contains(previousDecorations, decoration)
+        if editor.decorationMatchesType(decoration, 'gutter') and not contains(previousDecorations, decoration)
           node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
