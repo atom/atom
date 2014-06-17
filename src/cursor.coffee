@@ -114,9 +114,10 @@ class Cursor extends Model
 
   # Public: Get the RegExp used by the cursor to determine what a "word" is.
   #
-  # options: An {Object} with the following keys:
+  # options: An optional {Object} with the following keys:
   #   :includeNonWordCharacters - A {Boolean} indicating whether to include
   #                               non-word characters in the regex.
+  #                               (default: true)
   #
   # Returns a {RegExp}.
   wordRegExp: ({includeNonWordCharacters}={})->
