@@ -135,6 +135,10 @@ body {
     padding: 5px 0 5px 0;
   }
 
+  .result-message.deprecation-message {
+    color: #f0ad4e;
+  }
+
   .stack-trace {
     font-size: 12px;
     margin: 5px 0 0 0;
@@ -173,5 +177,25 @@ body {
       -webkit-line-clamp: inherit;
       // overflow: hidden;
     }
+  }
+
+  .deprecation-toggle {
+    .octicon(fold);
+    float: right;
+    cursor: pointer;
+    opacity: 0;
+    color: #999;
+
+    &.folded {
+      .octicon(unfold);
+    }
+  }
+
+  .deprecation-toggle:hover {
+    color: #333;
+  }
+
+  &:hover .deprecation-toggle {
+    opacity: 1;
   }
 }
