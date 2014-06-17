@@ -257,10 +257,10 @@ EditorComponent = React.createClass
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-changed', @onDecorationChanged
-    @subscribe editor.$height.changes, @requestUpdate
-    @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
+    @subscribe editor.$height.changes, @requestUpdate
+    @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
     @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
@@ -271,6 +271,7 @@ EditorComponent = React.createClass
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
+    window.addEventListener 'resize', @requestScrollViewMeasurement
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
