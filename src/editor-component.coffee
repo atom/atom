@@ -22,7 +22,6 @@ EditorComponent = React.createClass
   selectOnMouseMove: false
   batchingUpdates: false
   updateRequested: false
-  updatesSuppressed: false
   cursorsMoved: false
   selectionChanged: false
   selectionAdded: false
@@ -182,16 +181,10 @@ EditorComponent = React.createClass
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
-    unless @updatesSuppressed
-      if @batchingUpdates
-        @updateRequested = true
-      else
-        @forceUpdate()
-
-  suppressUpdates: (fn) ->
-    @updatesSuppressed = true
-    fn()
-    @updatesSuppressed = false
+    if @batchingUpdates
+      @updateRequested = true
+    else
+      @forceUpdate()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
