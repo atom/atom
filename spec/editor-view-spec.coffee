@@ -2082,7 +2082,7 @@ describe "EditorView", ->
         tab = miniEditor.invisibles?.tab
         expect(tab).toBeTruthy()
         miniEditor.getEditor().setText(" a line with tabs\tand spaces ")
-        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
+        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab}and spaces#{space}"
 
       it "doesn't show the indent guide", ->
         atom.config.set "editor.showIndentGuide", true
