@@ -42,7 +42,7 @@ module.exports = (grunt) ->
 
       # Create Atom.desktop if installation in '/usr/local'
       applicationsDir = path.join('/usr','share','applications')
-      tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp';
+      tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0 and fs.isDirectorySync(applicationsDir)
         {description} = grunt.file.readJSON('package.json')
         fillTemplate(desktopFile, {description, installDir, iconName})
