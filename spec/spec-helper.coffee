@@ -33,7 +33,12 @@ $(window).on 'unload', ->
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
-jasmine.getEnv().defaultTimeoutInterval = 5000
+
+if process.platform is 'win32' and process.env.JANKY_SHA1
+  # Use longer timeout on Windows CI
+  jasmine.getEnv().defaultTimeoutInterval = 30000
+else
+  jasmine.getEnv().defaultTimeoutInterval = 5000
 
 specPackageName = null
 specPackagePath = null
