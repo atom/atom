@@ -48,13 +48,12 @@ class Token
       column = startColumn
 
       for token in @breakOutSurrogatePairs()
-        nextColumn += token.value.length
         if token.isAtomic
           outputTokens.push(token)
         else
           outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingSoftTabs, column)...)
         breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
-        column = nextColumn
+        column += token.value.length
 
       outputTokens
     else
