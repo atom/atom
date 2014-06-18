@@ -916,7 +916,7 @@ describe "EditorComponent", ->
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
-  describe "mouse interactions", ->
+  describe "mouse interactions on the scrollView", ->
     linesNode = null
 
     beforeEach ->
@@ -1017,12 +1017,6 @@ describe "EditorComponent", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
           expect(editor.isFoldedAtBufferRow 4).toBe false
 
-    clientCoordinatesForScreenPosition = (screenPosition) ->
-      positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
-      scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
-      clientX = scrollViewClientRect.left + positionOffset.left - editor.getScrollLeft()
-      clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
-      {clientX, clientY}
 
   describe "focus handling", ->
     inputNode = null
@@ -1443,3 +1437,11 @@ describe "EditorComponent", ->
       Object.defineProperty(event, 'target', get: -> properties.target)
       Object.defineProperty(event, 'srcObject', get: -> properties.target)
     event
+
+  clientCoordinatesForScreenPosition = (screenPosition) ->
+    positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
+    scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
+    clientX = scrollViewClientRect.left + positionOffset.left - editor.getScrollLeft()
+    clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
+    {clientX, clientY}
+
