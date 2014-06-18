@@ -24,11 +24,25 @@ describe "ContextMenuManager", ->
 
       contextMenu.add 'file-path',
         '.selector':
-          'another label': 'command'
+          'label': 'command'
 
       expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
       expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
       expect(contextMenu.definitions['.selector'][1]).toBeUndefined()
+
+    it 'allows duplicate commands with different labels',  ->
+      contextMenu.add 'file-path',
+        '.selector':
+          'label': 'command'
+
+      contextMenu.add 'file-path',
+        '.selector':
+          'another label': 'command'
+
+      expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
+      expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
+      expect(contextMenu.definitions['.selector'][1].label).toEqual 'another label'
+      expect(contextMenu.definitions['.selector'][1].command).toEqual 'command'
 
     it "loads submenus", ->
       contextMenu.add 'file-path',
