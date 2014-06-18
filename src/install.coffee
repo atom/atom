@@ -106,13 +106,20 @@ class Install extends Command
     @fork @atomNpmPath, installArgs, installOptions, (code, stderr='', stdout='') =>
       if code is 0
         if installGlobally
+          commands = []
           for child in fs.readdirSync(nodeModulesDirectory)
             source = path.join(nodeModulesDirectory, child)
             destination = path.join(@atomPackagesDirectory, child)
-            fs.cp(source, destination, forceDelete: true)
-          @logSuccess()
-
-        callback()
+            do (source, destination) ->
+              commands.push (callback) -> fs.cp(source, destination, callback)
+          async.waterfall commands, (error) =>
+            if error?
+              @logFailure()
+            else
+              @logSuccess()
+            callback(error)
+        else
+          callback()
       else
         if installGlobally
           fs.removeSync(installDirectory)

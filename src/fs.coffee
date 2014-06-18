@@ -2,6 +2,7 @@ fs = require 'fs-plus'
 _ = require 'underscore-plus'
 runas = null
 wrench = require 'wrench'
+ncp = require 'ncp'
 
 fsAdditions =
   list: (directoryPath) ->
@@ -16,8 +17,9 @@ fsAdditions =
   listRecursive: (directoryPath) ->
     wrench.readdirSyncRecursive(directoryPath)
 
-  cp: (sourcePath, destinationPath, options) ->
-    wrench.copyDirSyncRecursive(sourcePath, destinationPath, options)
+  cp: (sourcePath, destinationPath, callback) ->
+    fs.removeSync(destinationPath)
+    ncp(sourcePath, destinationPath, callback)
 
   safeSymlinkSync: (source, target) ->
     if process.platform is 'win32'
