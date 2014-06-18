@@ -127,8 +127,7 @@ class TokenizedLine
     column = @startBufferColumn
     for token in inputTokens
       newTokens = token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs, column)
-      for newToken in newTokens
-        column += newToken.value.length
+      column += newToken.value.length for newToken in newTokens
       outputTokens.push(newTokens...)
       breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
