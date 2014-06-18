@@ -232,6 +232,19 @@ describe "EditorComponent", ->
         editor.setText("a\0b")
         expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
+    describe "when there is a fold", ->
+      it "renders a fold marker on the folded line", ->
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
+        editor.foldBufferRow(4)
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeTruthy()
+
+        editor.unfoldBufferRow(4)
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
   describe "gutter rendering", ->
     [gutter] = []
 
