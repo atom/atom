@@ -46,6 +46,7 @@ module.exports = (grunt) ->
       if installDir.indexOf(tmpDir) isnt 0
         mkdir path.dirname(desktopInstallFile)
         {description} = grunt.file.readJSON('package.json')
+        installDir = path.join(installDir,'.') # To prevent "Exec=/usr/local//share/atom/atom"
         fillTemplate(desktopFile, {description, installDir, iconName})
         cp desktopFile, desktopInstallFile
 
