@@ -16,8 +16,8 @@ GutterComponent = React.createClass
   render: ->
     {scrollHeight, scrollTop} = @props
 
-    div className: 'gutter', onClick: @onClick,
-      div className: 'line-numbers editor-colors', ref: 'lineNumbers', style:
+    div className: 'gutter editor-colors', onClick: @onClick,
+      div className: 'line-numbers', ref: 'lineNumbers', style:
         height: scrollHeight
         WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
 
