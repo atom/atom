@@ -37,6 +37,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   inputEnabled: true
+  scrollViewMeasurementInterval: 100
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -150,6 +151,8 @@ EditorComponent = React.createClass
   componentDidMount: ->
     {editor} = @props
 
+    @scrollViewMeasurementIntervalId = setInterval(@requestScrollViewMeasurement, @scrollViewMeasurementInterval)
+
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
@@ -166,7 +169,8 @@ EditorComponent = React.createClass
 
   componentWillUnmount: ->
     @unsubscribe()
-    window.removeEventListener('resize', @onWindowResize)
+    clearInterval(@scrollViewMeasurementIntervalId)
+    @scrollViewMeasurementIntervalId = null
 
   componentWillUpdate: ->
     if @props.editor.isAlive()
@@ -270,9 +274,8 @@ EditorComponent = React.createClass
     node.addEventListener 'textInput', @onTextInput
 
     scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.addEventListener 'overflowchanged', @onScrollViewOverflowChanged
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener('resize', @onWindowResize)
+    window.addEventListener 'resize', @requestScrollViewMeasurement
 
   listenForCommands: ->
     {parentView, editor, mini} = @props
@@ -468,12 +471,6 @@ EditorComponent = React.createClass
         @pendingVerticalScrollDelta = 0
         @pendingHorizontalScrollDelta = 0
 
-  onScrollViewOverflowChanged: ->
-    @requestScrollViewMeasurement()
-
-  onWindowResize: ->
-    @requestScrollViewMeasurement()
-
   onScrollViewScroll: ->
     console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
     scrollViewNode = @refs.scrollView.getDOMNode()
@@ -610,13 +607,14 @@ EditorComponent = React.createClass
     {position} = getComputedStyle(editorNode)
     {width, height} = editorNode.style
 
-    if position is 'absolute' or height
-      clientHeight =  scrollViewNode.clientHeight
-      editor.setHeight(clientHeight) if clientHeight > 0
+    editor.batchUpdates ->
+      if position is 'absolute' or height
+        clientHeight =  scrollViewNode.clientHeight
+        editor.setHeight(clientHeight) if clientHeight > 0
 
-    if position is 'absolute' or width
-      clientWidth = scrollViewNode.clientWidth
-      editor.setWidth(clientWidth) if clientWidth > 0
+      if position is 'absolute' or width
+        clientWidth = scrollViewNode.clientWidth
+        editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
