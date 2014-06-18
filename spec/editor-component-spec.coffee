@@ -1017,7 +1017,6 @@ describe "EditorComponent", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
           expect(editor.isFoldedAtBufferRow 4).toBe false
 
-
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
       scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
