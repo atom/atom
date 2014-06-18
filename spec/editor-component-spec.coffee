@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 ReactEditorView = require '../src/react-editor-view'
 nbsp = String.fromCharCode(160)
 
-fdescribe "EditorComponent", ->
+describe "EditorComponent", ->
   [contentNode, editor, wrapperView, component, node, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame, lineOverdrawMargin] = []
 
