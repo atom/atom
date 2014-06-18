@@ -15,9 +15,9 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {scrollHeight, scrollViewHeight, scrollTop} = @props
+    {scrollHeight, scrollViewHeight, scrollTop, onMouseDown} = @props
 
-    div className: 'gutter', onClick: @onClick,
+    div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
       # The line-numbers div must have the 'editor-colors' class so it has an
       # opaque background to avoid sub-pixel anti-aliasing problems on the GPU
       div className: 'gutter line-numbers editor-colors', ref: 'lineNumbers', style:
