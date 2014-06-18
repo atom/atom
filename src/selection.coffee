@@ -430,6 +430,15 @@ class Selection extends Model
         @selectRight()
     @deleteSelectedText()
 
+  # Public: If the selection is empty, removes all text from the cursor to the
+  # end of the line. If the cursor is already at the end of the line, it
+  # removes the following newline. If the selection isn't empty, only deletes
+  # the contents of the selection.
+  deleteToEndOfLine: ->
+    return @delete() if @isEmpty() and @cursor.isAtEndOfLine()
+    @selectToEndOfLine() if @isEmpty()
+    @deleteSelectedText()
+
   # Public: Removes the selection or all characters from the start of the
   # selection to the end of the current word if nothing is selected.
   deleteToEndOfWord: ->
