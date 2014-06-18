@@ -11,6 +11,9 @@ propose changes to this document in a pull request.
 
 ## Submitting Issues
 
+* Check the [debugging guide](https://atom.io/docs/latest/debugging) for tips
+  on debugging. You might be able to find the cause of the problem and fix 
+  things yourself.
 * Include the version of Atom you are using and the OS.
 * Include screenshots and animated GIFs whenever possible; they are immensely
   helpful.

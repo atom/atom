@@ -1,6 +1,13 @@
 # Debugging
 
-Atom provides several tools to help you understand unexpected behavior and debug problems. This guide describes some of those tools and a few approaches to help you debug and provide more helpful information when [submitting issues].
+Atom provides several tools to help you understand unexpected behavior and debug problems. This guide describes some of those tools and a few approaches to help you debug and provide more helpful information when [submitting issues]:
+
+* [Update to the latest version](#update-to-the-latest-version)
+* [Check Atom and package settings](#check-atom-and-package-settings) 
+* [Check the keybindings](#check-the-keybindings)
+* [Check if the problem shows up in safe mode](#check-if-the-problem-shows-up-in-safe-mode)
+* [Check your config files](#check-your-config-files)
+* [Check for errors in the developer tools](#check-for-errors-in-the-developer-tools)
 
 ## Update to the latest version
 

@@ -7,6 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
     * on Ubuntu/Debian: `sudo apt-get install build-essential`
+    * on Fedora: `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel`
   * [node.js](http://nodejs.org/download/) v0.10.x
     * [Ubuntu/Debian/Mint instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os)
     * [Fedora instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora)
@@ -20,6 +21,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
     * This command may require `sudo` depending on how you have
       [configured npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+  * Git
+    * on Ubuntu/Debian: `sudo apt-get install git`
+    * on Fedora: `sudo yum install git-core`
 
 ## Instructions
 

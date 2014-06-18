@@ -2,6 +2,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 {View, $, $$} = require '../src/space-pen-extensions'
+grim = require 'grim'
 
 sourceMaps = {}
 formatStackTrace = (spec, message='', stackTrace) ->
@@ -52,6 +53,11 @@ class AtomReporter extends View
         @div outlet: "message", class: 'message'
       @div outlet: "results", class: 'results'
 
+      @div outlet: "deprecations", class: 'status alert alert-warning', style: 'display: none', =>
+        @span outlet: 'deprecationStatus', '0 deprecations'
+        @div class: 'deprecation-toggle'
+      @div outlet: 'deprecationList', class: 'deprecation-list'
+
   startedAt: null
   runningSpecCount: 0
   completeSpecCount: 0
@@ -59,6 +65,7 @@ class AtomReporter extends View
   failedCount: 0
   skippedCount: 0
   totalSpecCount: 0
+  deprecationCount: 0
   @timeoutId: 0
 
   reportRunnerStarting: (runner) ->
@@ -88,11 +95,41 @@ class AtomReporter extends View
   reportSpecStarting: (spec) ->
     @specStarted(spec)
 
+  addDeprecations: (spec) ->
+    deprecations = grim.getDeprecations()
+    @deprecationCount += deprecations.length
+    @deprecations.show() if @deprecationCount > 0
+    if @deprecationCount is 1
+      @deprecationStatus.text("1 deprecation")
+    else
+      @deprecationStatus.text("#{@deprecationCount} deprecations")
+
+    for deprecation in deprecations
+      @deprecationList.append $$ ->
+        @div class: 'padded', =>
+          @div class: 'result-message fail deprecation-message', deprecation.message
+
+          for stack in deprecation.stacks
+            fullStack = stack.map ({functionName, location}) ->
+              if functionName is '<unknown>'
+                "  at #{location}"
+              else
+                "  at #{functionName} (#{location})"
+            @pre class: 'stack-trace padded', formatStackTrace(spec, deprecation.message, fullStack.join('\n'))
+    grim.clearDeprecations()
+
   handleEvents: ->
     $(document).on "click", ".spec-toggle", ({currentTarget}) =>
       element = $(currentTarget)
       specFailures = element.parent().find('.spec-failures')
       specFailures.toggle()
+      element.toggleClass('folded')
+      false
+
+    $(document).on "click", ".deprecation-toggle", ({currentTarget}) =>
+      element = $(currentTarget)
+      deprecationList = $(document).find('.deprecation-list')
+      deprecationList.toggle()
       element.toggleClass('folded')
       false
 
@@ -175,6 +212,7 @@ class AtomReporter extends View
       specView = new SpecResultView(spec)
       specView.attach()
       @failedCount++
+    @addDeprecations(spec)
 
 class SuiteResultView extends View
   @content: ->

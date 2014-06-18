@@ -368,6 +368,8 @@ class EditorView extends View
       false if @isFocused
 
     @overlayer.on 'mousedown', (e) =>
+      return unless e.which is 1 # only handle the left mouse button
+
       @overlayer.hide()
       clickedElement = document.elementFromPoint(e.pageX, e.pageY)
       @overlayer.show()
@@ -567,7 +569,7 @@ class EditorView extends View
       @scrollTop(scrollTop)
 
     @subscribe @editor, 'scroll-left-changed', (scrollLeft) =>
-      @scrollLeft(scrollLeft)
+      @scrollView.scrollLeft(scrollLeft)
 
     @subscribe @editor, 'soft-wrap-changed', (softWrap) =>
       @setSoftWrap(softWrap)

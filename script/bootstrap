@@ -10,6 +10,8 @@ function executeCommands(commands, done, index) {
   index = (index == undefined ? 0 : index);
   if (index < commands.length) {
     var command = commands[index];
+    if (command.message)
+      console.log(command.message);
     var options = null;
     if (typeof command !== 'string') {
       options = command.options;
@@ -36,12 +38,10 @@ function bootstrap() {
   var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 
   var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season', 'grim'];
-  var echoNewLine = process.platform == 'win32' ? 'echo.' : 'echo';
 
   var commands = [
-    {command: initialNpmCommand + npmFlags + 'install --quiet', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-    {command: npmPath + npmFlags + 'install --quiet', options: {cwd: apmInstallPath, ignoreStdout: true}},
-    echoNewLine,
+    {command: initialNpmCommand + npmFlags + 'install --quiet', message: 'Installing build modules...', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+    {command: npmPath + npmFlags + 'install --quiet', message: 'Installing apm...', options: {cwd: apmInstallPath, ignoreStdout: true}},
     apmPath + ' clean ' + apmFlags,
     apmPath + ' install --quiet ' + apmFlags,
     apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
