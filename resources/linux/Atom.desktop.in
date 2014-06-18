@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Atom
 Comment=<%= description %>
-Exec=/usr/share/atom/atom %U
-Icon=atom
+Exec=<%= installDir %>/share/atom/atom %U
+Icon=<%= iconName %>
 Type=Application
 StartupNotify=true
 Categories=GNOME;GTK;Utility;TextEditor;
