@@ -163,5 +163,9 @@ describe 'apm install', ->
           callback.callCount is 1
 
         runs ->
-          expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
-          expect(fs.realpathSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBe fs.realpathSync(path.join(testModuleDirectory, 'node_modules', 'test-module-with-bin', 'bin', 'abin.js'))
+          expect(fs.isFileSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
+
+          if process.platform is 'win32'
+            expect(fs.isFileSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBeTruthy()
+          else
+            expect(fs.realpathSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBe fs.realpathSync(path.join(testModuleDirectory, 'node_modules', 'test-module-with-bin', 'bin', 'abin.js'))
