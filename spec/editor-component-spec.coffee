@@ -232,6 +232,19 @@ describe "EditorComponent", ->
         editor.setText("a\0b")
         expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
+    describe "when there is a fold", ->
+      it "renders a fold marker on the folded line", ->
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
+        editor.foldBufferRow(4)
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeTruthy()
+
+        editor.unfoldBufferRow(4)
+        foldedLineNode = component.lineNodeForScreenRow(4)
+        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
   describe "gutter rendering", ->
     [gutter] = []
 
@@ -993,6 +1006,16 @@ describe "EditorComponent", ->
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
+
+    describe "when a line is folded", ->
+      beforeEach ->
+        editor.foldBufferRow 4
+
+      describe "when the folded line's fold-marker is clicked", ->
+        it "unfolds the buffer row", ->
+          target = component.lineNodeForScreenRow(4).querySelector '.fold-marker'
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
+          expect(editor.isFoldedAtBufferRow 4).toBe false
 
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)

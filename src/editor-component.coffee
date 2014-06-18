@@ -485,6 +485,11 @@ EditorComponent = React.createClass
     {detail, shiftKey, metaKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
 
+    if event.target?.classList.contains('fold-marker')
+      bufferRow = editor.bufferRowForScreenRow(screenPosition.row)
+      editor.unfoldBufferRow(bufferRow)
+      return
+
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
     else if metaKey

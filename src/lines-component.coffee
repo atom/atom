@@ -121,6 +121,7 @@ LinesComponent = React.createClass
     else
       lineHTML += @buildLineInnerHTML(line)
 
+    lineHTML += '<span class="fold-marker"></span>' if fold
     lineHTML += "</div>"
     lineHTML
 
