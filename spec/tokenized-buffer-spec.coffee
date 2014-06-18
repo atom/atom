@@ -346,24 +346,24 @@ describe "TokenizedBuffer", ->
 
       it "aligns the hard tabs to the correct tab stop column", ->
         buffer.setText """
-          1\t2
-          12\t3
-          123\t4
+          1\t2 \t3\t4
+          12\t3  \t4\t5
+          123\t4   \t5\t6
         """
 
         tokenizedBuffer.setTabLength(4)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1   2"
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3"
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4"
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1   2   3   4"
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4   5"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4       5   6"
 
         tokenizedBuffer.setTabLength(2)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2"
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3"
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4"
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2   3 4"
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4 5"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4     5 6"
 
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
