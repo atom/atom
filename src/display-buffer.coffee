@@ -739,6 +739,10 @@ class DisplayBuffer extends Model
     true
 
   addDecorationForMarker: (marker, decoration) ->
+    unless marker?
+      console.warn 'A null marker cannot be decorated'
+      return
+
     marker = @getMarker(marker.id)
     @decorationMarkerSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
 
@@ -747,6 +751,10 @@ class DisplayBuffer extends Model
     @emit 'decoration-added', marker, decoration
 
   removeDecorationForMarker: (marker, decorationPattern) ->
+    unless marker?
+      console.warn 'A decoration cannot be removed from a null marker'
+      return
+
     return unless @decorationMarkerSubscriptions[marker.id]?
 
     decorations = @decorationsByMarkerId[marker.id]
