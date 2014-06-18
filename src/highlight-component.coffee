@@ -2,17 +2,19 @@ React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 
 module.exports =
-SelectionComponent = React.createClass
-  displayName: 'SelectionComponent'
+HighlightComponent = React.createClass
+  displayName: 'HighlightComponent'
 
   render: ->
-    {editor, screenRange, lineHeightInPixels} = @props
+    {editor, screenRange, decoration} = @props
     {start, end} = screenRange
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)
 
-    div className: 'selection',
+    className = 'highlight'
+    className += " #{decoration.class}" if decoration.class?
+    div {className},
       if rowCount is 1
         @renderSingleLineRegions(startPixelPosition, endPixelPosition)
       else

@@ -49,8 +49,11 @@ EditorComponent = React.createClass
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
-      selectionScreenRanges = @getSelectionScreenRanges(renderedRowRange)
-      decorations = @getGutterDecorations(renderedRowRange)
+
+      decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
+      highlightDecorations = @getHighlightDecorations(decorations)
+      lineDecorations = @getLineDecorations(decorations)
+
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
       scrollTop = editor.getScrollTop()
@@ -73,9 +76,9 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', editor, renderedRowRange, maxLineNumberDigits, scrollTop,
-        scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
-        decorations
+        ref: 'gutter', lineDecorations,
+        editor, renderedRowRange, maxLineNumberDigits,
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -91,9 +94,10 @@ EditorComponent = React.createClass
           lineHeightInPixels, defaultCharWidth
         }
         LinesComponent {
-          ref: 'lines', editor, lineHeightInPixels, defaultCharWidth,
-          showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft, @scrollingVertically,
-          selectionScreenRanges, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+          ref: 'lines',
+          editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
+          showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
+          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight
         }
 
@@ -215,33 +219,32 @@ EditorComponent = React.createClass
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
 
-  getSelectionScreenRanges: (renderedRowRange) ->
+  getLineDecorations: (decorationsByMarkerId) ->
     {editor} = @props
-    [renderedStartRow, renderedEndRow] = renderedRowRange
+    decorationsByScreenRow = {}
+    for markerId, decorations of decorationsByMarkerId
+      marker = editor.getMarker(markerId)
+      screenRange = null
+      if marker.isValid()
+        for decoration in decorations
+          if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
+            screenRange ?= marker.getScreenRange()
+            for screenRow in [screenRange.start.row..screenRange.end.row]
+              decorationsByScreenRow[screenRow] ?= []
+              decorationsByScreenRow[screenRow].push decoration
+    decorationsByScreenRow
 
-    selectionScreenRanges = {}
-    for selection, index in editor.getSelections()
-      screenRange = selection.getScreenRange()
-
-      if not screenRange.isEmpty() and screenRange.intersectsRowRange(renderedStartRow, renderedEndRow)
-        selectionScreenRanges[selection.id] = screenRange
-
-      else if index is 0 # Rendering artifacts occur on the lines GPU layer if we remove the last selection
-        selectionScreenRanges[selection.id] = new Range(new Point(renderedStartRow, 0), new Point(renderedStartRow, 0))
-
-    selectionScreenRanges
-
-  getGutterDecorations:  (renderedRowRange) ->
+  getHighlightDecorations: (decorationsByMarkerId) ->
     {editor} = @props
-    [renderedStartRow, renderedEndRow] = renderedRowRange
-
-    bufferRows = editor.bufferRowsForScreenRows(renderedStartRow, renderedEndRow - 1)
-
-    decorations = {}
-    for bufferRow in bufferRows
-      decorations[bufferRow] = editor.decorationsForBufferRow(bufferRow, 'gutter')
-      decorations[bufferRow].push {class: 'foldable'} if editor.isFoldableAtBufferRow(bufferRow)
-    decorations
+    filteredDecorations = {}
+    for markerId, decorations of decorationsByMarkerId
+      marker = editor.getMarker(markerId)
+      if marker.isValid() and not marker.getScreenRange().isEmpty()
+        for decoration in decorations
+          if editor.decorationMatchesType(decoration, 'highlight')
+            filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
+            filteredDecorations[markerId].decorations.push decoration
+    filteredDecorations
 
   observeEditor: ->
     {editor} = @props
@@ -251,7 +254,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'cursors-moved', @onCursorsMoved
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'decoration-changed', @onDecorationChanged
+    @subscribe editor, 'decoration-added', @onDecorationChanged
+    @subscribe editor, 'decoration-removed', @onDecorationChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate

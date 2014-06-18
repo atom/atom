@@ -3,7 +3,7 @@ React = require 'react-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-SelectionsComponent = require './selections-component'
+HighlightsComponent = require './highlights-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -15,14 +15,14 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, selectionScreenRanges, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
+      {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
     div {className: 'lines editor-colors', style},
-      SelectionsComponent({editor, selectionScreenRanges, lineHeightInPixels, defaultCharWidth}) if @isMounted()
+      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -32,7 +32,7 @@ LinesComponent = React.createClass
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'selectionScreenRanges', 'lineHeightInPixels', 'defaultCharWidth',
+      'renderedRowRange', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow'
     )

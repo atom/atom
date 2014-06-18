@@ -214,7 +214,8 @@ class Editor extends Model
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
     @subscribe @displayBuffer, 'tokenized', => @handleTokenization()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
-    @subscribe @displayBuffer, "decoration-changed", (e) => @emit 'decoration-changed', e
+    @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
+    @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
 
   getViewClass: ->
     if atom.config.get('core.useReactEditor')
@@ -843,6 +844,10 @@ class Editor extends Model
   isFoldableAtBufferRow: (bufferRow) ->
     @languageMode.isFoldableAtBufferRow(bufferRow)
 
+  isFoldableAtScreenRow: (screenRow) ->
+    bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
+    @isFoldableAtBufferRow(bufferRow)
+
   # TODO: Rename to foldRowRange?
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
@@ -1058,41 +1063,38 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  # Public: Get all the decorations for a buffer row.
+  # Public: Get all the decorations within a screen row range.
   #
-  # bufferRow - the {int} buffer row
-  # decorationType - the {String} decoration type to filter by eg. 'gutter'
+  # startScreenRow - the {int} beginning screen row
+  # endScreenRow - the {int} end screen row (inclusive)
   #
-  # Returns an {Array} of decorations in the form `[{type: 'gutter', class: 'someclass'}, ...]`
-  # Returns an empty array when no decorations are found
-  decorationsForBufferRow: (bufferRow, decorationType) ->
-    @displayBuffer.decorationsForBufferRow(bufferRow, decorationType)
+  # Returns an {Object} of decorations in the form `{1: [{type: 'gutter', class: 'someclass'}], 2: ...}`
+  #   where the keys are markerIds, and the values are an array of {Decoration} objects attached to the marker.
+  # Returns an empty object when no decorations are found
+  decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
-  # Public: Get all the decorations for a range of buffer rows (inclusive)
+  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
   #
-  # startBufferRow - the {int} start of the buffer row range
-  # endBufferRow - the {int} end of the buffer row range (inclusive)
-  # decorationType - the {String} decoration type to filter by eg. 'gutter'
+  # There are a few supported decoration types:
+  # * `gutter`: `{type: 'gutter', class: 'linter-error'}` Will add a class to the gutter rows associated with the marker.
+  # * `line`: `{type: 'line', class: 'linter-error'}` Will add a class to the editor lines associated with the marker.
+  # * `highlight`: `{type: 'highlight', class: 'linter-error'}` Will highlight the region of the buffer associated with the marker. Your specified class will be added to the highlight.
   #
-  # Returns an {Object} of decorations in the form `{23: [{type: 'gutter', class: 'someclass'}, ...], 24: [...]}`
-  # Returns an {Object} with keyed with all buffer rows in the range containing empty {Array}s when no decorations are found
-  decorationsForBufferRowRange: (startBufferRow, endBufferRow, decorationType) ->
-    @displayBuffer.decorationsForBufferRowRange(startBufferRow, endBufferRow, decorationType)
-
-  # Public: Adds a decoration to a buffer row. For example, use to mark a gutter
-  # line number with a class by using the form `{type: 'gutter', class: 'linter-error'}`
-  #
-  # bufferRow - the {int} buffer row
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
+  # marker - the {Marker} you want this decoration to follow
+  # decoration - the {Object} decoration eg. `{type: 'gutter', class: 'linter-error'}`
   #
   # Returns nothing
-  addDecorationToBufferRow: (bufferRow, decoration) ->
-    @displayBuffer.addDecorationToBufferRow(bufferRow, decoration)
+  addDecorationForMarker: (marker, decoration) ->
+    @displayBuffer.addDecorationForMarker(marker, decoration)
 
-  # Public: Removes a decoration from a buffer row.
+  # Public: Removes all decorations associated with a {Marker} that match a
+  # `decorationPattern` and stop tracking the {Marker}.
   #
   # ```coffee
-  # editor.removeDecorationFromBufferRow(2, {type: 'gutter', class: 'linter-error'})
+  # marker = editor.markBufferRange([[4, 13], [5, 17]])
+  # editor.removeDecorationForMarker(marker, {type: 'gutter', class: 'linter-error'})
   # ```
   #
   # All decorations matching a pattern will be removed. For example, you might
@@ -1108,48 +1110,8 @@ class Editor extends Model
   # You can remove both with:
   #
   # ```coffee
-  # editor.removeDecorationFromBufferRow(2, {namespace: 'myns'})
+  # editor.removeDecorationForMarker(marker, {namespace: 'myns'})
   # ```
-  #
-  # bufferRow - the {int} buffer row
-  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns an {Array} of the removed decorations
-  removeDecorationFromBufferRow: (bufferRow, decorationPattern) ->
-    @displayBuffer.removeDecorationFromBufferRow(bufferRow, decorationPattern)
-
-  # Public: Adds a decoration to line numbers in a buffer row range
-  #
-  # startBufferRow - the {int} start of the buffer row range
-  # endBufferRow - the {int} end of the buffer row range (inclusive)
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-  addDecorationToBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    @displayBuffer.addDecorationToBufferRowRange(startBufferRow, endBufferRow, decoration)
-
-  # Public: Removes a decoration from line numbers in a buffer row range
-  #
-  # startBufferRow - the {int} start of the buffer row range
-  # endBufferRow - the {int} end of the buffer row range (inclusive)
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-  removeDecorationFromBufferRowRange: (startBufferRow, endBufferRow, decoration) ->
-    @displayBuffer.removeDecorationFromBufferRowRange(startBufferRow, endBufferRow, decoration)
-
-  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
-  #
-  # marker - the {Marker} you want this decoration to follow
-  # decoration - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-  addDecorationForMarker: (marker, decoration) ->
-    @displayBuffer.addDecorationForMarker(marker, decoration)
-
-  # Public: Removes all decorations associated with a {Marker} that match a
-  # `decorationPattern` and stop tracking the {Marker}.
   #
   # marker - the {Marker} to detach from
   # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
@@ -1157,6 +1119,9 @@ class Editor extends Model
   # Returns nothing
   removeDecorationForMarker: (marker, decorationPattern) ->
     @displayBuffer.removeDecorationForMarker(marker, decorationPattern)
+
+  decorationMatchesType: (decoration, type) ->
+    @displayBuffer.decorationMatchesType(decoration, type)
 
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
@@ -1263,7 +1228,7 @@ class Editor extends Model
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
-    @addDecorationForMarker(marker, {class: 'cursor-line'})
+    @addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'cursor-line')
     @emit 'cursor-added', cursor
     cursor
 
@@ -1290,6 +1255,7 @@ class Editor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
+      @addDecorationForMarker(marker, type: 'highlight', class: 'selection')
       @emit 'selection-added', selection
       selection
 

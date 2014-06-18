@@ -912,6 +912,42 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.findMarkers(class: 'a', startBufferRow: 0, endBufferRow: 3)).toEqual [marker1]
         expect(displayBuffer.findMarkers(endBufferRow: 10)).toEqual [marker3]
 
+      it "allows the startScreenRow and endScreenRow to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[6, 0], [7, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[9, 0], [10, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', startScreenRow: 6, endScreenRow: 7)).toEqual [marker2]
+
+      it "allows intersectsBufferRowRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRowRange: [5, 6])).toEqual [marker1]
+
+      it "allows intersectsScreenRowRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRowRange: [5, 10])).toEqual [marker2]
+
+      it "allows containedInScreenRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', containedInScreenRange: [[5, 0], [7, 0]])).toEqual [marker2]
+
+      it "allows intersectsBufferRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRange: [[5, 0], [6, 0]])).toEqual [marker1]
+
+      it "allows intersectsScreenRange to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
+        displayBuffer.createFold(4, 7)
+        expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRange: [[5, 0], [10, 0]])).toEqual [marker2]
+
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
@@ -955,6 +991,17 @@ describe "DisplayBuffer", ->
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
         expect(start.left).toBe (4 * 10) + (6 * 11)
+
+  describe "decorations", ->
+    it "can add decorations associated with markers and remove them", ->
+      decoration = {type: 'gutter', class: 'one'}
+      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
+
+      displayBuffer.addDecorationForMarker(marker, decoration)
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
+
+      displayBuffer.removeDecorationForMarker(marker, decoration)
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
 
   describe "::setScrollTop", ->
     beforeEach ->
