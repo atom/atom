@@ -78,7 +78,7 @@ EditorComponent = React.createClass
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', lineDecorations,
-        editor, renderedRowRange, maxLineNumberDigits,
+        editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 

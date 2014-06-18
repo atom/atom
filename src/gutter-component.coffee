@@ -14,11 +14,13 @@ GutterComponent = React.createClass
   dummyLineNumberNode: null
 
   render: ->
-    {scrollHeight, scrollTop} = @props
+    {scrollHeight, scrollViewHeight, scrollTop} = @props
 
-    div className: 'gutter editor-colors', onClick: @onClick,
-      div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: scrollHeight
+    div className: 'gutter', onClick: @onClick,
+      # The line-numbers div must have the 'editor-colors' class so it has an
+      # opaque background to avoid sub-pixel anti-aliasing problems on the GPU
+      div className: 'gutter line-numbers editor-colors', ref: 'lineNumbers', style:
+        height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
 
   componentWillMount: ->
@@ -35,7 +37,8 @@ GutterComponent = React.createClass
   # visible row range.
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations'
+      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations',
+      'scrollViewHeight'
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps

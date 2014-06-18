@@ -319,6 +319,11 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
+    it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
+      node.style.height = node.offsetHeight + 100 + 'px'
+      component.measureScrollView()
+      expect(node.querySelector('.line-numbers').offsetHeight).toBe node.offsetHeight
+
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
         it "adds the foldable class to line numbers when the line is foldable", ->
