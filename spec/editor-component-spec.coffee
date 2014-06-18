@@ -1007,6 +1007,17 @@ describe "EditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
+    describe "when a line is folded", ->
+      beforeEach ->
+        editor.foldBufferRow 4
+
+      describe "when the folded line's fold-marker is clicked", ->
+        it "unfolds the buffer row", ->
+          target = component.lineNodeForScreenRow(4).querySelector '.fold-marker'
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
+          expect(editor.isFoldedAtBufferRow 4).toBe false
+
+
     clientCoordinatesForScreenPosition = (screenPosition) ->
       positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
       scrollViewClientRect = node.querySelector('.scroll-view').getBoundingClientRect()
