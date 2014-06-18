@@ -1,0 +1,13 @@
+{
+    "releases": {
+        "latest": "5.0.0"
+    },
+    "name": "test-module-with-symlink",
+    "versions": {
+        "5.0.0": {
+            "dist": {
+                "tarball": "http://localhost:3000/tarball/test-module-with-symlink-5.0.0.tgz"
+            }
+        }
+    }
+}

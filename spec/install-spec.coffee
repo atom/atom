@@ -35,6 +35,13 @@ describe 'apm install', ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module.json')
       app.get '/packages/test-module2', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module2.json')
+      app.get '/packages/test-module-with-symlink', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'install-test-module-with-symlink.json')
+      app.get '/tarball/test-module-with-symlink-5.0.0.tgz', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'test-module-with-symlink-5.0.0.tgz')
+      app.get '/tarball/test-module-with-bin-2.0.0.tgz', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'test-module-with-bin-2.0.0.tgz')
+
       server =  http.createServer(app)
       server.listen(3000)
 
@@ -144,3 +151,21 @@ describe 'apm install', ->
 
         runs ->
           expect(fs.existsSync(atomHome)).toBe true
+
+    describe "when the package contains symlinks", ->
+      it "copies them correctly from the temp directory", ->
+        testModuleDirectory = path.join(atomHome, 'packages', 'test-module-with-symlink')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "test-module-with-symlink"], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.isFileSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
+
+          if process.platform is 'win32'
+            expect(fs.isFileSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBeTruthy()
+          else
+            expect(fs.realpathSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBe fs.realpathSync(path.join(testModuleDirectory, 'node_modules', 'test-module-with-bin', 'bin', 'abin.js'))
