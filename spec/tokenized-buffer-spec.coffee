@@ -344,6 +344,73 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
+      it "aligns the hard tabs to the correct tab stop column", ->
+        buffer.setText """
+          1\t2 \t3\t4
+          12\t3  \t4\t5
+          123\t4   \t5\t6
+        """
+
+        tokenizedBuffer.setTabLength(4)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1   2   3   4"
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 3
+
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4   5"
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 2
+
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4       5   6"
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+
+        tokenizedBuffer.setTabLength(3)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1  2  3  4"
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 2
+
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3     4  5"
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 1
+
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123   4     5  6"
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 3
+
+        tokenizedBuffer.setTabLength(2)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2   3 4"
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 1
+
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4 5"
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 2
+
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4     5 6"
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+
+        tokenizedBuffer.setTabLength(1)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2  3 4"
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 1
+
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3   4 5"
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 1
+
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4    5 6"
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       waitsForPromise ->

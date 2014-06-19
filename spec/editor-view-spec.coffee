@@ -1611,7 +1611,7 @@ describe "EditorView", ->
         editorView.attachToDom()
 
         expect(atom.config.get("editor.showInvisibles")).toBeFalsy()
-        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
+        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs and spaces "
 
         atom.config.set("editor.showInvisibles", true)
         space = editorView.invisibles?.space
@@ -1620,10 +1620,10 @@ describe "EditorView", ->
         expect(tab).toBeTruthy()
         eol = editorView.invisibles?.eol
         expect(eol).toBeTruthy()
-        expect(editorView.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}#{eol}"
+        expect(editorView.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab}and spaces#{space}#{eol}"
 
         atom.config.set("editor.showInvisibles", false)
-        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
+        expect(editorView.renderedLines.find('.line').text()).toBe " a line with tabs and spaces "
 
       it "displays newlines as their own token outside of the other tokens scope", ->
         editorView.setShowInvisibles(true)
@@ -1636,7 +1636,7 @@ describe "EditorView", ->
         editorView.attachToDom()
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", eol: ";", space: "_", tab: "tab")
-        expect(editorView.find(".line:first").text()).toBe "_tab _;"
+        expect(editorView.find(".line:first").text()).toBe "_tab_;"
 
       it "displays trailing carriage return using a visible non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
@@ -2082,7 +2082,7 @@ describe "EditorView", ->
         tab = miniEditor.invisibles?.tab
         expect(tab).toBeTruthy()
         miniEditor.getEditor().setText(" a line with tabs\tand spaces ")
-        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
+        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab}and spaces#{space}"
 
       it "doesn't show the indent guide", ->
         atom.config.set "editor.showIndentGuide", true

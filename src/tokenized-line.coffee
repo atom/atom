@@ -5,8 +5,8 @@ idCounter = 1
 module.exports =
 class TokenizedLine
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
-    @tokens = @breakOutAtomicTokens(tokens)
     @startBufferColumn ?= 0
+    @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
 
@@ -124,8 +124,11 @@ class TokenizedLine
   breakOutAtomicTokens: (inputTokens) ->
     outputTokens = []
     breakOutLeadingSoftTabs = true
+    column = @startBufferColumn
     for token in inputTokens
-      outputTokens.push(token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs)...)
+      newTokens = token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs, column)
+      column += newToken.value.length for newToken in newTokens
+      outputTokens.push(newTokens...)
       breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
     outputTokens
 
