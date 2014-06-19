@@ -12,6 +12,7 @@ GutterComponent = React.createClass
   mixins: [SubscriberMixin]
 
   dummyLineNumberNode: null
+  measuredWidth: null
 
   render: ->
     {scrollHeight, scrollViewHeight, scrollTop} = @props
@@ -48,9 +49,12 @@ GutterComponent = React.createClass
     false
 
   componentDidUpdate: (oldProps) ->
-    unless oldProps.maxLineNumberDigits is @props.maxLineNumberDigits
+    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
       @updateDummyLineNumber()
       @removeLineNumberNodes()
+
+    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
+      @measureWidth()
 
     @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
@@ -201,6 +205,12 @@ GutterComponent = React.createClass
         editor.unfoldBufferRow(bufferRow)
       else
         editor.foldBufferRow(bufferRow)
+
+  measureWidth: ->
+    width = @getDOMNode().offsetWidth
+    unless width is @measuredWidth
+      @measuredWidth = width
+      @props.onWidthChanged?(width)
 
 # Created because underscore uses === not _.isEqual, which we need
 contains = (array, target) ->

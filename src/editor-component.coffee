@@ -77,7 +77,7 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', lineDecorations,
+        ref: 'gutter', onWidthChanged: @onGutterWidthChanged, lineDecorations, defaultCharWidth,
         editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
@@ -636,7 +636,6 @@ EditorComponent = React.createClass
 
         unless oldDefaultCharWidth is editor.getDefaultCharWidth()
           @remeasureCharacterWidths()
-          @measureGutter()
 
     else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
       @measureLineHeightAndDefaultCharWidth()
@@ -648,10 +647,8 @@ EditorComponent = React.createClass
   remeasureCharacterWidths: ->
     @refs.lines.remeasureCharacterWidths()
 
-  measureGutter: ->
-    oldGutterWidth = @gutterWidth
-    @gutterWidth = @refs.gutter.getDOMNode().offsetWidth
-    @requestUpdate() if @gutterWidth isnt oldGutterWidth
+  onGutterWidthChanged: (@gutterWidth) ->
+    @requestUpdate()
 
   measureScrollbars: ->
     @measuringScrollbars = false
