@@ -1044,17 +1044,26 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.setScrollLeft(maxScrollLeft + 50)).toBe maxScrollLeft
       expect(displayBuffer.getScrollLeft()).toBe maxScrollLeft
 
-  describe "::scrollToScreenPosition(position)", ->
-    it "sets the scroll top and scroll left so the given screen position is in view", ->
+  describe "::scrollToScreenPosition(position, [options])", ->
+    beforeEach ->
       displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setHorizontalScrollbarHeight(0)
-
       displayBuffer.setHeight(50)
       displayBuffer.setWidth(50)
-      maxScrollTop = displayBuffer.getScrollHeight() - displayBuffer.getHeight()
 
+    it "sets the scroll top and scroll left so the given screen position is in view", ->
       displayBuffer.scrollToScreenPosition([8, 20])
       expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
       expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+
+    describe "when the 'center' option is true", ->
+      it "vertically scrolls to center the given position vertically", ->
+        displayBuffer.scrollToScreenPosition([8, 20], center: true)
+        expect(displayBuffer.getScrollTop()).toBe (8 * 10) + 5 - (50 / 2)
+        expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+
+      it "does not scroll vertically if the position is already in view", ->
+        displayBuffer.scrollToScreenPosition([4, 20], center: true)
+        expect(displayBuffer.getScrollTop()).toBe 0

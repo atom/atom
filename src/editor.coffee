@@ -2023,11 +2023,11 @@ class Editor extends Model
 
   pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
 
-  scrollToScreenRange: (screenRange) -> @displayBuffer.scrollToScreenRange(screenRange)
+  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
 
-  scrollToScreenPosition: (screenPosition) -> @displayBuffer.scrollToScreenPosition(screenPosition)
+  scrollToScreenPosition: (screenPosition, options) -> @displayBuffer.scrollToScreenPosition(screenPosition, options)
 
-  scrollToBufferPosition: (bufferPosition) -> @displayBuffer.scrollToBufferPosition(bufferPosition)
+  scrollToBufferPosition: (bufferPosition, options) -> @displayBuffer.scrollToBufferPosition(bufferPosition, options)
 
   horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
 

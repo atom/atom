@@ -254,15 +254,23 @@ class DisplayBuffer extends Model
     {start, end} = selection.getScreenRange()
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
-  scrollToScreenRange: (screenRange) ->
+  scrollToScreenRange: (screenRange, options) ->
     verticalScrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
     horizontalScrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
 
     {top, left, height, width} = @pixelRectForScreenRange(screenRange)
     bottom = top + height
     right = left + width
-    desiredScrollTop = top - verticalScrollMarginInPixels
-    desiredScrollBottom = bottom + verticalScrollMarginInPixels
+
+    if options?.center
+      desiredScrollCenter = top + height / 2
+      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
+        desiredScrollTop =  desiredScrollCenter - @getHeight() / 2
+        desiredScrollBottom =  desiredScrollCenter + @getHeight() / 2
+    else
+      desiredScrollTop = top - verticalScrollMarginInPixels
+      desiredScrollBottom = bottom + verticalScrollMarginInPixels
+
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
 
@@ -276,11 +284,11 @@ class DisplayBuffer extends Model
     else if desiredScrollRight > @getScrollRight()
       @setScrollRight(desiredScrollRight)
 
-  scrollToScreenPosition: (screenPosition) ->
-    @scrollToScreenRange(new Range(screenPosition, screenPosition))
+  scrollToScreenPosition: (screenPosition, options) ->
+    @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
 
-  scrollToBufferPosition: (bufferPosition) ->
-    @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition))
+  scrollToBufferPosition: (bufferPosition, options) ->
+    @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition), options)
 
   pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
