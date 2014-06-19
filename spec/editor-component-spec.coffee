@@ -19,7 +19,7 @@ describe "EditorComponent", ->
       spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
       delayAnimationFrames = false
-      nextAnimationFrame = null
+      nextAnimationFrame = -> throw new Error('No animation frame requested')
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
         if delayAnimationFrames
           nextAnimationFrame = fn
