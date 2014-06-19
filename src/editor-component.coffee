@@ -524,9 +524,9 @@ EditorComponent = React.createClass
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < clickedRow # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow, Infinity]])
       else
-        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow, Infinity]])
 
   onGutterShiftClick: (event) ->
     {editor} = @props
@@ -543,7 +543,7 @@ EditorComponent = React.createClass
       if dragRow < tailPosition.row # dragging up
         editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
       else
-        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([tailPosition, [dragRow, Infinity]])
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
