@@ -1777,6 +1777,17 @@ describe "EditorComponent", ->
       nextTick()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
 
+  describe "legacy editor compatibility", ->
+    it "triggers the screen-lines-changed event before the editor:display-update event", ->
+      editor.setSoftWrap(true)
+
+      callingOrder = []
+      editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
+      wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
+      editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
+
+      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     event = new MouseEvent(type, properties)
