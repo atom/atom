@@ -1350,24 +1350,41 @@ describe "EditorComponent", ->
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
   describe "hiding and showing the editor", ->
-    describe "when fontSize, fontFamily, or lineHeight changes while the editor is hidden", ->
-      it "does not attempt to measure the lineHeight and defaultCharWidth until the editor becomes visible again", ->
+    describe "when the lineHeight changes while the editor is hidden", ->
+      it "does not attempt to measure the lineHeightInPixels until the editor becomes visible again", ->
+        wrapperView.hide()
+        initialLineHeightInPixels = editor.getLineHeightInPixels()
+
+        component.setLineHeight(2)
+        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
+
+        wrapperView.show()
+        expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
+
+    describe "when the fontSize changes while the editor is hidden", ->
+      it "does not attempt to measure the lineHeightInPixels or defaultCharWidth until the editor becomes visible again", ->
         wrapperView.hide()
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
-        component.setLineHeight(2)
-        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
-        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
         component.setFontSize(22)
-        expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
-        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
-        component.setFontFamily('monospace')
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
+        expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
+
+    describe "when the fontFamily changes while the editor is hidden", ->
+      it "does not attempt to measure the defaultCharWidth until the editor becomes visible again", ->
+        wrapperView.hide()
+        initialLineHeightInPixels = editor.getLineHeightInPixels()
+        initialCharWidth = editor.getDefaultCharWidth()
+
+        component.setFontFamily('sans-serif')
+        expect(editor.getDefaultCharWidth()).toBe initialCharWidth
+
+        wrapperView.show()
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
     describe "when lines are changed while the editor is hidden", ->
