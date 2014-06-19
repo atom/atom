@@ -1601,11 +1601,10 @@ class Editor extends Model
 
   moveCursors: (fn) ->
     @movingCursors = true
-    @batchUpdates =>
-      fn(cursor) for cursor in @getCursors()
-      @mergeCursors()
-      @movingCursors = false
-      @emit 'cursors-moved'
+    fn(cursor) for cursor in @getCursors()
+    @mergeCursors()
+    @movingCursors = false
+    @emit 'cursors-moved'
 
   cursorMoved: (event) ->
     @emit 'cursor-moved', event
@@ -1925,9 +1924,7 @@ class Editor extends Model
   # execution and revert any changes performed up to the abortion.
   #
   # fn - A {Function} to call inside the transaction.
-  transact: (fn) ->
-    @batchUpdates =>
-      @buffer.transact(fn)
+  transact: (fn) -> @buffer.transact(fn)
 
   # Public: Start an open-ended transaction.
   #
@@ -1946,14 +1943,6 @@ class Editor extends Model
   # Public: Abort an open transaction, undoing any operations performed so far
   # within the transaction.
   abortTransaction: -> @buffer.abortTransaction()
-
-  batchUpdates: (fn) ->
-    @emit 'batched-updates-started' if @updateBatchDepth is 0
-    @updateBatchDepth++
-    result = fn()
-    @updateBatchDepth--
-    @emit 'batched-updates-ended' if @updateBatchDepth is 0
-    result
 
   inspect: ->
     "<Editor #{@id}>"
