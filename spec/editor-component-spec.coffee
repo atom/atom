@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
 ReactEditorView = require '../src/react-editor-view'
+EditorComponent = require '../src/editor-component'
 nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
@@ -47,10 +48,9 @@ describe "EditorComponent", ->
 
       wrapperView = new ReactEditorView(editor, {lineOverdrawMargin})
       wrapperView.attachToDom()
-      nextTick()
-      nextTick()
 
       {component} = wrapperView
+      component.performSyncUpdates = false
       component.setLineHeight(1.3)
       component.setFontSize(20)
 

@@ -17,6 +17,9 @@ EditorComponent = React.createClass
   displayName: 'EditorComponent'
   mixins: [SubscriberMixin]
 
+  statics:
+    performSyncUpdates: false
+
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -191,7 +194,9 @@ EditorComponent = React.createClass
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
-    unless @updateRequested
+    if @performSyncUpdates ? EditorComponent.performSyncUpdates
+      @forceUpdate()
+    else unless @updateRequested
       @updateRequested = true
       process.nextTick =>
         @updateRequested = false
