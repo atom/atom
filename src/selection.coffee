@@ -266,7 +266,8 @@ class Selection extends Model
 
   # FIXME: I have no idea what this does.
   getGoalBufferRange: ->
-    @marker.getAttributes().goalBufferRange
+    if goalBufferRange = @marker.getAttributes().goalBufferRange
+      Range.fromObject(goalBufferRange)
 
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
