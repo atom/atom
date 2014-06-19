@@ -281,6 +281,33 @@ EditorComponent = React.createClass
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
     window.addEventListener 'resize', @requestScrollViewMeasurement
 
+    @listenForIMEEvents()
+
+  listenForIMEEvents: ->
+    node = @getDOMNode()
+    {editor} = @props
+
+    # The IME composition events work like this:
+    #
+    # User types 's', chromium pops up the completion helper
+    #   1. compositionstart fired
+    #   2. compositionupdate fired; event.data == 's'
+    # User hits arrow keys to move around in completion helper
+    #   3. compositionupdate fired; event.data == 's' for each arry key press
+    # User escape to cancel
+    #   4. compositionend fired
+    # OR User chooses a completion
+    #   4. compositionend fired
+    #   5. textInput fired; event.data == the completion string
+
+    selectedText = null
+    node.addEventListener 'compositionstart', =>
+      selectedText = editor.getSelectedText()
+    node.addEventListener 'compositionupdate', (event) =>
+      editor.insertText(event.data, select: true, undo: 'skip')
+    node.addEventListener 'compositionend', =>
+      editor.insertText(selectedText, select: true, undo: 'skip')
+
   listenForCommands: ->
     {parentView, editor, mini} = @props
 

@@ -1425,6 +1425,64 @@ describe "EditorComponent", ->
       node.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
+    describe "when IME composition is used to insert international characters", ->
+      buildIMECompositionEvent = (event, {data}={}) ->
+        event = new Event(event)
+        event.data = data
+        Object.defineProperty(event, 'target', get: -> inputNpde)
+        event
+
+      describe "when nothing is selected", ->
+        it "inserts the chosen completion", ->
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe '速度var quicksort = function () {'
+
+        it "reverts back to the original text when the completion helper is dismissed", ->
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+
+      describe "when a string is selected", ->
+        beforeEach ->
+          editor.setSelectedBufferRange [[0, 4], [0, 9]] # select 'quick'
+
+        it "inserts the chosen completion", ->
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe 'var 速度sort = function () {'
+
+        it "reverts back to the original text when the completion helper is dismissed", ->
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+
   describe "commands", ->
     describe "editor:consolidate-selections", ->
       it "consolidates selections on the editor model, aborting the key binding if there is only one selection", ->
