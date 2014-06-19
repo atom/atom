@@ -478,7 +478,7 @@ EditorComponent = React.createClass
 
   onScrollViewScroll: ->
     if @isMounted()
-      console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
+      console.warn "EditorScrollView scrolled when it shouldn't have."
       scrollViewNode = @refs.scrollView.getDOMNode()
       scrollViewNode.scrollTop = 0
       scrollViewNode.scrollLeft = 0
