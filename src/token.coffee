@@ -117,7 +117,7 @@ class Token
   buildSoftTabToken: (tabLength) ->
     @buildTabToken(tabLength, false, 0)
 
-  buildTabToken: (tabLength, isHardTab, column) ->
+  buildTabToken: (tabLength, isHardTab, column=0) ->
     tabStop = tabLength - column % tabLength
     new Token(
       value: _.multiplyString(" ", tabStop)
