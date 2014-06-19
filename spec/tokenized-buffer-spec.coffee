@@ -358,12 +358,26 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4   5"
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4       5   6"
 
+        tokenizedBuffer.setTabLength(3)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1  2  3  4"
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3     4  5"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123   4     5  6"
+
         tokenizedBuffer.setTabLength(2)
         fullyTokenize(tokenizedBuffer)
 
         expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2   3 4"
         expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4 5"
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4     5 6"
+
+        tokenizedBuffer.setTabLength(1)
+        fullyTokenize(tokenizedBuffer)
+
+        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2  3 4"
+        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3   4 5"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4    5 6"
 
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
