@@ -34,6 +34,7 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   horizontalScrollbarHeight: 15
   verticalScrollbarWidth: 15
+  scopedCharacterWidthsChangeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
     super
@@ -222,9 +223,11 @@ class DisplayBuffer extends Model
 
   setScopedCharWidth: (scopeNames, char, width) ->
     @getScopedCharWidths(scopeNames)[char] = width
+    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
 
   setScopedCharWidths: (scopeNames, charWidths) ->
     _.extend(@getScopedCharWidths(scopeNames), charWidths)
+    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}

@@ -15,7 +15,8 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth, lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
+      {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth} = @props
+      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
@@ -24,7 +25,7 @@ LinesComponent = React.createClass
     # The lines div must have the 'editor-colors' class so it has an opaque
     # background to avoid sub-pixel anti-aliasing problems on the GPU
     div {className: 'lines editor-colors', style},
-      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth}) if @isMounted()
+      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount}) if @isMounted()
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -36,7 +37,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow'
+      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -217,13 +218,15 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
+    {editor} = @props
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
-    for tokenizedLine in @props.editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
-      unless @measuredLines.has(tokenizedLine)
-        lineNode = @lineNodesByLineId[tokenizedLine.id]
-        @measureCharactersInLine(tokenizedLine, lineNode)
+    editor.batchUpdates =>
+      for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+        unless @measuredLines.has(tokenizedLine)
+          lineNode = @lineNodesByLineId[tokenizedLine.id]
+          @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
     {editor} = @props

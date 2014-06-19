@@ -36,8 +36,10 @@ EditorComponent = React.createClass
   scrollSensitivity: 0.4
   scrollViewMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
+  remeasureCharacterWidthsWhenShown: false
   inputEnabled: true
   scrollViewMeasurementInterval: 100
+  scopedCharacterWidthsChangeCount: null
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
@@ -92,14 +94,14 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           editor, scrollTop, scrollLeft, cursorScreenRanges, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth
+          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount
         }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
         }
 
       ScrollbarComponent
@@ -183,6 +185,7 @@ EditorComponent = React.createClass
     @updateParentViewFocusedClassIfNeeded(prevState)
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
+    @remeasureCharacterWidthsIfNeeded(prevState)
     @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
@@ -260,6 +263,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-added', @onDecorationChanged
     @subscribe editor, 'decoration-removed', @onDecorationChanged
+    @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -557,6 +561,9 @@ EditorComponent = React.createClass
       @requestUpdate() if @isMounted()
       @decorationChangedImmediate = null
 
+  onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
+    @requestUpdate()
+
   selectToMousePositionUntilMouseUp: (event) ->
     {editor} = @props
     dragging = false
@@ -624,19 +631,10 @@ EditorComponent = React.createClass
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      {editor} = @props
-
-      editor.batchUpdates =>
-        oldDefaultCharWidth = editor.getDefaultCharWidth()
-
-        if @state.visible
-          @measureLineHeightAndDefaultCharWidth()
-        else
-          @measureLineHeightAndDefaultCharWidthWhenShown = true
-
-        unless oldDefaultCharWidth is editor.getDefaultCharWidth()
-          @remeasureCharacterWidths()
-
+      if @state.visible
+        @measureLineHeightAndDefaultCharWidth()
+      else
+        @measureLineHeightAndDefaultCharWidthWhenShown = true
     else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
       @measureLineHeightAndDefaultCharWidth()
 
@@ -644,7 +642,17 @@ EditorComponent = React.createClass
     @measureLineHeightAndDefaultCharWidthWhenShown = false
     @refs.lines.measureLineHeightAndDefaultCharWidth()
 
+  remeasureCharacterWidthsIfNeeded: (prevState) ->
+    if not isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
+      if @state.visible
+        @remeasureCharacterWidths()
+      else
+        @remeasureCharacterWidthsWhenShown = true
+    else if @remeasureCharacterWidthsWhenShown and @state.visible and not prevState.visible
+      @remeasureCharacterWidths()
+
   remeasureCharacterWidths: ->
+    @remeasureCharacterWidthsWhenShown = false
     @refs.lines.remeasureCharacterWidths()
 
   onGutterWidthChanged: (@gutterWidth) ->
