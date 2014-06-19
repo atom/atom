@@ -510,32 +510,40 @@ EditorComponent = React.createClass
   onGutterMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
 
-    {editor} = @props
-    {shiftKey, metaKey} = event
-    clickedRow = @screenPositionForMouseEvent(event).row
-    tailPosition = editor.getSelection().getTailScreenPosition()
-
-    if shiftKey
-      if clickedRow < tailPosition.row
-        editor.selectToScreenPosition([clickedRow, 0])
-      else
-        editor.selectToScreenPosition([clickedRow + 1, 0])
+    if event.shiftKey
+      @onGutterShiftClick(event)
     else
-      tailRow = clickedRow
-      editor.setCursorScreenPosition([clickedRow, 0])
+      @onGutterClick(event)
+
+  onGutterClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+
+    editor.setCursorScreenPosition([clickedRow, 0])
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
-      if shiftKey
-        if dragRow < tailPosition.row # up
-          editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
-        else
-          editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
+      if dragRow < tailRow # up
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
       else
-        if dragRow < tailRow # up
-          editor.setSelectedScreenRange([[dragRow, 0], [tailRow + 1, 0]])
-        else
-          editor.setSelectedScreenRange([[tailRow, 0], [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+
+  onGutterShiftClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+    tailPosition = editor.getSelection().getTailScreenPosition()
+
+    if clickedRow < tailPosition.row
+      editor.selectToScreenPosition([clickedRow, 0])
+    else
+      editor.selectToScreenPosition([clickedRow + 1, 0])
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+      if dragRow < tailPosition.row # up
+        editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
+      else
+        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
