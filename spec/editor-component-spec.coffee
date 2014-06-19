@@ -447,7 +447,7 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
         expect(lineNumberHasClass(4, 'cursor-line')).toBe false
 
-      it "does not render a curslor-line decoration for the last empty selected line in a multiline selection", ->
+      it "does not render a cursor-line decoration for the last line of a multi-line selection of the selection ends at column 0", ->
         cursor.setScreenPosition([1, 0])
         editor.selectDown(2)
         expect(lineNumberHasClass(0, 'cursor-line')).toBe false
