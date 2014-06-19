@@ -118,7 +118,7 @@ class Token
     @buildTabToken(tabLength, false, 0)
 
   buildTabToken: (tabLength, isHardTab, column=0) ->
-    tabStop = tabLength - column % tabLength
+    tabStop = tabLength - (column % tabLength)
     new Token(
       value: _.multiplyString(" ", tabStop)
       scopes: @scopes
