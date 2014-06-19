@@ -86,6 +86,10 @@ module.exports = (grunt) ->
         unless /.+\.plist/.test(sourcePath)
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
+    if process.platform is 'win32'
+      cp path.join('resources', 'win', 'msvcp100.dll'), path.join(shellAppDir, 'msvcp100.dll')
+      cp path.join('resources', 'win', 'msvcr100.dll'), path.join(shellAppDir, 'msvcr100.dll')
+
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
