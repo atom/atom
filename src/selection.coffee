@@ -91,6 +91,18 @@ class Selection extends Model
     end = Math.max(start, end - 1) if range.end.column == 0
     [start, end]
 
+  getTailScreenPosition: ->
+    @marker.getTailScreenPosition()
+
+  getTailBufferPosition: ->
+    @marker.getTailBufferPosition()
+
+  getHeadScreenPosition: ->
+    @marker.getHeadScreenPosition()
+
+  getHeadBufferPosition: ->
+    @marker.getHeadBufferPosition()
+
   autoscroll: ->
     @editor.scrollToScreenRange(@getScreenRange())
 

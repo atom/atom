@@ -79,8 +79,8 @@ EditorComponent = React.createClass
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
-        ref: 'gutter', onWidthChanged: @onGutterWidthChanged, lineDecorations, defaultCharWidth,
-        editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+        ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
+        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
@@ -504,7 +504,46 @@ EditorComponent = React.createClass
         when 2 then editor.selectWord()
         when 3 then editor.selectLine()
 
-    @selectToMousePositionUntilMouseUp(event)
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      editor.selectToScreenPosition(screenPosition)
+
+  onGutterMouseDown: (event) ->
+    return unless event.button is 0 # only handle the left mouse button
+
+    if event.shiftKey
+      @onGutterShiftClick(event)
+    else
+      @onGutterClick(event)
+
+  onGutterClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+
+    editor.setCursorScreenPosition([clickedRow, 0])
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+      if dragRow < clickedRow # dragging up
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+      else
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+
+  onGutterShiftClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+    tailPosition = editor.getSelection().getTailScreenPosition()
+
+    if clickedRow < tailPosition.row
+      editor.selectToScreenPosition([clickedRow, 0])
+    else
+      editor.selectToScreenPosition([clickedRow + 1, 0])
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+      if dragRow < tailPosition.row # dragging up
+        editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
+      else
+        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
@@ -564,15 +603,15 @@ EditorComponent = React.createClass
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
     @requestUpdate()
 
-  selectToMousePositionUntilMouseUp: (event) ->
+  handleDragUntilMouseUp: (event, dragHandler) ->
     {editor} = @props
     dragging = false
     lastMousePosition = {}
-
     animationLoop = =>
       requestAnimationFrame =>
         if dragging
-          @selectToMousePosition(lastMousePosition)
+          screenPosition = @screenPositionForMouseEvent(lastMousePosition)
+          dragHandler(screenPosition)
           animationLoop()
 
     onMouseMove = (event) ->
@@ -595,9 +634,6 @@ EditorComponent = React.createClass
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-
-  selectToMousePosition: (event) ->
-    @props.editor.selectToScreenPosition(@screenPositionForMouseEvent(event))
 
   requestScrollViewMeasurement: ->
     return if @measurementPending
