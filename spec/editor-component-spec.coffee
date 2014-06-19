@@ -1375,6 +1375,18 @@ describe "EditorComponent", ->
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
+      it "does not re-measure character widths until the editor is shown again", ->
+        wrapperView.hide()
+
+        component.setFontSize(22)
+
+        wrapperView.show()
+        editor.setCursorBufferPosition([0, Infinity])
+
+        cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
+        line0Right = node.querySelector('.line').getBoundingClientRect().right
+        expect(cursorLeft).toBe line0Right
+
     describe "when the fontFamily changes while the editor is hidden", ->
       it "does not attempt to measure the defaultCharWidth until the editor becomes visible again", ->
         wrapperView.hide()
@@ -1386,6 +1398,18 @@ describe "EditorComponent", ->
 
         wrapperView.show()
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
+
+      it "does not re-measure character widths until the editor is shown again", ->
+        wrapperView.hide()
+
+        component.setFontFamily('sans-serif')
+
+        wrapperView.show()
+        editor.setCursorBufferPosition([0, Infinity])
+
+        cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
+        line0Right = node.querySelector('.line').getBoundingClientRect().right
+        expect(cursorLeft).toBe line0Right
 
     describe "when lines are changed while the editor is hidden", ->
       it "does not measure new characters until the editor is shown again", ->

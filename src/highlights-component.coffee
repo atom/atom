@@ -21,4 +21,4 @@ HighlightsComponent = React.createClass
     highlightComponents
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth')
+    not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')
