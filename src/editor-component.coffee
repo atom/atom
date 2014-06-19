@@ -477,10 +477,11 @@ EditorComponent = React.createClass
         @pendingHorizontalScrollDelta = 0
 
   onScrollViewScroll: ->
-    console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
-    scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollViewNode.scrollTop = 0
-    scrollViewNode.scrollLeft = 0
+    if @isMounted()
+      console.warn "EditorScrollView scroll position changed, and it shouldn't have. If you can reproduce this, please report it."
+      scrollViewNode = @refs.scrollView.getDOMNode()
+      scrollViewNode.scrollTop = 0
+      scrollViewNode.scrollLeft = 0
 
   onMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
