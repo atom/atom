@@ -439,7 +439,7 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(10, 'cursor-line')).toBe false
 
       it "adds cursor-line decorations to multiple lines when a selection is performed", ->
-        cursor.setScreenPosition([1, 0])
+        cursor.setScreenPosition([1, 5])
         editor.selectDown(2)
         expect(lineNumberHasClass(0, 'cursor-line')).toBe false
         expect(lineNumberHasClass(1, 'cursor-line')).toBe true
@@ -447,10 +447,18 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
         expect(lineNumberHasClass(4, 'cursor-line')).toBe false
 
+      it "does not render a curslor-line decoration for the last empty selected line in a multiline selection", ->
+        cursor.setScreenPosition([1, 0])
+        editor.selectDown(2)
+        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
+        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
+        expect(lineNumberHasClass(3, 'cursor-line')).toBe false
+
     describe "when decorations are applied to markers", ->
       {marker, decoration} = {}
       beforeEach ->
-        marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], class: 'my-marker', invalidate: 'inside')
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
         decoration = {type: 'gutter', class: 'someclass'}
         editor.addDecorationForMarker(marker, decoration)
         waitsFor -> not component.decorationChangedImmediate?
