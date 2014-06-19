@@ -17,7 +17,7 @@ describe "ContextMenuManager", ->
       expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
       expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
 
-    it 'does not load duplicates',  ->
+    it 'does not add duplicate menu items',  ->
       contextMenu.add 'file-path',
         '.selector':
           'label': 'command'
@@ -28,7 +28,7 @@ describe "ContextMenuManager", ->
 
       expect(contextMenu.definitions['.selector'][0].label).toEqual 'label'
       expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
-      expect(contextMenu.definitions['.selector'][1]).toBeUndefined()
+      expect(contextMenu.definitions['.selector'].length).toBe 1
 
     it 'allows duplicate commands with different labels',  ->
       contextMenu.add 'file-path',
