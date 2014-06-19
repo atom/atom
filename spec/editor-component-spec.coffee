@@ -1052,7 +1052,7 @@ describe "EditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
           nextAnimationFrame()
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6)))
-          expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [6, 65]]
+          expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
 
       describe "when dragging upward", ->
         it "selects the rows between the start and end of the drag", ->
@@ -1060,7 +1060,7 @@ describe "EditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
           nextAnimationFrame()
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(2)))
-          expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [6, 65]]
+          expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
 
     describe "when the gutter is shift-clicked and dragged", ->
       beforeEach ->
@@ -1074,7 +1074,7 @@ describe "EditorComponent", ->
 
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(8)))
             nextAnimationFrame()
-            expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [8, 56]]
+            expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [9, 0]]
 
         describe "when dragging upward", ->
           it "selects the rows between the end of the drag and the tail of the existing selection", ->
@@ -1083,7 +1083,7 @@ describe "EditorComponent", ->
 
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
             nextAnimationFrame()
-            expect(editor.getSelectedScreenRange()).toEqual [[4, 4], [5, 30]]
+            expect(editor.getSelectedScreenRange()).toEqual [[4, 4], [6, 0]]
 
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(1)))
             nextAnimationFrame()
@@ -1110,7 +1110,7 @@ describe "EditorComponent", ->
 
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(8)))
             nextAnimationFrame()
-            expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [8, 56]]
+            expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [9, 0]]
 
   describe "focus handling", ->
     inputNode = null
