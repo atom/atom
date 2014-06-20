@@ -3271,7 +3271,7 @@ describe "Editor", ->
       expect(editor.getCursorBufferPosition().row).toBe 0
 
   describe ".selectPageUp/Down()", ->
-    it "select one screen height of text up or down", ->
+    it "selects one screen height of text up or down", ->
       editor.manageScrollPosition = true
 
       editor.setLineHeightInPixels(10)
