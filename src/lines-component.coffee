@@ -4,8 +4,6 @@ React = require 'react-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-HighlightsComponent = require './highlights-component'
-
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
@@ -17,16 +15,13 @@ LinesComponent = React.createClass
   render: ->
     if @isMounted()
       {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth} = @props
-      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
+      {lineHeightInPixels, defaultCharWidth, scrollViewHeight} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
-    # The lines div must have the 'editor-colors' class so it has an opaque
-    # background to avoid sub-pixel anti-aliasing problems on the GPU
-    div {className: 'lines editor-colors', style},
-      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount}) if @isMounted()
+    div {className: 'lines', style}
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -39,7 +34,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount'
+      'scrollViewHeight', 'mouseWheelScreenRow'
     )
 
     {renderedRowRange, pendingChanges} = newProps

@@ -8,7 +8,16 @@ HighlightsComponent = React.createClass
   displayName: 'HighlightsComponent'
 
   render: ->
-    div className: 'highlights', @renderHighlights()
+    if @isMounted()
+      {scrollTop, scrollLeft, scrollHeight, scrollWidth} = @props
+      style =
+        height: scrollHeight
+        width: scrollWidth
+        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
+
+    div {className: 'highlights', style},
+      @renderHighlights() if @isMounted()
+
 
   renderHighlights: ->
     {editor, highlightDecorations, lineHeightInPixels} = @props
@@ -21,4 +30,7 @@ HighlightsComponent = React.createClass
     highlightComponents
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')
+    not isEqualForProperties(newProps, @props,
+      'scrollTop', 'scrollLeft', 'highlightDecorations', 'lineHeightInPixels',
+      'defaultCharWidth', 'scopedCharacterWidthsChangeCount'
+    )
