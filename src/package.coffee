@@ -179,6 +179,8 @@ class Package
       fs.listSync(stylesheetDirPath, ['css', 'less'])
 
   loadGrammarsSync: ->
+    return if @grammarsLoaded
+
     @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
