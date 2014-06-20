@@ -1589,6 +1589,12 @@ class Editor extends Model
     @moveCursorDown(@getRowsPerPage())
     @setScrollTop(newScrollTop)
 
+  selectPageUp: ->
+    @selectUp(@getRowsPerPage())
+
+  selectPageDown: ->
+    @selectDown(@getRowsPerPage())
+
   # Returns the number of rows per page
   getRowsPerPage: ->
     Math.max(1, Math.ceil(@getHeight() / @getLineHeightInPixels()))

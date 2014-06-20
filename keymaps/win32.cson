@@ -37,6 +37,8 @@
   'shift-down': 'core:select-down'
   'shift-left': 'core:select-left'
   'shift-right': 'core:select-right'
+  'shift-pageup': 'core:select-page-up'
+  'shift-pagedown': 'core:select-page-down'
   'delete': 'core:delete'
   'shift-delete': 'core:delete'
   'pageup': 'core:page-up'

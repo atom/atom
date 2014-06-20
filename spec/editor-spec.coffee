@@ -3269,3 +3269,37 @@ describe "Editor", ->
       editor.pageUp()
       expect(editor.getScrollTop()).toBe 0
       expect(editor.getCursorBufferPosition().row).toBe 0
+
+  describe ".selectPageUp/Down()", ->
+    it "selects one screen height of text up or down", ->
+      editor.manageScrollPosition = true
+
+      editor.setLineHeightInPixels(10)
+      editor.setHeight(50)
+      expect(editor.getScrollHeight()).toBe 130
+      expect(editor.getCursorBufferPosition().row).toBe 0
+
+      editor.selectPageDown()
+      expect(editor.getScrollTop()).toBe 30
+      expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [5,0]]]
+
+      editor.selectPageDown()
+      expect(editor.getScrollTop()).toBe 80
+      expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [10,0]]]
+
+      editor.selectPageDown()
+      expect(editor.getScrollTop()).toBe 80
+      expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [12,2]]]
+
+      editor.moveCursorToBottom()
+      editor.selectPageUp()
+      expect(editor.getScrollTop()).toBe 50
+      expect(editor.getSelectedBufferRanges()).toEqual [[[7,0], [12,2]]]
+
+      editor.selectPageUp()
+      expect(editor.getScrollTop()).toBe 0
+      expect(editor.getSelectedBufferRanges()).toEqual [[[2,0], [12,2]]]
+
+      editor.selectPageUp()
+      expect(editor.getScrollTop()).toBe 0
+      expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [12,2]]]
