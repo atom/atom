@@ -206,7 +206,7 @@ EditorComponent = React.createClass
       @updateRequested = true
       process.nextTick =>
         @updateRequested = false
-        @forceUpdate()
+        @forceUpdate() if @isMounted()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
