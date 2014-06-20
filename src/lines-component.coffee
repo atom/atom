@@ -80,6 +80,7 @@ LinesComponent = React.createClass
         delete @lineNodesByLineId[lineId]
         delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
         delete @screenRowsByLineId[lineId]
+        delete @renderedDecorationsByLineId[lineId]
         node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
