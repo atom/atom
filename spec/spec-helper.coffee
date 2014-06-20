@@ -15,6 +15,7 @@ Project = require '../src/project'
 Editor = require '../src/editor'
 EditorView = require '../src/editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
+EditorComponent = require '../src/editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require 'clipboard'
 
@@ -100,6 +101,8 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  EditorComponent.performSyncUpdates = true
+
   spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout

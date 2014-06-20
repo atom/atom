@@ -236,9 +236,8 @@ LinesComponent = React.createClass
     node.removeChild(DummyLineNode)
 
     {editor} = @props
-    editor.batchUpdates ->
-      editor.setLineHeightInPixels(lineHeightInPixels)
-      editor.setDefaultCharWidth(charWidth)
+    editor.setLineHeightInPixels(lineHeightInPixels)
+    editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
     @clearScopedCharWidths()
@@ -249,11 +248,10 @@ LinesComponent = React.createClass
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
-    editor.batchUpdates =>
-      for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
-        unless @measuredLines.has(tokenizedLine)
-          lineNode = @lineNodesByLineId[tokenizedLine.id]
-          @measureCharactersInLine(tokenizedLine, lineNode)
+    for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+      unless @measuredLines.has(tokenizedLine)
+        lineNode = @lineNodesByLineId[tokenizedLine.id]
+        @measureCharactersInLine(tokenizedLine, lineNode)
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
     {editor} = @props

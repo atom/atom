@@ -17,10 +17,12 @@ EditorComponent = React.createClass
   displayName: 'EditorComponent'
   mixins: [SubscriberMixin]
 
+  statics:
+    performSyncUpdates: false
+
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
-  batchingUpdates: false
   updateRequested: false
   cursorsMoved: false
   selectionChanged: false
@@ -168,10 +170,9 @@ EditorComponent = React.createClass
 
     editor.setVisible(true)
 
-    editor.batchUpdates =>
-      @measureLineHeightAndDefaultCharWidth()
-      @measureScrollView()
-      @measureScrollbars()
+    @measureLineHeightAndDefaultCharWidth()
+    @measureScrollView()
+    @measureScrollbars()
 
   componentWillUnmount: ->
     @unsubscribe()
@@ -179,24 +180,33 @@ EditorComponent = React.createClass
     @scrollViewMeasurementIntervalId = null
 
   componentWillUpdate: ->
-    if @props.editor.isAlive()
-      @props.parentView.trigger 'cursor:moved' if @cursorsMoved
-      @props.parentView.trigger 'selection:changed' if @selectionChanged
 
   componentDidUpdate: (prevProps, prevState) ->
+    cursorsMoved = @cursorsMoved
+    selectionChanged = @selectionChanged
     @pendingChanges.length = 0
+    @cursorsMoved = false
+    @selectionChanged = false
     @refreshingScrollbars = false
-    @updateParentViewFocusedClassIfNeeded(prevState)
+
+    if @props.editor.isAlive()
+      @updateParentViewFocusedClassIfNeeded(prevState)
+      @props.parentView.trigger 'cursor:moved' if cursorsMoved
+      @props.parentView.trigger 'selection:changed' if selectionChanged
+      @props.parentView.trigger 'editor:display-updated'
+
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
     @remeasureCharacterWidthsIfNeeded(prevState)
-    @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
-    if @batchingUpdates
-      @updateRequested = true
-    else
+    if @performSyncUpdates ? EditorComponent.performSyncUpdates
       @forceUpdate()
+    else unless @updateRequested
+      @updateRequested = true
+      process.nextTick =>
+        @updateRequested = false
+        @forceUpdate() if @isMounted()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -263,8 +273,6 @@ EditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor, 'batched-updates-started', @onBatchedUpdatesStarted
-    @subscribe editor, 'batched-updates-ended', @onBatchedUpdatesEnded
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor, 'cursors-moved', @onCursorsMoved
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
@@ -586,16 +594,6 @@ EditorComponent = React.createClass
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
 
-  onBatchedUpdatesStarted: ->
-    @batchingUpdates = true
-
-  onBatchedUpdatesEnded: ->
-    updateRequested = @updateRequested
-    @updateRequested = false
-    @batchingUpdates = false
-    if updateRequested
-      @requestUpdate()
-
   onScreenLinesChanged: (change) ->
     {editor} = @props
     @pendingChanges.push(change)
@@ -634,9 +632,7 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   onDecorationChanged: ->
-    @decorationChangedImmediate ?= setImmediate =>
-      @requestUpdate() if @isMounted()
-      @decorationChangedImmediate = null
+    @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
     @requestUpdate()
@@ -694,14 +690,13 @@ EditorComponent = React.createClass
     {position} = getComputedStyle(editorNode)
     {width, height} = editorNode.style
 
-    editor.batchUpdates ->
-      if position is 'absolute' or height
-        clientHeight =  scrollViewNode.clientHeight
-        editor.setHeight(clientHeight) if clientHeight > 0
+    if position is 'absolute' or height
+      clientHeight =  scrollViewNode.clientHeight
+      editor.setHeight(clientHeight) if clientHeight > 0
 
-      if position is 'absolute' or width
-        clientWidth = scrollViewNode.clientWidth
-        editor.setWidth(clientWidth) if clientWidth > 0
+    if position is 'absolute' or width
+      clientWidth = scrollViewNode.clientWidth
+      editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
@@ -756,17 +751,17 @@ EditorComponent = React.createClass
     # visible, so first we need to hide scrollbars so we can redisplay them and
     # force Chromium to apply updates.
     @refreshingScrollbars = true
-    @requestUpdate()
+    @forceUpdate()
 
     # Next, we display only the scrollbar corner so we can measure the new
     # scrollbar dimensions. The ::measuringScrollbars property will be set back
     # to false after the scrollbars are measured.
     @measuringScrollbars = true
-    @requestUpdate()
+    @forceUpdate()
 
     # Finally, we restore the scrollbars based on the newly-measured dimensions
     # if the editor's content and dimensions require them to be visible.
-    @requestUpdate()
+    @forceUpdate()
 
   clearMouseWheelScreenRow: ->
     if @mouseWheelScreenRow?
