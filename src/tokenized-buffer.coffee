@@ -47,12 +47,24 @@ class TokenizedBuffer extends Model
     @reloadGrammar()
 
   serializeParams: ->
+    packageNameForScope = (scope) ->
+      atom.packages.getPackageForGrammarScopeName(scopeName)?.name
+
+    scopeName = @grammar.scopeName
+    packageName = packageNameForScope(@grammar.scopeName)
+    grammars = [{scopeName, packageName}]
+    for scopeName in @grammar.includedGrammarScopes
+      grammars.push {scopeName, packageName: packageNameForScope(scopeName)}
+
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
-    grammar: @grammar.name
+    grammars: grammars
 
   deserializeParams: (params) ->
-    atom.syntax.requestGrammarPreload(params.grammar)
+    if params.grammars?
+      for grammar in params.grammars
+        atom.syntax.requestGrammarPreload(grammar)
+
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 

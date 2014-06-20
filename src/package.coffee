@@ -42,9 +42,8 @@ class Package
     @name = @metadata?.name ? path.basename(@path)
     @reset()
 
-    atom.syntax.on 'request-grammar-preload', (name) =>
-      return unless name in ['YAML', 'CoffeeScript'] and @name in ['language-yaml', 'language-coffee-script']
-      @loadGrammarsSync()
+    atom.syntax.on 'request-grammar-preload', ({packageName, scopeName}={}) =>
+      @loadGrammarsSync() if packageName == @name
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
@@ -181,7 +180,6 @@ class Package
   loadGrammarsSync: ->
     return if @grammarsLoaded
 
-    @grammars = []
     grammarsDirPath = path.join(@path, 'grammars')
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
@@ -197,8 +195,6 @@ class Package
 
   loadGrammars: ->
     return if @grammarsLoaded
-
-    @grammars = []
 
     loadGrammar = (grammarPath, callback) =>
       atom.syntax.readGrammar grammarPath, (error, grammar) =>
