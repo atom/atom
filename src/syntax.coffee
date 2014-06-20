@@ -35,6 +35,9 @@ class Syntax extends GrammarRegistry
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
+  requestGrammarPreload: (grammarName) ->
+    @emit('request-grammar-preload', grammarName)
+
   # Deprecated: Used by settings-view to display snippets for packages
   @::accessor 'scopedProperties', ->
     deprecate("Use Syntax::getProperty instead")

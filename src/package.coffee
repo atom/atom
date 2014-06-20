@@ -42,6 +42,10 @@ class Package
     @name = @metadata?.name ? path.basename(@path)
     @reset()
 
+    atom.syntax.on 'request-grammar-preload', (name) =>
+      return unless name in ['YAML', 'CoffeeScript'] and @name in ['language-yaml', 'language-coffee-script']
+      @loadGrammarsSync()
+
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
 
@@ -67,7 +71,6 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @grammarsPromise = @loadGrammars()
         @scopedPropertiesPromise = @loadScopedProperties()
         @requireMainModule() unless @hasActivationEvents()
 
@@ -83,6 +86,8 @@ class Package
     @scopedProperties = []
 
   activate: ->
+    @grammarsPromise = @loadGrammars()
+
     unless @activationDeferred?
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
@@ -173,7 +178,24 @@ class Package
     else
       fs.listSync(stylesheetDirPath, ['css', 'less'])
 
+  loadGrammarsSync: ->
+    @grammars = []
+    grammarsDirPath = path.join(@path, 'grammars')
+    grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
+    for grammarPath in grammarPaths
+      console.log 'load sync', grammarPath
+      try
+        grammar = atom.syntax.readGrammarSync(grammarPath)
+        @grammars.push(grammar)
+        grammar.activate()
+      catch
+        console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+
+    @grammarsLoaded = true
+
   loadGrammars: ->
+    return if @grammarsLoaded
+
     @grammars = []
 
     loadGrammar = (grammarPath, callback) =>

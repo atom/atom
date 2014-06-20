@@ -49,8 +49,10 @@ class TokenizedBuffer extends Model
   serializeParams: ->
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
+    grammar: @grammar.name
 
   deserializeParams: (params) ->
+    atom.syntax.requestGrammarPreload(params.grammar)
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 
