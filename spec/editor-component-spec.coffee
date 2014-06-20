@@ -245,6 +245,88 @@ describe "EditorComponent", ->
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
+    describe "when line decorations are attached to markers", ->
+      {marker, decoration} = {}
+
+      lineHasClass = (screenRow, klass) ->
+        component.lineNodeForScreenRow(screenRow).classList.contains(klass)
+
+      beforeEach ->
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
+        decoration = {type: 'line', class: 'someclass'}
+        editor.addDecorationForMarker(marker, decoration)
+        waitsFor -> not component.decorationChangedImmediate?
+
+      it "does not render off-screen lines with line number classes until they are with in the rendered row range", ->
+        node.style.height = 4.5 * lineHeightInPixels + 'px'
+        component.measureScrollView()
+
+        expect(component.lineNodeForScreenRow(9)).not.toBeDefined()
+
+        marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
+        editor.addDecorationForMarker(marker, type: 'line', class: 'fancy-class')
+        editor.addDecorationForMarker(marker, type: 'gutter', class: 'nope-class')
+
+        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+
+        expect(lineHasClass(9, 'fancy-class')).toBe true
+        expect(lineHasClass(9, 'nope-class')).toBe false
+
+      it "renders the specified decoration class on the correct lines", ->
+        expect(lineHasClass(1, 'someclass')).toBe false
+        expect(lineHasClass(2, 'someclass')).toBe true
+        expect(lineHasClass(3, 'someclass')).toBe true
+        expect(lineHasClass(4, 'someclass')).toBe false
+
+      it "removes line classes when a decoration's marker is invalidated", ->
+        editor.getBuffer().insert([3, 2], 'n')
+
+        waitsFor -> not component.decorationChangedImmediate?
+        runs ->
+          expect(marker.isValid()).toBe false
+          expect(lineHasClass(1, 'someclass')).toBe false
+          expect(lineHasClass(2, 'someclass')).toBe false
+          expect(lineHasClass(3, 'someclass')).toBe false
+          expect(lineHasClass(4, 'someclass')).toBe false
+
+          editor.getBuffer().undo()
+
+        waitsFor -> not component.decorationChangedImmediate?
+        runs ->
+          expect(marker.isValid()).toBe true
+          expect(lineHasClass(1, 'someclass')).toBe false
+          expect(lineHasClass(2, 'someclass')).toBe true
+          expect(lineHasClass(3, 'someclass')).toBe true
+          expect(lineHasClass(4, 'someclass')).toBe false
+
+      it "removes the classes and unsubscribes from the marker when decoration is removed", ->
+        editor.removeDecorationForMarker(marker, decoration)
+
+        waitsFor -> not component.decorationChangedImmediate?
+        runs ->
+          expect(lineHasClass(1, 'someclass')).toBe false
+          expect(lineHasClass(2, 'someclass')).toBe false
+          expect(lineHasClass(3, 'someclass')).toBe false
+          expect(lineHasClass(4, 'someclass')).toBe false
+
+        editor.getBuffer().insert([0, 0], '\n')
+
+        waitsFor -> not component.decorationChangedImmediate?
+        runs ->
+          expect(lineHasClass(2, 'someclass')).toBe false
+          expect(lineHasClass(3, 'someclass')).toBe false
+
+      it "removes the line number classes when the decoration's marker is destroyed", ->
+        marker.destroy()
+
+        waitsFor -> not component.decorationChangedImmediate?
+        runs ->
+          expect(lineHasClass(1, 'someclass')).toBe false
+          expect(lineHasClass(2, 'someclass')).toBe false
+          expect(lineHasClass(3, 'someclass')).toBe false
+          expect(lineHasClass(4, 'someclass')).toBe false
+
   describe "gutter rendering", ->
     [gutter] = []
 
@@ -455,7 +537,7 @@ describe "EditorComponent", ->
         expect(lineNumberHasClass(2, 'cursor-line')).toBe true
         expect(lineNumberHasClass(3, 'cursor-line')).toBe false
 
-    describe "when decorations are applied to markers", ->
+    describe "when gutter decorations are attached to markers", ->
       {marker, decoration} = {}
       beforeEach ->
         marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
