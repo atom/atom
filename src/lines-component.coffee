@@ -207,11 +207,14 @@ LinesComponent = React.createClass
     {editor, lineHeightInPixels, lineDecorations} = @props
     lineNode = @lineNodesByLineId[line.id]
 
-    if previousDecorations = @renderedDecorationsByLineId[line.id]
+    decorations = lineDecorations[screenRow]
+    previousDecorations = @renderedDecorationsByLineId[line.id]
+
+    if previousDecorations?
       for decoration in previousDecorations
         lineNode.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(decorations, decoration)
 
-    if decorations = lineDecorations[screenRow]
+    if decorations?
       for decoration in decorations
         if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
