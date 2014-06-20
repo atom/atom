@@ -1074,11 +1074,11 @@ class Editor extends Model
 
   # Public: Get all the decorations within a screen row range.
   #
-  # startScreenRow - the {int} beginning screen row
-  # endScreenRow - the {int} end screen row (inclusive)
+  # startScreenRow - the {Number} beginning screen row
+  # endScreenRow - the {Number} end screen row (inclusive)
   #
   # Returns an {Object} of decorations in the form `{1: [{type: 'gutter', class: 'someclass'}], 2: ...}`
-  #   where the keys are markerIds, and the values are an array of {Decoration} objects attached to the marker.
+  #   where the keys are markerIds, and the values are an array of decoration objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
