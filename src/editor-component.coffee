@@ -8,6 +8,7 @@ GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
+HighlightsComponent = require './highlights-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -103,7 +104,11 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
+          visible, scrollViewHeight
+        }
+        HighlightsComponent {
+          editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, highlightDecorations, lineHeightInPixels,
+          defaultCharWidth, @scopedCharacterWidthsChangeCount
         }
 
       ScrollbarComponent
