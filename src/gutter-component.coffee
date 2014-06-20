@@ -144,7 +144,7 @@ GutterComponent = React.createClass
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
     classes = ''
-    if lineDecorations and decorations = lineDecorations[screenRow]
+    if lineDecorations? and decorations = lineDecorations[screenRow]
       for decoration in decorations
         if editor.decorationMatchesType(decoration, 'gutter')
           classes += decoration.class + ' '
