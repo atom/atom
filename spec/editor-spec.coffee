@@ -1220,6 +1220,21 @@ describe "Editor", ->
           expect(editor.selectMarker(marker)).toBeFalsy()
           expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 0]]
 
+    describe ".addSelectionForBufferRange(bufferRange)", ->
+      it "adds a selection for the specified buffer range", ->
+        editor.addSelectionForBufferRange([[3, 4], [5, 6]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 0]], [[3, 4], [5, 6]]]
+
+      it "autoscrolls to the added selection if needed", ->
+        editor.setLineHeightInPixels(10)
+        editor.setDefaultCharWidth(10)
+        editor.setHeight(50)
+        editor.setWidth(50)
+
+        editor.addSelectionForBufferRange([[8, 10], [8, 15]])
+        expect(editor.getScrollTop()).toBe 75
+        expect(editor.getScrollLeft()).toBe 160
+
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->
         it "selects the same region of the line below current selections if possible", ->

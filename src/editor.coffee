@@ -1278,7 +1278,9 @@ class Editor extends Model
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
-    @getLastSelection()
+    selection = @getLastSelection()
+    selection.autoscroll()
+    selection
 
   # Public: Set the selected range in buffer coordinates. If there are multiple
   # selections, they are reduced to a single selection with the given range.
