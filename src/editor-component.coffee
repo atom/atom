@@ -9,6 +9,7 @@ InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
 HighlightsComponent = require './highlights-component'
+UnderlayerComponent = require './underlayer-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -109,6 +110,9 @@ EditorComponent = React.createClass
         HighlightsComponent {
           editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, highlightDecorations, lineHeightInPixels,
           defaultCharWidth, @scopedCharacterWidthsChangeCount
+        }
+        UnderlayerComponent {
+          scrollTop, scrollLeft, scrollHeight, scrollWidth
         }
 
       ScrollbarComponent
