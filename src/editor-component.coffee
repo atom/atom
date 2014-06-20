@@ -180,18 +180,24 @@ EditorComponent = React.createClass
     @scrollViewMeasurementIntervalId = null
 
   componentWillUpdate: ->
-    if @props.editor.isAlive()
-      @props.parentView.trigger 'cursor:moved' if @cursorsMoved
-      @props.parentView.trigger 'selection:changed' if @selectionChanged
 
   componentDidUpdate: (prevProps, prevState) ->
+    cursorsMoved = @cursorsMoved
+    selectionChanged = @selectionChanged
     @pendingChanges.length = 0
+    @cursorsMoved = false
+    @selectionChanged = false
     @refreshingScrollbars = false
-    @updateParentViewFocusedClassIfNeeded(prevState)
+
+    if @props.editor.isAlive()
+      @updateParentViewFocusedClassIfNeeded(prevState)
+      @props.parentView.trigger 'cursor:moved' if cursorsMoved
+      @props.parentView.trigger 'selection:changed' if selectionChanged
+      @props.parentView.trigger 'editor:display-updated'
+
     @measureScrollbars() if @measuringScrollbars
     @measureLineHeightAndCharWidthsIfNeeded(prevState)
     @remeasureCharacterWidthsIfNeeded(prevState)
-    @props.parentView.trigger 'editor:display-updated'
 
   requestUpdate: ->
     if @performSyncUpdates ? EditorComponent.performSyncUpdates
