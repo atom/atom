@@ -9,9 +9,11 @@
     * For 64-bit builds of node and native modules you **must** have the
     [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279).
     You may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
-
-  * [Python](http://www.python.org/download/) v2.7.x
-    * Note: Python.exe must be available at: `%SystemDrive%\Python27\python.exe`. If it is installed elsewhere, create a symbolic link to the directory containing python.exe (like so: `mklink /d %SystemDrive%\Python27 D:\elsewhere\Python27`).
+  * [Python](http://www.python.org/download/) v2.7.
+    * The python.exe must be available at `%SystemDrive%\Python27\python.exe`.
+      If it is installed elsewhere, you can create a symbolic link to the
+      directory containing the python.exe using:
+      `mklink /d %SystemDrive%\Python27 D:\elsewhere\Python27`
   * [GitHub for Windows](http://windows.github.com/)
 
 ### On Windows 8
