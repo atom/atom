@@ -215,11 +215,11 @@ LinesComponent = React.createClass
 
     if previousDecorations = @renderedDecorationsByLineId[line.id]
       for decoration in previousDecorations
-        lineNode.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'line') and not contains(decorations, decoration)
+        lineNode.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(decorations, decoration)
 
     if decorations = lineDecorations[screenRow]
       for decoration in decorations
-        if editor.decorationMatchesType(decoration, 'line') and not contains(previousDecorations, decoration)
+        if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
 
     return
@@ -292,10 +292,3 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
-
-# Created because underscore uses === not _.isEqual, which we need
-contains = (array, target) ->
-  return false unless array?
-  for object in array
-    return true if _.isEqual(object, target)
-  false

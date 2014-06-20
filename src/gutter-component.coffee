@@ -174,11 +174,11 @@ GutterComponent = React.createClass
 
     if previousDecorations?
       for decoration in previousDecorations
-        node.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'gutter') and not contains(decorations, decoration)
+        node.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'gutter') and not _.deepContains(decorations, decoration)
 
     if decorations?
       for decoration in decorations
-        if editor.decorationMatchesType(decoration, 'gutter') and not contains(previousDecorations, decoration)
+        if editor.decorationMatchesType(decoration, 'gutter') and not _.deepContains(previousDecorations, decoration)
           node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
@@ -211,10 +211,3 @@ GutterComponent = React.createClass
     unless width is @measuredWidth
       @measuredWidth = width
       @props.onWidthChanged?(width)
-
-# Created because underscore uses === not _.isEqual, which we need
-contains = (array, target) ->
-  return false unless array?
-  for object in array
-    return true if _.isEqual(object, target)
-  false
