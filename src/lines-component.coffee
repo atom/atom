@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
@@ -32,10 +33,11 @@ LinesComponent = React.createClass
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
+    @renderedDecorationsByLineId = {}
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
+      'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount'
     )
@@ -60,7 +62,7 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
 
   updateLines: ->
-    {editor, renderedRowRange, showIndentGuide, selectionChanged} = @props
+    {editor, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
     [startRow, endRow] = renderedRowRange
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
@@ -81,6 +83,8 @@ LinesComponent = React.createClass
         node.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
+    {lineDecorations} = @props
+
     newLines = null
     newLinesHTML = null
 
@@ -97,6 +101,8 @@ LinesComponent = React.createClass
         @screenRowsByLineId[line.id] = screenRow
         @lineIdsByScreenRow[screenRow] = line.id
 
+      @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
+
     return unless newLines?
 
     WrapperDiv.innerHTML = newLinesHTML
@@ -111,11 +117,18 @@ LinesComponent = React.createClass
     @lineNodesByLineId.hasOwnProperty(lineId)
 
   buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeightInPixels} = @props
+    {editor, mini, showIndentGuide, lineHeightInPixels, lineDecorations} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
 
+    classes = ''
+    if decorations = lineDecorations[screenRow]
+      for decoration in decorations
+        if editor.decorationMatchesType(decoration, 'line')
+          classes += decoration.class + ' '
+    classes += 'line'
+
     top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"line\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
@@ -190,13 +203,26 @@ LinesComponent = React.createClass
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (line, screenRow) ->
+    {editor, lineHeightInPixels, lineDecorations} = @props
+
+    lineNode = @lineNodesByLineId[line.id]
+
     unless @screenRowsByLineId[line.id] is screenRow
-      {lineHeightInPixels} = @props
-      lineNode = @lineNodesByLineId[line.id]
       lineNode.style.top = screenRow * lineHeightInPixels + 'px'
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
+
+    if previousDecorations = @renderedDecorationsByLineId[line.id]
+      for decoration in previousDecorations
+        lineNode.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'line') and not contains(decorations, decoration)
+
+    if decorations = lineDecorations[screenRow]
+      for decoration in decorations
+        if editor.decorationMatchesType(decoration, 'line') and not contains(previousDecorations, decoration)
+          lineNode.classList.add(decoration.class)
+
+    return
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
@@ -266,3 +292,10 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
+
+# Created because underscore uses === not _.isEqual, which we need
+contains = (array, target) ->
+  return false unless array?
+  for object in array
+    return true if _.isEqual(object, target)
+  false
