@@ -204,14 +204,7 @@ LinesComponent = React.createClass
 
   updateLineNode: (line, screenRow) ->
     {editor, lineHeightInPixels, lineDecorations} = @props
-
     lineNode = @lineNodesByLineId[line.id]
-
-    unless @screenRowsByLineId[line.id] is screenRow
-      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
-      lineNode.dataset.screenRow = screenRow
-      @screenRowsByLineId[line.id] = screenRow
-      @lineIdsByScreenRow[screenRow] = line.id
 
     if previousDecorations = @renderedDecorationsByLineId[line.id]
       for decoration in previousDecorations
@@ -222,7 +215,11 @@ LinesComponent = React.createClass
         if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
 
-    return
+    unless @screenRowsByLineId[line.id] is screenRow
+      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
+      lineNode.dataset.screenRow = screenRow
+      @screenRowsByLineId[line.id] = screenRow
+      @lineIdsByScreenRow[screenRow] = line.id
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
