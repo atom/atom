@@ -28,15 +28,16 @@ GutterComponent = React.createClass
         ]
 
   renderLineNumberGroups: ->
-    {renderedRowRange, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits} = @props
+    {renderedRowRange, pendingChanges, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
     renderedStartRow -= renderedStartRow % @lineNumberGroupSize
 
     for startRow in [renderedStartRow...renderedEndRow] by @lineNumberGroupSize
+      ref = startRow
       key = startRow
       endRow = startRow + @lineNumberGroupSize
       LineNumberGroupComponent {
-        key, startRow, endRow, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits
+        ref, key, startRow, endRow, pendingChanges, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits
       }
 
   # Only update the gutter if the visible row range has changed or if a
@@ -54,9 +55,19 @@ GutterComponent = React.createClass
 
     false
 
-  componentDidUpdate: (oldProps) ->
-    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
+  componentDidUpdate: (prevProps) ->
+    @manuallyUpdateLineNumberGroupScrollPositions() unless prevProps.scrollTop is @props.scrollTop
+
+    unless isEqualForProperties(prevProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
       @measureWidth()
+
+  manuallyUpdateLineNumberGroupScrollPositions: ->
+    {renderedRowRange, scrollTop} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+    renderedStartRow -= renderedStartRow % @lineNumberGroupSize
+
+    for startRow in [renderedStartRow...renderedEndRow] by @lineNumberGroupSize
+      @refs[startRow].manuallyUpdateScrollPosition(scrollTop)
 
   onClick: (event) ->
     {editor} = @props
@@ -80,12 +91,10 @@ LineNumberGroupComponent = React.createClass
   displayName: 'LineNumberGroupComponent'
 
   render: ->
-    {editor, startRow, endRow, scrollTop, scrollLeft, lineHeightInPixels, showIndentGuide, mini, invisibles} = @props
-    top = startRow * lineHeightInPixels - scrollTop
     style =
       position: 'absolute'
       top: 0
-      WebkitTransform: "translate3d(0px, #{top}px, 0px)"
+      WebkitTransform: @getTranslation()
 
     div {className: 'line-number-group', style},
       @renderLineNumbers()
@@ -105,6 +114,23 @@ LineNumberGroupComponent = React.createClass
 
       screenRow = startRow + i
       LineNumberComponent({key, bufferRow, screenRow, softWrapped, maxLineNumberDigits})
+
+  shouldComponentUpdate: (newProps) ->
+    {startRow, endRow, pendingChanges} = newProps
+
+    for change in pendingChanges
+      return true unless change.end < startRow or change.start >= endRow
+
+    false
+
+  manuallyUpdateScrollPosition: (scrollTop) ->
+    @props.scrollTop = scrollTop
+    @getDOMNode().style['-webkit-transform'] = @getTranslation()
+
+  getTranslation: ->
+    {startRow, lineHeightInPixels, scrollTop} = @props
+    top = startRow * lineHeightInPixels - scrollTop
+    "translate3d(0px, #{top}px, 0px)"
 
 LineNumberComponent = React.createClass
   displayName: 'LineNumberComponent'
