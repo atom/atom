@@ -443,8 +443,7 @@ class Editor extends Model
   getText: -> @buffer.getText()
 
   # Public: Replaces the entire contents of the buffer with the given {String}.
-  setText: (text) ->
-    @buffer.setText(text)
+  setText: (text) -> @buffer.setText(text)
 
   # Get the text in the given {Range}.
   #
