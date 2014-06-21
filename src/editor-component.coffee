@@ -8,8 +8,6 @@ GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
-HighlightsComponent = require './highlights-component'
-UnderlayerComponent = require './underlayer-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -84,8 +82,8 @@ EditorComponent = React.createClass
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
       GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
-        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -105,14 +103,7 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight
-        }
-        HighlightsComponent {
-          editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, highlightDecorations, lineHeightInPixels,
-          defaultCharWidth, @scopedCharacterWidthsChangeCount
-        }
-        UnderlayerComponent {
-          scrollTop, scrollLeft, scrollHeight, scrollWidth
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
         }
 
       ScrollbarComponent
