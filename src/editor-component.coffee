@@ -12,6 +12,8 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
+DummyHighlightDecoration = {id: 'dummy', screenRange: new Range(new Point(0, 0), new Point(0, 0)), decorations: [{class: 'dummy'}]}
+
 module.exports =
 EditorComponent = React.createClass
   displayName: 'EditorComponent'
@@ -269,6 +271,12 @@ EditorComponent = React.createClass
           if editor.decorationMatchesType(decoration, 'highlight')
             filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
             filteredDecorations[markerId].decorations.push decoration
+
+    # At least in Chromium 31, removing the last highlight causes a rendering
+    # artifact where chunks of the lines disappear, so we always leave this
+    # dummy highlight in place to prevent that.
+    filteredDecorations['dummy'] = DummyHighlightDecoration
+
     filteredDecorations
 
   observeEditor: ->
