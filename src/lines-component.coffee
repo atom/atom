@@ -164,7 +164,10 @@ LineGroupComponent = React.createClass
     {startRow, endRow, pendingChanges} = newProps
 
     for change in pendingChanges
-      return true unless change.end < startRow or change.start >= endRow
+      if change.screenDelta is 0 and change.bufferDelta is 0
+        return true unless change.end < startRow or change.start >= endRow
+      else
+        return true unless change.start >= endRow
 
     false
 
