@@ -14,7 +14,7 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
-  lineGroupSize: 20
+  lineGroupSize: 10
 
   render: ->
     if @isMounted()
@@ -27,21 +27,22 @@ LinesComponent = React.createClass
 
     # The lines div must have the 'editor-colors' class so it has an opaque
     # background to avoid sub-pixel anti-aliasing problems on the GPU
-    div {className: 'lines editor-colors', style},
+    div {className: 'lines', style},
       if @isMounted()
         @renderLineGroups()
           # HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount}
 
   renderLineGroups: ->
-    {renderedRowRange, scrollTop, scrollLeft, editor, lineHeightInPixels, showIndentGuide, mini, invisibles} = @props
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, editor, lineHeightInPixels, showIndentGuide, mini, invisibles} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
     renderedStartRow -= renderedStartRow % @lineGroupSize
 
     for startRow in [renderedStartRow...renderedEndRow] by @lineGroupSize
+      ref = startRow
       key = startRow
       endRow = startRow + @lineGroupSize
       LineGroupComponent {
-        key, startRow, endRow, scrollTop, scrollLeft,
+        key, ref, startRow, endRow, pendingChanges, scrollTop, scrollLeft,
         editor, lineHeightInPixels, showIndentGuide, mini, invisibles
       }
 
@@ -67,8 +68,18 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
+    unless isEqualForProperties(prevProps, @props, 'scrollTop', 'scrollLeft')
+      @manuallyUpdateLineGroupScrollPositions()
+
     # {visible, scrollingVertically} = @props
     # @measureCharactersInNewLines() if visible and not scrollingVertically
+
+  manuallyUpdateLineGroupScrollPositions: ->
+    {renderedRowRange, scrollTop, scrollLeft} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+    renderedStartRow -= renderedStartRow % @lineGroupSize
+    for startRow in [renderedStartRow...renderedEndRow] by @lineGroupSize
+      @refs[startRow].manuallyUpdateScrollPosition(scrollTop, scrollLeft)
 
   measureLineHeightAndDefaultCharWidth: ->
     node = @getDOMNode()
@@ -139,17 +150,34 @@ LineGroupComponent = React.createClass
   displayName: "LineGroupComponent"
 
   render: ->
-    {editor, startRow, endRow, scrollTop, scrollLeft, lineHeightInPixels, showIndentGuide, mini, invisibles} = @props
-    top = startRow * lineHeightInPixels - scrollTop
-    left = -scrollLeft
+    {editor, startRow, endRow, showIndentGuide, mini, invisibles} = @props
     style =
       position: 'absolute'
-      WebkitTransform: "translate3d(#{left}px, #{top}px, 0px)"
+      WebkitTransform: @getTranslation()
 
-    div {className: 'line-group editor-colors', style},
+    div {className: 'line-group', style},
       for line, i in editor.linesForScreenRows(startRow, endRow - 1)
         screenRow = startRow + i
         LineComponent({key: line.id, line, screenRow, showIndentGuide, mini, invisibles})
+
+  shouldComponentUpdate: (newProps) ->
+    {startRow, endRow, pendingChanges} = newProps
+
+    for change in pendingChanges
+      return true unless change.end < startRow or change.start >= endRow
+
+    false
+
+  manuallyUpdateScrollPosition: (scrollTop, scrollLeft) ->
+    @props.scrollTop = scrollTop
+    @props.scrollLeft = scrollLeft
+    @getDOMNode().style['-webkit-transform'] = @getTranslation()
+
+  getTranslation: ->
+    {startRow, lineHeightInPixels, scrollTop, scrollLeft} = @props
+    top = startRow * lineHeightInPixels - scrollTop
+    left = -scrollLeft
+    "translate3d(#{left}px, #{top}px, 0px)"
 
 LineComponent = React.createClass
   displayName: "LineComponent"
