@@ -16,13 +16,15 @@ GutterComponent = React.createClass
 
   render: ->
     {scrollHeight, scrollViewHeight, scrollTop, onMouseDown} = @props
+    style = WebkitTransform: 'translateZ(0px)'
 
-    div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
+    div className: 'gutter', style: style, onClick: @onClick, onMouseDown: onMouseDown,
       # The line-numbers div must have the 'editor-colors' class so it has an
       # opaque background to avoid sub-pixel anti-aliasing problems on the GPU
       div className: 'gutter line-numbers editor-colors', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
-        WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
+        # WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
+        WebkitTransform: "translate(0px, #{-scrollTop}px)"
 
   componentWillMount: ->
     @lineNumberNodesById = {}

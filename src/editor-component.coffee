@@ -83,11 +83,11 @@ EditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      GutterComponent {
-        ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
-        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
-      }
+      # GutterComponent {
+      #   ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
+      #   lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+      #   scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+      # }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
@@ -151,7 +151,7 @@ EditorComponent = React.createClass
   getDefaultProps: ->
     cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 100
-    lineOverdrawMargin: 8
+    lineOverdrawMargin: 0
 
   componentWillMount: ->
     @pendingChanges = []
