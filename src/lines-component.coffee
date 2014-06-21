@@ -154,6 +154,7 @@ LineGroupComponent = React.createClass
     style =
       position: 'absolute'
       WebkitTransform: @getTranslation()
+      minWidth: '100%'
 
     div {className: 'line-group', style},
       for line, i in editor.linesForScreenRows(startRow, endRow - 1)
