@@ -86,7 +86,7 @@ EditorComponent = React.createClass
       GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
         lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, tileSize: 50
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -106,7 +106,8 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth,
+          tileSize: 10
         }
 
       ScrollbarComponent

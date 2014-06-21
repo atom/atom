@@ -11,7 +11,6 @@ GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
 
-  lineNumberGroupSize: 10
   measuredWidth: null
 
   render: ->
@@ -28,14 +27,14 @@ GutterComponent = React.createClass
         ]
 
   renderLineNumberGroups: ->
-    {renderedRowRange, pendingChanges, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits} = @props
+    {renderedRowRange, pendingChanges, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits, tileSize} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
-    renderedStartRow -= renderedStartRow % @lineNumberGroupSize
+    renderedStartRow -= renderedStartRow % tileSize
 
-    for startRow in [renderedStartRow...renderedEndRow] by @lineNumberGroupSize
+    for startRow in [renderedStartRow...renderedEndRow] by tileSize
       ref = startRow
       key = startRow
-      endRow = startRow + @lineNumberGroupSize
+      endRow = startRow + tileSize
       LineNumberGroupComponent {
         ref, key, startRow, endRow, pendingChanges, scrollTop, editor, lineHeightInPixels, maxLineNumberDigits
       }
@@ -62,11 +61,11 @@ GutterComponent = React.createClass
       @measureWidth()
 
   manuallyUpdateLineNumberGroupScrollPositions: ->
-    {renderedRowRange, scrollTop} = @props
+    {renderedRowRange, scrollTop, tileSize} = @props
     [renderedStartRow, renderedEndRow] = renderedRowRange
-    renderedStartRow -= renderedStartRow % @lineNumberGroupSize
+    renderedStartRow -= renderedStartRow % tileSize
 
-    for startRow in [renderedStartRow...renderedEndRow] by @lineNumberGroupSize
+    for startRow in [renderedStartRow...renderedEndRow] by tileSize
       @refs[startRow].manuallyUpdateScrollPosition(scrollTop)
 
   onClick: (event) ->
