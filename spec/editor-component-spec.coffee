@@ -153,6 +153,30 @@ describe "EditorComponent", ->
       linesNode = node.querySelector('.lines')
       expect(linesNode.offsetHeight).toBe 300
 
+    it "assigns the width of each line so it extends across the full width of the editor", ->
+      gutterWidth = node.querySelector('.gutter').offsetWidth
+      scrollViewNode = node.querySelector('.scroll-view')
+      lineNodes = node.querySelectorAll('.line')
+
+      node.style.width = gutterWidth + (30 * charWidth) + 'px'
+      component.measureScrollView()
+      nextTick()
+      expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
+
+      # At the time of writing, using min-width to achieve the full-width affect
+      # caused full-screen repaints. Please ensure you don't regress that if you
+      # change this behavior.
+      for lineNode in lineNodes
+        expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
+
+      node.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
+      component.measureScrollView()
+      nextTick()
+      scrollViewWidth = scrollViewNode.offsetWidth
+
+      for lineNode in lineNodes
+        expect(lineNode.style.width).toBe scrollViewWidth + 'px'
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
