@@ -391,6 +391,17 @@ describe "EditorComponent", ->
         expect(lineHasClass(3, 'someclass')).toBe false
         expect(lineHasClass(4, 'someclass')).toBe false
 
+      ffit "does not render 'requireEmpty' line decorations for non-empty markers", ->
+        editor.addDecorationForMarker(marker, type: 'line', class: 'require-empty', requireEmpty: true)
+        nextTick()
+
+        expect(marker.getScreenRange().isEmpty()).toBe false
+        expect(node.querySelectorAll('.require-empty')).toHaveLength 0
+
+        marker.setBufferRange([[2, 4], [2, 4]])
+        nextTick()
+        expect(node.querySelectorAll('.require-empty')).toHaveLength 1
+
   describe "gutter rendering", ->
     [gutter] = []
 

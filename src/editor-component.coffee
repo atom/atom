@@ -253,6 +253,9 @@ EditorComponent = React.createClass
         for decoration in decorations
           if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
             screenRange ?= marker.getScreenRange()
+
+            continue unless screenRange.isEmpty() if decoration.requireEmpty is true
+
             startRow = screenRange.start.row
             endRow = screenRange.end.row
             endRow-- if not screenRange.isEmpty() and screenRange.end.column == 0
