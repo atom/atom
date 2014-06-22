@@ -63,7 +63,7 @@ See also https://github.com/atom/atom/issues/2082.
 
 ### /usr/bin/env: node: No such file or directory
 
-If you get this notice when attemtping to ```script/build,``` you have either neglected to install nodejs, or node is identified as nodejs in your system. If the latter, entering ```sudo ln -s /usr/bin/nodejs /usr/bin/node``` into your terminal may fix the issue.
+If you get this notice when attempting to ```script/build,``` you have either neglected to install nodejs, or node is identified as nodejs in your system. If it's the latter, entering ```sudo ln -s /usr/bin/nodejs /usr/bin/node``` into your terminal may fix the issue.
 
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
