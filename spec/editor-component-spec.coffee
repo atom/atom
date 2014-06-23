@@ -1785,6 +1785,7 @@ describe "EditorComponent", ->
       editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
       wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
+      nextTick()
 
       expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
