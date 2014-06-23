@@ -127,6 +127,17 @@ describe "Window", ->
 
         expect(buffer.getSubscriptionCount()).toBe 0
 
+    it "stores the active grammars used by all the open editor", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
+
+      runs ->
+        atom.unloadEditorWindow()
+        expect(atom.state.packagesWithActiveGrammars).toEqual ['language-javascript']
+
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
       dataTransfer =
