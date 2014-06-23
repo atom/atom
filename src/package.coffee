@@ -180,13 +180,12 @@ class Package
     grammarsDirPath = path.join(@path, 'grammars')
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
-      console.log 'load sync', grammarPath
       try
         grammar = atom.syntax.readGrammarSync(grammarPath)
         grammar.packageName = @name
         @grammars.push(grammar)
         grammar.activate()
-      catch
+      catch error
         console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
 
     @grammarsLoaded = true
