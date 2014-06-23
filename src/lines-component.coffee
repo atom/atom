@@ -28,7 +28,6 @@ LinesComponent = React.createClass
     div {className: 'lines', style},
       if @isMounted()
         @renderLineGroups()
-          # HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount}
 
   renderLineGroups: ->
     {renderedRowRange, pendingChanges, scrollTop, scrollLeft, editor, lineHeightInPixels, showIndentGuide, mini, invisibles, tileSize, lineWidth} = @props
@@ -154,7 +153,7 @@ LineGroupComponent = React.createClass
       WebkitTransform: @getTranslation()
       width: lineWidth
 
-    div {className: 'line-group editor-colors', style},
+    div {className: 'line-group', style},
       for line, i in editor.linesForScreenRows(startRow, endRow - 1)
         screenRow = startRow + i
         LineComponent({key: line.id, line, screenRow, showIndentGuide, mini, invisibles})

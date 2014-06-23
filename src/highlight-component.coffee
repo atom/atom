@@ -1,16 +1,24 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{Point} = require 'text-buffer'
 
 module.exports =
 HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
 
   render: ->
-    {editor, screenRange, decoration} = @props
+    {editor, screenRange, decoration, startRow, endRow, lineHeightInPixels} = @props
+
     {start, end} = screenRange
+    start = new Point(startRow, 0) if start.row < startRow
+    end = new Point(endRow, 0) if end.row >= endRow
+
     rowCount = end.row - start.row + 1
     startPixelPosition = editor.pixelPositionForScreenPosition(start)
     endPixelPosition = editor.pixelPositionForScreenPosition(end)
+    offset = startRow * lineHeightInPixels
+    startPixelPosition.top -= offset
+    endPixelPosition.top -= offset
 
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?

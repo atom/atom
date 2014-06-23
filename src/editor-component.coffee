@@ -8,6 +8,7 @@ GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
+HighlightsComponent = require './highlights-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -108,6 +109,10 @@ EditorComponent = React.createClass
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth,
           tileSize: 10
+        }
+        HighlightsComponent {
+          editor, renderedRowRange, scrollTop, scrollLeft, highlightDecorations, lineHeightInPixels,
+          defaultCharWidth, @scopedCharacterWidthsChangeCount, lineWidth, tileSize: 10
         }
 
       ScrollbarComponent
@@ -280,7 +285,7 @@ EditorComponent = React.createClass
     # At least in Chromium 31, removing the last highlight causes a rendering
     # artifact where chunks of the lines disappear, so we always leave this
     # dummy highlight in place to prevent that.
-    filteredDecorations['dummy'] = DummyHighlightDecoration
+    # filteredDecorations['dummy'] = DummyHighlightDecoration
 
     filteredDecorations
 
