@@ -51,10 +51,6 @@ class TokenizedBuffer extends Model
     tabLength: @tabLength
 
   deserializeParams: (params) ->
-    if params.grammars?
-      for grammar in params.grammars
-        atom.syntax.requestGrammarPreload(grammar)
-
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 
