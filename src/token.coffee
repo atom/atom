@@ -2,8 +2,8 @@ _ = require 'underscore-plus'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
-LeadingWhitespaceRegex = /^[ ]+/
-TrailingWhitespaceRegex = /[ ]+$/
+LeadingSpaceRegex = /^[ ]+/
+TrailingSpaceRegex = /[ ]+$/
 EscapeRegex = /[&"'<>]/g
 CharacterRegex = /./g
 StartCharacterRegex = /^./
@@ -151,7 +151,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if @hasLeadingWhitespace and match = LeadingWhitespaceRegex.exec(@value)
+      if @hasLeadingWhitespace and match = LeadingSpaceRegex.exec(@value)
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
@@ -161,7 +161,7 @@ class Token
 
         startIndex = match[0].length
 
-      if @hasTrailingWhitespace and match = TrailingWhitespaceRegex.exec(@value)
+      if @hasTrailingWhitespace and match = TrailingSpaceRegex.exec(@value)
         tokenIsOnlyWhitespace = match[0].length is @value.length
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
