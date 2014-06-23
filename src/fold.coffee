@@ -35,6 +35,11 @@ class Fold
   # Returns a {Range}.
   getBufferRange: ({includeNewline}={}) ->
     range = @marker.getRange()
+
+    if range.end.row > range.start.row and nextFold = @displayBuffer.largestFoldStartingAtBufferRow(range.end.row)
+      nextRange = nextFold.getBufferRange()
+      range = new Range(range.start, nextRange.end)
+
     if includeNewline
       range = range.copy()
       range.end.row++
