@@ -153,6 +153,30 @@ describe "EditorComponent", ->
       linesNode = node.querySelector('.lines')
       expect(linesNode.offsetHeight).toBe 300
 
+    it "assigns the width of each line so it extends across the full width of the editor", ->
+      gutterWidth = node.querySelector('.gutter').offsetWidth
+      scrollViewNode = node.querySelector('.scroll-view')
+      lineNodes = node.querySelectorAll('.line')
+
+      node.style.width = gutterWidth + (30 * charWidth) + 'px'
+      component.measureScrollView()
+      nextTick()
+      expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
+
+      # At the time of writing, using min-width to achieve the full-width affect
+      # caused full-screen repaints. Please ensure you don't regress that if you
+      # change this behavior.
+      for lineNode in lineNodes
+        expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
+
+      node.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
+      component.measureScrollView()
+      nextTick()
+      scrollViewWidth = scrollViewNode.offsetWidth
+
+      for lineNode in lineNodes
+        expect(lineNode.style.width).toBe scrollViewWidth + 'px'
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
@@ -366,6 +390,17 @@ describe "EditorComponent", ->
         expect(lineHasClass(2, 'someclass')).toBe false
         expect(lineHasClass(3, 'someclass')).toBe false
         expect(lineHasClass(4, 'someclass')).toBe false
+
+      ffit "does not render 'requireEmpty' line decorations for non-empty markers", ->
+        editor.addDecorationForMarker(marker, type: 'line', class: 'require-empty', requireEmpty: true)
+        nextTick()
+
+        expect(marker.getScreenRange().isEmpty()).toBe false
+        expect(node.querySelectorAll('.require-empty')).toHaveLength 0
+
+        marker.setBufferRange([[2, 4], [2, 4]])
+        nextTick()
+        expect(node.querySelectorAll('.require-empty')).toHaveLength 1
 
   describe "gutter rendering", ->
     [gutter] = []
