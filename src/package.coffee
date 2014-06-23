@@ -191,7 +191,7 @@ class Package
     @grammarsLoaded = true
 
   loadGrammars: ->
-    return if @grammarsLoaded
+    return Q() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
       atom.syntax.readGrammar grammarPath, (error, grammar) =>
