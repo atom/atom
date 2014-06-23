@@ -197,11 +197,6 @@ class PackageManager
   getLoadedPackagesForTypes: (types) ->
     pack for pack in @getLoadedPackages() when pack.getType() in types
 
-  getPackageForGrammarScopeName: (scopeName) ->
-    for pack in @getLoadedPackages()
-      return pack if scopeName in pack.getGrammarScopes()
-    null
-
   # Public: Resolve the given package name to a path on disk.
   resolvePackagePath: (name) ->
     return name if fs.isDirectorySync(name)

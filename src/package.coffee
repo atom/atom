@@ -42,9 +42,6 @@ class Package
     @name = @metadata?.name ? path.basename(@path)
     @reset()
 
-    atom.syntax.on 'request-grammar-preload', ({packageName, scopeName}={}) =>
-      @loadGrammarsSync() if packageName == @name
-
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
 
