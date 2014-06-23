@@ -250,22 +250,6 @@ class Atom extends Model
   storeWindowDimensions: ->
     @state.windowDimensions = @getWindowDimensions()
 
-  storeGrammarsForOpenEditors: ->
-    packageNames = []
-    addGrammar = (grammar={}) ->
-      {includedGrammarScopes, packageName} = grammar
-      return unless packageName
-
-      # Prevent cycles
-      return if packageNames.indexOf(packageName) isnt -1
-
-      packageNames.push(packageName)
-      for scopeName in includedGrammarScopes ? []
-        addGrammar(atom.syntax.grammarForScopeName(scopeName))
-
-    addGrammar(editor.getGrammar()) for editor in @workspace.getEditors()
-    @state.packagesWithActiveGrammars = _.uniq(packageNames)
-
   # Public: Get the load settings for the current window.
   #
   # Returns an object containing all the load setting key/value pairs.
@@ -288,13 +272,6 @@ class Atom extends Model
     @packages.packageStates = @state.packageStates ? {}
     delete @state.packageStates
 
-  preloadGrammarsForOpenEditors: ->
-    startTime = Date.now()
-    packagesWithActiveGrammars = @state.packagesWithActiveGrammars ? []
-    for packageName in packagesWithActiveGrammars
-      @packages.getLoadedPackage(packageName)?.loadGrammarsSync()
-    atom.preloadGrammarTime = Date.now() - startTime
-
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
@@ -316,7 +293,6 @@ class Atom extends Model
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
-    @preloadGrammarsForOpenEditors()
     @deserializeEditorWindow()
     @packages.activate()
     @keymaps.loadUserKeymap()
@@ -333,7 +309,6 @@ class Atom extends Model
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
-    @storeGrammarsForOpenEditors()
     @state.syntax = @syntax.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
