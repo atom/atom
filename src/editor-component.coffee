@@ -291,6 +291,7 @@ EditorComponent = React.createClass
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-added', @onDecorationChanged
     @subscribe editor, 'decoration-removed', @onDecorationChanged
+    @subscribe editor, 'decoration-changed', @onDecorationChanged
     @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate

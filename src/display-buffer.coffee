@@ -45,7 +45,8 @@ class DisplayBuffer extends Model
     @markers = {}
     @foldsByMarkerId = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerSubscriptions = {}
+    @decorationMarkerChangedSubscriptions = {}
+    @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
@@ -755,7 +756,11 @@ class DisplayBuffer extends Model
       return
 
     marker = @getMarker(marker.id)
-    @decorationMarkerSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
+    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
+
+    subscription = @subscribe marker, 'changed', (event) => @emit('decoration-changed', marker, decoration, event)
+    @decorationMarkerChangedSubscriptions[marker.id] ?= []
+    @decorationMarkerChangedSubscriptions[marker.id].push {decoration, subscription}
 
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
@@ -772,6 +777,7 @@ class DisplayBuffer extends Model
     for i in [decorations.length - 1..0]
       decoration = decorations[i]
       if @decorationMatchesPattern(decoration, decorationPattern)
+        @unsubscribeDecorationFromMarker(marker, decoration)
         decorations.splice(i, 1)
         @emit 'decoration-removed', marker, decoration
 
@@ -784,9 +790,26 @@ class DisplayBuffer extends Model
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerSubscriptions[marker.id].off()
+    @decorationMarkerDestroyedSubscriptions[marker.id].off()
+
+    for subscriptionObject in @decorationMarkerChangedSubscriptions[marker.id]
+      subscriptionObject.subscription.off()
+
     delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerSubscriptions[marker.id]
+    delete @decorationMarkerChangedSubscriptions[marker.id]
+    delete @decorationMarkerDestroyedSubscriptions[marker.id]
+
+  unsubscribeDecorationFromMarker: (marker, decoration) ->
+    subscriptionObjects = @decorationMarkerChangedSubscriptions[marker.id]
+    return unless @decorationMarkerChangedSubscriptions[marker.id]
+
+    for i in [subscriptionObjects.length - 1..0]
+      subscriptionObject = subscriptionObjects[i]
+      if subscriptionObject.decoration == decoration
+        subscriptionObject.subscription.off()
+        subscriptionObjects.splice(i, 1)
+
+    delete @decorationMarkerChangedSubscriptions[marker.id] if subscriptionObjects.length == 0
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #
