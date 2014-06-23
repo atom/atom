@@ -186,6 +186,7 @@ class Package
       console.log 'load sync', grammarPath
       try
         grammar = atom.syntax.readGrammarSync(grammarPath)
+        grammar.packageName = @name
         @grammars.push(grammar)
         grammar.activate()
       catch
@@ -201,6 +202,7 @@ class Package
         if error?
           console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
         else
+          grammar.packageName = @name
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
         callback()
