@@ -540,7 +540,7 @@ EditorComponent = React.createClass
     return unless event.button is 0 # only handle the left mouse button
 
     {editor} = @props
-    {detail, shiftKey, metaKey} = event
+    {detail, shiftKey, metaKey, ctrlKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
@@ -550,7 +550,7 @@ EditorComponent = React.createClass
 
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
-    else if metaKey
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
