@@ -333,6 +333,7 @@ class Atom extends Model
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
+    @storeGrammarsForOpenEditors()
     @state.syntax = @syntax.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()

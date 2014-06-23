@@ -42,7 +42,6 @@ class WindowEventHandler
 
     @subscribe $(window), 'unload', ->
       atom.storeWindowDimensions()
-      atom.storeGrammarsForOpenEditors()
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 
