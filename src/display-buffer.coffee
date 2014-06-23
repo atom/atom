@@ -756,11 +756,14 @@ class DisplayBuffer extends Model
       return
 
     marker = @getMarker(marker.id)
-    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
 
-    subscription = @subscribe marker, 'changed', (event) => @emit('decoration-changed', marker, decoration, event)
-    @decorationMarkerChangedSubscriptions[marker.id] ?= []
-    @decorationMarkerChangedSubscriptions[marker.id].push {decoration, subscription}
+    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
+      @removeAllDecorationsForMarker(marker)
+
+    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
+      decorations = @decorationsByMarkerId[marker.id]
+      for decoration in decorations
+        @emit 'decoration-changed', marker, decoration, event
 
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
@@ -771,13 +774,11 @@ class DisplayBuffer extends Model
       console.warn 'A decoration cannot be removed from a null marker'
       return
 
-    return unless @decorationMarkerSubscriptions[marker.id]?
+    return unless decorations = @decorationsByMarkerId[marker.id]
 
-    decorations = @decorationsByMarkerId[marker.id]
     for i in [decorations.length - 1..0]
       decoration = decorations[i]
       if @decorationMatchesPattern(decoration, decorationPattern)
-        @unsubscribeDecorationFromMarker(marker, decoration)
         decorations.splice(i, 1)
         @emit 'decoration-removed', marker, decoration
 
@@ -790,26 +791,12 @@ class DisplayBuffer extends Model
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
+    @decorationMarkerChangedSubscriptions[marker.id].off()
     @decorationMarkerDestroyedSubscriptions[marker.id].off()
-
-    for subscriptionObject in @decorationMarkerChangedSubscriptions[marker.id]
-      subscriptionObject.subscription.off()
 
     delete @decorationsByMarkerId[marker.id]
     delete @decorationMarkerChangedSubscriptions[marker.id]
     delete @decorationMarkerDestroyedSubscriptions[marker.id]
-
-  unsubscribeDecorationFromMarker: (marker, decoration) ->
-    subscriptionObjects = @decorationMarkerChangedSubscriptions[marker.id]
-    return unless @decorationMarkerChangedSubscriptions[marker.id]
-
-    for i in [subscriptionObjects.length - 1..0]
-      subscriptionObject = subscriptionObjects[i]
-      if subscriptionObject.decoration == decoration
-        subscriptionObject.subscription.off()
-        subscriptionObjects.splice(i, 1)
-
-    delete @decorationMarkerChangedSubscriptions[marker.id] if subscriptionObjects.length == 0
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #
