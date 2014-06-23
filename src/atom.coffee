@@ -280,9 +280,11 @@ class Atom extends Model
     delete @state.packageStates
 
   preloadGrammarsForOpenEditors: ->
+    startTime = Date.now()
     packagesWithActiveGrammars = @state.packagesWithActiveGrammars ? []
     for packageName in packagesWithActiveGrammars
       @packages.getLoadedPackage(packageName)?.loadGrammarsSync()
+    atom.preloadGrammarTime = Date.now() - startTime
 
   deserializeEditorWindow: ->
     @deserializePackageStates()
