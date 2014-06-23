@@ -250,6 +250,13 @@ class Atom extends Model
   storeWindowDimensions: ->
     @state.windowDimensions = @getWindowDimensions()
 
+  storeGrammarsForOpenEditors: ->
+    packageNames = []
+    for editor in @workspace.getEditors()
+      {packageName} = editor.getGrammar()
+      packageNames.push(packageName) if packageName
+    @state.packagesWithActiveGrammars = _.uniq(packageNames)
+
   # Public: Get the load settings for the current window.
   #
   # Returns an object containing all the load setting key/value pairs.
@@ -272,6 +279,11 @@ class Atom extends Model
     @packages.packageStates = @state.packageStates ? {}
     delete @state.packageStates
 
+  preloadGrammarsForOpenEditors: ->
+    packagesWithActiveGrammars = @state.packagesWithActiveGrammars ? []
+    for packageName in packagesWithActiveGrammars
+      @packages.getLoadedPackage(packageName)?.loadGrammarsSync()
+
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
@@ -293,6 +305,7 @@ class Atom extends Model
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
+    @preloadGrammarsForOpenEditors()
     @deserializeEditorWindow()
     @packages.activate()
     @keymaps.loadUserKeymap()
