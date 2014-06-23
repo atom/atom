@@ -8,7 +8,8 @@ HighlightsComponent = React.createClass
   displayName: 'HighlightsComponent'
 
   render: ->
-    div className: 'highlights', @renderHighlights()
+    div className: 'highlights',
+      @renderHighlights() if @isMounted()
 
   renderHighlights: ->
     {editor, highlightDecorations, lineHeightInPixels} = @props

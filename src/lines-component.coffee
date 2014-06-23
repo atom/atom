@@ -26,7 +26,7 @@ LinesComponent = React.createClass
     # The lines div must have the 'editor-colors' class so it has an opaque
     # background to avoid sub-pixel anti-aliasing problems on the GPU
     div {className: 'lines editor-colors', style},
-      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount}) if @isMounted()
+      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
 
   componentWillMount: ->
     @measuredLines = new WeakSet
