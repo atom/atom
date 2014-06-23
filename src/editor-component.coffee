@@ -8,6 +8,7 @@ GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
+HighlightsComponent = require './highlights-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
@@ -68,6 +69,7 @@ EditorComponent = React.createClass
       lineHeightInPixels = editor.getLineHeightInPixels()
       defaultCharWidth = editor.getDefaultCharWidth()
       scrollViewHeight = editor.getHeight()
+      lineWidth = Math.max(scrollWidth, editor.getWidth())
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -85,7 +87,7 @@ EditorComponent = React.createClass
       GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
         lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, tileSize: 50
       }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -105,7 +107,12 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth,
+          tileSize: 10
+        }
+        HighlightsComponent {
+          editor, renderedRowRange, scrollTop, scrollLeft, highlightDecorations, lineHeightInPixels,
+          defaultCharWidth, @scopedCharacterWidthsChangeCount, lineWidth, tileSize: 10
         }
 
       ScrollbarComponent
@@ -150,7 +157,7 @@ EditorComponent = React.createClass
   getDefaultProps: ->
     cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 100
-    lineOverdrawMargin: 8
+    lineOverdrawMargin: 0
 
   componentWillMount: ->
     @pendingChanges = []
@@ -252,6 +259,9 @@ EditorComponent = React.createClass
         for decoration in decorations
           if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
             screenRange ?= marker.getScreenRange()
+
+            continue unless screenRange.isEmpty() if decoration.requireEmpty is true
+
             startRow = screenRange.start.row
             endRow = screenRange.end.row
             endRow-- if not screenRange.isEmpty() and screenRange.end.column == 0
@@ -275,7 +285,7 @@ EditorComponent = React.createClass
     # At least in Chromium 31, removing the last highlight causes a rendering
     # artifact where chunks of the lines disappear, so we always leave this
     # dummy highlight in place to prevent that.
-    filteredDecorations['dummy'] = DummyHighlightDecoration
+    # filteredDecorations['dummy'] = DummyHighlightDecoration
 
     filteredDecorations
 
