@@ -261,7 +261,6 @@ class Atom extends Model
 
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
-        console.log scopeName
         addGrammar(atom.syntax.grammarForScopeName(scopeName))
 
     addGrammar(editor.getGrammar()) for editor in @workspace.getEditors()
