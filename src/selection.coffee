@@ -392,7 +392,7 @@ class Selection extends Model
       if autoIndent and delta > 0
         @insertText(@editor.buildIndentString(delta))
       else
-        @insertText(@editor.getTabText())
+        @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))
     else
       @indentSelectedRows()
 

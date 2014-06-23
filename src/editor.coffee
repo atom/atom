@@ -416,9 +416,10 @@ class Editor extends Model
     @displayBuffer.indentLevelForLine(line)
 
   # Constructs the string used for tabs.
-  buildIndentString: (number) ->
+  buildIndentString: (number, column=0) ->
     if @getSoftTabs()
-      _.multiplyString(" ", Math.floor(number * @getTabLength()))
+      tabStopViolation = column % @getTabLength()
+      _.multiplyString(" ", Math.floor(number * @getTabLength()) - tabStopViolation)
     else
       _.multiplyString("\t", Math.floor(number))
 
