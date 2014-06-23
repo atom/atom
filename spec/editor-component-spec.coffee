@@ -468,6 +468,14 @@ describe "EditorComponent", ->
       nextTick()
       expect(node.querySelector('.line-numbers').offsetHeight).toBe node.offsetHeight
 
+    describe "when the editor.showLineNumbers config is false", ->
+      it "doesn't render any line numbers", ->
+        expect(component.refs.gutter).toBeDefined()
+        atom.config.set("editor.showLineNumbers", false)
+        expect(component.refs.gutter).not.toBeDefined()
+        atom.config.set("editor.showLineNumbers", true)
+        expect(component.refs.gutter).toBeDefined()
+
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
         it "adds the foldable class to line numbers when the line is foldable", ->

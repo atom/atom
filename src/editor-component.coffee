@@ -46,7 +46,7 @@ EditorComponent = React.createClass
   scopedCharacterWidthsChangeCount: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -81,12 +81,16 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      GutterComponent {
+    gutter = null
+    if showLineNumbers
+      gutter = GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
         lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
+
+    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+      gutter
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
@@ -450,6 +454,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
+    @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
 
   onFocus: ->
@@ -834,6 +839,9 @@ EditorComponent = React.createClass
 
   setShowInvisibles: (showInvisibles) ->
     @setState({showInvisibles})
+
+  setShowLineNumbers: (showLineNumbers) ->
+    @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
