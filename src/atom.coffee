@@ -252,9 +252,19 @@ class Atom extends Model
 
   storeGrammarsForOpenEditors: ->
     packageNames = []
-    for editor in @workspace.getEditors()
-      {packageName} = editor.getGrammar()
-      packageNames.push(packageName) if packageName
+    addGrammar = (grammar={}) ->
+      {includedGrammarScopes, packageName} = grammar
+      return unless packageName
+
+      # Prevent cycles
+      return if packageNames.indexOf(packageName) isnt -1
+
+      packageNames.push(packageName)
+      for scopeName in includedGrammarScopes ? []
+        console.log scopeName
+        addGrammar(atom.syntax.grammarForScopeName(scopeName))
+
+    addGrammar(editor.getGrammar()) for editor in @workspace.getEditors()
     @state.packagesWithActiveGrammars = _.uniq(packageNames)
 
   # Public: Get the load settings for the current window.
