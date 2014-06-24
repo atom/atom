@@ -14,7 +14,7 @@ describe "TokenizedLine", ->
       expect(editor.lineForScreenRow(7).isOnlyWhitespace()).toBe true
       expect(editor.lineForScreenRow(23).isOnlyWhitespace()).toBe true
 
-    it "returns false when the line is only whitespace", ->
+    it "returns false when the line is not only whitespace", ->
       expect(editor.lineForScreenRow(0).isOnlyWhitespace()).toBe false
       expect(editor.lineForScreenRow(2).isOnlyWhitespace()).toBe false
 
