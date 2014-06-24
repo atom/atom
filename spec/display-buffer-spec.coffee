@@ -315,6 +315,16 @@ describe "DisplayBuffer", ->
           expect(line0.fold).toBe outerFold
           expect(line1.fold).toBeUndefined()
 
+      describe "when a fold ends where another fold begins", ->
+        it "continues to hide the lines inside the second fold", ->
+          fold2 = displayBuffer.createFold(4, 9)
+          fold1 = displayBuffer.createFold(0, 4)
+
+          displayBuffer.logLines(0, 20)
+
+          expect(displayBuffer.lineForRow(0).text).toMatch /^0/
+          expect(displayBuffer.lineForRow(1).text).toMatch /^10/
+
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not create folds in the other display buffer", ->
           otherDisplayBuffer = new DisplayBuffer({buffer, tabLength})

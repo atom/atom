@@ -462,6 +462,20 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
       expect(gutterNode.offsetWidth).toBe initialGutterWidth
 
+    it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
+      node.style.height = node.offsetHeight + 100 + 'px'
+      component.measureScrollView()
+      nextTick()
+      expect(node.querySelector('.line-numbers').offsetHeight).toBe node.offsetHeight
+
+    describe "when the editor.showLineNumbers config is false", ->
+      it "doesn't render any line numbers", ->
+        expect(component.refs.gutter).toBeDefined()
+        atom.config.set("editor.showLineNumbers", false)
+        expect(component.refs.gutter).not.toBeDefined()
+        atom.config.set("editor.showLineNumbers", true)
+        expect(component.refs.gutter).toBeDefined()
+
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
         it "adds the foldable class to line numbers when the line is foldable", ->
@@ -1770,6 +1784,18 @@ describe "EditorComponent", ->
       advanceClock(component.scrollViewMeasurementInterval)
       nextTick()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
+
+  describe "legacy editor compatibility", ->
+    it "triggers the screen-lines-changed event before the editor:display-update event", ->
+      editor.setSoftWrap(true)
+
+      callingOrder = []
+      editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
+      wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
+      editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
+      nextTick()
+
+      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)

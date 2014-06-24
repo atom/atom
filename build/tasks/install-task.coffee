@@ -40,13 +40,15 @@ module.exports = (grunt) ->
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
 
-      # Create Atom.desktop if installation in '/usr/local'
-      applicationsDir = path.join('/usr','share','applications')
+      # Create Atom.desktop if installation not in temporary folder
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
-      if installDir.indexOf(tmpDir) isnt 0 and fs.isDirectorySync(applicationsDir)
+      desktopInstallFile = path.join(installDir,'share','applications','Atom.desktop')
+      if installDir.indexOf(tmpDir) isnt 0
+        mkdir path.dirname(desktopInstallFile)
         {description} = grunt.file.readJSON('package.json')
+        installDir = path.join(installDir,'.') # To prevent "Exec=/usr/local//share/atom/atom"
         fillTemplate(desktopFile, {description, installDir, iconName})
-        cp desktopFile, path.join(applicationsDir,'Atom.desktop')
+        cp desktopFile, desktopInstallFile
 
       # Create relative symbol link for apm.
       process.chdir(binDir)

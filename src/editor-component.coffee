@@ -8,11 +8,11 @@ GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
-HighlightsComponent = require './highlights-component'
-UnderlayerComponent = require './underlayer-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
+
+DummyHighlightDecoration = {id: 'dummy', screenRange: new Range(new Point(0, 0), new Point(0, 0)), decorations: [{class: 'dummy'}]}
 
 module.exports =
 EditorComponent = React.createClass
@@ -46,7 +46,7 @@ EditorComponent = React.createClass
   scopedCharacterWidthsChangeCount: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -81,12 +81,16 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      GutterComponent {
+    gutter = null
+    if showLineNumbers
+      gutter = GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
-        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits,
-        scrollTop, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+        lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+        scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
       }
+
+    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+      gutter
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
@@ -105,14 +109,7 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight
-        }
-        HighlightsComponent {
-          editor, scrollTop, scrollLeft, scrollHeight, scrollWidth, highlightDecorations, lineHeightInPixels,
-          defaultCharWidth, @scopedCharacterWidthsChangeCount
-        }
-        UnderlayerComponent {
-          scrollTop, scrollLeft, scrollHeight, scrollWidth
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
         }
 
       ScrollbarComponent
@@ -278,6 +275,12 @@ EditorComponent = React.createClass
           if editor.decorationMatchesType(decoration, 'highlight')
             filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
             filteredDecorations[markerId].decorations.push decoration
+
+    # At least in Chromium 31, removing the last highlight causes a rendering
+    # artifact where chunks of the lines disappear, so we always leave this
+    # dummy highlight in place to prevent that.
+    filteredDecorations['dummy'] = DummyHighlightDecoration
+
     filteredDecorations
 
   observeEditor: ->
@@ -451,6 +454,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
+    @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
 
   onFocus: ->
@@ -541,7 +545,7 @@ EditorComponent = React.createClass
     return unless event.button is 0 # only handle the left mouse button
 
     {editor} = @props
-    {detail, shiftKey, metaKey} = event
+    {detail, shiftKey, metaKey, ctrlKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
@@ -551,7 +555,7 @@ EditorComponent = React.createClass
 
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
-    else if metaKey
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
@@ -835,6 +839,9 @@ EditorComponent = React.createClass
 
   setShowInvisibles: (showInvisibles) ->
     @setState({showInvisibles})
+
+  setShowLineNumbers: (showLineNumbers) ->
+    @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
