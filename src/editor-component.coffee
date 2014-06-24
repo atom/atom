@@ -217,8 +217,9 @@ EditorComponent = React.createClass
   requestAnimationFrame: (fn) ->
     prevPerformSyncUpdates = @performSyncUpdates
     @performSyncUpdates = true
-    requestAnimationFrame(fn)
-    @performSyncUpdates = prevPerformSyncUpdates
+    requestAnimationFrame =>
+      fn()
+      @performSyncUpdates = prevPerformSyncUpdates
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
