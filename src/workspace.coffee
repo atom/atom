@@ -46,6 +46,9 @@ class Workspace extends Model
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
+    for packageName in params.packagesWithActiveGrammars ? []
+      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
+
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -53,6 +56,21 @@ class Workspace extends Model
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
+    packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
+
+  getPackageNamesWithActiveGrammars: ->
+    packageNames = []
+    addGrammar = ({includedGrammarScopes, packageName}={}) ->
+      return unless packageName
+      # Prevent cycles
+      return if packageNames.indexOf(packageName) isnt -1
+
+      packageNames.push(packageName)
+      for scopeName in includedGrammarScopes ? []
+        addGrammar(atom.syntax.grammarForScopeName(scopeName))
+
+    addGrammar(editor.getGrammar()) for editor in @getEditors()
+    _.uniq(packageNames)
 
   editorAdded: (editor) ->
     @emit 'editor-created', editor

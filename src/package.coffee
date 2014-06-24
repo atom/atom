@@ -67,7 +67,6 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @grammarsPromise = @loadGrammars()
         @scopedPropertiesPromise = @loadScopedProperties()
         @requireMainModule() unless @hasActivationEvents()
 
@@ -83,6 +82,8 @@ class Package
     @scopedProperties = []
 
   activate: ->
+    @grammarsPromise ?= @loadGrammars()
+
     unless @activationDeferred?
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
@@ -173,14 +174,31 @@ class Package
     else
       fs.listSync(stylesheetDirPath, ['css', 'less'])
 
+  loadGrammarsSync: ->
+    return if @grammarsLoaded
+
+    grammarsDirPath = path.join(@path, 'grammars')
+    grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
+    for grammarPath in grammarPaths
+      try
+        grammar = atom.syntax.readGrammarSync(grammarPath)
+        grammar.packageName = @name
+        @grammars.push(grammar)
+        grammar.activate()
+      catch error
+        console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+
+    @grammarsLoaded = true
+
   loadGrammars: ->
-    @grammars = []
+    return Q() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
       atom.syntax.readGrammar grammarPath, (error, grammar) =>
         if error?
           console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
         else
+          grammar.packageName = @name
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
         callback()
