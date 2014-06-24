@@ -762,8 +762,12 @@ class DisplayBuffer extends Model
 
     @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
       decorations = @decorationsByMarkerId[marker.id]
-      for decoration in decorations
-        @emit 'decoration-changed', marker, decoration, event
+
+      # Why check existence? Markers may get destroyed or decorations removed
+      # in the change handler. Bookmarks does this.
+      if decorations?
+        for decoration in decorations
+          @emit 'decoration-changed', marker, decoration, event
 
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
