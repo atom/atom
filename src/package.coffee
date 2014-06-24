@@ -129,8 +129,9 @@ class Package
     atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
 
-    grammar.activate() for grammar in @grammars
-    @grammarsActivated = true
+    unless @grammarsActivated
+      grammar.activate() for grammar in @grammars
+      @grammarsActivated = true
 
     scopedProperties.activate() for scopedProperties in @scopedProperties
     @scopedPropertiesActivated = true
@@ -189,6 +190,7 @@ class Package
         console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
 
     @grammarsLoaded = true
+    @grammarsActivated = true
 
   loadGrammars: ->
     return Q() if @grammarsLoaded
