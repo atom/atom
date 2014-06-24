@@ -325,4 +325,4 @@ describe "Workspace", ->
 
       spyOn(jsPackage, 'loadGrammarsSync')
       workspace2 = Workspace.deserialize(state)
-      expect(jsPackage.loadGrammarsSync.callCount).toBe 2
+      expect(jsPackage.loadGrammarsSync.callCount).toBe 1
