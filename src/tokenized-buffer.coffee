@@ -177,8 +177,8 @@ class TokenizedBuffer extends Model
 
   invalidateChangedWhitespaceRows: (row, increment) ->
     line = @tokenizedLines[row]
-    if line? and line.isOnlyWhitespace() and @indentLevelForRow(row) != line.indentLevel
-      while line? and line.isOnlyWhitespace()
+    if line?.isOnlyWhitespace() and @indentLevelForRow(row) != line.indentLevel
+      while line?.isOnlyWhitespace()
         @invalidateRow(row)
         row += increment
         line = @tokenizedLines[row]
