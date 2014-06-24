@@ -1,5 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 HighlightComponent = React.createClass
@@ -61,3 +62,6 @@ HighlightComponent = React.createClass
     )
 
     regions
+
+  shouldComponentUpdate: (newProps) ->
+    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
