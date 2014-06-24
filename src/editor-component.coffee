@@ -214,6 +214,12 @@ EditorComponent = React.createClass
         @updateRequested = false
         @forceUpdate() if @isMounted()
 
+  requestAnimationFrame: (fn) ->
+    prevPerformSyncUpdates = @performSyncUpdates
+    @performSyncUpdates = true
+    requestAnimationFrame(fn)
+    @performSyncUpdates = prevPerformSyncUpdates
+
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
     [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
@@ -494,9 +500,8 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         @props.editor.setScrollTop(@pendingScrollTop)
-        @pendingScrollTop = null
 
   onHorizontalScroll: (scrollLeft) ->
     {editor} = @props
@@ -506,7 +511,7 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
@@ -527,7 +532,7 @@ EditorComponent = React.createClass
       @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         {editor} = @props
         editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
