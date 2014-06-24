@@ -285,6 +285,19 @@ describe "EditorComponent", ->
         expect(line0LeafNodes[1].textContent).toBe '  '
         expect(line0LeafNodes[1].classList.contains('indent-guide')).toBe false
 
+      it "updates empty line indent guides when the guides change as a result of another line", ->
+        editor.getBuffer().insert([12, 0], '\n')
+        nextTick()
+
+        editor.getBuffer().insert([13, 0], '  ')
+        nextTick()
+
+        line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
+        expect(line12LeafNodes[0].textContent).toBe '  '
+        expect(line12LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line12LeafNodes[1].textContent).toBe '  '
+        expect(line12LeafNodes[1].classList.contains('indent-guide')).toBe true
+
       getLeafNodes = (node) ->
         if node.children.length > 0
           flatten(toArray(node.children).map(getLeafNodes))

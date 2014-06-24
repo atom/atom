@@ -157,6 +157,7 @@ class TokenizedBuffer extends Model
     end = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
 
+    @invalidateSurroundingChangedWhitespaceRows(start, end)
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
     newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1))
@@ -167,6 +168,21 @@ class TokenizedBuffer extends Model
       @invalidateRow(end + delta + 1)
 
     @emit "changed", { start, end, delta, bufferChange: e }
+
+  invalidateSurroundingChangedWhitespaceRows: (startRow, endRow) ->
+    # Indent levels might change when something else in the buffer changes.
+    # If they do, invalidate those rows.
+    @invalidateChangedWhitespaceRows(startRow - 1, -1)
+    @invalidateChangedWhitespaceRows(endRow + 1, 1)
+
+  invalidateChangedWhitespaceRows: (row, increment) ->
+    line = @tokenizedLines[row]
+    if line? and line.isOnlyWhitespace() and @indentLevelForRow(row) != line.indentLevel
+      while line? and line.isOnlyWhitespace()
+        @invalidateRow(row)
+        row += increment
+        line = @tokenizedLines[row]
+    return
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
