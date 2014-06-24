@@ -16,5 +16,5 @@ CursorComponent = React.createClass
 
     div className: 'cursor', style: {height, width, WebkitTransform}
 
-  shouldComponentUpdate: (prevProps) ->
-    not isEqualForProperties(prevProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
+  shouldComponentUpdate: (newProps) ->
+    not isEqualForProperties(newProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
