@@ -37,7 +37,7 @@ CursorsComponent = React.createClass
       not isEqualForProperties(newProps, @props, 'cursorPixelRects', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
 
   componentWillUpdate: (newProps) ->
-    @pauseCursorBlinking() if @props.cursorScreenRanges and not isEqual(newProps.cursorScreenRanges, @props.cursorScreenRanges)
+    @pauseCursorBlinking() if @props.cursorPixelRects? and not isEqual(newProps.cursorPixelRects, @props.cursorPixelRects)
 
   startBlinkingCursors: ->
     @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2) if @isMounted()
