@@ -6,8 +6,8 @@ CursorComponent = React.createClass
   displayName: 'CursorComponent'
 
   render: ->
-    {editor, screenRange, scrollTop, scrollLeft, defaultCharWidth} = @props
-    {top, left, height, width} = editor.pixelRectForScreenRange(screenRange)
+    {pixelRect, scrollTop, scrollLeft, defaultCharWidth} = @props
+    {top, left, height, width} = pixelRect
     top -= scrollTop
     left -= scrollLeft
     width = defaultCharWidth if width is 0

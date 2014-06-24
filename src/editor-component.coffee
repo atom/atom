@@ -55,7 +55,7 @@ EditorComponent = React.createClass
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
-      cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
+      cursorPixelRects = @getCursorPixelRects(renderedRowRange)
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
@@ -101,7 +101,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         CursorsComponent {
-          editor, scrollTop, scrollLeft, cursorScreenRanges, cursorBlinkPeriod, cursorBlinkResumeDelay,
+          scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
           lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount
         }
         LinesComponent {
@@ -252,6 +252,18 @@ EditorComponent = React.createClass
       if renderedStartRow <= screenRange.start.row < renderedEndRow
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
+
+  getCursorPixelRects: (renderedRowRange) ->
+    {editor} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+
+    cursorPixelRects = {}
+    for selection in editor.getSelections() when selection.isEmpty()
+      {cursor} = selection
+      screenRange = cursor.getScreenRange()
+      if renderedStartRow <= screenRange.start.row < renderedEndRow
+        cursorPixelRects[cursor.id] = editor.pixelRectForScreenRange(screenRange)
+    cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->
     {editor} = @props
