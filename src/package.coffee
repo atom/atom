@@ -82,7 +82,7 @@ class Package
     @scopedProperties = []
 
   activate: ->
-    @grammarsPromise = @loadGrammars()
+    @grammarsPromise ?= @loadGrammars()
 
     unless @activationDeferred?
       @activationDeferred = Q.defer()
