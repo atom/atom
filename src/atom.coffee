@@ -258,13 +258,20 @@ class Atom extends Model
 
   deserializeProject: ->
     Project = require './project'
+
+    startTime = Date.now()
     @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
+    @deserializeTimings.project = Date.now() - startTime
 
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
     WorkspaceView = require './workspace-view'
+
+    startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
+    @deserializeTimings.workspace = Date.now() - startTime
+
     @keymaps.defaultTarget = @workspaceView[0]
     $(@workspaceViewParentSelector).append(@workspaceView)
 
@@ -273,6 +280,7 @@ class Atom extends Model
     delete @state.packageStates
 
   deserializeEditorWindow: ->
+    @deserializeTimings = {}
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspaceView()
