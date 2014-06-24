@@ -45,7 +45,8 @@ class DisplayBuffer extends Model
     @markers = {}
     @foldsByMarkerId = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerSubscriptions = {}
+    @decorationMarkerChangedSubscriptions = {}
+    @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
@@ -755,7 +756,18 @@ class DisplayBuffer extends Model
       return
 
     marker = @getMarker(marker.id)
-    @decorationMarkerSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', => @removeAllDecorationsForMarker(marker)
+
+    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
+      @removeAllDecorationsForMarker(marker)
+
+    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
+      decorations = @decorationsByMarkerId[marker.id]
+
+      # Why check existence? Markers may get destroyed or decorations removed
+      # in the change handler. Bookmarks does this.
+      if decorations?
+        for decoration in decorations
+          @emit 'decoration-changed', marker, decoration, event
 
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
@@ -766,9 +778,8 @@ class DisplayBuffer extends Model
       console.warn 'A decoration cannot be removed from a null marker'
       return
 
-    return unless @decorationMarkerSubscriptions[marker.id]?
+    return unless decorations = @decorationsByMarkerId[marker.id]
 
-    decorations = @decorationsByMarkerId[marker.id]
     for i in [decorations.length - 1..0]
       decoration = decorations[i]
       if @decorationMatchesPattern(decoration, decorationPattern)
@@ -784,9 +795,12 @@ class DisplayBuffer extends Model
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerSubscriptions[marker.id].off()
+    @decorationMarkerChangedSubscriptions[marker.id].off()
+    @decorationMarkerDestroyedSubscriptions[marker.id].off()
+
     delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerSubscriptions[marker.id]
+    delete @decorationMarkerChangedSubscriptions[marker.id]
+    delete @decorationMarkerDestroyedSubscriptions[marker.id]
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #

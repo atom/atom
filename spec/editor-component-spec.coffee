@@ -991,18 +991,6 @@ describe "EditorComponent", ->
       nextTick()
       expect(node.querySelectorAll('.test-highlight').length).toBe 0
 
-    it "moves rendered highlights when the marker moves", ->
-      regionStyle = node.querySelector('.test-highlight .region').style
-      originalTop = parseInt(regionStyle.top)
-
-      editor.getBuffer().insert([0, 0], '\n')
-      nextTick()
-
-      regionStyle = node.querySelector('.test-highlight .region').style
-      newTop = parseInt(regionStyle.top)
-
-      expect(newTop).toBe originalTop + lineHeightInPixels
-
     it "removes highlights when a decoration's marker is destroyed", ->
       marker.destroy()
       nextTick()
@@ -1023,6 +1011,29 @@ describe "EditorComponent", ->
       expect(marker.isValid()).toBe true
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
+
+    describe "when a decoration's marker moves", ->
+      it "moves rendered highlights when the buffer is changed", ->
+        regionStyle = node.querySelector('.test-highlight .region').style
+        originalTop = parseInt(regionStyle.top)
+
+        editor.getBuffer().insert([0, 0], '\n')
+        nextTick()
+
+        regionStyle = node.querySelector('.test-highlight .region').style
+        newTop = parseInt(regionStyle.top)
+
+        expect(newTop).toBe originalTop + lineHeightInPixels
+
+      it "moves rendered highlights when the marker is manually moved", ->
+        regionStyle = node.querySelector('.test-highlight .region').style
+        expect(parseInt(regionStyle.top)).toBe 2 * lineHeightInPixels
+
+        marker.setBufferRange([[5, 8], [5, 13]])
+        nextTick()
+
+        regionStyle = node.querySelector('.test-highlight .region').style
+        expect(parseInt(regionStyle.top)).toBe 5 * lineHeightInPixels
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
