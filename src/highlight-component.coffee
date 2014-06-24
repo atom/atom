@@ -1,27 +1,24 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
 
   render: ->
-    {editor, screenRange, decoration} = @props
-    {start, end} = screenRange
-    rowCount = end.row - start.row + 1
-    startPixelPosition = editor.pixelPositionForScreenPosition(start)
-    endPixelPosition = editor.pixelPositionForScreenPosition(end)
+    {startPixelPosition, endPixelPosition, decoration} = @props
 
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?
     div {className},
-      if rowCount is 1
-        @renderSingleLineRegions(startPixelPosition, endPixelPosition)
+      if endPixelPosition.top is startPixelPosition.top
+        @renderSingleLineRegions()
       else
-        @renderMultiLineRegions(startPixelPosition, endPixelPosition, rowCount)
+        @renderMultiLineRegions()
 
-  renderSingleLineRegions: (startPixelPosition, endPixelPosition) ->
-    {lineHeightInPixels} = @props
+  renderSingleLineRegions: ->
+    {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
 
     [
       div className: 'region', key: 0, style:
@@ -31,8 +28,8 @@ HighlightComponent = React.createClass
         width: endPixelPosition.left - startPixelPosition.left
     ]
 
-  renderMultiLineRegions: (startPixelPosition, endPixelPosition, rowCount) ->
-    {lineHeightInPixels} = @props
+  renderMultiLineRegions: ->
+    {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
     regions = []
     index = 0
 
@@ -46,11 +43,11 @@ HighlightComponent = React.createClass
     )
 
     # Middle rows, extending from left side to right side of screen
-    if rowCount > 2
+    if endPixelPosition.top - startPixelPosition.top > lineHeightInPixels
       regions.push(
         div className: 'region', key: index++, style:
           top: startPixelPosition.top + lineHeightInPixels
-          height: (rowCount - 2) * lineHeightInPixels
+          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
           left: 0
           right: 0
       )
@@ -65,3 +62,6 @@ HighlightComponent = React.createClass
     )
 
     regions
+
+  shouldComponentUpdate: (newProps) ->
+    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')

@@ -12,7 +12,7 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
-DummyHighlightDecoration = {id: 'dummy', screenRange: new Range(new Point(0, 0), new Point(0, 0)), decorations: [{class: 'dummy'}]}
+DummyHighlightDecoration = {id: 'dummy', startPixelPosition: {top: 0, left: 0}, endPixelPosition: {top: 0, left: 0}, decorations: [{class: 'dummy'}]}
 
 module.exports =
 EditorComponent = React.createClass
@@ -55,7 +55,7 @@ EditorComponent = React.createClass
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
-      cursorScreenRanges = @getCursorScreenRanges(renderedRowRange)
+      cursorPixelRects = @getCursorPixelRects(renderedRowRange)
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
@@ -101,7 +101,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         CursorsComponent {
-          editor, scrollTop, scrollLeft, cursorScreenRanges, cursorBlinkPeriod, cursorBlinkResumeDelay,
+          scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
           lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount
         }
         LinesComponent {
@@ -253,6 +253,18 @@ EditorComponent = React.createClass
         cursorScreenRanges[cursor.id] = screenRange
     cursorScreenRanges
 
+  getCursorPixelRects: (renderedRowRange) ->
+    {editor} = @props
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+
+    cursorPixelRects = {}
+    for selection in editor.getSelections() when selection.isEmpty()
+      {cursor} = selection
+      screenRange = cursor.getScreenRange()
+      if renderedStartRow <= screenRange.start.row < renderedEndRow
+        cursorPixelRects[cursor.id] = editor.pixelRectForScreenRange(screenRange)
+    cursorPixelRects
+
   getLineDecorations: (decorationsByMarkerId) ->
     {editor} = @props
     decorationsByScreenRow = {}
@@ -277,10 +289,15 @@ EditorComponent = React.createClass
     filteredDecorations = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
-      if marker.isValid() and not marker.getScreenRange().isEmpty()
+      screenRange = marker.getScreenRange()
+      if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
           if editor.decorationMatchesType(decoration, 'highlight')
-            filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
+            filteredDecorations[markerId] ?=
+              id: markerId
+              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
+              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
+              decorations: []
             filteredDecorations[markerId].decorations.push decoration
 
     # At least in Chromium 31, removing the last highlight causes a rendering

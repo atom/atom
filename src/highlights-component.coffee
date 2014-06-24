@@ -12,12 +12,12 @@ HighlightsComponent = React.createClass
       @renderHighlights() if @isMounted()
 
   renderHighlights: ->
-    {editor, highlightDecorations, lineHeightInPixels} = @props
+    {highlightDecorations, lineHeightInPixels} = @props
 
     highlightComponents = []
-    for markerId, {screenRange, decorations} of highlightDecorations
+    for markerId, {startPixelPosition, endPixelPosition, decorations} of highlightDecorations
       for decoration in decorations
-        highlightComponents.push(HighlightComponent({key: "#{markerId}-#{decoration.class}", screenRange, decoration, editor, lineHeightInPixels}))
+        highlightComponents.push(HighlightComponent({key: "#{markerId}-#{decoration.class}", startPixelPosition, endPixelPosition, decoration, lineHeightInPixels}))
 
     highlightComponents
 

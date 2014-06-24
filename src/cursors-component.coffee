@@ -12,7 +12,7 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {editor, cursorScreenRanges, scrollTop, scrollLeft, defaultCharWidth} = @props
+    {cursorPixelRects, scrollTop, scrollLeft, defaultCharWidth} = @props
     {blinkOff} = @state
 
     className = 'cursors'
@@ -20,8 +20,8 @@ CursorsComponent = React.createClass
 
     div {className},
       if @isMounted()
-        for key, screenRange of cursorScreenRanges
-          CursorComponent({key, editor, screenRange, scrollTop, scrollLeft, defaultCharWidth})
+        for key, pixelRect of cursorPixelRects
+          CursorComponent({key, pixelRect, scrollTop, scrollLeft, defaultCharWidth})
 
   getInitialState: ->
     blinkOff: false
@@ -34,13 +34,14 @@ CursorsComponent = React.createClass
 
   shouldComponentUpdate: (newProps, newState) ->
     not newState.blinkOff is @state.blinkOff or
-      not isEqualForProperties(newProps, @props,
-        'cursorScreenRanges', 'scrollTop', 'scrollLeft', 'lineHeightInPixels',
-        'defaultCharWidth', 'scopedCharacterWidthsChangeCount'
-      )
+      not isEqualForProperties(newProps, @props, 'cursorPixelRects', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
 
   componentWillUpdate: (newProps) ->
-    @pauseCursorBlinking() if @props.cursorScreenRanges and not isEqual(newProps.cursorScreenRanges, @props.cursorScreenRanges)
+    cursorsMoved = @props.cursorPixelRects? and
+      isEqualForProperties(newProps, @props, 'defaultCharWidth', 'scopedCharacterWidthsChangeCount') and
+      not isEqual(newProps.cursorPixelRects, @props.cursorPixelRects)
+
+    @pauseCursorBlinking() if cursorsMoved
 
   startBlinkingCursors: ->
     @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink, @props.cursorBlinkPeriod / 2) if @isMounted()
