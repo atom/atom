@@ -12,7 +12,7 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
-DummyHighlightDecoration = {id: 'dummy', screenRange: new Range(new Point(0, 0), new Point(0, 0)), decorations: [{class: 'dummy'}]}
+DummyHighlightDecoration = {id: 'dummy', startPixelPosition: {top: 0, left: 0}, endPixelPosition: {top: 0, left: 0}, decorations: [{class: 'dummy'}]}
 
 module.exports =
 EditorComponent = React.createClass
@@ -289,10 +289,15 @@ EditorComponent = React.createClass
     filteredDecorations = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
-      if marker.isValid() and not marker.getScreenRange().isEmpty()
+      screenRange = marker.getScreenRange()
+      if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
           if editor.decorationMatchesType(decoration, 'highlight')
-            filteredDecorations[markerId] ?= {id: markerId, screenRange: marker.getScreenRange(), decorations: []}
+            filteredDecorations[markerId] ?=
+              id: markerId
+              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
+              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
+              decorations: []
             filteredDecorations[markerId].decorations.push decoration
 
     # At least in Chromium 31, removing the last highlight causes a rendering
