@@ -310,7 +310,7 @@ describe "Workspace", ->
         editorCopy = editor.copy()
         expect(handler.callCount).toBe 2
 
-  it "stores the active grammars used by all the open editor", ->
+  it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
@@ -320,3 +320,9 @@ describe "Workspace", ->
     runs ->
       state = atom.workspace.serialize()
       expect(state.packagesWithActiveGrammars).toEqual ['language-javascript']
+
+      jsPackage = atom.packages.getLoadedPackage('language-javascript')
+
+      spyOn(jsPackage, 'loadGrammarsSync')
+      workspace2 = Workspace.deserialize(state)
+      expect(jsPackage.loadGrammarsSync.callCount).toBe 2
