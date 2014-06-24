@@ -1,5 +1,6 @@
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
+{isEqualForProperties} = require 'underscore-plus'
 
 module.exports =
 CursorComponent = React.createClass
@@ -14,3 +15,6 @@ CursorComponent = React.createClass
     WebkitTransform = "translate3d(#{left}px, #{top}px, 0px)"
 
     div className: 'cursor', style: {height, width, WebkitTransform}
+
+  shouldComponentUpdate: (prevProps) ->
+    not isEqualForProperties(prevProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
