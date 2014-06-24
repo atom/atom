@@ -25,6 +25,8 @@ EditorComponent = React.createClass
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
+  updatesPaused: false
+  updateRequestedWhilePaused: false
   updateRequested: false
   cursorsMoved: false
   selectionChanged: false
@@ -203,20 +205,23 @@ EditorComponent = React.createClass
     @remeasureCharacterWidthsIfNeeded(prevState)
 
   requestUpdate: ->
-    if @performSyncUpdates ? EditorComponent.performSyncUpdates
-      @forceUpdate()
-    else unless @updateRequested
-      @updateRequested = true
-      process.nextTick =>
-        @updateRequested = false
-        @forceUpdate() if @isMounted()
+    if @updatesPaused
+      @updateRequestedWhilePaused = true
+    else
+      if @performSyncUpdates ? EditorComponent.performSyncUpdates
+        @forceUpdate()
+      else unless @updateRequested
+        @updateRequested = true
+        process.nextTick =>
+          @updateRequested = false
+          @forceUpdate() if @isMounted()
 
   requestAnimationFrame: (fn) ->
-    prevPerformSyncUpdates = @performSyncUpdates
-    @performSyncUpdates = true
     requestAnimationFrame =>
+      @updatesPaused = true
       fn()
-      @performSyncUpdates = prevPerformSyncUpdates
+      @updatesPaused = false
+      @forceUpdate() if @updateRequestedWhilePaused
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
