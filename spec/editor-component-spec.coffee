@@ -1484,7 +1484,6 @@ describe "EditorComponent", ->
       it "updates the scrollLeft or scrollTop according to the scroll sensitivity", ->
         atom.config.set('editor.scrollSensitivity', 50)
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        nextTick()
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
