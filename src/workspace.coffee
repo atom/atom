@@ -60,10 +60,8 @@ class Workspace extends Model
 
   getPackageNamesWithActiveGrammars: ->
     packageNames = []
-    addGrammar = (grammar={}) ->
-      {includedGrammarScopes, packageName} = grammar
+    addGrammar = ({includedGrammarScopes, packageName}={}) ->
       return unless packageName
-
       # Prevent cycles
       return if packageNames.indexOf(packageName) isnt -1
 
