@@ -1373,7 +1373,7 @@ describe "EditorComponent", ->
       editor.setScrollLeft(Infinity)
       nextTick()
 
-      rightOfLongestLine = component.lineNodeForScreenRow(6).getBoundingClientRect().right
+      rightOfLongestLine = component.lineNodeForScreenRow(6).querySelector('.line > span:last-child').getBoundingClientRect().right
       leftOfVerticalScrollbar = verticalScrollbarNode.getBoundingClientRect().left
       expect(Math.round(rightOfLongestLine)).toBe leftOfVerticalScrollbar - 1 # Leave 1 px so the cursor is visible on the end of the line
 
@@ -1716,7 +1716,7 @@ describe "EditorComponent", ->
         nextTick()
 
         cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
-        line0Right = node.querySelector('.line').getBoundingClientRect().right
+        line0Right = node.querySelector('.line > span:last-child').getBoundingClientRect().right
         expect(cursorLeft).toBe line0Right
 
     describe "when the fontFamily changes while the editor is hidden", ->
@@ -1743,7 +1743,7 @@ describe "EditorComponent", ->
         nextTick()
 
         cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
-        line0Right = node.querySelector('.line').getBoundingClientRect().right
+        line0Right = node.querySelector('.line > span:last-child').getBoundingClientRect().right
         expect(cursorLeft).toBe line0Right
 
     describe "when lines are changed while the editor is hidden", ->
