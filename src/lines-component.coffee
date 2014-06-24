@@ -129,7 +129,7 @@ LinesComponent = React.createClass
     classes += 'line'
 
     top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: 100%;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
