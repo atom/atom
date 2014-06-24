@@ -289,6 +289,7 @@ describe "EditorComponent", ->
         editor.getBuffer().insert([12, 0], '\n')
         nextTick()
 
+        # The newline and he tab need to be in two different operations to surface the bug
         editor.getBuffer().insert([13, 0], '  ')
         nextTick()
 
