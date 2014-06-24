@@ -84,7 +84,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextTick()
 
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, #{-4.5 * lineHeightInPixels}px, 0px)"
       expect(node.querySelectorAll('.line').length).toBe 6 + 4 # margin above and below
@@ -426,7 +425,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextTick()
 
       expect(node.querySelectorAll('.line-number').length).toBe 6 + 4 + 1 # line overdraw margin above/below + dummy line number
 
@@ -502,6 +500,14 @@ describe "EditorComponent", ->
       component.measureScrollView()
       nextTick()
       expect(node.querySelector('.line-numbers').offsetHeight).toBe node.offsetHeight
+
+    describe "when the editor.showLineNumbers config is false", ->
+      it "doesn't render any line numbers", ->
+        expect(component.refs.gutter).toBeDefined()
+        atom.config.set("editor.showLineNumbers", false)
+        expect(component.refs.gutter).not.toBeDefined()
+        atom.config.set("editor.showLineNumbers", true)
+        expect(component.refs.gutter).toBeDefined()
 
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
@@ -782,7 +788,6 @@ describe "EditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextTick()
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
@@ -996,7 +1001,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextTick()
 
       regions = node.querySelectorAll('.some-highlight .region')
 
@@ -1375,7 +1379,6 @@ describe "EditorComponent", ->
       expect(editor.getScrollLeft()).toBe 0
       horizontalScrollbarNode.scrollLeft = 100
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextTick()
 
       expect(editor.getScrollLeft()).toBe 100
 
@@ -1506,37 +1509,30 @@ describe "EditorComponent", ->
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        nextTick()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        nextTick()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
 
       it "updates the scrollLeft or scrollTop according to the scroll sensitivity", ->
         atom.config.set('editor.scrollSensitivity', 50)
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        nextTick()
-        expect(verticalScrollbarNode.scrollTop).toBe 5
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        nextTick()
         expect(verticalScrollbarNode.scrollTop).toBe 5
         expect(horizontalScrollbarNode.scrollLeft).toBe 7
 
       it "uses the previous scrollSensitivity when the value is not an int", ->
         atom.config.set('editor.scrollSensitivity', 'nope')
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        nextTick()
         expect(verticalScrollbarNode.scrollTop).toBe 10
 
       it "parses negative scrollSensitivity values as positive", ->
         atom.config.set('editor.scrollSensitivity', -50)
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        nextTick()
         expect(verticalScrollbarNode.scrollTop).toBe 5
 
     describe "when the mousewheel event's target is a line", ->
@@ -1811,6 +1807,18 @@ describe "EditorComponent", ->
       advanceClock(component.scrollViewMeasurementInterval)
       nextTick()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
+
+  describe "legacy editor compatibility", ->
+    it "triggers the screen-lines-changed event before the editor:display-update event", ->
+      editor.setSoftWrap(true)
+
+      callingOrder = []
+      editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
+      wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
+      editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
+      nextTick()
+
+      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)

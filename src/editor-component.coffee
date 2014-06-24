@@ -47,7 +47,7 @@ EditorComponent = React.createClass
   scopedCharacterWidthsChangeCount: null
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, visible} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
@@ -83,12 +83,16 @@ EditorComponent = React.createClass
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      GutterComponent {
+    gutter = null
+    if showLineNumbers
+      gutter = GutterComponent {
         ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
         lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
         scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, tileSize: 50
       }
+
+    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+      gutter
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
         InputComponent
@@ -216,6 +220,13 @@ EditorComponent = React.createClass
       process.nextTick =>
         @updateRequested = false
         @forceUpdate() if @isMounted()
+
+  requestAnimationFrame: (fn) ->
+    prevPerformSyncUpdates = @performSyncUpdates
+    @performSyncUpdates = true
+    requestAnimationFrame =>
+      fn()
+      @performSyncUpdates = prevPerformSyncUpdates
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -460,6 +471,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
+    @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
 
   onFocus: ->
@@ -499,9 +511,8 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         @props.editor.setScrollTop(@pendingScrollTop)
-        @pendingScrollTop = null
 
   onHorizontalScroll: (scrollLeft) ->
     {editor} = @props
@@ -511,7 +522,7 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
@@ -532,7 +543,7 @@ EditorComponent = React.createClass
       @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         {editor} = @props
         editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
@@ -550,7 +561,7 @@ EditorComponent = React.createClass
     return unless event.button is 0 # only handle the left mouse button
 
     {editor} = @props
-    {detail, shiftKey, metaKey} = event
+    {detail, shiftKey, metaKey, ctrlKey} = event
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
@@ -560,7 +571,7 @@ EditorComponent = React.createClass
 
     if shiftKey
       editor.selectToScreenPosition(screenPosition)
-    else if metaKey
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
       editor.addCursorAtScreenPosition(screenPosition)
     else
       editor.setCursorScreenPosition(screenPosition)
@@ -844,6 +855,9 @@ EditorComponent = React.createClass
 
   setShowInvisibles: (showInvisibles) ->
     @setState({showInvisibles})
+
+  setShowLineNumbers: (showLineNumbers) ->
+    @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
