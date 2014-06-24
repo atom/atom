@@ -69,6 +69,8 @@
   'cmd-}': 'pane:show-next-item'
   'cmd-alt-left': 'pane:show-previous-item'
   'cmd-alt-right': 'pane:show-next-item'
+  'ctrl-pageup': 'pane:show-previous-item'
+  'ctrl-pagedown': 'pane:show-next-item'
   'ctrl-tab': 'pane:show-next-item'
   'ctrl-shift-tab': 'pane:show-previous-item'
   'cmd-=': 'window:increase-font-size'
