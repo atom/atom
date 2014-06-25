@@ -356,12 +356,13 @@ EditorComponent = React.createClass
     #   5. textInput fired; event.data == the completion string
 
     selectedText = null
-    node.addEventListener 'compositionstart', =>
+    node.addEventListener 'compositionstart', ->
       selectedText = editor.getSelectedText()
-    node.addEventListener 'compositionupdate', (event) =>
+    node.addEventListener 'compositionupdate', (event) ->
       editor.insertText(event.data, select: true, undo: 'skip')
-    node.addEventListener 'compositionend', =>
+    node.addEventListener 'compositionend', (event) ->
       editor.insertText(selectedText, select: true, undo: 'skip')
+      event.target.value = ''
 
   listenForCommands: ->
     {parentView, editor, mini} = @props

@@ -1619,61 +1619,87 @@ describe "EditorComponent", ->
       expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
     describe "when IME composition is used to insert international characters", ->
-      buildIMECompositionEvent = (event, {data}={}) ->
+      inputNode = null
+
+      buildIMECompositionEvent = (event, {data, target}={}) ->
         event = new Event(event)
         event.data = data
-        Object.defineProperty(event, 'target', get: -> inputNpde)
+        Object.defineProperty(event, 'target', get: -> target)
         event
+
+      beforeEach ->
+        inputNode = inputNode = node.querySelector('.hidden-input')
 
       describe "when nothing is selected", ->
         it "inserts the chosen completion", ->
-          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           node.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe '速度var quicksort = function () {'
 
         it "reverts back to the original text when the completion helper is dismissed", ->
-          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+
+        it "allows multiple accented character to be inserted with the ' on a US international layout", ->
+          inputNode.value = "'"
+          inputNode.setSelectionRange(0, 1)
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: "'", target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe "'var quicksort = function () {"
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
+          node.dispatchEvent(buildTextInputEvent(data: 'á', target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe "ávar quicksort = function () {"
+
+          inputNode.value = "'"
+          inputNode.setSelectionRange(0, 1)
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: "'", target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe "á'var quicksort = function () {"
+
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
+          node.dispatchEvent(buildTextInputEvent(data: 'á', target: inputNode))
+          expect(editor.lineForBufferRow(0)).toBe "áávar quicksort = function () {"
 
       describe "when a string is selected", ->
         beforeEach ->
           editor.setSelectedBufferRange [[0, 4], [0, 9]] # select 'quick'
 
         it "inserts the chosen completion", ->
-          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           node.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var 速度sort = function () {'
 
         it "reverts back to the original text when the completion helper is dismissed", ->
-          node.dispatchEvent(buildIMECompositionEvent('compositionstart'))
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
 
-          node.dispatchEvent(buildIMECompositionEvent('compositionend'))
+          node.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
   describe "commands", ->
