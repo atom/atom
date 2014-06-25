@@ -657,3 +657,57 @@ describe "TokenizedBuffer", ->
 
         buffer.setText('\n\n\n')
         expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 0
+
+    describe "when the line changed is surrounded by whitespace lines", ->
+      it "updates empty line indent guides above a line that is indented", ->
+        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 0
+
+        buffer.insert([12, 0], '\n')
+
+        # The newline and he tab need to be in two different operations to surface the bug
+        buffer.insert([13, 0], '  ')
+        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 1
+
+      it "updates empty line indent guides when the empty line is the last line", ->
+        buffer.insert([12, 2], '\n')
+
+        # The newline and he tab need to be in two different operations to surface the bug
+        buffer.insert([12, 0], '  ')
+        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 1
+
+        buffer.insert([12, 0], '  ')
+        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(14)).not.toBeDefined()
+
+      it "updates empty lines surrounding a change encompasing more lines than the old text", ->
+        # create some new lines
+        buffer.insert([7, 0], '\n\n')
+        buffer.insert([5, 0], '\n\n')
+
+        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 3
+        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 3
+        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
+
+        buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
+
+        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 4
+        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 4
+        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
+
+      it "updates empty lines surrounding a change encompasing less lines than the old text", ->
+        # create some new lines
+        buffer.insert([7, 0], '\n\n')
+        buffer.insert([5, 0], '\n\n')
+
+        buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
+
+        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(7).indentLevel).toBe 2 # new text
+        expect(tokenizedBuffer.lineForScreenRow(8).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 2 # }
