@@ -1038,6 +1038,7 @@ describe "DisplayBuffer", ->
       displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
+      displayBuffer.updateAllScreenLines()
 
     it "disallows negative values", ->
       displayBuffer.setWidth(displayBuffer.getScrollWidth() + 100)
@@ -1062,6 +1063,7 @@ describe "DisplayBuffer", ->
       displayBuffer.setHorizontalScrollbarHeight(0)
       displayBuffer.setHeight(50)
       displayBuffer.setWidth(50)
+      displayBuffer.updateAllScreenLines()
 
     it "sets the scroll top and scroll left so the given screen position is in view", ->
       displayBuffer.scrollToScreenPosition([8, 20])

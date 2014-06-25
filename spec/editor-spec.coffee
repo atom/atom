@@ -733,6 +733,7 @@ describe "Editor", ->
         editor.setHorizontalScrollbarHeight(0)
         editor.setHeight(5.5 * 10)
         editor.setWidth(5.5 * 10)
+        editor.displayBuffer.updateAllScreenLines()
 
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
         expect(editor.getScrollTop()).toBe 0
@@ -1196,6 +1197,8 @@ describe "Editor", ->
           editor.setHeight(50)
           editor.setWidth(50)
           editor.setHorizontalScrollbarHeight(0)
+          editor.displayBuffer.updateAllScreenLines()
+
           expect(editor.getScrollTop()).toBe 0
 
           editor.setSelectedBufferRange([[5, 6], [6, 8]], autoscroll: true)
@@ -1230,6 +1233,7 @@ describe "Editor", ->
         editor.setDefaultCharWidth(10)
         editor.setHeight(50)
         editor.setWidth(50)
+        editor.displayBuffer.updateAllScreenLines()
 
         editor.addSelectionForBufferRange([[8, 10], [8, 15]])
         expect(editor.getScrollTop()).toBe 75
