@@ -181,9 +181,9 @@ class DisplayBuffer extends Model
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
     if @manageScrollPosition
-      @scrollTop = Math.max(0, Math.min(@getScrollHeight() - @getClientHeight(), scrollTop))
+      @scrollTop = Math.round(Math.max(0, Math.min(@getScrollHeight() - @getClientHeight(), scrollTop)))
     else
-      @scrollTop = scrollTop
+      @scrollTop = Math.round(scrollTop)
 
   getScrollBottom: -> @scrollTop + @height
   setScrollBottom: (scrollBottom) ->
@@ -193,10 +193,10 @@ class DisplayBuffer extends Model
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
     if @manageScrollPosition
-      @scrollLeft = Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft))
+      @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
       @scrollLeft
     else
-      @scrollLeft = scrollLeft
+      @scrollLeft = Math.round(scrollLeft)
 
   getScrollRight: -> @scrollLeft + @width
   setScrollRight: (scrollRight) ->
