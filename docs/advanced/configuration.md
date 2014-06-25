@@ -11,41 +11,31 @@ value of a namespaced config key with `atom.config.get`:
 @showInvisibles() if atom.config.get "editor.showInvisibles"
 ```
 
-Or you can use the `::observeConfig` to track changes from any view object.
+Or you can use the `::subscribe` with `atom.config.observe` to track changes
+from any view object.
 
 ```coffeescript
 class MyView extends View
   initialize: ->
-    @observeConfig 'editor.fontSize', () =>
+    @subscribe atom.config.observe 'editor.fontSize', (newValue, {previous}) =>
       @adjustFontSize()
 ```
 
-The `::observeConfig` method will call the given callback immediately with the
-current value for the specified key path, and it will also call it in the future
-whenever the value of that key path changes.
+The `atom.config.observe` method will call the given callback immediately with
+the current value for the specified key path, and it will also call it in the
+future whenever the value of that key path changes.
 
-Subscriptions made with `observeConfig` are automatically canceled when the
+Subscriptions made with `::subscribe` are automatically canceled when the
 view is removed. You can cancel config subscriptions manually via the
-`unobserveConfig` method.
+`off` method on the subscription object that `atom.config.observe` returns.
 
 ```coffeescript
-view1.unobserveConfig() # unobserve all properties
-```
+fontSizeSubscription = atom.config.observe 'editor.fontSize', (newValue, {previous}) =>
+  @adjustFontSize()
 
-You can add the ability to observe config values to non-view classes by
-extending their prototype with the `ConfigObserver` mixin:
+# ... later on
 
-```coffeescript
-{ConfigObserver} = require 'atom'
-
-class MyClass
-  ConfigObserver.includeInto(this)
-  
-  constructor: ->
-    @observeConfig 'editor.showInvisibles', -> # ...
-
-  destroy: ->
-    @unobserveConfig()
+fontSizeSubscription.off() # Stop observing
 ```
 
 ### Writing Config Settings
