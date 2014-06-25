@@ -248,10 +248,12 @@ LinesComponent = React.createClass
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
-    for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
-      unless @measuredLines.has(tokenizedLine)
-        lineNode = @lineNodesByLineId[tokenizedLine.id]
-        @measureCharactersInLine(tokenizedLine, lineNode)
+    editor.batchCharacterMeasurement =>
+      for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+        unless @measuredLines.has(tokenizedLine)
+          lineNode = @lineNodesByLineId[tokenizedLine.id]
+          @measureCharactersInLine(tokenizedLine, lineNode)
+      return
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
     {editor} = @props

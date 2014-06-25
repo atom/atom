@@ -227,13 +227,21 @@ class DisplayBuffer extends Model
     scope.charWidths ?= {}
     scope.charWidths
 
+  batchCharacterMeasurement: (fn) ->
+    oldChangeCount = @scopedCharacterWidthsChangeCount
+    @batchingCharacterMeasurement = true
+    fn()
+    @batchingCharacterMeasurement = false
+    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+
   setScopedCharWidth: (scopeNames, char, width) ->
     @getScopedCharWidths(scopeNames)[char] = width
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
+    @scopedCharacterWidthsChangeCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
 
-  setScopedCharWidths: (scopeNames, charWidths) ->
-    _.extend(@getScopedCharWidths(scopeNames), charWidths)
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
+  characterWidthsChanged: ->
+    @computeScrollWidth()
+    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
