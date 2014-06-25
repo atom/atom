@@ -29,6 +29,7 @@ class DisplayBuffer extends Model
     width: null
     scrollTop: 0
     scrollLeft: 0
+    scrollWidth: 0
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
