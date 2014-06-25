@@ -1059,6 +1059,8 @@ class DisplayBuffer extends Model
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
 
+    return
+
   computeScrollWidth: ->
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left + 1
   handleBufferMarkersUpdated: =>
