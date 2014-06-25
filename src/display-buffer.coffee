@@ -208,7 +208,11 @@ class DisplayBuffer extends Model
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
   getDefaultCharWidth: -> @defaultCharWidth
-  setDefaultCharWidth: (@defaultCharWidth) -> @defaultCharWidth
+  setDefaultCharWidth: (defaultCharWidth) ->
+    if defaultCharWidth isnt @defaultCharWidth
+      @defaultCharWidth = defaultCharWidth
+      @computeScrollWidth()
+    defaultCharWidth
 
   getCursorWidth: -> 1
 
@@ -981,9 +985,6 @@ class DisplayBuffer extends Model
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines)
 
-    if startBufferRow <= @longestScreenRow < endScreenRow
-      @computeScrollWidth()
-
     return if options.suppressChangeEvent
 
     changeEvent =
@@ -1045,6 +1046,8 @@ class DisplayBuffer extends Model
     {screenLines, regions}
 
   findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines) ->
+    oldMaxLineLength = @maxLineLength
+
     if startScreenRow <= @longestScreenRow < endScreenRow
       @longestScreenRow = 0
       @maxLineLength = 0
@@ -1060,7 +1063,7 @@ class DisplayBuffer extends Model
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
 
-    return
+    @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
 
   computeScrollWidth: ->
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left + 1

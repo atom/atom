@@ -1038,7 +1038,6 @@ describe "DisplayBuffer", ->
       displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
-      displayBuffer.updateAllScreenLines()
 
     it "disallows negative values", ->
       displayBuffer.setWidth(displayBuffer.getScrollWidth() + 100)
@@ -1063,7 +1062,6 @@ describe "DisplayBuffer", ->
       displayBuffer.setHorizontalScrollbarHeight(0)
       displayBuffer.setHeight(50)
       displayBuffer.setWidth(50)
-      displayBuffer.updateAllScreenLines()
 
     it "sets the scroll top and scroll left so the given screen position is in view", ->
       displayBuffer.scrollToScreenPosition([8, 20])
@@ -1079,3 +1077,21 @@ describe "DisplayBuffer", ->
       it "does not scroll vertically if the position is already in view", ->
         displayBuffer.scrollToScreenPosition([4, 20], center: true)
         expect(displayBuffer.getScrollTop()).toBe 0
+
+  describe "scroll width", ->
+    cursorWidth = 1
+    beforeEach ->
+      displayBuffer.setDefaultCharWidth(10)
+
+    it "recomputes the scroll width when the default character width changes", ->
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 65 + cursorWidth
+
+      displayBuffer.setDefaultCharWidth(12)
+      expect(displayBuffer.getScrollWidth()).toBe 12 * 65 + cursorWidth
+
+    it "recomputes the scroll width when the max line length changes", ->
+      buffer.insert([6, 12], ' ')
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 66 + cursorWidth
+
+      buffer.delete([[6, 10], [6, 12]], ' ')
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + cursorWidth

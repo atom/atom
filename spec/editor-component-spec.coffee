@@ -62,7 +62,6 @@ describe "EditorComponent", ->
 
       node.style.height = editor.getLineCount() * lineHeightInPixels + 'px'
       node.style.width = '1000px'
-      editor.displayBuffer.updateAllScreenLines()
       component.measureScrollView()
       nextTick()
 
