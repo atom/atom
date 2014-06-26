@@ -39,7 +39,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount'
+      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth'
     )
 
     {renderedRowRange, pendingChanges} = newProps
@@ -54,20 +54,20 @@ LinesComponent = React.createClass
 
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
-    @updateLines()
+    @updateLines(@props.lineWidth isnt prevProps.lineWidth)
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
 
-  updateLines: ->
+  updateLines: (updateWidth) ->
     {editor, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
     [startRow, endRow] = renderedRowRange
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
     @removeLineNodes(visibleLines)
-    @appendOrUpdateVisibleLineNodes(visibleLines, startRow)
+    @appendOrUpdateVisibleLineNodes(visibleLines, startRow, updateWidth)
 
   removeLineNodes: (visibleLines=[]) ->
     {mouseWheelScreenRow} = @props
@@ -83,7 +83,7 @@ LinesComponent = React.createClass
         delete @renderedDecorationsByLineId[lineId]
         node.removeChild(lineNode)
 
-  appendOrUpdateVisibleLineNodes: (visibleLines, startRow) ->
+  appendOrUpdateVisibleLineNodes: (visibleLines, startRow, updateWidth) ->
     {lineDecorations} = @props
 
     newLines = null
@@ -93,7 +93,7 @@ LinesComponent = React.createClass
       screenRow = startRow + index
 
       if @hasLineNode(line.id)
-        @updateLineNode(line, screenRow)
+        @updateLineNode(line, screenRow, updateWidth)
       else
         newLines ?= []
         newLinesHTML ?= ""
@@ -118,7 +118,7 @@ LinesComponent = React.createClass
     @lineNodesByLineId.hasOwnProperty(lineId)
 
   buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeightInPixels, lineDecorations} = @props
+    {editor, mini, showIndentGuide, lineHeightInPixels, lineDecorations, lineWidth} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
 
     classes = ''
@@ -129,7 +129,7 @@ LinesComponent = React.createClass
     classes += 'line'
 
     top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: 100%;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{lineWidth}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(line)
@@ -203,8 +203,8 @@ LinesComponent = React.createClass
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-  updateLineNode: (line, screenRow) ->
-    {editor, lineHeightInPixels, lineDecorations} = @props
+  updateLineNode: (line, screenRow, updateWidth) ->
+    {editor, lineHeightInPixels, lineDecorations, lineWidth} = @props
     lineNode = @lineNodesByLineId[line.id]
 
     decorations = lineDecorations[screenRow]
@@ -218,6 +218,8 @@ LinesComponent = React.createClass
       for decoration in decorations
         if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
+
+    lineNode.style.width = lineWidth + 'px' if updateWidth
 
     unless @screenRowsByLineId[line.id] is screenRow
       lineNode.style.top = screenRow * lineHeightInPixels + 'px'

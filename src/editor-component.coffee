@@ -68,6 +68,7 @@ EditorComponent = React.createClass
       lineHeightInPixels = editor.getLineHeightInPixels()
       defaultCharWidth = editor.getDefaultCharWidth()
       scrollViewHeight = editor.getHeight()
+      lineWidth = Math.max(scrollWidth, editor.getWidth())
       horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
       verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
       verticallyScrollable = editor.verticallyScrollable()
@@ -106,7 +107,7 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth
         }
 
       ScrollbarComponent
