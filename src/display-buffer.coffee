@@ -29,6 +29,7 @@ class DisplayBuffer extends Model
     width: null
     scrollTop: 0
     scrollLeft: 0
+    scrollWidth: 0
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
@@ -207,7 +208,11 @@ class DisplayBuffer extends Model
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
   getDefaultCharWidth: -> @defaultCharWidth
-  setDefaultCharWidth: (@defaultCharWidth) -> @defaultCharWidth
+  setDefaultCharWidth: (defaultCharWidth) ->
+    if defaultCharWidth isnt @defaultCharWidth
+      @defaultCharWidth = defaultCharWidth
+      @computeScrollWidth()
+    defaultCharWidth
 
   getCursorWidth: -> 1
 
@@ -222,13 +227,21 @@ class DisplayBuffer extends Model
     scope.charWidths ?= {}
     scope.charWidths
 
+  batchCharacterMeasurement: (fn) ->
+    oldChangeCount = @scopedCharacterWidthsChangeCount
+    @batchingCharacterMeasurement = true
+    fn()
+    @batchingCharacterMeasurement = false
+    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+
   setScopedCharWidth: (scopeNames, char, width) ->
     @getScopedCharWidths(scopeNames)[char] = width
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
+    @scopedCharacterWidthsChangeCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
 
-  setScopedCharWidths: (scopeNames, charWidths) ->
-    _.extend(@getScopedCharWidths(scopeNames), charWidths)
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount++
+  characterWidthsChanged: ->
+    @computeScrollWidth()
+    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
@@ -239,7 +252,7 @@ class DisplayBuffer extends Model
     @getLineCount() * @getLineHeightInPixels()
 
   getScrollWidth: ->
-    (@getMaxLineLength() * @getDefaultCharWidth()) + @getCursorWidth()
+    @scrollWidth
 
   getVisibleRowRange: ->
     return [0, 0] unless @getLineHeightInPixels() > 0
@@ -1041,6 +1054,8 @@ class DisplayBuffer extends Model
     {screenLines, regions}
 
   findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines) ->
+    oldMaxLineLength = @maxLineLength
+
     if startScreenRow <= @longestScreenRow < endScreenRow
       @longestScreenRow = 0
       @maxLineLength = 0
@@ -1055,6 +1070,11 @@ class DisplayBuffer extends Model
       if length > @maxLineLength
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
+
+    @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
+
+  computeScrollWidth: ->
+    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left + 1
 
   handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent

@@ -1196,6 +1196,7 @@ describe "Editor", ->
           editor.setHeight(50)
           editor.setWidth(50)
           editor.setHorizontalScrollbarHeight(0)
+
           expect(editor.getScrollTop()).toBe 0
 
           editor.setSelectedBufferRange([[5, 6], [6, 8]], autoscroll: true)
