@@ -18,7 +18,9 @@ defaultHeaders =
 module.exports = (gruntObject) ->
   grunt = gruntObject
 
-  grunt.registerTask 'publish-build', 'Publish the built app', ->
+  grunt.registerTask 'publish-build', 'Publish the built app', ['build-docs', 'upload-assets']
+
+  grunt.registerTask 'upload-assets', ->
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
