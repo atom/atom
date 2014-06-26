@@ -324,7 +324,7 @@ describe "EditorComponent", ->
         editor.addDecorationForMarker(marker, decoration)
         runSetImmediateCallbacks()
 
-      it "does not render off-screen lines with line number classes until they are with in the rendered row range", ->
+      it "does not render off-screen lines with decoration classes until they are with in the rendered row range", ->
         node.style.height = 4.5 * lineHeightInPixels + 'px'
         component.measureScrollView()
         runSetImmediateCallbacks()
@@ -347,6 +347,14 @@ describe "EditorComponent", ->
         expect(lineHasClass(2, 'someclass')).toBe true
         expect(lineHasClass(3, 'someclass')).toBe true
         expect(lineHasClass(4, 'someclass')).toBe false
+
+      it "only renders 'onlyHead' decorations on lines containing the marker's head", ->
+        editor.addDecorationForMarker(marker, type: 'line', class: 'only-head', onlyHead: true)
+        runSetImmediateCallbacks()
+        expect(lineHasClass(1, 'only-head')).toBe false
+        expect(lineHasClass(2, 'only-head')).toBe false
+        expect(lineHasClass(3, 'only-head')).toBe true
+        expect(lineHasClass(4, 'only-head')).toBe false
 
       it "removes line classes when a decoration's marker is invalidated", ->
         editor.getBuffer().insert([3, 2], 'n')
