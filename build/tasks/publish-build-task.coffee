@@ -11,12 +11,12 @@ grunt = null
 
 if process.platform is 'darwin'
   assets = [
-    {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
-    {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
+    {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+    {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
   ]
 else
   assets = [
-    {assetName: 'atom-windows.zip', sourceName: 'Atom'}
+    {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
   ]
 
 commitSha = process.env.JANKY_SHA1
@@ -49,20 +49,20 @@ logError = (message, error, details) ->
   grunt.log.error(details) if details
 
 zipAssets = (buildDir, assets, callback) ->
-  zip = (directory, sourceName, assetName, callback) ->
+  zip = (directory, sourcePath, assetName, callback) ->
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}"
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
     else
-      zipCommand = "zip -r --symlinks #{assetName} #{sourceName}"
+      zipCommand = "zip -r --symlinks #{assetName} #{sourcePath}"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
-      logError("Zipping #{sourceName} failed", error, stderr) if error?
+      logError("Zipping #{sourcePath} failed", error, stderr) if error?
       callback(error)
 
   tasks = []
-  for {assetName, sourceName} in assets
+  for {assetName, sourcePath} in assets
     fs.removeSync(path.join(buildDir, assetName))
-    tasks.push(zip.bind(this, buildDir, sourceName, assetName))
+    tasks.push(zip.bind(this, buildDir, sourcePath, assetName))
   async.parallel(tasks, callback)
 
 getAtomDraftRelease = (callback) ->
@@ -127,7 +127,7 @@ uploadAssets = (release, buildDir, assets, callback) ->
     fs.createReadStream(assetPath).pipe(assetRequest)
 
   tasks = []
-  for {assetName, sourceName} in assets
+  for {assetName} in assets
     assetPath = path.join(buildDir, assetName)
     tasks.push(upload.bind(this, release, assetName, assetPath))
   async.parallel(tasks, callback)
