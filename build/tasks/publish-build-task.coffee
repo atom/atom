@@ -9,16 +9,6 @@ request = require 'request'
 
 grunt = null
 
-if process.platform is 'darwin'
-  assets = [
-    {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
-    {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
-  ]
-else
-  assets = [
-    {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-  ]
-
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
@@ -33,6 +23,7 @@ module.exports = (gruntObject) ->
 
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
+    assets = getAssets()
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
@@ -42,6 +33,18 @@ module.exports = (gruntObject) ->
         deleteExistingAssets release, assetNames, (error) ->
           return done(error) if error?
           uploadAssets(release, buildDir, assets, done)
+
+getAssets = ->
+  if process.platform is 'darwin'
+    [
+      {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+      {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
+      {assetName: 'atom-docs.zip', sourcePath: grunt.config.get('docsOutputDir')}
+    ]
+  else
+    [
+      {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
+    ]
 
 logError = (message, error, details) ->
   grunt.log.error(message)
