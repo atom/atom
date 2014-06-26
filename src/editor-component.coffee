@@ -25,8 +25,6 @@ EditorComponent = React.createClass
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
-  updatesPaused: false
-  updateRequestedWhilePaused: false
   updateRequested: false
   cursorsMoved: false
   selectionChanged: false
@@ -205,23 +203,13 @@ EditorComponent = React.createClass
     @remeasureCharacterWidthsIfNeeded(prevState)
 
   requestUpdate: ->
-    if @updatesPaused
-      @updateRequestedWhilePaused = true
-    else
-      if @performSyncUpdates ? EditorComponent.performSyncUpdates
-        @forceUpdate()
-      else unless @updateRequested
-        @updateRequested = true
-        process.nextTick =>
-          @updateRequested = false
-          @forceUpdate() if @isMounted()
-
-  requestAnimationFrame: (fn) ->
-    requestAnimationFrame =>
-      @updatesPaused = true
-      fn()
-      @updatesPaused = false
-      @forceUpdate() if @updateRequestedWhilePaused
+    if @performSyncUpdates ? EditorComponent.performSyncUpdates
+      @forceUpdate()
+    else unless @updateRequested
+      @updateRequested = true
+      setImmediate =>
+        @updateRequested = false
+        @forceUpdate() if @isMounted()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -522,7 +510,7 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
     unless animationFramePending
-      @requestAnimationFrame =>
+      requestAnimationFrame =>
         @props.editor.setScrollTop(@pendingScrollTop)
 
   onHorizontalScroll: (scrollLeft) ->
@@ -533,7 +521,7 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
-      @requestAnimationFrame =>
+      requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
@@ -554,7 +542,7 @@ EditorComponent = React.createClass
       @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
-      @requestAnimationFrame =>
+      requestAnimationFrame =>
         {editor} = @props
         editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
