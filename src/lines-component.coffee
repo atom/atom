@@ -22,33 +22,25 @@ LinesComponent = React.createClass
     if performedInitialMeasurement
       {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects} = @props
-      style =
-        height: Math.max(scrollHeight, scrollViewHeight)
-        width: scrollWidth
-        WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
 
-    div {className: 'lines', style},
-      div className: 'placeholder-text', placeholderText if placeholderText?
+    div {className: 'lines'},
+      @renderLineGroups() if @isMounted()
+      # HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
 
-      CursorsComponent {
-        cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay, lineHeightInPixels,
-        defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement
+  renderLineGroups: ->
+    {renderedRowRange, pendingChanges, scrollTop, scrollLeft, editor, lineHeightInPixels, showIndentGuide, mini, invisibles, tileSize, lineWidth} = @props
+    tileSize ?= 5
+    [renderedStartRow, renderedEndRow] = renderedRowRange
+    renderedStartRow -= renderedStartRow % tileSize
+
+    for startRow in [renderedStartRow...renderedEndRow] by tileSize
+      ref = startRow
+      key = startRow
+      endRow = startRow + tileSize
+      LineGroupComponent {
+        key, ref, startRow, endRow, pendingChanges, scrollTop, scrollLeft,
+        editor, lineHeightInPixels, showIndentGuide, mini, invisibles, lineWidth
       }
-
-      HighlightsComponent {
-        editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
-        scopedCharacterWidthsChangeCount, performedInitialMeasurement
-      }
-
-  getTransform: ->
-    {scrollTop, scrollLeft, useHardwareAcceleration} = @props
-
-    if useHardwareAcceleration
-      "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
-    else
-      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -77,6 +69,27 @@ LinesComponent = React.createClass
 
     false
 
+  measureLineHeightAndDefaultCharWidth: ->
+    node = @getDOMNode()
+    node.appendChild(DummyLineNode)
+    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
+    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
+    node.removeChild(DummyLineNode)
+
+    {editor} = @props
+    editor.setLineHeightInPixels(lineHeightInPixels)
+    editor.setDefaultCharWidth(charWidth)
+
+
+  remeasureCharacterWidths: ->
+
+
+LineGroupComponent = React.createClass
+  displayName: 'LineGroupComponent'
+
+  render: ->
+    div className: 'line-group'
+
   componentDidUpdate: (prevProps) ->
     {visible, scrollingVertically, performedInitialMeasurement} = @props
     return unless performedInitialMeasurement
@@ -91,8 +104,7 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
 
   updateLines: (updateWidth) ->
-    {editor, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
-    [startRow, endRow] = renderedRowRange
+    {startRow, endRow, editor, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
 
     visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
     @removeLineNodes(visibleLines)
@@ -281,17 +293,6 @@ LinesComponent = React.createClass
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
-
-  measureLineHeightAndDefaultCharWidth: ->
-    node = @getDOMNode()
-    node.appendChild(DummyLineNode)
-    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
-    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
-    node.removeChild(DummyLineNode)
-
-    {editor} = @props
-    editor.setLineHeightInPixels(lineHeightInPixels)
-    editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
     @clearScopedCharWidths()
