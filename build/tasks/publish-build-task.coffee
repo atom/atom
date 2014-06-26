@@ -34,7 +34,7 @@ module.exports = (gruntObject) ->
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
 
-    zipApps buildDir, assets, (error) ->
+    zipAssets buildDir, assets, (error) ->
       return done(error) if error?
       getAtomDraftRelease (error, release) ->
         return done(error) if error?
@@ -48,7 +48,7 @@ logError = (message, error, details) ->
   grunt.log.error(error.message ? error) if error?
   grunt.log.error(details) if details
 
-zipApps = (buildDir, assets, callback) ->
+zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourceName, assetName, callback) ->
     if process.platform is 'win32'
       zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}"
