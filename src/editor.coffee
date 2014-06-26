@@ -1085,17 +1085,23 @@ class Editor extends Model
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
   # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect the marker's state.
+  # is invalidated, or is destroyed, the decoration will be updated to reflect
+  # the marker's state.
   #
-  # There are a few supported decoration types:
-  # * `gutter`: `{type: 'gutter', class: 'linter-error'}` Will add a class to the gutter rows associated with the marker.
-  # * `line`: `{type: 'line', class: 'linter-error'}` Will add a class to the editor lines associated with the marker.
-  # * `highlight`: `{type: 'highlight', class: 'linter-error'}` Will highlight the region of the buffer associated with the marker. Your specified class will be added to the highlight.
-  #
-  # marker - the {Marker} you want this decoration to follow
-  # decoration - the {Object} decoration eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
+  # marker - A {Marker} you want this decoration to follow.
+  # decoration - An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  #   The decoration can contain the following keys:
+  #     * type: There are a few supported decoration types:
+  #       * `gutter`: Applies the decoration to the line numbers spanned by the
+  #            marker.
+  #       * `line`: Applies the decoration to the lines spanned by the marker.
+  #       * `highlight`: Applies the decoration to a "highlight" behind the
+  #            marked range. When the user selects text, the selection is
+  #            visualized with a highlight decoration internally.
+  #     * class: This CSS class will be applied to the decorated line number,
+  #         line, or highlight.
+  #     * onlyHead: If `true`, the decoration will only be applied to the head
+  #         of the marker. Only applicable to the `line` and `gutter` types.
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)
 
