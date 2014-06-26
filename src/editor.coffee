@@ -1244,7 +1244,8 @@ class Editor extends Model
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
-    @addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'cursor-line')
+    @addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'cursor-line', onlyHead: true)
+    @addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'selected-line')
     @emit 'cursor-added', cursor
     cursor
 
