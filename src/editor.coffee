@@ -1102,6 +1102,12 @@ class Editor extends Model
   #         line, or highlight.
   #     * onlyHead: If `true`, the decoration will only be applied to the head
   #         of the marker. Only applicable to the `line` and `gutter` types.
+  #     * onlyEmpty: If `true`, the decoration will only be applied if the
+  #         associated marker is empty. Only applicable to the `line` and
+  #         `gutter` types.
+  #     * onlyNonEmpty: If `true`, the decoration will only be applied if the
+  #         associated marker is non-empty.  Only applicable to the `line` and
+  #         gutter types.
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)
 
