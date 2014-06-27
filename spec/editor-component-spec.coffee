@@ -700,6 +700,36 @@ describe "EditorComponent", ->
         runSetImmediateCallbacks()
         expect(lineNumberForBufferRowHasClass(9, 'someclass')).toBe false
 
+      it "only renders 'onlyHead' decorations on lines containing the marker's head", ->
+        editor.addDecorationForMarker(marker, type: 'gutter', class: 'only-head', onlyHead: true)
+        runSetImmediateCallbacks()
+        expect(lineNumberHasClass(1, 'only-head')).toBe false
+        expect(lineNumberHasClass(2, 'only-head')).toBe false
+        expect(lineNumberHasClass(3, 'only-head')).toBe true
+        expect(lineNumberHasClass(4, 'only-head')).toBe false
+
+      it "only renders 'onlyEmpty' decorations on lines for which the marker is empty", ->
+        editor.addDecorationForMarker(marker, type: 'gutter', class: 'only-empty', onlyEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineNumberHasClass(2, 'only-empty')).toBe false
+        expect(lineNumberHasClass(3, 'only-empty')).toBe false
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineNumberHasClass(2, 'only-empty')).toBe false
+        expect(lineNumberHasClass(3, 'only-empty')).toBe true
+
+      it "only renders 'onlyNonEmpty' decorations on lines for which the marker is non-empty", ->
+        editor.addDecorationForMarker(marker, type: 'gutter', class: 'only-non-empty', onlyNonEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineNumberHasClass(2, 'only-non-empty')).toBe true
+        expect(lineNumberHasClass(3, 'only-non-empty')).toBe true
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineNumberHasClass(2, 'only-non-empty')).toBe false
+        expect(lineNumberHasClass(3, 'only-non-empty')).toBe false
+
       it "updates line number classes when the marker moves", ->
         expect(lineNumberHasClass(1, 'someclass')).toBe false
         expect(lineNumberHasClass(2, 'someclass')).toBe true
