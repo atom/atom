@@ -356,6 +356,28 @@ describe "EditorComponent", ->
         expect(lineHasClass(3, 'only-head')).toBe true
         expect(lineHasClass(4, 'only-head')).toBe false
 
+      it "only renders 'onlyEmpty' decorations on lines for which the marker is empty", ->
+        editor.addDecorationForMarker(marker, type: 'line', class: 'only-empty', onlyEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineHasClass(2, 'only-empty')).toBe false
+        expect(lineHasClass(3, 'only-empty')).toBe false
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineHasClass(2, 'only-empty')).toBe false
+        expect(lineHasClass(3, 'only-empty')).toBe true
+
+      it "only renders 'onlyNonEmpty' decorations on lines for which the marker is non-empty", ->
+        editor.addDecorationForMarker(marker, type: 'line', class: 'only-non-empty', onlyNonEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineHasClass(2, 'only-non-empty')).toBe true
+        expect(lineHasClass(3, 'only-non-empty')).toBe true
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineHasClass(2, 'only-non-empty')).toBe false
+        expect(lineHasClass(3, 'only-non-empty')).toBe false
+
       it "removes line classes when a decoration's marker is invalidated", ->
         editor.getBuffer().insert([3, 2], 'n')
         runSetImmediateCallbacks()

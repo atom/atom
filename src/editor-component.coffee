@@ -273,6 +273,11 @@ EditorComponent = React.createClass
             endRow-- if not screenRange.isEmpty() and screenRange.end.column == 0
             for screenRow in [startRow..endRow]
               continue if decoration.onlyHead and screenRow isnt headScreenRow
+              if screenRange.isEmpty()
+                continue if decoration.onlyNonEmpty
+              else
+                continue if decoration.onlyEmpty
+
               decorationsByScreenRow[screenRow] ?= []
               decorationsByScreenRow[screenRow].push decoration
 
