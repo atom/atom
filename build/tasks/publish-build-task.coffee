@@ -19,12 +19,12 @@ module.exports = (gruntObject) ->
   grunt = gruntObject
 
   grunt.registerTask 'publish-build', 'Publish the built app', ['prepare-docs', 'upload-assets']
+    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
   grunt.registerTask 'prepare-docs', ['build-docs'], ->
     fs.copySync(grunt.config.get('docsOutputDir'), path.join(grunt.config.get('atom.buildDir'), 'atom-docs'))
 
   grunt.registerTask 'upload-assets', ->
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
 
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
