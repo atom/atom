@@ -22,7 +22,7 @@ module.exports = (gruntObject) ->
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
     tasks = ['upload-assets']
     tasks.unshift('prepare-docs') if process.platform is 'darwin'
-    grunt.task.run(tasks);
+    grunt.task.run(tasks)
 
   grunt.registerTask 'prepare-docs', ['build-docs'], ->
     fs.copySync(grunt.config.get('docsOutputDir'), path.join(grunt.config.get('atom.buildDir'), 'atom-docs'))
