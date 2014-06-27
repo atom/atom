@@ -411,7 +411,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
         expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
 
-  describe "when the buffer contains surrogate pairs", ->
+  describe "when the buffer contains UTF-8 surrogate pairs", ->
     beforeEach ->
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
@@ -429,7 +429,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer.destroy()
       buffer.release()
 
-    it "renders each surrogate pair as its own atomic token", ->
+    it "renders each UTF-8 surrogate pair as its own atomic token", ->
       screenLine0 = tokenizedBuffer.lineForScreenRow(0)
       expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
       { tokens } = screenLine0
