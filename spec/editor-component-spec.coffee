@@ -315,9 +315,6 @@ describe "EditorComponent", ->
     describe "when line decorations are attached to markers", ->
       {marker, decoration} = {}
 
-      lineHasClass = (screenRow, klass) ->
-        component.lineNodeForScreenRow(screenRow).classList.contains(klass)
-
       beforeEach ->
         marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
         decoration = {type: 'line', class: 'someclass'}
@@ -424,13 +421,6 @@ describe "EditorComponent", ->
 
   describe "gutter rendering", ->
     [gutter] = []
-
-    lineNumberHasClass = (screenRow, klass) ->
-      component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
-
-    lineNumberForBufferRowHasClass = (bufferRow, klass) ->
-      screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
-      component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
     beforeEach ->
       {gutter} = component.refs
@@ -606,62 +596,6 @@ describe "EditorComponent", ->
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
           runSetImmediateCallbacks()
           expect(lineNumberHasClass(1, 'folded')).toBe false
-
-    describe "cursor-line decorations", ->
-      cursor = null
-      beforeEach ->
-        cursor = editor.getCursor()
-
-      it "modifies the cursor-line decoration when the cursor moves", ->
-        cursor.setScreenPosition([0, 0])
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe true
-
-        cursor.setScreenPosition([1, 0])
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-
-      it "updates cursor-line decorations for multiple cursors", ->
-        cursor.setScreenPosition([2, 0])
-        cursor2 = editor.addCursorAtScreenPosition([8, 0])
-        cursor3 = editor.addCursorAtScreenPosition([10, 0])
-        runSetImmediateCallbacks()
-
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
-
-        cursor2.destroy()
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
-
-        cursor3.destroy()
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe false
-
-      it "adds cursor-line decorations to multiple lines when a selection is performed", ->
-        cursor.setScreenPosition([1, 5])
-        editor.selectDown(2)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(3, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(4, 'cursor-line')).toBe false
-
-      it "does not render a cursor-line decoration for the last line of a multi-line selection of the selection ends at column 0", ->
-        cursor.setScreenPosition([1, 0])
-        editor.selectDown(2)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(3, 'cursor-line')).toBe false
 
     describe "when gutter decorations are attached to markers", ->
       {marker, decoration} = {}
@@ -1905,6 +1839,50 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
 
+  describe "default decorations", ->
+    it "applies .cursor-line decorations to lines and line numbers for rows containing the cursor", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'cursor-line')).toBe false
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(5, 'cursor-line')).toBe false
+      expect(lineHasClass(3, 'cursor-line')).toBe false
+      expect(lineHasClass(4, 'cursor-line')).toBe true
+      expect(lineHasClass(5, 'cursor-line')).toBe false
+
+      editor.setSelectedScreenRange([[3, 4], [4, 4]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe true
+      expect(lineHasClass(4, 'cursor-line')).toBe true
+
+    it "applies .selection-line decorations to lines and line numbers for rows spanned by non-empty selections", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'selection-line')).toBe false
+      expect(lineHasClass(4, 'selection-line')).toBe false
+
+      editor.setSelectedScreenRange([[4, 4], [6, 4]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'selection-line')).toBe false
+      expect(lineNumberHasClass(4, 'selection-line')).toBe true
+      expect(lineNumberHasClass(5, 'selection-line')).toBe true
+      expect(lineNumberHasClass(6, 'selection-line')).toBe true
+      expect(lineNumberHasClass(7, 'selection-line')).toBe false
+      expect(lineHasClass(3, 'selection-line')).toBe false
+      expect(lineHasClass(4, 'selection-line')).toBe true
+      expect(lineHasClass(5, 'selection-line')).toBe true
+      expect(lineHasClass(6, 'selection-line')).toBe true
+      expect(lineHasClass(7, 'selection-line')).toBe false
+
+    it "applies .cursor-line-no-selection to line numbers for rows containing the cursor when the selection is empty", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe true
+
+      editor.setSelectedScreenRange([[3, 4], [4, 4]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)
@@ -1939,3 +1917,13 @@ describe "EditorComponent", ->
     clientX = gutterClientRect.left + positionOffset.left - editor.getScrollLeft()
     clientY = gutterClientRect.top + positionOffset.top - editor.getScrollTop()
     {clientX, clientY}
+
+  lineNumberHasClass = (screenRow, klass) ->
+    component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
+  lineNumberForBufferRowHasClass = (bufferRow, klass) ->
+    screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
+    component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
+  lineHasClass = (screenRow, klass) ->
+    component.lineNodeForScreenRow(screenRow).classList.contains(klass)
