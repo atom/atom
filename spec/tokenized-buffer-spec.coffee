@@ -1,7 +1,7 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
 _ = require 'underscore-plus'
 
-describe "TokenizedBuffer", ->
+fdescribe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
@@ -335,12 +335,13 @@ describe "TokenizedBuffer", ->
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
 
-        expect(tokens.length).toBe 3
+        expect(tokens.length).toBe 4
         expect(tokens[0].value).toBe "#"
         expect(tokens[1].value).toBe " Econ 101"
         expect(tokens[2].value).toBe tabAsSpaces
         expect(tokens[2].scopes).toEqual tokens[1].scopes
         expect(tokens[2].isAtomic).toBeTruthy()
+        expect(tokens[3].value).toBe ""
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
@@ -411,7 +412,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
         expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
 
-  describe "when the buffer contains surrogate pairs", ->
+  describe "when the buffer contains UTF-8 surrogate pairs", ->
     beforeEach ->
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
@@ -429,7 +430,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer.destroy()
       buffer.release()
 
-    it "renders each surrogate pair as its own atomic token", ->
+    it "renders each UTF-8 surrogate pair as its own atomic token", ->
       screenLine0 = tokenizedBuffer.lineForScreenRow(0)
       expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
       { tokens } = screenLine0
@@ -446,11 +447,12 @@ describe "TokenizedBuffer", ->
       expect(screenLine1.text).toBe "//\uD835\uDF97xyz"
       { tokens } = screenLine1
 
-      expect(tokens.length).toBe 3
+      expect(tokens.length).toBe 4
       expect(tokens[0].value).toBe '//'
       expect(tokens[1].value).toBe '\uD835\uDF97'
       expect(tokens[1].value).toBeTruthy()
       expect(tokens[2].value).toBe 'xyz'
+      expect(tokens[3].value).toBe ''
 
   describe "when the grammar is tokenized", ->
     it "emits the `tokenized` event", ->
