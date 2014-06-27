@@ -237,6 +237,7 @@ class GutterView extends View
     return unless @highlightedLineNumbers
     for line in @highlightedLineNumbers
       line.classList.remove('cursor-line')
+      line.classList.remove('selection-line')
       line.classList.remove('cursor-line-no-selection')
     @highlightedLineNumbers = null
 
@@ -245,7 +246,10 @@ class GutterView extends View
     @highlightedLineNumbers ?= []
     if highlightedLineNumber = @lineNumbers[0].children[row - @firstScreenRow]
       highlightedLineNumber.classList.add('cursor-line')
-      highlightedLineNumber.classList.add('cursor-line-no-selection') if emptySelection
+      if emptySelection
+        highlightedLineNumber.classList.add('cursor-line-no-selection')
+      else
+        highlightedLineNumber.classList.add('selection-line')
       @highlightedLineNumbers.push(highlightedLineNumber)
 
   highlightLines: ->
