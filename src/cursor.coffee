@@ -29,9 +29,6 @@ class Cursor extends Model
       # Supports old editor view
       @needsAutoscroll ?= @isLastCursor() and !textChanged
 
-      # Supports react editor view
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
-
       @goalColumn = null
 
       movedEvent =
@@ -55,8 +52,10 @@ class Cursor extends Model
   changePosition: (options, fn) ->
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    unless fn()
-      @emit 'autoscrolled' if @needsAutoscroll
+    fn()
+    if @needsAutoscroll
+      @emit 'autoscrolled' # Support legacy editor
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition # Support react editor view
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())
