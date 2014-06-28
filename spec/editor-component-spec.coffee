@@ -312,95 +312,8 @@ describe "EditorComponent", ->
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
-    describe "when line decorations are attached to markers", ->
-      {marker, decoration} = {}
-
-      lineHasClass = (screenRow, klass) ->
-        component.lineNodeForScreenRow(screenRow).classList.contains(klass)
-
-      beforeEach ->
-        marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
-        decoration = {type: 'line', class: 'someclass'}
-        editor.addDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-
-      it "does not render off-screen lines with line number classes until they are with in the rendered row range", ->
-        node.style.height = 4.5 * lineHeightInPixels + 'px'
-        component.measureScrollView()
-        runSetImmediateCallbacks()
-
-        expect(component.lineNodeForScreenRow(9)).not.toBeDefined()
-
-        marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
-        editor.addDecorationForMarker(marker, type: 'line', class: 'fancy-class')
-        editor.addDecorationForMarker(marker, type: 'gutter', class: 'nope-class')
-
-        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
-        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-        runSetImmediateCallbacks()
-
-        expect(lineHasClass(9, 'fancy-class')).toBe true
-        expect(lineHasClass(9, 'nope-class')).toBe false
-
-      it "renders the specified decoration class on the correct lines", ->
-        expect(lineHasClass(1, 'someclass')).toBe false
-        expect(lineHasClass(2, 'someclass')).toBe true
-        expect(lineHasClass(3, 'someclass')).toBe true
-        expect(lineHasClass(4, 'someclass')).toBe false
-
-      it "removes line classes when a decoration's marker is invalidated", ->
-        editor.getBuffer().insert([3, 2], 'n')
-        runSetImmediateCallbacks()
-
-
-        expect(marker.isValid()).toBe false
-        expect(lineHasClass(1, 'someclass')).toBe false
-        expect(lineHasClass(2, 'someclass')).toBe false
-        expect(lineHasClass(3, 'someclass')).toBe false
-        expect(lineHasClass(4, 'someclass')).toBe false
-
-        editor.getBuffer().undo()
-        runSetImmediateCallbacks()
-
-        expect(marker.isValid()).toBe true
-        expect(lineHasClass(1, 'someclass')).toBe false
-        expect(lineHasClass(2, 'someclass')).toBe true
-        expect(lineHasClass(3, 'someclass')).toBe true
-        expect(lineHasClass(4, 'someclass')).toBe false
-
-      it "removes the classes and unsubscribes from the marker when decoration is removed", ->
-        editor.removeDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-
-        expect(lineHasClass(1, 'someclass')).toBe false
-        expect(lineHasClass(2, 'someclass')).toBe false
-        expect(lineHasClass(3, 'someclass')).toBe false
-        expect(lineHasClass(4, 'someclass')).toBe false
-
-        editor.getBuffer().insert([0, 0], '\n')
-        runSetImmediateCallbacks()
-
-        expect(lineHasClass(2, 'someclass')).toBe false
-        expect(lineHasClass(3, 'someclass')).toBe false
-
-      it "removes the line number classes when the decoration's marker is destroyed", ->
-        marker.destroy()
-        runSetImmediateCallbacks()
-
-        expect(lineHasClass(1, 'someclass')).toBe false
-        expect(lineHasClass(2, 'someclass')).toBe false
-        expect(lineHasClass(3, 'someclass')).toBe false
-        expect(lineHasClass(4, 'someclass')).toBe false
-
   describe "gutter rendering", ->
     [gutter] = []
-
-    lineNumberHasClass = (screenRow, klass) ->
-      component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
-
-    lineNumberForBufferRowHasClass = (bufferRow, klass) ->
-      screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
-      component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
 
     beforeEach ->
       {gutter} = component.refs
@@ -576,179 +489,6 @@ describe "EditorComponent", ->
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
           runSetImmediateCallbacks()
           expect(lineNumberHasClass(1, 'folded')).toBe false
-
-    describe "cursor-line decorations", ->
-      cursor = null
-      beforeEach ->
-        cursor = editor.getCursor()
-
-      it "modifies the cursor-line decoration when the cursor moves", ->
-        cursor.setScreenPosition([0, 0])
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe true
-
-        cursor.setScreenPosition([1, 0])
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-
-      it "updates cursor-line decorations for multiple cursors", ->
-        cursor.setScreenPosition([2, 0])
-        cursor2 = editor.addCursorAtScreenPosition([8, 0])
-        cursor3 = editor.addCursorAtScreenPosition([10, 0])
-        runSetImmediateCallbacks()
-
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
-
-        cursor2.destroy()
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe true
-
-        cursor3.destroy()
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(8, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(10, 'cursor-line')).toBe false
-
-      it "adds cursor-line decorations to multiple lines when a selection is performed", ->
-        cursor.setScreenPosition([1, 5])
-        editor.selectDown(2)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(3, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(4, 'cursor-line')).toBe false
-
-      it "does not render a cursor-line decoration for the last line of a multi-line selection of the selection ends at column 0", ->
-        cursor.setScreenPosition([1, 0])
-        editor.selectDown(2)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'cursor-line')).toBe false
-        expect(lineNumberHasClass(1, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(2, 'cursor-line')).toBe true
-        expect(lineNumberHasClass(3, 'cursor-line')).toBe false
-
-    describe "when gutter decorations are attached to markers", ->
-      {marker, decoration} = {}
-      beforeEach ->
-        marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
-        decoration = {type: 'gutter', class: 'someclass'}
-        editor.addDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-
-      it "does not render off-screen lines with line number classes until they are with in the rendered row range", ->
-        node.style.height = 4.5 * lineHeightInPixels + 'px'
-        component.measureScrollView()
-        runSetImmediateCallbacks()
-        expect(component.lineNumberNodeForScreenRow(9)).not.toBeDefined()
-
-        marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
-        editor.addDecorationForMarker(marker, type: 'gutter', class: 'fancy-class')
-        editor.addDecorationForMarker(marker, type: 'someother-type', class: 'nope-class')
-
-        verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
-        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-        runSetImmediateCallbacks()
-
-        expect(lineNumberHasClass(9, 'fancy-class')).toBe true
-        expect(lineNumberHasClass(9, 'nope-class')).toBe false
-
-      it "renders classes on correct screen lines when the user folds a block of code", ->
-        marker = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]], invalidate: 'inside')
-        editor.addDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-        expect(lineNumberForBufferRowHasClass(9, 'someclass')).toBe true
-
-        editor.foldBufferRow(5)
-        runSetImmediateCallbacks() # TODO: Removing this runSetImmediateCallbacks causes the spec to fail because of flaws in decoration updating
-        editor.removeDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-        expect(lineNumberForBufferRowHasClass(9, 'someclass')).toBe false
-
-      it "updates line number classes when the marker moves", ->
-        expect(lineNumberHasClass(1, 'someclass')).toBe false
-        expect(lineNumberHasClass(2, 'someclass')).toBe true
-        expect(lineNumberHasClass(3, 'someclass')).toBe true
-        expect(lineNumberHasClass(4, 'someclass')).toBe false
-
-        editor.getBuffer().insert([0, 0], '\n')
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'someclass')).toBe false
-        expect(lineNumberHasClass(3, 'someclass')).toBe true
-        expect(lineNumberHasClass(4, 'someclass')).toBe true
-        expect(lineNumberHasClass(5, 'someclass')).toBe false
-
-        editor.getBuffer().deleteRows(0, 1)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(0, 'someclass')).toBe false
-        expect(lineNumberHasClass(1, 'someclass')).toBe true
-        expect(lineNumberHasClass(2, 'someclass')).toBe true
-        expect(lineNumberHasClass(3, 'someclass')).toBe false
-
-      it "removes line number classes when a decoration's marker is invalidated", ->
-        editor.getBuffer().insert([3, 2], 'n')
-        runSetImmediateCallbacks()
-        expect(marker.isValid()).toBe false
-        expect(lineNumberHasClass(1, 'someclass')).toBe false
-        expect(lineNumberHasClass(2, 'someclass')).toBe false
-        expect(lineNumberHasClass(3, 'someclass')).toBe false
-        expect(lineNumberHasClass(4, 'someclass')).toBe false
-
-        editor.getBuffer().undo()
-        runSetImmediateCallbacks()
-        expect(marker.isValid()).toBe true
-        expect(lineNumberHasClass(1, 'someclass')).toBe false
-        expect(lineNumberHasClass(2, 'someclass')).toBe true
-        expect(lineNumberHasClass(3, 'someclass')).toBe true
-        expect(lineNumberHasClass(4, 'someclass')).toBe false
-
-      it "removes the classes and unsubscribes from the marker when decoration is removed", ->
-        editor.removeDecorationForMarker(marker, decoration)
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(1, 'someclass')).toBe false
-        expect(lineNumberHasClass(2, 'someclass')).toBe false
-        expect(lineNumberHasClass(3, 'someclass')).toBe false
-        expect(lineNumberHasClass(4, 'someclass')).toBe false
-
-        editor.getBuffer().insert([0, 0], '\n')
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(2, 'someclass')).toBe false
-        expect(lineNumberHasClass(3, 'someclass')).toBe false
-
-      it "removes the line number classes when the decoration's marker is destroyed", ->
-        marker.destroy()
-        runSetImmediateCallbacks()
-        expect(lineNumberHasClass(1, 'someclass')).toBe false
-        expect(lineNumberHasClass(2, 'someclass')).toBe false
-        expect(lineNumberHasClass(3, 'someclass')).toBe false
-        expect(lineNumberHasClass(4, 'someclass')).toBe false
-
-      describe "when soft wrapping is enabled", ->
-        beforeEach ->
-          editor.setText "a line that wraps, ok"
-          editor.setSoftWrap(true)
-          node.style.width = 16 * charWidth + 'px'
-          component.measureScrollView()
-          runSetImmediateCallbacks()
-
-        it "applies decoration only to the first row when marker range does not wrap", ->
-          marker = editor.displayBuffer.markBufferRange([[0, 0], [0, 0]])
-          editor.addDecorationForMarker(marker, type: 'gutter', class: 'someclass')
-          runSetImmediateCallbacks()
-          expect(lineNumberHasClass(0, 'someclass')).toBe true
-          expect(lineNumberHasClass(1, 'someclass')).toBe false
-
-        it "applies decoration to both rows when marker wraps", ->
-          marker = editor.displayBuffer.markBufferRange([[0, 0], [0, Infinity]])
-          editor.addDecorationForMarker(marker, type: 'gutter', class: 'someclass')
-          runSetImmediateCallbacks()
-          expect(lineNumberHasClass(0, 'someclass')).toBe true
-          expect(lineNumberHasClass(1, 'someclass')).toBe true
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
@@ -965,6 +705,149 @@ describe "EditorComponent", ->
       selectionNode = node.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
+
+  describe "line decoration rendering", ->
+    [marker, decoration] = []
+
+    beforeEach ->
+      marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
+      decoration = {type: ['gutter', 'line'], class: 'a'}
+      editor.addDecorationForMarker(marker, decoration)
+      runSetImmediateCallbacks()
+
+    it "applies line decoration classes to lines and line numbers", ->
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe true
+
+      # Shrink editor vertically
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.measureScrollView()
+      runSetImmediateCallbacks()
+
+      # Add decorations that are out of range
+      marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
+      editor.addDecorationForMarker(marker2, type: ['gutter', 'line'], class: 'b')
+
+      # Scroll decorations into view
+      verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      runSetImmediateCallbacks()
+      expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
+
+      # Fold a line to move the decorations
+      editor.foldBufferRow(5)
+      runSetImmediateCallbacks()
+      expect(lineAndLineNumberHaveClass(9, 'b')).toBe false
+      expect(lineAndLineNumberHaveClass(6, 'b')).toBe true
+
+    it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
+      editor.setText("a line that wraps, ok")
+      editor.setSoftWrap(true)
+      node.style.width = 16 * charWidth + 'px'
+      component.measureScrollView()
+      runSetImmediateCallbacks()
+
+      marker.destroy()
+      marker = editor.markBufferRange([[0, 0], [0, 2]])
+      editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'b')
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(0, 'b')).toBe true
+      expect(lineNumberHasClass(1, 'b')).toBe false
+
+      marker.setBufferRange([[0, 0], [0, Infinity]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(0, 'b')).toBe true
+      expect(lineNumberHasClass(1, 'b')).toBe true
+
+    it "updates decorations when markers move", ->
+      expect(lineAndLineNumberHaveClass(1, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
+
+      editor.getBuffer().insert([0, 0], '\n')
+      runSetImmediateCallbacks()
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(4, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(5, 'a')).toBe false
+
+      marker.setBufferRange([[4, 4], [6, 4]])
+      runSetImmediateCallbacks()
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(4, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(5, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(6, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(7, 'a')).toBe false
+
+    it "remove decoration classes and unsubscribes from markers decorations are removed", ->
+      expect(marker.getSubscriptionCount('changed'))
+      editor.removeDecorationForMarker(marker, decoration)
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(1, 'a')).toBe false
+      expect(lineNumberHasClass(2, 'a')).toBe false
+      expect(lineNumberHasClass(3, 'a')).toBe false
+      expect(lineNumberHasClass(4, 'a')).toBe false
+      expect(marker.getSubscriptionCount('changed')).toBe 0
+
+    it "removes decorations when their marker is invalidated", ->
+      editor.getBuffer().insert([3, 2], 'n')
+      runSetImmediateCallbacks()
+      expect(marker.isValid()).toBe false
+      expect(lineAndLineNumberHaveClass(1, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
+
+      editor.undo()
+      runSetImmediateCallbacks()
+      expect(marker.isValid()).toBe true
+      expect(lineAndLineNumberHaveClass(1, 'a')).toBe false
+      expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(3, 'a')).toBe true
+      expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
+
+    it "removes decorations when their marker is destroyed", ->
+      marker.destroy()
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(1, 'a')).toBe false
+      expect(lineNumberHasClass(2, 'a')).toBe false
+      expect(lineNumberHasClass(3, 'a')).toBe false
+      expect(lineNumberHasClass(4, 'a')).toBe false
+
+    describe "when the decoration's 'onlyHead' property is true", ->
+      it "only applies the decoration's class to lines containing the marker's head", ->
+        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
+        runSetImmediateCallbacks()
+        expect(lineAndLineNumberHaveClass(1, 'only-head')).toBe false
+        expect(lineAndLineNumberHaveClass(2, 'only-head')).toBe false
+        expect(lineAndLineNumberHaveClass(3, 'only-head')).toBe true
+        expect(lineAndLineNumberHaveClass(4, 'only-head')).toBe false
+
+    describe "when the decoration's 'onlyEmpty' property is true", ->
+      it "only applies the decoration when its marker is empty", ->
+        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-empty', onlyEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
+        expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe false
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
+        expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe true
+
+    describe "when the decoration's 'onlyNonEmpty' property is true", ->
+      it "only applies the decoration when its marker is non-empty", ->
+        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
+        runSetImmediateCallbacks()
+        expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe true
+        expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe true
+
+        marker.clearTail()
+        runSetImmediateCallbacks()
+        expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe false
+        expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe false
 
   describe "highlight decoration rendering", ->
     [marker, decoration, scrollViewClientLeft] = []
@@ -1845,6 +1728,54 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
 
+  describe "default decorations", ->
+    it "applies .cursor-line decorations for line numbers overlapping selections", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'cursor-line')).toBe false
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(5, 'cursor-line')).toBe false
+
+      editor.setSelectedScreenRange([[3, 4], [4, 4]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe true
+
+      editor.setSelectedScreenRange([[3, 4], [4, 0]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe false
+
+    it "does not apply .cursor-line to the last line of a selection if it's empty", ->
+      editor.setSelectedScreenRange([[3, 4], [5, 0]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(3, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(4, 'cursor-line')).toBe true
+      expect(lineNumberHasClass(5, 'cursor-line')).toBe false
+
+    it "applies .cursor-line decorations for lines containing the cursor in non-empty selections", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineHasClass(3, 'cursor-line')).toBe false
+      expect(lineHasClass(4, 'cursor-line')).toBe true
+      expect(lineHasClass(5, 'cursor-line')).toBe false
+
+      editor.setSelectedScreenRange([[3, 4], [4, 4]])
+      runSetImmediateCallbacks()
+      expect(lineHasClass(2, 'cursor-line')).toBe false
+      expect(lineHasClass(3, 'cursor-line')).toBe false
+      expect(lineHasClass(4, 'cursor-line')).toBe false
+      expect(lineHasClass(5, 'cursor-line')).toBe false
+
+    it "applies .cursor-line-no-selection to line numbers for rows containing the cursor when the selection is empty", ->
+      editor.setCursorScreenPosition([4, 4])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe true
+
+      editor.setSelectedScreenRange([[3, 4], [4, 4]])
+      runSetImmediateCallbacks()
+      expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)
@@ -1879,3 +1810,16 @@ describe "EditorComponent", ->
     clientX = gutterClientRect.left + positionOffset.left - editor.getScrollLeft()
     clientY = gutterClientRect.top + positionOffset.top - editor.getScrollTop()
     {clientX, clientY}
+
+  lineAndLineNumberHaveClass = (screenRow, klass) ->
+    lineHasClass(screenRow, klass) and lineNumberHasClass(screenRow, klass)
+
+  lineNumberHasClass = (screenRow, klass) ->
+    component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
+  lineNumberForBufferRowHasClass = (bufferRow, klass) ->
+    screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
+    component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
+
+  lineHasClass = (screenRow, klass) ->
+    component.lineNodeForScreenRow(screenRow).classList.contains(klass)

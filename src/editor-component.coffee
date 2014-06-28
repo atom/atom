@@ -262,14 +262,22 @@ EditorComponent = React.createClass
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
       screenRange = null
+      headScreenRow = null
       if marker.isValid()
         for decoration in decorations
           if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
             screenRange ?= marker.getScreenRange()
+            headScreenRow ?= marker.getHeadScreenPosition().row
             startRow = screenRange.start.row
             endRow = screenRange.end.row
             endRow-- if not screenRange.isEmpty() and screenRange.end.column == 0
             for screenRow in [startRow..endRow]
+              continue if decoration.onlyHead and screenRow isnt headScreenRow
+              if screenRange.isEmpty()
+                continue if decoration.onlyNonEmpty
+              else
+                continue if decoration.onlyEmpty
+
               decorationsByScreenRow[screenRow] ?= []
               decorationsByScreenRow[screenRow].push decoration
 
