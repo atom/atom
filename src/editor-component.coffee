@@ -512,7 +512,9 @@ EditorComponent = React.createClass
     @pendingScrollTop = scrollTop
     unless animationFramePending
       requestAnimationFrame =>
-        @props.editor.setScrollTop(@pendingScrollTop)
+        pendingScrollTop = @pendingScrollTop
+        @pendingScrollTop = null
+        @props.editor.setScrollTop(pendingScrollTop)
 
   onHorizontalScroll: (scrollLeft) ->
     {editor} = @props
