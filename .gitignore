@@ -13,3 +13,5 @@ debug.log
 docs/output
 docs/includes
 spec/fixtures/evil-files/
+resources/linux/Atom.desktop
+resources/linux/debian/control
