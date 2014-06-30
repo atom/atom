@@ -881,9 +881,9 @@ EditorComponent = React.createClass
     {editor} = @props
     {clientX, clientY} = event
 
-    scrollViewClientRect = @refs.scrollView.getDOMNode().getBoundingClientRect()
-    top = clientY - scrollViewClientRect.top + editor.getScrollTop()
-    left = clientX - scrollViewClientRect.left + editor.getScrollLeft()
+    linesClientRect = @refs.lines.getDOMNode().getBoundingClientRect()
+    top = clientY - linesClientRect.top
+    left = clientX - linesClientRect.left
     {top, left}
 
   getModel: ->
