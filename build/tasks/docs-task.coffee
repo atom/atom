@@ -15,15 +15,17 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
 
+    docsOutputDir = grunt.config.get('docsOutputDir')
+
     downloadIncludes (error, includePaths) ->
       if error?
         done(error)
       else
-        rm('docs/output/api')
+        rm(docsOutputDir)
         args = [
           commonArgs...
           '--title', 'Atom API Documentation'
-          '-o', 'docs/output/api'
+          '-o', docsOutputDir
           '-r', 'docs/README.md'
           '--stability', '1'
           'src/'

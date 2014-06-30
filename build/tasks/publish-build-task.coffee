@@ -9,16 +9,6 @@ request = require 'request'
 
 grunt = null
 
-if process.platform is 'darwin'
-  assets = [
-    {assetName: 'atom-mac.zip', sourceName: 'Atom.app'}
-    {assetName: 'atom-mac-symbols.zip', sourceName: 'Atom.breakpad.syms'}
-  ]
-else
-  assets = [
-    {assetName: 'atom-windows.zip', sourceName: 'Atom'}
-  ]
-
 commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
@@ -30,11 +20,19 @@ module.exports = (gruntObject) ->
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+    tasks = ['upload-assets']
+    tasks.unshift('prepare-docs') if process.platform is 'darwin'
+    grunt.task.run(tasks)
 
+  grunt.registerTask 'prepare-docs', ['build-docs'], ->
+    fs.copySync(grunt.config.get('docsOutputDir'), path.join(grunt.config.get('atom.buildDir'), 'atom-docs'))
+
+  grunt.registerTask 'upload-assets', ->
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
+    assets = getAssets()
 
-    zipApps buildDir, assets, (error) ->
+    zipAssets buildDir, assets, (error) ->
       return done(error) if error?
       getAtomDraftRelease (error, release) ->
         return done(error) if error?
@@ -43,26 +41,38 @@ module.exports = (gruntObject) ->
           return done(error) if error?
           uploadAssets(release, buildDir, assets, done)
 
+getAssets = ->
+  if process.platform is 'darwin'
+    [
+      {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+      {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
+      {assetName: 'atom-docs.zip', sourcePath: 'atom-docs'}
+    ]
+  else
+    [
+      {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
+    ]
+
 logError = (message, error, details) ->
   grunt.log.error(message)
   grunt.log.error(error.message ? error) if error?
   grunt.log.error(details) if details
 
-zipApps = (buildDir, assets, callback) ->
-  zip = (directory, sourceName, assetName, callback) ->
+zipAssets = (buildDir, assets, callback) ->
+  zip = (directory, sourcePath, assetName, callback) ->
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourceName}"
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
     else
-      zipCommand = "zip -r --symlinks #{assetName} #{sourceName}"
+      zipCommand = "zip -r --symlinks #{assetName} #{sourcePath}"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
-      logError("Zipping #{sourceName} failed", error, stderr) if error?
+      logError("Zipping #{sourcePath} failed", error, stderr) if error?
       callback(error)
 
   tasks = []
-  for {assetName, sourceName} in assets
+  for {assetName, sourcePath} in assets
     fs.removeSync(path.join(buildDir, assetName))
-    tasks.push(zip.bind(this, buildDir, sourceName, assetName))
+    tasks.push(zip.bind(this, buildDir, sourcePath, assetName))
   async.parallel(tasks, callback)
 
 getAtomDraftRelease = (callback) ->
@@ -127,7 +137,7 @@ uploadAssets = (release, buildDir, assets, callback) ->
     fs.createReadStream(assetPath).pipe(assetRequest)
 
   tasks = []
-  for {assetName, sourceName} in assets
+  for {assetName} in assets
     assetPath = path.join(buildDir, assetName)
     tasks.push(upload.bind(this, release, assetName, assetPath))
   async.parallel(tasks, callback)

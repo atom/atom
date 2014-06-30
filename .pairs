@@ -11,6 +11,7 @@ pairs:
   bo: Ben Ogle; benogle
   jr: Jason Rudolph; jasonrudolph
   jl: Jessica Lord; jlord
+  dh: Daniel Hengeveld; danielh
 email:
   domain: github.com
 #global: true
