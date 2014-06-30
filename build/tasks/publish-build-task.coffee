@@ -21,13 +21,13 @@ module.exports = (gruntObject) ->
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
     tasks = ['upload-assets']
-    tasks.unshift('prepare-docs') if process.platform is 'darwin'
+    tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
     grunt.task.run(tasks)
 
-  grunt.registerTask 'prepare-docs', ['build-docs'], ->
+  grunt.registerTask 'prepare-docs', 'Move the build docs to the build dir', ->
     fs.copySync(grunt.config.get('docsOutputDir'), path.join(grunt.config.get('atom.buildDir'), 'atom-docs'))
 
-  grunt.registerTask 'upload-assets', ->
+  grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
