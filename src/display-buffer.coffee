@@ -182,9 +182,12 @@ class DisplayBuffer extends Model
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
     if @manageScrollPosition
-      @scrollTop = Math.round(Math.max(0, Math.min(@getScrollHeight() - @getClientHeight(), scrollTop)))
+      @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
     else
       @scrollTop = Math.round(scrollTop)
+
+  getMaxScrollTop: ->
+    @getScrollHeight() - @getClientHeight()
 
   getScrollBottom: -> @scrollTop + @height
   setScrollBottom: (scrollBottom) ->
@@ -981,6 +984,7 @@ class DisplayBuffer extends Model
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
+    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
