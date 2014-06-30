@@ -9,6 +9,10 @@ module.exports = (rootPath, regexSource, options) ->
   searcher = new PathSearcher()
   scanner = new PathScanner(rootPath, options)
 
+  searcher.on 'file-error', (e) ->
+    error = {code: e.code, path: e.path, message: e.message}
+    emit('scan:file-error', error)
+
   searcher.on 'results-found', (result) ->
     emit('scan:result-found', result)
 
