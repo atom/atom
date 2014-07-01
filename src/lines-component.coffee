@@ -16,17 +16,25 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, highlightDecorations, scrollTop, scrollLeft, scrollHeight, scrollWidth} = @props
+      {editor, highlightDecorations, scrollHeight, scrollWidth} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
-        WebkitTransform: "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
+        WebkitTransform: @getTransform()
 
     # The lines div must have the 'editor-colors' class so it has an opaque
     # background to avoid sub-pixel anti-aliasing problems on the GPU
     div {className: 'lines editor-colors', style},
       HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
+
+  getTransform: ->
+    {scrollTop, scrollLeft, gpuDisabled} = @props
+
+    if gpuDisabled
+      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
+    else
+      "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -39,7 +47,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth'
+      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'gpuDisabled'
     )
 
     {renderedRowRange, pendingChanges} = newProps

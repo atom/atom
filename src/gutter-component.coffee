@@ -15,14 +15,22 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {scrollHeight, scrollViewHeight, scrollTop, onMouseDown} = @props
+    {scrollHeight, scrollViewHeight, onMouseDown} = @props
 
     div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
       # The line-numbers div must have the 'editor-colors' class so it has an
       # opaque background to avoid sub-pixel anti-aliasing problems on the GPU
       div className: 'gutter line-numbers editor-colors', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
-        WebkitTransform: "translate3d(0px, #{-scrollTop}px, 0px)"
+        WebkitTransform: @getTransform()
+
+  getTransform: ->
+    {scrollTop, gpuDisabled} = @props
+
+    if gpuDisabled
+      "translate(0px, #{-scrollTop}px)"
+    else
+      "translate3d(0px, #{-scrollTop}px, 0px)"
 
   componentWillMount: ->
     @lineNumberNodesById = {}
@@ -39,7 +47,7 @@ GutterComponent = React.createClass
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations',
-      'scrollViewHeight'
+      'scrollViewHeight', 'gpuDisabled'
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps

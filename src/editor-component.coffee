@@ -74,7 +74,7 @@ EditorComponent = React.createClass
       verticallyScrollable = editor.verticallyScrollable()
       horizontallyScrollable = editor.horizontallyScrollable()
       hiddenInputStyle = @getHiddenInputPosition()
-      hiddenInputStyle.WebkitTransform = 'translateZ(0)'
+      hiddenInputStyle.WebkitTransform = 'translateZ(0)' unless @gpuDisabled
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
 
@@ -87,7 +87,7 @@ EditorComponent = React.createClass
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
           lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow
+          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @gpuDisabled
         }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -100,14 +100,14 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount
+          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @gpuDisabled
         }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @gpuDisabled
         }
 
       ScrollbarComponent
@@ -481,6 +481,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
+    @subscribe atom.config.observe 'editor.gpuDisabled', @setGPUDisabled
 
   onFocus: ->
     @refs.input.focus()
@@ -872,6 +873,11 @@ EditorComponent = React.createClass
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
+
+  setGPUDisabled: (gpuDisabled) ->
+    unless @gpuDisabled is gpuDisabled
+      @gpuDisabled = gpuDisabled
+      @requestUpdate()
 
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
