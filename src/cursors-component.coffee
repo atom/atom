@@ -21,7 +21,7 @@ CursorsComponent = React.createClass
     div {className},
       if @isMounted()
         for key, pixelRect of cursorPixelRects
-          CursorComponent({key, pixelRect, scrollTop, scrollLeft, defaultCharWidth})
+          CursorComponent({key, pixelRect, scrollTop, scrollLeft, defaultCharWidth, useHardwareAcceleration})
 
   getInitialState: ->
     blinkOff: false
