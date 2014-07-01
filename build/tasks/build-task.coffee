@@ -90,6 +90,11 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'msvcp100.dll'), path.join(shellAppDir, 'msvcp100.dll')
       cp path.join('resources', 'win', 'msvcr100.dll'), path.join(shellAppDir, 'msvcr100.dll')
 
+      # Set up chocolatey ignore and gui files
+      fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
+      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
+      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
+
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
