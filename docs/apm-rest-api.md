@@ -198,6 +198,19 @@ Unstar a package; requires authentication.
 
 Returns 204 No Content.
 
+#### GET /api/packages/:name/stargazers
+
+List the users that have starred a package.
+
+Returns a list of user objects:
+
+```json
+[
+  {"login":"aperson"},
+  {"login":"anotherperson"},
+]
+```
+
 ### Atom updates
 
 #### GET /api/updates
@@ -206,10 +219,10 @@ Atom update feed, following the format expected by [Squirrel](https://github.com
 
 Returns:
 
-```
+```json
 {
     "name": "0.96.0",
-    "notes": "[HTML release notes]"
+    "notes": "[HTML release notes]",
     "pub_date": "2014-05-19T15:52:06.000Z",
     "url": "https://www.atom.io/api/updates/download"
 }
