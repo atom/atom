@@ -239,6 +239,9 @@ class Project extends Model
     task.on 'scan:result-found', (result) =>
       iterator(result) unless @isPathModified(result.filePath)
 
+    task.on 'scan:file-error', (error) ->
+      iterator(null, error)
+
     if _.isFunction(options.onPathsSearched)
       task.on 'scan:paths-searched', (numberOfPathsSearched) ->
         options.onPathsSearched(numberOfPathsSearched)
@@ -283,6 +286,7 @@ class Project extends Model
         checkFinished()
 
       task.on 'replace:path-replaced', iterator
+      task.on 'replace:file-error', (error) -> iterator(null, error)
 
     for buffer in @getBuffers()
       continue unless buffer.getPath() in filePaths

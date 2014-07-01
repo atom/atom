@@ -205,6 +205,17 @@ describe "Project", ->
       fs.writeFileSync(filePath, sampleContent)
       fs.writeFileSync(commentFilePath, sampleCommentContent)
 
+    describe "when a file doesn't exist", ->
+      it "calls back with an error", ->
+        errors = []
+        waitsForPromise ->
+          atom.project.replace /items/gi, 'items', ['/not-a-file.js'], (result, error) ->
+            errors.push(error)
+
+        runs ->
+          expect(errors).toHaveLength 1
+          expect(errors[0].path).toBe '/not-a-file.js'
+
     describe "when called with unopened files", ->
       it "replaces properly", ->
         results = []
