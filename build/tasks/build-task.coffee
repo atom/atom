@@ -91,6 +91,7 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'msvcr100.dll'), path.join(shellAppDir, 'msvcr100.dll')
 
       fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
+      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
 
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
