@@ -204,7 +204,7 @@ List users that have starred a package.
 
 Returns a list of user objects:
 
-```
+```json
 [
   {"login":"aperson"},
   {"login":"anotherperson"},
@@ -219,7 +219,7 @@ Atom update feed, following the format expected by [Squirrel](https://github.com
 
 Returns:
 
-```
+```json
 {
     "name": "0.96.0",
     "notes": "[HTML release notes]"
