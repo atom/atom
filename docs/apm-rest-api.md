@@ -200,7 +200,7 @@ Returns 204 No Content.
 
 #### GET /api/packages/:name/stargazers
 
-List users that have starred a package.
+List the users that have starred a package.
 
 Returns a list of user objects:
 
