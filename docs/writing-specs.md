@@ -63,7 +63,7 @@ Writing Asynchronous specs can be tricky at first. Some examples.
             expect(editor.getPath()).toContain 'c.coffee'
   ```
 
-  This method can be used in the `describe`, `it`, `beforeEach`, `afterEach` and `runs`  functions.
+  This method can be used in the `describe`, `it`, `beforeEach` and `afterEach` functions.
 
   ```coffee
   describe "when we open a file", ->
