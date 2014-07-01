@@ -692,8 +692,8 @@ describe "TokenizedBuffer", ->
 
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
 
-        changeEvent = _.pick(changeHandler.mostRecentCall.args[0], 'start', 'end', 'delta')
-        expect(changeEvent).toEqual(start: 5, end: 8, delta: 2)
+        delete changeHandler.argsForCall[0][0].bufferChange
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 8, delta: 2)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 4
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 4
@@ -710,8 +710,8 @@ describe "TokenizedBuffer", ->
 
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
 
-        changeEvent = _.pick(changeHandler.mostRecentCall.args[0], 'start', 'end', 'delta')
-        expect(changeEvent).toEqual(start: 5, end: 8, delta: -1)
+        delete changeHandler.argsForCall[0][0].bufferChange
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 8, delta: -1)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 2
