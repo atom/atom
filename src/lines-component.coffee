@@ -29,12 +29,12 @@ LinesComponent = React.createClass
       HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
 
   getTransform: ->
-    {scrollTop, scrollLeft, gpuDisabled} = @props
+    {scrollTop, scrollLeft, useHardwareAcceleration} = @props
 
-    if gpuDisabled
-      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
-    else
+    if useHardwareAcceleration
       "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
+    else
+      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
 
   componentWillMount: ->
     @measuredLines = new WeakSet
@@ -47,7 +47,7 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'gpuDisabled'
+      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration'
     )
 
     {renderedRowRange, pendingChanges} = newProps

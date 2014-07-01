@@ -25,12 +25,12 @@ GutterComponent = React.createClass
         WebkitTransform: @getTransform()
 
   getTransform: ->
-    {scrollTop, gpuDisabled} = @props
+    {scrollTop, useHardwareAcceleration} = @props
 
-    if gpuDisabled
-      "translate(0px, #{-scrollTop}px)"
-    else
+    if useHardwareAcceleration
       "translate3d(0px, #{-scrollTop}px, 0px)"
+    else
+      "translate(0px, #{-scrollTop}px)"
 
   componentWillMount: ->
     @lineNumberNodesById = {}
@@ -47,7 +47,7 @@ GutterComponent = React.createClass
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations',
-      'scrollViewHeight', 'gpuDisabled'
+      'scrollViewHeight', 'useHardwareAcceleration'
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps

@@ -57,7 +57,7 @@ class EditorView extends View
     softTabs: true
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
-    gpuDisabled: false
+    useHardwareAcceleration: true
 
   @nextEditorId: 1
 

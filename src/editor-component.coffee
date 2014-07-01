@@ -74,7 +74,7 @@ EditorComponent = React.createClass
       verticallyScrollable = editor.verticallyScrollable()
       horizontallyScrollable = editor.horizontallyScrollable()
       hiddenInputStyle = @getHiddenInputPosition()
-      hiddenInputStyle.WebkitTransform = 'translateZ(0)' unless @gpuDisabled
+      hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
 
@@ -87,7 +87,7 @@ EditorComponent = React.createClass
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
           lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @gpuDisabled
+          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @useHardwareAcceleration
         }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -100,14 +100,14 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @gpuDisabled
+          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration
         }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @gpuDisabled
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration
         }
 
       ScrollbarComponent
@@ -481,7 +481,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
-    @subscribe atom.config.observe 'editor.gpuDisabled', @setGPUDisabled
+    @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setuseHardwareAcceleration
 
   onFocus: ->
     @refs.input.focus()
@@ -874,9 +874,9 @@ EditorComponent = React.createClass
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
-  setGPUDisabled: (gpuDisabled) ->
-    unless @gpuDisabled is gpuDisabled
-      @gpuDisabled = gpuDisabled
+  setuseHardwareAcceleration: (useHardwareAcceleration) ->
+    unless @useHardwareAcceleration is useHardwareAcceleration
+      @useHardwareAcceleration = useHardwareAcceleration
       @requestUpdate()
 
   screenPositionForMouseEvent: (event) ->

@@ -15,15 +15,15 @@ CursorComponent = React.createClass
     div className: 'cursor', style: {height, width, WebkitTransform}
 
   getTransform: ->
-    {pixelRect, scrollTop, scrollLeft, gpuDisabled} = @props
+    {pixelRect, scrollTop, scrollLeft, useHardwareAcceleration} = @props
     {top, left} = pixelRect
     top -= scrollTop
     left -= scrollLeft
 
-    if gpuDisabled
-      "translate(#{left}px, #{top}px)"
-    else
+    if useHardwareAcceleration
       "translate3d(#{left}px, #{top}px, 0px)"
+    else
+      "translate(#{left}px, #{top}px)"
 
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
