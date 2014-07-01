@@ -47,6 +47,15 @@ describe "DisplayBuffer", ->
       buffer.insert([0,0], oneHundredLines)
       expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
+    it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
+      displayBuffer.manageScrollPosition = true
+      displayBuffer.setHeight(50)
+      displayBuffer.setLineHeightInPixels(10)
+      displayBuffer.setScrollTop(80)
+
+      buffer.delete([[8, 0], [10, 0]])
+      expect(displayBuffer.getScrollTop()).toBe 60
+
   describe "soft wrapping", ->
     beforeEach ->
       displayBuffer.setSoftWrap(true)
