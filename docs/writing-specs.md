@@ -59,11 +59,11 @@ Writing Asynchronous specs can be tricky at first. Some examples.
     describe "when we open a file", ->
       it "should be opened in an editor", ->
         waitsForPromise ->
-          atom.workspace.open 'c.coffee'
-          .then (editor) -> expect(editor.getPath()).toContain 'c.coffee'
+          atom.workspace.open('c.coffee').then (editor) ->
+            expect(editor.getPath()).toContain 'c.coffee'
   ```
 
-  This method can be used in the `describe`, `it`, `beforeEach` and `afterEach` functions.
+  This method can be used in the `describe`, `it`, `beforeEach`, `afterEach` and `runs`  functions.
 
   ```coffee
   describe "when we open a file", ->
