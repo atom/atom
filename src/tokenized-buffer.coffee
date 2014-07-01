@@ -161,12 +161,25 @@ class TokenizedBuffer extends Model
     previousEndStack = @stackForRow(end) # used in spill detection below
     newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
-    newEndStack = @stackForRow(end + delta)
 
+    start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
+    end = @retokenizeWhitespaceRowsIfIndentLevelChanged(newRange.end.row + 1, 1) - delta
+
+    newEndStack = @stackForRow(end + delta)
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
     @emit "changed", { start, end, delta, bufferChange: e }
+
+  retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
+    line = @tokenizedLines[row]
+    if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
+      while line?.isOnlyWhitespace()
+        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        row += increment
+        line = @tokenizedLines[row]
+
+    row - increment
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack

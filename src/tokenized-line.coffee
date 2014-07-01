@@ -152,6 +152,14 @@ class TokenizedLine
       break
     false
 
+  isOnlyWhitespace: ->
+    if @text == ''
+      true
+    else
+      for token in @tokens
+        return false unless token.isOnlyWhitespace()
+      true
+
   tokenAtIndex: (index) ->
     @tokens[index]
 
