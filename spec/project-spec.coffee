@@ -205,7 +205,7 @@ describe "Project", ->
       fs.writeFileSync(filePath, sampleContent)
       fs.writeFileSync(commentFilePath, sampleCommentContent)
 
-    describe "when a file doesnt exist", ->
+    describe "when a file doesn't exist", ->
       it "calls back with an error", ->
         errors = []
         waitsForPromise ->

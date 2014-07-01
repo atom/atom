@@ -239,7 +239,7 @@ class Project extends Model
     task.on 'scan:result-found', (result) =>
       iterator(result) unless @isPathModified(result.filePath)
 
-    task.on 'scan:file-error', (error) =>
+    task.on 'scan:file-error', (error) ->
       iterator(null, error)
 
     if _.isFunction(options.onPathsSearched)
