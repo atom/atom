@@ -688,7 +688,12 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
 
+        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
+
+        changeEvent = _.pick(changeHandler.mostRecentCall.args[0], 'start', 'end', 'delta')
+        expect(changeEvent).toEqual(start: 5, end: 8, delta: 2)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 4
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 4
@@ -701,7 +706,12 @@ describe "TokenizedBuffer", ->
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
 
+        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
+
+        changeEvent = _.pick(changeHandler.mostRecentCall.args[0], 'start', 'end', 'delta')
+        expect(changeEvent).toEqual(start: 5, end: 8, delta: -1)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 2
