@@ -1483,6 +1483,17 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [1, 5]
             expect(cursor2.getBufferPosition()).toEqual [2, 7]
 
+          it "autoscrolls to the last cursor", ->
+            editor.manageScrollPosition = true
+            editor.setCursorScreenPosition([1, 2])
+            editor.addCursorAtScreenPosition([10, 4])
+            editor.setLineHeightInPixels(10)
+            editor.setHeight(50)
+
+            expect(editor.getScrollTop()).toBe 0
+            editor.insertText('a')
+            expect(editor.getScrollTop()).toBe 80
+
       describe "when there are multiple non-empty selections", ->
         describe "when the selections are on the same line", ->
           it "replaces each selection range with the inserted characters", ->
