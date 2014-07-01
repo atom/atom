@@ -658,13 +658,11 @@ describe "TokenizedBuffer", ->
         buffer.setText('\n\n\n')
         expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 0
 
-    describe "when the line changed is surrounded by whitespace lines", ->
-      it "updates empty line indent guides above a line that is indented", ->
+    describe "when the changed lines are surrounded by whitespace-only lines", ->
+      it "updates the indentLevel of empty lines that precede the change", ->
         expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 0
 
         buffer.insert([12, 0], '\n')
-
-        # The newline and he tab need to be in two different operations to surface the bug
         buffer.insert([13, 0], '  ')
         expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 1
 
@@ -679,7 +677,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(14)).not.toBeDefined()
 
-      it "updates empty lines surrounding a change encompasing more lines than the old text", ->
+      it "updates the indentLevel of empty lines surrounding a change that inserts lines", ->
         # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
@@ -698,7 +696,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
 
-      it "updates empty lines surrounding a change encompasing less lines than the old text", ->
+      it "updates the indentLevel of empty lines surrounding a change that removes lines", ->
         # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
