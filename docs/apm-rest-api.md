@@ -222,7 +222,7 @@ Returns:
 ```json
 {
     "name": "0.96.0",
-    "notes": "[HTML release notes]"
+    "notes": "[HTML release notes]",
     "pub_date": "2014-05-19T15:52:06.000Z",
     "url": "https://www.atom.io/api/updates/download"
 }
