@@ -285,19 +285,29 @@ describe "EditorComponent", ->
         expect(line0LeafNodes[1].textContent).toBe '  '
         expect(line0LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-      it "updates empty line indent guides when the guides change as a result of another line", ->
+      it "updates the indent guides on empty lines preceding an indentation change", ->
         editor.getBuffer().insert([12, 0], '\n')
-        nextTick()
-
-        # The newline and he tab need to be in two different operations to surface the bug
+        runSetImmediateCallbacks()
         editor.getBuffer().insert([13, 0], '  ')
-        nextTick()
+        runSetImmediateCallbacks()
 
         line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
         expect(line12LeafNodes[0].textContent).toBe '  '
         expect(line12LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line12LeafNodes[1].textContent).toBe '  '
         expect(line12LeafNodes[1].classList.contains('indent-guide')).toBe true
+
+      it "updates the indent guides on empty lines following an indentation change", ->
+        editor.getBuffer().insert([12, 2], '\n')
+        runSetImmediateCallbacks()
+        editor.getBuffer().insert([12, 0], '  ')
+        runSetImmediateCallbacks()
+
+        line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
+        expect(line13LeafNodes[0].textContent).toBe '  '
+        expect(line13LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line13LeafNodes[1].textContent).toBe '  '
+        expect(line13LeafNodes[1].classList.contains('indent-guide')).toBe true
 
       getLeafNodes = (node) ->
         if node.children.length > 0
