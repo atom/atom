@@ -38,7 +38,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
 
 0. Add one or more expectations
 
-  The best way to learn about expectations is to read the [jasmine documentation](http://jasmine.github.io/2.0/introduction.html#section-Expectations) about them. Below is a simple example.
+  The best way to learn about expectations is to read the [jasmine documentation](http://jasmine.github.io/1.3/introduction.html#section-Expectations) about them. Below is a simple example.
 
   ```coffee
   describe "when a test is written", ->
@@ -46,6 +46,74 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
       expect("apples").toEqual("apples")
       expect("oranges").not.toEqual("apples")
   ```
+
+## Asynchronous specs
+
+Writing Asynchronous specs can be tricky at first. Some examples.
+
+0. Promises
+
+  Working with promises is rather easy in Atom. You can use our `waitsForPromise` function.
+
+  ```coffee
+    describe "when we open a file", ->
+      it "should be opened in an editor", ->
+        waitsForPromise ->
+          atom.workspace.open('c.coffee').then (editor) ->
+            expect(editor.getPath()).toContain 'c.coffee'
+  ```
+
+  This method can be used in the `describe`, `it`, `beforeEach`, `afterEach` and `runs`  functions.
+
+  ```coffee
+  describe "when we open a file", ->
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open 'c.coffee'
+
+    it "should be opened in an editor", ->
+      expect(atom.workspace.getActiveEditor().getPath()).toContain 'c.coffee'
+
+  ```
+
+  If you need to wait for multiple promises use a new `waitsForPromise` function for each promise. (Caution: Without `beforeEach` this example will fail!)
+
+  ```coffee
+  describe "waiting for the packages to load", ->
+
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open('sample.js')
+      waitsForPromise ->
+        atom.packages.activatePackage('tabs')
+      waitsForPromise ->
+        atom.packages.activatePackage('tree-view')
+
+    it 'should have waited long enough', ->
+      expect(atom.packages.isPackageActive('tabs')).toBe true
+      expect(atom.packages.isPackageActive('tree-view')).toBe true
+  ```
+
+0. Asynchronous functions with callbacks
+
+  Specs for asynchronous functions can be done using the `waitsFor` and `runs` functions. A simple example.
+
+  ```coffee
+  describe "fs.readdir(path, cb)", ->
+    it "is async", ->
+      spy = jasmine.createSpy('fs.readdirSpy')
+
+      fs.readdir('/tmp/example', spy)
+      waitsFor ->
+        spy.callCount > 0
+      runs ->
+        exp = [null, ['example.coffee']]
+        expect(spy.mostRecentCall.args).toEqual exp
+        expect(spy).toHaveBeenCalledWith(null, ['example.coffee'])
+  ```
+
+For a more detailed documentation on asynchronous tests please visit the [jasmine documentation](http://jasmine.github.io/1.3/introduction.html#section-Asynchronous_Support).
+
 
 ## Running specs
 
