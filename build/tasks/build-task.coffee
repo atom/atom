@@ -92,6 +92,7 @@ module.exports = (grunt) ->
 
       fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
       fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
+      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
 
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
