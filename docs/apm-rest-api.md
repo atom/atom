@@ -198,6 +198,19 @@ Unstar a package; requires authentication.
 
 Returns 204 No Content.
 
+#### GET /api/packages/:name/stargazers
+
+List users that have starred a package.
+
+Returns a list of user objects:
+
+```
+[
+  {"login":"aperson"},
+  {"login":"anotherperson"},
+]
+```
+
 ### Atom updates
 
 #### GET /api/updates
