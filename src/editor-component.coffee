@@ -481,7 +481,7 @@ EditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
-    @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setuseHardwareAcceleration
+    @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
 
   onFocus: ->
     @refs.input.focus()
@@ -874,7 +874,7 @@ EditorComponent = React.createClass
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
-  setuseHardwareAcceleration: (useHardwareAcceleration) ->
+  setUseHardwareAcceleration: (useHardwareAcceleration=true) ->
     unless @useHardwareAcceleration is useHardwareAcceleration
       @useHardwareAcceleration = useHardwareAcceleration
       @requestUpdate()
