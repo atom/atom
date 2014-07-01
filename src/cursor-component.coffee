@@ -7,14 +7,23 @@ CursorComponent = React.createClass
   displayName: 'CursorComponent'
 
   render: ->
-    {pixelRect, scrollTop, scrollLeft, defaultCharWidth} = @props
-    {top, left, height, width} = pixelRect
-    top -= scrollTop
-    left -= scrollLeft
+    {pixelRect, defaultCharWidth} = @props
+    {height, width} = pixelRect
     width = defaultCharWidth if width is 0
-    WebkitTransform = "translate3d(#{left}px, #{top}px, 0px)"
+    WebkitTransform = @getTransform()
 
     div className: 'cursor', style: {height, width, WebkitTransform}
+
+  getTransform: ->
+    {pixelRect, scrollTop, scrollLeft, useHardwareAcceleration} = @props
+    {top, left} = pixelRect
+    top -= scrollTop
+    left -= scrollLeft
+
+    if useHardwareAcceleration
+      "translate3d(#{left}px, #{top}px, 0px)"
+    else
+      "translate(#{left}px, #{top}px)"
 
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')

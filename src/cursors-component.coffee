@@ -12,7 +12,7 @@ CursorsComponent = React.createClass
   cursorBlinkIntervalHandle: null
 
   render: ->
-    {cursorPixelRects, scrollTop, scrollLeft, defaultCharWidth} = @props
+    {cursorPixelRects, scrollTop, scrollLeft, defaultCharWidth, useHardwareAcceleration} = @props
     {blinkOff} = @state
 
     className = 'cursors'
@@ -21,7 +21,7 @@ CursorsComponent = React.createClass
     div {className},
       if @isMounted()
         for key, pixelRect of cursorPixelRects
-          CursorComponent({key, pixelRect, scrollTop, scrollLeft, defaultCharWidth})
+          CursorComponent({key, pixelRect, scrollTop, scrollLeft, defaultCharWidth, useHardwareAcceleration})
 
   getInitialState: ->
     blinkOff: false
@@ -34,7 +34,7 @@ CursorsComponent = React.createClass
 
   shouldComponentUpdate: (newProps, newState) ->
     not newState.blinkOff is @state.blinkOff or
-      not isEqualForProperties(newProps, @props, 'cursorPixelRects', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
+      not isEqualForProperties(newProps, @props, 'cursorPixelRects', 'scrollTop', 'scrollLeft', 'defaultCharWidth', 'useHardwareAcceleration')
 
   componentWillUpdate: (newProps) ->
     cursorsMoved = @props.cursorPixelRects? and
