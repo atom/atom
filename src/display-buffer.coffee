@@ -984,7 +984,7 @@ class DisplayBuffer extends Model
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
+    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if @manageScrollPosition and delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
