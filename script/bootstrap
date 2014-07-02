@@ -46,7 +46,7 @@ function bootstrap() {
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeCommand = apmPath + ' dedupe' + apmFlags;
 
-  if (process.argv.indexOf('--no-quiet') !== -1) {
+  if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --quiet';
     apmInstallCommand    += ' --quiet';
     moduleInstallCommand += ' --quiet';
