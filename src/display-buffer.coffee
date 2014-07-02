@@ -795,6 +795,21 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId[marker.id].push(decoration)
     @emit 'decoration-added', marker, decoration
 
+  updateDecorationForMarker: (marker, decorationPattern, newDecoration) ->
+    unless marker?
+      console.warn 'A null marker cannot be decorated'
+      return
+
+    marker = @getMarker(marker.id)
+    return unless decorations = @decorationsByMarkerId[marker.id]
+
+    for decoration, i in decorations
+      if @decorationMatchesPattern(decoration, decorationPattern) and not _.isEqual(decoration, newDecoration)
+        decorations[i] = newDecoration
+        @emit 'decoration-updated', marker, decoration, newDecoration
+
+    return
+
   removeDecorationForMarker: (marker, decorationPattern) ->
     unless marker?
       console.warn 'A decoration cannot be removed from a null marker'
