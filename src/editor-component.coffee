@@ -26,6 +26,8 @@ EditorComponent = React.createClass
   pendingScrollLeft: null
   selectOnMouseMove: false
   updateRequested: false
+  updatesPaused: false
+  updateRequestedWhilePaused: false
   cursorsMoved: false
   selectionChanged: false
   selectionAdded: false
@@ -203,6 +205,10 @@ EditorComponent = React.createClass
     @remeasureCharacterWidthsIfNeeded(prevState)
 
   requestUpdate: ->
+    if @updatesPaused
+      @updateRequestedWhilePaused = true
+      return
+
     if @performSyncUpdates ? EditorComponent.performSyncUpdates
       @forceUpdate()
     else unless @updateRequested
@@ -210,6 +216,15 @@ EditorComponent = React.createClass
       setImmediate =>
         @updateRequested = false
         @forceUpdate() if @isMounted()
+
+  requestAnimationFrame: (fn) ->
+    @updatesPaused = true
+    requestAnimationFrame =>
+      fn()
+      @updatesPaused = false
+      if @updateRequestedWhilePaused and @isMounted()
+        @updateRequestedWhilePaused = false
+        @forceUpdate()
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -519,7 +534,7 @@ EditorComponent = React.createClass
     @pendingScrollTop = scrollTop
     unless animationFramePending
       @pauseScrollViewMeasurement()
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
         @props.editor.setScrollTop(pendingScrollTop)
@@ -533,7 +548,7 @@ EditorComponent = React.createClass
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
       @pauseScrollViewMeasurement()
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
@@ -555,7 +570,7 @@ EditorComponent = React.createClass
 
     unless animationFramePending
       @pauseScrollViewMeasurement()
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         {editor} = @props
         editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
         editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
@@ -656,7 +671,7 @@ EditorComponent = React.createClass
   onScrollTopChanged: ->
     @scrollingVertically = true
     @requestUpdate()
-    @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 100)
+    @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
     @onStoppedScrollingAfterDelay()
 
   onStoppedScrolling: ->
@@ -684,7 +699,7 @@ EditorComponent = React.createClass
     lastMousePosition = {}
     animationLoop = =>
       @pauseScrollViewMeasurement()
-      requestAnimationFrame =>
+      @requestAnimationFrame =>
         if dragging
           screenPosition = @screenPositionForMouseEvent(lastMousePosition)
           dragHandler(screenPosition)
@@ -725,7 +740,7 @@ EditorComponent = React.createClass
     return if @scrollViewMeasurementRequested
 
     @scrollViewMeasurementRequested = true
-    requestAnimationFrame =>
+    @requestAnimationFrame =>
       @scrollViewMeasurementRequested = false
       @measureScrollView()
 
