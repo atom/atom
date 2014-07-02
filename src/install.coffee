@@ -129,12 +129,8 @@ class Install extends Command
         callback("#{stdout}\n#{stderr}")
 
   getVisualStudioFlags: ->
-    return null unless config.isWin32()
-
     if vsVersion = config.getInstalledVisualStudioFlag()
       "--msvs_version=#{vsVersion}"
-    else
-      throw new Error('You must have Visual Studio 2010, 2012, or 2013 installed')
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
