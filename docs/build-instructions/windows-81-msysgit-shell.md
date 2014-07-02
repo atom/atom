@@ -4,6 +4,7 @@ You can build atom on Windows 8.1 using a fully self-contained msysgit bash shel
 
 ## Install dependencies
 Install the following programs that atom depends on:
+* [msysgit][5] - Git for Windows
 * [Python][2] 2.7.x (required by [node-gyp][3])
 * [Node.js][1] v0.10.x
 * [Visual Studio 2013 Express for Desktop][4]
@@ -43,3 +44,4 @@ This seems to be an issue the team should solve by ensuring a proper download an
 [2]: http://www.python.org/download/			"Python"
 [3]: https://github.com/TooTallNate/node-gyp	"node-gyp"
 [4]: http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2 "Visual Studio Express 2013 for Desktop"
+[5]: http://msysgit.github.io/					"msysgit"
