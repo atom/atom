@@ -176,7 +176,7 @@ module.exports =
     args = options.argv
     command = options.command
     if args.version
-      printVersions(args, callback)
+      printVersions(args, options.callback)
     else if args.help
       if Command = commands[options.command]
         new Command().showHelp(options.command)
