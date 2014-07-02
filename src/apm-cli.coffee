@@ -59,7 +59,7 @@ parseOptions = (args=[]) ->
     break
   options
 
-printVersions = (args) ->
+printVersions = (args, callback) ->
   apmVersion =  require('../package.json').version ? ''
   npmVersion = require('npm/package.json').version ? ''
   nodeVersion = process.versions.node ? ''
@@ -92,6 +92,7 @@ printVersions = (args) ->
           versions += "\n#{'visual studio'.cyan} #{visualStudioVersion.cyan}"
 
         console.log versions
+      callback()
 
 getPythonVersion = (callback) ->
   npm = require 'npm'
@@ -176,7 +177,7 @@ module.exports =
     args = options.argv
     command = options.command
     if args.version
-      printVersions(args)
+      printVersions(args, callback)
     else if args.help
       if Command = commands[options.command]
         new Command().showHelp(options.command)

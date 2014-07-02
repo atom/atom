@@ -22,13 +22,19 @@ describe 'apm command line interface', ->
 
   describe 'when the version flag is specified', ->
     it 'prints the version', ->
-      apm.run(['-v', '--no-color'])
-      expect(console.error).not.toHaveBeenCalled()
-      expect(console.log).toHaveBeenCalled()
-      lines = console.log.argsForCall[0][0].split('\n')
-      expect(lines[0]).toBe "apm  #{require('../package.json').version}"
-      expect(lines[1]).toBe "npm  #{require('npm/package.json').version}"
-      expect(lines[2]).toBe "node #{process.versions.node}"
+      callback = jasmine.createSpy('callback')
+      apm.run(['-v', '--no-color'], callback)
+
+      waitsFor ->
+        callback.callCount is 1
+
+      runs ->
+        expect(console.error).not.toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalled()
+        lines = console.log.argsForCall[0][0].split('\n')
+        expect(lines[0]).toBe "apm  #{require('../package.json').version}"
+        expect(lines[1]).toBe "npm  #{require('npm/package.json').version}"
+        expect(lines[2]).toBe "node #{process.versions.node}"
 
   describe 'when an unrecognized command is specified', ->
     it 'prints an error message and exits', ->
