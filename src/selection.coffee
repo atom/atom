@@ -15,7 +15,10 @@ class Selection extends Model
   constructor: ({@cursor, @marker, @editor, id}) ->
     @assignId(id)
     @cursor.selection = this
+    @addDecoration()
+
     @marker.on 'changed', => @screenRangeChanged()
+    @marker.bufferMarker.on 'changed', (e) => @markerChanged(e)
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeSelection(this)
@@ -639,7 +642,33 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
+  addDecoration: ->
+    properties = @marker.getAttributes()
+    @decoration = {type: 'highlight', class: @getDecorationClass(properties)}
+    @editor.addDecorationForMarker(@marker, @decoration)
+    @delayUnhighlight() if properties.highlighted
+
+  updateDecoration: (newProperties) ->
+    newDecoration = {type: 'highlight', class: @getDecorationClass(newProperties)}
+    @editor.updateDecorationForMarker(@marker, @decoration, newDecoration)
+    @decoration = newDecoration
+    @delayUnhighlight() if newProperties.highlighted
+
+  delayUnhighlight: ->
+    clearTimeout(@unhighlightTimeout)
+    @unhighlightTimeout = setTimeout =>
+      @marker.setAttributes(highlighted: false)
+    , 1000
+
+  getDecorationClass: (properties) ->
+    klass = 'selection'
+    klass += ' highlighted' if properties?.highlighted
+    klass
+
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange
     @editor.selectionScreenRangeChanged(this)
+
+  markerChanged: ({oldProperties, newProperties}) ->
+    @updateDecoration(newProperties) if newProperties?.highlighted != oldProperties?.highlighted
