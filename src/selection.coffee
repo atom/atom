@@ -642,34 +642,19 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  addDecoration: ({highlighted})->
-    @delayUnhighlight() if highlighted
-
-    @decoration = {type: 'highlight', class: @getDecorationClass(highlighted)}
+  addDecoration: (options)->
+    @decoration = @getDecoration(options)
     @editor.addDecorationForMarker(@marker, @decoration)
 
-  updateDecoration: ({highlighted}) ->
-    @delayUnhighlight() if highlighted
-
-    newDecoration = {type: 'highlight', class: @getDecorationClass(highlighted)}
+  updateDecoration: (options) ->
+    newDecoration = @getDecoration(options)
     @editor.updateDecorationForMarker(@marker, @decoration, newDecoration)
     @decoration = newDecoration
 
-  delayUnhighlight: ->
-    @unhighlight()
-    @unhighlightTimeout = setTimeout((=> @unhighlight()), 1000)
-
-  highlight: ->
-    @updateDecoration(highlighted: true)
-
-  unhighlight: ->
-    @updateDecoration(highlighted: false)
-    clearTimeout(@unhighlightTimeout)
-
-  getDecorationClass: (highlighted) ->
-    klass = 'selection'
-    klass += ' highlighted' if highlighted
-    klass
+  getDecoration: ({flash}) ->
+    decoration = {type: 'highlight', class: 'selection'}
+    decoration.flash = {class: 'highlighted', duration: 300} if flash
+    decoration
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()

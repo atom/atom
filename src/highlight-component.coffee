@@ -8,14 +8,38 @@ HighlightComponent = React.createClass
 
   render: ->
     {startPixelPosition, endPixelPosition, decoration} = @props
+    {flash} = @state
 
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?
+
+    if decoration.flash? and flash
+      className += " #{decoration.flash.class}"
+      @flashTimeout = setTimeout(@turnOffFlash, decoration.flash.duration ? 300)
+
     div {className},
       if endPixelPosition.top is startPixelPosition.top
         @renderSingleLineRegions()
       else
         @renderMultiLineRegions()
+
+  getInitialState: ->
+    flash: true
+
+  componentWillUpdate: (newProps) ->
+    highlightMoved = not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition')
+
+    if @state.flash and @flashTimeout and newProps.decoration.flash? and highlightMoved
+      clearTimeout(@flashTimeout)
+      @state.flash = false
+      setImmediate => @setState(flash: true)
+
+  turnOffFlash: ->
+    console.log 'flash OFF'
+    clearTimeout(@flashTimeout)
+    @flashTimeout = null
+    @setState(flash: false)
+    @state.flash = true
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
@@ -63,5 +87,5 @@ HighlightComponent = React.createClass
 
     regions
 
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
+  shouldComponentUpdate: (newProps, newState) ->
+    newState.flash isnt @state.flash or not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
