@@ -8,6 +8,7 @@ optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
 config = require './config'
+fs = require './fs'
 
 commandClasses = [
   require './clean'
