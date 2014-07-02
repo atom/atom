@@ -219,6 +219,7 @@ EditorComponent = React.createClass
 
   requestAnimationFrame: (fn) ->
     @updatesPaused = true
+    @pauseScrollViewMeasurement()
     requestAnimationFrame =>
       fn()
       @updatesPaused = false
@@ -533,7 +534,6 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
     unless animationFramePending
-      @pauseScrollViewMeasurement()
       @requestAnimationFrame =>
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
@@ -547,7 +547,6 @@ EditorComponent = React.createClass
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
-      @pauseScrollViewMeasurement()
       @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
@@ -569,7 +568,6 @@ EditorComponent = React.createClass
       @clearMouseWheelScreenRowAfterDelay()
 
     unless animationFramePending
-      @pauseScrollViewMeasurement()
       @requestAnimationFrame =>
         {editor} = @props
         editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
@@ -698,7 +696,6 @@ EditorComponent = React.createClass
     dragging = false
     lastMousePosition = {}
     animationLoop = =>
-      @pauseScrollViewMeasurement()
       @requestAnimationFrame =>
         if dragging
           screenPosition = @screenPositionForMouseEvent(lastMousePosition)
@@ -740,7 +737,7 @@ EditorComponent = React.createClass
     return if @scrollViewMeasurementRequested
 
     @scrollViewMeasurementRequested = true
-    @requestAnimationFrame =>
+    requestAnimationFrame =>
       @scrollViewMeasurementRequested = false
       @measureScrollView()
 
