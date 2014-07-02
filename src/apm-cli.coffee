@@ -58,6 +58,52 @@ parseOptions = (args=[]) ->
     break
   options
 
+printVersions = (args) ->
+  apmVersion =  require('../package.json').version ? ''
+  npmVersion = require('npm/package.json').version ? ''
+  nodeVersion = process.versions.node ? ''
+
+  getPythonVersion (pythonVersion) ->
+    if args.json
+      console.log JSON.stringify(apm: apmVersion, npm: npmVersion, node: nodeVersion, python: pythonVersion)
+    else
+      pythonVersion ?= ''
+      console.log """
+        #{'apm'.red}  #{apmVersion.red}
+        #{'npm'.green}  #{npmVersion.green}
+        #{'node'.blue} #{nodeVersion.blue}
+        #{'python'.yellow} #{pythonVersion.yellow}
+      """
+
+getPythonVersion = (callback) ->
+  config = require './config'
+  npm = require 'npm'
+  {spawn} = require 'child_process'
+  semver = require 'semver'
+
+  npmOptions =
+    userconfig: config.getUserConfigPath()
+    globalconfig: config.getGlobalConfigPath()
+  npm.load npmOptions, ->
+    python = npm.config.get('python') ? process.env.PYTHON
+    if config.isWin32() and not python
+      rootDir = process.env.SystemDrive ? 'C:\\'
+      rootDir += '\\' unless rootDir[rootDir.length - 1] is '\\'
+      pythonExe = path.resolve(rootDir, 'Python27', 'python.exe')
+      python = pythonExe if fs.isFileSync(pythonExe)
+
+    python ?= 'python'
+
+    spawned = spawn(python, ['--version'])
+    outputChunks = []
+    spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.on 'close', (code) ->
+      if code is 0
+        [name, version] = Buffer.concat(outputChunks).toString().split(' ')
+        version = version?.trim()
+      callback(version)
+
 module.exports =
   run: (args, callback) ->
     options = parseOptions(args)
@@ -95,19 +141,7 @@ module.exports =
     args = options.argv
     command = options.command
     if args.version
-      apmVersion =  require('../package.json').version ? ''
-      npmVersion = require('npm/package.json').version ? ''
-      nodeVersion = process.versions.node ? ''
-
-      if args.json
-        console.log JSON.stringify(apm: apmVersion, npm: npmVersion, node: nodeVersion)
-      else
-        console.log """
-          #{'apm'.red}  #{apmVersion.red}
-          #{'npm'.green}  #{npmVersion.green}
-          #{'node'.blue} #{nodeVersion.blue}
-        """
-
+      printVersions(args)
     else if args.help
       if Command = commands[options.command]
         new Command().showHelp(options.command)
