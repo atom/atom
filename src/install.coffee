@@ -359,9 +359,9 @@ class Install extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    return @checkNativeBuildTools(callback) if options.check
-
     @createAtomDirectories()
+
+    return @checkNativeBuildTools(callback) if options.argv.check
 
     installPackage = (name, callback) =>
       if name is '.'
