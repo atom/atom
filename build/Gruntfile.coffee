@@ -42,18 +42,19 @@ module.exports = (grunt) ->
   atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
+  installDir = grunt.option('install-dir')
   if process.platform is 'win32'
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    installDir = path.join(process.env.ProgramFiles, appName)
+    installDir ?= path.join(process.env.ProgramFiles, appName)
   else if process.platform is 'darwin'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
-    installDir = path.join('/Applications', appName)
+    installDir ?= path.join('/Applications', appName)
   else
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    installDir = process.env.INSTALL_PREFIX ? '/usr/local'
+    installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
 
   coffeeConfig =
     glob_to_multiple:
