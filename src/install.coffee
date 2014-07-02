@@ -38,6 +38,7 @@ class Install extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
+    options.boolean('check').describe('check', 'Check that native build tools are installed')
 
   installNode: (callback) =>
     installNodeArgs = ['install']
@@ -330,9 +331,39 @@ class Install extends Command
     fs.makeTreeSync(@atomPackagesDirectory)
     fs.makeTreeSync(@atomNodeDirectory)
 
+  # Compile a sample native module to see if a useable native build toolchain
+  # is instlalled and successfully detected. This will include both Python
+  # and a compiler.
+  checkNativeBuildTools: (callback) ->
+    process.stdout.write 'Checking for native build tools '
+    @installNode (error) =>
+      if error?
+        @logFailure()
+        return callback(error)
+
+      buildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'build']
+      buildArgs.push(path.resolve(__dirname, '..', 'native-module'))
+      buildArgs.push("--target=#{config.getNodeVersion()}")
+      buildArgs.push("--arch=#{config.getNodeArch()}")
+
+      if vsArgs = @getVisualStudioFlags()
+        buildArgs.push(vsArgs)
+
+      env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+      @updateWindowsEnv(env) if config.isWin32()
+      @addNodeBinToEnv(env)
+      buildOptions = {env}
+
+      fs.removeSync(path.resolve(__dirname, '..', 'native-module', 'build'))
+
+      @fork @atomNpmPath, buildArgs, buildOptions, (code, stderr, stdout) =>
+        @logCommandResults(callback, code, stderr, stdout)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
+
+    return @checkNativeBuildTools(callback) if options.check
 
     @createAtomDirectories()
 
