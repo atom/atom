@@ -13,9 +13,9 @@ HighlightComponent = React.createClass
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?
 
-    if decoration.flash? and flash
-      className += " #{decoration.flash.class}"
-      @flashTimeout = setTimeout(@turnOffFlash, decoration.flash.duration ? 300)
+    if flash?
+      className += " #{flash.class}"
+      @flashTimeout = setTimeout(@turnOffFlash, flash.duration ? 500)
 
     div {className},
       if endPixelPosition.top is startPixelPosition.top
@@ -23,23 +23,25 @@ HighlightComponent = React.createClass
       else
         @renderMultiLineRegions()
 
-  getInitialState: ->
-    flash: true
+  componentWillMount: ->
+    @state.flash = @props.decoration.flash
 
   componentWillUpdate: (newProps) ->
-    highlightMoved = not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition')
-
-    if @state.flash and @flashTimeout and newProps.decoration.flash? and highlightMoved
-      clearTimeout(@flashTimeout)
-      @state.flash = false
-      setImmediate => @setState(flash: true)
+    if newProps.decoration.flash?
+      if @flashTimeout?
+        # This happens when re-rendered before the flash finishes. We need to
+        # render _without_ the flash class first, then re-render with the
+        # flash class. Otherwise there will be no flash.
+        clearTimeout(@flashTimeout)
+        @state.flash = null
+        setImmediate => @setState(flash: newProps.decoration.flash)
+      else
+        @state.flash = newProps.decoration.flash
 
   turnOffFlash: ->
-    console.log 'flash OFF'
     clearTimeout(@flashTimeout)
     @flashTimeout = null
-    @setState(flash: false)
-    @state.flash = true
+    @setState(flash: null)
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
