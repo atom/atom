@@ -40,8 +40,8 @@ For some reason, the install script pulls a lot of libraries from npmjs.org as m
 
 This seems to be an issue the team should solve by ensuring a proper download and caching of the necessary libraries, but it may currently cause problems.
 
-[1]: http://nodejs.org/download/				"Node.js"
-[2]: http://www.python.org/download/			"Python"
-[3]: https://github.com/TooTallNate/node-gyp	"node-gyp"
+[1]: http://nodejs.org/download/                "Node.js"
+[2]: http://www.python.org/download/            "Python"
+[3]: https://github.com/TooTallNate/node-gyp    "node-gyp"
 [4]: http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2 "Visual Studio Express 2013 for Desktop"
-[5]: http://msysgit.github.io/					"msysgit"
+[5]: http://msysgit.github.io/                  "msysgit"
