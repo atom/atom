@@ -33,8 +33,9 @@ HighlightComponent = React.createClass
         # render _without_ the flash class first, then re-render with the
         # flash class. Otherwise there will be no flash.
         clearTimeout(@flashTimeout)
-        @state.flash = null
         setImmediate => @setState(flash: newProps.decoration.flash)
+        @flashTimeout = null
+        @state.flash = null
       else
         @state.flash = newProps.decoration.flash
 
