@@ -183,8 +183,6 @@ EditorComponent = React.createClass
     clearInterval(@scrollViewMeasurementIntervalId)
     @scrollViewMeasurementIntervalId = null
 
-  componentWillUpdate: ->
-
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
     selectionChanged = @selectionChanged
