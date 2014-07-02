@@ -78,6 +78,7 @@ printVersions = (args) ->
         console.log JSON.stringify(versions)
       else
         pythonVersion ?= ''
+        gitVersion ?= ''
         versions =  """
           #{'apm'.red}  #{apmVersion.red}
           #{'npm'.green}  #{npmVersion.green}
