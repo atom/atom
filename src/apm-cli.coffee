@@ -1,5 +1,9 @@
+{spawn} = require 'child_process'
+path = require 'path'
+
 _ = require 'underscore-plus'
 colors = require 'colors'
+npm = require 'npm'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
@@ -95,9 +99,6 @@ printVersions = (args, callback) ->
       callback()
 
 getPythonVersion = (callback) ->
-  npm = require 'npm'
-  {spawn} = require 'child_process'
-
   npmOptions =
     userconfig: config.getUserConfigPath()
     globalconfig: config.getGlobalConfigPath()
@@ -122,9 +123,6 @@ getPythonVersion = (callback) ->
       callback(version)
 
 getGitVersion = (callback) ->
-  npm = require 'npm'
-  {spawn} = require 'child_process'
-
   npmOptions =
     userconfig: config.getUserConfigPath()
     globalconfig: config.getGlobalConfigPath()
