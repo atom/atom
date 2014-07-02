@@ -352,8 +352,8 @@ class Install extends Command
 
       fs.removeSync(path.resolve(__dirname, '..', 'native-module', 'build'))
 
-      @fork @atomNpmPath, buildArgs, buildOptions, (code, stderr, stdout) =>
-        @logCommandResults(callback, code, stderr, stdout)
+      @fork @atomNpmPath, buildArgs, buildOptions, (args...) =>
+        @logCommandResults(callback, args...)
 
   run: (options) ->
     {callback} = options
