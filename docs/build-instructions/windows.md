@@ -40,6 +40,8 @@ easier to set up. You need to have Posix tools in your `%PATH%` (i.e. `grep`,
 `sed`, et al.), which isn't the default configuration when you install Git. To
 fix this, you probably need to fiddle with your system PATH.
 
+[Read this][1] for specific instructions on Windows 8.1 with msysgit.
+
 ## Troubleshooting
 
 ### Common Errors
@@ -64,3 +66,5 @@ fix this, you probably need to fiddle with your system PATH.
 
 ### Windows build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows.
+
+[1]: https://github.com/damccull/atom/blob/master/docs/build-instructions/windows-81-msysgit-shell.md "Windows 8.1 with msysgit instructions"
