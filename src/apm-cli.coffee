@@ -3,6 +3,8 @@ colors = require 'colors'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
+config = require './config'
+
 commandClasses = [
   require './clean'
   require './dedupe'
@@ -65,18 +67,30 @@ printVersions = (args) ->
 
   getPythonVersion (pythonVersion) ->
     if args.json
-      console.log JSON.stringify(apm: apmVersion, npm: npmVersion, node: nodeVersion, python: pythonVersion)
+      versions =
+        apm: apmVersion
+        npm: npmVersion
+        node: nodeVersion
+        python: pythonVersion
+      if config.isWin32()
+        versions.visualStudio = config.getInstalledVisualStudioFlag()
+      console.log JSON.stringify(versions)
     else
       pythonVersion ?= ''
-      console.log """
+      versions =  """
         #{'apm'.red}  #{apmVersion.red}
         #{'npm'.green}  #{npmVersion.green}
         #{'node'.blue} #{nodeVersion.blue}
         #{'python'.yellow} #{pythonVersion.yellow}
       """
 
+      if config.isWin32()
+        visualStudioVersion = config.getInstalledVisualStudioFlag() ? ''
+        versions += "\n#{'visual studio'.cyan} #{visualStudioVersion.cyan}"
+
+      console.log versions
+
 getPythonVersion = (callback) ->
-  config = require './config'
   npm = require 'npm'
   {spawn} = require 'child_process'
   semver = require 'semver'
