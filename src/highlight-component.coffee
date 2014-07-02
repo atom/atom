@@ -8,14 +8,9 @@ HighlightComponent = React.createClass
 
   render: ->
     {startPixelPosition, endPixelPosition, decoration} = @props
-    {flash} = @state
 
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?
-
-    if flash?
-      className += " #{flash.class}"
-      @flashTimeout = setTimeout(@turnOffFlash, flash.duration ? 500)
 
     div {className},
       if endPixelPosition.top is startPixelPosition.top
@@ -23,26 +18,23 @@ HighlightComponent = React.createClass
       else
         @renderMultiLineRegions()
 
-  componentWillMount: ->
-    @state.flash = @props.decoration.flash
+  componentDidMount: ->
+    @startFlashAnimation() if @props.decoration.flash?
 
-  componentWillUpdate: (newProps) ->
-    if newProps.decoration.flash?
-      if @flashTimeout?
-        # This happens when re-rendered before the flash finishes. We need to
-        # render _without_ the flash class first, then re-render with the
-        # flash class. Otherwise there will be no flash.
-        clearTimeout(@flashTimeout)
-        setImmediate => @setState(flash: newProps.decoration.flash)
-        @flashTimeout = null
-        @state.flash = null
-      else
-        @state.flash = newProps.decoration.flash
+  componentDidUpdate: ->
+    @startFlashAnimation() if @props.decoration.flash?
 
-  turnOffFlash: ->
-    clearTimeout(@flashTimeout)
-    @flashTimeout = null
-    @setState(flash: null)
+  startFlashAnimation: ->
+    {flash} = @props.decoration
+
+    node = @getDOMNode()
+    node.classList.remove(flash.class)
+
+    requestAnimationFrame =>
+      node.classList.add(flash.class)
+      clearTimeout(@flashTimeoutId)
+      removeFlashClass = -> node.classList.remove(flash.class)
+      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration ? 500)
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
@@ -91,4 +83,4 @@ HighlightComponent = React.createClass
     regions
 
   shouldComponentUpdate: (newProps, newState) ->
-    newState.flash isnt @state.flash or not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
+    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
