@@ -15,10 +15,9 @@ class Selection extends Model
   constructor: ({@cursor, @marker, @editor, id}) ->
     @assignId(id)
     @cursor.selection = this
-    @addDecoration()
+    @addDecoration(@marker.getAttributes())
 
     @marker.on 'changed', => @screenRangeChanged()
-    @marker.bufferMarker.on 'changed', (e) => @markerChanged(e)
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeSelection(this)
@@ -78,6 +77,7 @@ class Selection extends Model
     @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @updateDecoration(options)
     @modifySelection =>
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
@@ -642,33 +642,36 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
-  addDecoration: ->
-    properties = @marker.getAttributes()
-    @decoration = {type: 'highlight', class: @getDecorationClass(properties)}
-    @editor.addDecorationForMarker(@marker, @decoration)
-    @delayUnhighlight() if properties.highlighted
+  addDecoration: ({highlighted})->
+    @delayUnhighlight() if highlighted
 
-  updateDecoration: (newProperties) ->
-    newDecoration = {type: 'highlight', class: @getDecorationClass(newProperties)}
+    @decoration = {type: 'highlight', class: @getDecorationClass(highlighted)}
+    @editor.addDecorationForMarker(@marker, @decoration)
+
+  updateDecoration: ({highlighted}) ->
+    @delayUnhighlight() if highlighted
+
+    newDecoration = {type: 'highlight', class: @getDecorationClass(highlighted)}
     @editor.updateDecorationForMarker(@marker, @decoration, newDecoration)
     @decoration = newDecoration
-    @delayUnhighlight() if newProperties.highlighted
 
   delayUnhighlight: ->
-    clearTimeout(@unhighlightTimeout)
-    @unhighlightTimeout = setTimeout =>
-      @marker.setAttributes(highlighted: false)
-    , 1000
+    @unhighlight()
+    @unhighlightTimeout = setTimeout((=> @unhighlight()), 1000)
 
-  getDecorationClass: (properties) ->
+  highlight: ->
+    @updateDecoration(highlighted: true)
+
+  unhighlight: ->
+    @updateDecoration(highlighted: false)
+    clearTimeout(@unhighlightTimeout)
+
+  getDecorationClass: (highlighted) ->
     klass = 'selection'
-    klass += ' highlighted' if properties?.highlighted
+    klass += ' highlighted' if highlighted
     klass
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @emit 'screen-range-changed', screenRange
     @editor.selectionScreenRangeChanged(this)
-
-  markerChanged: ({oldProperties, newProperties}) ->
-    @updateDecoration(newProperties) if newProperties?.highlighted != oldProperties?.highlighted
