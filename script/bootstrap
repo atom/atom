@@ -40,7 +40,9 @@ function bootstrap() {
   var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season', 'grim'];
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
+  var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + 'install';
+  var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeCommand = apmPath + ' dedupe' + apmFlags;
 
@@ -49,11 +51,13 @@ function bootstrap() {
     apmInstallCommand    += ' --quiet';
     moduleInstallCommand += ' --quiet';
     dedupeCommand        += ' --quiet';
+    buildInstallOptions.ignoreStdout = true;
+    apmInstallOptions.ignoreStdout = true;
   }
 
   var commands = [
-    {command: buildInstallCommand, message: 'Installing build modules...', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-    {command: apmInstallCommand, message: 'Installing apm...', options: {cwd: apmInstallPath, ignoreStdout: true}},
+    {command: buildInstallCommand, message: 'Installing build modules...', options: buildInstallOptions},
+    {command: apmInstallCommand, message: 'Installing apm...', options: apmInstallOptions},
     apmPath + ' clean' + apmFlags,
     moduleInstallCommand,
     dedupeCommand + ' ' + packagesToDedupe.join(' '),
