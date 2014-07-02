@@ -1,0 +1,4 @@
+{
+  "name": "module-with-native-code",
+  "main": "./index.js"
+}

@@ -59,7 +59,7 @@ module.exports =
     path.resolve(__dirname, '..', '.apmrc')
 
   isWin32: ->
-    !!process.platform.match(/^win/)
+    process.platform is 'win32'
 
   isWindows64Bit: ->
     fs.existsSync "C:\\Windows\\SysWow64\\Notepad.exe"
