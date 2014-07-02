@@ -65,34 +65,36 @@ printVersions = (args) ->
   nodeVersion = process.versions.node ? ''
 
   getPythonVersion (pythonVersion) ->
-    if args.json
-      versions =
-        apm: apmVersion
-        npm: npmVersion
-        node: nodeVersion
-        python: pythonVersion
-      if config.isWin32()
-        versions.visualStudio = config.getInstalledVisualStudioFlag()
-      console.log JSON.stringify(versions)
-    else
-      pythonVersion ?= ''
-      versions =  """
-        #{'apm'.red}  #{apmVersion.red}
-        #{'npm'.green}  #{npmVersion.green}
-        #{'node'.blue} #{nodeVersion.blue}
-        #{'python'.yellow} #{pythonVersion.yellow}
-      """
+    getGitVersion (gitVersion) ->
+      if args.json
+        versions =
+          apm: apmVersion
+          npm: npmVersion
+          node: nodeVersion
+          python: pythonVersion
+          git: gitVersion
+        if config.isWin32()
+          versions.visualStudio = config.getInstalledVisualStudioFlag()
+        console.log JSON.stringify(versions)
+      else
+        pythonVersion ?= ''
+        versions =  """
+          #{'apm'.red}  #{apmVersion.red}
+          #{'npm'.green}  #{npmVersion.green}
+          #{'node'.blue} #{nodeVersion.blue}
+          #{'python'.yellow} #{pythonVersion.yellow}
+          #{'git'.magenta} #{gitVersion.magenta}
+        """
 
-      if config.isWin32()
-        visualStudioVersion = config.getInstalledVisualStudioFlag() ? ''
-        versions += "\n#{'visual studio'.cyan} #{visualStudioVersion.cyan}"
+        if config.isWin32()
+          visualStudioVersion = config.getInstalledVisualStudioFlag() ? ''
+          versions += "\n#{'visual studio'.cyan} #{visualStudioVersion.cyan}"
 
-      console.log versions
+        console.log versions
 
 getPythonVersion = (callback) ->
   npm = require 'npm'
   {spawn} = require 'child_process'
-  semver = require 'semver'
 
   npmOptions =
     userconfig: config.getUserConfigPath()
@@ -114,6 +116,25 @@ getPythonVersion = (callback) ->
     spawned.on 'close', (code) ->
       if code is 0
         [name, version] = Buffer.concat(outputChunks).toString().split(' ')
+        version = version?.trim()
+      callback(version)
+
+getGitVersion = (callback) ->
+  npm = require 'npm'
+  {spawn} = require 'child_process'
+
+  npmOptions =
+    userconfig: config.getUserConfigPath()
+    globalconfig: config.getGlobalConfigPath()
+  npm.load npmOptions, ->
+    git = npm.config.get('git') ? 'git'
+    spawned = spawn(git, ['--version'])
+    outputChunks = []
+    spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.on 'close', (code) ->
+      if code is 0
+        [gitName, versionName, version] = Buffer.concat(outputChunks).toString().split(' ')
         version = version?.trim()
       callback(version)
 
