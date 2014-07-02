@@ -28,6 +28,7 @@ commandClasses = [
   require './update'
   require './upgrade'
   require './view'
+  require './visual-studio'
 ]
 
 commands = {}
