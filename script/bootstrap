@@ -31,7 +31,7 @@ function bootstrap() {
     fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
   var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
-  var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? '--no-color' : '';
+  var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
   var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
@@ -39,12 +39,24 @@ function bootstrap() {
 
   var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season', 'grim'];
 
+  var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
+  var apmInstallCommand = npmPath + npmFlags + 'install';
+  var moduleInstallCommand = apmPath + ' install' + apmFlags;
+  var dedupeCommand = apmPath + ' dedupe' + apmFlags;
+
+  if (process.argv.indexOf('--no-quiet') !== -1) {
+    buildInstallCommand  += ' --quiet';
+    apmInstallCommand    += ' --quiet';
+    moduleInstallCommand += ' --quiet';
+    dedupeCommand        += ' --quiet';
+  }
+
   var commands = [
-    {command: initialNpmCommand + npmFlags + 'install --quiet', message: 'Installing build modules...', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
-    {command: npmPath + npmFlags + 'install --quiet', message: 'Installing apm...', options: {cwd: apmInstallPath, ignoreStdout: true}},
-    apmPath + ' clean ' + apmFlags,
-    apmPath + ' install --quiet ' + apmFlags,
-    apmPath + ' dedupe --quiet ' + apmFlags + ' ' + packagesToDedupe.join(' '),
+    {command: buildInstallCommand, message: 'Installing build modules...', options: {cwd: path.resolve(__dirname, '..', 'build'), ignoreStdout: true}},
+    {command: apmInstallCommand, message: 'Installing apm...', options: {cwd: apmInstallPath, ignoreStdout: true}},
+    apmPath + ' clean' + apmFlags,
+    moduleInstallCommand,
+    dedupeCommand + ' ' + packagesToDedupe.join(' '),
   ];
 
   process.chdir(path.dirname(__dirname));
