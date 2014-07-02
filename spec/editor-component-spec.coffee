@@ -84,7 +84,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
 
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, #{-4.5 * lineHeightInPixels}px, 0px)"
       expect(node.querySelectorAll('.line').length).toBe 6 + 4 # margin above and below
@@ -353,7 +352,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
 
       expect(node.querySelectorAll('.line-number').length).toBe 6 + 4 + 1 # line overdraw margin above/below + dummy line number
 
@@ -544,7 +542,6 @@ describe "EditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
 
       cursorNodes = node.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
@@ -751,11 +748,11 @@ describe "EditorComponent", ->
       # Add decorations that are out of range
       marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
       editor.addDecorationForMarker(marker2, type: ['gutter', 'line'], class: 'b')
+      runSetImmediateCallbacks()
 
       # Scroll decorations into view
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
       expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
 
       # Fold a line to move the decorations
@@ -901,7 +898,6 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
 
       regions = node.querySelectorAll('.some-highlight .region')
 
@@ -1421,36 +1417,30 @@ describe "EditorComponent", ->
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        runSetImmediateCallbacks()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
 
       it "updates the scrollLeft or scrollTop according to the scroll sensitivity", ->
         atom.config.set('editor.scrollSensitivity', 50)
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        runSetImmediateCallbacks()
         expect(verticalScrollbarNode.scrollTop).toBe 5
         expect(horizontalScrollbarNode.scrollLeft).toBe 7
 
       it "uses the previous scrollSensitivity when the value is not an int", ->
         atom.config.set('editor.scrollSensitivity', 'nope')
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
         expect(verticalScrollbarNode.scrollTop).toBe 10
 
       it "parses negative scrollSensitivity values as positive", ->
         atom.config.set('editor.scrollSensitivity', -50)
         node.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
         expect(verticalScrollbarNode.scrollTop).toBe 5
 
     describe "when the mousewheel event's target is a line", ->
