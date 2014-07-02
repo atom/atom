@@ -529,7 +529,7 @@ EditorComponent = React.createClass
   onVerticalScroll: (scrollTop) ->
     {editor} = @props
 
-    return if scrollTop is editor.getScrollTop()
+    return if @updateRequested or scrollTop is editor.getScrollTop()
 
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
@@ -542,7 +542,7 @@ EditorComponent = React.createClass
   onHorizontalScroll: (scrollLeft) ->
     {editor} = @props
 
-    return if scrollLeft is editor.getScrollLeft()
+    return if @updateRequested or scrollLeft is editor.getScrollLeft()
 
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft

@@ -724,11 +724,11 @@ describe "EditorComponent", ->
       # Add decorations that are out of range
       marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
       editor.addDecorationForMarker(marker2, type: ['gutter', 'line'], class: 'b')
+      runSetImmediateCallbacks()
 
       # Scroll decorations into view
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      runSetImmediateCallbacks()
       expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
 
       # Fold a line to move the decorations
