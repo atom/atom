@@ -148,6 +148,7 @@ module.exports =
         blue: 'stripColors'
         cyan: 'stripColors'
         green: 'stripColors'
+        magenta: 'stripColors'
         red: 'stripColors'
         yellow: 'stripColors'
         rainbow: 'stripColors'
