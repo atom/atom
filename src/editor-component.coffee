@@ -595,15 +595,18 @@ EditorComponent = React.createClass
       editor.unfoldBufferRow(bufferRow)
       return
 
-    if shiftKey
-      editor.selectToScreenPosition(screenPosition)
-    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
-      editor.addCursorAtScreenPosition(screenPosition)
-    else
-      editor.setCursorScreenPosition(screenPosition)
-      switch detail
-        when 2 then editor.selectWord()
-        when 3 then editor.selectLine()
+    switch detail
+      when 1
+        if shiftKey
+          editor.selectToScreenPosition(screenPosition)
+        else if metaKey or (ctrlKey and process.platform isnt 'darwin')
+          editor.addCursorAtScreenPosition(screenPosition)
+        else
+          editor.setCursorScreenPosition(screenPosition)
+      when 2
+        editor.getLastSelection().selectWord()
+      when 3
+        editor.getLastSelection().selectLine()
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       editor.selectToScreenPosition(screenPosition)

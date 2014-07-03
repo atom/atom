@@ -1065,34 +1065,61 @@ describe "EditorComponent", ->
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
 
     describe "when a non-folded line is double-clicked", ->
-      it "selects the word containing the nearest screen position", ->
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [5, 13]]
+      describe "when no modifier keys are held down", ->
+        it "selects the word containing the nearest screen position", ->
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [5, 13]]
 
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([6, 6]), detail: 1))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[6, 6], [6, 6]]
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([6, 6]), detail: 1))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[6, 6], [6, 6]]
 
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([8, 8]), detail: 1, shiftKey: true))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[6, 6], [8, 8]]
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([8, 8]), detail: 1, shiftKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[6, 6], [8, 8]]
+
+      describe "when the command key is held down", ->
+        it "selects the word containing the newly-added cursor", ->
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+
+          expect(editor.getSelectedScreenRanges()).toEqual [[[0, 0], [0, 0]], [[5, 6], [5, 13]]]
 
     describe "when a non-folded line is triple-clicked", ->
-      it "selects the line containing the nearest screen position", ->
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 3))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [6, 0]]
+      describe "when no modifier keys are held down", ->
+        it "selects the line containing the nearest screen position", ->
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 3))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [6, 0]]
 
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([6, 6]), detail: 1, shiftKey: true))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [7, 0]]
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([6, 6]), detail: 1, shiftKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [7, 0]]
 
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([7, 5]), detail: 1))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([8, 8]), detail: 1, shiftKey: true))
-        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
-        expect(editor.getSelectedScreenRange()).toEqual [[7, 5], [8, 8]]
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([7, 5]), detail: 1))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([8, 8]), detail: 1, shiftKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRange()).toEqual [[7, 5], [8, 8]]
+
+      describe "when the command key is held down", ->
+        it "selects the line containing the newly-added cursor", ->
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 3, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+          expect(editor.getSelectedScreenRanges()).toEqual [[[0, 0], [0, 0]], [[5, 0], [6, 0]]]
 
     describe "when the mouse is clicked and dragged", ->
       it "selects to the nearest screen position until the mouse button is released", ->
@@ -1820,6 +1847,7 @@ describe "EditorComponent", ->
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
+    properties.detail ?= 1
     event = new MouseEvent(type, properties)
     Object.defineProperty(event, 'which', get: -> properties.which) if properties.which?
     if properties.target?
