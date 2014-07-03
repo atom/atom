@@ -19,22 +19,26 @@ HighlightComponent = React.createClass
         @renderMultiLineRegions()
 
   componentDidMount: ->
-    @startFlashAnimation() if @props.decoration.flash?
+    {editor, decoration} = @props
+    if decoration.id?
+      @decoration = editor.decorationForId(decoration.id)
+      @decoration.on 'flash', @startFlashAnimation
 
   componentDidUpdate: ->
     @startFlashAnimation() if @props.decoration.flash?
 
-  startFlashAnimation: ->
-    {flash} = @props.decoration
+  componentWillUnmount: ->
+    @decoration?.off 'flash', @startFlashAnimation
 
+  startFlashAnimation: (klass, duration) ->
     node = @getDOMNode()
-    node.classList.remove(flash.class)
+    node.classList.remove(klass)
 
     requestAnimationFrame =>
-      node.classList.add(flash.class)
+      node.classList.add(klass)
       clearTimeout(@flashTimeoutId)
-      removeFlashClass = -> node.classList.remove(flash.class)
-      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration ? 500)
+      removeFlashClass = -> node.classList.remove(klass)
+      @flashTimeoutId = setTimeout(removeFlashClass, duration)
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props

@@ -30,3 +30,6 @@ class Decoration
     for key, value of decorationPattern
       return false if @params[key] != value
     true
+
+  flash: (klass, duration=500) ->
+    @emit('flash', klass, duration)
