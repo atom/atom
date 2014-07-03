@@ -7,7 +7,6 @@ nextId = -> idCounter++
 module.exports =
 class Decoration
   Emitter.includeInto(this)
-  Subscriber.includeInto(this)
 
   @isType: (decorationParams, type) ->
     if _.isArray(decorationParams.type)

@@ -973,39 +973,38 @@ describe "EditorComponent", ->
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
 
-    describe "flashing a decoration via the Decoration.flash()", ->
+    describe "flashing a decoration via the Decoration::flash()", ->
       highlightNode = null
-      flashClass = 'flashClass'
       beforeEach ->
         highlightNode = node.querySelector('.test-highlight')
 
       it "adds and removes the flash class specified in ::flash", ->
-        expect(highlightNode.classList.contains(flashClass)).toBe false
+        expect(highlightNode.classList.contains('flash-class')).toBe false
 
-        decoration.flash(flashClass, 10)
-        expect(highlightNode.classList.contains(flashClass)).toBe true
+        decoration.flash('flash-class', 10)
+        expect(highlightNode.classList.contains('flash-class')).toBe true
 
         advanceClock(10)
-        expect(highlightNode.classList.contains(flashClass)).toBe false
+        expect(highlightNode.classList.contains('flash-class')).toBe false
 
       describe "when ::flash is called again before the first has finished", ->
         it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
-          decoration.flash(flashClass, 10)
-          expect(highlightNode.classList.contains(flashClass)).toBe true
+          decoration.flash('flash-class', 10)
+          expect(highlightNode.classList.contains('flash-class')).toBe true
 
           addClassSpy = spyOn(highlightNode.classList, 'add').andCallThrough()
           removeClassSpy = spyOn(highlightNode.classList, 'remove').andCallThrough()
 
           advanceClock(2)
-          decoration.flash(flashClass, 10)
+          decoration.flash('flash-class', 10)
 
-          expect(removeClassSpy).toHaveBeenCalledWith(flashClass)
-          expect(addClassSpy).toHaveBeenCalledWith(flashClass)
+          expect(removeClassSpy).toHaveBeenCalledWith('flash-class')
+          expect(addClassSpy).toHaveBeenCalledWith('flash-class')
 
-          expect(highlightNode.classList.contains(flashClass)).toBe true
+          expect(highlightNode.classList.contains('flash-class')).toBe true
 
           advanceClock(10)
-          expect(highlightNode.classList.contains(flashClass)).toBe false
+          expect(highlightNode.classList.contains('flash-class')).toBe false
 
     describe "when a decoration's marker moves", ->
       it "moves rendered highlights when the buffer is changed", ->
