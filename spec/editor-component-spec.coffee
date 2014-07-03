@@ -111,6 +111,22 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(3).offsetTop).toBe 3 * lineHeightInPixels
       expect(component.lineNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
+    it "updates the lines when lines are inserted or removed above the rendered row range", ->
+      node.style.height = 4.5 * lineHeightInPixels + 'px'
+      component.measureScrollView()
+      runSetImmediateCallbacks()
+      verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      buffer = editor.getBuffer()
+
+      buffer.insert([0, 0], '\n\n')
+      runSetImmediateCallbacks()
+      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
+
+      buffer.delete([[0, 0], [3, 0]])
+      runSetImmediateCallbacks()
+      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
+
     it "updates the top position of lines when the line height changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setLineHeight(2)
