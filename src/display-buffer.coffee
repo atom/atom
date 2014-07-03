@@ -593,6 +593,12 @@ class DisplayBuffer extends Model
   getMaxLineLength: ->
     @maxLineLength
 
+  # Gets the row number of the longest screen line.
+  #
+  # Return a {}
+  getLongestScreenRow: ->
+    @longestScreenRow
+
   # Given a buffer position, this converts it into a screen position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
@@ -991,18 +997,19 @@ class DisplayBuffer extends Model
     endBufferRow = @rowMap.bufferRowRangeForBufferRow(endBufferRow - 1)[1]
     startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
     endScreenRow = @rowMap.screenRowRangeForBufferRow(endBufferRow - 1)[1]
-
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
+    screenDelta = screenLines.length - (endScreenRow - startScreenRow)
+
     @screenLines[startScreenRow...endScreenRow] = screenLines
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
-    @findMaxLineLength(startScreenRow, endScreenRow, screenLines)
+    @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 
     return if options.suppressChangeEvent
 
     changeEvent =
       start: startScreenRow
       end: endScreenRow - 1
-      screenDelta: screenLines.length - (endScreenRow - startScreenRow)
+      screenDelta: screenDelta
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
@@ -1057,7 +1064,7 @@ class DisplayBuffer extends Model
 
     {screenLines, regions}
 
-  findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines) ->
+  findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines, screenDelta) ->
     oldMaxLineLength = @maxLineLength
 
     if startScreenRow <= @longestScreenRow < endScreenRow
@@ -1066,13 +1073,15 @@ class DisplayBuffer extends Model
       maxLengthCandidatesStartRow = 0
       maxLengthCandidates = @screenLines
     else
+      @longestScreenRow += screenDelta if endScreenRow < @longestScreenRow
       maxLengthCandidatesStartRow = startScreenRow
       maxLengthCandidates = newScreenLines
 
-    for screenLine, screenRow in maxLengthCandidates
+    for screenLine, i in maxLengthCandidates
+      screenRow = maxLengthCandidatesStartRow + i
       length = screenLine.text.length
       if length > @maxLineLength
-        @longestScreenRow = maxLengthCandidatesStartRow + screenRow
+        @longestScreenRow = screenRow
         @maxLineLength = length
 
     @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength

@@ -643,6 +643,19 @@ describe "DisplayBuffer", ->
       buffer.delete([[6, 0], [6, 65]])
       expect(displayBuffer.getMaxLineLength()).toBe 62
 
+    it "correctly updates the location of the longest screen line when changes occur", ->
+      expect(displayBuffer.getLongestScreenRow()).toBe 6
+      buffer.delete([[0, 0], [2, 0]])
+      expect(displayBuffer.getLongestScreenRow()).toBe 4
+      buffer.delete([[4, 0], [5, 0]])
+
+      expect(displayBuffer.getLongestScreenRow()).toBe 1
+      expect(displayBuffer.getMaxLineLength()).toBe 62
+
+      buffer.delete([[2, 0], [4, 0]])
+      expect(displayBuffer.getLongestScreenRow()).toBe 1
+      expect(displayBuffer.getMaxLineLength()).toBe 62
+
   describe "::destroy()", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
       marker = displayBuffer.markBufferPosition([12, 2])
