@@ -785,6 +785,13 @@ describe "Editor", ->
         editor.moveCursorLeft()
         expect(editor.getScrollLeft()).toBe 58 * 10
 
+      it "scrolls down when inserting lines makes the document longer than the editor's height", ->
+        editor.setCursorScreenPosition([13, Infinity])
+        editor.insertNewline()
+        expect(editor.getScrollBottom()).toBe 14 * 10
+        editor.insertNewline()
+        expect(editor.getScrollBottom()).toBe 15 * 10
+
   describe "selection", ->
     selection = null
 

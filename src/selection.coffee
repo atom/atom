@@ -315,12 +315,14 @@ class Selection extends Model
     wasReversed = @isReversed()
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
-    @cursor.autoscroll() if @editor.manageScrollPosition and @cursor.isLastCursor()
 
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
+
+    @cursor.autoscroll() if @editor.manageScrollPosition and @cursor.isLastCursor()
+
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
     else
