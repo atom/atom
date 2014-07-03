@@ -15,7 +15,7 @@ class Selection extends Model
   constructor: ({@cursor, @marker, @editor, id}) ->
     @assignId(id)
     @cursor.selection = this
-    @addDecoration(@marker.getAttributes())
+    @decoration = @editor.addDecorationForMarker(@marker, type: 'highlight', class: 'selection')
 
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
@@ -77,7 +77,6 @@ class Selection extends Model
     @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
-    @updateDecoration(options)
     @modifySelection =>
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
@@ -641,20 +640,6 @@ class Selection extends Model
   # otherSelection - A {Selection} to compare against.
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
-
-  addDecoration: (options)->
-    @decoration = @getDecoration(options)
-    @editor.addDecorationForMarker(@marker, @decoration)
-
-  updateDecoration: (options) ->
-    newDecoration = @getDecoration(options)
-    @editor.updateDecorationForMarker(@marker, @decoration, newDecoration)
-    @decoration = newDecoration
-
-  getDecoration: ({flash}) ->
-    decoration = {type: 'highlight', class: 'selection'}
-    decoration.flash = {class: 'highlighted', duration: 300} if flash
-    decoration
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()

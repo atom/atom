@@ -280,21 +280,22 @@ EditorComponent = React.createClass
       headScreenRow = null
       if marker.isValid()
         for decoration in decorations
-          if editor.decorationMatchesType(decoration, 'gutter') or editor.decorationMatchesType(decoration, 'line')
+          if decoration.isType('gutter') or decoration.isType(decoration, 'line')
+            decorationParams = decoration.getParams()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row
             startRow = screenRange.start.row
             endRow = screenRange.end.row
             endRow-- if not screenRange.isEmpty() and screenRange.end.column == 0
             for screenRow in [startRow..endRow]
-              continue if decoration.onlyHead and screenRow isnt headScreenRow
+              continue if decorationParams.onlyHead and screenRow isnt headScreenRow
               if screenRange.isEmpty()
-                continue if decoration.onlyNonEmpty
+                continue if decorationParams.onlyNonEmpty
               else
-                continue if decoration.onlyEmpty
+                continue if decorationParams.onlyEmpty
 
               decorationsByScreenRow[screenRow] ?= []
-              decorationsByScreenRow[screenRow].push decoration
+              decorationsByScreenRow[screenRow].push decorationParams
 
     decorationsByScreenRow
 
@@ -306,13 +307,14 @@ EditorComponent = React.createClass
       screenRange = marker.getScreenRange()
       if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
-          if editor.decorationMatchesType(decoration, 'highlight')
+          if decoration.isType('highlight')
+            decorationParams = decoration.getParams()
             filteredDecorations[markerId] ?=
               id: markerId
               startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
               endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
               decorations: []
-            filteredDecorations[markerId].decorations.push decoration
+            filteredDecorations[markerId].decorations.push decorationParams
 
     # At least in Chromium 31, removing the last highlight causes a rendering
     # artifact where chunks of the lines disappear, so we always leave this
