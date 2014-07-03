@@ -747,14 +747,14 @@ describe "EditorComponent", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
       runSetImmediateCallbacks()
       selectionNode = node.querySelector('.selection')
-      expect(selectionNode.classList.contains('highlighted')).toBe true
+      expect(selectionNode.classList.contains('flash')).toBe true
 
       advanceClock 500
-      expect(selectionNode.classList.contains('highlighted')).toBe false
+      expect(selectionNode.classList.contains('flash')).toBe false
 
       editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
       runSetImmediateCallbacks()
-      expect(selectionNode.classList.contains('highlighted')).toBe true
+      expect(selectionNode.classList.contains('flash')).toBe true
 
   describe "line decoration rendering", ->
     [marker, decoration] = []
