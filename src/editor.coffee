@@ -218,7 +218,6 @@ class Editor extends Model
     @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
     @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
     @subscribe @displayBuffer, "decoration-changed", (args...) => @emit 'decoration-changed', args...
-    @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
     @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 
   getViewClass: ->
@@ -1111,10 +1110,6 @@ class Editor extends Model
   #         gutter types.
   addDecorationForMarker: (marker, decoration) ->
     @displayBuffer.addDecorationForMarker(marker, decoration)
-
-  #
-  updateDecorationForMarker: (marker, decorationPattern, newDecoration) ->
-    @displayBuffer.updateDecorationForMarker(marker, decorationPattern, newDecoration)
 
   # Public: Removes all decorations associated with a {Marker} that match a
   # `decorationPattern` and stop tracking the {Marker}.
