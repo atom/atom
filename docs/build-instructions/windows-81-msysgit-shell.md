@@ -2,6 +2,11 @@
 
 You can build atom on Windows 8.1 using a fully self-contained msysgit bash shell. That is, when installing msysgit, do not let it add commands to the system path, use the system cmd program, or anything that changes the default operation of the Windows system. Use all the default options to install msysgit.
 
+
+>**NOTE:** Installing with this method may cause Atom's package manager to fail when trying to install packages from the settings window.
+
+>This is because the git commands do not exist in the PATH environment variable outside your current instance of the git shell. If you want to use the package manager, for now you need to install git to use the default command prompt.
+
 ## Install dependencies
 Install the following programs that atom depends on:
 * [msysgit][5] - Git for Windows
@@ -32,6 +37,11 @@ After all the installs, move to the scripts directory and run build:
 ```
 cd atom/scripts
 ./build
+```
+
+By default, this will install Atom in C:\Program Files\Atom. If you want to specify a custom path to install into then run this instead:
+```
+./build --install-dir C:\some\folder\Atom
 ```
 
 ### !!!ATTENTION!!!
