@@ -23,22 +23,22 @@ HighlightComponent = React.createClass
     if decoration.id?
       @decoration = editor.decorationForId(decoration.id)
       @decoration.on 'flash', @startFlashAnimation
-
-  componentDidUpdate: ->
-    @startFlashAnimation() if @props.decoration.flash?
+      @startFlashAnimation()
 
   componentWillUnmount: ->
     @decoration?.off 'flash', @startFlashAnimation
 
-  startFlashAnimation: (klass, duration) ->
+  startFlashAnimation: ->
+    return unless flash = @decoration.consumeNextFlash()
+
     node = @getDOMNode()
-    node.classList.remove(klass)
+    node.classList.remove(flash.class)
 
     requestAnimationFrame =>
-      node.classList.add(klass)
+      node.classList.add(flash.class)
       clearTimeout(@flashTimeoutId)
-      removeFlashClass = -> node.classList.remove(klass)
-      @flashTimeoutId = setTimeout(removeFlashClass, duration)
+      removeFlashClass = -> node.classList.remove(flash.class)
+      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration)
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props

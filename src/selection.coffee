@@ -78,9 +78,12 @@ class Selection extends Model
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
+      needsFlash = options.flash
+      delete options.flash if options.flash?
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
       @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+      @decoration.flash('highlighted', 500) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.

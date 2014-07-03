@@ -18,6 +18,7 @@ class Decoration
   constructor: (@marker, @params) ->
     @id = nextId()
     @params.id = @id
+    @flashQueue = null
 
   getParams: ->
     @params
@@ -32,4 +33,11 @@ class Decoration
     true
 
   flash: (klass, duration=500) ->
-    @emit('flash', klass, duration)
+    flashObject = {class: klass, duration}
+    @flashQueue ?= []
+    @flashQueue.push(flashObject)
+    @emit('flash')
+
+  consumeNextFlash: ->
+    return @flashQueue.shift() if @flashQueue?.length > 0
+    null

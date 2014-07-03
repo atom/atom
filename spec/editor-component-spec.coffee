@@ -743,6 +743,19 @@ describe "EditorComponent", ->
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
+    it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
+      runSetImmediateCallbacks()
+      selectionNode = node.querySelector('.selection')
+      expect(selectionNode.classList.contains('highlighted')).toBe true
+
+      advanceClock 500
+      expect(selectionNode.classList.contains('highlighted')).toBe false
+
+      editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
+      runSetImmediateCallbacks()
+      expect(selectionNode.classList.contains('highlighted')).toBe true
+
   describe "line decoration rendering", ->
     [marker, decoration] = []
 
