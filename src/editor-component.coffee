@@ -280,7 +280,7 @@ EditorComponent = React.createClass
       headScreenRow = null
       if marker.isValid()
         for decoration in decorations
-          if decoration.isType('gutter') or decoration.isType(decoration, 'line')
+          if decoration.isType('gutter') or decoration.isType('line')
             decorationParams = decoration.getParams()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row
