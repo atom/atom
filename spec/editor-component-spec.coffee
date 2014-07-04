@@ -989,18 +989,18 @@ describe "EditorComponent", ->
 
       describe "when ::flash is called again before the first has finished", ->
         it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
+          delayAnimationFrames = true
+
           decoration.flash('flash-class', 10)
+          nextAnimationFrame()
           expect(highlightNode.classList.contains('flash-class')).toBe true
-
-          addClassSpy = spyOn(highlightNode.classList, 'add').andCallThrough()
-          removeClassSpy = spyOn(highlightNode.classList, 'remove').andCallThrough()
-
           advanceClock(2)
+
           decoration.flash('flash-class', 10)
+          # Removed for 1 frame to force CSS transition to restart
+          expect(highlightNode.classList.contains('flash-class')).toBe false
 
-          expect(removeClassSpy).toHaveBeenCalledWith('flash-class')
-          expect(addClassSpy).toHaveBeenCalledWith('flash-class')
-
+          nextAnimationFrame()
           expect(highlightNode.classList.contains('flash-class')).toBe true
 
           advanceClock(10)
