@@ -19,6 +19,12 @@ class Decoration
     @params.id = @id
     @flashQueue = null
 
+  destroy: ->
+    # TODO: implement
+
+  update: (newParams) ->
+    # TODO: implement
+
   getParams: ->
     @params
 
