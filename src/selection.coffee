@@ -83,7 +83,7 @@ class Selection extends Model
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
       @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
-      @decoration.flash('flash', 500) if needsFlash
+      @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.

@@ -749,7 +749,7 @@ describe "EditorComponent", ->
       selectionNode = node.querySelector('.selection')
       expect(selectionNode.classList.contains('flash')).toBe true
 
-      advanceClock 500
+      advanceClock editor.selectionFlashDuration
       expect(selectionNode.classList.contains('flash')).toBe false
 
       editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)

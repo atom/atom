@@ -146,6 +146,7 @@ class Editor extends Model
   selections: null
   suppressSelectionMerging: false
   updateBatchDepth: 0
+  selectionFlashDuration: 500
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
