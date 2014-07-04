@@ -8,6 +8,7 @@ TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
+Decoration = require './decoration'
 DisplayBufferMarker = require './display-buffer-marker'
 
 class BufferToScreenConversionError extends Error
@@ -45,6 +46,7 @@ class DisplayBuffer extends Model
     @charWidthsByScope = {}
     @markers = {}
     @foldsByMarkerId = {}
+    @decorationsById = {}
     @decorationsByMarkerId = {}
     @decorationMarkerChangedSubscriptions = {}
     @decorationMarkerDestroyedSubscriptions = {}
@@ -752,31 +754,17 @@ class DisplayBuffer extends Model
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
+  decorationForId: (id) ->
+    @decorationsById[id]
+
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
-
     for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
       if decorations = @decorationsByMarkerId[marker.id]
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
-  decorationMatchesType: (decoration, type) ->
-    if _.isArray(decoration.type)
-      type in decoration.type
-    else
-      type is decoration.type
-
-  decorationMatchesPattern: (decoration, decorationPattern) ->
-    return false unless decoration? and decorationPattern?
-    for key, value of decorationPattern
-      return false if decoration[key] != value
-    true
-
-  addDecorationForMarker: (marker, decoration) ->
-    unless marker?
-      console.warn 'A null marker cannot be decorated'
-      return
-
+  addDecorationForMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
 
     @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
@@ -791,21 +779,21 @@ class DisplayBuffer extends Model
         for decoration in decorations
           @emit 'decoration-changed', marker, decoration, event
 
+    decoration = new Decoration(marker, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
+    @decorationsById[decoration.id] = decoration
     @emit 'decoration-added', marker, decoration
+    decoration
 
   removeDecorationForMarker: (marker, decorationPattern) ->
-    unless marker?
-      console.warn 'A decoration cannot be removed from a null marker'
-      return
-
     return unless decorations = @decorationsByMarkerId[marker.id]
 
     for i in [decorations.length - 1..0]
       decoration = decorations[i]
-      if @decorationMatchesPattern(decoration, decorationPattern)
+      if decoration.matchesPattern(decorationPattern)
         decorations.splice(i, 1)
+        delete @decorationsById[decoration.id]
         @emit 'decoration-removed', marker, decoration
 
     @removedAllMarkerDecorations(marker) if decorations.length is 0

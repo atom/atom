@@ -743,6 +743,19 @@ describe "EditorComponent", ->
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
+    it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
+      editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
+      runSetImmediateCallbacks()
+      selectionNode = node.querySelector('.selection')
+      expect(selectionNode.classList.contains('flash')).toBe true
+
+      advanceClock editor.selectionFlashDuration
+      expect(selectionNode.classList.contains('flash')).toBe false
+
+      editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
+      runSetImmediateCallbacks()
+      expect(selectionNode.classList.contains('flash')).toBe true
+
   describe "line decoration rendering", ->
     [marker, decoration] = []
 
@@ -887,12 +900,12 @@ describe "EditorComponent", ->
         expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe false
 
   describe "highlight decoration rendering", ->
-    [marker, decoration, scrollViewClientLeft] = []
+    [marker, decoration, decorationParams, scrollViewClientLeft] = []
     beforeEach ->
       scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
-      decoration = {type: 'highlight', class: 'test-highlight'}
-      editor.addDecorationForMarker(marker, decoration)
+      decorationParams = {type: 'highlight', class: 'test-highlight'}
+      decoration = editor.addDecorationForMarker(marker, decorationParams)
       runSetImmediateCallbacks()
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
@@ -929,7 +942,7 @@ describe "EditorComponent", ->
       expect(regions.length).toBe 2
 
     it "removes highlights when a decoration is removed", ->
-      editor.removeDecorationForMarker(marker, decoration)
+      editor.removeDecorationForMarker(marker, decorationParams)
       runSetImmediateCallbacks()
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 0
@@ -959,6 +972,39 @@ describe "EditorComponent", ->
       expect(marker.isValid()).toBe true
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
+
+    describe "flashing a decoration via the Decoration::flash()", ->
+      highlightNode = null
+      beforeEach ->
+        highlightNode = node.querySelector('.test-highlight')
+
+      it "adds and removes the flash class specified in ::flash", ->
+        expect(highlightNode.classList.contains('flash-class')).toBe false
+
+        decoration.flash('flash-class', 10)
+        expect(highlightNode.classList.contains('flash-class')).toBe true
+
+        advanceClock(10)
+        expect(highlightNode.classList.contains('flash-class')).toBe false
+
+      describe "when ::flash is called again before the first has finished", ->
+        it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
+          decoration.flash('flash-class', 10)
+          expect(highlightNode.classList.contains('flash-class')).toBe true
+
+          addClassSpy = spyOn(highlightNode.classList, 'add').andCallThrough()
+          removeClassSpy = spyOn(highlightNode.classList, 'remove').andCallThrough()
+
+          advanceClock(2)
+          decoration.flash('flash-class', 10)
+
+          expect(removeClassSpy).toHaveBeenCalledWith('flash-class')
+          expect(addClassSpy).toHaveBeenCalledWith('flash-class')
+
+          expect(highlightNode.classList.contains('flash-class')).toBe true
+
+          advanceClock(10)
+          expect(highlightNode.classList.contains('flash-class')).toBe false
 
     describe "when a decoration's marker moves", ->
       it "moves rendered highlights when the buffer is changed", ->

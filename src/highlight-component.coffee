@@ -11,11 +11,34 @@ HighlightComponent = React.createClass
 
     className = 'highlight'
     className += " #{decoration.class}" if decoration.class?
+
     div {className},
       if endPixelPosition.top is startPixelPosition.top
         @renderSingleLineRegions()
       else
         @renderMultiLineRegions()
+
+  componentDidMount: ->
+    {editor, decoration} = @props
+    if decoration.id?
+      @decoration = editor.decorationForId(decoration.id)
+      @decoration.on 'flash', @startFlashAnimation
+      @startFlashAnimation()
+
+  componentWillUnmount: ->
+    @decoration?.off 'flash', @startFlashAnimation
+
+  startFlashAnimation: ->
+    return unless flash = @decoration.consumeNextFlash()
+
+    node = @getDOMNode()
+    node.classList.remove(flash.class)
+
+    requestAnimationFrame =>
+      node.classList.add(flash.class)
+      clearTimeout(@flashTimeoutId)
+      removeFlashClass = -> node.classList.remove(flash.class)
+      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration)
 
   renderSingleLineRegions: ->
     {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props

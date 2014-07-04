@@ -1031,11 +1031,15 @@ describe "DisplayBuffer", ->
       decoration = {type: 'gutter', class: 'one'}
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
 
-      displayBuffer.addDecorationForMarker(marker, decoration)
-      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
+      decorationObject = displayBuffer.addDecorationForMarker(marker, decoration)
+      expect(decorationObject).toBeDefined()
+      expect(decorationObject.getParams()).toBe decoration
+      expect(displayBuffer.decorationForId(decoration.id)).toBe decorationObject
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decorationObject
 
       displayBuffer.removeDecorationForMarker(marker, decoration)
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
+      expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
   describe "::setScrollTop", ->
     beforeEach ->

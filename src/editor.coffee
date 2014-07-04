@@ -146,6 +146,7 @@ class Editor extends Model
   selections: null
   suppressSelectionMerging: false
   updateBatchDepth: 0
+  selectionFlashDuration: 500
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -1142,8 +1143,8 @@ class Editor extends Model
   removeDecorationForMarker: (marker, decorationPattern) ->
     @displayBuffer.removeDecorationForMarker(marker, decorationPattern)
 
-  decorationMatchesType: (decoration, type) ->
-    @displayBuffer.decorationMatchesType(decoration, type)
+  decorationForId: (id) ->
+    @displayBuffer.decorationForId(id)
 
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
@@ -1279,7 +1280,6 @@ class Editor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
-      @addDecorationForMarker(marker, type: 'highlight', class: 'selection')
       @emit 'selection-added', selection
       selection
 

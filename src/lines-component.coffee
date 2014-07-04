@@ -4,6 +4,7 @@ React = require 'react-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
+Decoration = require './decoration'
 HighlightsComponent = require './highlights-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -135,7 +136,7 @@ LinesComponent = React.createClass
     classes = ''
     if decorations = lineDecorations[screenRow]
       for decoration in decorations
-        if editor.decorationMatchesType(decoration, 'line')
+        if Decoration.isType(decoration, 'line')
           classes += decoration.class + ' '
     classes += 'line'
 
@@ -223,11 +224,11 @@ LinesComponent = React.createClass
 
     if previousDecorations?
       for decoration in previousDecorations
-        lineNode.classList.remove(decoration.class) if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(decorations, decoration)
+        lineNode.classList.remove(decoration.class) if Decoration.isType(decoration, 'line') and not _.deepContains(decorations, decoration)
 
     if decorations?
       for decoration in decorations
-        if editor.decorationMatchesType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
+        if Decoration.isType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
 
     lineNode.style.width = lineWidth + 'px' if updateWidth

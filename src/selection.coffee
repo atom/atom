@@ -15,6 +15,8 @@ class Selection extends Model
   constructor: ({@cursor, @marker, @editor, id}) ->
     @assignId(id)
     @cursor.selection = this
+    @decoration = @editor.addDecorationForMarker(@marker, type: 'highlight', class: 'selection')
+
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
       @destroyed = true
@@ -76,9 +78,12 @@ class Selection extends Model
     options.reversed ?= @isReversed()
     @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
+      needsFlash = options.flash
+      delete options.flash if options.flash?
       @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
       @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+      @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
   # highlighting.
