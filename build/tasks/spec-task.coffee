@@ -105,4 +105,4 @@ module.exports = (grunt) ->
       failures.push "atom core" if coreSpecFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
-      done()
+      done(!coreSpecFailed and failedPackages.length == 0)
