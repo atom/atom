@@ -208,13 +208,16 @@ describe "Project", ->
     describe "when a file doesn't exist", ->
       it "calls back with an error", ->
         errors = []
+        missingPath = path.resolve('/not-a-file.js')
+        expect(fs.existsSync(missingPath)).toBeFalsy()
+
         waitsForPromise ->
-          atom.project.replace /items/gi, 'items', ['/not-a-file.js'], (result, error) ->
+          atom.project.replace /items/gi, 'items', [missingPath], (result, error) ->
             errors.push(error)
 
         runs ->
           expect(errors).toHaveLength 1
-          expect(errors[0].path).toBe '/not-a-file.js'
+          expect(errors[0].path).toBe missingPath
 
     describe "when called with unopened files", ->
       it "replaces properly", ->
