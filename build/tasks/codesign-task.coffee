@@ -28,7 +28,7 @@ module.exports = (grunt) ->
         args = ['-f', '-v', '-s', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
         spawn {cmd, args}, (error) -> callback(error)
       when 'win32'
-        cmd = 'C:\\Users\\jenkins\\bin\\signtool.bat'
+        cmd = 'signtool.bat'
         args = [path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')]
         spawn {cmd, args}, (error) -> callback(error)
       else
