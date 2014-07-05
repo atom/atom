@@ -47,7 +47,7 @@ module.exports = (grunt) ->
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= path.join(process.env.ProgramFiles, appName)
-    killCommand = 'taskkill /FIM atom.exe'
+    killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')

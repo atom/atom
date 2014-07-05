@@ -28,7 +28,7 @@ module.exports = (grunt) ->
         args = ['-f', '-v', '-s', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
         spawn {cmd, args}, (error) -> callback(error)
       when 'win32'
-        spawn {cmd: 'taskkill', args: ['/FIM', 'atom.exe']}, ->
+        spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->
           cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
           args = [path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')]
           spawn {cmd, args}, (error) -> callback(error)
