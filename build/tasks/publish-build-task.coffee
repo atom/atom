@@ -19,7 +19,7 @@ module.exports = (gruntObject) ->
   grunt = gruntObject
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return if process.env.JANKY_SHA1 #and process.env.JANKY_BRANCH isnt 'master'
+    # return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
     return unless process.platform is 'win32'
     tasks = ['upload-assets']
     tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
