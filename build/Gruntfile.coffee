@@ -47,14 +47,17 @@ module.exports = (grunt) ->
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= path.join(process.env.ProgramFiles, appName)
+    killCommand = 'taskkill /IM atom.exe'
   else if process.platform is 'darwin'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     installDir ?= path.join('/Applications', appName)
+    killCommand = 'pkill -9 Atom'
   else
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
+    killCommand ='pkill -9 Atom'
 
   coffeeConfig =
     glob_to_multiple:
@@ -213,7 +216,7 @@ module.exports = (grunt) ->
 
     shell:
       'kill-atom':
-        command: 'pkill -9 Atom'
+        command: killCommand
         options:
           stdout: false
           stderr: false
