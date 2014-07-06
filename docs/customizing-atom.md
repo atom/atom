@@ -170,7 +170,7 @@ rule to your _~/.atom/styles.less_ file:
 
 ```less
 .editor .cursor {
-  border-color: pink;
+  border-color: pink !important;
 }
 ```
 
