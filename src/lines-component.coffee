@@ -158,7 +158,7 @@ LinesComponent = React.createClass
 
     if showIndentGuide and indentLevel > 0
       indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
-      multiplyString(indentSpan, indentLevel + 1)
+      multiplyString(indentSpan, indentLevel)
     else
       "&nbsp;"
 

@@ -231,22 +231,27 @@ class TokenizedBuffer extends Model
 
   indentLevelForRow: (row) ->
     line = @buffer.lineForRow(row)
+    indentLevel = 0
 
     if line is ''
       nextRow = row + 1
       lineCount = @getLineCount()
       while nextRow < lineCount
         nextLine = @buffer.lineForRow(nextRow)
-        return @indentLevelForLine(nextLine) unless nextLine is ''
+        unless nextLine is ''
+          indentLevel = Math.ceil(@indentLevelForLine(nextLine))
+          break
         nextRow++
 
       previousRow = row - 1
       while previousRow >= 0
         previousLine = @buffer.lineForRow(previousRow)
-        return @indentLevelForLine(previousLine) unless previousLine is ''
+        unless previousLine is ''
+          indentLevel = Math.max(Math.ceil(@indentLevelForLine(previousLine)), indentLevel)
+          break
         previousRow--
 
-      0
+      indentLevel
     else
       @indentLevelForLine(line)
 

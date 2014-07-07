@@ -269,13 +269,11 @@ describe "EditorComponent", ->
 
         line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
 
-        expect(line2LeafNodes.length).toBe 3
+        expect(line2LeafNodes.length).toBe 2
         expect(line2LeafNodes[0].textContent).toBe '  '
         expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line2LeafNodes[1].textContent).toBe '  '
         expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe true
-        expect(line2LeafNodes[2].textContent).toBe '  '
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
       it "renders indent guides correctly on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
@@ -303,7 +301,7 @@ describe "EditorComponent", ->
       it "updates the indent guides on empty lines preceding an indentation change", ->
         editor.getBuffer().insert([12, 0], '\n')
         runSetImmediateCallbacks()
-        editor.getBuffer().insert([13, 0], '  ')
+        editor.getBuffer().insert([13, 0], '    ')
         runSetImmediateCallbacks()
 
         line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
@@ -315,7 +313,7 @@ describe "EditorComponent", ->
       it "updates the indent guides on empty lines following an indentation change", ->
         editor.getBuffer().insert([12, 2], '\n')
         runSetImmediateCallbacks()
-        editor.getBuffer().insert([12, 0], '  ')
+        editor.getBuffer().insert([12, 0], '    ')
         runSetImmediateCallbacks()
 
         line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
