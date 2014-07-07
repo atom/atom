@@ -814,6 +814,9 @@ class DisplayBuffer extends Model
     delete @decorationMarkerChangedSubscriptions[marker.id]
     delete @decorationMarkerDestroyedSubscriptions[marker.id]
 
+  decorationUpdated: (decoration) ->
+    @emit 'decoration-updated', decoration
+
   # Retrieves a {DisplayBufferMarker} based on its id.
   #
   # id - A {Number} representing a marker id

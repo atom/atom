@@ -1040,28 +1040,35 @@ describe "DisplayBuffer", ->
         expect(start.left).toBe (4 * 10) + (6 * 11)
 
   describe "decorations", ->
-    it "can add decorations associated with markers and remove them", ->
-      decoration = {type: 'gutter', class: 'one'}
+    [marker, decoration, decorationParams] = []
+    beforeEach ->
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
+      decorationParams = {type: 'gutter', class: 'one'}
+      decoration = displayBuffer.decorateMarker(marker, decorationParams)
 
-      decorationObject = displayBuffer.decorateMarker(marker, decoration)
-      expect(decorationObject).toBeDefined()
-      expect(decorationObject.getParams()).toBe decoration
-      expect(displayBuffer.decorationForId(decoration.id)).toBe decorationObject
-      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decorationObject
+    it "can add decorations associated with markers and remove them", ->
+      expect(decoration).toBeDefined()
+      expect(decoration.getParams()).toBe decoration
+      expect(displayBuffer.decorationForId(decoration.id)).toBe decoration
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
-      decorationObject.destroy()
+      decoration.destroy()
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
     it "will not fail if the decoration is removed twice", ->
-      decoration = {type: 'gutter', class: 'one'}
-      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
-      decorationObject = displayBuffer.decorateMarker(marker, decoration)
-
-      decorationObject.destroy()
-      decorationObject.destroy()
+      decoration.destroy()
+      decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
+
+    describe "when a decoration is updated via Decoration::update()", ->
+      it "emits an 'updated' event containing the new and old params", ->
+        decoration.on 'updated', updatedSpy = jasmine.createSpy()
+        decoration.update type: 'gutter', class: 'two'
+
+        {oldParams, newParams} = updatedSpy.mostRecentCall.args[0]
+        expect(oldParams).toEqual decorationParams
+        expect(newParams).toEqual type: 'gutter', class: 'two', id: decoration.id
 
   describe "::setScrollTop", ->
     beforeEach ->

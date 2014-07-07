@@ -973,7 +973,7 @@ describe "EditorComponent", ->
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
 
-    describe "flashing a decoration via the Decoration::flash()", ->
+    describe "when flashing a decoration via Decoration::flash()", ->
       highlightNode = null
       beforeEach ->
         highlightNode = node.querySelector('.test-highlight')
@@ -1028,6 +1028,16 @@ describe "EditorComponent", ->
 
         regionStyle = node.querySelector('.test-highlight .region').style
         expect(parseInt(regionStyle.top)).toBe 5 * lineHeightInPixels
+
+    describe "when a decoration is updated via Decoration::update", ->
+      it "renders the decoration's new params", ->
+        expect(node.querySelector('.test-highlight')).toBeTruthy()
+
+        decoration.update(type: 'highlight', class: 'new-test-highlight')
+        runSetImmediateCallbacks()
+
+        expect(node.querySelector('.test-highlight')).toBeFalsy()
+        expect(node.querySelector('.new-test-highlight')).toBeTruthy()
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->

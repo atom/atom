@@ -24,7 +24,11 @@ class Decoration
     @emit 'destoryed'
 
   update: (newParams) ->
-    # TODO: implement
+    oldParams = @params
+    @params = newParams
+    @params.id = @id
+    @displayBuffer.decorationUpdated(this)
+    @emit 'updated', {oldParams, newParams}
 
   getParams: ->
     @params
