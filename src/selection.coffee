@@ -15,7 +15,7 @@ class Selection extends Model
   constructor: ({@cursor, @marker, @editor, id}) ->
     @assignId(id)
     @cursor.selection = this
-    @decoration = @editor.addDecorationForMarker(@marker, type: 'highlight', class: 'selection')
+    @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>

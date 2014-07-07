@@ -14,13 +14,14 @@ class Decoration
     else
       type is decorationParams.type
 
-  constructor: (@marker, @params) ->
+  constructor: (@marker, @displayBuffer, @params) ->
     @id = nextId()
     @params.id = @id
     @flashQueue = null
 
   destroy: ->
-    # TODO: implement
+    @displayBuffer.removeDecoration(this)
+    @emit 'destoryed'
 
   update: (newParams) ->
     # TODO: implement
@@ -41,7 +42,7 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
-    @emit('flash')
+    @emit 'flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0

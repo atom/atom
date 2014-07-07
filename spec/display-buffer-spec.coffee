@@ -1044,14 +1044,23 @@ describe "DisplayBuffer", ->
       decoration = {type: 'gutter', class: 'one'}
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
 
-      decorationObject = displayBuffer.addDecorationForMarker(marker, decoration)
+      decorationObject = displayBuffer.decorateMarker(marker, decoration)
       expect(decorationObject).toBeDefined()
       expect(decorationObject.getParams()).toBe decoration
       expect(displayBuffer.decorationForId(decoration.id)).toBe decorationObject
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decorationObject
 
-      displayBuffer.removeDecorationForMarker(marker, decoration)
+      decorationObject.destroy()
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
+      expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
+
+    it "will not fail if the decoration is removed twice", ->
+      decoration = {type: 'gutter', class: 'one'}
+      marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
+      decorationObject = displayBuffer.decorateMarker(marker, decoration)
+
+      decorationObject.destroy()
+      decorationObject.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
   describe "::setScrollTop", ->

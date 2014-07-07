@@ -757,12 +757,12 @@ describe "EditorComponent", ->
       expect(selectionNode.classList.contains('flash')).toBe true
 
   describe "line decoration rendering", ->
-    [marker, decoration] = []
+    [marker, decoration, decorationParams] = []
 
     beforeEach ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
-      decoration = {type: ['gutter', 'line'], class: 'a'}
-      editor.addDecorationForMarker(marker, decoration)
+      decorationParams = {type: ['gutter', 'line'], class: 'a'}
+      decoration = editor.decorateMarker(marker, decorationParams)
       runSetImmediateCallbacks()
 
     it "applies line decoration classes to lines and line numbers", ->
@@ -776,7 +776,7 @@ describe "EditorComponent", ->
 
       # Add decorations that are out of range
       marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
-      editor.addDecorationForMarker(marker2, type: ['gutter', 'line'], class: 'b')
+      editor.decorateMarker(marker2, type: ['gutter', 'line'], class: 'b')
       runSetImmediateCallbacks()
 
       # Scroll decorations into view
@@ -799,7 +799,7 @@ describe "EditorComponent", ->
 
       marker.destroy()
       marker = editor.markBufferRange([[0, 0], [0, 2]])
-      editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'b')
+      editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'b')
       runSetImmediateCallbacks()
       expect(lineNumberHasClass(0, 'b')).toBe true
       expect(lineNumberHasClass(1, 'b')).toBe false
@@ -833,7 +833,7 @@ describe "EditorComponent", ->
 
     it "remove decoration classes and unsubscribes from markers decorations are removed", ->
       expect(marker.getSubscriptionCount('changed'))
-      editor.removeDecorationForMarker(marker, decoration)
+      decoration.destroy()
       runSetImmediateCallbacks()
       expect(lineNumberHasClass(1, 'a')).toBe false
       expect(lineNumberHasClass(2, 'a')).toBe false
@@ -868,7 +868,7 @@ describe "EditorComponent", ->
 
     describe "when the decoration's 'onlyHead' property is true", ->
       it "only applies the decoration's class to lines containing the marker's head", ->
-        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
+        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
         runSetImmediateCallbacks()
         expect(lineAndLineNumberHaveClass(1, 'only-head')).toBe false
         expect(lineAndLineNumberHaveClass(2, 'only-head')).toBe false
@@ -877,7 +877,7 @@ describe "EditorComponent", ->
 
     describe "when the decoration's 'onlyEmpty' property is true", ->
       it "only applies the decoration when its marker is empty", ->
-        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-empty', onlyEmpty: true)
+        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-empty', onlyEmpty: true)
         runSetImmediateCallbacks()
         expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe false
@@ -889,7 +889,7 @@ describe "EditorComponent", ->
 
     describe "when the decoration's 'onlyNonEmpty' property is true", ->
       it "only applies the decoration when its marker is non-empty", ->
-        editor.addDecorationForMarker(marker, type: ['gutter', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
+        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
         runSetImmediateCallbacks()
         expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe true
         expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe true
@@ -905,7 +905,7 @@ describe "EditorComponent", ->
       scrollViewClientLeft = node.querySelector('.scroll-view').getBoundingClientRect().left
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
       decorationParams = {type: 'highlight', class: 'test-highlight'}
-      decoration = editor.addDecorationForMarker(marker, decorationParams)
+      decoration = editor.decorateMarker(marker, decorationParams)
       runSetImmediateCallbacks()
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
@@ -914,7 +914,7 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
 
       marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
-      editor.addDecorationForMarker(marker, type: 'highlight', class: 'some-highlight')
+      editor.decorateMarker(marker, type: 'highlight', class: 'some-highlight')
       runSetImmediateCallbacks()
 
       # Should not be rendering range containing the marker
@@ -942,7 +942,7 @@ describe "EditorComponent", ->
       expect(regions.length).toBe 2
 
     it "removes highlights when a decoration is removed", ->
-      editor.removeDecorationForMarker(marker, decorationParams)
+      decoration.destroy()
       runSetImmediateCallbacks()
       regions = node.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 0

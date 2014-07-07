@@ -767,7 +767,7 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
-  addDecorationForMarker: (marker, decorationParams) ->
+  decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
 
     @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
@@ -782,24 +782,23 @@ class DisplayBuffer extends Model
         for decoration in decorations
           @emit 'decoration-changed', marker, decoration, event
 
-    decoration = new Decoration(marker, decorationParams)
+    decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
     @emit 'decoration-added', marker, decoration
     decoration
 
-  removeDecorationForMarker: (marker, decorationPattern) ->
+  removeDecoration: (decoration) ->
+    {marker} = decoration
     return unless decorations = @decorationsByMarkerId[marker.id]
+    index = decorations.indexOf(decoration)
 
-    for i in [decorations.length - 1..0]
-      decoration = decorations[i]
-      if decoration.matchesPattern(decorationPattern)
-        decorations.splice(i, 1)
-        delete @decorationsById[decoration.id]
-        @emit 'decoration-removed', marker, decoration
-
-    @removedAllMarkerDecorations(marker) if decorations.length is 0
+    if index > -1
+      decorations.splice(index, 1)
+      delete @decorationsById[decoration.id]
+      @emit 'decoration-removed', marker, decoration
+      @removedAllMarkerDecorations(marker) if decorations.length is 0
 
   removeAllDecorationsForMarker: (marker) ->
     decorations = @decorationsByMarkerId[marker.id].slice()
@@ -1092,7 +1091,7 @@ class DisplayBuffer extends Model
     @emit 'marker-created', @getMarker(marker.id)
 
   createFoldForMarker: (marker) ->
-    @addDecorationForMarker(marker, type: 'gutter', class: 'folded')
+    @decorateMarker(marker, type: 'gutter', class: 'folded')
     new Fold(this, marker)
 
   foldForMarker: (marker) ->
