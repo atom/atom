@@ -792,6 +792,12 @@ describe "Editor", ->
         editor.insertNewline()
         expect(editor.getScrollBottom()).toBe 15 * 10
 
+      it "autoscrolls to the cursor when it moves due to undo", ->
+        editor.insertText('abc')
+        editor.setScrollTop(Infinity)
+        editor.undo()
+        expect(editor.getScrollTop()).toBe 0
+
   describe "selection", ->
     selection = null
 

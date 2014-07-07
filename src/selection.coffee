@@ -326,8 +326,6 @@ class Selection extends Model
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
 
-    @cursor.autoscroll() if @editor.manageScrollPosition and @cursor.isLastCursor()
-
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
     else

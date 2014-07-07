@@ -28,6 +28,7 @@ class Cursor extends Model
 
       # Supports old editor view
       @needsAutoscroll ?= @isLastCursor() and !textChanged
+      @autoscroll() if @editor.manageScrollPosition and @isLastCursor() and textChanged
 
       @goalColumn = null
 
