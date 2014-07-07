@@ -587,6 +587,31 @@ describe "EditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "positions cursors correctly after character widths are changed via a stylesheet change", ->
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      editor.setCursorScreenPosition([0, 16])
+      runSetImmediateCallbacks()
+
+      atom.themes.applyStylesheet 'test', """
+        .function.js {
+          font-weight: bold;
+        }
+      """
+      runSetImmediateCallbacks() # re-measure characters once for a synchronous set of stylesheet changes
+      runSetImmediateCallbacks() # update based on new measurements
+
+      cursor = node.querySelector('.cursor')
+      cursorRect = cursor.getBoundingClientRect()
+
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 0)
+      range.setEnd(cursorLocationTextNode, 1)
+      rangeRect = range.getBoundingClientRect()
+
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
+
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
       runSetImmediateCallbacks()

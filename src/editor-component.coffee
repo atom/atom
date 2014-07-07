@@ -28,6 +28,7 @@ EditorComponent = React.createClass
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
+  characterWidthRemeasurementRequested: false
   cursorsMoved: false
   selectionChanged: false
   selectionAdded: false
@@ -653,6 +654,7 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @requestCharacterWidthRemeasurement()
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -792,6 +794,13 @@ EditorComponent = React.createClass
         @remeasureCharacterWidthsWhenShown = true
     else if @remeasureCharacterWidthsWhenShown and @state.visible and not prevState.visible
       @remeasureCharacterWidths()
+
+  requestCharacterWidthRemeasurement: ->
+    unless @characterWidthRemeasurementRequested
+      @characterWidthRemeasurementRequested = true
+      setImmediate =>
+        @characterWidthRemeasurementRequested = false
+        @remeasureCharacterWidths()
 
   remeasureCharacterWidths: ->
     @remeasureCharacterWidthsWhenShown = false
