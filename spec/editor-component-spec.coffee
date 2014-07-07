@@ -1075,7 +1075,7 @@ describe "EditorComponent", ->
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
-  describe "mouse interactions on the scrollView", ->
+  describe "mouse interactions on the lines", ->
     linesNode = null
 
     beforeEach ->
