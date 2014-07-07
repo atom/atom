@@ -8,6 +8,8 @@ class PaneContainer extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  @version: 1
+
   @properties
     root: -> new Pane
     activePane: null
@@ -27,10 +29,12 @@ class PaneContainer extends Model
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
     params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
+    params.activePane = params.root.getPanes().find (pane) -> pane.id is params.activePaneId
     params
 
   serializeParams: (params) ->
     root: @root?.serialize()
+    activePaneId: @activePane.id
 
   replaceChild: (oldChild, newChild) ->
     throw new Error("Replacing non-existent child") if oldChild isnt @root
