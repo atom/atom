@@ -37,7 +37,7 @@ jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of e
 
 if process.platform is 'win32' and process.env.JANKY_SHA1
   # Use longer timeout on Windows CI
-  jasmine.getEnv().defaultTimeoutInterval = 30000
+  jasmine.getEnv().defaultTimeoutInterval = 60000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
