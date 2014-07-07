@@ -55,6 +55,8 @@ module.exports = (grunt) ->
       path.join('delayed-stream', 'test')
       path.join('fstream-ignore', 'test')
       path.join('harmony-collections', 'test')
+      path.join('lru-cache', 'test')
+      path.join('minimatch', 'test')
       path.join('normalize-package-data', 'test')
       path.join('npm', 'test')
       path.join('jasmine-reporters', 'ext')
