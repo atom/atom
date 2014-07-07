@@ -7,7 +7,7 @@ module.exports = (grunt) ->
     longPaths = []
     grunt.file.recurse shellAppDir, (absolutePath, rootPath, relativePath, fileName) ->
       if relativePath
-        fullPath =  path.join(relativePath, fileName)
+        fullPath = path.join(relativePath, fileName)
       else
         fullPath = fileName
       longPaths.push(fullPath) if fullPath.length >= 200
