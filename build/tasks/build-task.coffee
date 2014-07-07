@@ -53,6 +53,7 @@ module.exports = (grunt) ->
       path.join('xmldom', 'test')
       path.join('combined-stream', 'test')
       path.join('delayed-stream', 'test')
+      path.join('domhandler', 'test')
       path.join('fstream-ignore', 'test')
       path.join('harmony-collections', 'test')
       path.join('lru-cache', 'test')
