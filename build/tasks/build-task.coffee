@@ -60,6 +60,7 @@ module.exports = (grunt) ->
       path.join('normalize-package-data', 'test')
       path.join('npm', 'test')
       path.join('jasmine-reporters', 'ext')
+      path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
