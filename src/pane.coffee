@@ -40,14 +40,12 @@ class Pane extends Model
     @subscribe @items.onRemoval (item, index) =>
       @unsubscribe item if typeof item.on is 'function'
 
-    @activate() if params?.active
-
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
+    id: @id
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemUri: @activeItem?.getUri?()
     focused: @focused
-    active: @active
 
   # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
