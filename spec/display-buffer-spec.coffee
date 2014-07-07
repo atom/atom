@@ -215,6 +215,19 @@ describe "DisplayBuffer", ->
         displayBuffer.setEditorWidthInChars(-1)
         expect(displayBuffer.editorWidthInChars).not.toBe -1
 
+    it "sets ::scrollLeft to 0 and keeps it there when soft wrapping is enabled", ->
+      displayBuffer.setDefaultCharWidth(10)
+      displayBuffer.setWidth(50)
+      displayBuffer.manageScrollPosition = true
+
+      displayBuffer.setSoftWrap(false)
+      displayBuffer.setScrollLeft(Infinity)
+      expect(displayBuffer.getScrollLeft()).toBeGreaterThan 0
+      displayBuffer.setSoftWrap(true)
+      expect(displayBuffer.getScrollLeft()).toBe 0
+      displayBuffer.setScrollLeft(10)
+      expect(displayBuffer.getScrollLeft()).toBe 0
+
   describe "primitive folding", ->
     beforeEach ->
       displayBuffer.destroy()

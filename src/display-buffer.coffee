@@ -204,6 +204,9 @@ class DisplayBuffer extends Model
     else
       @scrollLeft = Math.round(scrollLeft)
 
+  getMaxScrollLeft: ->
+    @getScrollWidth() - @getClientWidth()
+
   getScrollRight: -> @scrollLeft + @width
   setScrollRight: (scrollRight) ->
     @setScrollLeft(scrollRight - @width)
@@ -1075,7 +1078,9 @@ class DisplayBuffer extends Model
     @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
 
   computeScrollWidth: ->
-    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left + 1
+    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
+    @scrollWidth += 1 unless @getSoftWrap()
+    @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
 
   handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent
