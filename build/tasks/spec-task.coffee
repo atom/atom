@@ -53,9 +53,7 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    # TODO: Restore concurrency on Windows
-    packageSpecQueue.concurrency = 1 unless process.platform is 'win32'
-
+    packageSpecQueue.concurrency = 1
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
