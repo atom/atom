@@ -767,6 +767,8 @@ EditorComponent = React.createClass
 
     if position is 'absolute' or width
       clientWidth = scrollViewNode.clientWidth
+      paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
+      clientWidth -= paddingLeft
       editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->

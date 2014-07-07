@@ -1814,9 +1814,11 @@ describe "EditorComponent", ->
         wrapperView.show()
         expect(node.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
 
-  describe "when the editor component is resized", ->
-    it "updates the component based on a new size", ->
+  describe "soft wrapping", ->
+    beforeEach ->
       editor.setSoftWrap(true)
+
+    it "updates the wrap location when the editor is resized", ->
       newHeight = 4 * editor.getLineHeightInPixels() + "px"
       expect(newHeight).toBeLessThan node.style.height
       node.style.height = newHeight
@@ -1830,6 +1832,16 @@ describe "EditorComponent", ->
       advanceClock(component.scrollViewMeasurementInterval)
       runSetImmediateCallbacks()
       expect(node.querySelector('.line').textContent).toBe "var quicksort "
+
+    it "accounts for the scroll view's padding when determining the wrap location", ->
+      scrollViewNode = node.querySelector('.scroll-view')
+      scrollViewNode.style.paddingLeft = 20 + 'px'
+      node.style.width = 30 * charWidth + 'px'
+
+      advanceClock(component.scrollViewMeasurementInterval)
+      runSetImmediateCallbacks()
+
+      expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
 
   describe "default decorations", ->
     it "applies .cursor-line decorations for line numbers overlapping selections", ->
