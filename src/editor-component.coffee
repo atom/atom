@@ -801,7 +801,10 @@ EditorComponent = React.createClass
       @characterWidthRemeasurementRequested = true
       setImmediate =>
         @characterWidthRemeasurementRequested = false
-        @remeasureCharacterWidths()
+        if @state.visible
+          @remeasureCharacterWidths()
+        else
+          @remeasureCharacterWidthsWhenShown = true
 
   remeasureCharacterWidths: ->
     @remeasureCharacterWidthsWhenShown = false

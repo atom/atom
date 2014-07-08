@@ -1837,6 +1837,26 @@ describe "EditorComponent", ->
         line0Right = node.querySelector('.line > span:last-child').getBoundingClientRect().right
         expect(cursorLeft).toBe line0Right
 
+    describe "when stylesheets change while the editor is hidden", ->
+      it "does not re-measure character widths until the editor is shown again", ->
+        atom.config.set('editor.fontFamily', 'sans-serif')
+
+        wrapperView.hide()
+        atom.themes.applyStylesheet 'test', """
+          .function.js {
+            font-weight: bold;
+          }
+        """
+        runSetImmediateCallbacks()
+
+        wrapperView.show()
+        editor.setCursorBufferPosition([0, Infinity])
+        runSetImmediateCallbacks()
+
+        cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
+        line0Right = node.querySelector('.line > span:last-child').getBoundingClientRect().right
+        expect(cursorLeft).toBe line0Right
+
     describe "when lines are changed while the editor is hidden", ->
       it "does not measure new characters until the editor is shown again", ->
         editor.setText('')
