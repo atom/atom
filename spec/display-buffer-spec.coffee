@@ -342,8 +342,6 @@ describe "DisplayBuffer", ->
           fold2 = displayBuffer.createFold(4, 9)
           fold1 = displayBuffer.createFold(0, 4)
 
-          displayBuffer.logLines(0, 20)
-
           expect(displayBuffer.lineForRow(0).text).toMatch /^0/
           expect(displayBuffer.lineForRow(1).text).toMatch /^10/
 
