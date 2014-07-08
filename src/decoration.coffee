@@ -18,12 +18,16 @@ class Decoration
     @id = nextId()
     @params.id = @id
     @flashQueue = null
+    @isDestroyed = false
 
   destroy: ->
+    return if @isDestroyed
+    @isDestroyed = true
     @displayBuffer.removeDecoration(this)
     @emit 'destoryed'
 
   update: (newParams) ->
+    return if @isDestroyed
     oldParams = @params
     @params = newParams
     @params.id = @id
