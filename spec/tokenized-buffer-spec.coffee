@@ -684,8 +684,8 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 3
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 3
-        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 3
+        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 3
         expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
 
         tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
@@ -693,12 +693,12 @@ describe "TokenizedBuffer", ->
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
 
         delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 8, delta: 2)
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 10, delta: 2)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 4
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 4
-        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 2
+        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 4
+        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 4
         expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
 
       it "updates the indentLevel of empty lines surrounding a change that removes lines", ->
@@ -711,7 +711,7 @@ describe "TokenizedBuffer", ->
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
 
         delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 8, delta: -1)
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 10, delta: -1)
 
         expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 2
         expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 2
