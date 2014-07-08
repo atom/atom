@@ -1,3 +1,4 @@
+https = require 'https'
 autoUpdater = require 'auto-updater'
 dialog = require 'dialog'
 _ = require 'underscore-plus'
@@ -16,11 +17,15 @@ class AutoUpdateManager
 
   constructor: (@version) ->
     @state = IDLE_STATE
+    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+
+    if process.platform is 'win32'
+      autoUpdater.checkForUpdates = => @checkForUpdatesShim()
 
     # Only released versions should check for updates.
     return if /\w{7}/.test(@version)
 
-    autoUpdater.setFeedUrl "https://atom.io/api/updates?version=#{@version}"
+    autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CHECKING_STATE)
@@ -40,6 +45,22 @@ class AutoUpdateManager
       @emitUpdateAvailableEvent(@getWindows()...)
 
     @check(hidePopups: true)
+
+  # Windows doesn't have an auto-updater, so use this method to shim the events.
+  checkForUpdatesShim: ->
+    autoUpdater.emit 'checking-for-update'
+    request = https.get @feedUrl, (response) ->
+      if response.statusCode == 200
+        body = ""
+        response.on 'data', (chunk) -> body += chunk
+        response.on 'end', ->
+          {notes, name} = JSON.parse(body)
+          autoUpdater.emit 'update-downloaded', notes, name
+      else
+        autoUpdater.emit 'update-not-available', notes, name
+
+    request.on 'error', (error) ->
+      autoUpdater.emit 'error', error.message
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes
