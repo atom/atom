@@ -17,9 +17,11 @@ class AutoUpdateManager
 
   constructor: (@version) ->
     @state = IDLE_STATE
+    @version = "0.#{Math.random().toFixed(4)}"
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+    console.log @feedUrl
 
-    if process.platform is 'win32'
+    if process.platform is 'darwin'
       autoUpdater.checkForUpdates = => @checkForUpdatesShim()
 
     autoUpdater.setFeedUrl @feedUrl
