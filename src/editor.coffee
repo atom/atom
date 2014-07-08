@@ -219,6 +219,7 @@ class Editor extends Model
     @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
     @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
     @subscribe @displayBuffer, "decoration-changed", (args...) => @emit 'decoration-changed', args...
+    @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
     @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 
   getViewClass: ->
@@ -1109,39 +1110,8 @@ class Editor extends Model
   #     * onlyNonEmpty: If `true`, the decoration will only be applied if the
   #         associated marker is non-empty.  Only applicable to the `line` and
   #         gutter types.
-  addDecorationForMarker: (marker, decoration) ->
-    @displayBuffer.addDecorationForMarker(marker, decoration)
-
-  # Public: Removes all decorations associated with a {Marker} that match a
-  # `decorationPattern` and stop tracking the {Marker}.
-  #
-  # ```coffee
-  # marker = editor.markBufferRange([[4, 13], [5, 17]])
-  # editor.removeDecorationForMarker(marker, {type: 'gutter', class: 'linter-error'})
-  # ```
-  #
-  # All decorations matching a pattern will be removed. For example, you might
-  # have decorations with a namespace like this attached to a row:
-  #
-  # ```coffee
-  # [
-  #   {type: 'gutter', namespace: 'myns', class: 'something'},
-  #   {type: 'gutter', namespace: 'myns', class: 'something-else'}
-  # ]
-  # ```
-  #
-  # You can remove both with:
-  #
-  # ```coffee
-  # editor.removeDecorationForMarker(marker, {namespace: 'myns'})
-  # ```
-  #
-  # marker - the {Marker} to detach from
-  # decorationPattern - the {Object} decoration type to filter by eg. `{type: 'gutter', class: 'linter-error'}`
-  #
-  # Returns nothing
-  removeDecorationForMarker: (marker, decorationPattern) ->
-    @displayBuffer.removeDecorationForMarker(marker, decorationPattern)
+  decorateMarker: (marker, decoration) ->
+    @displayBuffer.decorateMarker(marker, decoration)
 
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
@@ -1251,9 +1221,9 @@ class Editor extends Model
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
-    @addDecorationForMarker(marker, type: 'gutter', class: 'cursor-line')
-    @addDecorationForMarker(marker, type: 'gutter', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
-    @addDecorationForMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
+    @decorateMarker(marker, type: 'gutter', class: 'cursor-line')
+    @decorateMarker(marker, type: 'gutter', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
+    @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
     @emit 'cursor-added', cursor
     cursor
 
