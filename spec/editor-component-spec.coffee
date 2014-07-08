@@ -610,6 +610,8 @@ describe "EditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+      atom.themes.removeStylesheet('test')
+
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
       runSetImmediateCallbacks()
@@ -1838,6 +1840,9 @@ describe "EditorComponent", ->
         expect(cursorLeft).toBe line0Right
 
     describe "when stylesheets change while the editor is hidden", ->
+      afterEach ->
+        atom.themes.removeStylesheet('test')
+
       it "does not re-measure character widths until the editor is shown again", ->
         atom.config.set('editor.fontFamily', 'sans-serif')
 
