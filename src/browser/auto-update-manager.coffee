@@ -22,9 +22,6 @@ class AutoUpdateManager
     if process.platform is 'win32'
       autoUpdater.checkForUpdates = => @checkForUpdatesShim()
 
-    # Only released versions should check for updates.
-    return if /\w{7}/.test(@version)
-
     autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
@@ -44,7 +41,9 @@ class AutoUpdateManager
       @setState(UPDATE_AVAILABLE_STATE)
       @emitUpdateAvailableEvent(@getWindows()...)
 
-    @check(hidePopups: true)
+    # Only released versions should check for updates.
+    unless /\w{7}/.test(@version)
+      @check(hidePopups: true)
 
   # Windows doesn't have an auto-updater, so use this method to shim the events.
   checkForUpdatesShim: ->
