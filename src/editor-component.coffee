@@ -28,7 +28,6 @@ EditorComponent = React.createClass
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
-  characterWidthRemeasurementRequested: false
   cursorsMoved: false
   selectionChanged: false
   selectionAdded: false
@@ -43,7 +42,7 @@ EditorComponent = React.createClass
   scrollSensitivity: 0.4
   scrollViewMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
-  remeasureCharacterWidthsWhenShown: false
+  remeasureCharacterWidthsIfVisibleAfterNextUpdate: false
   inputEnabled: true
   scrollViewMeasurementInterval: 100
   scopedCharacterWidthsChangeCount: null
@@ -655,7 +654,8 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
-    @requestCharacterWidthRemeasurement()
+    @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
+    @requestUpdate() if @state.visible
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -792,22 +792,12 @@ EditorComponent = React.createClass
       if @state.visible
         @remeasureCharacterWidths()
       else
-        @remeasureCharacterWidthsWhenShown = true
-    else if @remeasureCharacterWidthsWhenShown and @state.visible and not prevState.visible
+        @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
+    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @state.visible
+      @remeasureCharacterWidthsIfVisibleAfterNextUpdate = false
       @remeasureCharacterWidths()
 
-  requestCharacterWidthRemeasurement: ->
-    unless @characterWidthRemeasurementRequested
-      @characterWidthRemeasurementRequested = true
-      setImmediate =>
-        @characterWidthRemeasurementRequested = false
-        if @state.visible
-          @remeasureCharacterWidths()
-        else
-          @remeasureCharacterWidthsWhenShown = true
-
   remeasureCharacterWidths: ->
-    @remeasureCharacterWidthsWhenShown = false
     @refs.lines.remeasureCharacterWidths()
 
   onGutterWidthChanged: (@gutterWidth) ->
