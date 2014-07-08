@@ -54,12 +54,12 @@ class AutoUpdateManager
         response.on 'data', (chunk) -> body += chunk
         response.on 'end', ->
           {notes, name} = JSON.parse(body)
-          autoUpdater.emit 'update-downloaded', notes, name
+          autoUpdater.emit 'update-downloaded', null, notes, name
       else
-        autoUpdater.emit 'update-not-available', notes, name
+        autoUpdater.emit 'update-not-available'
 
     request.on 'error', (error) ->
-      autoUpdater.emit 'error', error.message
+      autoUpdater.emit 'error', null, error.message
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes
