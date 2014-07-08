@@ -285,7 +285,7 @@ class AtomApplication
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
     for atomWindow in @windows
-      if not atomWindow.getInitialPath(pathToOpen)
+      if not atomWindow.getInitialPath()
         atomWindow.setInitiaPath(pathToOpen)
         return atomWindow 
 
