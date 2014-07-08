@@ -1048,13 +1048,13 @@ describe "DisplayBuffer", ->
 
     it "can add decorations associated with markers and remove them", ->
       expect(decoration).toBeDefined()
-      expect(decoration.getParams()).toBe decoration
+      expect(decoration.getParams()).toBe decorationParams
       expect(displayBuffer.decorationForId(decoration.id)).toBe decoration
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
       decoration.destroy()
-      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
-      expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
+      expect(!!displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).toBeFalsy()
+      expect(!!displayBuffer.decorationForId(decoration.id)).toBeFalsy()
 
     it "will not fail if the decoration is removed twice", ->
       decoration.destroy()
