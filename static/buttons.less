@@ -64,15 +64,15 @@
 }
 
 .btn-toolbar {
-  > .btn-group {
+  > .btn-group + .btn-group, > .btn-group + .btn, > .btn + .btn {
     float: none;
     display: inline-block;
+    margin-left: 0;
   }
   > * {
-    margin-right: 0;
-    margin-left: @component-padding/2;
+    margin-right: @component-padding / 2;
   }
-  > *:first-child {
-    margin-left: 0;
+  > *:last-child {
+    margin-right: 0;
   }
 }
