@@ -535,3 +535,18 @@ describe "the `atom` global", ->
       expect(atom.isReleasedVersion()).toBe true
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false
+
+  describe "window:update-available", ->
+    it "is triggered when the auto-updater sends the update-downloaded event", ->
+      updateAvailableHandler = jasmine.createSpy("update-available-handler")
+      atom.workspaceView.on 'window:update-available', updateAvailableHandler
+      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater.emit 'update-downloaded', null, "notes", "version"
+
+      waitsFor ->
+        updateAvailableHandler.callCount > 0
+
+      runs ->
+        [event, version, notes] = updateAvailableHandler.mostRecentCall.args
+        expect(notes).toBe 'notes'
+        expect(version).toBe 'version'

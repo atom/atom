@@ -138,6 +138,7 @@ class AtomWindow
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
           when 'window:close' then @close()
+          when 'window:update-available' then @sendCommandToBrowserWindow(command, args...) # For spec testing
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else
