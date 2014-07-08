@@ -117,6 +117,7 @@ getPythonVersion = (callback) ->
     outputChunks = []
     spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
     spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.on 'error', ->
     spawned.on 'close', (code) ->
       if code is 0
         [name, version] = Buffer.concat(outputChunks).toString().split(' ')
@@ -133,6 +134,7 @@ getGitVersion = (callback) ->
     outputChunks = []
     spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
     spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
+    spawned.on 'error', ->
     spawned.on 'close', (code) ->
       if code is 0
         [gitName, versionName, version] = Buffer.concat(outputChunks).toString().split(' ')
