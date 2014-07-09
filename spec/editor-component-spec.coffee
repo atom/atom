@@ -232,6 +232,28 @@ describe "EditorComponent", ->
         runSetImmediateCallbacks()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
+      it "renders invisible line-ending characters on empty lines", ->
+        expect(component.lineNodeForScreenRow(10).textContent).toBe invisibles.eol
+
+      it "interleaves invisible line-ending characters with indent guides on empty lines", ->
+        component.setShowIndentGuide(true)
+        editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", false)
+        runSetImmediateCallbacks()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
+
+        editor.setTabLength(3)
+        runSetImmediateCallbacks()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>'
+
+        editor.setTabLength(1)
+        runSetImmediateCallbacks()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>'
+
+        editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
+        editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
+        runSetImmediateCallbacks()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
+
       describe "when soft wrapping is enabled", ->
         beforeEach ->
           editor.setText "a line that wraps "
@@ -609,6 +631,8 @@ describe "EditorComponent", ->
 
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
+
+      atom.themes.removeStylesheet('test')
 
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
@@ -1827,6 +1851,29 @@ describe "EditorComponent", ->
         wrapperView.hide()
 
         component.setFontFamily('sans-serif')
+        runSetImmediateCallbacks()
+
+        wrapperView.show()
+        editor.setCursorBufferPosition([0, Infinity])
+        runSetImmediateCallbacks()
+
+        cursorLeft = node.querySelector('.cursor').getBoundingClientRect().left
+        line0Right = node.querySelector('.line > span:last-child').getBoundingClientRect().right
+        expect(cursorLeft).toBe line0Right
+
+    describe "when stylesheets change while the editor is hidden", ->
+      afterEach ->
+        atom.themes.removeStylesheet('test')
+
+      it "does not re-measure character widths until the editor is shown again", ->
+        atom.config.set('editor.fontFamily', 'sans-serif')
+
+        wrapperView.hide()
+        atom.themes.applyStylesheet 'test', """
+          .function.js {
+            font-weight: bold;
+          }
+        """
         runSetImmediateCallbacks()
 
         wrapperView.show()

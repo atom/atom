@@ -1472,7 +1472,7 @@ class Editor extends Model
   # text - A {String}
   #
   # Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange: (range, text) -> @getBuffer().setTextInRange(range, text)
+  setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
 
   # Public: Get the {Range} of the paragraph surrounding the most recently added
   # cursor.

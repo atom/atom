@@ -342,8 +342,6 @@ describe "DisplayBuffer", ->
           fold2 = displayBuffer.createFold(4, 9)
           fold1 = displayBuffer.createFold(0, 4)
 
-          displayBuffer.logLines(0, 20)
-
           expect(displayBuffer.lineForRow(0).text).toMatch /^0/
           expect(displayBuffer.lineForRow(1).text).toMatch /^10/
 
@@ -1053,8 +1051,8 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
       decoration.destroy()
-      expect(!!displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).toBeFalsy()
-      expect(!!displayBuffer.decorationForId(decoration.id)).toBeFalsy()
+      expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id]).not.toBeDefined()
+      expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
     it "will not fail if the decoration is removed twice", ->
       decoration.destroy()

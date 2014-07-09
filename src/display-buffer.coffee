@@ -970,7 +970,7 @@ class DisplayBuffer extends Model
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
 
-  destroy: ->
+  destroyed: ->
     marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
