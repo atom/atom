@@ -1,7 +1,8 @@
 fs = require 'fs'
 
 module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
-  {$, $$} = require 'atom'
+  {$, $$} = require '../src/space-pen-extensions'
+
   window[key] = value for key, value of require '../vendor/jasmine'
 
   {TerminalReporter} = require 'jasmine-tagged'
