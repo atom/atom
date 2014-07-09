@@ -248,7 +248,15 @@ class Atom extends Model
     @setWindowDimensions(windowDimensions)
 
   storeWindowDimensions: ->
-    @state.windowDimensions = @getWindowDimensions()
+    windowDimensions = @getWindowDimensions()
+
+    if process.platform is 'win32'
+      # Work around https://github.com/atom/atom-shell/issues/473
+      # Don't store the window if its dimensions are completely offscreen
+      return if windowDimensions.x + windowDimensions.width <= 0
+      return if windowDimensions.height + windowDimensions.height <= 0
+
+    @state.windowDimensions = windowDimensions
 
   # Public: Get the load settings for the current window.
   #
