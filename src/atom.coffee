@@ -226,7 +226,7 @@ class Atom extends Model
       @center()
 
   storeDefaultWindowDimensions: ->
-    dimensions = JSON.stringify(atom.getWindowDimensions())
+    dimensions = JSON.stringify(@getWindowDimensions())
     localStorage.setItem("defaultWindowDimensions", dimensions)
 
   getDefaultWindowDimensions: ->
