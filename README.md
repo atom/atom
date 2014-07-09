@@ -6,9 +6,20 @@ Visit [atom.io](https://atom.io) to learn more.
 
 ## Installing
 
+### Mac OS X
+
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
 
 Atom will automatically update when a new release is available.
+
+### Windows
+
+Install the [Atom chocolatey package](https://chocolatey.org/packages/Atom).
+
+1. Install [chocolatey](https://chocolatey.org).
+2. Close and reopen your command prompt or PowerShell window.
+3. Run `cinst Atom`
+4. In the future run `cup Atom` to upgrade to the latest release.
 
 ## Building
 
@@ -18,4 +29,5 @@ Atom will automatically update when a new release is available.
 * [Windows](docs/build-instructions/windows.md)
 
 ## Developing
+
 Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).
