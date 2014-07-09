@@ -295,8 +295,8 @@ EditorComponent = React.createClass
               else
                 continue if decorationParams.onlyEmpty
 
-              decorationsByScreenRow[screenRow] ?= []
-              decorationsByScreenRow[screenRow].push decorationParams
+              decorationsByScreenRow[screenRow] ?= {}
+              decorationsByScreenRow[screenRow][decoration.id] = decorationParams
 
     decorationsByScreenRow
 

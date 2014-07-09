@@ -154,7 +154,7 @@ GutterComponent = React.createClass
 
     classes = ''
     if lineDecorations? and decorations = lineDecorations[screenRow]
-      for decoration in decorations
+      for id, decoration of decorations
         if Decoration.isType(decoration, 'gutter')
           classes += decoration.class + ' '
 
@@ -186,12 +186,13 @@ GutterComponent = React.createClass
     previousDecorations = @renderedDecorationsByLineNumberId[lineNumberId]
 
     if previousDecorations?
-      for decoration in previousDecorations
-        node.classList.remove(decoration.class) if Decoration.isType(decoration, 'gutter') and not _.deepContains(decorations, decoration)
+      for id, decoration of previousDecorations
+        if Decoration.isType(decoration, 'gutter') and not @hasDecoration(decorations, decoration)
+          node.classList.remove(decoration.class)
 
     if decorations?
-      for decoration in decorations
-        if Decoration.isType(decoration, 'gutter') and not _.deepContains(previousDecorations, decoration)
+      for id, decoration of decorations
+        if Decoration.isType(decoration, 'gutter') and not @hasDecoration(previousDecorations, decoration)
           node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
@@ -200,6 +201,9 @@ GutterComponent = React.createClass
       node.dataset.screenRow = screenRow
       @screenRowsByLineNumberId[lineNumberId] = screenRow
       @lineNumberIdsByScreenRow[screenRow] = lineNumberId
+
+  hasDecoration: (decorations, decoration) ->
+    decorations? and decorations[decoration.id] == decoration
 
   hasLineNumberNode: (lineNumberId) ->
     @lineNumberNodesById.hasOwnProperty(lineNumberId)

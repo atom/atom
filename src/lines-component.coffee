@@ -135,7 +135,7 @@ LinesComponent = React.createClass
 
     classes = ''
     if decorations = lineDecorations[screenRow]
-      for decoration in decorations
+      for id, decoration of decorations
         if Decoration.isType(decoration, 'line')
           classes += decoration.class + ' '
     classes += 'line'
@@ -240,12 +240,13 @@ LinesComponent = React.createClass
     previousDecorations = @renderedDecorationsByLineId[line.id]
 
     if previousDecorations?
-      for decoration in previousDecorations
-        lineNode.classList.remove(decoration.class) if Decoration.isType(decoration, 'line') and not _.deepContains(decorations, decoration)
+      for id, decoration of previousDecorations
+        if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
+          lineNode.classList.remove(decoration.class)
 
     if decorations?
-      for decoration in decorations
-        if Decoration.isType(decoration, 'line') and not _.deepContains(previousDecorations, decoration)
+      for id, decoration of decorations
+        if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
 
     lineNode.style.width = lineWidth + 'px' if updateWidth
@@ -255,6 +256,9 @@ LinesComponent = React.createClass
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
+
+  hasDecoration: (decorations, decoration) ->
+    decorations? and decorations[decoration.id] == decoration
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
