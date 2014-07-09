@@ -162,8 +162,6 @@ LinesComponent = React.createClass
       invisiblesToRender.push(cr) if cr? and line.lineEnding is '\r\n'
       invisiblesToRender.push(eol) if eol?
 
-      console.log line.lineEnding is '\r\n', invisibles, invisiblesToRender.slice()
-
       lineHTML = ''
       for i in [0...indentLevel]
         lineHTML += "<span class='indent-guide'>"
