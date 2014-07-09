@@ -1240,6 +1240,8 @@ describe "Editor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 0]], [[3, 4], [5, 6]]]
 
       it "autoscrolls to the added selection if needed", ->
+        editor.manageScrollPosition = true
+
         editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
         editor.setHeight(50)
