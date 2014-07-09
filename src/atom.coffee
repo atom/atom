@@ -227,7 +227,7 @@ class Atom extends Model
 
   # Returns true if the dimensions are useable, false if they should be ignored.
   # Work around for https://github.com/atom/atom-shell/issues/473
-  isValidDimensions: ({x, y, width, height}={})->
+  isValidDimensions: ({x, y, width, height}={}) ->
     width > 0 and height > 0 and x + width > 0 and y + height > 0
 
   storeDefaultWindowDimensions: ->
