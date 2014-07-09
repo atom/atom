@@ -286,8 +286,8 @@ class AtomApplication
 
     for atomWindow in @windows
       if not atomWindow.getInitialPath()
-        atomWindow.setInitiaPath(pathToOpen)
-        return atomWindow 
+        atomWindow.setInitialPath(pathToOpen)
+        return atomWindow
 
   # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->

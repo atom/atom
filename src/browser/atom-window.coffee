@@ -41,8 +41,8 @@ class AtomWindow
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
     @browserWindow.loadSettings = loadSettings
-    @setInitiaPath(pathToOpen)
-    
+    @setInitialPath(pathToOpen)
+
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
@@ -67,7 +67,7 @@ class AtomWindow
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
 
-  setInitiaPath: (pathToOpen) ->
+  setInitialPath: (pathToOpen) ->
     loadSettings = @browserWindow.loadSettings
     loadSettings.initialPath = pathToOpen
     if fs.statSyncNoException(pathToOpen).isFile?()
