@@ -153,14 +153,33 @@ LinesComponent = React.createClass
     lineHTML
 
   buildEmptyLineInnerHTML: (line) ->
-    {showIndentGuide} = @props
+    {showIndentGuide, invisibles} = @props
+    {cr, eol} = invisibles
     {indentLevel, tabLength} = line
 
     if showIndentGuide and indentLevel > 0
-      indentSpan = "<span class='indent-guide'>#{multiplyString(' ', tabLength)}</span>"
-      multiplyString(indentSpan, indentLevel)
+      invisiblesToRender = []
+      invisiblesToRender.push(cr) if cr? and line.lineEnding is '\r\n'
+      invisiblesToRender.push(eol) if eol?
+
+      console.log line.lineEnding is '\r\n', invisibles, invisiblesToRender.slice()
+
+      lineHTML = ''
+      for i in [0...indentLevel]
+        lineHTML += "<span class='indent-guide'>"
+        for j in [0...tabLength]
+          if invisible = invisiblesToRender.shift()
+            lineHTML += "<span class='invisible-character'>#{invisible}</span>"
+          else
+            lineHTML += ' '
+        lineHTML += "</span>"
+
+      while invisiblesToRender.length
+        lineHTML += "<span class='invisible-character'>#{invisiblesToRender.shift()}</span>"
+
+      lineHTML
     else
-      "&nbsp;"
+      @buildEndOfLineHTML(line, @props.invisibles)
 
   buildLineInnerHTML: (line) ->
     {invisibles, mini, showIndentGuide, invisibles} = @props
