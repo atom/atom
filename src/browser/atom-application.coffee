@@ -281,6 +281,7 @@ class AtomApplication
 
   # Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
+    return unless pathToOpen
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
