@@ -182,6 +182,7 @@ EditorComponent = React.createClass
     @measureScrollbars()
 
   componentWillUnmount: ->
+    @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
     @unsubscribe()
     clearInterval(@scrollViewMeasurementIntervalId)
     @scrollViewMeasurementIntervalId = null
