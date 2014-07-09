@@ -225,9 +225,16 @@ class Atom extends Model
     else
       @center()
 
+  # Returns true if dimensions are useable, false if they should be ignored.
+  isValidDimensions: ({x, y, width, height}={})->
+    # Work around https://github.com/atom/atom-shell/issues/473
+    # Invalidate dimensions that are completely offscreen
+    width > 0 and height > 0 and x + width > 0 and y + height > 0
+
   storeDefaultWindowDimensions: ->
-    dimensions = JSON.stringify(@getWindowDimensions())
-    localStorage.setItem("defaultWindowDimensions", dimensions)
+    dimensions = @getWindowDimensions()
+    if @isValidDimensions(dimensions)
+      localStorage.setItem("defaultWindowDimensions", JSON.stringify(dimensions))
 
   getDefaultWindowDimensions: ->
     {windowDimensions} = @getLoadSettings()
@@ -240,23 +247,21 @@ class Atom extends Model
       console.warn "Error parsing default window dimensions", error
       localStorage.removeItem("defaultWindowDimensions")
 
-    {width, height} = screen.getPrimaryDisplay().workAreaSize
-    dimensions ? {x: 0, y: 0, width: Math.min(1024, width), height}
+    if @isValidDimensions(dimensions)
+      dimensions
+    else
+      {width, height} = screen.getPrimaryDisplay().workAreaSize
+      {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    windowDimensions = @state.windowDimensions ? @getDefaultWindowDimensions()
-    @setWindowDimensions(windowDimensions)
+    dimensions = @state.windowDimensions
+    unless @isValidDimensions(dimensions)
+      dimensions = @getDefaultWindowDimensions()
+    @setWindowDimensions(dimensions)
 
   storeWindowDimensions: ->
-    windowDimensions = @getWindowDimensions()
-
-    if process.platform is 'win32'
-      # Work around https://github.com/atom/atom-shell/issues/473
-      # Don't store the window if its dimensions are completely offscreen
-      return if windowDimensions.x + windowDimensions.width <= 0
-      return if windowDimensions.height + windowDimensions.height <= 0
-
-    @state.windowDimensions = windowDimensions
+    dimensions = @getWindowDimensions()
+    @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
   #
