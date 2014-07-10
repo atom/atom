@@ -26,6 +26,7 @@
   'ctrl-s': 'core:save'
   'ctrl-S': 'core:save-as'
   'ctrl-w': 'core:close'
+  'ctrl-f4': 'core:close'
   'ctrl-z': 'core:undo'
   'ctrl-y': 'core:redo'
   'ctrl-x': 'core:cut'
