@@ -1128,6 +1128,8 @@ class Editor extends Model
   #   :onlyNonEmpty - If `true`, the decoration will only be applied if the
   #     associated marker is non-empty.  Only applicable to the `line` and
   #     gutter types.
+  #
+  # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
