@@ -163,7 +163,7 @@ class Editor extends Model
 
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+    @setSoftTabs(@doesBufferUseSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true)
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setAttributes(preserveFolds: true)
@@ -333,7 +333,7 @@ class Editor extends Model
   # with a space character. Returns `false` if it starts with a hard tab (`\t`).
   #
   # Returns a {Boolean},
-  usesSoftTabs: ->
+  doesBufferUseSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
       if match = @buffer.lineForRow(bufferRow).match(/^\s/)
@@ -1937,7 +1937,7 @@ class Editor extends Model
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    @setSoftTabs(@doesBufferUseSoftTabs() ? @softTabs)
 
   handleGrammarChange: ->
     @unfoldAll()
