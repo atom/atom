@@ -241,7 +241,7 @@ class Atom extends Model
       localStorage.removeItem("defaultWindowDimensions")
 
     {width, height} = screen.getPrimaryDisplay().workAreaSize
-    dimensions ? {x: 0, y: 0, width: Math.min(1024, width), height: height}
+    dimensions ? {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
     windowDimensions = @state.windowDimensions ? @getDefaultWindowDimensions()
