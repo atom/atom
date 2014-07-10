@@ -173,7 +173,7 @@ name.
 #### Returns
 
 - **201** - Successfully created. Returns created version.
-- **400** - Git tag not found / Repository inaccessible
+- **400** - Git tag not found / Repository inaccessible / package.json invalid
 - **409** - Version exists
 
 ### Deleting a version
