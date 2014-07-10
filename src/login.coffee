@@ -28,7 +28,7 @@ class Login extends Command
       be used to identify you when publishing packages to atom.io.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('t', 'token').describe('token', 'atom.io API token')
+    options.string('token').describe('token', 'atom.io API token')
 
   run: (options) ->
     {callback} = options
