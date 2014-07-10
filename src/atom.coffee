@@ -225,9 +225,15 @@ class Atom extends Model
     else
       @center()
 
+  # Returns true if the dimensions are useable, false if they should be ignored.
+  # Work around for https://github.com/atom/atom-shell/issues/473
+  isValidDimensions: ({x, y, width, height}={}) ->
+    width > 0 and height > 0 and x + width > 0 and y + height > 0
+
   storeDefaultWindowDimensions: ->
-    dimensions = JSON.stringify(atom.getWindowDimensions())
-    localStorage.setItem("defaultWindowDimensions", dimensions)
+    dimensions = @getWindowDimensions()
+    if @isValidDimensions(dimensions)
+      localStorage.setItem("defaultWindowDimensions", JSON.stringify(dimensions))
 
   getDefaultWindowDimensions: ->
     {windowDimensions} = @getLoadSettings()
@@ -240,15 +246,21 @@ class Atom extends Model
       console.warn "Error parsing default window dimensions", error
       localStorage.removeItem("defaultWindowDimensions")
 
-    {width, height} = screen.getPrimaryDisplay().workAreaSize
-    dimensions ? {x: 0, y: 0, width: Math.min(1024, width), height}
+    if @isValidDimensions(dimensions)
+      dimensions
+    else
+      {width, height} = screen.getPrimaryDisplay().workAreaSize
+      {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    windowDimensions = @state.windowDimensions ? @getDefaultWindowDimensions()
-    @setWindowDimensions(windowDimensions)
+    dimensions = @state.windowDimensions
+    unless @isValidDimensions(dimensions)
+      dimensions = @getDefaultWindowDimensions()
+    @setWindowDimensions(dimensions)
 
   storeWindowDimensions: ->
-    @state.windowDimensions = @getWindowDimensions()
+    dimensions = @getWindowDimensions()
+    @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
   # Public: Get the load settings for the current window.
   #
