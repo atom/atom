@@ -28,11 +28,12 @@ class Login extends Command
       be used to identify you when publishing packages to atom.io.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('t', 'token').describe('token', 'atom.io API token')
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    Q(user: options.argv.user)
+    Q(token: options.argv.token)
       .then(@welcomeMessage)
       .then(@openURL)
       .then(@getToken)
@@ -48,6 +49,8 @@ class Login extends Command
     "AtomPackageManager/#{require('../package.json').version}"
 
   welcomeMessage: (state) =>
+    return Q(state) if state.token
+
     welcome = """
       Welcome to Atom!
 
@@ -61,7 +64,9 @@ class Login extends Command
 
     @prompt({prompt: "Press [Enter] to open your account page on Atom.io."})
 
-  openURL: ->
+  openURL: (state) =>
+    return Q(state) if state.token
+
     open('https://atom.io/account')
 
   getToken: (state) =>
