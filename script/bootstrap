@@ -57,6 +57,9 @@ function bootstrap() {
     apmInstallOptions.ignoreStdout = true;
   }
 
+  if (process.env.JANKY_SHA1 && process.platform === 'win32')
+    apmInstallCommand += ' --arch=ia32';
+
   var commands = [
     {
       command: buildInstallCommand,
