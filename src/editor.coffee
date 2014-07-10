@@ -296,7 +296,7 @@ class Editor extends Model
   #
   # softTabs - A {Boolean}
   setSoftTabs: (softTabs) ->
-    if @languageMode?.enforceHardTabs() is true
+    if @languageMode?.requireHardTabs() is true
       @softTabs = false
     else
       @softTabs = softTabs
