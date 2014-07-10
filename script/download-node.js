@@ -59,7 +59,7 @@ var downloadNode = function(version, done) {
   var arch, downloadURL, filename;
   if (process.platform === 'win32') {
     if (process.env.JANKY_SHA1)
-      arch = ''
+      arch = '';
     else
       arch = process.arch === 'x64' ? 'x64/' : '';
     downloadURL = "http://nodejs.org/dist/" + version + "/" + arch + "node.exe";
