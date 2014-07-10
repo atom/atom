@@ -44,23 +44,39 @@ function bootstrap() {
   var apmInstallCommand = npmPath + npmFlags + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
-  var dedupeCommand = apmPath + ' dedupe' + apmFlags;
+  var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
+  var dedupeNpmCommand = npmPath + npmFlags + 'dedupe';
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --quiet';
     apmInstallCommand    += ' --quiet';
     moduleInstallCommand += ' --quiet';
-    dedupeCommand        += ' --quiet';
+    dedupeApmCommand     += ' --quiet';
+    dedupeNpmCommand     += ' --quiet';
     buildInstallOptions.ignoreStdout = true;
     apmInstallOptions.ignoreStdout = true;
   }
 
   var commands = [
-    {command: buildInstallCommand, message: 'Installing build modules...', options: buildInstallOptions},
-    {command: apmInstallCommand, message: 'Installing apm...', options: apmInstallOptions},
+    {
+      command: buildInstallCommand,
+      message: 'Installing build modules...',
+      options: buildInstallOptions
+    },
+    {
+      command: apmInstallCommand,
+      message: 'Installing apm...',
+      options: apmInstallOptions
+    },
     apmPath + ' clean' + apmFlags,
     moduleInstallCommand,
-    dedupeCommand + ' ' + packagesToDedupe.join(' '),
+    dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+    {
+      command: dedupeNpmCommand + ' request',
+      options: {
+        cwd: path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager')
+      }
+    },
   ];
 
   process.chdir(path.dirname(__dirname));
