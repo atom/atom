@@ -1,4 +1,4 @@
-## Atom.io package and update API
+# Atom.io package and update API
 
 This guide describes the web API used by [apm](https://github.com/atom/apm) and
 Atom. The vast majority of use cases are met by the `apm` command-line tool,
@@ -17,9 +17,11 @@ For calls to the API that require authentication, provide a valid token from you
 
 All requests that take parameters require `application/json`.
 
-## Resources
+# API Resources
 
-### Packages
+## Packages
+
+### Listing packages
 
 #### GET /api/packages
 
@@ -39,6 +41,8 @@ Returns a list of all packages in the following format:
     ...
   ]
 ```
+
+### Showing package details
 
 #### GET /api/packages/:package_name
 
@@ -68,6 +72,8 @@ Returns:
   }
 ```
 
+### Creating a package
+
 #### POST /api/packages
 
 Create a new package; requires authentication.
@@ -92,6 +98,7 @@ Returns:
   - The package.json at owner/repo isn't valid
 - **409** - A package by that name already exists
 
+### Deleting a package
 
 #### DELETE /api/packages/:package_name
 
@@ -102,6 +109,13 @@ Returns:
 - **204** - Success
 - **400** - Repository is inaccessible
 - **401** - Unauthorized
+
+### Renaming a package
+
+Packages are renamed by publishing a new version with the name changed in `package.json`
+See [Creating a new package version](#creating-a-new-package-version) for details.
+
+Requests made to the previous name will forward to the new name.
 
 ### Package Versions
 
@@ -144,7 +158,9 @@ Returns `package.json` with `dist` key added for e.g. tarball download:
 
 #### POST /api/packages/:package_name/versions
 
-Creates a new package version from a git tag; requires authentication.
+Creates a new package version from a git tag; requires authentication. If `rename`
+is not `true`, the `name` field in `package.json` *must* match the current package
+name.
 
 #### Parameters
 
@@ -152,6 +168,7 @@ Creates a new package version from a git tag; requires authentication.
   that the version name will not be taken from the tag, but from the `version`
   key in the `package.json` file at that ref. The authenticating user *must* have
   access to the package repository.
+- **rename** - Boolean indicating whether this version contains a new name for the package.
 
 #### Returns
 
@@ -159,7 +176,7 @@ Creates a new package version from a git tag; requires authentication.
 - **400** - Git tag not found / Repository inaccessible
 - **409** - Version exists
 
-### Delete a version
+### Deleting a version
 
 #### DELETE /api/packages/:package_name/versions/:version_name
 
@@ -172,7 +189,9 @@ you'll need to increment the version when republishing.
 Returns 204 No Content
 
 
-### Stars
+## Stars
+
+### Listing user stars
 
 #### GET /api/users/:login/stars
 
@@ -186,17 +205,23 @@ List the authenticated user's starred packages; requires authentication.
 
 Return value is similar to **GET /api/packages**
 
+### Starring a package
+
 #### POST /api/packages/:name/star
 
 Star a package; requires authentication.
 
 Returns a package.
 
+### Unstarring a package
+
 #### DELETE /api/packages/:name/star
 
 Unstar a package; requires authentication.
 
 Returns 204 No Content.
+
+### Listing a package's stargazers
 
 #### GET /api/packages/:name/stargazers
 
@@ -211,7 +236,9 @@ Returns a list of user objects:
 ]
 ```
 
-### Atom updates
+## Atom updates
+
+### Listing Atom updates
 
 #### GET /api/updates
 
