@@ -39,7 +39,7 @@
     "wordwrap": "0.0.2",
     "runas": "~0.3.0",
     "fs-plus": "2.x",
-    "keytar": "1.x",
+    "keytar": ">=1.0.1 <2.0",
     "read": "~1.0.5",
     "q": "~0.9.7",
     "plist": "git://github.com/nathansobo/node-plist.git",
