@@ -175,6 +175,7 @@ module.exports =
         process.exit(1)
       else
         callback?()
+        process.exit(0)
 
     args = options.argv
     command = options.command
