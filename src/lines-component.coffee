@@ -258,7 +258,7 @@ LinesComponent = React.createClass
       @lineIdsByScreenRow[screenRow] = line.id
 
   hasDecoration: (decorations, decoration) ->
-    decorations? and decorations[decoration.id] == decoration
+    decorations? and decorations[decoration.id] is decoration
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]

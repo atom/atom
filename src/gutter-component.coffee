@@ -203,7 +203,7 @@ GutterComponent = React.createClass
       @lineNumberIdsByScreenRow[screenRow] = lineNumberId
 
   hasDecoration: (decorations, decoration) ->
-    decorations? and decorations[decoration.id] == decoration
+    decorations? and decorations[decoration.id] is decoration
 
   hasLineNumberNode: (lineNumberId) ->
     @lineNumberNodesById.hasOwnProperty(lineNumberId)
