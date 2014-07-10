@@ -39,7 +39,7 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
 
     describe "when converting a TextMate bundle", ->
-      it "generates the proper file structure", ->
+      beforeEach ->
         callback = jasmine.createSpy('callback')
         textMateBundlePath = path.join(__dirname, 'fixtures', 'r.tmbundle')
         apm.run(['init', '--package', 'fake-package', '--convert', textMateBundlePath], callback)
@@ -47,19 +47,30 @@ describe "apm init", ->
         waitsFor 'waiting for init to complete', ->
           callback.callCount is 1
 
-        runs ->
-          expect(fs.existsSync(packagePath)).toBeTruthy()
-          expect(fs.isFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))).toBe true
-          expect(fs.isFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))).toBe true
-          expect(fs.isFileSync(path.join(packagePath, 'grammars', 'r.cson'))).toBe true
-          expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
-          expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
-          expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
-          expect(fs.existsSync(path.join(packagePath, 'LICENSE.md'))).toBeFalsy()
-          expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.rd.tm']['Attach']).toEqual {
-            body: 'attach($1) *outlet'
-            prefix: 'att'
-          }
+      it "generates the proper file structure", ->
+        expect(fs.existsSync(packagePath)).toBeTruthy()
+        expect(fs.isFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))).toBe true
+        expect(fs.isFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))).toBe true
+        expect(fs.isFileSync(path.join(packagePath, 'grammars', 'r.cson'))).toBe true
+        expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
+        expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
+        expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
+        expect(fs.existsSync(path.join(packagePath, 'LICENSE.md'))).toBeFalsy()
+        expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.rd.tm']['Attach']).toEqual {
+          body: 'attach($1) *outlet'
+          prefix: 'att'
+        }
+
+      it "unescapes escaped dollar signs `$` in snippets", ->
+        expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.perl']['For Loop']).toEqual {
+          prefix: 'for'
+          body: """
+            for (my $${1:var} = 0; $$1 < ${2:expression}; $$1++) {
+            \t${3:# body...}
+            }
+
+          """
+        }
 
   describe "when creating a theme", ->
     it "generates the proper file structure", ->

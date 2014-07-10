@@ -155,6 +155,9 @@ class PackageConverter
       # with '$1'
       content = content.replace(/\$\{(\d)+:\s*\$\{TM_[^}]+\s*\}\s*\}/g, '$$1')
 
+      # Unescape escaped dollar signs $
+      content = content.replace(/\\\$/g, '$')
+
       unless name?
         extension = path.extname(child)
         name = path.basename(child, extension)
