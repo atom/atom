@@ -131,6 +131,10 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # - {::markScreenRange}
 # - {::getMarker}
 # - {::findMarkers}
+#
+# ### Decorations
+# - {::decorateMarker}
+# - {::decorationsForScreenRowRange}
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
@@ -1080,8 +1084,10 @@ class Editor extends Model
   # startScreenRow - the {Number} beginning screen row
   # endScreenRow - the {Number} end screen row (inclusive)
   #
-  # Returns an {Object} of decorations in the form `{1: [{type: 'gutter', class: 'someclass'}], 2: ...}`
-  #   where the keys are markerIds, and the values are an array of decoration objects attached to the marker.
+  # Returns an {Object} of decorations in the form
+  #  `{1: [{id: 10, type: 'gutter', class: 'someclass'}], 2: ...}`
+  #   where the keys are {Marker} IDs, and the values are an array of decoration
+  #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
@@ -1090,28 +1096,40 @@ class Editor extends Model
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
+  # There are three types of supported decorations:
+  # * `line`: Adds your CSS `class` to the line nodes within the range
+  #     marked by the marker
+  # * `gutter`: Adds your CSS `class` to the line number nodes within the
+  #     range marked by the marker
+  # * `highlight`: Adds a new highlight div to the editor surrounding the
+  #     range marked by the marker. When the user selects text, the selection is
+  #     visualized with a highlight decoration internally. The structure of this
+  #     highlight will be:
+  #     ```html
+  #     <div class="highlight <your-class>">
+  #       <!-- Will be one region for each row in the range. Spans 2 lines? There will be 2 regions. -->
+  #       <div class="region"></div>
+  #     </div>
+  #     ```
+  #
   # marker - A {Marker} you want this decoration to follow.
-  # decoration - An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
-  #   The decoration can contain the following keys:
-  #     * type: There are a few supported decoration types:
-  #       * `gutter`: Applies the decoration to the line numbers spanned by the
-  #            marker.
-  #       * `line`: Applies the decoration to the lines spanned by the marker.
-  #       * `highlight`: Applies the decoration to a "highlight" behind the
-  #            marked range. When the user selects text, the selection is
-  #            visualized with a highlight decoration internally.
-  #     * class: This CSS class will be applied to the decorated line number,
-  #         line, or highlight.
-  #     * onlyHead: If `true`, the decoration will only be applied to the head
-  #         of the marker. Only applicable to the `line` and `gutter` types.
-  #     * onlyEmpty: If `true`, the decoration will only be applied if the
-  #         associated marker is empty. Only applicable to the `line` and
-  #         `gutter` types.
-  #     * onlyNonEmpty: If `true`, the decoration will only be applied if the
-  #         associated marker is non-empty.  Only applicable to the `line` and
-  #         gutter types.
-  decorateMarker: (marker, decoration) ->
-    @displayBuffer.decorateMarker(marker, decoration)
+  # decorationParams - An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  #   :type - There are a few supported decoration types:
+  #     * `gutter`: Applies the decoration to the line numbers spanned by the marker.
+  #     * `line`: Applies the decoration to the lines spanned by the marker.
+  #     * `highlight`: Applies the decoration to a "highlight" behind the marked range.
+  #   :class - This CSS class will be applied to the decorated line number,
+  #     line, or highlight.
+  #   :onlyHead - If `true`, the decoration will only be applied to the head
+  #     of the marker. Only applicable to the `line` and `gutter` types.
+  #   :onlyEmpty - If `true`, the decoration will only be applied if the
+  #     associated marker is empty. Only applicable to the `line` and
+  #     `gutter` types.
+  #   :onlyNonEmpty - If `true`, the decoration will only be applied if the
+  #     associated marker is non-empty.  Only applicable to the `line` and
+  #     gutter types.
+  decorateMarker: (marker, decorationParams) ->
+    @displayBuffer.decorateMarker(marker, decorationParams)
 
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
