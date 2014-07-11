@@ -42,13 +42,6 @@ for commandClass in commandClasses
   for name in commandClass.commandNames ? []
     commands[name] = commandClass
 
-exit = (code) ->
-  if process.platform is 'win32'
-    exit = require('exit')
-    exit(code)
-  else
-    process.exit(code)
-
 parseOptions = (args=[]) ->
   options = optimist(args)
   options.usage """
@@ -167,7 +160,6 @@ module.exports =
       return if callbackCalled
       callbackCalled = true
       if error?
-        callback?(error)
         if _.isString(error)
           message = error
         else
@@ -178,11 +170,7 @@ module.exports =
           console.log()
         else if message
           console.error(message.red)
-
-        exit(1)
-      else
-        callback?()
-        exit(0)
+      callback?(error)
 
     args = options.argv
     command = options.command
