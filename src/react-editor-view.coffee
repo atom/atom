@@ -38,17 +38,20 @@ class ReactEditorView extends View
     @overlayer = $(node).find('.lines').addClass('overlayer')
     @hiddenInput = $(node).find('.hidden-input')
 
-    @gutter = $(node).find('.gutter')
-    @gutter.removeClassFromAllLines = (klass) =>
-      @gutter.find('.line-number').removeClass(klass)
+    # FIXME: there should be a better way to deal with the gutter element
+    @subscribe atom.config.observe 'editor.showLineNumbers', =>
+      @gutter = $(node).find('.gutter')
 
-    @gutter.getLineNumberElement = (bufferRow) =>
-      @gutter.find("[data-buffer-row='#{bufferRow}']")
+      @gutter.removeClassFromAllLines = (klass) =>
+        @gutter.find('.line-number').removeClass(klass)
 
-    @gutter.addClassToLine = (bufferRow, klass) =>
-      lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
-      lines.addClass(klass)
-      lines.length > 0
+      @gutter.getLineNumberElement = (bufferRow) =>
+        @gutter.find("[data-buffer-row='#{bufferRow}']")
+
+      @gutter.addClassToLine = (bufferRow, klass) =>
+        lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
+        lines.addClass(klass)
+        lines.length > 0
 
     @focus() if @focusOnAttach
 
