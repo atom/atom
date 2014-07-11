@@ -18,7 +18,7 @@ describe 'apm uninstall', ->
 
       runs ->
         expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
-        expect(process.exit.mostRecentCall.args[0]).toBe 1
+        expect(callback.mostRecentCall.args[0]).not.toBeUndefined()
 
   describe 'when the package is not installed', ->
     it 'ignores the package', ->

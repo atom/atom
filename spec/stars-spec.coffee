@@ -77,7 +77,7 @@ describe 'apm stars', ->
         callback.callCount > 0
 
       runs ->
-        expect(callback.mostRecentCall.args[0]).toBeUndefined()
+        expect(callback.mostRecentCall.args[0]).toBeNull()
         expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
         expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
 

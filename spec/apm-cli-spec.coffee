@@ -38,8 +38,9 @@ describe 'apm command line interface', ->
 
   describe 'when an unrecognized command is specified', ->
     it 'prints an error message and exits', ->
-      apm.run(['this-will-never-be-a-command'])
+      callback = jasmine.createSpy('callback')
+      apm.run(['this-will-never-be-a-command'], callback)
       expect(console.log).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalled()
       expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
-      expect(process.exit.mostRecentCall.args[0]).toBe 1
+      expect(callback.mostRecentCall.args[0]).not.toBeUndefined()

@@ -5,7 +5,6 @@ global.silenceOutput = ->
   spyOn(console, 'error')
   spyOn(process.stdout, 'write')
   spyOn(process.stderr, 'write')
-  spyOn(process, 'exit')
 
 global.spyOnToken = ->
   spyOn(auth, 'getToken').andCallFake (callback) -> callback(null, 'token')

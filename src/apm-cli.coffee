@@ -160,7 +160,6 @@ module.exports =
       return if callbackCalled
       callbackCalled = true
       if error?
-        callback?(error)
         if _.isString(error)
           message = error
         else
@@ -171,11 +170,7 @@ module.exports =
           console.log()
         else if message
           console.error(message.red)
-
-        process.exit(1)
-      else
-        callback?()
-        process.exit(0)
+      callback?(error)
 
     args = options.argv
     command = options.command

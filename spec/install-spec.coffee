@@ -64,7 +64,7 @@ describe 'apm install', ->
 
         runs ->
           expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
-          expect(process.exit.mostRecentCall.args[0]).toBe 1
+          expect(callback.mostRecentCall.args[0]).not.toBeUndefined()
 
     describe 'when a package name is specified', ->
       it 'installs the package', ->
@@ -84,7 +84,7 @@ describe 'apm install', ->
           expect(fs.existsSync(existingTestModuleFile)).toBeFalsy()
           expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
           expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
-          expect(callback.mostRecentCall.args[0]).toBeUndefined()
+          expect(callback.mostRecentCall.args[0]).toBeNull()
 
     describe 'when multiple package names are specified', ->
       it 'installs all packages', ->
@@ -102,7 +102,7 @@ describe 'apm install', ->
           expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
           expect(fs.existsSync(path.join(testModule2Directory, 'index2.js'))).toBeTruthy()
           expect(fs.existsSync(path.join(testModule2Directory, 'package.json'))).toBeTruthy()
-          expect(callback.mostRecentCall.args[0]).toBeUndefined()
+          expect(callback.mostRecentCall.args[0]).toBeNull()
 
       it "installs them in order and stops on the first failure", ->
         testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
