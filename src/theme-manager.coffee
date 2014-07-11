@@ -167,22 +167,30 @@ class ThemeManager
 
     fullPath
 
-  loadStylesheet: (stylesheetPath) ->
+  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
     if path.extname(stylesheetPath) is '.less'
-      @loadLessStylesheet(stylesheetPath)
+      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
     else
       fs.readFileSync(stylesheetPath, 'utf8')
 
-  loadLessStylesheet: (lessStylesheetPath) ->
+  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
       @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
 
     try
-      @lessCache.read(lessStylesheetPath)
+      if importFallbackVariables
+        baseVarImports = """
+        @import "#{path.join(@resourcePath, 'static', 'variables', 'ui-variables')}";
+        @import "#{path.join(@resourcePath, 'static', 'variables', 'syntax-variables')}";
+        """
+        less = fs.readFileSync(lessStylesheetPath, 'utf8')
+        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+      else
+        @lessCache.read(lessStylesheetPath)
     catch e
       console.error """
-        Error compiling less stylesheet: #{lessStylesheetPath}
+        Error compiling less stylesheet: #{importFallbackVariables} #{lessStylesheetPath}
         Line number: #{e.line}
         #{e.message}
       """

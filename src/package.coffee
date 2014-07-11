@@ -158,7 +158,7 @@ class Package
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
-      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath)]
+      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
     path.join(@path, @constructor.stylesheetsDir)
