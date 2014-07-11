@@ -232,6 +232,21 @@ describe "ThemeManager", ->
         expect($(".editor").css("padding-right")).toBe "150px"
         expect($(".editor").css("padding-bottom")).toBe "150px"
 
+    describe "when there is a theme with incomplete variables", ->
+      it "loads the correct values from the fallback ui-variables", ->
+        themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+        atom.config.set('core.themes', ['theme-with-incomplete-ui-variables'])
+
+        waitsFor ->
+          reloadHandler.callCount > 0
+
+        runs ->
+          # an override loaded in the base css
+          expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
+
+          # from within the theme itself
+          expect($(".editor").css("background-color")).toBe "rgb(0, 152, 255)"
+
   describe "when the user stylesheet changes", ->
     it "reloads it", ->
       [stylesheetRemovedHandler, stylesheetAddedHandler, stylesheetsChangedHandler] = []
