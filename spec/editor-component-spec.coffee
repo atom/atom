@@ -471,6 +471,7 @@ describe "EditorComponent", ->
         expect(component.refs.gutter).not.toBeDefined()
         atom.config.set("editor.showLineNumbers", true)
         expect(component.refs.gutter).toBeDefined()
+        expect(component.lineNumberNodeForScreenRow(3)).toBeDefined()
 
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
