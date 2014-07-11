@@ -1,9 +1,15 @@
+path = require 'path'
+
+_ = require 'underscore-plus'
 async = require 'async'
+CSON = require 'season'
 optimist = require 'optimist'
 
 config = require './config'
 Command = require './command'
+fs = require './fs'
 Login = require './login'
+Packages = require './packages'
 request = require './request'
 
 module.exports =
@@ -21,6 +27,7 @@ class Star extends Command
       Run `apm stars` to see all your starred packages.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.boolean('installed').describe('installed', 'Star all packages in ~/.atom/packages')
 
   starPackage: (packageName, token, callback) ->
     process.stdout.write '\u2B50  ' if process.platform is 'darwin'
@@ -42,14 +49,34 @@ class Star extends Command
         @logSuccess()
         callback()
 
+  getInstalledPackageNames: ->
+    installedPackages = []
+    userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
+    for child in fs.list(userPackagesDirectory)
+      continue unless fs.isDirectorySync(path.join(userPackagesDirectory, child))
+
+      if manifestPath = CSON.resolve(path.join(userPackagesDirectory, child, 'package'))
+        try
+          metadata = CSON.readFileSync(manifestPath) ? {}
+          if metadata.name and Packages.getRepository(metadata)
+            installedPackages.push metadata.name
+
+    _.uniq(installedPackages)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    packageNames = @packageNamesFromArgv(options.argv)
 
-    if packageNames.length is 0
-      callback("Must specify a package name to star")
-      return
+    if options.argv.installed
+      packageNames = @getInstalledPackageNames()
+      if packageNames.length is 0
+        callback()
+        return
+    else
+      packageNames = @packageNamesFromArgv(options.argv)
+      if packageNames.length is 0
+        callback("Must specify a package name to star")
+        return
 
     Login.getTokenOrLogin (error, token) =>
       return callback(error) if error?
