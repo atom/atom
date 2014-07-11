@@ -55,7 +55,7 @@ class Decoration
 
   # Public: Destroy this marker.
   #
-  # If you own the marker, you should use {Marker:destroy} which will destroy
+  # If you own the marker, you should use {Marker::destroy} which will destroy
   # this decoration.
   destroy: ->
     return if @isDestroyed
