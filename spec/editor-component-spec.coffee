@@ -258,7 +258,7 @@ describe "EditorComponent", ->
           editor.setText "a line that wraps "
           editor.setSoftWrap(true)
           runSetImmediateCallbacks()
-          componentNode.style.width = 16 * charWidth + 'px'
+          componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
           component.measureHeightAndWidth()
           runSetImmediateCallbacks()
 
@@ -2003,7 +2003,7 @@ describe "EditorComponent", ->
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
-      componentNode.style.width = gutterWidth + 14 * charWidth + 'px'
+      componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
       advanceClock(component.domPollingInterval)
       runSetImmediateCallbacks()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
