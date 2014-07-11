@@ -128,7 +128,7 @@ class ThemeManager
     @userStylesheetFile = new File(userStylesheetPath)
     @userStylesheetFile.on 'contents-changed moved removed', =>
       @loadUserStylesheet()
-    userStylesheetContents = @loadStylesheet(userStylesheetPath)
+    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
     @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   loadBaseStylesheets: ->
@@ -167,19 +167,27 @@ class ThemeManager
 
     fullPath
 
-  loadStylesheet: (stylesheetPath) ->
+  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
     if path.extname(stylesheetPath) is '.less'
-      @loadLessStylesheet(stylesheetPath)
+      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
     else
       fs.readFileSync(stylesheetPath, 'utf8')
 
-  loadLessStylesheet: (lessStylesheetPath) ->
+  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
       @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
 
     try
-      @lessCache.read(lessStylesheetPath)
+      if importFallbackVariables
+        baseVarImports = """
+        @import "variables/ui-variables";
+        @import "variables/syntax-variables";
+        """
+        less = fs.readFileSync(lessStylesheetPath, 'utf8')
+        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+      else
+        @lessCache.read(lessStylesheetPath)
     catch e
       console.error """
         Error compiling less stylesheet: #{lessStylesheetPath}

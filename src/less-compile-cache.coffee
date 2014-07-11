@@ -30,6 +30,10 @@ class LessCompileCache
   setImportPaths: (importPaths=[]) ->
     @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
 
-  read: (stylesheetPath) -> @cache.readFileSync(stylesheetPath)
+  read: (stylesheetPath) ->
+    @cache.readFileSync(stylesheetPath)
+
+  cssForFile: (stylesheetPath, lessContent) ->
+    @cache.cssForFile(stylesheetPath, lessContent)
 
   destroy: -> @unsubscribe()
