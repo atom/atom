@@ -8,6 +8,8 @@ and making sure you have pushed your git tag. In fact, Atom itself shells out to
 uses `apm`, see the [PackageManager class](https://github.com/atom/settings-view/blob/master/lib/package-manager.coffee)
 in the `settings-view` package.
 
+*This API should be considered pre-release and is subject to change (though significant breaking changes are unlikely).*
+
 ### Authorization
 
 For calls to the API that require authentication, provide a valid token from your
