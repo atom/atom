@@ -181,8 +181,8 @@ class ThemeManager
     try
       if importFallbackVariables
         baseVarImports = """
-        @import "#{path.join(@resourcePath, 'static', 'variables', 'ui-variables')}";
-        @import "#{path.join(@resourcePath, 'static', 'variables', 'syntax-variables')}";
+        @import "variables/ui-variables";
+        @import "variables/syntax-variables";
         """
         less = fs.readFileSync(lessStylesheetPath, 'utf8')
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
@@ -190,7 +190,7 @@ class ThemeManager
         @lessCache.read(lessStylesheetPath)
     catch e
       console.error """
-        Error compiling less stylesheet: #{importFallbackVariables} #{lessStylesheetPath}
+        Error compiling less stylesheet: #{lessStylesheetPath}
         Line number: #{e.line}
         #{e.message}
       """
