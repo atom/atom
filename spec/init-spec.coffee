@@ -62,15 +62,14 @@ describe "apm init", ->
         }
 
       it "unescapes escaped dollar signs `$` in snippets", ->
-        expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.perl']['For Loop']).toEqual {
-          prefix: 'for'
-          body: """
-            for (my $${1:var} = 0; $$1 < ${2:expression}; $$1++) {
-            \t${3:# body...}
-            }
+        forLoopBody = CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.perl']['For Loop'].body
+        forLoopBody = forLoopBody.replace(/\r?\n/g, '\n')
+        expect(forLoopBody).toBe """
+          for (my $${1:var} = 0; $$1 < ${2:expression}; $$1++) {
+          \t${3:# body...}
+          }
 
-          """
-        }
+        """
 
   describe "when creating a theme", ->
     it "generates the proper file structure", ->
