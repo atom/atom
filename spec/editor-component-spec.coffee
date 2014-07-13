@@ -2008,6 +2008,9 @@ describe "EditorComponent", ->
     it "does not render the gutter", ->
       expect(componentNode.querySelector('.gutter')).toBeNull()
 
+    it "adds the 'mini' class to the wrapper view", ->
+      expect(wrapperNode.classList.contains('mini')).toBe true
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)

@@ -200,6 +200,7 @@ EditorComponent = React.createClass
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
+      @updateParentViewMiniClassIfNeeded(prevState)
       @props.parentView.trigger 'cursor:moved' if cursorsMoved
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
@@ -948,6 +949,10 @@ EditorComponent = React.createClass
   updateParentViewFocusedClassIfNeeded: (prevState) ->
     if prevState.focused isnt @state.focused
       @props.parentView.toggleClass('is-focused', @props.focused)
+
+  updateParentViewMiniClassIfNeeded: (prevProps) ->
+    if prevProps.mini isnt @props.mini
+      @props.parentView.toggleClass('mini', @props.mini)
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'
