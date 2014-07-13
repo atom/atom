@@ -55,7 +55,8 @@ EditorComponent = React.createClass
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
-    style = {fontSize, lineHeight, fontFamily}
+    style = {fontSize, fontFamily}
+    style.lineHeight = lineHeight unless mini
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()

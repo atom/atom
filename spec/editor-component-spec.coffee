@@ -2016,6 +2016,9 @@ describe "EditorComponent", ->
       component.setShowInvisibles(true)
       expect(component.lineNodeForScreenRow(0).textContent).toBe 'var quicksort = function () {'
 
+    it "does not assign an explicit line-height on the editor contents", ->
+      expect(componentNode.style.lineHeight).toBe ''
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)
