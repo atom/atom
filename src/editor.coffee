@@ -518,6 +518,8 @@ class Editor extends Model
   # {Delegates to: TextBuffer.isModified}
   isModified: -> @buffer.isModified()
 
+  isEmpty: -> @buffer.isEmpty()
+
   # Public: Determine whether the user should be prompted to save before closing
   # this editor.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()

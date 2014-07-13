@@ -2022,6 +2022,17 @@ describe "EditorComponent", ->
     it "does not apply cursor-line decorations", ->
       expect(component.lineNodeForScreenRow(0).classList.contains('cursor-line')).toBe false
 
+  describe "when placholderText is specified", ->
+    it "renders the placeholder text when the buffer is empty", ->
+      component.setProps(placeholderText: 'Hello World')
+      expect(componentNode.querySelector('.placeholder-text')).toBeNull()
+      editor.setText('')
+      runSetImmediateCallbacks()
+      expect(componentNode.querySelector('.placeholder-text').textContent).toBe "Hello World"
+      editor.setText('hey')
+      runSetImmediateCallbacks()
+      expect(componentNode.querySelector('.placeholder-text')).toBeNull()
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)

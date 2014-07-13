@@ -17,7 +17,7 @@ LinesComponent = React.createClass
 
   render: ->
     if @isMounted()
-      {editor, highlightDecorations, scrollHeight, scrollWidth} = @props
+      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
@@ -27,6 +27,7 @@ LinesComponent = React.createClass
     # The lines div must have the 'editor-colors' class so it has an opaque
     # background to avoid sub-pixel anti-aliasing problems on the GPU
     div {className: 'lines editor-colors', style},
+      div className: 'placeholder-text', placeholderText if placeholderText?
       HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
 
   getTransform: ->
@@ -48,7 +49,8 @@ LinesComponent = React.createClass
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration'
+      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
+      'placeholderText'
     )
 
     {renderedRowRange, pendingChanges} = newProps

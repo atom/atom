@@ -66,6 +66,7 @@ EditorComponent = React.createClass
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
+      placeholderText = @props.placeholderText if @props.placeholderText? and editor.isEmpty()
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -114,7 +115,8 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
+          placeholderText
         }
 
       ScrollbarComponent
