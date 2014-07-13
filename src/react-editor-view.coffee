@@ -1,7 +1,9 @@
 {View, $} = require 'space-pen'
 React = require 'react-atom-fork'
-EditorComponent = require './editor-component'
 {defaults} = require 'underscore-plus'
+TextBuffer = require 'text-buffer'
+Editor = require './editor'
+EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
@@ -9,7 +11,20 @@ class ReactEditorView extends View
 
   focusOnAttach: false
 
-  constructor: (@editor, @props) ->
+  constructor: (editorOrParams, @props) ->
+    if editorOrParams instanceof Editor
+      @editor = editorOrParams
+    else
+      {@editor, mini, placeholderText} = editorOrParams
+      @props ?= {}
+      @props.mini = mini
+      @props.placeholderText = placeholderText
+      @editor ?= new Editor
+        buffer: new TextBuffer
+        softWrap: false
+        tabLength: 2
+        softTabs: true
+
     super
 
   getEditor: -> @editor
