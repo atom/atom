@@ -344,11 +344,29 @@ describe "EditorComponent", ->
         expect(line13LeafNodes[1].textContent).toBe '  '
         expect(line13LeafNodes[1].classList.contains('indent-guide')).toBe true
 
-      getLeafNodes = (node) ->
-        if node.children.length > 0
-          flatten(toArray(node.children).map(getLeafNodes))
-        else
-          [node]
+    describe "when indent guides are disabled", ->
+      beforeEach ->
+        component.setShowIndentGuide(false)
+        runSetImmediateCallbacks()
+
+      it "does not render indent guides on lines containing only whitespace", ->
+        editor.getBuffer().insert([1, Infinity], '\n      ')
+        runSetImmediateCallbacks()
+
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
+        expect(line2LeafNodes.length).toBe 3
+        expect(line2LeafNodes[0].textContent).toBe '  '
+        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe false
+        expect(line2LeafNodes[1].textContent).toBe '  '
+        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe false
+        expect(line2LeafNodes[2].textContent).toBe '  '
+        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe false
+
+    getLeafNodes = (node) ->
+      if node.children.length > 0
+        flatten(toArray(node.children).map(getLeafNodes))
+      else
+        [node]
 
     describe "when the buffer contains null bytes", ->
       it "excludes the null byte from character measurement", ->
