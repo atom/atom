@@ -2011,6 +2011,11 @@ describe "EditorComponent", ->
     it "adds the 'mini' class to the wrapper view", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
+    it "does not render invisible characters", ->
+      component.setInvisibles(eol: 'E')
+      component.setShowInvisibles(true)
+      expect(component.lineNodeForScreenRow(0).textContent).toBe 'var quicksort = function () {'
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)

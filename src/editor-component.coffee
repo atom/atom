@@ -53,7 +53,7 @@ EditorComponent = React.createClass
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    invisibles = if showInvisibles then @state.invisibles else {}
+    invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
     style = {fontSize, lineHeight, fontFamily}
 
