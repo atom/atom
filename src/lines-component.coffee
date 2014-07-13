@@ -177,7 +177,7 @@ LinesComponent = React.createClass
 
       lineHTML
     else
-      @buildEndOfLineHTML(line, @props.invisibles)
+      '&nbsp;' + @buildEndOfLineHTML(line, @props.invisibles)
 
   buildLineInnerHTML: (line) ->
     {invisibles, mini, showIndentGuide, invisibles} = @props

@@ -233,7 +233,7 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
       it "renders invisible line-ending characters on empty lines", ->
-        expect(component.lineNodeForScreenRow(10).textContent).toBe invisibles.eol
+        expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp + invisibles.eol
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
         component.setShowIndentGuide(true)
