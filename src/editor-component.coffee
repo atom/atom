@@ -759,21 +759,22 @@ EditorComponent = React.createClass
     return if @scrollViewMeasurementPaused
     return unless @isMounted()
 
-    {editor} = @props
-    editorNode = @getDOMNode()
+    {editor, parentView} = @props
+    parentNode = parentView.element
     scrollViewNode = @refs.scrollView.getDOMNode()
-    {position} = getComputedStyle(editorNode)
-    {width, height} = editorNode.style
+    {position} = getComputedStyle(parentNode)
+    {height} = parentNode.style
 
     if position is 'absolute' or height
       clientHeight =  scrollViewNode.clientHeight
       editor.setHeight(clientHeight) if clientHeight > 0
+    else
+      editor.setHeight(null)
 
-    if position is 'absolute' or width
-      clientWidth = scrollViewNode.clientWidth
-      paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
-      clientWidth -= paddingLeft
-      editor.setWidth(clientWidth) if clientWidth > 0
+    clientWidth = scrollViewNode.clientWidth
+    paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
+    clientWidth -= paddingLeft
+    editor.setWidth(clientWidth) if clientWidth > 0
 
   measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
