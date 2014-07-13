@@ -2019,6 +2019,9 @@ describe "EditorComponent", ->
     it "does not assign an explicit line-height on the editor contents", ->
       expect(componentNode.style.lineHeight).toBe ''
 
+    it "does not apply cursor-line decorations", ->
+      expect(component.lineNodeForScreenRow(0).classList.contains('cursor-line')).toBe false
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)

@@ -278,7 +278,9 @@ EditorComponent = React.createClass
     cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->
-    {editor} = @props
+    {editor, mini} = @props
+    return {} if mini
+
     decorationsByScreenRow = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
