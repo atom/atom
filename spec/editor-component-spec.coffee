@@ -61,8 +61,6 @@ describe "EditorComponent", ->
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
-      wrapperNode.style.height = editor.getLineCount() * lineHeightInPixels + 'px'
-      wrapperNode.style.width = '1000px'
       component.measureScrollView()
       runSetImmediateCallbacks()
 
@@ -1920,7 +1918,7 @@ describe "EditorComponent", ->
 
     it "updates the wrap location when the editor is resized", ->
       newHeight = 4 * editor.getLineHeightInPixels() + "px"
-      expect(newHeight).toBeLessThan wrapperNode.style.height
+      expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
       advanceClock(component.scrollViewMeasurementInterval)
@@ -1990,6 +1988,18 @@ describe "EditorComponent", ->
       editor.setSelectedScreenRange([[3, 4], [4, 4]])
       runSetImmediateCallbacks()
       expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
+
+  describe "height", ->
+    describe "when the wrapper view has an explicit height", ->
+      it "does not assign a height on the component node", ->
+        wrapperNode.style.height = '200px'
+        component.measureScrollView()
+        expect(componentNode.style.height).toBe ''
+
+    describe "when the wrapper view does not have an explicit height", ->
+      it "assigns a height on the component node based on the editor's content", ->
+        expect(wrapperNode.style.height).toBe ''
+        expect(componentNode.style.height).toBe editor.getScreenLineCount() * lineHeightInPixels + 'px'
 
   describe "when the 'mini' property is true", ->
     beforeEach ->

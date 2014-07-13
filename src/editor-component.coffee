@@ -47,6 +47,7 @@ EditorComponent = React.createClass
   scrollViewMeasurementInterval: 100
   scopedCharacterWidthsChangeCount: null
   scrollViewMeasurementPaused: false
+  autoHeight: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
@@ -54,6 +55,7 @@ EditorComponent = React.createClass
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
+    style = {fontSize, lineHeight, fontFamily}
 
     if @isMounted()
       renderedRowRange = @getRenderedRowRange()
@@ -80,12 +82,13 @@ EditorComponent = React.createClass
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
+      style.height = scrollViewHeight if @autoHeight
 
     className = 'editor-contents editor-colors'
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
+    div {className, style, tabIndex: -1},
       if not mini and showLineNumbers
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
@@ -766,10 +769,15 @@ EditorComponent = React.createClass
     {height} = parentNode.style
 
     if position is 'absolute' or height
+      if @autoHeight
+        @autoHeight = false
+        @forceUpdate()
+
       clientHeight =  scrollViewNode.clientHeight
       editor.setHeight(clientHeight) if clientHeight > 0
     else
       editor.setHeight(null)
+      @autoHeight = true
 
     clientWidth = scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
