@@ -50,7 +50,7 @@ EditorComponent = React.createClass
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
-    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
@@ -86,7 +86,7 @@ EditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      if showLineNumbers
+      if not mini and showLineNumbers
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
           lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,

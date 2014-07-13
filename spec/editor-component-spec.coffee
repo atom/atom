@@ -1991,6 +1991,13 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
       expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
 
+  describe "when the 'mini' property is true", ->
+    beforeEach ->
+      component.setProps(mini: true)
+
+    it "does not render the gutter", ->
+      expect(componentNode.querySelector('.gutter')).toBeNull()
+
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
       editor.setSoftWrap(true)
