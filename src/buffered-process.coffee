@@ -49,7 +49,7 @@ class BufferedProcess
         cmdArgs = args.map (arg) ->
           if command in ['explorer.exe', 'explorer'] and /^\/[a-zA-Z]+,.*$/.test(arg)
             # Don't wrap /root,C:\folder style arguments to explorer calls in
-            # quotes # since they will not be interpreted correctly if they are
+            # quotes since they will not be interpreted correctly if they are
             arg
           else
             "\"#{arg.replace(/"/g, '\\"')}\""
