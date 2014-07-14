@@ -35,6 +35,12 @@ class Test extends Command
     testArgs = ['--dev', '--test', "--spec-directory=#{path.join(packagePath, 'spec')}"]
 
     if process.platform is 'win32'
+      unless args.argv.path?
+        atomCommand = path.join(env.ALLUSERSPROFILE, 'chocolatey', 'bin', 'atom.exe') if env.ALLUSERSPROFILE? and env.ALLUSERSPROFILE.trim() isnt ''
+        atomCommand = path.join(env.CHOCOLATEYINSTALL, 'bin', 'atom.exe') if env.CHOCOLATEYINSTALL? and env.CHOCOLATEYINSTALL.trim() isnt ''
+        atomCommand = 'atom' unless fs.existsSync(atomCommand)
+
+      testArgs.unshift('--shimgen-waitforexit')
       logFile = temp.openSync(suffix: '.log', prefix: "#{path.basename(packagePath)}-")
       fs.closeSync(logFile.fd)
       logFilePath = logFile.path
