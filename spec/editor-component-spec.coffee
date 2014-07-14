@@ -1921,13 +1921,13 @@ describe "EditorComponent", ->
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      advanceClock(component.scrollViewMeasurementInterval)
+      advanceClock(component.domPollingInterval)
       runSetImmediateCallbacks()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + 'px'
-      advanceClock(component.scrollViewMeasurementInterval)
+      advanceClock(component.domPollingInterval)
       runSetImmediateCallbacks()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
@@ -1936,7 +1936,7 @@ describe "EditorComponent", ->
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
 
-      advanceClock(component.scrollViewMeasurementInterval)
+      advanceClock(component.domPollingInterval)
       runSetImmediateCallbacks()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "

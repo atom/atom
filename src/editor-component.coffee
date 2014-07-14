@@ -22,6 +22,8 @@ EditorComponent = React.createClass
   statics:
     performSyncUpdates: false
 
+  visible: true
+  autoHeight: false
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -44,10 +46,10 @@ EditorComponent = React.createClass
   measureLineHeightAndDefaultCharWidthWhenShown: false
   remeasureCharacterWidthsIfVisibleAfterNextUpdate: false
   inputEnabled: true
-  scrollViewMeasurementInterval: 100
   scopedCharacterWidthsChangeCount: null
-  scrollViewMeasurementPaused: false
-  autoHeight: false
+  domPollingInterval: 100
+  domPollingIntervalId: null
+  domPollingPaused: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
@@ -172,7 +174,7 @@ EditorComponent = React.createClass
   componentDidMount: ->
     {editor} = @props
 
-    @scrollViewMeasurementIntervalId = setInterval(@measureScrollView, @scrollViewMeasurementInterval)
+    @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
 
     @observeEditor()
     @listenForDOMEvents()
@@ -183,7 +185,6 @@ EditorComponent = React.createClass
 
     editor.setVisible(true)
 
-    @visible = @isVisible()
     @measureLineHeightAndDefaultCharWidth()
     @measureScrollView()
     @measureScrollbars()
@@ -191,8 +192,8 @@ EditorComponent = React.createClass
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
     @unsubscribe()
-    clearInterval(@scrollViewMeasurementIntervalId)
-    @scrollViewMeasurementIntervalId = null
+    clearInterval(@domPollingIntervalId)
+    @domPollingIntervalId = null
 
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
@@ -229,7 +230,7 @@ EditorComponent = React.createClass
 
   requestAnimationFrame: (fn) ->
     @updatesPaused = true
-    @pauseScrollViewMeasurement()
+    @pauseDOMPolling()
     requestAnimationFrame =>
       fn()
       @updatesPaused = false
@@ -748,15 +749,26 @@ EditorComponent = React.createClass
     node = @getDOMNode()
     node.offsetHeight > 0 and node.offsetWidth > 0
 
-  pauseScrollViewMeasurement: ->
-    @scrollViewMeasurementPaused = true
-    @resumeScrollViewMeasurementAfterDelay ?= debounce(@resumeScrollViewMeasurement, 100)
-    @resumeScrollViewMeasurementAfterDelay()
+  pauseDOMPolling: ->
+    @domPollingPaused = true
+    @resumeDOMPollingAfterDelay ?= debounce(@resumeDOMPolling, 100)
+    @resumeDOMPollingAfterDelay()
 
-  resumeScrollViewMeasurement: ->
-    @scrollViewMeasurementPaused = false
+  resumeDOMPolling: ->
+    @domPollingPaused = false
 
-  resumeScrollViewMeasurementAfterDelay: null # created lazily
+  resumeDOMPollingAfterDelay: null # created lazily
+
+  pollDOM: ->
+    return if @domPollingPaused or not @isMounted()
+
+    wasVisible = @visible
+    @visible = @isVisible()
+    if @visible
+      if wasVisible
+        @measureScrollView()
+      else
+        @requestUpdate()
 
   requestScrollViewMeasurement: ->
     return if @scrollViewMeasurementRequested
@@ -771,7 +783,6 @@ EditorComponent = React.createClass
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureScrollView: ->
-    return if @scrollViewMeasurementPaused
     return unless @isMounted()
 
     {editor, parentView} = @props
