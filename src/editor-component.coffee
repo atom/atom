@@ -567,20 +567,23 @@ EditorComponent = React.createClass
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
-    event.preventDefault()
     {editor} = @props
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      editor.setScrollLeft(editor.getScrollLeft() - Math.round(wheelDeltaX * @scrollSensitivity))
+      previousScrollLeft = editor.getScrollLeft()
+      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+      event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
     else
       # Scrolling vertically
       @mouseWheelScreenRow = @screenRowForNode(event.target)
       @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
       @clearMouseWheelScreenRowAfterDelay()
-      editor.setScrollTop(editor.getScrollTop() - Math.round(wheelDeltaY * @scrollSensitivity))
+      previousScrollTop = editor.getScrollTop()
+      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+      event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
     if @isMounted()

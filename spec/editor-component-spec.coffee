@@ -1687,6 +1687,42 @@ describe "EditorComponent", ->
 
         expect(componentNode.contains(lineNumberNode)).toBe true
 
+    it "only prevents the default action of the mousewheel event if it actually lead to scrolling", ->
+      spyOn(WheelEvent::, 'preventDefault').andCallThrough()
+
+      wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+      wrapperNode.style.width = 20 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      runSetImmediateCallbacks()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 50))
+      expect(editor.getScrollTop()).toBe 0
+      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
+      runSetImmediateCallbacks()
+      expect(editor.getScrollTop()).toBe editor.getScrollHeight() - editor.getHeight() + 15
+      expect(WheelEvent::preventDefault).toHaveBeenCalled()
+      WheelEvent::preventDefault.reset()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -30))
+      expect(editor.getScrollTop()).toBe editor.getScrollHeight() - editor.getHeight() + 15
+      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 50, wheelDeltaY: 0))
+      expect(editor.getScrollLeft()).toBe 0
+      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
+      runSetImmediateCallbacks()
+      expect(editor.getScrollLeft()).toBe editor.getScrollWidth() - editor.getWidth() + 15
+      expect(WheelEvent::preventDefault).toHaveBeenCalled()
+      WheelEvent::preventDefault.reset()
+
+      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -30, wheelDeltaY: 0))
+      expect(editor.getScrollLeft()).toBe editor.getScrollWidth() - editor.getWidth() + 15
+      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+
   describe "input events", ->
     inputNode = null
 
