@@ -37,8 +37,6 @@ EditorComponent = React.createClass
   gutterWidth: 0
   refreshingScrollbars: false
   measuringScrollbars: true
-  pendingVerticalScrollDelta: 0
-  pendingHorizontalScrollDelta: 0
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
@@ -570,27 +568,19 @@ EditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     event.preventDefault()
-    animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
+    {editor} = @props
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      @pendingHorizontalScrollDelta -= Math.round(wheelDeltaX * @scrollSensitivity)
+      editor.setScrollLeft(editor.getScrollLeft() - Math.round(wheelDeltaX * @scrollSensitivity))
     else
       # Scrolling vertically
-      @pendingVerticalScrollDelta -= Math.round(wheelDeltaY * @scrollSensitivity)
       @mouseWheelScreenRow = @screenRowForNode(event.target)
       @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
       @clearMouseWheelScreenRowAfterDelay()
-
-    unless animationFramePending
-      @requestAnimationFrame =>
-        {editor} = @props
-        editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
-        editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
-        @pendingVerticalScrollDelta = 0
-        @pendingHorizontalScrollDelta = 0
+      editor.setScrollTop(editor.getScrollTop() - Math.round(wheelDeltaY * @scrollSensitivity))
 
   onScrollViewScroll: ->
     if @isMounted()
