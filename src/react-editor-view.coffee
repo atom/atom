@@ -223,3 +223,9 @@ class ReactEditorView extends View
   resetDisplay: -> # No-op shim for package specs
 
   redraw: -> # No-op shim
+
+  setPlaceholderText: (placeholderText) ->
+    if @component?
+      @component.setProps({placeholderText})
+    else
+      @props.placeholderText = placeholderText
