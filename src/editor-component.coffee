@@ -42,7 +42,7 @@ EditorComponent = React.createClass
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
-  scrollViewMeasurementRequested: false
+  heightAndWidthMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   remeasureCharacterWidthsIfVisibleAfterNextUpdate: false
   inputEnabled: true
@@ -186,7 +186,7 @@ EditorComponent = React.createClass
     editor.setVisible(true)
 
     @measureLineHeightAndDefaultCharWidth()
-    @measureScrollView()
+    @measureHeightAndWidth()
     @measureScrollbars()
 
   componentWillUnmount: ->
@@ -362,7 +362,7 @@ EditorComponent = React.createClass
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener 'resize', @requestScrollViewMeasurement
+    window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
 
@@ -766,23 +766,23 @@ EditorComponent = React.createClass
     @visible = @isVisible()
     if @visible
       if wasVisible
-        @measureScrollView()
+        @measureHeightAndWidth()
       else
         @requestUpdate()
 
-  requestScrollViewMeasurement: ->
-    return if @scrollViewMeasurementRequested
+  requestHeightAndWidthMeasurement: ->
+    return if @heightAndWidthMeasurementRequested
 
-    @scrollViewMeasurementRequested = true
+    @heightAndWidthMeasurementRequested = true
     requestAnimationFrame =>
-      @scrollViewMeasurementRequested = false
-      @measureScrollView()
+      @heightAndWidthMeasurementRequested = false
+      @measureHeightAndWidth()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
-  measureScrollView: ->
+  measureHeightAndWidth: ->
     return unless @isMounted()
 
     {editor, parentView} = @props

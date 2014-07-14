@@ -61,7 +61,7 @@ describe "EditorComponent", ->
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
   afterEach ->
@@ -70,7 +70,7 @@ describe "EditorComponent", ->
   describe "line rendering", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       linesNode = componentNode.querySelector('.lines')
@@ -112,7 +112,7 @@ describe "EditorComponent", ->
 
     it "updates the lines when lines are inserted or removed above the rendered row range", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
@@ -161,7 +161,7 @@ describe "EditorComponent", ->
     it "renders the .lines div at the full height of the editor if there aren't enough lines to scroll vertically", ->
       editor.setText('')
       wrapperNode.style.height = '300px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       linesNode = componentNode.querySelector('.lines')
@@ -173,7 +173,7 @@ describe "EditorComponent", ->
       lineNodes = componentNode.querySelectorAll('.line')
 
       componentNode.style.width = gutterWidth + (30 * charWidth) + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
 
@@ -185,7 +185,7 @@ describe "EditorComponent", ->
         expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       scrollViewWidth = scrollViewNode.offsetWidth
 
@@ -259,7 +259,7 @@ describe "EditorComponent", ->
           editor.setSoftWrap(true)
           runSetImmediateCallbacks()
           componentNode.style.width = 16 * charWidth + 'px'
-          component.measureScrollView()
+          component.measureHeightAndWidth()
           runSetImmediateCallbacks()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
@@ -396,7 +396,7 @@ describe "EditorComponent", ->
 
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + 2 + 1 # line overdraw margin below + dummy line number
@@ -439,7 +439,7 @@ describe "EditorComponent", ->
       editor.setSoftWrap(true)
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + lineOverdrawMargin + 1 # 1 dummy line componentNode
@@ -477,7 +477,7 @@ describe "EditorComponent", ->
 
     it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
 
@@ -573,7 +573,7 @@ describe "EditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -836,7 +836,7 @@ describe "EditorComponent", ->
 
       # Shrink editor vertically
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       # Add decorations that are out of range
@@ -859,7 +859,7 @@ describe "EditorComponent", ->
       editor.setText("a line that wraps, ok")
       editor.setSoftWrap(true)
       componentNode.style.width = 16 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       marker.destroy()
@@ -975,7 +975,7 @@ describe "EditorComponent", ->
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
@@ -1112,7 +1112,7 @@ describe "EditorComponent", ->
       inputNode = componentNode.querySelector('.hidden-input')
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
@@ -1162,7 +1162,7 @@ describe "EditorComponent", ->
         it "moves the cursor to the nearest screen position", ->
           wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
           wrapperNode.style.width = 10 * charWidth + 'px'
-          component.measureScrollView()
+          component.measureHeightAndWidth()
           editor.setScrollTop(3.5 * lineHeightInPixels)
           editor.setScrollLeft(2 * charWidth)
           runSetImmediateCallbacks()
@@ -1420,7 +1420,7 @@ describe "EditorComponent", ->
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
@@ -1431,7 +1431,7 @@ describe "EditorComponent", ->
 
     it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       componentNode.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       linesNode = componentNode.querySelector('.lines')
@@ -1445,7 +1445,7 @@ describe "EditorComponent", ->
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       componentNode.style.width = 30 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(editor.getScrollLeft()).toBe 0
@@ -1457,7 +1457,7 @@ describe "EditorComponent", ->
     it "does not obscure the last line with the horizontal scrollbar", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       editor.setScrollBottom(editor.getScrollHeight())
       runSetImmediateCallbacks()
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
@@ -1467,7 +1467,7 @@ describe "EditorComponent", ->
 
       # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       wrapperNode.style.width = 100 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = componentNode.getBoundingClientRect().bottom
@@ -1476,7 +1476,7 @@ describe "EditorComponent", ->
     it "does not obscure the last character of the longest line with the vertical scrollbar", ->
       wrapperNode.style.height = 7 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       editor.setScrollLeft(Infinity)
       runSetImmediateCallbacks()
 
@@ -1490,21 +1490,21 @@ describe "EditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(verticalScrollbarNode.style.display).toBe 'none'
@@ -1513,7 +1513,7 @@ describe "EditorComponent", ->
     it "makes the dummy scrollbar divs only as tall/wide as the actual scrollbars", ->
       wrapperNode.style.height = 4 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       atom.themes.applyStylesheet "test", """
@@ -1537,21 +1537,21 @@ describe "EditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(verticalScrollbarNode.style.bottom).toBe ''
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe ''
@@ -1560,7 +1560,7 @@ describe "EditorComponent", ->
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
       gutterNode = componentNode.querySelector('.gutter')
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureScrollView()
+      component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
       expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
@@ -1573,7 +1573,7 @@ describe "EditorComponent", ->
       beforeEach ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        component.measureHeightAndWidth()
         runSetImmediateCallbacks()
 
       it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
@@ -1611,7 +1611,7 @@ describe "EditorComponent", ->
       it "keeps the line on the DOM if it is scrolled off-screen", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        component.measureHeightAndWidth()
 
         lineNode = componentNode.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
@@ -1623,7 +1623,7 @@ describe "EditorComponent", ->
       it "does not set the mouseWheelScreenRow if scrolling horizontally", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        component.measureHeightAndWidth()
 
         lineNode = componentNode.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
@@ -1667,7 +1667,7 @@ describe "EditorComponent", ->
       it "keeps the line number on the DOM if it is scrolled off-screen", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureScrollView()
+        component.measureHeightAndWidth()
 
         lineNumberNode = componentNode.querySelectorAll('.line-number')[1]
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
@@ -1993,7 +1993,7 @@ describe "EditorComponent", ->
     describe "when the wrapper view has an explicit height", ->
       it "does not assign a height on the component node", ->
         wrapperNode.style.height = '200px'
-        component.measureScrollView()
+        component.measureHeightAndWidth()
         expect(componentNode.style.height).toBe ''
 
     describe "when the wrapper view does not have an explicit height", ->
