@@ -21,6 +21,10 @@ Install the [Atom chocolatey package](https://chocolatey.org/packages/Atom).
 3. Run `cinst Atom`
 4. In the future run `cup Atom` to upgrade to the latest release.
 
+You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
+The Windows version does not currently automatically update so you will need to
+manually upgrade to future releases by re-downloading the `.zip` file.
+
 ## Building
 
 * [Linux](docs/build-instructions/linux.md)
