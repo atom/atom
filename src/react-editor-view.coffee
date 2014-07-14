@@ -140,7 +140,7 @@ class ReactEditorView extends View
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
   getPane: ->
-    @closest('.pane').view()
+    @parent('.item-views').parents('.pane').view()
 
   focus: ->
     if @component?
