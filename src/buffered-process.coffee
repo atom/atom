@@ -46,7 +46,13 @@ class BufferedProcess
     if process.platform is "win32"
       # Quote all arguments and escapes inner quotes
       if args?
-        cmdArgs = args.map (arg) -> "\"#{arg.replace(/"/g, '\\"')}\""
+        cmdArgs = args.map (arg) ->
+          if command in ['explorer.exe', 'explorer'] and /^\/[a-zA-Z]+,.*$/.test(arg)
+            # Don't wrap /root,C:\folder style arguments to explorer calls in
+            # quotes since they will not be interpreted correctly if they are
+            arg
+          else
+            "\"#{arg.replace(/"/g, '\\"')}\""
       else
         cmdArgs = []
       cmdArgs.unshift("\"#{command}\"")
