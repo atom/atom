@@ -84,6 +84,7 @@ EditorComponent = React.createClass
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
+
       style.height = scrollViewHeight if @autoHeight
 
     className = 'editor-contents editor-colors'
@@ -155,8 +156,7 @@ EditorComponent = React.createClass
     {editor} = @props
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
 
-  getInitialState: ->
-    visible: true
+  getInitialState: -> {}
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -183,6 +183,7 @@ EditorComponent = React.createClass
 
     editor.setVisible(true)
 
+    @visible = @isVisible()
     @measureLineHeightAndDefaultCharWidth()
     @measureScrollView()
     @measureScrollbars()
@@ -208,8 +209,9 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
+    @visible = @isVisible()
     @measureScrollbars() if @measuringScrollbars
-    @measureLineHeightAndCharWidthsIfNeeded(prevState)
+    @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
     @remeasureCharacterWidthsIfNeeded(prevState)
 
   requestUpdate: ->
@@ -665,7 +667,7 @@ EditorComponent = React.createClass
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    @requestUpdate() if @state.visible
+    @requestUpdate() if @visible
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -742,6 +744,10 @@ EditorComponent = React.createClass
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
 
+  isVisible: ->
+    node = @getDOMNode()
+    node.offsetHeight > 0 and node.offsetWidth > 0
+
   pauseScrollViewMeasurement: ->
     @scrollViewMeasurementPaused = true
     @resumeScrollViewMeasurementAfterDelay ?= debounce(@resumeScrollViewMeasurement, 100)
@@ -790,26 +796,26 @@ EditorComponent = React.createClass
     clientWidth -= paddingLeft
     editor.setWidth(clientWidth) if clientWidth > 0
 
-  measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
+  measureLineHeightAndDefaultCharWidthIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      if @state.visible
+      if @visible
         @measureLineHeightAndDefaultCharWidth()
       else
         @measureLineHeightAndDefaultCharWidthWhenShown = true
-    else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
+    else if @measureLineHeightAndDefaultCharWidthWhenShown and @visible
+      @measureLineHeightAndDefaultCharWidthWhenShown = false
       @measureLineHeightAndDefaultCharWidth()
 
   measureLineHeightAndDefaultCharWidth: ->
-    @measureLineHeightAndDefaultCharWidthWhenShown = false
     @refs.lines.measureLineHeightAndDefaultCharWidth()
 
   remeasureCharacterWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
-      if @state.visible
+      if @visible
         @remeasureCharacterWidths()
       else
         @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @state.visible
+    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @visible
       @remeasureCharacterWidthsIfVisibleAfterNextUpdate = false
       @remeasureCharacterWidths()
 
@@ -877,10 +883,12 @@ EditorComponent = React.createClass
     null
 
   hide: ->
-    @setState(visible: false)
+    @visible = false
 
   show: ->
-    @setState(visible: true)
+    unless @visible
+      @visible = true
+      @forceUpdate()
 
   getFontSize: ->
     @state.fontSize
