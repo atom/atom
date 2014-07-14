@@ -7,7 +7,10 @@ EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
-  @content: -> @div class: 'editor react'
+  @content: (params) ->
+    attributes = params.attributes ? {}
+    attributes.class = 'editor react'
+    @div attributes
 
   focusOnAttach: false
 
