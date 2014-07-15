@@ -69,16 +69,17 @@ module.exports = (grunt) ->
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
 
     testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}tests?#{_.escapeRegExp(path.sep)}")
+    exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
 
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
     filterNodeModule = (pathToCopy) ->
       pathToCopy = path.resolve(pathToCopy)
-      nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy)
+      nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
     filterPackage = (pathToCopy) ->
       pathToCopy = path.resolve(pathToCopy)
-      packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy)
+      packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
     for directory in nonPackageDirectories
       cp directory, path.join(appDir, directory), filter: filterNodeModule
@@ -108,4 +109,4 @@ module.exports = (grunt) ->
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
-    grunt.task.run(dependencies...)
+    # grunt.task.run(dependencies...)
