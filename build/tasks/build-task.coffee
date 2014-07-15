@@ -61,6 +61,8 @@ module.exports = (grunt) ->
       path.join('vendor', 'apm')
       path.join('resources', 'mac')
       path.join('resources', 'win')
+      '.travis.yml'
+      '.npmignore'
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
