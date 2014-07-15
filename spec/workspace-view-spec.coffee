@@ -288,13 +288,13 @@ describe "WorkspaceView", ->
       expect(atom.workspaceView.getPaneViews()).toHaveLength 1
 
     it "closes the window after the last pane is closed if closeWindowAfterLastItem is true", ->
-      atom.config.set('core.closeWindowAfterLastPane', true)
+      atom.config.set('core.closeWindowAfterLastItem', true)
       atom.workspaceView.trigger('core:close')
       spyOn(atom, 'close')
       expect(atom.close).toHaveBeenCalled()
 
     it "does not close the window after the last pane if closeWindowAfterLastItem is untrue", ->
-      atom.config.set('core.closeWindowAfterLastPane', false)
+      atom.config.set('core.closeWindowAfterLastItem', false)
       atom.workspaceView.trigger('core:close')
       spyOn(atom, 'close')
       expect(atom.close).not.toHaveBeenCalled()
