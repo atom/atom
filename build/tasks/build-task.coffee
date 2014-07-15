@@ -14,9 +14,9 @@ module.exports = (grunt) ->
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
-      cp 'atom-shell/Atom.app', shellAppDir, filter: -> /default_app/
+      cp 'atom-shell/Atom.app', shellAppDir, filter: /default_app/
     else
-      cp 'atom-shell', shellAppDir, filter: -> /default_app/
+      cp 'atom-shell', shellAppDir, filter: /default_app/
 
     mkdir appDir
 
