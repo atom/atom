@@ -86,7 +86,7 @@ module.exports = (grunt) ->
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
 
-    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}tests?#{_.escapeRegExp(path.sep)}")
+    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}te?sts?#{_.escapeRegExp(path.sep)}")
     exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
 
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
