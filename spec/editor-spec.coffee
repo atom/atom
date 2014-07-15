@@ -2857,7 +2857,7 @@ describe "Editor", ->
 
             atom.config.set("editor.autoIndent", false)
             editor.indent()
-            expect(editor.lineForBufferRow(2)).toBe "   "
+            expect(editor.lineForBufferRow(2)).toBe "  "
 
       describe "when editor.autoIndent is true", ->
         beforeEach ->
