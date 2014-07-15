@@ -89,7 +89,7 @@ class Publish extends Command
 
     requestTags = ->
       request.get requestSettings, (error, response, tags=[]) ->
-        if response.statusCode is 200
+        if response?.statusCode is 200
           for {name}, index in tags when name is tag
             return callback()
         if --retryCount <= 0
