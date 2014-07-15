@@ -109,4 +109,4 @@ module.exports = (grunt) ->
     dependencies = ['compile', "generate-license:save"]
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
-    # grunt.task.run(dependencies...)
+    grunt.task.run(dependencies...)
