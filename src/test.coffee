@@ -38,11 +38,11 @@ class Test extends Command
 
   run: (options) ->
     {callback} = options
-    args = @parseOptions(options.commandArgs)
+    options = @parseOptions(options.commandArgs)
     {env} = process
 
-    if args.argv.path
-      atomCommand = args.argv.path
+    if options.argv.path
+      atomCommand = options.argv.path
     else if process.platform is 'win32'
       atomCommand = @getChocolateyAtomPath()
     atomCommand = 'atom' unless fs.existsSync(atomCommand)
