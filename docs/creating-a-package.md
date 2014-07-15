@@ -227,15 +227,16 @@ or one of its parents has the `tree-view` class applied to it.
 
 You can also add separators and submenus to your context menus. To add a
 submenu, pass in another object instead of a command. To add a separator, use
-`-` for the name and command of the item.
+`-` for the command of the item.
 
 ```coffeescript
 'context-menu':
   '.workspace':
     'Inspect Element': 'core:inspect'
-    '-': '-'
+    'Separator': '-'
     'Text':
       'Select All': 'core:select-all'
+      'Another Separator': '-'
       'Deleted Selected Text': 'core:delete'
 ```
 

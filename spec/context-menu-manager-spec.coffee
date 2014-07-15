@@ -30,6 +30,16 @@ describe "ContextMenuManager", ->
       expect(contextMenu.definitions['.selector'][0].command).toEqual 'command'
       expect(contextMenu.definitions['.selector'].length).toBe 1
 
+    it 'allows multiple separators', ->
+      contextMenu.add 'file-path',
+        '.selector':
+          'separator1': '-'
+          'separator2': '-'
+
+      expect(contextMenu.definitions['.selector'].length).toBe 2
+      expect(contextMenu.definitions['.selector'][0].type).toEqual 'separator'
+      expect(contextMenu.definitions['.selector'][1].type).toEqual 'separator'
+
     it 'allows duplicate commands with different labels',  ->
       contextMenu.add 'file-path',
         '.selector':

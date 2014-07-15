@@ -44,7 +44,7 @@ class ContextMenuManager
           @addBySelector(selector, menuItem, {devMode})
 
   buildMenuItem: (label, command) ->
-    if label is command is '-'
+    if command is '-'
       {type: 'separator'}
     else
       {label, command}
@@ -60,7 +60,7 @@ class ContextMenuManager
   #              editor is in dev mode.
   addBySelector: (selector, definition, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
-    unless _.findWhere(definitions[selector], definition)
+    if not _.findWhere(definitions[selector], definition) or _.isEqual(definition, {type: 'separator'})
       (definitions[selector] ?= []).push(definition)
 
   # Returns definitions which match the element and devMode.
