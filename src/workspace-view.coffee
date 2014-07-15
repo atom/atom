@@ -160,7 +160,7 @@ class WorkspaceView extends View
          @destroyActivePaneItem()
       else
          @destroyActivePane()
-       atom.close() if atom.config.get('core.closeWindowAfterLastPane')
+      atom.close() if atom.config.get('core.closeWindowAfterLastPane')
 
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
