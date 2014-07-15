@@ -72,6 +72,7 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: true
     useReactEditor: false
+    closeWindowAfterLastItem: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
@@ -154,7 +155,13 @@ class WorkspaceView extends View
 
     @command 'pane:reopen-closed-item', => @getModel().reopenItem()
 
-    @command 'core:close', => if @getModel().getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
+    @command 'core:close', =>
+      if @getModel().getActivePaneItem()?
+         @destroyActivePaneItem()
+      else
+         @destroyActivePane()
+       atom.close() if atom.config.get('core.closeWindowAfterLastPane')
+
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
