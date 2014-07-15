@@ -7,7 +7,7 @@ module.exports = (grunt) ->
       grunt.fatal("Cannot copy non-existent #{source.cyan} to #{destination.cyan}")
 
     copyFile = (sourcePath, destinationPath) ->
-      return if filter?.test(sourcePath)
+      return if filter?(sourcePath) or filter?.test?(sourcePath)
 
       stats = fs.lstatSync(sourcePath)
       if stats.isSymbolicLink()

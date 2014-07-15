@@ -45,21 +45,9 @@ module.exports = (grunt) ->
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
-      path.join('less', 'test')
       path.join('bootstrap', 'docs')
       path.join('bootstrap', 'examples')
       path.join('pegjs', 'examples')
-      path.join('plist', 'tests')
-      path.join('xmldom', 'test')
-      path.join('combined-stream', 'test')
-      path.join('delayed-stream', 'test')
-      path.join('domhandler', 'test')
-      path.join('fstream-ignore', 'test')
-      path.join('harmony-collections', 'test')
-      path.join('lru-cache', 'test')
-      path.join('minimatch', 'test')
-      path.join('normalize-package-data', 'test')
-      path.join('npm', 'test')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('build', 'Release', 'obj.target')
@@ -79,17 +67,29 @@ module.exports = (grunt) ->
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
+
+    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}tests?#{_.escapeRegExp(path.sep)}")
+
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
+    filterNodeModule = (pathToCopy) ->
+      pathToCopy = path.resolve(pathToCopy)
+      nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy)
+
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
+    filterPackage = (pathToCopy) ->
+      pathToCopy = path.resolve(pathToCopy)
+      packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy)
+
     for directory in nonPackageDirectories
-      cp directory, path.join(appDir, directory), filter: nodeModulesFilter
+      cp directory, path.join(appDir, directory), filter: filterNodeModule
+
     for directory in packageDirectories
-      cp directory, path.join(appDir, directory), filter: packageFilter
+      cp directory, path.join(appDir, directory), filter: filterPackage
 
     cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
-    cp 'apm', path.join(appDir, 'apm'), filter: nodeModulesFilter
+    cp 'apm', path.join(appDir, 'apm'), filter: filterNodeModule
 
     if process.platform is 'darwin'
       grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
