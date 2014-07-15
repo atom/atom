@@ -105,7 +105,7 @@ class AtomWindow
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']
         message: 'The editor has crashed'
-        detail: 'Please report this issue to atom@github.com'
+        detail: 'Please report this issue to https://github.com/atom/atom'
       switch chosen
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
