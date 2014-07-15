@@ -50,6 +50,7 @@ module.exports = (grunt) ->
       path.join('pegjs', 'examples')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
+      path.join('jasmine-node', 'spec')
       path.join('nan', 'nan.h')
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', 'obj')
