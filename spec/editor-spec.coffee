@@ -2081,6 +2081,20 @@ describe "Editor", ->
               editor.indent()
               expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
+            it "respects the tab stops when cursor is in the middle of a tab", ->
+              editor.setTabLength(4)
+              buffer.insert([12, 2], "\n ")
+              editor.setCursorBufferPosition [13, 1]
+              editor.indent()
+              expect(buffer.lineForRow(13)).toMatch /^\s+$/
+              expect(buffer.lineForRow(13).length).toBe 4
+              expect(editor.getCursorBufferPosition()).toEqual [13, 4]
+
+              buffer.insert([13, 0], "  ")
+              editor.setCursorBufferPosition [13, 6]
+              editor.indent()
+              expect(buffer.lineForRow(13).length).toBe 8
+
           describe "if 'softTabs' is false", ->
             it "insert a \t into the buffer", ->
               editor.setSoftTabs(false)
@@ -2098,6 +2112,20 @@ describe "Editor", ->
                 expect(buffer.lineForRow(5)).toMatch /^\s+$/
                 expect(buffer.lineForRow(5).length).toBe 6
                 expect(editor.getCursorBufferPosition()).toEqual [5, 6]
+
+              it "respects the tab stops when cursor is in the middle of a tab", ->
+                editor.setTabLength(4)
+                buffer.insert([12, 2], "\n ")
+                editor.setCursorBufferPosition [13, 1]
+                editor.indent(autoIndent: true)
+                expect(buffer.lineForRow(13)).toMatch /^\s+$/
+                expect(buffer.lineForRow(13).length).toBe 4
+                expect(editor.getCursorBufferPosition()).toEqual [13, 4]
+
+                buffer.insert([13, 0], "  ")
+                editor.setCursorBufferPosition [13, 6]
+                editor.indent(autoIndent: true)
+                expect(buffer.lineForRow(13).length).toBe 8
 
             describe "when 'softTabs' is false", ->
               it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentaion", ->
@@ -2829,7 +2857,7 @@ describe "Editor", ->
 
             atom.config.set("editor.autoIndent", false)
             editor.indent()
-            expect(editor.lineForBufferRow(2)).toBe "   "
+            expect(editor.lineForBufferRow(2)).toBe "  "
 
       describe "when editor.autoIndent is true", ->
         beforeEach ->
