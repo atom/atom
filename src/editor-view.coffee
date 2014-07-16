@@ -582,6 +582,7 @@ class EditorView extends View
 
     @trigger 'editor:path-changed'
     @resetDisplay()
+    @addGrammarScopeAttribute()
 
     if @attached and @editor.buffer.isInConflict()
       _.defer => @showBufferConflictAlert(@editor) # Display after editor has a chance to display
