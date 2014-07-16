@@ -560,6 +560,7 @@ class EditorView extends View
       @trigger 'editor:path-changed'
 
     @subscribe @editor, "grammar-changed", =>
+      @addGrammarScopeClasses()
       @trigger 'editor:grammar-changed'
 
     @subscribe @editor, 'selection-added', (selection) =>
@@ -584,6 +585,11 @@ class EditorView extends View
 
     if @attached and @editor.buffer.isInConflict()
       _.defer => @showBufferConflictAlert(@editor) # Display after editor has a chance to display
+
+  addGrammarScopeClasses: ->
+    scopeParts = @editor.getGrammar()?.scopeName?.split('.')
+    classes = scopeParts.join(' ') if scopeParts?.length
+    @addClass(classes) if classes?
 
   getModel: ->
     @editor
