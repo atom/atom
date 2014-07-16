@@ -57,6 +57,7 @@ module.exports = (grunt) ->
       path.join('build', 'binding.Makefile')
       path.join('build', 'config.gypi')
       path.join('build', 'gyp-mac-tool')
+      path.join('build', 'Makefile')
       path.join('build', 'Release', 'obj.target')
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
