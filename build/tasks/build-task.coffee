@@ -84,6 +84,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
 
     # Ignore build files
+    ignoredPaths.push "#{_.escapeRegExp(path.sep)}binding\\.gyp$"
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}.*\\.target.mk$"
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
 
