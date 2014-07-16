@@ -83,6 +83,10 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
 
+    # Ignore build files
+    ignoredPaths.push "#{_.escapeRegExp(path.sep)}.*\\.target.mk$"
+    ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
+
     # Hunspell dictionaries are only not needed on OS X.
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
