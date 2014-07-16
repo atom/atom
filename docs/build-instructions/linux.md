@@ -8,15 +8,18 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * C++ toolchain
     * on Ubuntu/Debian: `sudo apt-get install build-essential`
     * on Fedora: `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel`
+    * on Arch: `sudo pacman -S base-devel`
   * [node.js](http://nodejs.org/download/) v0.10.x
     * [Ubuntu/Debian/Mint instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os)
     * [Fedora instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora)
+    * on Arch: `sudo pacman -S nodejs`
   * [npm](http://www.npmjs.org/) v1.4.x
     * `npm` comes with node.js so no explicit installation is needed here.
     * You can check `npm` 1.4 or above is installed by running `npm -v`.
   * libgnome-keyring-dev
     * on Ubuntu/Debian: `sudo apt-get install libgnome-keyring-dev`
     * on Fedora: `sudo yum --assumeyes install libgnome-keyring-devel`
+    * on Arch: `sudo pacman -S libgnome-keyring`
     * on other distributions refer to the manual on how to install packages
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
     * This command may require `sudo` depending on how you have
@@ -24,6 +27,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * Git
     * on Ubuntu/Debian: `sudo apt-get install git`
     * on Fedora: `sudo yum install git-core`
+    * on Arch: `sudo pacman -S git`
 
 ## Instructions
 
