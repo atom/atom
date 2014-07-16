@@ -86,8 +86,9 @@ module.exports = (grunt) ->
 
     # Ignore build files
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}binding\\.gyp$"
-    ignoredPaths.push "#{_.escapeRegExp(path.sep)}.*\\.target.mk$"
+    ignoredPaths.push "#{_.escapeRegExp(path.sep)}.+\\.target.mk$"
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('build', 'Release') + path.sep)}.+\\.node\\.dSYM"
 
     # Hunspell dictionaries are only not needed on OS X.
     if process.platform is 'darwin'
