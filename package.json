@@ -31,7 +31,7 @@
     "fs-plus": "^2.2.3",
     "fstream": "0.1.24",
     "fuzzaldrin": "^1.1",
-    "git-utils": "^1.3",
+    "git-utils": "^2.0",
     "grim": "0.11.0",
     "guid": "0.0.10",
     "jasmine-tagged": "^1.1.2",
