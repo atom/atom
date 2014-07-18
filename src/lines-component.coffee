@@ -16,7 +16,9 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    if @isMounted()
+    {performedInitialMeasurement} = @props
+
+    if performedInitialMeasurement
       {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       style =
@@ -28,7 +30,7 @@ LinesComponent = React.createClass
     # background to avoid sub-pixel anti-aliasing problems on the GPU
     div {className: 'lines editor-colors', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
-      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount})
+      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement})
 
   getTransform: ->
     {scrollTop, scrollLeft, useHardwareAcceleration} = @props
@@ -50,10 +52,12 @@ LinesComponent = React.createClass
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
-      'placeholderText'
+      'placeholderText', 'performedInitialMeasurement'
     )
 
     {renderedRowRange, pendingChanges} = newProps
+    return false unless renderedRowRange?
+
     [renderedStartRow, renderedEndRow] = renderedRowRange
     for change in pendingChanges
       if change.screenDelta is 0

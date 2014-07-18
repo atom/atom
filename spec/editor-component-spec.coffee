@@ -1529,6 +1529,8 @@ describe "EditorComponent", ->
       expect(scrollbarCornerNode.offsetWidth).toBe 8
       expect(scrollbarCornerNode.offsetHeight).toBe 8
 
+      atom.themes.removeStylesheet('test')
+
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
 
@@ -1858,6 +1860,28 @@ describe "EditorComponent", ->
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
   describe "hiding and showing the editor", ->
+    describe "when the editor is hidden when it is mounted", ->
+      it "defers measurement and rendering until the editor becomes visible", ->
+        wrapperView.remove()
+
+        hiddenParent = document.createElement('div')
+        hiddenParent.style.display = 'none'
+        contentNode.appendChild(hiddenParent)
+
+        wrapperView = new ReactEditorView(editor, {lineOverdrawMargin})
+        wrapperNode = wrapperView.element
+        wrapperView.appendTo(hiddenParent)
+
+        {component} = wrapperView
+        componentNode = component.getDOMNode()
+        expect(componentNode.querySelectorAll('.line').length).toBe 0
+
+        hiddenParent.style.display = 'block'
+        advanceClock(component.domPollingInterval)
+        runSetImmediateCallbacks()
+
+        expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
+
     describe "when the lineHeight changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeightInPixels until the editor becomes visible again", ->
         wrapperView.hide()

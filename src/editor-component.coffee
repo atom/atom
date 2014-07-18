@@ -58,7 +58,7 @@ EditorComponent = React.createClass
     style = {fontSize, fontFamily}
     style.lineHeight = lineHeight unless mini
 
-    if @isMounted()
+    if @performedInitialMeasurement
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
@@ -109,7 +109,8 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration
+          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration,
+          @performedInitialMeasurement
         }
         LinesComponent {
           ref: 'lines',
@@ -117,7 +118,7 @@ EditorComponent = React.createClass
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText
+          placeholderText, @performedInitialMeasurement
         }
 
       ScrollbarComponent
@@ -181,11 +182,8 @@ EditorComponent = React.createClass
     @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
-    editor.setVisible(true)
-
-    @measureLineHeightAndDefaultCharWidth()
-    @measureHeightAndWidth()
-    @measureScrollbars()
+    if @visible = @isVisible()
+      @performInitialMeasurement()
 
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
@@ -209,9 +207,20 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'editor:display-updated'
 
     @visible = @isVisible()
-    @measureScrollbars() if @measuringScrollbars
-    @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
-    @remeasureCharacterWidthsIfNeeded(prevState)
+    if @performedInitialMeasurement
+      @measureScrollbars() if @measuringScrollbars
+      @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
+      @remeasureCharacterWidthsIfNeeded(prevState)
+
+  performInitialMeasurement: ->
+    @updatesPaused = true
+    @measureLineHeightAndDefaultCharWidth()
+    @measureHeightAndWidth()
+    @measureScrollbars()
+    @props.editor.setVisible(true)
+    @updatesPaused = false
+    @performedInitialMeasurement = true
+    @requestUpdate()
 
   requestUpdate: ->
     if @updatesPaused
@@ -740,7 +749,7 @@ EditorComponent = React.createClass
 
   isVisible: ->
     node = @getDOMNode()
-    node.offsetHeight > 0 and node.offsetWidth > 0
+    node.offsetHeight > 0 or node.offsetWidth > 0
 
   pauseDOMPolling: ->
     @domPollingPaused = true
@@ -756,12 +765,11 @@ EditorComponent = React.createClass
     return if @domPollingPaused or not @isMounted()
 
     wasVisible = @visible
-    @visible = @isVisible()
-    if @visible
+    if @visible = @isVisible()
       if wasVisible
         @measureHeightAndWidth()
       else
-        @requestUpdate()
+        @performInitialMeasurement()
 
   requestHeightAndWidthMeasurement: ->
     return if @heightAndWidthMeasurementRequested
@@ -830,6 +838,7 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   measureScrollbars: ->
+    return unless @visible
     @measuringScrollbars = false
 
     {editor} = @props
