@@ -26,12 +26,12 @@ class Test extends Command
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getChocolateyAtomPath: ->
-    if process.env.ALLUSERSPROFILE
-      atomCommand = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'bin', 'atom.exe')
-      return atomCommand if fs.existsSync(atomCommand)
-
     if process.env.CHOCOLATEYINSTALL
       atomCommand = path.join(process.env.CHOCOLATEYINSTALL, 'bin', 'atom.exe')
+      return atomCommand if fs.existsSync(atomCommand)
+
+    if process.env.ALLUSERSPROFILE
+      atomCommand = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'bin', 'atom.exe')
       return atomCommand if fs.existsSync(atomCommand)
 
     null
