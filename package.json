@@ -27,7 +27,7 @@
     "coffeestack": "0.7.0",
     "delegato": "^1",
     "emissary": "^1.2.1",
-    "first-mate": "^1.7.1",
+    "first-mate": "^2.0.0",
     "fs-plus": "^2.2.3",
     "fstream": "0.1.24",
     "fuzzaldrin": "^1.1",
