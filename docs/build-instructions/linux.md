@@ -6,29 +6,25 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
-    * on Ubuntu/Debian: `sudo apt-get install build-essential`
-    * on Fedora: `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel`
-    * on Arch: `sudo pacman -S base-devel`
+  * git
   * [node.js](http://nodejs.org/download/) v0.10.x
-    * [Ubuntu/Debian/Mint instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os)
-    * [Fedora instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora)
-    * on Arch: `sudo pacman -S nodejs`
-  * [npm](http://www.npmjs.org/) v1.4.x
-    * `npm` comes with node.js so no explicit installation is needed here.
-    * You can check `npm` 1.4 or above is installed by running `npm -v`.
+  * [npm](http://www.npmjs.org/) v1.4.x (bundled with node.js)
+    * `npm -v` to check the version.
+    * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
+      * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * libgnome-keyring-dev
-    * on Ubuntu/Debian: `sudo apt-get install libgnome-keyring-dev`
-    * on Fedora: `sudo yum --assumeyes install libgnome-keyring-devel`
-    * on Arch: `sudo pacman -S libgnome-keyring`
-    * on other distributions refer to the manual on how to install packages
-  * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
-    * This command may require `sudo` depending on how you have
-      [configured npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
-    * on Arch: `export PYTHON=/usr/bin/python2`
-  * Git
-    * on Ubuntu/Debian: `sudo apt-get install git`
-    * on Fedora: `sudo yum install git-core`
-    * on Arch: `sudo pacman -S git`
+
+### Ubuntu / Debian
+* `sudo apt-get install build-essential git libgnome-keyring-dev`
+* Instructions for  [node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+
+### Fedora
+* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
+* Instructions for [node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
+
+### Arch
+* `sudo pacman -S base-devel git nodejs libgnome-keyring`
+* `export PYTHON=/usr/bin/python2` before building Atom.
 
 ## Instructions
 
