@@ -34,7 +34,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   cd atom
   script/build # Creates application at $TMPDIR/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
-  script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build, i.e. /tmp/atom-build
+  script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build, e.g. /tmp/atom-build
   ```
   
 To run `atom` and `apm` from a terminal open atom's command palette `ctrl+shift+p` and run `Window: Install Shell Commands`
