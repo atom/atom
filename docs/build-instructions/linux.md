@@ -24,6 +24,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses Python 2
     * This command may require `sudo` depending on how you have
       [configured npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+    * on Arch: `export PYTHON=/usr/bin/python2`
   * Git
     * on Ubuntu/Debian: `sudo apt-get install git`
     * on Fedora: `sudo yum install git-core`
