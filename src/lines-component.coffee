@@ -212,7 +212,7 @@ LinesComponent = React.createClass
 
     # Find a common prefix
     for scope, i in desiredScopes
-      break unless scopeStack[i]?.scope is desiredScopes[i]
+      break unless scopeStack[i] is desiredScopes[i]
 
     # Pop scopes until we're at the common prefx
     until scopeStack.length is i
