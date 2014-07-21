@@ -22,7 +22,7 @@ EditorComponent = React.createClass
   statics:
     performSyncUpdates: false
 
-  visible: true
+  visible: false
   autoHeight: false
   pendingScrollTop: null
   pendingScrollLeft: null
@@ -894,14 +894,6 @@ EditorComponent = React.createClass
         return parseInt(screenRow)
       node = node.parentNode
     null
-
-  hide: ->
-    @visible = false
-
-  show: ->
-    unless @visible
-      @visible = true
-      @forceUpdate()
 
   getFontSize: ->
     @state.fontSize

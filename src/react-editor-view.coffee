@@ -150,11 +150,18 @@ class ReactEditorView extends View
 
   hide: ->
     super
-    @component?.hide()
+    @pollComponentDOM()
 
   show: ->
     super
-    @component?.show()
+    @pollComponentDOM()
+
+  pollComponentDOM: ->
+    return unless @component?
+    valueToRestore = @component.performSyncUpdates
+    @component.performSyncUpdates = true
+    @component.pollDOM()
+    @component.performSyncUpdates = valueToRestore
 
   pageDown: ->
     @editor.pageDown()
