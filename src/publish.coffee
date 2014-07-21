@@ -229,7 +229,15 @@ class Publish extends Command
     unless repo?.isWorkingDirectory(currentDirectory)
       throw new Error('Package must be in a Git repository before publishing: https://help.github.com/articles/create-a-repo')
 
-    unless repo.getConfigValue('remote.origin.url')
+
+    if currentBranch = repo.getShortHead()
+      remoteName = repo.getConfigValue("branch.#{currentBranch}.remote")
+    remoteName ?= repo.getConfigValue('branch.master.remote')
+
+    upstreamUrl = repo.getConfigValue("remote.#{remoteName}.url") if remoteName
+    upstreamUrl ?= repo.getConfigValue('remote.origin.url')
+
+    unless upstreamUrl
       throw new Error('Package must pushed up to GitHub before publishing: https://help.github.com/articles/create-a-repo')
 
   # Run the publish command with the given options
