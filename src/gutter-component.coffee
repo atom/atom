@@ -19,9 +19,7 @@ GutterComponent = React.createClass
     {scrollHeight, scrollViewHeight, onMouseDown} = @props
 
     div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
-      # The line-numbers div must have the 'editor-colors' class so it has an
-      # opaque background to avoid sub-pixel anti-aliasing problems on the GPU
-      div className: 'gutter line-numbers editor-colors', ref: 'lineNumbers', style:
+      div className: 'gutter line-numbers', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: @getTransform()
 
@@ -53,6 +51,8 @@ GutterComponent = React.createClass
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps
+    return false unless renderedRowRange?
+
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 

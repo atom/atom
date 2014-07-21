@@ -1,15 +1,33 @@
 {View, $} = require 'space-pen'
 React = require 'react-atom-fork'
-EditorComponent = require './editor-component'
 {defaults} = require 'underscore-plus'
+TextBuffer = require 'text-buffer'
+Editor = require './editor'
+EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
-  @content: -> @div class: 'editor react'
+  @content: (params) ->
+    attributes = params.attributes ? {}
+    attributes.class = 'editor react editor-colors'
+    @div attributes
 
   focusOnAttach: false
 
-  constructor: (@editor, @props) ->
+  constructor: (editorOrParams, @props) ->
+    if editorOrParams instanceof Editor
+      @editor = editorOrParams
+    else
+      {@editor, mini, placeholderText} = editorOrParams
+      @props ?= {}
+      @props.mini = mini
+      @props.placeholderText = placeholderText
+      @editor ?= new Editor
+        buffer: new TextBuffer
+        softWrap: false
+        tabLength: 2
+        softTabs: true
+
     super
 
   getEditor: -> @editor
@@ -122,7 +140,7 @@ class ReactEditorView extends View
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
   getPane: ->
-    @closest('.pane').view()
+    @parent('.item-views').parents('.pane').view()
 
   focus: ->
     if @component?
@@ -132,11 +150,18 @@ class ReactEditorView extends View
 
   hide: ->
     super
-    @component?.hide()
+    @pollComponentDOM()
 
   show: ->
     super
-    @component?.show()
+    @pollComponentDOM()
+
+  pollComponentDOM: ->
+    return unless @component?
+    valueToRestore = @component.performSyncUpdates
+    @component.performSyncUpdates = true
+    @component.pollDOM()
+    @component.performSyncUpdates = valueToRestore
 
   pageDown: ->
     @editor.pageDown()
@@ -208,3 +233,9 @@ class ReactEditorView extends View
   resetDisplay: -> # No-op shim for package specs
 
   redraw: -> # No-op shim
+
+  setPlaceholderText: (placeholderText) ->
+    if @component?
+      @component.setProps({placeholderText})
+    else
+      @props.placeholderText = placeholderText
