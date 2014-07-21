@@ -51,6 +51,8 @@ GutterComponent = React.createClass
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps
+    return false unless renderedRowRange?
+
     for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
       return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
 
