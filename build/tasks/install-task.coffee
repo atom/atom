@@ -4,11 +4,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 runas = null
 
-fillTemplate = (filePath, data) ->
-  template = _.template(String(fs.readFileSync(filePath + '.in')))
-  filled = template(data)
-  fs.writeFileSync(filePath, filled)
-
 module.exports = (grunt) ->
   {cp, mkdir, rm} = require('./task-helpers')(grunt)
 
@@ -32,7 +27,6 @@ module.exports = (grunt) ->
       shareDir = path.join(installDir, 'share', 'atom')
 
       iconName = path.join(shareDir,'resources','app','resources','atom.png')
-      desktopFile = path.join('resources', 'linux', 'Atom.desktop')
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
@@ -42,13 +36,17 @@ module.exports = (grunt) ->
 
       # Create Atom.desktop if installation not in temporary folder
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
-      desktopInstallFile = path.join(installDir,'share','applications','Atom.desktop')
+      desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
       if installDir.indexOf(tmpDir) isnt 0
         mkdir path.dirname(desktopInstallFile)
         {description} = grunt.file.readJSON('package.json')
         installDir = path.join(installDir,'.') # To prevent "Exec=/usr/local//share/atom/atom"
-        fillTemplate(desktopFile, {description, installDir, iconName})
-        cp desktopFile, desktopInstallFile
+
+        desktopFile = path.join('resources', 'linux', 'Atom.desktop.in')
+        template = _.template(String(fs.readFileSync(desktopFile)))
+        filled = template({description, installDir, iconName})
+
+        grunt.file.write(desktopInstallFile, filled)
 
       # Create relative symbol link for apm.
       process.chdir(binDir)
