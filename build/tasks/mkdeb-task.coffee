@@ -1,21 +1,17 @@
 fs = require 'fs'
 path = require 'path'
 _ = require 'underscore-plus'
-temp = require 'temp'
-
-temp.track()
-tempResourcesFolder = temp.mkdirSync('atom-resources-')
-
-fillTemplate = (filePath, data) ->
-  template = _.template(String(fs.readFileSync("#{filePath}.in")))
-  filled = template(data)
-
-  outputPath = path.join(tempResourcesFolder, path.basename(filePath))
-  fs.writeFileSync(outputPath, filled)
-  outputPath
 
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
+
+  fillTemplate = (filePath, data) ->
+    template = _.template(String(fs.readFileSync("#{filePath}.in")))
+    filled = template(data)
+
+    outputPath = path.join(grunt.config.get('atom.buildDir'), path.basename(filePath))
+    fs.writeFileSync(outputPath, filled)
+    outputPath
 
   grunt.registerTask 'mkdeb', 'Create debian package', ->
     done = @async()
