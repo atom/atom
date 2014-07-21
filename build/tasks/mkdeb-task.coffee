@@ -1,11 +1,17 @@
 fs = require 'fs'
 path = require 'path'
 _ = require 'underscore-plus'
+temp = require 'temp'
+
+tempResourcesFolder = temp.mkdirSync('atom-resources-')
 
 fillTemplate = (filePath, data) ->
-  template = _.template(String(fs.readFileSync(filePath + '.in')))
+  template = _.template(String(fs.readFileSync("#{filePath}.in")))
   filled = template(data)
-  fs.writeFileSync(filePath, filled)
+
+  outputPath = path.join(tempResourcesFolder, path.basename(filePath))
+  fs.writeFileSync(outputPath, filled)
+  outputPath
 
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
@@ -27,13 +33,11 @@ module.exports = (grunt) ->
     iconName = 'atom'
     data = {name, version, description, section, arch, maintainer, installDir, iconName}
 
-    control = path.join('resources', 'linux', 'debian', 'control')
-    fillTemplate(control, data)
-    desktop = path.join('resources', 'linux', 'Atom.desktop')
-    fillTemplate(desktop, data)
+    controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
+    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
     icon = path.join('resources', 'atom.png')
     buildDir = grunt.config.get('atom.buildDir')
 
     cmd = path.join('script', 'mkdeb')
-    args = [version, arch, control, desktop, icon, buildDir]
+    args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
     spawn({cmd, args}, done)
