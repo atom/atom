@@ -73,4 +73,4 @@ If none of this works, do install Github for Windows and use its Git shell. Make
 ### Windows build error reports in atom/atom
 * If all fails, use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows, and see if yours has already been reported.
 
-* If it hasn't, please open a new issue with a print/screenshot of your Windows version, 32/64bit and build output, incl. the node and python versions.
+* If it hasn't, please open a new issue with your Windows version 32/64bit and a print/screenshot of build output, incl. the node and python versions.
