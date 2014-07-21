@@ -9,7 +9,7 @@ module.exports =
 class ReactEditorView extends View
   @content: (params) ->
     attributes = params.attributes ? {}
-    attributes.class = 'editor react'
+    attributes.class = 'editor react editor-colors'
     @div attributes
 
   focusOnAttach: false

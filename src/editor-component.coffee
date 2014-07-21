@@ -87,7 +87,7 @@ EditorComponent = React.createClass
 
       style.height = scrollViewHeight if @autoHeight
 
-    className = 'editor-contents editor-colors'
+    className = 'editor-contents'
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
