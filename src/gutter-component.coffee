@@ -19,7 +19,7 @@ GutterComponent = React.createClass
     {scrollHeight, scrollViewHeight, onMouseDown} = @props
 
     div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
-      div className: 'gutter line-numbers', ref: 'lineNumbers', style:
+      div className: 'line-numbers', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: @getTransform()
 
