@@ -40,8 +40,6 @@ module.exports = (grunt) ->
         desktopFile = path.join('resources', 'linux', 'Atom.desktop.in')
         desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
 
-        mkdir path.dirname(desktopInstallFile)
-
         {description} = grunt.file.readJSON('package.json')
         iconName = path.join(shareDir,'resources','app','resources','atom.png')
         installDir = path.join(installDir, '.') # To prevent "Exec=/usr/local//share/atom/atom"
