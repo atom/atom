@@ -61,7 +61,7 @@ class Decoration
     return if @isDestroyed
     @isDestroyed = true
     @displayBuffer.removeDecoration(this)
-    @emit 'destoryed'
+    @emit 'destroyed'
 
   # Public: Update the marker with new params. Allows you to change the decoration's class.
   #
