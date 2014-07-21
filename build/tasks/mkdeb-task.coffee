@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 temp = require 'temp'
 
+temp.track()
 tempResourcesFolder = temp.mkdirSync('atom-resources-')
 
 fillTemplate = (filePath, data) ->
