@@ -26,9 +26,7 @@ LinesComponent = React.createClass
         width: scrollWidth
         WebkitTransform: @getTransform()
 
-    # The lines div must have the 'editor-colors' class so it has an opaque
-    # background to avoid sub-pixel anti-aliasing problems on the GPU
-    div {className: 'lines editor-colors', style},
+    div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
       HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement})
 
