@@ -10,7 +10,7 @@ module.exports = (grunt) ->
     filled = template(data)
 
     outputPath = path.join(grunt.config.get('atom.buildDir'), path.basename(filePath))
-    fs.writeFileSync(outputPath, filled)
+    grunt.file.write(outputPath, filled)
     outputPath
 
   grunt.registerTask 'mkdeb', 'Create debian package', ->
