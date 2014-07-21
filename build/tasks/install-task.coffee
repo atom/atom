@@ -37,13 +37,14 @@ module.exports = (grunt) ->
       # Create Atom.desktop if installation not in temporary folder
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0
-        mkdir path.dirname(desktopInstallFile)
-        {description} = grunt.file.readJSON('package.json')
-        installDir = path.join(installDir,'.') # To prevent "Exec=/usr/local//share/atom/atom"
-
-        desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
         desktopFile = path.join('resources', 'linux', 'Atom.desktop.in')
+        desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
 
+        mkdir path.dirname(desktopInstallFile)
+
+        {description} = grunt.file.readJSON('package.json')
+        iconName = path.join(shareDir,'resources','app','resources','atom.png')
+        installDir = path.join(installDir, '.') # To prevent "Exec=/usr/local//share/atom/atom"
         template = _.template(String(fs.readFileSync(desktopFile)))
         filled = template({description, installDir, iconName})
 
