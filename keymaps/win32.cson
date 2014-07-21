@@ -29,6 +29,7 @@
   'ctrl-w': 'core:close'
   'ctrl-f4': 'core:close'
   'ctrl-z': 'core:undo'
+  'ctrl-shift-z': 'core:redo'
   'ctrl-y': 'core:redo'
   'ctrl-x': 'core:cut'
   'ctrl-c': 'core:copy'
