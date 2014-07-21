@@ -2116,6 +2116,13 @@ describe "EditorComponent", ->
 
       expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
+    it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
+      setEditorHeightInLines(wrapperView, 7)
+      expect(componentNode.offsetHeight).toBe lineHeightInPixels * 7
+
+      setEditorWidthInChars(wrapperView, 10)
+      expect(componentNode.querySelector('.scroll-view').offsetWidth).toBe charWidth * 10
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
