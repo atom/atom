@@ -589,7 +589,7 @@ class EditorView extends View
 
   addGrammarScopeAttribute: ->
     grammarScope = @editor.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @attr('data-scope', grammarScope)
+    @attr('data-grammar', grammarScope)
 
   getModel: ->
     @editor
