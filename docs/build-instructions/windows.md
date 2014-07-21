@@ -35,10 +35,14 @@
 
 ## Why do I have to use GitHub for Windows?
 
-You don't, You can use your existing Git! GitHub for Windows's Git Shell is just
-easier to set up. You need to have Posix tools in your `%PATH%` (i.e. `grep`,
-`sed`, et al.), which isn't the default configuration when you install Git. To
-fix this, you probably need to fiddle with your system PATH.
+You don't. You can use your existing Git! GitHub for Windows's Git Shell is just
+easier to set up. 
+
+If you _prefer_ using your existing Git installation, make sure git's cmd directory is in your PATH env variable (e.g. `C:\Program Files (x86)\Git\cmd`) before you open your powershell or command window.
+Note that you may have to open your command window as administrator. For powershell that doesn't seem to always be the case, though.
+
+If none of this works, do install Github for Windows and use its Git shell. Makes life easier.
+
 
 ## Troubleshooting
 
@@ -62,5 +66,11 @@ fix this, you probably need to fiddle with your system PATH.
     * https://github.com/TooTallNate/node-gyp/issues/297
     * https://code.google.com/p/gyp/issues/detail?id=393
 
+* Other `node-gyp` errors on first build attempt, even though the right node and python versions are installed.
+  * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
+
+
 ### Windows build error reports in atom/atom
-* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows.
+* If all fails, use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Awindows&type=Issues) to get a list of reports about build errors on Windows, and see if yours has already been reported.
+
+* If it hasn't, please open a new issue with your Windows version 32/64bit and a print/screenshot of your build output, incl. the node and python versions.
