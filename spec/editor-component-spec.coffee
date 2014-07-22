@@ -1697,32 +1697,38 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
+      # try to scroll past the top, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 50))
       expect(editor.getScrollTop()).toBe 0
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
+      # scroll to the bottom in one huge event
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
       runSetImmediateCallbacks()
-      expect(editor.getScrollTop()).toBe editor.getScrollHeight() - editor.getHeight() + 15
+      maxScrollTop = editor.getScrollTop()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
 
+      # try to scroll past the bottom, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -30))
-      expect(editor.getScrollTop()).toBe editor.getScrollHeight() - editor.getHeight() + 15
+      expect(editor.getScrollTop()).toBe maxScrollTop
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
+      # try to scroll past the left side, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 50, wheelDeltaY: 0))
       expect(editor.getScrollLeft()).toBe 0
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
+      # scroll all the way right
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
       runSetImmediateCallbacks()
-      expect(editor.getScrollLeft()).toBe editor.getScrollWidth() - editor.getWidth() + 15
+      maxScrollLeft = editor.getScrollLeft()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
 
+      # try to scroll past the right side, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -30, wheelDeltaY: 0))
-      expect(editor.getScrollLeft()).toBe editor.getScrollWidth() - editor.getWidth() + 15
+      expect(editor.getScrollLeft()).toBe maxScrollLeft
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
   describe "input events", ->
