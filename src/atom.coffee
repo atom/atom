@@ -110,9 +110,6 @@ class Atom extends Model
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  # Get the version of the Atom application.
-  @getVersion: ->
-    @appVersion ?= @getLoadSettings().appVersion
 
   # Determine whether the current version is an official release.
   @isReleasedVersion: ->
@@ -503,7 +500,7 @@ class Atom extends Model
   #
   # Returns the version text {String}.
   getVersion: ->
-    @constructor.getVersion()
+    @appVersion ?= @getLoadSettings().appVersion
 
   # Public: Determine whether the current version is an official release.
   isReleasedVersion: ->
