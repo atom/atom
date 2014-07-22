@@ -22,6 +22,8 @@ EditorComponent = React.createClass
   statics:
     performSyncUpdates: false
 
+  visible: false
+  autoHeight: false
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -35,27 +37,28 @@ EditorComponent = React.createClass
   gutterWidth: 0
   refreshingScrollbars: false
   measuringScrollbars: true
-  pendingVerticalScrollDelta: 0
-  pendingHorizontalScrollDelta: 0
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
-  scrollViewMeasurementRequested: false
+  heightAndWidthMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
   remeasureCharacterWidthsIfVisibleAfterNextUpdate: false
   inputEnabled: true
-  scrollViewMeasurementInterval: 100
   scopedCharacterWidthsChangeCount: null
-  scrollViewMeasurementPaused: false
+  domPollingInterval: 100
+  domPollingIntervalId: null
+  domPollingPaused: false
 
   render: ->
     {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
-    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    invisibles = if showInvisibles then @state.invisibles else {}
+    invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
+    style = {fontSize, fontFamily}
+    style.lineHeight = lineHeight unless mini
 
-    if @isMounted()
+    if @performedInitialMeasurement
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
@@ -63,6 +66,7 @@ EditorComponent = React.createClass
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
+      placeholderText = @props.placeholderText if @props.placeholderText? and editor.isEmpty()
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -81,12 +85,14 @@ EditorComponent = React.createClass
       if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
         mouseWheelScreenRow = @mouseWheelScreenRow
 
-    className = 'editor-contents editor-colors'
+      style.height = scrollViewHeight if @autoHeight
+
+    className = 'editor-contents'
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div className: className, style: {fontSize, lineHeight, fontFamily}, tabIndex: -1,
-      if showLineNumbers
+    div {className, style, tabIndex: -1},
+      if not mini and showLineNumbers
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
           lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
@@ -103,14 +109,16 @@ EditorComponent = React.createClass
 
         CursorsComponent {
           scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration
+          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration,
+          @performedInitialMeasurement
         }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
+          placeholderText, @performedInitialMeasurement
         }
 
       ScrollbarComponent
@@ -149,8 +157,7 @@ EditorComponent = React.createClass
     {editor} = @props
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
 
-  getInitialState: ->
-    visible: true
+  getInitialState: -> {}
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -166,7 +173,7 @@ EditorComponent = React.createClass
   componentDidMount: ->
     {editor} = @props
 
-    @scrollViewMeasurementIntervalId = setInterval(@measureScrollView, @scrollViewMeasurementInterval)
+    @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
 
     @observeEditor()
     @listenForDOMEvents()
@@ -175,17 +182,14 @@ EditorComponent = React.createClass
     @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
-    editor.setVisible(true)
-
-    @measureLineHeightAndDefaultCharWidth()
-    @measureScrollView()
-    @measureScrollbars()
+    if @visible = @isVisible()
+      @performInitialMeasurement()
 
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
     @unsubscribe()
-    clearInterval(@scrollViewMeasurementIntervalId)
-    @scrollViewMeasurementIntervalId = null
+    clearInterval(@domPollingIntervalId)
+    @domPollingIntervalId = null
 
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
@@ -197,13 +201,26 @@ EditorComponent = React.createClass
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
+      @updateParentViewMiniClassIfNeeded(prevState)
       @props.parentView.trigger 'cursor:moved' if cursorsMoved
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
-    @measureScrollbars() if @measuringScrollbars
-    @measureLineHeightAndCharWidthsIfNeeded(prevState)
-    @remeasureCharacterWidthsIfNeeded(prevState)
+    @visible = @isVisible()
+    if @performedInitialMeasurement
+      @measureScrollbars() if @measuringScrollbars
+      @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
+      @remeasureCharacterWidthsIfNeeded(prevState)
+
+  performInitialMeasurement: ->
+    @updatesPaused = true
+    @measureLineHeightAndDefaultCharWidth()
+    @measureHeightAndWidth()
+    @measureScrollbars()
+    @props.editor.setVisible(true)
+    @updatesPaused = false
+    @performedInitialMeasurement = true
+    @requestUpdate()
 
   requestUpdate: ->
     if @updatesPaused
@@ -220,7 +237,7 @@ EditorComponent = React.createClass
 
   requestAnimationFrame: (fn) ->
     @updatesPaused = true
-    @pauseScrollViewMeasurement()
+    @pauseDOMPolling()
     requestAnimationFrame =>
       fn()
       @updatesPaused = false
@@ -273,7 +290,9 @@ EditorComponent = React.createClass
     cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->
-    {editor} = @props
+    {editor, mini} = @props
+    return {} if mini
+
     decorationsByScreenRow = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
@@ -350,7 +369,7 @@ EditorComponent = React.createClass
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener 'resize', @requestScrollViewMeasurement
+    window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
 
@@ -557,28 +576,23 @@ EditorComponent = React.createClass
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
-    event.preventDefault()
-    animationFramePending = @pendingHorizontalScrollDelta isnt 0 or @pendingVerticalScrollDelta isnt 0
+    {editor} = @props
 
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      @pendingHorizontalScrollDelta -= Math.round(wheelDeltaX * @scrollSensitivity)
+      previousScrollLeft = editor.getScrollLeft()
+      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+      event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
     else
       # Scrolling vertically
-      @pendingVerticalScrollDelta -= Math.round(wheelDeltaY * @scrollSensitivity)
       @mouseWheelScreenRow = @screenRowForNode(event.target)
       @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
       @clearMouseWheelScreenRowAfterDelay()
-
-    unless animationFramePending
-      @requestAnimationFrame =>
-        {editor} = @props
-        editor.setScrollTop(editor.getScrollTop() + @pendingVerticalScrollDelta)
-        editor.setScrollLeft(editor.getScrollLeft() + @pendingHorizontalScrollDelta)
-        @pendingVerticalScrollDelta = 0
-        @pendingHorizontalScrollDelta = 0
+      previousScrollTop = editor.getScrollTop()
+      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+      event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
     if @isMounted()
@@ -656,7 +670,7 @@ EditorComponent = React.createClass
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    @requestUpdate() if @state.visible
+    @requestUpdate() if @visible
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -733,68 +747,87 @@ EditorComponent = React.createClass
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
 
-  pauseScrollViewMeasurement: ->
-    @scrollViewMeasurementPaused = true
-    @resumeScrollViewMeasurementAfterDelay ?= debounce(@resumeScrollViewMeasurement, 100)
-    @resumeScrollViewMeasurementAfterDelay()
+  isVisible: ->
+    node = @getDOMNode()
+    node.offsetHeight > 0 or node.offsetWidth > 0
 
-  resumeScrollViewMeasurement: ->
-    @scrollViewMeasurementPaused = false
+  pauseDOMPolling: ->
+    @domPollingPaused = true
+    @resumeDOMPollingAfterDelay ?= debounce(@resumeDOMPolling, 100)
+    @resumeDOMPollingAfterDelay()
 
-  resumeScrollViewMeasurementAfterDelay: null # created lazily
+  resumeDOMPolling: ->
+    @domPollingPaused = false
 
-  requestScrollViewMeasurement: ->
-    return if @scrollViewMeasurementRequested
+  resumeDOMPollingAfterDelay: null # created lazily
 
-    @scrollViewMeasurementRequested = true
+  pollDOM: ->
+    return if @domPollingPaused or not @isMounted()
+
+    wasVisible = @visible
+    if @visible = @isVisible()
+      if wasVisible
+        @measureHeightAndWidth()
+      else
+        @performInitialMeasurement()
+
+  requestHeightAndWidthMeasurement: ->
+    return if @heightAndWidthMeasurementRequested
+
+    @heightAndWidthMeasurementRequested = true
     requestAnimationFrame =>
-      @scrollViewMeasurementRequested = false
-      @measureScrollView()
+      @heightAndWidthMeasurementRequested = false
+      @measureHeightAndWidth()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
-  measureScrollView: ->
-    return if @scrollViewMeasurementPaused
+  measureHeightAndWidth: ->
     return unless @isMounted()
 
-    {editor} = @props
-    editorNode = @getDOMNode()
+    {editor, parentView} = @props
+    parentNode = parentView.element
     scrollViewNode = @refs.scrollView.getDOMNode()
-    {position} = getComputedStyle(editorNode)
-    {width, height} = editorNode.style
+    {position} = getComputedStyle(parentNode)
+    {height} = parentNode.style
 
     if position is 'absolute' or height
+      if @autoHeight
+        @autoHeight = false
+        @forceUpdate()
+
       clientHeight =  scrollViewNode.clientHeight
       editor.setHeight(clientHeight) if clientHeight > 0
+    else
+      editor.setHeight(null)
+      @autoHeight = true
 
-    if position is 'absolute' or width
-      clientWidth = scrollViewNode.clientWidth
-      paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
-      clientWidth -= paddingLeft
-      editor.setWidth(clientWidth) if clientWidth > 0
+    clientWidth = scrollViewNode.clientWidth
+    paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
+    clientWidth -= paddingLeft
+    editor.setWidth(clientWidth) if clientWidth > 0
 
-  measureLineHeightAndCharWidthsIfNeeded: (prevState) ->
+  measureLineHeightAndDefaultCharWidthIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      if @state.visible
+      if @visible
         @measureLineHeightAndDefaultCharWidth()
       else
         @measureLineHeightAndDefaultCharWidthWhenShown = true
-    else if @measureLineHeightAndDefaultCharWidthWhenShown and @state.visible and not prevState.visible
+    else if @measureLineHeightAndDefaultCharWidthWhenShown and @visible
+      @measureLineHeightAndDefaultCharWidthWhenShown = false
       @measureLineHeightAndDefaultCharWidth()
 
   measureLineHeightAndDefaultCharWidth: ->
-    @measureLineHeightAndDefaultCharWidthWhenShown = false
     @refs.lines.measureLineHeightAndDefaultCharWidth()
 
   remeasureCharacterWidthsIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
-      if @state.visible
+      if @visible
         @remeasureCharacterWidths()
       else
         @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @state.visible
+    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @visible
       @remeasureCharacterWidthsIfVisibleAfterNextUpdate = false
       @remeasureCharacterWidths()
 
@@ -805,6 +838,7 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   measureScrollbars: ->
+    return unless @visible
     @measuringScrollbars = false
 
     {editor} = @props
@@ -860,12 +894,6 @@ EditorComponent = React.createClass
         return parseInt(screenRow)
       node = node.parentNode
     null
-
-  hide: ->
-    @setState(visible: false)
-
-  show: ->
-    @setState(visible: true)
 
   getFontSize: ->
     @state.fontSize
@@ -939,6 +967,10 @@ EditorComponent = React.createClass
   updateParentViewFocusedClassIfNeeded: (prevState) ->
     if prevState.focused isnt @state.focused
       @props.parentView.toggleClass('is-focused', @props.focused)
+
+  updateParentViewMiniClassIfNeeded: (prevProps) ->
+    if prevProps.mini isnt @props.mini
+      @props.parentView.toggleClass('mini', @props.mini)
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'

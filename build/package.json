@@ -14,8 +14,8 @@
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "git+https://github.com/atom/grunt-coffeelint.git",
-    "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-coffee": "~0.9.0",
+    "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.8.0",
     "grunt-download-atom-shell": "~0.8.0",
@@ -27,15 +27,15 @@
     "json-front-matter": "~0.1.3",
     "legal-eagle": "~0.4.0",
     "minidump": "~0.7",
-    "read-package-json": "1.1.8",
     "normalize-package-data": "0.2.12",
+    "npm": "~1.4.5",
     "rcedit": "~0.1.2",
+    "read-package-json": "1.1.8",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "runas": "0.5.x",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
-    "vm-compatibility-layer": "~0.1.0",
-    "npm": "~1.4.5"
+    "vm-compatibility-layer": "~0.1.0"
   }
 }
