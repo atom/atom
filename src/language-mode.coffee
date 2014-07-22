@@ -293,7 +293,7 @@ class LanguageMode
     return unless increaseIndentRegex and decreaseIndentRegex
 
     line = @buffer.lineForRow(bufferRow)
-    return unless decreaseIndentRegex.test(line)
+    return unless decreaseIndentRegex.testSync(line)
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return if currentIndentLevel is 0
@@ -302,7 +302,7 @@ class LanguageMode
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel -= 1 unless increaseIndentRegex.test(precedingLine)
+    desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
