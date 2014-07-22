@@ -79,8 +79,11 @@ module.exports = (grunt) ->
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
 
-      '.travis.yml'
+      '.DS_Store'
+      '.jshintrc'
       '.npmignore'
+      '.pairs'
+      '.travis.yml'
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
