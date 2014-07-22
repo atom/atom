@@ -1565,7 +1565,27 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
-      expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
+      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
+
+    it "updates the position and width of the horizontal scrollbar when editor.showLineNumbers is toggled", ->
+      componentNode.style.width = 10 * charWidth + 'px'
+      component.measureHeightAndWidth()
+      runSetImmediateCallbacks()
+
+      gutterNode = componentNode.querySelector('.gutter')
+      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
+
+      atom.config.set("editor.showLineNumbers", false)
+      gutterNode = componentNode.querySelector('.gutter')
+      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.style.left).toBe '0px'
+
+      atom.config.set("editor.showLineNumbers", true)
+      gutterNode = componentNode.querySelector('.gutter')
+      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
 
   describe "mousewheel events", ->
     beforeEach ->
