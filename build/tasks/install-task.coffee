@@ -10,6 +10,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'install', 'Install the built application', ->
     installDir = grunt.config.get('atom.installDir')
     shellAppDir = grunt.config.get('atom.shellAppDir')
+
     if process.platform is 'win32'
       runas ?= require 'runas'
       copyFolder = path.resolve 'script', 'copy-folder.cmd'
