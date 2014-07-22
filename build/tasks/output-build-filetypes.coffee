@@ -11,7 +11,11 @@ module.exports = (grunt) ->
       types[extension]++
 
     extensions = Object.keys(types).sort (extension1, extension2) ->
-      types[extension2] - types[extension1]
+      diff = types[extension2] - types[extension1]
+      if diff is 0
+        extension1.toLowerCase().localeCompare(extension2.toLowerCase())
+      else
+        diff
 
     extensions.forEach (extension) ->
       grunt.log.error "#{extension}: #{types[extension]}"
