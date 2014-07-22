@@ -52,6 +52,9 @@ module.exports = (grunt) ->
       path.join('npm', 'doc')
       path.join('npm', 'html')
       path.join('npm', 'man')
+      path.join('npm', 'node_modules', '.bin', 'beep')
+      path.join('npm', 'node_modules', '.bin', 'clear')
+      path.join('npm', 'node_modules', '.bin', 'starwars')
       path.join('pegjs', 'examples')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
@@ -71,8 +74,10 @@ module.exports = (grunt) ->
       # These are only require in dev mode when the grammar isn't precompiled
       path.join('atom-keymap', 'node_modules', 'loophole')
       path.join('atom-keymap', 'node_modules', 'pegjs')
+      path.join('atom-keymap', 'node_modules', '.bin', 'pegjs')
       path.join('snippets', 'node_modules', 'loophole')
       path.join('snippets', 'node_modules', 'pegjs')
+      path.join('snippets', 'node_modules', '.bin', 'pegjs')
 
       '.travis.yml'
       '.npmignore'
