@@ -40,7 +40,7 @@ module.exports = (grunt) ->
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   installDir = grunt.option('install-dir')
-  atomShellDownloadDir = path.join(os.tmpdir(), 'atom-cached-atom-shells')
+  atomShellDownloadDir = path.join(tmpDir, 'atom-cached-atom-shells')
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
   if process.platform is 'win32'
