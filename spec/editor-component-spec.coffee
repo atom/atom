@@ -1578,11 +1578,13 @@ describe "EditorComponent", ->
       expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
 
       atom.config.set("editor.showLineNumbers", false)
+      runSetImmediateCallbacks()
       gutterNode = componentNode.querySelector('.gutter')
       expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
       expect(horizontalScrollbarNode.style.left).toBe '0px'
 
       atom.config.set("editor.showLineNumbers", true)
+      runSetImmediateCallbacks()
       gutterNode = componentNode.querySelector('.gutter')
       expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
       expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'

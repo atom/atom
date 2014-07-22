@@ -24,6 +24,7 @@ EditorComponent = React.createClass
 
   visible: false
   autoHeight: false
+  gutterWidth: 0
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -49,7 +50,7 @@ EditorComponent = React.createClass
   domPollingPaused: false
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible, gutterWidth} = @state
+    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles and not mini then @state.invisibles else {}
@@ -137,7 +138,7 @@ EditorComponent = React.createClass
         className: 'horizontal-scrollbar'
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
-        gutterWidth: gutterWidth
+        gutterWidth: @gutterWidth
         scrollLeft: scrollLeft
         scrollWidth: scrollWidth
         visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
@@ -157,8 +158,7 @@ EditorComponent = React.createClass
     {editor} = @props
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
 
-  getInitialState: ->
-    gutterWidth: 0
+  getInitialState: -> {}
 
   getDefaultProps: ->
     cursorBlinkPeriod: 800
@@ -213,9 +213,7 @@ EditorComponent = React.createClass
       @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
       @remeasureCharacterWidthsIfNeeded(prevState)
 
-    if @gutterVisibilityChanged and @visible
-      @gutterVisibilityChanged = false
-      @measureGutter()
+    @measureGutterIfNeeded()
 
   performInitialMeasurement: ->
     @updatesPaused = true
@@ -785,12 +783,6 @@ EditorComponent = React.createClass
       @heightAndWidthMeasurementRequested = false
       @measureHeightAndWidth()
 
-  measureGutter: ->
-    if @refs.gutter?
-      @refs.gutter?.measureWidth()
-    else
-      @onGutterWidthChanged(0)
-
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
   # and use the scrollHeight / scrollWidth as its height and width in
@@ -847,7 +839,21 @@ EditorComponent = React.createClass
     @refs.lines.remeasureCharacterWidths()
 
   onGutterWidthChanged: (gutterWidth) ->
-    @setState({gutterWidth})
+    if gutterWidth isnt @gutterWidth
+      @gutterWidth = gutterWidth
+      @requestUpdate()
+
+  measureGutterIfNeeded: ->
+    if @visible and @measureGutterWhenEditorIsVisible
+      @measureGutterWhenEditorIsVisible = false
+      @measureGutter()
+
+  measureGutter: ->
+    if @state.showLineNumbers
+      @refs.gutter.measureWidth()
+    else
+      @gutterWidth = 0
+      @requestUpdate()
 
   measureScrollbars: ->
     return unless @visible
@@ -945,7 +951,7 @@ EditorComponent = React.createClass
     @setState({showInvisibles})
 
   setShowLineNumbers: (showLineNumbers) ->
-    @gutterVisibilityChanged = true
+    @measureGutterWhenEditorIsVisible = true
     @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
