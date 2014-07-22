@@ -72,7 +72,7 @@ class LanguageMode
         blank = line?.match(/^\s*$/)
 
         allBlank = false unless blank
-        allBlankOrCommented = false unless blank or commentStartRegex.test(line)
+        allBlankOrCommented = false unless blank or commentStartRegex.testSync(line)
 
       shouldUncomment = allBlankOrCommented and not allBlank
 
