@@ -71,7 +71,7 @@ class WorkspaceView extends View
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
     destroyEmptyPanes: true
-    useReactEditor: false
+    useReactEditor: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
