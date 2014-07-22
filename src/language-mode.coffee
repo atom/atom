@@ -43,12 +43,12 @@ class LanguageMode
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
 
     if commentEndString
-      shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
+      shouldUncomment = commentStartRegex.testSync(buffer.lineForRow(start))
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
-        startMatch =  commentStartRegex.search(buffer.lineForRow(start))
-        endMatch = commentEndRegex.search(buffer.lineForRow(end))
+        startMatch =  commentStartRegex.searchSync(buffer.lineForRow(start))
+        endMatch = commentEndRegex.searchSync(buffer.lineForRow(end))
         if startMatch and endMatch
           buffer.transact ->
             columnStart = startMatch[1].length
@@ -78,7 +78,7 @@ class LanguageMode
 
       if shouldUncomment
         for row in [start..end]
-          if match = commentStartRegex.search(buffer.lineForRow(row))
+          if match = commentStartRegex.searchSync(buffer.lineForRow(row))
             columnStart = match[1].length
             columnEnd = columnStart + match[2].length
             buffer.setTextInRange([[row, columnStart], [row, columnEnd]], "")
@@ -168,7 +168,7 @@ class LanguageMode
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.search(@editor.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.searchSync(@editor.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -250,10 +250,10 @@ class LanguageMode
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
+    desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
 
     Math.max(desiredIndentLevel, 0)
 
