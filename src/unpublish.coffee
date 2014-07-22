@@ -5,6 +5,7 @@ optimist = require 'optimist'
 
 auth = require './auth'
 Command = require './command'
+config = require './config'
 fs = require './fs'
 request = require './request'
 
@@ -41,7 +42,7 @@ class Unpublish extends Command
         return
 
       options =
-        uri: "https://atom.io/api/packages/#{packageName}"
+        uri: "#{config.getAtomPackagesUrl()}/#{packageName}"
         headers:
           authorization: token
         json: true
@@ -75,7 +76,6 @@ class Unpublish extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-
     [name] = options.argv._
 
     atIndex = name?.indexOf('@')
