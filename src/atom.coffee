@@ -110,11 +110,6 @@ class Atom extends Model
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-
-  # Determine whether the current version is an official release.
-  @isReleasedVersion: ->
-    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
-
   workspaceViewParentSelector: 'body'
 
   # Call .loadOrCreate instead
@@ -504,7 +499,7 @@ class Atom extends Model
 
   # Public: Determine whether the current version is an official release.
   isReleasedVersion: ->
-    @constructor.isReleasedVersion()
+    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
   # Public: Get the directory path to Atom's configuration area.
   #
