@@ -69,7 +69,7 @@ class Unpublish extends Command
     prompt.question "Are you sure you want to unpublish #{packageLabel}? (yes) ", (answer) =>
       prompt.close()
       answer = if answer then answer.trim().toLowerCase() else 'yes'
-      if answer is 'y' or answer is 'yes'
+      if answer in ['y', 'yes']
         @unpublishPackage(packageName, packageVersion, callback)
 
   run: (options) ->
