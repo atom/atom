@@ -27,6 +27,10 @@ All requests that take parameters require `application/json`.
 
 #### GET /api/packages
 
+Parameters:
+
+- **page** (optional)
+
 Returns a list of all packages in the following format:
 ```json
   [
@@ -42,6 +46,15 @@ Returns a list of all packages in the following format:
     },
     ...
   ]
+```
+
+Results are paginated 30 at a time, and links to the next and last pages are
+provided in the `Link` header:
+
+```
+Link: <https://www.atom.io/api/packages?page=1>; rel="self",
+      <https://www.atom.io/api/packages?page=41>; rel="last",
+      <https://www.atom.io/api/packages?page=2>; rel="next"
 ```
 
 ### Showing package details
