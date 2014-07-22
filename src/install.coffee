@@ -27,6 +27,7 @@ class Install extends Command
     options.usage """
 
       Usage: apm install [<package_name>...]
+             apm install <package_name>@<package_version>
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
