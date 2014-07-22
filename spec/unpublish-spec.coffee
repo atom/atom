@@ -28,7 +28,6 @@ describe 'apm unpublish', ->
 
     process.env.ATOM_HOME = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_API_URL = "http://localhost:3000"
-    process.env.ATOM_PACKAGES_URL = "http://localhost:3000/packages"
 
   afterEach ->
     server.close()
