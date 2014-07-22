@@ -63,11 +63,11 @@ GutterComponent = React.createClass
       @updateDummyLineNumber()
       @removeLineNumberNodes()
 
-    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
-      @measureWidth()
-
     @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
+
+    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
+      @measureWidth()
 
   clearScreenRowCaches: ->
     @lineNumberIdsByScreenRow = {}

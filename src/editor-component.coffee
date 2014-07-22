@@ -138,8 +138,9 @@ EditorComponent = React.createClass
         className: 'horizontal-scrollbar'
         orientation: 'horizontal'
         onScroll: @onHorizontalScroll
+        gutterWidth: @gutterWidth
         scrollLeft: scrollLeft
-        scrollWidth: scrollWidth + @gutterWidth
+        scrollWidth: scrollWidth
         visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
         scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
@@ -668,6 +669,7 @@ EditorComponent = React.createClass
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
+    @refs.gutter.measureWidth()
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
     @requestUpdate() if @visible
