@@ -2,13 +2,16 @@ fs = require 'fs'
 path = require 'path'
 _ = require 'underscore-plus'
 
-fillTemplate = (filePath, data) ->
-  template = _.template(String(fs.readFileSync(filePath + '.in')))
-  filled = template(data)
-  fs.writeFileSync(filePath, filled)
-
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
+
+  fillTemplate = (filePath, data) ->
+    template = _.template(String(fs.readFileSync("#{filePath}.in")))
+    filled = template(data)
+
+    outputPath = path.join(grunt.config.get('atom.buildDir'), path.basename(filePath))
+    grunt.file.write(outputPath, filled)
+    outputPath
 
   grunt.registerTask 'mkdeb', 'Create debian package', ->
     done = @async()
@@ -27,13 +30,11 @@ module.exports = (grunt) ->
     iconName = 'atom'
     data = {name, version, description, section, arch, maintainer, installDir, iconName}
 
-    control = path.join('resources', 'linux', 'debian', 'control')
-    fillTemplate(control, data)
-    desktop = path.join('resources', 'linux', 'Atom.desktop')
-    fillTemplate(desktop, data)
+    controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
+    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
     icon = path.join('resources', 'atom.png')
     buildDir = grunt.config.get('atom.buildDir')
 
     cmd = path.join('script', 'mkdeb')
-    args = [version, arch, control, desktop, icon, buildDir]
+    args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
     spawn({cmd, args}, done)
