@@ -2652,7 +2652,6 @@ describe "EditorView", ->
             expect(editor.getCursorBufferPosition()).toEqual [0, 0]
             expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
             expect(buffer.lineForRow(13)).toBe 'var a = function() {'
-            editor.logScreenLines()
             expect(editor.isFoldedAtBufferRow(0)).toBe true
             expect(editor.isFoldedAtBufferRow(13)).toBe true
 
