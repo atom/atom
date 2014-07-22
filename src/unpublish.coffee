@@ -20,8 +20,7 @@ class Unpublish extends Command
       Usage: apm unpublish [<package_name>]
              apm unpublish <package_name>@<package_version>
 
-      Remove a published package from the atom.io registry or unpublish a given
-      version of a package.
+      Remove a published package or package version from the atom.io registry.
 
       The package in the current working directory will be used if no package
       name is specified.
