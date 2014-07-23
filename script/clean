@@ -24,6 +24,7 @@ var commands = [
   [home, '.atom', 'storage'],
   [home, '.atom', '.npm'],
   [home, '.atom', 'compile-cache'],
+  [home, '.atom', 'atom-shell'],
   [tmpdir, 'atom-build'],
   [tmpdir, 'atom-cached-atom-shells'],
 ];

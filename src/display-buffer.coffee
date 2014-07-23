@@ -356,8 +356,10 @@ class DisplayBuffer extends Model
       if editorWidthInChars isnt previousWidthInChars and @softWrap
         @updateWrappedScreenLines()
 
+  # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
-    width = @getWidth()
+    width = @width ? @getScrollWidth()
+    width -= @getVerticalScrollbarWidth()
     if width? and @defaultCharWidth > 0
       Math.floor(width / @defaultCharWidth)
     else
