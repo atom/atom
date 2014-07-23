@@ -78,9 +78,9 @@ class Unpublish extends Command
     [name] = options.argv._
 
     atIndex = name?.indexOf('@')
-    if atIndex > 0
+    if atIndex isnt -1
       version = name.substring(atIndex + 1)
-      name = name.substring(0, atIndex)
+      name = null
 
     unless name
       try
