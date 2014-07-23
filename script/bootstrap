@@ -77,7 +77,7 @@ function bootstrap() {
     moduleInstallCommand,
     dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
     {
-      command: dedupeNpmCommand + ' request',
+      command: dedupeNpmCommand + ' request node-gyp semver',
       options: {
         cwd: path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager')
       }
