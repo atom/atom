@@ -66,9 +66,6 @@ GutterComponent = React.createClass
     @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
 
-    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits', 'defaultCharWidth')
-      @measureWidth()
-
   clearScreenRowCaches: ->
     @lineNumberIdsByScreenRow = {}
     @screenRowsByLineNumberId = {}
@@ -223,9 +220,3 @@ GutterComponent = React.createClass
         editor.unfoldBufferRow(bufferRow)
       else
         editor.foldBufferRow(bufferRow)
-
-  measureWidth: ->
-    width = @getDOMNode().offsetWidth
-    unless width is @measuredWidth
-      @measuredWidth = width
-      @props.onWidthChanged?(width)

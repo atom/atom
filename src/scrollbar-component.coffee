@@ -7,7 +7,7 @@ ScrollbarComponent = React.createClass
   displayName: 'ScrollbarComponent'
 
   render: ->
-    {orientation, className, scrollHeight, scrollWidth, gutterWidth, visible} = @props
+    {orientation, className, scrollHeight, scrollWidth, visible} = @props
     {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
 
     style = {}
@@ -17,9 +17,9 @@ ScrollbarComponent = React.createClass
         style.width = verticalScrollbarWidth
         style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
       when 'horizontal'
-        style.height = horizontalScrollbarHeight
+        style.left = 0
         style.right = verticalScrollbarWidth if scrollableInOppositeDirection
-        style.left = gutterWidth
+        style.height = horizontalScrollbarHeight
 
     div {className, style, @onScroll},
       switch orientation
@@ -41,7 +41,7 @@ ScrollbarComponent = React.createClass
       when 'vertical'
         not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection')
       when 'horizontal'
-        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'gutterWidth', 'scrollableInOppositeDirection')
+        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection')
 
   componentDidUpdate: ->
     {orientation, scrollTop, scrollLeft} = @props

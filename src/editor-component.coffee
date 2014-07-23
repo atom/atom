@@ -24,7 +24,6 @@ EditorComponent = React.createClass
 
   visible: false
   autoHeight: false
-  gutterWidth: 0
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -94,8 +93,8 @@ EditorComponent = React.createClass
     div {className, style, tabIndex: -1},
       if not mini and showLineNumbers
         GutterComponent {
-          ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
-          lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+          ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
+          defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @useHardwareAcceleration
         }
 
@@ -121,6 +120,18 @@ EditorComponent = React.createClass
           placeholderText, @performedInitialMeasurement
         }
 
+        ScrollbarComponent
+          ref: 'horizontalScrollbar'
+          className: 'horizontal-scrollbar'
+          orientation: 'horizontal'
+          onScroll: @onHorizontalScroll
+          scrollLeft: scrollLeft
+          scrollWidth: scrollWidth
+          visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+          scrollableInOppositeDirection: verticallyScrollable
+          verticalScrollbarWidth: verticalScrollbarWidth
+          horizontalScrollbarHeight: horizontalScrollbarHeight
+
       ScrollbarComponent
         ref: 'verticalScrollbar'
         className: 'vertical-scrollbar'
@@ -130,19 +141,6 @@ EditorComponent = React.createClass
         scrollHeight: scrollHeight
         visible: verticallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
         scrollableInOppositeDirection: horizontallyScrollable
-        verticalScrollbarWidth: verticalScrollbarWidth
-        horizontalScrollbarHeight: horizontalScrollbarHeight
-
-      ScrollbarComponent
-        ref: 'horizontalScrollbar'
-        className: 'horizontal-scrollbar'
-        orientation: 'horizontal'
-        onScroll: @onHorizontalScroll
-        gutterWidth: @gutterWidth
-        scrollLeft: scrollLeft
-        scrollWidth: scrollWidth
-        visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
-        scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
 
@@ -212,8 +210,6 @@ EditorComponent = React.createClass
       @measureScrollbars() if @measuringScrollbars
       @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
       @remeasureCharacterWidthsIfNeeded(prevState)
-
-    @measureGutterIfNeeded()
 
   performInitialMeasurement: ->
     @updatesPaused = true
@@ -671,7 +667,6 @@ EditorComponent = React.createClass
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
-    @measureGutter()
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
     @requestUpdate() if @visible
@@ -838,23 +833,6 @@ EditorComponent = React.createClass
   remeasureCharacterWidths: ->
     @refs.lines.remeasureCharacterWidths()
 
-  onGutterWidthChanged: (gutterWidth) ->
-    if gutterWidth isnt @gutterWidth
-      @gutterWidth = gutterWidth
-      @requestUpdate()
-
-  measureGutterIfNeeded: ->
-    if @visible and @measureGutterWhenEditorIsVisible
-      @measureGutterWhenEditorIsVisible = false
-      @measureGutter()
-
-  measureGutter: ->
-    if @state.showLineNumbers
-      @refs.gutter.measureWidth()
-    else
-      @gutterWidth = 0
-      @requestUpdate()
-
   measureScrollbars: ->
     return unless @visible
     @measuringScrollbars = false
@@ -951,7 +929,6 @@ EditorComponent = React.createClass
     @setState({showInvisibles})
 
   setShowLineNumbers: (showLineNumbers) ->
-    @measureGutterWhenEditorIsVisible = true
     @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
