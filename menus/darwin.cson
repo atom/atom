@@ -37,7 +37,7 @@
       { label: 'Save As...', command: 'core:save-as' }
       { label: 'Save All', command: 'window:save-all' }
       { type: 'separator' }
-      { label: 'Close Buffer', command: 'core:close' }
+      { label: 'Close Tab', command: 'core:close' }
       { label: 'Close Pane', command: 'pane:close' }
       { label: 'Close Window', command: 'window:close' }
     ]
