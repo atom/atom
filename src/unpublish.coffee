@@ -80,7 +80,7 @@ class Unpublish extends Command
     atIndex = name?.indexOf('@')
     if atIndex isnt -1
       version = name.substring(atIndex + 1)
-      name = null
+      name = name.substring(0, atIndex)
 
     unless name
       try
