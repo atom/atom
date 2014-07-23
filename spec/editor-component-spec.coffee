@@ -192,6 +192,10 @@ describe "EditorComponent", ->
       for lineNode in lineNodes
         expect(lineNode.style.width).toBe scrollViewWidth + 'px'
 
+    it "renders an nbsp on empty lines when no line-ending character is defined", ->
+      atom.config.set("editor.showInvisibles", false)
+      expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
@@ -232,7 +236,15 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
       it "renders invisible line-ending characters on empty lines", ->
-        expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp + invisibles.eol
+        expect(component.lineNodeForScreenRow(10).textContent).toBe invisibles.eol
+
+      it "renders an nbsp on empty lines when the line-ending character is an empty string", ->
+        atom.config.set("editor.invisibles", eol: '')
+        expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
+
+      it "renders an nbsp on empty lines when no line-ending character is defined", ->
+        atom.config.set("editor.invisibles", eol: null)
+        expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
         component.setShowIndentGuide(true)
