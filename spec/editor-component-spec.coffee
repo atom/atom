@@ -7,7 +7,7 @@ nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
   [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
-  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame, runSetImmediateCallbacks, lineOverdrawMargin] = []
+  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame, runSetImmediateCallbacks, hasSetImmediateCallbacks, lineOverdrawMargin] = []
 
   beforeEach ->
     lineOverdrawMargin = 2
@@ -40,6 +40,9 @@ describe "EditorComponent", ->
           fns = setImmediateFns.slice()
           setImmediateFns.length = 0
           fn() for fn in fns
+
+      hasSetImmediateCallbacks = ->
+        setImmediateFns.length isnt 0
 
       spyOn(window, 'setImmediate').andCallFake (fn) -> setImmediateFns.push(fn)
 
@@ -281,7 +284,6 @@ describe "EditorComponent", ->
     describe "when indent guides are enabled", ->
       beforeEach ->
         component.setShowIndentGuide(true)
-        runSetImmediateCallbacks()
 
       it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -358,7 +360,6 @@ describe "EditorComponent", ->
     describe "when indent guides are disabled", ->
       beforeEach ->
         component.setShowIndentGuide(false)
-        runSetImmediateCallbacks()
 
       it "does not render indent guides on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
@@ -575,7 +576,7 @@ describe "EditorComponent", ->
         it "does not fold when the line number componentNode is clicked", ->
           lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
-          runSetImmediateCallbacks()
+          expect(hasSetImmediateCallbacks()).toBe false
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
   describe "cursor rendering", ->
@@ -1416,7 +1417,6 @@ describe "EditorComponent", ->
     beforeEach ->
       cursor = editor.getCursor()
       cursor.setScreenPosition([0, 0])
-      runSetImmediateCallbacks()
 
     it "adds the 'has-selection' class to the editor when there is a selection", ->
       expect(componentNode.classList.contains('has-selection')).toBe false
@@ -1577,7 +1577,8 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
       runSetImmediateCallbacks()
 
-      expect(horizontalScrollbarNode.scrollWidth).toBe gutterNode.offsetWidth + editor.getScrollWidth()
+      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.style.left).toBe '0px'
 
   describe "mousewheel events", ->
     beforeEach ->
@@ -1663,7 +1664,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        runSetImmediateCallbacks()
+        expect(hasSetImmediateCallbacks()).toBe false
 
         expect(editor.getScrollTop()).toBe 0
 
@@ -1680,7 +1681,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        runSetImmediateCallbacks()
+        expect(hasSetImmediateCallbacks()).toBe false
 
         expect(component.mouseWheelScreenRow).toBe 0
         editor.insertText("hello")
@@ -1778,7 +1779,7 @@ describe "EditorComponent", ->
     it "does not handle input events when input is disabled", ->
       component.setInputEnabled(false)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
-      runSetImmediateCallbacks()
+      expect(hasSetImmediateCallbacks()).toBe false
       expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
     describe "when IME composition is used to insert international characters", ->
@@ -1896,7 +1897,6 @@ describe "EditorComponent", ->
 
         hiddenParent.style.display = 'block'
         advanceClock(component.domPollingInterval)
-        runSetImmediateCallbacks()
 
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
 
@@ -1906,7 +1906,6 @@ describe "EditorComponent", ->
         initialLineHeightInPixels = editor.getLineHeightInPixels()
 
         component.setLineHeight(2)
-        runSetImmediateCallbacks()
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
 
         wrapperView.show()
@@ -1919,7 +1918,6 @@ describe "EditorComponent", ->
         initialCharWidth = editor.getDefaultCharWidth()
 
         component.setFontSize(22)
-        runSetImmediateCallbacks()
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
@@ -1931,7 +1929,6 @@ describe "EditorComponent", ->
         wrapperView.hide()
 
         component.setFontSize(22)
-        runSetImmediateCallbacks()
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
@@ -1948,7 +1945,6 @@ describe "EditorComponent", ->
         initialCharWidth = editor.getDefaultCharWidth()
 
         component.setFontFamily('sans-serif')
-        runSetImmediateCallbacks()
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
@@ -1958,7 +1954,6 @@ describe "EditorComponent", ->
         wrapperView.hide()
 
         component.setFontFamily('sans-serif')
-        runSetImmediateCallbacks()
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])

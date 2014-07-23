@@ -17,8 +17,9 @@ ScrollbarComponent = React.createClass
         style.width = verticalScrollbarWidth
         style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
       when 'horizontal'
-        style.height = horizontalScrollbarHeight
+        style.left = 0
         style.right = verticalScrollbarWidth if scrollableInOppositeDirection
+        style.height = horizontalScrollbarHeight
 
     div {className, style, @onScroll},
       switch orientation

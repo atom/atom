@@ -34,7 +34,6 @@ EditorComponent = React.createClass
   selectionChanged: false
   selectionAdded: false
   scrollingVertically: false
-  gutterWidth: 0
   refreshingScrollbars: false
   measuringScrollbars: true
   mouseWheelScreenRow: null
@@ -94,8 +93,8 @@ EditorComponent = React.createClass
     div {className, style, tabIndex: -1},
       if not mini and showLineNumbers
         GutterComponent {
-          ref: 'gutter', onMouseDown: @onGutterMouseDown, onWidthChanged: @onGutterWidthChanged,
-          lineDecorations, defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
+          ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
+          defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @useHardwareAcceleration
         }
 
@@ -121,6 +120,18 @@ EditorComponent = React.createClass
           placeholderText, @performedInitialMeasurement
         }
 
+        ScrollbarComponent
+          ref: 'horizontalScrollbar'
+          className: 'horizontal-scrollbar'
+          orientation: 'horizontal'
+          onScroll: @onHorizontalScroll
+          scrollLeft: scrollLeft
+          scrollWidth: scrollWidth
+          visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+          scrollableInOppositeDirection: verticallyScrollable
+          verticalScrollbarWidth: verticalScrollbarWidth
+          horizontalScrollbarHeight: horizontalScrollbarHeight
+
       ScrollbarComponent
         ref: 'verticalScrollbar'
         className: 'vertical-scrollbar'
@@ -130,18 +141,6 @@ EditorComponent = React.createClass
         scrollHeight: scrollHeight
         visible: verticallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
         scrollableInOppositeDirection: horizontallyScrollable
-        verticalScrollbarWidth: verticalScrollbarWidth
-        horizontalScrollbarHeight: horizontalScrollbarHeight
-
-      ScrollbarComponent
-        ref: 'horizontalScrollbar'
-        className: 'horizontal-scrollbar'
-        orientation: 'horizontal'
-        onScroll: @onHorizontalScroll
-        scrollLeft: scrollLeft
-        scrollWidth: scrollWidth + @gutterWidth
-        visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
-        scrollableInOppositeDirection: verticallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
 
@@ -833,9 +832,6 @@ EditorComponent = React.createClass
 
   remeasureCharacterWidths: ->
     @refs.lines.remeasureCharacterWidths()
-
-  onGutterWidthChanged: (@gutterWidth) ->
-    @requestUpdate()
 
   measureScrollbars: ->
     return unless @visible
