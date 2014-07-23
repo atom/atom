@@ -1067,9 +1067,11 @@ class Editor extends Model
   # All the changes made inside the given {Function} can be reverted with a
   # single call to {::undo}.
   #
-  # fn - A {Function} that will be called with each {Selection}.
+  # fn - A {Function} that will be called once for each {Selection}. The first
+  #      argument will be a {Selection} and the second argument will be the
+  #      {Number} index of that selection.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection,index) for selection,index in @getSelections()
+    @transact => fn(selection, index) for selection, index in @getSelections()
 
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
