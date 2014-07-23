@@ -1566,57 +1566,7 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
 
       expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
-
-    it "updates the position and width of the horizontal scrollbar when editor.showLineNumbers is toggled", ->
-      componentNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
-
-      gutterNode = componentNode.querySelector('.gutter')
-      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
-      expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
-
-      atom.config.set("editor.showLineNumbers", false)
-      runSetImmediateCallbacks()
-      gutterNode = componentNode.querySelector('.gutter')
-      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
       expect(horizontalScrollbarNode.style.left).toBe '0px'
-
-      atom.config.set("editor.showLineNumbers", true)
-      runSetImmediateCallbacks()
-      gutterNode = componentNode.querySelector('.gutter')
-      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
-      expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
-
-    describe "when the editor is hidden", ->
-      hideEditorView = ->
-        wrapperNode.style.display = 'none'
-        expect(component.isVisible()).toBe false
-
-      showEditorView = ->
-        wrapperNode.style.display = 'block'
-        expect(component.isVisible()).toBe true
-
-      it "updates the position of the horizontal scrollbar only when the editor is visible", ->
-        # toggling gutter off
-        hideEditorView()
-        atom.config.set("editor.showLineNumbers", false)
-
-        showEditorView()
-        component.forceUpdate()
-        runSetImmediateCallbacks()
-        gutterNode = componentNode.querySelector('.gutter')
-        expect(horizontalScrollbarNode.style.left).toBe '0px'
-
-        # toggling gutter back on
-        hideEditorView()
-        atom.config.set("editor.showLineNumbers", true)
-
-        showEditorView()
-        component.forceUpdate()
-        runSetImmediateCallbacks()
-        gutterNode = componentNode.querySelector('.gutter')
-        expect(horizontalScrollbarNode.style.left).toBe gutterNode.offsetWidth + 'px'
 
   describe "mousewheel events", ->
     beforeEach ->
