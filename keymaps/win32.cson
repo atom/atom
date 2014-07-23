@@ -93,6 +93,7 @@
   'ctrl-alt-shift-p': 'editor:log-cursor-scope'
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
+  'alt-t': 'editor:transpose'
 
 '.workspace .editor:not(.mini)':
   # Atom specific
