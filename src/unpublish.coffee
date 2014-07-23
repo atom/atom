@@ -5,6 +5,7 @@ optimist = require 'optimist'
 
 auth = require './auth'
 Command = require './command'
+config = require './config'
 fs = require './fs'
 request = require './request'
 
@@ -17,16 +18,21 @@ class Unpublish extends Command
 
     options.usage """
       Usage: apm unpublish [<package_name>]
+             apm unpublish <package_name>@<package_version>
 
-      Remove a published package from the atom.io registry. The package in the
-      current working directory will be unpublished if no package name is
-      specified.
+      Remove a published package or package version from the atom.io registry.
+
+      The package in the current working directory will be used if no package
+      name is specified.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('f', 'force').boolean('force').describe('force', 'Do not prompt for confirmation')
 
-  unpublishPackage: (packageName, callback) ->
-    process.stdout.write "Unpublishing #{packageName} "
+  unpublishPackage: (packageName, packageVersion, callback) ->
+    packageLabel = packageName
+    packageLabel += "@#{packageVersion}" if packageVersion
+
+    process.stdout.write "Unpublishing #{packageLabel} "
 
     auth.getToken (error, token) =>
       if error?
@@ -35,10 +41,12 @@ class Unpublish extends Command
         return
 
       options =
-        uri: "https://atom.io/api/packages/#{packageName}"
+        uri: "#{config.getAtomPackagesUrl()}/#{packageName}"
         headers:
           authorization: token
         json: true
+
+      options.uri += "/versions/#{packageVersion}" if packageVersion
 
       request.del options, (error, response, body={}) =>
         if error?
@@ -52,25 +60,36 @@ class Unpublish extends Command
           @logSuccess()
           callback()
 
-  promptForConfirmation: (packageName, callback) ->
+  promptForConfirmation: (packageName, packageVersion, callback) ->
     prompt = readline.createInterface(process.stdin, process.stdout)
-    prompt.question "Are you sure you want to unpublish #{packageName}? (yes) ", (answer) =>
+
+    packageLabel = packageName
+    packageLabel += "@#{packageVersion}" if packageVersion
+
+    prompt.question "Are you sure you want to unpublish #{packageLabel}? (yes) ", (answer) =>
       prompt.close()
       answer = if answer then answer.trim().toLowerCase() else 'yes'
-      if answer is 'y' or answer is 'yes'
-        @unpublishPackage(packageName, callback)
+      if answer in ['y', 'yes']
+        @unpublishPackage(packageName, packageVersion, callback)
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-
     [name] = options.argv._
-    unless name?
+
+    atIndex = name?.indexOf('@')
+    if atIndex isnt -1
+      version = name.substring(atIndex + 1)
+      name = name.substring(0, atIndex)
+
+    unless name
       try
-        {name} = JSON.parse(fs.readFileSync('package.json')) ? {}
-      name ?= path.basename(process.cwd())
+        name = JSON.parse(fs.readFileSync('package.json'))?.name
+
+    unless name
+      name = path.basename(process.cwd())
 
     if options.argv.force
-      @unpublishPackage(name, callback)
+      @unpublishPackage(name, version, callback)
     else
-      @promptForConfirmation(name, callback)
+      @promptForConfirmation(name, version, callback)
