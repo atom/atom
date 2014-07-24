@@ -72,7 +72,6 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus
   # immediately.
   activate: ->
-    @container?.activePane = this
     @emit 'activated'
 
   getPanes: -> [this]
@@ -291,75 +290,3 @@ class Pane extends Model
   copyActiveItem: ->
     if @activeItem?
       @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
-
-  # Public: Creates a new pane to the left of the receiver.
-  #
-  # params - An object with keys:
-  #   :items - An optional array of items with which to construct the new pane.
-  #
-  # Returns the new {Pane}.
-  splitLeft: (params) ->
-    @split('horizontal', 'before', params)
-
-  # Public: Creates a new pane to the right of the receiver.
-  #
-  # params - An object with keys:
-  #   :items - An optional array of items with which to construct the new pane.
-  #
-  # Returns the new {Pane}.
-  splitRight: (params) ->
-    @split('horizontal', 'after', params)
-
-  # Public: Creates a new pane above the receiver.
-  #
-  # params - An object with keys:
-  #   :items - An optional array of items with which to construct the new pane.
-  #
-  # Returns the new {Pane}.
-  splitUp: (params) ->
-    @split('vertical', 'before', params)
-
-  # Public: Creates a new pane below the receiver.
-  #
-  # params - An object with keys:
-  #   :items - An optional array of items with which to construct the new pane.
-  #
-  # Returns the new {Pane}.
-  splitDown: (params) ->
-    @split('vertical', 'after', params)
-
-  split: (orientation, side, params) ->
-    if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
-
-    newPane = new @constructor(params)
-    switch side
-      when 'before' then @parent.insertChildBefore(this, newPane)
-      when 'after' then @parent.insertChildAfter(this, newPane)
-
-    newPane.activate()
-    newPane
-
-  # If the parent is a horizontal axis, returns its first child if it is a pane;
-  # otherwise returns this pane.
-  findLeftmostSibling: ->
-    if @parent.orientation is 'horizontal'
-      [leftmostSibling] = @parent.children
-      if leftmostSibling instanceof PaneAxis
-        this
-      else
-        leftmostSibling
-    else
-      this
-
-  # If the parent is a horizontal axis, returns its last child if it is a pane;
-  # otherwise returns a new pane created by splitting this pane rightward.
-  findOrCreateRightmostSibling: ->
-    if @parent.orientation is 'horizontal'
-      rightmostSibling = last(@parent.children)
-      if rightmostSibling instanceof PaneAxis
-        @splitRight()
-      else
-        rightmostSibling
-    else
-      @splitRight()

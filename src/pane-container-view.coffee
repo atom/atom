@@ -12,46 +12,37 @@ class PaneContainerView extends View
   @delegatesMethod 'saveAll', toProperty: 'model'
 
   @content: ->
-    @div class: 'panes'
+    @div()
 
   initialize: (params) ->
     if params instanceof PaneContainer
       @model = params
     else
-      @model = new PaneContainer({root: params?.root?.model})
+      @model = new PaneContainer()
 
-    @subscribe @model.$root, @onRootChanged
-    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
+    if @model.orientation is 'vertical'
+      @addClass 'pane-row'
+    else
+      @addClass 'pane-column'
+
+    @subscribe @model, 'panes-reordered', => @onPanesReordered()
+
+    @layoutPanes()
 
   viewForModel: (model) ->
     if model?
       viewClass = model.getViewClass()
       model._view ?= new viewClass(model)
 
-  getRoot: ->
-    @children().first().view()
+  onPanesReordered: ->
+    console.log "pane reorder"
+    @children().detach()
+    @layoutPanes()
+    debugger
 
-  onRootChanged: (root) =>
-    focusedElement = document.activeElement if @hasFocus()
-
-    oldRoot = @getRoot()
-    if oldRoot instanceof PaneView and oldRoot.model.isDestroyed()
-      @trigger 'pane:removed', [oldRoot]
-    oldRoot?.detach()
-    if root?
-      view = @viewForModel(root)
-      @append(view)
-      focusedElement?.focus()
-    else
-      atom.workspaceView?.focus() if focusedElement?
-
-  onActivePaneItemChanged: (activeItem) =>
-    @trigger 'pane-container:active-pane-item-changed', [activeItem]
-
-  removeChild: (child) ->
-    throw new Error("Removing non-existant child") unless @getRoot() is child
-    @setRoot(null)
-    @trigger 'pane:removed', [child] if child instanceof PaneView
+  layoutPanes: ->
+    for pane in @model.panes
+      @append(@viewForModel(pane))
 
   confirmClose: ->
     saved = true
@@ -79,10 +70,6 @@ class PaneContainerView extends View
 
   getFocusedPane: ->
     @find('.pane:has(:focus)').view()
-
-  getActivePane: ->
-    deprecate("Use PaneContainerView::getActivePaneView instead.")
-    @getActivePaneView()
 
   getActivePaneView: ->
     @viewForModel(@model.activePane)
@@ -148,6 +135,10 @@ class PaneContainerView extends View
     right: {x: boundingBox.right, y: boundingBox.top}
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
+
+  getActivePane: ->
+    deprecate("Use PaneContainerView::getActivePaneView instead.")
+    @getActivePaneView()
 
   # Deprecated
   getPanes: ->

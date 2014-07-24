@@ -82,9 +82,9 @@ class WorkspaceView extends View
   initialize: (@model) ->
     @model = atom.workspace ? new Workspace unless @model?
 
-    panes = new PaneContainerView(@model.paneContainer)
-    @panes.replaceWith(panes)
-    @panes = panes
+    paneContainerView = new PaneContainerView(@model.paneContainer)
+    @panes.append(paneContainerView)
+    @panes = paneContainerView
 
     @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
 

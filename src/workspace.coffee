@@ -124,8 +124,10 @@ class Workspace extends Model
     pane = @paneContainer.paneForUri(uri) if searchAllPanes
     pane ?= switch split
       when 'left'
+        throw new Error("broken")
         @activePane.findLeftmostSibling()
       when 'right'
+        throw new Error("broken")
         @activePane.findOrCreateRightmostSibling()
       else
         @activePane
@@ -322,3 +324,10 @@ class Workspace extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
+
+  split: (position, params) ->
+    @open().then (editor) ->
+      pane = new Pane(items: [editor])
+      @paneContainer.addPane pane, position
+      pane.activate()
+      pane

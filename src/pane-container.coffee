@@ -8,84 +8,82 @@ class PaneContainer extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @version: 1
-
   @properties
-    root: -> new Pane
     activePane: null
 
-  previousRoot: null
+  @version: 2
 
-  @behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()
-
-  constructor: (params) ->
+  constructor: ({@orientation, panes}={}) ->
     super
-    @subscribe @$root, @onRootChanged
-    @destroyEmptyPanes() if params?.destroyEmptyPanes
+    @panes = []
+    @addPane(pane) for pane in panes ? []
+    @addPane(new Pane()) if @panes.length == 0
+
+    @activePane = @getPanes()[0]
 
   deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root, container: this)
-    params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
-    params.activePane = params.root.getPanes().find (pane) -> pane.id is params.activePaneId
+    params.orientation = params.orientation ? "vertical"
+    # params.activePane = params.panes.find((pane) -> pane.id is params.activePaneId)
+    # @destroyEmptyPanes() if atom.config.get('core.destroyEmptyPanes')
     params
 
   serializeParams: (params) ->
-    root: @root?.serialize()
-    activePaneId: @activePane.id
+    # panes: @panes.map (pane) -> pane.serialize()
+    # activePaneId: @activePane.id
+    params
 
-  replaceChild: (oldChild, newChild) ->
-    throw new Error("Replacing non-existent child") if oldChild isnt @root
-    @root = newChild
+  getViewClass: ->
+    require './pane-container-view'
+
+  addPane: (pane, position) ->
+    switch position
+      when undefined
+        paneOrientation = @orientation
+      when 'top', 'bottom'
+        paneOrientation = 'horizontal'
+      else
+        paneOrientation = 'vertical'
+
+    if paneOrientation == @orientation
+      @panes.push(pane)
+    else
+      @unsubscribe(pane) for pane in @panes
+      wrappedPaneContainer = new PaneContainer({@orientation, @panes})
+      newPaneContainer = new PaneContainer({orientation:paneOrientation, panes:[wrappedPaneContainer, pane]})
+      @panes = []
+      @addPane(newPaneContainer)
+
+    @subscribe pane, 'destroyed', => @onPaneDestroyed(pane)
+    @subscribe pane, 'activated', => @activePane = pane
+    @emit 'panes-reordered'
+
+  onPaneDestroyed: (pane) ->
+    @unsubscribe(pane)
+    paneIndex = @panes.indexOf(pane)
+    return if paneIndex == -1
+    @panes.splice(paneIndex, 1)
 
   getPanes: ->
-    @root?.getPanes() ? []
+    allPanes = []
+    for pane in @panes
+      if pane instanceof PaneContainer
+        allPanes = allPanes.concat(pane.getPanes())
+      else
+        allPanes.push(pane)
+
+    allPanes
 
   getActivePane: ->
     @activePane
+
+  getActivePaneItem: ->
+    @activePane.getActiveItem()
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
-
-  activateNextPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@activePane)
-      nextIndex = (currentIndex + 1) % panes.length
-      panes[nextIndex].activate()
-      true
-    else
-      false
-
-  activatePreviousPane: ->
-    panes = @getPanes()
-    if panes.length > 1
-      currentIndex = panes.indexOf(@activePane)
-      previousIndex = currentIndex - 1
-      previousIndex = panes.length - 1 if previousIndex < 0
-      panes[previousIndex].activate()
-      true
-    else
-      false
-
-  onRootChanged: (root) =>
-    @unsubscribe(@previousRoot) if @previousRoot?
-    @previousRoot = root
-
-    unless root?
-      @activePane = null
-      return
-
-    root.parent = this
-    root.container = this
-
-
-    @activePane ?= root if root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
