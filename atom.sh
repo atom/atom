@@ -69,7 +69,7 @@ elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
   ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
-  DOT_ATOM_DIR = "$HOME/.atom"
+  DOT_ATOM_DIR="$HOME/.atom"
 
   if [ ! -d "$DOT_ATOM_DIR" ]; then
     mkdir -p "$DOT_ATOM_DIR"
