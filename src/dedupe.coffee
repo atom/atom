@@ -17,7 +17,7 @@ class Dedupe extends Command
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
-    @atomNodeGypPath = require.resolve('node-gyp/bin/node-gyp')
+    @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
 
   parseOptions: (argv) ->
     options = optimist(argv)

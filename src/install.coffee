@@ -20,13 +20,14 @@ class Install extends Command
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
-    @atomNodeGypPath = require.resolve('node-gyp/bin/node-gyp')
+    @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
 
   parseOptions: (argv) ->
     options = optimist(argv)
     options.usage """
 
       Usage: apm install [<package_name>...]
+             apm install <package_name>@<package_version>
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
