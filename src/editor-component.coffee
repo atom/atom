@@ -184,12 +184,18 @@ EditorComponent = React.createClass
 
     if @visible = @isVisible()
       @performInitialMeasurement()
+      @forceUpdate()
 
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
     @unsubscribe()
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
+
+  componentWillUpdate: ->
+    wasVisible = @visible
+    @visible = @isVisible()
+    @performInitialMeasurement() if @visible and not wasVisible
 
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
@@ -206,7 +212,6 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
-    @visible = @isVisible()
     if @performedInitialMeasurement
       @measureScrollbars() if @measuringScrollbars
       @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
@@ -220,7 +225,6 @@ EditorComponent = React.createClass
     @props.editor.setVisible(true)
     @updatesPaused = false
     @performedInitialMeasurement = true
-    @requestUpdate()
 
   requestUpdate: ->
     if @updatesPaused
@@ -770,6 +774,7 @@ EditorComponent = React.createClass
         @measureHeightAndWidth()
       else
         @performInitialMeasurement()
+        @forceUpdate()
 
   requestHeightAndWidthMeasurement: ->
     return if @heightAndWidthMeasurementRequested
