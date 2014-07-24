@@ -83,6 +83,10 @@
       }
     }
   }
+
+  .placeholder-text {
+    color: @text-color-subtle;
+  }
 }
 
 .editor {
@@ -279,7 +283,7 @@
   z-index: -1;
 }
 
-.editor.mini {
+.editor.mini:not(.react) {
   height: auto;
   line-height: 25px;
 

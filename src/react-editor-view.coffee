@@ -14,39 +14,23 @@ class ReactEditorView extends View
 
   focusOnAttach: false
 
-  constructor: (editorOrParams, @props) ->
+  constructor: (editorOrParams, props) ->
+    super
+
     if editorOrParams instanceof Editor
       @editor = editorOrParams
     else
       {@editor, mini, placeholderText} = editorOrParams
-      @props ?= {}
-      @props.mini = mini
-      @props.placeholderText = placeholderText
+      props ?= {}
+      props.mini = mini
+      props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
         softWrap: false
         tabLength: 2
         softTabs: true
 
-    super
-
-  getEditor: -> @editor
-
-  getModel: -> @editor
-
-  Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeightInPixels()
-  Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
-  Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
-  Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
-  Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
-
-  afterAttach: (onDom) ->
-    return unless onDom
-    return if @attached
-
-    @attached = true
-    props = defaults({@editor, parentView: this}, @props)
+    props = defaults({@editor, parentView: this}, props)
     @component = React.renderComponent(EditorComponent(props), @element)
 
     node = @component.getDOMNode()
@@ -71,8 +55,23 @@ class ReactEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
-    @focus() if @focusOnAttach
 
+  getEditor: -> @editor
+
+  getModel: -> @editor
+
+  Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeightInPixels()
+  Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
+  Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
+  Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
+  Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
+  Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
+
+  afterAttach: (onDom) ->
+    return unless onDom
+    return if @attached
+    @attached = true
+    @focus() if @focusOnAttach
     @trigger 'editor:attached', [this]
 
   scrollTop: (scrollTop) ->
