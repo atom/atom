@@ -66,7 +66,8 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    {visible, scrollingVertically} = @props
+    {visible, scrollingVertically, performedInitialMeasurement} = @props
+    return unless performedInitialMeasurement
 
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')

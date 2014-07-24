@@ -39,7 +39,7 @@ GutterComponent = React.createClass
 
   componentDidMount: ->
     @appendDummyLineNumber()
-    @updateLineNumbers() if @props.renderedRowRange?
+    @updateLineNumbers() if @props.performedInitialMeasurement
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current
@@ -59,6 +59,8 @@ GutterComponent = React.createClass
     false
 
   componentDidUpdate: (oldProps) ->
+    return unless @props.performedInitialMeasurement
+
     unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
       @updateDummyLineNumber()
       @removeLineNumberNodes()

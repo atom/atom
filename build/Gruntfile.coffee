@@ -96,6 +96,8 @@ module.exports = (grunt) ->
   csonConfig =
     options:
       rootObject: true
+      cachePath: path.join(home, '.atom', 'compile-cache', 'grunt-cson')
+
     glob_to_multiple:
       expand: true
       src: [

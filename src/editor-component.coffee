@@ -95,7 +95,8 @@ EditorComponent = React.createClass
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
-          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow, @useHardwareAcceleration
+          scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
+          @useHardwareAcceleration, @performedInitialMeasurement
         }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
