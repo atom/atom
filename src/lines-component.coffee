@@ -181,7 +181,7 @@ LinesComponent = React.createClass
 
       lineHTML
     else
-      '&nbsp;' + @buildEndOfLineHTML(line, @props.invisibles)
+      @buildEndOfLineHTML(line, @props.invisibles) or '&nbsp;'
 
   buildLineInnerHTML: (line) ->
     {invisibles, mini, showIndentGuide, invisibles} = @props
@@ -204,9 +204,11 @@ LinesComponent = React.createClass
     return '' if @props.mini or line.isSoftWrapped()
 
     html = ''
-    if invisibles.cr? and line.lineEnding is '\r\n'
+    # Note the lack of '?' in the character checks. A user can set the chars
+    # to an empty string which we will interpret as not-set
+    if invisibles.cr and line.lineEnding is '\r\n'
       html += "<span class='invisible-character'>#{invisibles.cr}</span>"
-    if invisibles.eol?
+    if invisibles.eol
       html += "<span class='invisible-character'>#{invisibles.eol}</span>"
 
     html

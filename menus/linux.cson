@@ -14,8 +14,8 @@
       { label: 'Save &As...', command: 'core:save-as' }
       { label: 'Save A&ll', command: 'window:save-all' }
       { type: 'separator' }
-      { label: '&Close Buffer', command: 'core:close' }
-      { label: 'Close All &Buffers', command: 'pane:close' }
+      { label: '&Close Tab', command: 'core:close' }
+      { label: 'Close &Pane', command: 'pane:close' }
       { label: 'Clos&e Window', command: 'window:close' }
       { type: 'separator' }
       { label: 'Quit', command: 'application:quit' }

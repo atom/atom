@@ -41,7 +41,7 @@ module.exports = (grunt) ->
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   installDir = grunt.option('install-dir')
 
-  home = if process.env is 'win32' then process.env.USERPROFILE else process.env.HOME
+  home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
   atomShellDownloadDir = path.join(home, '.atom', 'atom-shell')
 
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')

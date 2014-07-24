@@ -96,6 +96,7 @@
   'ctrl-alt-shift-p': 'editor:log-cursor-scope'
   'ctrl-k ctrl-u': 'editor:upper-case'
   'ctrl-k ctrl-l': 'editor:lower-case'
+  'ctrl-l': 'editor:select-line'
 
 '.workspace .editor:not(.mini)':
   # Atom specific
