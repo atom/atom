@@ -199,6 +199,16 @@ describe "EditorComponent", ->
       atom.config.set("editor.showInvisibles", false)
       expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
+    it "gives the lines div the same background color as the editor to improve GPU performance", ->
+      linesNode = componentNode.querySelector('.lines')
+      backgroundColor = getComputedStyle(wrapperNode).backgroundColor
+      expect(linesNode.style.backgroundColor).toBe backgroundColor
+
+      wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
+      advanceClock(component.domPollingInterval)
+      runSetImmediateCallbacks()
+      expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 

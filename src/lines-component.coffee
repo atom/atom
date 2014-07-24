@@ -19,12 +19,13 @@ LinesComponent = React.createClass
     {performedInitialMeasurement} = @props
 
     if performedInitialMeasurement
-      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText} = @props
+      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: @getTransform()
+        backgroundColor: backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
@@ -50,7 +51,7 @@ LinesComponent = React.createClass
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
-      'placeholderText', 'performedInitialMeasurement'
+      'placeholderText', 'performedInitialMeasurement', 'backgroundColor'
     )
 
     {renderedRowRange, pendingChanges} = newProps

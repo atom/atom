@@ -24,6 +24,7 @@ EditorComponent = React.createClass
 
   visible: false
   autoHeight: false
+  backgroundColor: null
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -118,7 +119,7 @@ EditorComponent = React.createClass
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText, @performedInitialMeasurement
+          placeholderText, @performedInitialMeasurement, @backgroundColor
         }
 
         ScrollbarComponent
@@ -221,6 +222,7 @@ EditorComponent = React.createClass
     @updatesPaused = true
     @measureLineHeightAndDefaultCharWidth()
     @measureHeightAndWidth()
+    @sampleBackgroundColor()
     @measureScrollbars()
     @props.editor.setVisible(true)
     @updatesPaused = false
@@ -772,6 +774,7 @@ EditorComponent = React.createClass
     if @visible = @isVisible()
       if wasVisible
         @measureHeightAndWidth()
+        @sampleBackgroundColor()
       else
         @performInitialMeasurement()
         @forceUpdate()
@@ -812,6 +815,13 @@ EditorComponent = React.createClass
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
     editor.setWidth(clientWidth) if clientWidth > 0
+
+  sampleBackgroundColor: (suppressUpdate) ->
+    {parentView} = @props
+    {backgroundColor} = getComputedStyle(parentView.element)
+    if backgroundColor isnt @backgroundColor
+      @backgroundColor = backgroundColor
+      @requestUpdate() unless suppressUpdate
 
   measureLineHeightAndDefaultCharWidthIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
