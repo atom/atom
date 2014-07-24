@@ -69,6 +69,11 @@ elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
   ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
+  DOT_ATOM_DIR = "$HOME/.atom"
+
+  if [ ! -d "$DOT_ATOM_DIR" ]; then
+    mkdir -p "$DOT_ATOM_DIR"
+  fi
 
   : ${TMPDIR:=/tmp}
 
@@ -79,9 +84,9 @@ elif [ $OS == 'Linux' ]; then
     exit $?
   else
     (
-    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$TMPDIR/atom-nohup.out" 2>&1
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$DOT_ATOM_DIR/nohup.out" 2>&1
     if [ $? -ne 0 ]; then
-      cat "$TMPDIR/atom-nohup.out"
+      cat "$DOT_ATOM_DIR/nohup.out"
       exit $?
     fi
     ) &
