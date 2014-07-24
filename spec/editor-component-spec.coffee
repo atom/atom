@@ -374,12 +374,6 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[2].textContent).toBe '  '
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe false
 
-    getLeafNodes = (node) ->
-      if node.children.length > 0
-        flatten(toArray(node.children).map(getLeafNodes))
-      else
-        [node]
-
     describe "when the buffer contains null bytes", ->
       it "excludes the null byte from character measurement", ->
         editor.setText("a\0b")
@@ -400,6 +394,12 @@ describe "EditorComponent", ->
         runSetImmediateCallbacks()
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
+    getLeafNodes = (node) ->
+      if node.children.length > 0
+        flatten(toArray(node.children).map(getLeafNodes))
+      else
+        [node]
 
   describe "gutter rendering", ->
     [gutter] = []
