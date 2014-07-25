@@ -96,6 +96,8 @@ class Package
     Q.all([@grammarsPromise, @scopedPropertiesPromise, @activationDeferred.promise])
 
   activateNow: ->
+    throw new Error("#{@name}@#{@metadata.version} is not compatible with this version of Atom") unless @isCompatible()
+
     try
       @activateConfig()
       @activateStylesheets()
