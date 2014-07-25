@@ -239,7 +239,7 @@ EditorComponent = React.createClass
       @forceUpdate()
     else unless @updateRequested
       @updateRequested = true
-      setImmediate =>
+      requestAnimationFrame =>
         @updateRequested = false
         @forceUpdate() if @isMounted()
 

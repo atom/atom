@@ -7,7 +7,7 @@ nbsp = String.fromCharCode(160)
 
 describe "EditorComponent", ->
   [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
-  [lineHeightInPixels, charWidth, delayAnimationFrames, nextAnimationFrame, runSetImmediateCallbacks, hasSetImmediateCallbacks, lineOverdrawMargin] = []
+  [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, lineOverdrawMargin] = []
 
   beforeEach ->
     lineOverdrawMargin = 2
@@ -19,33 +19,18 @@ describe "EditorComponent", ->
       spyOn(window, "setInterval").andCallFake window.fakeSetInterval
       spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
-      delayAnimationFrames = false
-      nextAnimationFrame = -> throw new Error('No animation frame requested')
+      noAnimationFrame = -> throw new Error('No animation frame requested')
+      nextAnimationFrame = noAnimationFrame
 
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
-        if delayAnimationFrames
-          nextAnimationFrame = fn
-        else
+        nextAnimationFrame = ->
+          nextAnimationFrame = noAnimationFrame
           fn()
 
     waitsForPromise ->
       atom.project.open('sample.js').then (o) -> editor = o
 
     runs ->
-      setImmediateFns = []
-      runSetImmediateCallbacks = ->
-        if setImmediateFns.length is 0
-          throw new Error("runSetImmediateCallbacks not requested")
-        else
-          fns = setImmediateFns.slice()
-          setImmediateFns.length = 0
-          fn() for fn in fns
-
-      hasSetImmediateCallbacks = ->
-        setImmediateFns.length isnt 0
-
-      spyOn(window, 'setImmediate').andCallFake (fn) -> setImmediateFns.push(fn)
-
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
@@ -65,7 +50,7 @@ describe "EditorComponent", ->
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
   afterEach ->
     contentNode.style.width = ''
@@ -74,7 +59,7 @@ describe "EditorComponent", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
@@ -86,6 +71,7 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
 
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, #{-4.5 * lineHeightInPixels}px, 0px)"
       expect(componentNode.querySelectorAll('.line').length).toBe 6 + 4 # margin above and below
@@ -96,7 +82,7 @@ describe "EditorComponent", ->
 
     it "updates the top position of subsequent lines when lines are inserted or removed", ->
       editor.getBuffer().deleteRows(0, 1)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       lineNodes = componentNode.querySelectorAll('.line')
       expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0
@@ -104,7 +90,7 @@ describe "EditorComponent", ->
       expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
 
       editor.getBuffer().insert([0, 0], '\n\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       lineNodes = componentNode.querySelectorAll('.line')
       expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0 * lineHeightInPixels
@@ -116,23 +102,24 @@ describe "EditorComponent", ->
     it "updates the lines when lines are inserted or removed above the rendered row range", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
       buffer = editor.getBuffer()
 
       buffer.insert([0, 0], '\n\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
 
       buffer.delete([[0, 0], [3, 0]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
 
     it "updates the top position of lines when the line height changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setLineHeight(2)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       newLineHeightInPixels = editor.getLineHeightInPixels()
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
@@ -141,7 +128,7 @@ describe "EditorComponent", ->
     it "updates the top position of lines when the font size changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setFontSize(10)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       newLineHeightInPixels = editor.getLineHeightInPixels()
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
@@ -154,7 +141,7 @@ describe "EditorComponent", ->
 
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setFontFamily('sans-serif')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(linesComponent.measureLineHeightAndDefaultCharWidth).toHaveBeenCalled()
       newLineHeightInPixels = editor.getLineHeightInPixels()
@@ -165,7 +152,7 @@ describe "EditorComponent", ->
       editor.setText('')
       wrapperNode.style.height = '300px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
       expect(linesNode.offsetHeight).toBe 300
@@ -177,7 +164,7 @@ describe "EditorComponent", ->
 
       componentNode.style.width = gutterWidth + (30 * charWidth) + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
 
       # At the time of writing, using width: 100% to achieve the full-width
@@ -189,7 +176,7 @@ describe "EditorComponent", ->
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       scrollViewWidth = scrollViewNode.offsetWidth
 
       for lineNode in lineNodes
@@ -206,7 +193,7 @@ describe "EditorComponent", ->
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
       advanceClock(component.domPollingInterval)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     describe "when showInvisibles is enabled", ->
@@ -224,7 +211,7 @@ describe "EditorComponent", ->
 
       it "re-renders the lines when the showInvisibles config option changes", ->
         editor.setText " a line with tabs\tand spaces "
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
         atom.config.set("editor.showInvisibles", false)
@@ -235,17 +222,17 @@ describe "EditorComponent", ->
 
       it "displays spaces, tabs, and newlines as visible characters", ->
         editor.setText " a line with tabs\tand spaces "
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays newlines as their own token outside of the other tokens' scopes", ->
         editor.setText "var"
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
 
       it "renders invisible line-ending characters on empty lines", ->
@@ -262,30 +249,30 @@ describe "EditorComponent", ->
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
         component.setShowIndentGuide(true)
         editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", false)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
 
         editor.setTabLength(3)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>'
 
         editor.setTabLength(1)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>'
 
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->
           editor.setText "a line that wraps "
           editor.setSoftWrap(true)
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
           component.measureHeightAndWidth()
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
@@ -310,7 +297,7 @@ describe "EditorComponent", ->
 
       it "renders leading whitespace spans with the 'indent-guide' class for empty lines", ->
         editor.getBuffer().insert([1, Infinity], '\n')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
 
@@ -322,7 +309,7 @@ describe "EditorComponent", ->
 
       it "renders indent guides correctly on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe 3
@@ -335,7 +322,7 @@ describe "EditorComponent", ->
 
       it "does not render indent guides in trailing whitespace for lines containing non whitespace characters", ->
         editor.getBuffer().setText "  hi  "
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line0LeafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
         expect(line0LeafNodes[0].textContent).toBe '  '
@@ -345,9 +332,9 @@ describe "EditorComponent", ->
 
       it "updates the indent guides on empty lines preceding an indentation change", ->
         editor.getBuffer().insert([12, 0], '\n')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         editor.getBuffer().insert([13, 0], '    ')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
         expect(line12LeafNodes[0].textContent).toBe '  '
@@ -357,9 +344,9 @@ describe "EditorComponent", ->
 
       it "updates the indent guides on empty lines following an indentation change", ->
         editor.getBuffer().insert([12, 2], '\n')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         editor.getBuffer().insert([12, 0], '    ')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
         expect(line13LeafNodes[0].textContent).toBe '  '
@@ -373,7 +360,7 @@ describe "EditorComponent", ->
 
       it "does not render indent guides on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe 3
@@ -387,7 +374,7 @@ describe "EditorComponent", ->
     describe "when the buffer contains null bytes", ->
       it "excludes the null byte from character measurement", ->
         editor.setText("a\0b")
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
     describe "when there is a fold", ->
@@ -396,12 +383,12 @@ describe "EditorComponent", ->
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
         editor.foldBufferRow(4)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeTruthy()
 
         editor.unfoldBufferRow(4)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
@@ -420,7 +407,7 @@ describe "EditorComponent", ->
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + 2 + 1 # line overdraw margin below + dummy line number
       expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
@@ -428,6 +415,7 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + 4 + 1 # line overdraw margin above/below + dummy line number
 
@@ -438,7 +426,7 @@ describe "EditorComponent", ->
 
     it "updates the translation of subsequent line numbers when lines are inserted or removed", ->
       editor.getBuffer().insert([0, 0], '\n\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       lineNumberNodes = componentNode.querySelectorAll('.line-number')
       expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0
@@ -448,7 +436,7 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(4).offsetTop).toBe 4 * lineHeightInPixels
 
       editor.getBuffer().insert([0, 0], '\n\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0
       expect(component.lineNumberNodeForScreenRow(1).offsetTop).toBe 1 * lineHeightInPixels
@@ -463,7 +451,7 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + lineOverdrawMargin + 1 # 1 dummy line componentNode
       expect(component.lineNumberNodeForScreenRow(0).textContent).toBe "#{nbsp}1"
@@ -475,7 +463,7 @@ describe "EditorComponent", ->
 
     it "pads line numbers to be right-justified based on the maximum number of line number digits", ->
       editor.getBuffer().setText([1..10].join('\n'))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       for screenRow in [0..8]
         expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{nbsp}#{screenRow + 1}"
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
@@ -485,14 +473,14 @@ describe "EditorComponent", ->
 
       # Removes padding when the max number of digits goes down
       editor.getBuffer().delete([[1, 0], [2, 0]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       for screenRow in [0..8]
         expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{screenRow + 1}"
       expect(gutterNode.offsetWidth).toBeLessThan initialGutterWidth
 
       # Increases padding when the max number of digits goes up
       editor.getBuffer().insert([0, 0], '\n\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       for screenRow in [0..8]
         expect(component.lineNumberNodeForScreenRow(screenRow).textContent).toBe "#{nbsp}#{screenRow + 1}"
       expect(component.lineNumberNodeForScreenRow(9).textContent).toBe "10"
@@ -501,7 +489,7 @@ describe "EditorComponent", ->
     it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
 
     it "applies the background color of the gutter or the editor to the line numbers to improve GPU performance", ->
@@ -513,7 +501,7 @@ describe "EditorComponent", ->
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
       advanceClock(component.domPollingInterval)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     describe "when the editor.showLineNumbers config is false", ->
@@ -537,7 +525,7 @@ describe "EditorComponent", ->
 
         it "updates the foldable class on the correct line numbers when the foldable positions change", ->
           editor.getBuffer().insert([0, 0], '\n')
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(0, 'foldable')).toBe false
           expect(lineNumberHasClass(1, 'foldable')).toBe true
           expect(lineNumberHasClass(2, 'foldable')).toBe true
@@ -550,25 +538,25 @@ describe "EditorComponent", ->
           expect(lineNumberHasClass(11, 'foldable')).toBe false
 
           editor.getBuffer().insert([11, 44], '\n    fold me')
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(11, 'foldable')).toBe true
 
           editor.undo()
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(11, 'foldable')).toBe false
 
         it "adds, updates and removes the folded class on the correct line number componentNodes", ->
           editor.foldBufferRow(4)
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(4, 'folded')).toBe true
 
           editor.getBuffer().insert([0, 0], '\n')
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(4, 'folded')).toBe false
           expect(lineNumberHasClass(5, 'folded')).toBe true
 
           editor.unfoldBufferRow(5)
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(5, 'folded')).toBe false
 
       describe "mouse interactions with fold indicators", ->
@@ -586,19 +574,19 @@ describe "EditorComponent", ->
           lineNumber = component.lineNumberNodeForScreenRow(1)
           target = lineNumber.querySelector('.icon-right')
           target.dispatchEvent(buildClickEvent(target))
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(1, 'folded')).toBe true
 
           lineNumber = component.lineNumberNodeForScreenRow(1)
           target = lineNumber.querySelector('.icon-right')
           target.dispatchEvent(buildClickEvent(target))
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number componentNode is clicked", ->
           lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
-          expect(hasSetImmediateCallbacks()).toBe false
+          expect(nextAnimationFrame).toBe noAnimationFrame
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
   describe "cursor rendering", ->
@@ -609,7 +597,7 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
@@ -619,7 +607,7 @@ describe "EditorComponent", ->
 
       cursor2 = editor.addCursorAtScreenPosition([8, 11])
       cursor3 = editor.addCursorAtScreenPosition([4, 10])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
@@ -629,8 +617,10 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
       horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
@@ -638,7 +628,7 @@ describe "EditorComponent", ->
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate3d(#{(10 - 3.5) * charWidth}px, #{(4 - 4.5) * lineHeightInPixels}px, 0px)"
 
       cursor3.destroy()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate3d(#{(11 - 3.5) * charWidth}px, #{(6 - 2.5) * lineHeightInPixels}px, 0px)"
@@ -646,7 +636,7 @@ describe "EditorComponent", ->
     it "accounts for character widths when positioning cursors", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
@@ -663,15 +653,15 @@ describe "EditorComponent", ->
     it "positions cursors correctly after character widths are changed via a stylesheet change", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       atom.themes.applyStylesheet 'test', """
         .function.js {
           font-weight: bold;
         }
       """
-      runSetImmediateCallbacks() # re-measure characters once for a synchronous set of stylesheet changes
-      runSetImmediateCallbacks() # update based on new measurements
+      nextAnimationFrame() # re-measure characters once for a synchronous set of stylesheet changes
+      nextAnimationFrame() # update based on new measurements
 
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
@@ -689,13 +679,13 @@ describe "EditorComponent", ->
 
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
       expect(cursorNode.offsetWidth).toBe charWidth
 
     it "gives the cursor a non-zero width even if it's inside atomic tokens", ->
       editor.setCursorScreenPosition([1, 0])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
       expect(cursorNode.offsetWidth).toBe charWidth
 
@@ -721,7 +711,7 @@ describe "EditorComponent", ->
     it "does not render cursors that are associated with non-empty selections", ->
       editor.setSelectedScreenRange([[0, 4], [4, 6]])
       editor.addCursorAtScreenPosition([6, 8])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 1
@@ -730,21 +720,21 @@ describe "EditorComponent", ->
     it "updates cursor positions when the line height changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setLineHeight(2)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
     it "updates cursor positions when the font size changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setFontSize(10)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
       expect(cursorNode.style['-webkit-transform']).toBe "translate3d(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px, 0px)"
 
     it "updates cursor positions when the font family changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setFontFamily('sans-serif')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
 
       {left} = editor.pixelPositionForScreenPosition([1, 10])
@@ -760,7 +750,7 @@ describe "EditorComponent", ->
     it "renders 1 region for 1-line selections", ->
       # 1-line selection
       editor.setSelectedScreenRange([[1, 6], [1, 10]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       regions = componentNode.querySelectorAll('.selection .region')
 
       expect(regions.length).toBe 1
@@ -772,7 +762,7 @@ describe "EditorComponent", ->
 
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       regions = componentNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 2
 
@@ -790,7 +780,7 @@ describe "EditorComponent", ->
 
     it "renders 3 regions for selections with more than 2 lines", ->
       editor.setSelectedScreenRange([[1, 6], [5, 10]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       regions = componentNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 3
 
@@ -814,7 +804,7 @@ describe "EditorComponent", ->
 
     it "does not render empty selections", ->
       editor.addSelectionForBufferRange([[2, 2], [2, 2]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.getSelection(0).isEmpty()).toBe true
       expect(editor.getSelection(1).isEmpty()).toBe true
 
@@ -823,14 +813,14 @@ describe "EditorComponent", ->
     it "updates selections when the line height changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setLineHeight(2)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       selectionNode = componentNode.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
 
     it "updates selections when the font size changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontSize(10)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       selectionNode = componentNode.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe 6 * editor.getDefaultCharWidth()
@@ -838,14 +828,15 @@ describe "EditorComponent", ->
     it "updates selections when the font family changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontFamily('sans-serif')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       selectionNode = componentNode.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
       expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
 
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
+      nextAnimationFrame() # flash starts on its own frame
       selectionNode = componentNode.querySelector('.selection')
       expect(selectionNode.classList.contains('flash')).toBe true
 
@@ -853,7 +844,7 @@ describe "EditorComponent", ->
       expect(selectionNode.classList.contains('flash')).toBe false
 
       editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(selectionNode.classList.contains('flash')).toBe true
 
   describe "line decoration rendering", ->
@@ -863,7 +854,7 @@ describe "EditorComponent", ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
       decorationParams = {type: ['gutter', 'line'], class: 'a'}
       decoration = editor.decorateMarker(marker, decorationParams)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
     it "applies line decoration classes to lines and line numbers", ->
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
@@ -872,21 +863,22 @@ describe "EditorComponent", ->
       # Shrink editor vertically
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       # Add decorations that are out of range
       marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
       editor.decorateMarker(marker2, type: ['gutter', 'line'], class: 'b')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       # Scroll decorations into view
       verticalScrollbarNode.scrollTop = 2.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
       expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
 
       # Fold a line to move the decorations
       editor.foldBufferRow(5)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineAndLineNumberHaveClass(9, 'b')).toBe false
       expect(lineAndLineNumberHaveClass(6, 'b')).toBe true
 
@@ -895,17 +887,17 @@ describe "EditorComponent", ->
       editor.setSoftWrap(true)
       componentNode.style.width = 16 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       marker.destroy()
       marker = editor.markBufferRange([[0, 0], [0, 2]])
       editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'b')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(0, 'b')).toBe true
       expect(lineNumberHasClass(1, 'b')).toBe false
 
       marker.setBufferRange([[0, 0], [0, Infinity]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(0, 'b')).toBe true
       expect(lineNumberHasClass(1, 'b')).toBe true
 
@@ -916,14 +908,14 @@ describe "EditorComponent", ->
       expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
 
       editor.getBuffer().insert([0, 0], '\n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
       expect(lineAndLineNumberHaveClass(3, 'a')).toBe true
       expect(lineAndLineNumberHaveClass(4, 'a')).toBe true
       expect(lineAndLineNumberHaveClass(5, 'a')).toBe false
 
       marker.setBufferRange([[4, 4], [6, 4]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
       expect(lineAndLineNumberHaveClass(3, 'a')).toBe false
       expect(lineAndLineNumberHaveClass(4, 'a')).toBe true
@@ -934,7 +926,7 @@ describe "EditorComponent", ->
     it "remove decoration classes and unsubscribes from markers decorations are removed", ->
       expect(marker.getSubscriptionCount('changed'))
       decoration.destroy()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(1, 'a')).toBe false
       expect(lineNumberHasClass(2, 'a')).toBe false
       expect(lineNumberHasClass(3, 'a')).toBe false
@@ -943,7 +935,7 @@ describe "EditorComponent", ->
 
     it "removes decorations when their marker is invalidated", ->
       editor.getBuffer().insert([3, 2], 'n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(marker.isValid()).toBe false
       expect(lineAndLineNumberHaveClass(1, 'a')).toBe false
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
@@ -951,7 +943,7 @@ describe "EditorComponent", ->
       expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
 
       editor.undo()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(marker.isValid()).toBe true
       expect(lineAndLineNumberHaveClass(1, 'a')).toBe false
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
@@ -960,7 +952,7 @@ describe "EditorComponent", ->
 
     it "removes decorations when their marker is destroyed", ->
       marker.destroy()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(1, 'a')).toBe false
       expect(lineNumberHasClass(2, 'a')).toBe false
       expect(lineNumberHasClass(3, 'a')).toBe false
@@ -969,7 +961,7 @@ describe "EditorComponent", ->
     describe "when the decoration's 'onlyHead' property is true", ->
       it "only applies the decoration's class to lines containing the marker's head", ->
         editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(1, 'only-head')).toBe false
         expect(lineAndLineNumberHaveClass(2, 'only-head')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-head')).toBe true
@@ -978,24 +970,24 @@ describe "EditorComponent", ->
     describe "when the decoration's 'onlyEmpty' property is true", ->
       it "only applies the decoration when its marker is empty", ->
         editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-empty', onlyEmpty: true)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe false
 
         marker.clearTail()
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe true
 
     describe "when the decoration's 'onlyNonEmpty' property is true", ->
       it "only applies the decoration when its marker is non-empty", ->
         editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe true
         expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe true
 
         marker.clearTail()
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe false
 
@@ -1006,16 +998,16 @@ describe "EditorComponent", ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
       decorationParams = {type: 'highlight', class: 'test-highlight'}
       decoration = editor.decorateMarker(marker, decorationParams)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
       editor.decorateMarker(marker, type: 'highlight', class: 'some-highlight')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       # Should not be rendering range containing the marker
       expect(component.getRenderedRowRange()[1]).toBeLessThan 9
@@ -1027,6 +1019,7 @@ describe "EditorComponent", ->
 
       verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
 
       regions = componentNode.querySelectorAll('.some-highlight .region')
 
@@ -1043,31 +1036,31 @@ describe "EditorComponent", ->
 
     it "removes highlights when a decoration is removed", ->
       decoration.destroy()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 0
 
     it "does not render a highlight that is within a fold", ->
       editor.foldBufferRow(1)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelectorAll('.test-highlight').length).toBe 0
 
     it "removes highlights when a decoration's marker is destroyed", ->
       marker.destroy()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 0
 
     it "only renders highlights when a decoration's marker is valid", ->
       editor.getBuffer().insert([3, 2], 'n')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(marker.isValid()).toBe false
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 0
 
       editor.getBuffer().undo()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(marker.isValid()).toBe true
       regions = componentNode.querySelectorAll('.test-highlight .region')
@@ -1082,6 +1075,7 @@ describe "EditorComponent", ->
         expect(highlightNode.classList.contains('flash-class')).toBe false
 
         decoration.flash('flash-class', 10)
+        nextAnimationFrame()
         expect(highlightNode.classList.contains('flash-class')).toBe true
 
         advanceClock(10)
@@ -1089,8 +1083,6 @@ describe "EditorComponent", ->
 
       describe "when ::flash is called again before the first has finished", ->
         it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
-          delayAnimationFrames = true
-
           decoration.flash('flash-class', 10)
           nextAnimationFrame()
           expect(highlightNode.classList.contains('flash-class')).toBe true
@@ -1112,7 +1104,7 @@ describe "EditorComponent", ->
         originalTop = parseInt(regionStyle.top)
 
         editor.getBuffer().insert([0, 0], '\n')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         regionStyle = componentNode.querySelector('.test-highlight .region').style
         newTop = parseInt(regionStyle.top)
@@ -1124,7 +1116,7 @@ describe "EditorComponent", ->
         expect(parseInt(regionStyle.top)).toBe 2 * lineHeightInPixels
 
         marker.setBufferRange([[5, 8], [5, 13]])
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         regionStyle = componentNode.querySelector('.test-highlight .region').style
         expect(parseInt(regionStyle.top)).toBe 5 * lineHeightInPixels
@@ -1134,7 +1126,7 @@ describe "EditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeTruthy()
 
         decoration.update(type: 'highlight', class: 'new-test-highlight')
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
@@ -1148,19 +1140,19 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
       editor.setScrollTop(3 * lineHeightInPixels)
       editor.setScrollLeft(3 * charWidth)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds, not focused
       editor.setCursorBufferPosition([5, 4])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1176,7 +1168,7 @@ describe "EditorComponent", ->
 
       # Out of bounds, not focused
       editor.setCursorBufferPosition([1, 2])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1189,7 +1181,6 @@ describe "EditorComponent", ->
     linesNode = null
 
     beforeEach ->
-      delayAnimationFrames = true
       linesNode = componentNode.querySelector('.lines')
 
     describe "when a non-folded line is single-clicked", ->
@@ -1200,24 +1191,24 @@ describe "EditorComponent", ->
           component.measureHeightAndWidth()
           editor.setScrollTop(3.5 * lineHeightInPixels)
           editor.setScrollLeft(2 * charWidth)
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
 
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(editor.getCursorScreenPosition()).toEqual [4, 8]
 
       describe "when the shift key is held down", ->
         it "selects to the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), shiftKey: true))
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
 
       describe "when the command key is held down", ->
         it "adds a cursor at the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
-          runSetImmediateCallbacks()
+          nextAnimationFrame()
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
 
     describe "when a non-folded line is double-clicked", ->
@@ -1304,13 +1295,13 @@ describe "EditorComponent", ->
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
-        nextAnimationFrame()
+        expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
     describe "when a line is folded", ->
       beforeEach ->
         editor.foldBufferRow 4
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
       describe "when the folded line's fold-marker is clicked", ->
         it "unfolds the buffer row", ->
@@ -1344,9 +1335,6 @@ describe "EditorComponent", ->
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [7, 0]]
 
     describe "when the gutter is clicked and dragged", ->
-      beforeEach ->
-        delayAnimationFrames = true
-
       describe "when dragging downward", ->
         it "selects the rows between the start and end of the drag", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
@@ -1364,9 +1352,6 @@ describe "EditorComponent", ->
           expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
 
     describe "when the gutter is shift-clicked and dragged", ->
-      beforeEach ->
-        delayAnimationFrames = true
-
       describe "when the shift-click is below the existing selection's tail", ->
         describe "when dragging downward", ->
           it "selects the rows between the existing selection's tail and the end of the drag", ->
@@ -1444,47 +1429,48 @@ describe "EditorComponent", ->
       expect(componentNode.classList.contains('has-selection')).toBe false
 
       editor.selectDown()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('has-selection')).toBe true
 
       cursor.moveDown()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('has-selection')).toBe false
 
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
 
       editor.setScrollTop(10)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(verticalScrollbarNode.scrollTop).toBe 10
 
     it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       componentNode.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       componentNode.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(editor.getScrollLeft()).toBe 0
       horizontalScrollbarNode.scrollLeft = 100
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
 
       expect(editor.getScrollLeft()).toBe 100
 
@@ -1493,7 +1479,7 @@ describe "EditorComponent", ->
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
       editor.setScrollBottom(editor.getScrollHeight())
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       topOfHorizontalScrollbar = horizontalScrollbarNode.getBoundingClientRect().top
@@ -1502,7 +1488,7 @@ describe "EditorComponent", ->
       # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       wrapperNode.style.width = 100 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = componentNode.getBoundingClientRect().bottom
       expect(bottomOfLastLine).toBe bottomOfEditor
@@ -1512,7 +1498,7 @@ describe "EditorComponent", ->
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
       editor.setScrollLeft(Infinity)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       rightOfLongestLine = component.lineNodeForScreenRow(6).querySelector('.line > span:last-child').getBoundingClientRect().right
       leftOfVerticalScrollbar = verticalScrollbarNode.getBoundingClientRect().left
@@ -1525,21 +1511,21 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe 'none'
       expect(horizontalScrollbarNode.style.display).toBe ''
@@ -1548,7 +1534,7 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       atom.themes.applyStylesheet "test", """
         ::-webkit-scrollbar {
@@ -1574,21 +1560,21 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe ''
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe ''
       expect(scrollbarCornerNode.style.display).toBe 'none'
@@ -1597,7 +1583,7 @@ describe "EditorComponent", ->
       gutterNode = componentNode.querySelector('.gutter')
       componentNode.style.width = 10 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
       expect(horizontalScrollbarNode.style.left).toBe '0px'
@@ -1611,43 +1597,43 @@ describe "EditorComponent", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureHeightAndWidth()
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
       it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
         expect(verticalScrollbarNode.scrollTop).toBe 0
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 10
         expect(horizontalScrollbarNode.scrollLeft).toBe 15
 
       it "updates the scrollLeft or scrollTop according to the scroll sensitivity", ->
         atom.config.set('editor.scrollSensitivity', 50)
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -5, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -15, wheelDeltaY: -5))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 5
         expect(horizontalScrollbarNode.scrollLeft).toBe 7
 
       it "uses the previous scrollSensitivity when the value is not an int", ->
         atom.config.set('editor.scrollSensitivity', 'nope')
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 10
 
       it "parses negative scrollSensitivity values as positive", ->
         atom.config.set('editor.scrollSensitivity', -50)
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 5
 
     describe "when the mousewheel event's target is a line", ->
@@ -1660,7 +1646,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         expect(componentNode.contains(lineNode)).toBe true
 
@@ -1673,7 +1659,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         expect(component.mouseWheelScreenRow).toBe null
 
@@ -1686,7 +1672,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(hasSetImmediateCallbacks()).toBe false
+        expect(nextAnimationFrame).toBe noAnimationFrame
 
         expect(editor.getScrollTop()).toBe 0
 
@@ -1703,7 +1689,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(hasSetImmediateCallbacks()).toBe false
+        expect(nextAnimationFrame).toBe noAnimationFrame
 
         expect(component.mouseWheelScreenRow).toBe 0
         editor.insertText("hello")
@@ -1720,7 +1706,7 @@ describe "EditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNumberNode)
         componentNode.dispatchEvent(wheelEvent)
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         expect(componentNode.contains(lineNumberNode)).toBe true
 
@@ -1730,7 +1716,7 @@ describe "EditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * charWidth + 'px'
       component.measureHeightAndWidth()
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       # try to scroll past the top, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 50))
@@ -1739,7 +1725,7 @@ describe "EditorComponent", ->
 
       # scroll to the bottom in one huge event
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       maxScrollTop = editor.getScrollTop()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
@@ -1756,7 +1742,7 @@ describe "EditorComponent", ->
 
       # scroll all the way right
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       maxScrollLeft = editor.getScrollLeft()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
@@ -1780,28 +1766,28 @@ describe "EditorComponent", ->
 
     it "inserts the newest character in the input's value into the buffer", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.lineForBufferRow(0)).toBe 'xvar quicksort = function () {'
 
       componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.lineForBufferRow(0)).toBe 'xyvar quicksort = function () {'
 
     it "replaces the last character if the length of the input's value doesn't increase, as occurs with the accented character menu", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'u', target: inputNode))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.lineForBufferRow(0)).toBe 'uvar quicksort = function () {'
 
       # simulate the accented character suggestion's selection of the previous character
       inputNode.setSelectionRange(0, 1)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'ü', target: inputNode))
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
     it "does not handle input events when input is disabled", ->
       component.setInputEnabled(false)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
-      expect(hasSetImmediateCallbacks()).toBe false
+      expect(nextAnimationFrame).toBe noAnimationFrame
       expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
 
     describe "when IME composition is used to insert international characters", ->
@@ -1954,7 +1940,7 @@ describe "EditorComponent", ->
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
         line0Right = componentNode.querySelector('.line > span:last-child').getBoundingClientRect().right
@@ -1979,7 +1965,7 @@ describe "EditorComponent", ->
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
         line0Right = componentNode.querySelector('.line > span:last-child').getBoundingClientRect().right
@@ -1998,11 +1984,11 @@ describe "EditorComponent", ->
             font-weight: bold;
           }
         """
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
 
         cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
         line0Right = componentNode.querySelector('.line > span:last-child').getBoundingClientRect().right
@@ -2014,7 +2000,7 @@ describe "EditorComponent", ->
         wrapperView.hide()
         editor.setText('var z = 1')
         editor.setCursorBufferPosition([0, Infinity])
-        runSetImmediateCallbacks()
+        nextAnimationFrame()
         wrapperView.show()
         expect(componentNode.querySelector('.cursor').style['-webkit-transform']).toBe "translate3d(#{9 * charWidth}px, 0px, 0px)"
 
@@ -2028,13 +2014,13 @@ describe "EditorComponent", ->
       wrapperNode.style.height = newHeight
 
       advanceClock(component.domPollingInterval)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
       advanceClock(component.domPollingInterval)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
     it "accounts for the scroll view's padding when determining the wrap location", ->
@@ -2043,44 +2029,44 @@ describe "EditorComponent", ->
       componentNode.style.width = 30 * charWidth + 'px'
 
       advanceClock(component.domPollingInterval)
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
 
   describe "default decorations", ->
     it "applies .cursor-line decorations for line numbers overlapping selections", ->
       editor.setCursorScreenPosition([4, 4])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(3, 'cursor-line')).toBe false
       expect(lineNumberHasClass(4, 'cursor-line')).toBe true
       expect(lineNumberHasClass(5, 'cursor-line')).toBe false
 
       editor.setSelectedScreenRange([[3, 4], [4, 4]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(3, 'cursor-line')).toBe true
       expect(lineNumberHasClass(4, 'cursor-line')).toBe true
 
       editor.setSelectedScreenRange([[3, 4], [4, 0]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(3, 'cursor-line')).toBe true
       expect(lineNumberHasClass(4, 'cursor-line')).toBe false
 
     it "does not apply .cursor-line to the last line of a selection if it's empty", ->
       editor.setSelectedScreenRange([[3, 4], [5, 0]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(3, 'cursor-line')).toBe true
       expect(lineNumberHasClass(4, 'cursor-line')).toBe true
       expect(lineNumberHasClass(5, 'cursor-line')).toBe false
 
     it "applies .cursor-line decorations for lines containing the cursor in non-empty selections", ->
       editor.setCursorScreenPosition([4, 4])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineHasClass(3, 'cursor-line')).toBe false
       expect(lineHasClass(4, 'cursor-line')).toBe true
       expect(lineHasClass(5, 'cursor-line')).toBe false
 
       editor.setSelectedScreenRange([[3, 4], [4, 4]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineHasClass(2, 'cursor-line')).toBe false
       expect(lineHasClass(3, 'cursor-line')).toBe false
       expect(lineHasClass(4, 'cursor-line')).toBe false
@@ -2088,11 +2074,11 @@ describe "EditorComponent", ->
 
     it "applies .cursor-line-no-selection to line numbers for rows containing the cursor when the selection is empty", ->
       editor.setCursorScreenPosition([4, 4])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe true
 
       editor.setSelectedScreenRange([[3, 4], [4, 4]])
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
 
   describe "height", ->
@@ -2133,10 +2119,10 @@ describe "EditorComponent", ->
       component.setProps(placeholderText: 'Hello World')
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
       editor.setText('')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelector('.placeholder-text').textContent).toBe "Hello World"
       editor.setText('hey')
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
 
   describe "legacy editor compatibility", ->
@@ -2147,7 +2133,7 @@ describe "EditorComponent", ->
       editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
       wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
-      runSetImmediateCallbacks()
+      nextAnimationFrame()
 
       expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
