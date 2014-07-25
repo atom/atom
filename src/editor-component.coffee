@@ -24,6 +24,8 @@ EditorComponent = React.createClass
 
   visible: false
   autoHeight: false
+  backgroundColor: null
+  gutterBackgroundColor: null
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -91,12 +93,12 @@ EditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div {className, style, tabIndex: -1},
-      if not mini and showLineNumbers
+      if @shouldRenderGutter()
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
-          @useHardwareAcceleration, @performedInitialMeasurement
+          @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
         }
 
       div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
@@ -118,7 +120,7 @@ EditorComponent = React.createClass
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText, @performedInitialMeasurement
+          placeholderText, @performedInitialMeasurement, @backgroundColor
         }
 
         ScrollbarComponent
@@ -156,6 +158,9 @@ EditorComponent = React.createClass
   getPageRows: ->
     {editor} = @props
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
+
+  shouldRenderGutter: ->
+    not @props.mini and @state.showLineNumbers
 
   getInitialState: -> {}
 
@@ -221,6 +226,7 @@ EditorComponent = React.createClass
     @updatesPaused = true
     @measureLineHeightAndDefaultCharWidth()
     @measureHeightAndWidth()
+    @sampleBackgroundColors()
     @measureScrollbars()
     @props.editor.setVisible(true)
     @updatesPaused = false
@@ -673,6 +679,7 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @sampleBackgroundColors()
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
     @requestUpdate() if @visible
 
@@ -772,6 +779,7 @@ EditorComponent = React.createClass
     if @visible = @isVisible()
       if wasVisible
         @measureHeightAndWidth()
+        @sampleBackgroundColors()
       else
         @performInitialMeasurement()
         @forceUpdate()
@@ -812,6 +820,21 @@ EditorComponent = React.createClass
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
     editor.setWidth(clientWidth) if clientWidth > 0
+
+  sampleBackgroundColors: (suppressUpdate) ->
+    {parentView} = @props
+    {showLineNumbers} = @state
+    {backgroundColor} = getComputedStyle(parentView.element)
+
+    if backgroundColor isnt @backgroundColor
+      @backgroundColor = backgroundColor
+      @requestUpdate() unless suppressUpdate
+
+    if @shouldRenderGutter()
+      gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
+      if gutterBackgroundColor isnt @gutterBackgroundColor
+        @gutterBackgroundColor = gutterBackgroundColor
+        @requestUpdate() unless suppressUpdate
 
   measureLineHeightAndDefaultCharWidthIfNeeded: (prevState) ->
     if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')

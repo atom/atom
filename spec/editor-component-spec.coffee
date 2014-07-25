@@ -199,6 +199,16 @@ describe "EditorComponent", ->
       atom.config.set("editor.showInvisibles", false)
       expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
+    it "gives the lines div the same background color as the editor to improve GPU performance", ->
+      linesNode = componentNode.querySelector('.lines')
+      backgroundColor = getComputedStyle(wrapperNode).backgroundColor
+      expect(linesNode.style.backgroundColor).toBe backgroundColor
+
+      wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
+      advanceClock(component.domPollingInterval)
+      runSetImmediateCallbacks()
+      expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
@@ -374,12 +384,6 @@ describe "EditorComponent", ->
         expect(line2LeafNodes[2].textContent).toBe '  '
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe false
 
-    getLeafNodes = (node) ->
-      if node.children.length > 0
-        flatten(toArray(node.children).map(getLeafNodes))
-      else
-        [node]
-
     describe "when the buffer contains null bytes", ->
       it "excludes the null byte from character measurement", ->
         editor.setText("a\0b")
@@ -400,6 +404,12 @@ describe "EditorComponent", ->
         runSetImmediateCallbacks()
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+
+    getLeafNodes = (node) ->
+      if node.children.length > 0
+        flatten(toArray(node.children).map(getLeafNodes))
+      else
+        [node]
 
   describe "gutter rendering", ->
     [gutter] = []
@@ -493,6 +503,18 @@ describe "EditorComponent", ->
       component.measureHeightAndWidth()
       runSetImmediateCallbacks()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
+
+    it "applies the background color of the gutter or the editor to the line numbers to improve GPU performance", ->
+      gutterNode = componentNode.querySelector('.gutter')
+      lineNumbersNode = gutterNode.querySelector('.line-numbers')
+      {backgroundColor} = getComputedStyle(wrapperNode)
+      expect(lineNumbersNode.style.backgroundColor).toBe backgroundColor
+
+      # favor gutter color if it's assigned
+      gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
+      advanceClock(component.domPollingInterval)
+      runSetImmediateCallbacks()
+      expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     describe "when the editor.showLineNumbers config is false", ->
       it "doesn't render any line numbers", ->
