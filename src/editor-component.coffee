@@ -679,6 +679,7 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @sampleBackgroundColors()
     @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
     @requestUpdate() if @visible
 
