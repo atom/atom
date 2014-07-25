@@ -670,6 +670,8 @@ EditorComponent = React.createClass
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
+    return unless @performedInitialMeasurement
+
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
