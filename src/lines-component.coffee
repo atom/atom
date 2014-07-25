@@ -305,7 +305,7 @@ LinesComponent = React.createClass
 
     for {value, scopes}, tokenIndex in tokenizedLine.tokens
       charWidths = editor.getScopedCharWidths(scopes)
-
+      previousCharRect = null
       for char in value
         continue if char is '\0'
 
@@ -325,8 +325,17 @@ LinesComponent = React.createClass
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + 1)
-          charWidth = rangeForMeasurement.getBoundingClientRect().width
+
+          charRect = rangeForMeasurement.getBoundingClientRect()
+          charWidth = charRect.width
+
+          # Chrome is misreporting widths in some cases so we compensate
+          # https://github.com/atom/atom/issues/3054#issuecomment-49987029
+          if previousCharRect? and previousCharRect?.right != charRect.left
+            charWidth += charRect.left - previousCharRect.right
+
           editor.setScopedCharWidth(scopes, char, charWidth)
+          previousCharRect = charRect
 
         charIndex++
 
