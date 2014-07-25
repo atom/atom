@@ -386,12 +386,10 @@ class Package
   isCompatible: ->
     return @compatible if @compatible?
 
-    # Bundled packages are always considered compatible
     if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      # Bundled packages are always considered compatible
       @compatible = true
-      return
-
-    if packageMain = @getMainModulePath()
+    else if packageMain = @getMainModulePath()
       @incompatibleModules = @getIncompatibleNativeModules()
       @compatible = @incompatibleModules.length is 0
     else
