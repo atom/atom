@@ -16,12 +16,16 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {scrollHeight, scrollViewHeight, onMouseDown} = @props
+    {scrollHeight, scrollViewHeight, onMouseDown, backgroundColor, gutterBackgroundColor} = @props
+
+    if gutterBackgroundColor isnt 'rbga(0, 0, 0, 0)'
+      backgroundColor = gutterBackgroundColor
 
     div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: @getTransform()
+        backgroundColor: backgroundColor
 
   getTransform: ->
     {scrollTop, useHardwareAcceleration} = @props
@@ -47,7 +51,7 @@ GutterComponent = React.createClass
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations',
-      'scrollViewHeight', 'useHardwareAcceleration'
+      'scrollViewHeight', 'useHardwareAcceleration', 'backgroundColor', 'gutterBackgroundColor'
     )
 
     {renderedRowRange, pendingChanges, lineDecorations} = newProps
