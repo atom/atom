@@ -309,7 +309,9 @@ LinesComponent = React.createClass
       for char in value
         continue if char is '\0'
 
-        unless charWidths[char]?
+        if charWidths[char]?
+          previousCharRect = null
+        else
           unless textNode?
             rangeForMeasurement ?= document.createRange()
             iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
