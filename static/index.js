@@ -6,13 +6,14 @@ window.onload = function() {
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
     // Start the crash reporter before anything else.
-    require('crash-reporter').start({
-      productName: 'Atom',
-      companyName: 'GitHub',
-      // By explicitly passing the app version here, we could save the call
-      // of "require('remote').require('app').getVersion()".
-      extra: {_version: loadSettings.appVersion}
-    });
+    if (process.platform != 'win32')
+      require('crash-reporter').start({
+        productName: 'Atom',
+        companyName: 'GitHub',
+        // By explicitly passing the app version here, we could save the call
+        // of "require('remote').require('app').getVersion()".
+        extra: {_version: loadSettings.appVersion}
+      });
 
     require('vm-compatibility-layer');
     require('coffee-script').register();
