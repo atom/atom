@@ -504,6 +504,18 @@ describe "EditorComponent", ->
       runSetImmediateCallbacks()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
 
+    it "applies the background color of the gutter or the editor to the line numbers to improve GPU performance", ->
+      gutterNode = componentNode.querySelector('.gutter')
+      lineNumbersNode = gutterNode.querySelector('.line-numbers')
+      {backgroundColor} = getComputedStyle(wrapperNode)
+      expect(lineNumbersNode.style.backgroundColor).toBe backgroundColor
+
+      # favor gutter color if it's assigned
+      gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
+      advanceClock(component.domPollingInterval)
+      runSetImmediateCallbacks()
+      expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
+
     describe "when the editor.showLineNumbers config is false", ->
       it "doesn't render any line numbers", ->
         expect(component.refs.gutter).toBeDefined()
