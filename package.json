@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "0.119.0",
+  "version": "0.120.0",
   "description": "A hackable text editor for the 21st Century.",
   "main": "./src/browser/main.js",
   "repository": {
@@ -94,7 +94,7 @@
     "metrics": "0.33.0",
     "open-on-github": "0.29.0",
     "package-generator": "0.31.0",
-    "release-notes": "0.35.0",
+    "release-notes": "0.36.0",
     "settings-view": "0.135.0",
     "snippets": "1.1.0",
     "spell-check": "1.0.0",
@@ -109,7 +109,7 @@
     "whitespace": "0.25.0",
     "wrap-guide": "0.21.0",
 
-    "language-c": "0.25.0",
+    "language-c": "0.26.0",
     "language-coffee-script": "0.27.0",
     "language-css": "0.17.0",
     "language-gfm": "0.43.0",
