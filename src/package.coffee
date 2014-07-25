@@ -269,6 +269,7 @@ class Package
 
   requireMainModule: ->
     return @mainModule if @mainModule?
+    return unless @isCompatible()
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
@@ -340,3 +341,54 @@ class Package
     for eventHandler in eventHandlers
       eventHandler.handler = eventHandler.disabledHandler
       delete eventHandler.disabledHandler
+
+  containsNativeModule: (modulePath) ->
+    try
+      fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node']).length > 0
+    catch error
+      false
+
+  getNativeModuleDependencyPaths: ->
+    nativeModulePaths = []
+
+    traversePath = (nodeModulesPath) =>
+      try
+        for modulePath in fs.listSync(nodeModulesPath)
+          if @containsNativeModule(modulePath)
+            nativeModulePaths.push(modulePath)
+          traversePath(path.join(modulePath, 'node_modules'))
+
+    traversePath(path.join(@path, 'node_modules'))
+    nativeModulePaths
+
+  getIncompatibleNativeModules: ->
+    incompatibleNativeModules = []
+
+    for nativeModulePath in @getNativeModuleDependencyPaths()
+      try
+        require(nativeModulePath)
+      catch error
+        incompatibleNativeModules.push
+          path: nativeModulePath
+          name: path.basename(nativeModulePath)
+          error: error
+
+    incompatibleNativeModules
+
+  # Public: Is this package compatible with this version of Atom?
+  # Incompatible packages cannot be activated.
+  #
+  # Returns a {Boolean}, true if compatible, false if incompatible.
+  isCompatible: ->
+    return @compatible if @compatible?
+
+    # Bundled packages are always considered compatible
+    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      @compatible = true
+      return
+
+    if packageMain = @getMainModulePath()
+      @incompatibleModules = @getIncompatibleNativeModules()
+      @compatible = @incompatibleModules.length is 0
+    else
+      @compatible = true

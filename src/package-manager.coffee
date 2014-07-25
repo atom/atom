@@ -36,6 +36,7 @@ class PackageManager
 
     @loadedPackages = {}
     @activePackages = {}
+    @incompatiblePackages = {}
     @packageStates = {}
 
     @packageActivators = []
@@ -159,6 +160,7 @@ class PackageManager
           pack = new Package(packagePath, metadata)
         pack.load()
         @loadedPackages[pack.name] = pack
+        @incompatiblePackages[pack.name] = pack unless pack.isCompatible()
         pack
       catch error
         console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error

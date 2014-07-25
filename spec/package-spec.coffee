@@ -1,8 +1,17 @@
 {$} = require 'atom'
 path = require 'path'
+Package = require '../src/package'
 ThemePackage = require '../src/theme-package'
 
 describe "Package", ->
+  describe "when the package contains incompatible native modules", ->
+    it "does not activate it", ->
+      packagePath = atom.project.resolve('packages/package-with-incompatible-native-module')
+      pack = new Package(packagePath)
+      expect(pack.isCompatible()).toBe false
+      expect(pack.incompatibleModules[0].name).toBe 'native-module'
+      expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
+
   describe "theme", ->
     theme = null
 

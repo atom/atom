@@ -1,0 +1,4 @@
+{
+  "name": "package-with-incompatible-native-module",
+  "main": "./main.js"
+}
