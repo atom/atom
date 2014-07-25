@@ -363,7 +363,8 @@ class Package
 
   getIncompatibleNativeModules: ->
     localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
-    {incompatibleNativeModules} = global.localStorage.getItem(localStorageKey) ? {}
+    try
+      {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
     return incompatibleNativeModules if incompatibleNativeModules?
 
     incompatibleNativeModules = []
@@ -371,12 +372,15 @@ class Package
       try
         require(nativeModulePath)
       catch error
+        try
+          version = require("#{nativeModulePath}/package.json").version
         incompatibleNativeModules.push
           path: nativeModulePath
           name: path.basename(nativeModulePath)
-          error: error
+          version: version
+          error: error.message
 
-    global.localStorage.setItem(localStorageKey, {incompatibleNativeModules})
+    global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
     incompatibleNativeModules
 
   # Public: Is this package compatible with this version of Atom?
