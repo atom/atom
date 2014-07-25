@@ -71,6 +71,7 @@ class ReactEditorView extends View
     return unless onDom
     return if @attached
     @attached = true
+    @component.pollDOM()
     @focus() if @focusOnAttach
     @trigger 'editor:attached', [this]
 
