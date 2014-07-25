@@ -362,8 +362,11 @@ class Package
     nativeModulePaths
 
   getIncompatibleNativeModules: ->
-    incompatibleNativeModules = []
+    localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
+    {incompatibleNativeModules} = global.localStorage.getItem(localStorageKey) ? {}
+    return incompatibleNativeModules if incompatibleNativeModules?
 
+    incompatibleNativeModules = []
     for nativeModulePath in @getNativeModuleDependencyPaths()
       try
         require(nativeModulePath)
@@ -373,6 +376,7 @@ class Package
           name: path.basename(nativeModulePath)
           error: error
 
+    global.localStorage.setItem(localStorageKey, {incompatibleNativeModules})
     incompatibleNativeModules
 
   # Public: Is this package compatible with this version of Atom?
