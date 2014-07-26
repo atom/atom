@@ -33,6 +33,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   ```sh
   git clone https://github.com/atom/atom
   cd atom
+  git checkout $(git describe --tags `git rev-list --tags --max-count=1`) # checkout latest release
   script/build # Creates application at $TMPDIR/atom-build/Atom
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   script/grunt mkdeb # Generates a .deb package at $TMPDIR/atom-build, e.g. /tmp/atom-build
