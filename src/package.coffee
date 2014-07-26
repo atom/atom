@@ -361,6 +361,9 @@ class Package
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
 
+  # Get the incompatible native modules that this package depends on.
+  # This recurses through all dependencies and requires all modules that
+  # contain a `.node` file.
   getIncompatibleNativeModules: ->
     localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
     try
@@ -384,7 +387,9 @@ class Package
     incompatibleNativeModules
 
   # Public: Is this package compatible with this version of Atom?
-  # Incompatible packages cannot be activated.
+  # Incompatible packages cannot be activated. This will include packages
+  # installed to ~/.atom/packages that were built against node 0.11.10 but
+  # now need to be upgrade to node 0.11.13.
   #
   # Returns a {Boolean}, true if compatible, false if incompatible.
   isCompatible: ->
