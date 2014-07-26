@@ -342,20 +342,22 @@ class Package
       eventHandler.handler = eventHandler.disabledHandler
       delete eventHandler.disabledHandler
 
-  containsNativeModule: (modulePath) ->
+  # Does the given module path contain native code?
+  isNativeModule: (modulePath) ->
     try
       fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node']).length > 0
     catch error
       false
 
+  # Get an array of all the native modules that this package depends on.
+  # This will recurse through all dependencies.
   getNativeModuleDependencyPaths: ->
     nativeModulePaths = []
 
     traversePath = (nodeModulesPath) =>
       try
         for modulePath in fs.listSync(nodeModulesPath)
-          if @containsNativeModule(modulePath)
-            nativeModulePaths.push(modulePath)
+          nativeModulePaths.push(modulePath) if @isNativeModule(modulePath)
           traversePath(path.join(modulePath, 'node_modules'))
 
     traversePath(path.join(@path, 'node_modules'))
