@@ -366,6 +366,9 @@ class Package
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
   # contain a `.node` file.
+  #
+  # This information is cached in local storage on a per package/version basis
+  # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
     localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
     try
