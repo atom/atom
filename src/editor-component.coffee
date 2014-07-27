@@ -6,7 +6,6 @@ scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
-CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
@@ -107,18 +106,14 @@ EditorComponent = React.createClass
           onFocus: @onInputFocused
           onBlur: @onInputBlurred
 
-        CursorsComponent {
-          scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration,
-          @performedInitialMeasurement
-        }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText, @performedInitialMeasurement, @backgroundColor
+          placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
+          cursorBlinkPeriod, cursorBlinkResumeDelay
         }
 
         ScrollbarComponent

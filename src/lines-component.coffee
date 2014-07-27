@@ -5,6 +5,7 @@ React = require 'react-atom-fork'
 {$$} = require 'space-pen'
 
 Decoration = require './decoration'
+CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -16,11 +17,12 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {performedInitialMeasurement} = @props
+    {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
 
     if performedInitialMeasurement
       {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
+      {scrollTop, scrollLeft, cursorPixelRects} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
@@ -29,7 +31,16 @@ LinesComponent = React.createClass
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
-      HighlightsComponent({editor, highlightDecorations, lineHeightInPixels, defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement})
+
+      CursorsComponent {
+        cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay, lineHeightInPixels,
+        defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement
+      }
+
+      HighlightsComponent {
+        editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
+        scopedCharacterWidthsChangeCount, performedInitialMeasurement
+      }
 
   getTransform: ->
     {scrollTop, scrollLeft, useHardwareAcceleration} = @props
@@ -51,7 +62,7 @@ LinesComponent = React.createClass
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
-      'placeholderText', 'performedInitialMeasurement', 'backgroundColor'
+      'placeholderText', 'performedInitialMeasurement', 'backgroundColor', 'cursorPixelRects'
     )
 
     {renderedRowRange, pendingChanges} = newProps
