@@ -766,7 +766,7 @@ EditorComponent = React.createClass
   resumeDOMPollingAfterDelay: null # created lazily
 
   pollDOM: ->
-    return if @domPollingPaused or not @isMounted()
+    return if @domPollingPaused or @updateRequested or not @isMounted()
 
     wasVisible = @visible
     if @visible = @isVisible()

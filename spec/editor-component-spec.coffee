@@ -2007,6 +2007,7 @@ describe "EditorComponent", ->
   describe "soft wrapping", ->
     beforeEach ->
       editor.setSoftWrap(true)
+      nextAnimationFrame()
 
     it "updates the wrap location when the editor is resized", ->
       newHeight = 4 * editor.getLineHeightInPixels() + "px"
