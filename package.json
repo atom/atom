@@ -91,7 +91,7 @@
     "incompatible-packages": "0.2.0",
     "keybinding-resolver": "0.18.0",
     "link": "1.0.0",
-    "markdown-preview": "1.0.0",
+    "markdown-preview": "0.94.0",
     "metrics": "0.33.0",
     "open-on-github": "0.29.0",
     "package-generator": "0.31.0",
