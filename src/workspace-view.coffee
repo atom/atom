@@ -96,6 +96,11 @@ class WorkspaceView extends View
         when 'overlay'
           @addClass("scrollbars-visible-when-scrolling")
 
+
+    @subscribe atom.config.observe 'editor.fontSize', @setEditorFontSize
+    @subscribe atom.config.observe 'editor.fontFamily', @setEditorFontFamily
+    @subscribe atom.config.observe 'editor.lineHeight', @setEditorLineHeight
+
     @updateTitle()
 
     @on 'focus', (e) => @handleFocus(e)
@@ -339,6 +344,24 @@ class WorkspaceView extends View
   # Called by SpacePen
   beforeRemove: ->
     @model.destroy()
+
+  setEditorFontSize: (fontSize) =>
+    @setEditorStyle('font-size', fontSize + 'px')
+
+  setEditorFontFamily: (fontFamily) =>
+    @setEditorStyle('font-family', fontFamily)
+
+  setEditorLineHeight: (lineHeight) =>
+    @setEditorStyle('line-height', lineHeight)
+
+  setEditorStyle: (property, value) ->
+    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+      atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
+      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+
+    editorRule = styleNode.sheet.cssRules[0]
+    editorRule.style[property] = value
+    atom.themes.emit 'stylesheets-changed'
 
   # Deprecated
   eachPane: (callback) ->

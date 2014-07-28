@@ -130,6 +130,8 @@ afterEach ->
   atom.project?.destroy()
   atom.project = null
 
+  atom.themes.removeStylesheet('global-editor-styles')
+
   delete atom.state.packageStates
 
   $('#jasmine-content').empty() unless window.debugContent
