@@ -27,10 +27,6 @@ start = ->
     event.preventDefault()
     args.urlsToOpen.push(urlToOpen)
 
-  app.on 'open-url', (event, urlToOpen) ->
-    event.preventDefault()
-    args.urlsToOpen.push(urlToOpen)
-
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
 
