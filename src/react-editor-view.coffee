@@ -239,3 +239,6 @@ class ReactEditorView extends View
       @component.setProps({placeholderText})
     else
       @props.placeholderText = placeholderText
+
+  lineElementForScreenRow: (screenRow) ->
+    $(@component.lineNodeForScreenRow(screenRow))
