@@ -269,6 +269,7 @@ class Package
 
   requireMainModule: ->
     return @mainModule if @mainModule?
+    return unless @isCompatible()
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
@@ -340,3 +341,71 @@ class Package
     for eventHandler in eventHandlers
       eventHandler.handler = eventHandler.disabledHandler
       delete eventHandler.disabledHandler
+
+  # Does the given module path contain native code?
+  isNativeModule: (modulePath) ->
+    try
+      fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node']).length > 0
+    catch error
+      false
+
+  # Get an array of all the native modules that this package depends on.
+  # This will recurse through all dependencies.
+  getNativeModuleDependencyPaths: ->
+    nativeModulePaths = []
+
+    traversePath = (nodeModulesPath) =>
+      try
+        for modulePath in fs.listSync(nodeModulesPath)
+          nativeModulePaths.push(modulePath) if @isNativeModule(modulePath)
+          traversePath(path.join(modulePath, 'node_modules'))
+
+    traversePath(path.join(@path, 'node_modules'))
+    nativeModulePaths
+
+  # Get the incompatible native modules that this package depends on.
+  # This recurses through all dependencies and requires all modules that
+  # contain a `.node` file.
+  #
+  # This information is cached in local storage on a per package/version basis
+  # to minimize the impact on startup time.
+  getIncompatibleNativeModules: ->
+    localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
+    try
+      {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
+    return incompatibleNativeModules if incompatibleNativeModules?
+
+    incompatibleNativeModules = []
+    for nativeModulePath in @getNativeModuleDependencyPaths()
+      try
+        require(nativeModulePath)
+      catch error
+        try
+          version = require("#{nativeModulePath}/package.json").version
+        incompatibleNativeModules.push
+          path: nativeModulePath
+          name: path.basename(nativeModulePath)
+          version: version
+          error: error.message
+
+    global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
+    incompatibleNativeModules
+
+  # Public: Is this package compatible with this version of Atom?
+  #
+  # Incompatible packages cannot be activated. This will include packages
+  # installed to ~/.atom/packages that were built against node 0.11.10 but
+  # now need to be upgrade to node 0.11.13.
+  #
+  # Returns a {Boolean}, true if compatible, false if incompatible.
+  isCompatible: ->
+    return @compatible if @compatible?
+
+    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      # Bundled packages are always considered compatible
+      @compatible = true
+    else if packageMain = @getMainModulePath()
+      @incompatibleModules = @getIncompatibleNativeModules()
+      @compatible = @incompatibleModules.length is 0
+    else
+      @compatible = true

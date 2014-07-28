@@ -6,13 +6,10 @@ scrollbarStyle = require 'scrollbar-style'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
-CursorsComponent = require './cursors-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
-
-DummyHighlightDecoration = {id: 'dummy', startPixelPosition: {top: 0, left: 0}, endPixelPosition: {top: 0, left: 0}, decorations: [{class: 'dummy'}]}
 
 module.exports =
 EditorComponent = React.createClass
@@ -109,18 +106,14 @@ EditorComponent = React.createClass
           onFocus: @onInputFocused
           onBlur: @onInputBlurred
 
-        CursorsComponent {
-          scrollTop, scrollLeft, cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay,
-          lineHeightInPixels, defaultCharWidth, @scopedCharacterWidthsChangeCount, @useHardwareAcceleration,
-          @performedInitialMeasurement
-        }
         LinesComponent {
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText, @performedInitialMeasurement, @backgroundColor
+          placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
+          cursorBlinkPeriod, cursorBlinkResumeDelay
         }
 
         ScrollbarComponent
@@ -233,6 +226,8 @@ EditorComponent = React.createClass
     @performedInitialMeasurement = true
 
   requestUpdate: ->
+    return unless @isMounted()
+
     if @updatesPaused
       @updateRequestedWhilePaused = true
       return
@@ -241,7 +236,7 @@ EditorComponent = React.createClass
       @forceUpdate()
     else unless @updateRequested
       @updateRequested = true
-      setImmediate =>
+      requestAnimationFrame =>
         @updateRequested = false
         @forceUpdate() if @isMounted()
 
@@ -345,11 +340,6 @@ EditorComponent = React.createClass
               endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
-
-    # At least in Chromium 31, removing the last highlight causes a rendering
-    # artifact where chunks of the lines disappear, so we always leave this
-    # dummy highlight in place to prevent that.
-    filteredDecorations['dummy'] = DummyHighlightDecoration
 
     filteredDecorations
 
@@ -773,7 +763,7 @@ EditorComponent = React.createClass
   resumeDOMPollingAfterDelay: null # created lazily
 
   pollDOM: ->
-    return if @domPollingPaused or not @isMounted()
+    return if @domPollingPaused or @updateRequested or not @isMounted()
 
     wasVisible = @visible
     if @visible = @isVisible()

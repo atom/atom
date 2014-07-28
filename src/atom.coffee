@@ -438,7 +438,7 @@ class Atom extends Model
   # width  - The {Number} of pixels.
   # height - The {Number} of pixels.
   setSize: (width, height) ->
-    ipc.send('call-window-method', 'setSize', width, height)
+    @getCurrentWindow().setSize(width, height)
 
   # Public: Set the position of current window.
   #

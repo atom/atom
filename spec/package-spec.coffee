@@ -1,8 +1,36 @@
 {$} = require 'atom'
 path = require 'path'
+Package = require '../src/package'
 ThemePackage = require '../src/theme-package'
 
 describe "Package", ->
+  describe "when the package contains incompatible native modules", ->
+    it "does not activate it", ->
+      packagePath = atom.project.resolve('packages/package-with-incompatible-native-module')
+      pack = new Package(packagePath)
+      expect(pack.isCompatible()).toBe false
+      expect(pack.incompatibleModules[0].name).toBe 'native-module'
+      expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
+
+    it "caches the incompatible native modules in local storage", ->
+      packagePath = atom.project.resolve('packages/package-with-incompatible-native-module')
+      cacheKey = null
+      cacheItem = null
+
+      spyOn(global.localStorage, 'setItem').andCallFake (key, item) ->
+        cacheKey = key
+        cacheItem = item
+      spyOn(global.localStorage, 'getItem').andCallFake (key) ->
+        return cacheItem if cacheKey is key
+
+      expect(new Package(packagePath).isCompatible()).toBe false
+      expect(global.localStorage.getItem.callCount).toBe 1
+      expect(global.localStorage.setItem.callCount).toBe 1
+
+      expect(new Package(packagePath).isCompatible()).toBe false
+      expect(global.localStorage.getItem.callCount).toBe 2
+      expect(global.localStorage.setItem.callCount).toBe 1
+
   describe "theme", ->
     theme = null
 

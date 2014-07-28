@@ -43,12 +43,12 @@ class LanguageMode
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
 
     if commentEndString
-      shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
+      shouldUncomment = commentStartRegex.testSync(buffer.lineForRow(start))
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '(?:$1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
-        startMatch =  commentStartRegex.search(buffer.lineForRow(start))
-        endMatch = commentEndRegex.search(buffer.lineForRow(end))
+        startMatch =  commentStartRegex.searchSync(buffer.lineForRow(start))
+        endMatch = commentEndRegex.searchSync(buffer.lineForRow(end))
         if startMatch and endMatch
           buffer.transact ->
             columnStart = startMatch[1].length
@@ -72,13 +72,13 @@ class LanguageMode
         blank = line?.match(/^\s*$/)
 
         allBlank = false unless blank
-        allBlankOrCommented = false unless blank or commentStartRegex.test(line)
+        allBlankOrCommented = false unless blank or commentStartRegex.testSync(line)
 
       shouldUncomment = allBlankOrCommented and not allBlank
 
       if shouldUncomment
         for row in [start..end]
-          if match = commentStartRegex.search(buffer.lineForRow(row))
+          if match = commentStartRegex.searchSync(buffer.lineForRow(row))
             columnStart = match[1].length
             columnEnd = columnStart + match[2].length
             buffer.setTextInRange([[row, columnStart], [row, columnEnd]], "")
@@ -168,7 +168,7 @@ class LanguageMode
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.search(@editor.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.searchSync(@editor.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -250,10 +250,10 @@ class LanguageMode
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
+    desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
 
     Math.max(desiredIndentLevel, 0)
 
@@ -293,7 +293,7 @@ class LanguageMode
     return unless increaseIndentRegex and decreaseIndentRegex
 
     line = @buffer.lineForRow(bufferRow)
-    return unless decreaseIndentRegex.test(line)
+    return unless decreaseIndentRegex.testSync(line)
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return if currentIndentLevel is 0
@@ -302,7 +302,7 @@ class LanguageMode
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel -= 1 unless increaseIndentRegex.test(precedingLine)
+    desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 

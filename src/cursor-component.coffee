@@ -8,22 +8,11 @@ CursorComponent = React.createClass
 
   render: ->
     {pixelRect, defaultCharWidth} = @props
-    {height, width} = pixelRect
+    {top, left, height, width} = pixelRect
     width = defaultCharWidth if width is 0
-    WebkitTransform = @getTransform()
+    WebkitTransform = "translate(#{left}px, #{top}px)"
 
     div className: 'cursor', style: {height, width, WebkitTransform}
 
-  getTransform: ->
-    {pixelRect, scrollTop, scrollLeft, useHardwareAcceleration} = @props
-    {top, left} = pixelRect
-    top -= scrollTop
-    left -= scrollLeft
-
-    if useHardwareAcceleration
-      "translate3d(#{left}px, #{top}px, 0px)"
-    else
-      "translate(#{left}px, #{top}px)"
-
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'pixelRect', 'scrollTop', 'scrollLeft', 'defaultCharWidth')
+    not isEqualForProperties(newProps, @props, 'pixelRect', 'defaultCharWidth')
