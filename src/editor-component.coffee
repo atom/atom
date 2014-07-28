@@ -226,6 +226,8 @@ EditorComponent = React.createClass
     @performedInitialMeasurement = true
 
   requestUpdate: ->
+    return unless @isMounted()
+
     if @updatesPaused
       @updateRequestedWhilePaused = true
       return
