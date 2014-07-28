@@ -20,9 +20,8 @@ getCachedJavaScript = (cachePath) ->
 
 convertFilePath = (filePath) ->
   if process.platform is 'win32'
-    encodeURI '/' + path.resolve(filePath).replace(/\\/g, '/')
-  else
-    encodeURI filePath
+    filePath = "/#{path.resolve(filePath).replace(/\\/g, '/')}"
+  encodeURI(filePath)
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
   {js, v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
