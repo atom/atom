@@ -1762,7 +1762,7 @@ class Editor extends Model
       {row} = start
       while ++row < end.row
         @addSelectionForBufferRange([[row, 0], [row, Infinity]])
-      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]])
+      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
 
   # Public: For each selection, transpose the selected text.
   #
