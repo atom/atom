@@ -295,22 +295,29 @@ describe "WorkspaceView", ->
       expect(atom.workspaceView).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "editor font styling", ->
-    editorNode = null
+    [editorNode, editor] = []
 
     beforeEach ->
       atom.workspaceView.attachToDom()
       editorNode = atom.workspaceView.find('.editor')[0]
+      editor = atom.workspaceView.find('.editor').view().getEditor()
 
     it "updates the font-size based on the 'editor.fontSize' config value", ->
+      initialCharWidth = editor.getDefaultCharWidth()
       expect(getComputedStyle(editorNode).fontSize).toBe atom.config.get('editor.fontSize') + 'px'
       atom.config.set('editor.fontSize', atom.config.get('editor.fontSize') + 5)
       expect(getComputedStyle(editorNode).fontSize).toBe atom.config.get('editor.fontSize') + 'px'
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan initialCharWidth
 
     it "updates the font-family based on the 'editor.fontFamily' config value", ->
+      initialCharWidth = editor.getDefaultCharWidth()
       expect(getComputedStyle(editorNode).fontFamily).toBe atom.config.get('editor.fontFamily')
       atom.config.set('editor.fontFamily', 'sans-serif')
       expect(getComputedStyle(editorNode).fontFamily).toBe atom.config.get('editor.fontFamily')
+      expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
     it "updates the line-height based on the 'editor.lineHeight' config value", ->
-      atom.config.set('editor.lineHeight', '20px')
+      initialLineHeight = editor.getLineHeightInPixels()
+      atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorNode).lineHeight).toBe atom.config.get('editor.lineHeight')
+      expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight

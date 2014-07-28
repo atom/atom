@@ -359,8 +359,10 @@ class WorkspaceView extends View
       atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
       styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
 
-    editorRule = styleNode.sheet.cssRules[0]
+    {sheet} = styleNode
+    editorRule = sheet.cssRules[0]
     editorRule.style[property] = value
+    atom.themes.emit 'stylesheet-updated', sheet
     atom.themes.emit 'stylesheets-changed'
 
   # Deprecated
