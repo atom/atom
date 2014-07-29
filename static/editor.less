@@ -84,9 +84,15 @@
     }
   }
 
-  .placeholder-text {
-    position: absolute;
-    color: @text-color-subtle;
+  &.mini {
+    font-size: @input-font-size;
+    line-height: @component-line-height;
+    max-height: @component-line-height + 2; // +2 for borders
+
+    .placeholder-text {
+      position: absolute;
+      color: @text-color-subtle;
+    }
   }
 }
 
