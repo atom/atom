@@ -50,10 +50,7 @@ script/grunt mkdeb
 
 Use the newly installed atom by restarting any running atom instances.
 
-To run `atom` and `apm` from a terminal open atom's command palette `ctrl+shift+p` and run `Window: Install Shell Commands`
-
 ## Troubleshooting
-
 
 ### Exception: "TypeError: Unable to watch path"
 
