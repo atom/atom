@@ -83,16 +83,16 @@
       }
     }
   }
+}
 
-  &.mini {
-    font-size: @input-font-size;
-    line-height: @component-line-height;
-    max-height: @component-line-height + 2; // +2 for borders
+.editor.mini {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
 
-    .placeholder-text {
-      position: absolute;
-      color: @text-color-subtle;
-    }
+  .placeholder-text {
+    position: absolute;
+    color: @text-color-subtle;
   }
 }
 
@@ -306,9 +306,5 @@
 
   .scroll-view {
     overflow: hidden;
-  }
-
-  .placeholder-text {
-    color: @text-color-subtle;
   }
 }
