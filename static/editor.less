@@ -83,6 +83,12 @@
       }
     }
   }
+}
+
+.editor.mini {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
 
   .placeholder-text {
     position: absolute;
@@ -300,9 +306,5 @@
 
   .scroll-view {
     overflow: hidden;
-  }
-
-  .placeholder-text {
-    color: @text-color-subtle;
   }
 }
