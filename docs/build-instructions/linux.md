@@ -36,7 +36,7 @@ Create the atom application at `$TMPDIR/atom-build/Atom`:
 script/build
 ```
 
-Install the `atom` command to `/usr/local/bin/atom`:
+Install the `atom` and `apm` commands to `/usr/local/bin`:
 
 ```sh
 sudo script/grunt install
