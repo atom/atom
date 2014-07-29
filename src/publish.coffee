@@ -24,6 +24,7 @@ class Publish extends Command
 
       Usage: apm publish [<newversion> | major | minor | patch | build]
              apm publish --tag <tagname>
+             apm publish --rename <new-name>
 
       Publish a new version of the package in the current working directory.
 
@@ -32,12 +33,16 @@ class Publish extends Command
       it is published to the apm registry. The HEAD branch and the new tag are
       pushed up to the remote repository automatically using this option.
 
+      If a new name is provided via the --rename flag, the package.json file is
+      updated with the new name and the package's name is updated on Atom.io.
+
       Run `apm featured` to see all the featured packages or
       `apm view <packagename>` to see information about your package after you
       have published it.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'tag').string('tag').describe('tag', 'Specify a tag to publish')
+    options.alias('r', 'rename').string('rename').describe('rename', 'Specify a new name for the package')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
@@ -166,7 +171,7 @@ class Publish extends Command
   # tag - The string Git tag of the new version.
   # callback - The callback function to invoke with an error as the first
   #            argument.
-  createPackageVersion: (packageName, tag, callback) ->
+  createPackageVersion: (packageName, tag, options, callback) ->
     Login.getTokenOrLogin (error, token) ->
       if error?
         callback(error)
@@ -177,6 +182,7 @@ class Publish extends Command
         json: true
         body:
           tag: tag
+          rename: options.rename
         headers:
           authorization: token
       request.post requestSettings, (error, response, body={}) ->
@@ -194,9 +200,12 @@ class Publish extends Command
   # tag - The Git tag string of the package version to publish.
   # callback - The callback function to invoke when done with an error as the
   #            first argument.
-  publishPackage: (pack, tag, callback) ->
-    process.stdout.write "Publishing #{pack.name}@#{tag} "
-    @createPackageVersion pack.name, tag, (error) =>
+  publishPackage: (pack, tag, remaining...) ->
+    options = remaining.shift() if remaining.length >= 2
+    callback = remaining.shift()
+
+    process.stdout.write "Publishing #{options.rename || pack.name}@#{tag} "
+    @createPackageVersion pack.name, tag, options, (error) =>
       if error?
         @logFailure()
         callback(error)
@@ -222,6 +231,11 @@ class Publish extends Command
     catch error
       throw new Error("Error parsing package.json file: #{error.message}")
 
+  saveMetadata: (pack) ->
+    metadataPath = path.resolve('package.json')
+    out = JSON.stringify(pack, null, 2)
+    fs.writeFileSync(metadataPath, out)
+
   loadRepository: ->
     currentDirectory = process.cwd()
 
@@ -240,11 +254,35 @@ class Publish extends Command
     unless upstreamUrl
       throw new Error('Package must pushed up to GitHub before publishing: https://help.github.com/articles/create-a-repo')
 
+  # Rename package if necessary
+  renamePackage: (pack, name, callback) ->
+    if name?.length > 0
+      message = "Renaming #{pack.name} to #{name}"
+      process.stdout.write("#{message}\n")
+      @setPackageName pack, name, =>
+        @spawn 'git', ['add', 'package.json'], (addCode) =>
+          @spawn 'git', ['commit', '-m', "#{message}"], (code, stderr='', stdout='') =>
+            if code is 0 or addCode is 0
+              callback()
+            else
+              callback('Failed to commit package.json')
+    else
+      # Just fall through if the name is empty
+      callback()
+
+  setPackageName: (pack, name, callback) ->
+    if pack.name == name
+      throw new Error('New package name matches old package name')
+
+    pack.name = name
+    @saveMetadata(pack)
+    callback()
+
   # Run the publish command with the given options
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-    {tag} = options.argv
+    {tag, rename} = options.argv
     [version] = options.argv._
 
     try
@@ -257,22 +295,35 @@ class Publish extends Command
     catch error
       return callback(error)
 
-    if version?.length > 0
+    if version?.length > 0 or rename?.length > 0
+      unless version?.length > 0
+        version = 'patch'
+        originalName = pack.name
+
       @registerPackage pack, (error, firstTimePublishing) =>
+        console.log "registering #{pack.name}"
         return callback(error) if error?
 
-        @versionPackage version, (error, tag) =>
+        @renamePackage pack, rename, (error) =>
           return callback(error) if error?
 
-          @pushVersion tag, (error) =>
+          @versionPackage version, (error, tag) =>
             return callback(error) if error?
 
-            @waitForTagToBeAvailable pack, tag, =>
+            @pushVersion tag, (error) =>
+              return callback(error) if error?
 
-              @publishPackage pack, tag, (error) =>
-                if firstTimePublishing and not error?
-                  @logFirstTimePublishMessage(pack)
-                callback(error)
+              @waitForTagToBeAvailable pack, tag, =>
+
+                if originalName?
+                  # If we're renaming a package, we have to hit the API with the
+                  # current name, not the new one, or it will 404.
+                  rename = pack.name
+                  pack.name = originalName
+                @publishPackage pack, tag, {rename: rename},  (error) =>
+                  if firstTimePublishing and not error?
+                    @logFirstTimePublishMessage(pack)
+                  callback(error)
     else if tag?.length > 0
       @registerPackage pack, (error, firstTimePublishing) =>
         return callback(error) if error?
@@ -282,4 +333,4 @@ class Publish extends Command
             @logFirstTimePublishMessage(pack)
           callback(error)
     else
-      callback('Missing required tag to publish')
+      callback('Version, tag or rename required to publish')
