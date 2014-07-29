@@ -7,6 +7,24 @@ EditorComponent = require './editor-component'
 
 module.exports =
 class ReactEditorView extends View
+  @configDefaults:
+    fontFamily: ''
+    fontSize: 16
+    lineHeight: 1.3
+    showInvisibles: false
+    showIndentGuide: false
+    showLineNumbers: true
+    autoIndent: true
+    normalizeIndentOnPaste: true
+    nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
+    preferredLineLength: 80
+    tabLength: 2
+    softWrap: false
+    softTabs: true
+    softWrapAtPreferredLineLength: false
+    scrollSensitivity: 40
+    useHardwareAcceleration: true
+
   @content: (params) ->
     attributes = params.attributes ? {}
     attributes.class = 'editor react editor-colors'

@@ -235,10 +235,7 @@ class Editor extends Model
     @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 
   getViewClass: ->
-    if atom.config.get('core.useReactEditor')
-      require './react-editor-view'
-    else
-      require './editor-view'
+    require './react-editor-view'
 
   destroyed: ->
     @unsubscribe()

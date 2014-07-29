@@ -303,7 +303,7 @@ class Atom extends Model
     dimensions = @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
-    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @config.setDefaults('editor', require('./react-editor-view').configDefaults)
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()

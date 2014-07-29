@@ -15,10 +15,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$ = $
   module.exports.$$ = $$
   module.exports.$$$ = $$$
-  if atom.config.get('core.useReactMiniEditors')
-    module.exports.EditorView = require '../src/react-editor-view'
-  else
-    module.exports.EditorView = require '../src/editor-view'
+  module.exports.EditorView = require '../src/react-editor-view'
   module.exports.ScrollView = require '../src/scroll-view'
   module.exports.SelectListView = require '../src/select-list-view'
   module.exports.Task = require '../src/task'

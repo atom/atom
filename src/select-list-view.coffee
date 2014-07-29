@@ -1,8 +1,5 @@
 {$, View} = require './space-pen-extensions'
-if atom.config.get('core.useReactMiniEditors')
-  EditorView = require './react-editor-view'
-else
-  EditorView = require './editor-view'
+EditorView = require './react-editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that

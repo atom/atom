@@ -2,7 +2,7 @@
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
-EditorView = require '../src/editor-view'
+EditorView = require '../src/react-editor-view'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 
