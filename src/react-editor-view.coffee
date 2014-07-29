@@ -39,9 +39,9 @@ class ReactEditorView extends View
     if editorOrParams instanceof Editor
       @editor = editorOrParams
     else
-      {@editor, mini, placeholderText} = editorOrParams
+      {@editor, @mini, placeholderText} = editorOrParams
       props ?= {}
-      props.mini = mini
+      props.mini = @mini
       props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
