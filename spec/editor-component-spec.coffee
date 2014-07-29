@@ -1975,7 +1975,7 @@ describe "EditorComponent", ->
       afterEach ->
         atom.themes.removeStylesheet('test')
 
-      fit "does not re-measure character widths until the editor is shown again", ->
+      it "does not re-measure character widths until the editor is shown again", ->
         atom.config.set('editor.fontFamily', 'sans-serif')
 
         wrapperView.hide()
