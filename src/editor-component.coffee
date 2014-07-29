@@ -40,7 +40,7 @@ EditorComponent = React.createClass
   scrollSensitivity: 0.4
   heightAndWidthMeasurementRequested: false
   measureLineHeightAndDefaultCharWidthWhenShown: false
-  remeasureCharacterWidthsIfVisibleAfterNextUpdate: false
+  remeasureCharacterWidthsWhenShown: false
   inputEnabled: true
   scopedCharacterWidthsChangeCount: null
   domPollingInterval: 100
@@ -48,13 +48,12 @@ EditorComponent = React.createClass
   domPollingPaused: false
 
   render: ->
-    {focused, fontSize, lineHeight, fontFamily, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
+    {focused, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
-    style = {fontSize, fontFamily}
-    style.lineHeight = lineHeight unless mini
+    style = {}
 
     if @performedInitialMeasurement
       renderedRowRange = @getRenderedRowRange()
@@ -177,7 +176,7 @@ EditorComponent = React.createClass
     @listenForDOMEvents()
     @listenForCommands()
 
-    @subscribe atom.themes, 'stylesheet-added stylsheet-removed', @onStylesheetsChanged
+    @subscribe atom.themes, 'stylesheet-added stylesheet-removed stylesheet-updated', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     if @visible = @isVisible()
@@ -212,15 +211,15 @@ EditorComponent = React.createClass
 
     if @performedInitialMeasurement
       @measureScrollbars() if @measuringScrollbars
-      @measureLineHeightAndDefaultCharWidthIfNeeded(prevState)
-      @remeasureCharacterWidthsIfNeeded(prevState)
 
   performInitialMeasurement: ->
     @updatesPaused = true
-    @measureLineHeightAndDefaultCharWidth()
     @measureHeightAndWidth()
+    @sampleFontStyling()
     @sampleBackgroundColors()
     @measureScrollbars()
+    @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
+    @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
     @updatesPaused = false
     @performedInitialMeasurement = true
@@ -249,6 +248,9 @@ EditorComponent = React.createClass
       if @updateRequestedWhilePaused and @isMounted()
         @updateRequestedWhilePaused = false
         @forceUpdate()
+
+  getTopmostDOMNode: ->
+    @props.parentView.element
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -511,9 +513,6 @@ EditorComponent = React.createClass
       parentView.command command, listener
 
   observeConfig: ->
-    @subscribe atom.config.observe 'editor.fontFamily', @setFontFamily
-    @subscribe atom.config.observe 'editor.fontSize', @setFontSize
-    @subscribe atom.config.observe 'editor.lineHeight', @setLineHeight
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
     @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
     @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
@@ -668,10 +667,12 @@ EditorComponent = React.createClass
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
 
   onStylesheetsChanged: (stylesheet) ->
+    return unless @performedInitialMeasurement
+
     @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @sampleFontStyling()
     @sampleBackgroundColors()
-    @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    @requestUpdate() if @visible
+    @remeasureCharacterWidths()
 
   onScreenLinesChanged: (change) ->
     {editor} = @props
@@ -769,6 +770,7 @@ EditorComponent = React.createClass
     if @visible = @isVisible()
       if wasVisible
         @measureHeightAndWidth()
+        @sampleFontStyling()
         @sampleBackgroundColors()
       else
         @performInitialMeasurement()
@@ -811,6 +813,19 @@ EditorComponent = React.createClass
     clientWidth -= paddingLeft
     editor.setWidth(clientWidth) if clientWidth > 0
 
+  sampleFontStyling: ->
+    oldFontSize = @fontSize
+    oldFontFamily = @fontFamily
+    oldLineHeight = @lineHeight
+
+    {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
+
+    if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
+      @measureLineHeightAndDefaultCharWidth()
+
+    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
+      @remeasureCharacterWidths()
+
   sampleBackgroundColors: (suppressUpdate) ->
     {parentView} = @props
     {showLineNumbers} = @state
@@ -826,31 +841,19 @@ EditorComponent = React.createClass
         @gutterBackgroundColor = gutterBackgroundColor
         @requestUpdate() unless suppressUpdate
 
-  measureLineHeightAndDefaultCharWidthIfNeeded: (prevState) ->
-    if not isEqualForProperties(prevState, @state, 'lineHeight', 'fontSize', 'fontFamily')
-      if @visible
-        @measureLineHeightAndDefaultCharWidth()
-      else
-        @measureLineHeightAndDefaultCharWidthWhenShown = true
-    else if @measureLineHeightAndDefaultCharWidthWhenShown and @visible
-      @measureLineHeightAndDefaultCharWidthWhenShown = false
-      @measureLineHeightAndDefaultCharWidth()
-
   measureLineHeightAndDefaultCharWidth: ->
-    @refs.lines.measureLineHeightAndDefaultCharWidth()
-
-  remeasureCharacterWidthsIfNeeded: (prevState) ->
-    if not isEqualForProperties(prevState, @state, 'fontSize', 'fontFamily')
-      if @visible
-        @remeasureCharacterWidths()
-      else
-        @remeasureCharacterWidthsIfVisibleAfterNextUpdate = true
-    else if @remeasureCharacterWidthsIfVisibleAfterNextUpdate and @visible
-      @remeasureCharacterWidthsIfVisibleAfterNextUpdate = false
-      @remeasureCharacterWidths()
+    if @visible
+      @measureLineHeightAndDefaultCharWidthWhenShown = false
+      @refs.lines.measureLineHeightAndDefaultCharWidth()
+    else
+      @measureLineHeightAndDefaultCharWidthWhenShown = true
 
   remeasureCharacterWidths: ->
-    @refs.lines.remeasureCharacterWidths()
+    if @visible
+      @remeasureCharacterWidthsWhenShown = false
+      @refs.lines.remeasureCharacterWidths()
+    else
+      @remeasureCharacterWidthsWhenShown = true
 
   measureScrollbars: ->
     return unless @visible
@@ -911,19 +914,22 @@ EditorComponent = React.createClass
     null
 
   getFontSize: ->
-    @state.fontSize
+    parseInt(getComputedStyle(@getTopmostDOMNode()).fontSize)
 
   setFontSize: (fontSize) ->
-    @setState({fontSize})
+    @getTopmostDOMNode().style.fontSize = fontSize + 'px'
+    @sampleFontStyling()
 
   getFontFamily: ->
-    @state.fontFamily
+    getComputedStyle(@getTopmostDOMNode()).fontFamily
 
   setFontFamily: (fontFamily) ->
-    @setState({fontFamily})
+    @getTopmostDOMNode().style.fontFamily = fontFamily
+    @sampleFontStyling()
 
   setLineHeight: (lineHeight) ->
-    @setState({lineHeight})
+    @getTopmostDOMNode().style.lineHeight = lineHeight
+    @sampleFontStyling()
 
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})

@@ -40,6 +40,7 @@ describe "EditorComponent", ->
 
       {component} = wrapperView
       component.performSyncUpdates = false
+      component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)
 
@@ -1975,7 +1976,7 @@ describe "EditorComponent", ->
       afterEach ->
         atom.themes.removeStylesheet('test')
 
-      it "does not re-measure character widths until the editor is shown again", ->
+      fit "does not re-measure character widths until the editor is shown again", ->
         atom.config.set('editor.fontFamily', 'sans-serif')
 
         wrapperView.hide()
@@ -1984,7 +1985,6 @@ describe "EditorComponent", ->
             font-weight: bold;
           }
         """
-        nextAnimationFrame()
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
