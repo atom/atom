@@ -150,7 +150,7 @@ class Atom extends Model
     process.env.NODE_PATH = exportsPath
 
     # Make react.js faster
-    process.env.NODE_ENV ?= 'production'
+    process.env.NODE_ENV ?= 'production' unless devMode
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
