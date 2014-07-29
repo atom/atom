@@ -159,7 +159,7 @@ EditorComponent = React.createClass
   getDefaultProps: ->
     cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 100
-    lineOverdrawMargin: 8
+    lineOverdrawMargin: 15
 
   componentWillMount: ->
     @pendingChanges = []
