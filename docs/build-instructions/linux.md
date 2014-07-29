@@ -42,14 +42,14 @@ Install the `atom` command to `/usr/local/bin/atom`:
 sudo script/grunt install
 ```
 
-Generate a `.deb` package at `$TMPDIR/atom-build`:
+Generate a `.deb` package at `$TMPDIR/atom-build`: (*optional*)
 
 ```sh
 script/grunt mkdeb
 ```
 
 Use the newly installed atom by restarting any running atom instances.
-  
+
 To run `atom` and `apm` from a terminal open atom's command palette `ctrl+shift+p` and run `Window: Install Shell Commands`
 
 ## Troubleshooting
