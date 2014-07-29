@@ -661,7 +661,6 @@ describe "EditorComponent", ->
           font-weight: bold;
         }
       """
-      nextAnimationFrame() # re-measure characters once for a synchronous set of stylesheet changes
       nextAnimationFrame() # update based on new measurements
 
       cursor = componentNode.querySelector('.cursor')
