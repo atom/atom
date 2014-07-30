@@ -647,10 +647,11 @@ class Editor extends Model
       options.autoIndentNewline ?= @shouldAutoIndent()
       options.autoDecreaseIndent ?= @shouldAutoIndent()
       @mutateSelectedText (selection) =>
-        selection.insertText(text, options)
-        @emit('did-insert-text', {text})
-
-    willInsert
+        range = selection.insertText(text, options)
+        @emit('did-insert-text', {text, range})
+        range
+    else
+      false
 
   # Public: For each selection, replace the selected text with a newline.
   insertNewline: ->
