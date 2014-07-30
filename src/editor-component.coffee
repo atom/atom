@@ -524,6 +524,12 @@ EditorComponent = React.createClass
     @refs.input.focus()
 
   onTextInput: (event) ->
+    event.stopPropagation()
+
+    # If we prevent the insertion of a space character, then the browser
+    # interprets the spacebar keypress as a page-down command.
+    event.preventDefault() unless event.data is ' '
+
     return unless @isInputEnabled()
 
     {editor} = @props
@@ -539,9 +545,6 @@ EditorComponent = React.createClass
     editor.insertText(event.data)
     inputNode.value = event.data
 
-    # If we prevent the insertion of a space character, then the browser
-    # interprets the spacebar keypress as a page-down command.
-    event.preventDefault() unless event.data is ' '
 
   onInputFocused: ->
     @setState(focused: true)

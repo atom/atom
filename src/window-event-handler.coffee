@@ -57,8 +57,7 @@ class WindowEventHandler
 
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
-    @subscribe $(document), 'keydown', (event) ->
-      atom.keymaps.handleKeyboardEvent(event.originalEvent)
+    document.addEventListener 'keydown', @onKeydown
 
     @subscribe $(document), 'drop', (e) ->
       e.preventDefault()
@@ -94,6 +93,10 @@ class WindowEventHandler
     bindCommandToAction('core:undo', 'undo:')
     bindCommandToAction('core:redo', 'redo:')
     bindCommandToAction('core:select-all', 'selectAll:')
+
+  onKeydown: (event) ->
+    atom.keymaps.handleKeyboardEvent(event)
+    event.stopImmediatePropagation()
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
