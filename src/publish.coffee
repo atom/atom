@@ -233,8 +233,8 @@ class Publish extends Command
 
   saveMetadata: (pack) ->
     metadataPath = path.resolve('package.json')
-    out = JSON.stringify(pack, null, 2)
-    fs.writeFileSync(metadataPath, out)
+    metadataJson = JSON.stringify(pack, null, 2)
+    fs.writeFileSync(metadataPath, "#{metadataJson}\n")
 
   loadRepository: ->
     currentDirectory = process.cwd()
