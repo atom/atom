@@ -260,14 +260,17 @@ class Publish extends Command
       message = "Renaming #{pack.name} to #{name}"
       process.stdout.write("#{message}\n")
       @setPackageName pack, name, =>
-        @spawn 'git', ['add', 'package.json'], (addCode) =>
-          return callback('`git add package.json` failed') unless addCode is 0
+        @spawn 'git', ['add', 'package.json'], (code, stderr='', stdout='') =>
+          unless code is 0
+            addOutput = "#{stdout}\n#{stderr}".trim()
+            return callback("`git add package.json` failed: #{addOutput}")
 
           @spawn 'git', ['commit', '-m', message], (code, stderr='', stdout='') =>
             if code is 0
               callback()
             else
-              callback('Failed to commit package.json')
+              commitOutput = "#{stdout}\n#{stderr}".trim()
+              callback("Failed to commit package.json: #{commitOutput}")
     else
       # Just fall through if the name is empty
       callback()
