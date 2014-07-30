@@ -1,5 +1,5 @@
 {$, View} = require './space-pen-extensions'
-EditorView = require './react-editor-view'
+EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that

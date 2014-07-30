@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-EditorView = require '../src/react-editor-view'
+EditorView = require '../src/editor-view'
 EditorComponent = require '../src/editor-component'
 nbsp = String.fromCharCode(160)
 
