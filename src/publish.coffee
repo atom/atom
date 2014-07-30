@@ -263,7 +263,7 @@ class Publish extends Command
         @spawn 'git', ['add', 'package.json'], (addCode) =>
           return callback('`git add package.json` failed') unless addCode is 0
 
-          @spawn 'git', ['commit', '-m', "#{message}"], (code, stderr='', stdout='') =>
+          @spawn 'git', ['commit', '-m', message], (code, stderr='', stdout='') =>
             if code is 0
               callback()
             else
