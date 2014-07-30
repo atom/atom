@@ -258,7 +258,7 @@ class Publish extends Command
   renamePackage: (pack, name, callback) ->
     if name?.length > 0 and pack.name isnt name
       message = "Renaming #{pack.name} to #{name}"
-      process.stdout.write("#{message}")
+      process.stdout.write(message)
       @setPackageName pack, name, (error) =>
         if error?
           @logFailure()
