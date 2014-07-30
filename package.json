@@ -42,7 +42,7 @@
     "read": "~1.0.5",
     "q": "~0.9.7",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "first-mate": "1.x",
+    "first-mate": ">=2.0.2 <3",
     "tar": "~0.1.19",
     "git-utils": ">=2.1.3 <3",
     "semver": "~2.2.1",
