@@ -332,4 +332,4 @@ class Publish extends Command
             @logFirstTimePublishMessage(pack)
           callback(error)
     else
-      callback('Version, tag or rename required to publish')
+      callback('A version, tag, or new package name is required')
