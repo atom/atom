@@ -98,12 +98,15 @@ class EditorView extends View
       @gutter = $(node).find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
+        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         @gutter.find('.line-number').removeClass(klass)
 
       @gutter.getLineNumberElement = (bufferRow) =>
+        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         @gutter.find("[data-buffer-row='#{bufferRow}']")
 
       @gutter.addClassToLine = (bufferRow, klass) =>
+        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
         lines.addClass(klass)
         lines.length > 0
