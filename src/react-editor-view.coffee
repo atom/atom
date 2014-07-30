@@ -258,9 +258,11 @@ class EditorView extends View
     @component.performSyncUpdates = valueToRestore
 
   pageDown: ->
+    deprecate('Use editorView.getModel().pageDown()')
     @editor.pageDown()
 
   pageUp: ->
+    deprecate('Use editorView.getModel().pageUp()')
     @editor.pageUp()
 
   # Public: Retrieves the number of the row that is visible and currently at the
