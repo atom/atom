@@ -301,7 +301,6 @@ class Publish extends Command
         originalName = pack.name
 
       @registerPackage pack, (error, firstTimePublishing) =>
-        console.log "registering #{pack.name}"
         return callback(error) if error?
 
         @renamePackage pack, rename, (error) =>
