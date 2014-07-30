@@ -6,7 +6,7 @@ Editor = require './editor'
 EditorComponent = require './editor-component'
 
 module.exports =
-class ReactEditorView extends View
+class EditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16

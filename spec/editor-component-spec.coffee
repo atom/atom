@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-ReactEditorView = require '../src/react-editor-view'
+EditorView = require '../src/react-editor-view'
 EditorComponent = require '../src/editor-component'
 nbsp = String.fromCharCode(160)
 
@@ -34,7 +34,7 @@ describe "EditorComponent", ->
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new ReactEditorView(editor, {lineOverdrawMargin})
+      wrapperView = new EditorView(editor, {lineOverdrawMargin})
       wrapperView.attachToDom()
       wrapperNode = wrapperView.element
 
@@ -1911,7 +1911,7 @@ describe "EditorComponent", ->
         hiddenParent.style.display = 'none'
         contentNode.appendChild(hiddenParent)
 
-        wrapperView = new ReactEditorView(editor, {lineOverdrawMargin})
+        wrapperView = new EditorView(editor, {lineOverdrawMargin})
         wrapperNode = wrapperView.element
         wrapperView.appendTo(hiddenParent)
 
