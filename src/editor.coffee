@@ -1305,7 +1305,7 @@ class Editor extends Model
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
     selection = @getLastSelection()
-    selection.autoscroll() if @manageScrollPosition
+    selection?.autoscroll() if @manageScrollPosition
     selection
 
   # Public: Set the selected range in buffer coordinates. If there are multiple
