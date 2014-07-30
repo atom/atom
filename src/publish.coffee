@@ -231,10 +231,10 @@ class Publish extends Command
     catch error
       throw new Error("Error parsing package.json file: #{error.message}")
 
-  saveMetadata: (pack) ->
+  saveMetadata: (pack, callback) ->
     metadataPath = path.resolve('package.json')
     metadataJson = JSON.stringify(pack, null, 2)
-    fs.writeFileSync(metadataPath, "#{metadataJson}\n")
+    fs.writeFile(metadataPath, "#{metadataJson}\n", callback)
 
   loadRepository: ->
     currentDirectory = process.cwd()
@@ -259,7 +259,10 @@ class Publish extends Command
     if name?.length > 0 and pack.name isnt name
       message = "Renaming #{pack.name} to #{name}"
       process.stdout.write("#{message}\n")
-      @setPackageName pack, name, =>
+      @setPackageName pack, name, (error) =>
+        if error?
+          return callback(error)
+
         @spawn 'git', ['add', 'package.json'], (code, stderr='', stdout='') =>
           unless code is 0
             addOutput = "#{stdout}\n#{stderr}".trim()
@@ -276,12 +279,8 @@ class Publish extends Command
       callback()
 
   setPackageName: (pack, name, callback) ->
-    if pack.name is name
-      return callback(new Error('New package name matches old package name'))
-
     pack.name = name
-    @saveMetadata(pack)
-    callback()
+    @saveMetadata(pack, callback)
 
   # Run the publish command with the given options
   run: (options) ->
