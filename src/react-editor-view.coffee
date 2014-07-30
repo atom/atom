@@ -345,13 +345,17 @@ class EditorView extends View
   setInputEnabled: (inputEnabled) ->
     @component.setInputEnabled(inputEnabled)
 
-  requestDisplayUpdate: -> # No-op shim for find-and-replace
+  requestDisplayUpdate: ->
+    deprecate('Please remove from your code. ::requestDisplayUpdate no longer does anything')
 
-  updateDisplay: ->        # No-op shim for package specs
+  updateDisplay: ->
+    deprecate('Please remove from your code. ::updateDisplay no longer does anything')
 
-  resetDisplay: ->         # No-op shim for package specs
+  resetDisplay: ->
+    deprecate('Please remove from your code. ::resetDisplay no longer does anything')
 
-  redraw: ->               # No-op shim
+  redraw: ->
+    deprecate('Please remove from your code. ::redraw no longer does anything')
 
   # Public: Set the text to appear in the editor when it is empty.
   #
