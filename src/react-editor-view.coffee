@@ -115,7 +115,7 @@ class ReactEditorView extends View
     @find('.lines').prepend(view)
 
   beforeRemove: ->
-    React.unmountComponentAtNode(@element)
+    React.unmountComponentAtNode(@element) if @component.isMounted()
     @attached = false
     @trigger 'editor:detached', this
 
