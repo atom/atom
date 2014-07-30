@@ -261,8 +261,10 @@ class Publish extends Command
       process.stdout.write("#{message}\n")
       @setPackageName pack, name, =>
         @spawn 'git', ['add', 'package.json'], (addCode) =>
+          return callback('`git add package.json` failed') unless addCode is 0
+
           @spawn 'git', ['commit', '-m', "#{message}"], (code, stderr='', stdout='') =>
-            if code is 0 or addCode is 0
+            if code is 0
               callback()
             else
               callback('Failed to commit package.json')
