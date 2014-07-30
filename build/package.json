@@ -33,7 +33,7 @@
     "read-package-json": "1.1.8",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
-    "runas": "0.5.x",
+    "runas": "~1.0.1",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0"
