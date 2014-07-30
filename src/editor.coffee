@@ -690,7 +690,7 @@ class Editor extends Model
 
   # Indent all lines intersecting selections. See {Selection::indent} for more
   # information.
-  indent: (options={})->
+  indent: (options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
 
@@ -1668,55 +1668,55 @@ class Editor extends Model
   #
   # This method may merge selections that end up intesecting.
   selectRight: ->
-    @expandSelectionsForward (selection) => selection.selectRight()
+    @expandSelectionsForward (selection) -> selection.selectRight()
 
   # Public: Move the cursor of each selection one character leftward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectLeft: ->
-    @expandSelectionsBackward (selection) => selection.selectLeft()
+    @expandSelectionsBackward (selection) -> selection.selectLeft()
 
   # Public: Move the cursor of each selection one character upward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectUp: (rowCount) ->
-    @expandSelectionsBackward (selection) => selection.selectUp(rowCount)
+    @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
   # Public: Move the cursor of each selection one character downward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectDown: (rowCount) ->
-    @expandSelectionsForward (selection) => selection.selectDown(rowCount)
+    @expandSelectionsForward (selection) -> selection.selectDown(rowCount)
 
   # Public: Select from the top of the buffer to the end of the last selection
   # in the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectToTop: ->
-    @expandSelectionsBackward (selection) => selection.selectToTop()
+    @expandSelectionsBackward (selection) -> selection.selectToTop()
 
   # Public: Select all text in the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectAll: ->
-    @expandSelectionsForward (selection) => selection.selectAll()
+    @expandSelectionsForward (selection) -> selection.selectAll()
 
   # Public: Selects from the top of the first selection in the buffer to the end
   # of the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectToBottom: ->
-    @expandSelectionsForward (selection) => selection.selectToBottom()
+    @expandSelectionsForward (selection) -> selection.selectToBottom()
 
   # Public: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectToBeginningOfLine: ->
-    @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
+    @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 
   # Public: Move the cursor of each selection to the first non-whitespace
   # character of its line while preserving the selection's tail position. If the
@@ -1725,34 +1725,34 @@ class Editor extends Model
   #
   # This method may merge selections that end up intersecting.
   selectToFirstCharacterOfLine: ->
-    @expandSelectionsBackward (selection) => selection.selectToFirstCharacterOfLine()
+    @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
 
   # Public: Move the cursor of each selection to the end of its line while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToEndOfLine: ->
-    @expandSelectionsForward (selection) => selection.selectToEndOfLine()
+    @expandSelectionsForward (selection) -> selection.selectToEndOfLine()
 
   # Public: For each selection, move its cursor to the preceding word boundary
   # while maintaining the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToPreviousWordBoundary: ->
-    @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundary()
+    @expandSelectionsBackward (selection) -> selection.selectToPreviousWordBoundary()
 
   # Public: For each selection, move its cursor to the next word boundary while
   # maintaining the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToNextWordBoundary: ->
-    @expandSelectionsForward (selection) => selection.selectToNextWordBoundary()
+    @expandSelectionsForward (selection) -> selection.selectToNextWordBoundary()
 
   # Public: For each cursor, select the containing line.
   #
   # This method merges selections on successive lines.
   selectLine: ->
-    @expandSelectionsForward (selection) => selection.selectLine()
+    @expandSelectionsForward (selection) -> selection.selectLine()
 
   # Public: Add a similarly-shaped selection to the next eligible line below
   # each selection.
@@ -1763,7 +1763,7 @@ class Editor extends Model
   # selection to the next line that is long enough for a non-empty selection
   # starting at the same column as the current selection to be added to it.
   addSelectionBelow: ->
-    @expandSelectionsForward (selection) => selection.addSelectionBelow()
+    @expandSelectionsForward (selection) -> selection.addSelectionBelow()
 
   # Public: Add a similarly-shaped selection to the next eligible line above
   # each selection.
@@ -1774,7 +1774,7 @@ class Editor extends Model
   # selection to the next line that is long enough for a non-empty selection
   # starting at the same column as the current selection to be added to it.
   addSelectionAbove: ->
-    @expandSelectionsBackward (selection) => selection.addSelectionAbove()
+    @expandSelectionsBackward (selection) -> selection.addSelectionAbove()
 
   # Public: Split multi-line selections into one selection per line.
   #
@@ -1799,7 +1799,7 @@ class Editor extends Model
   # If the selection is empty, the characters preceding and following the cursor
   # are swapped. Otherwise, the selected characters are reversed.
   transpose: ->
-    @mutateSelectedText (selection) =>
+    @mutateSelectedText (selection) ->
       if selection.isEmpty()
         selection.selectRight()
         text = selection.getText()
@@ -1814,14 +1814,14 @@ class Editor extends Model
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
   upperCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) => text.toUpperCase()
+    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toUpperCase()
 
   # Public: Convert the selected text to lower case.
   #
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
   lowerCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
+    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toLowerCase()
 
   # Convert multiple lines to a single line.
   #
@@ -1839,39 +1839,39 @@ class Editor extends Model
   # Operates on all selections. Moves the cursor to the beginning of the
   # containing word while preserving the selection's tail position.
   selectToBeginningOfWord: ->
-    @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
+    @expandSelectionsBackward (selection) -> selection.selectToBeginningOfWord()
 
   # Public: Expand selections to the end of their containing word.
   #
   # Operates on all selections. Moves the cursor to the end of the containing
   # word while preserving the selection's tail position.
   selectToEndOfWord: ->
-    @expandSelectionsForward (selection) => selection.selectToEndOfWord()
+    @expandSelectionsForward (selection) -> selection.selectToEndOfWord()
 
   # Public: Expand selections to the beginning of the next word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # word while preserving the selection's tail position.
   selectToBeginningOfNextWord: ->
-    @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
+    @expandSelectionsForward (selection) -> selection.selectToBeginningOfNextWord()
 
   # Public: Select the word containing each cursor.
   selectWord: ->
-    @expandSelectionsForward (selection) => selection.selectWord()
+    @expandSelectionsForward (selection) -> selection.selectWord()
 
   # Public: Expand selections to the beginning of the next paragraph.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # paragraph while preserving the selection's tail position.
   selectToBeginningOfNextParagraph: ->
-    @expandSelectionsForward (selection) => selection.selectToBeginningOfNextParagraph()
+    @expandSelectionsForward (selection) -> selection.selectToBeginningOfNextParagraph()
 
   # Public: Expand selections to the beginning of the next paragraph.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # paragraph while preserving the selection's tail position.
   selectToBeginningOfPreviousParagraph: ->
-    @expandSelectionsBackward (selection) => selection.selectToBeginningOfPreviousParagraph()
+    @expandSelectionsBackward (selection) -> selection.selectToBeginningOfPreviousParagraph()
 
   # Public: Select the range of the given marker if it is valid.
   #

@@ -11,7 +11,7 @@ describe "PaneView", ->
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
-    initialize: ({@id, @text}) ->
+    initialize: ({@id, @text}) -> return
     serialize: -> { deserializer: 'TestView', @id, @text }
     getUri: -> @id
     isEqual: (other) -> other? and @id == other.id and @text == other.text

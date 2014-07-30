@@ -103,7 +103,7 @@ beforeEach ->
   spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   EditorComponent.performSyncUpdates = true
 
-  spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
+  spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) -> return
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()

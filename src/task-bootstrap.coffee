@@ -2,22 +2,22 @@
 handler = null
 
 setupGlobals = ->
-  global.attachEvent = ->
+  global.attachEvent = -> return
   console =
     warn: -> emit 'task:warn', arguments...
     log: -> emit 'task:log', arguments...
     error: -> emit 'task:error', arguments...
-    trace: ->
+    trace: -> return
   global.__defineGetter__ 'console', -> console
 
   global.document =
     createElement: ->
-      setAttribute: ->
+      setAttribute: -> return
       getElementsByTagName: -> []
-      appendChild: ->
+      appendChild: -> return
     documentElement:
-      insertBefore: ->
-      removeChild: ->
+      insertBefore: -> return
+      removeChild: -> return
     getElementById: -> {}
     createComment: -> {}
     createDocumentFragment: -> {}

@@ -243,8 +243,8 @@ class EditorView extends View
         'editor:move-line-down': => @editor.moveLineDown()
         'editor:duplicate-lines': => @editor.duplicateLines()
         'editor:join-lines': => @editor.joinLines()
-        'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
-        'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
+        'editor:toggle-indent-guide': -> atom.config.toggle('editor.showIndentGuide')
+        'editor:toggle-line-numbers': ->  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': => @scrollToCursorPosition()
 
     documentation = {}
@@ -270,7 +270,7 @@ class EditorView extends View
   insertText: (text, options) ->
     @editor.insertText(text, options)
 
-  setHeightInLines: (heightInLines)->
+  setHeightInLines: (heightInLines) ->
     heightInLines ?= @calculateHeightInLines()
     @heightInLines = heightInLines if heightInLines
 

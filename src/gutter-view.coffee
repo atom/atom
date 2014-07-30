@@ -39,14 +39,14 @@ class GutterView extends View
     else
       editor.getSelection().setScreenRange([[startRow, 0], [startRow, 0]])
 
-    moveHandler = (e) =>
+    moveHandler = (e) ->
       start = startRow
       end = editorView.screenPositionFromMouseEvent(e).row
       if end > start then end++ else start++
       editor.getSelection().setScreenRange([[start, 0], [end, 0]])
 
     $(document).on "mousemove.gutter-#{editorView.id}", moveHandler
-    $(document).one "mouseup.gutter-#{editorView.id}", => $(document).off 'mousemove', moveHandler
+    $(document).one "mouseup.gutter-#{editorView.id}", -> $(document).off 'mousemove', moveHandler
 
   # Retrieves the containing {EditorView}.
   #
@@ -89,7 +89,7 @@ class GutterView extends View
   # * klass: string class name
   #
   # Returns true if the class was added to any lines
-  addClassToAllLines: (klass)->
+  addClassToAllLines: (klass) ->
     elements = @getLineNumberElements()
     el.classList.add(klass) for el in elements
     !!elements.length
@@ -99,7 +99,7 @@ class GutterView extends View
   # * klass: string class name. Can only be one class name. i.e. 'my-class'
   #
   # Returns true if the class was removed from any lines
-  removeClassFromAllLines: (klass)->
+  removeClassFromAllLines: (klass) ->
     # This is faster than calling $.removeClass on all lines, and faster than
     # making a new array and iterating through it.
     elements = @getLineNumberElementsForClass(klass)
@@ -113,7 +113,7 @@ class GutterView extends View
   # * klass: string class name
   #
   # Returns true if there were lines the class was added to
-  addClassToLine: (bufferRow, klass)->
+  addClassToLine: (bufferRow, klass) ->
     elements = @getLineNumberElement(bufferRow)
     el.classList.add(klass) for el in elements
     !!elements.length
@@ -124,7 +124,7 @@ class GutterView extends View
   # * klass: string class name
   #
   # Returns true if there were lines the class was removed from
-  removeClassFromLine: (bufferRow, klass)->
+  removeClassFromLine: (bufferRow, klass) ->
     classesRemoved = false
     elements = @getLineNumberElement(bufferRow)
     for el in elements

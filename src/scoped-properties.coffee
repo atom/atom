@@ -9,7 +9,7 @@ class ScopedProperties
       else
         callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties))
 
-  constructor: (@path, @scopedProperties) ->
+  constructor: (@path, @scopedProperties) -> return
 
   activate: ->
     for selector, properties of @scopedProperties

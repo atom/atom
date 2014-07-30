@@ -6,7 +6,7 @@ PaneContainer = require '../src/pane-container'
 describe "Pane", ->
   class Item extends Model
     @deserialize: ({name, uri}) -> new this(name, uri)
-    constructor: (@name, @uri) ->
+    constructor: (@name, @uri) -> return
     getUri: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
