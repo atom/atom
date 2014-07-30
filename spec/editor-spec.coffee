@@ -1547,6 +1547,48 @@ describe "Editor", ->
           editor.insertText('holy cow')
           expect(editor.lineForScreenRow(2).fold).toBeUndefined()
 
+      describe "when will-insert-text and did-insert-text events are used", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 0], [1, 2]])
+
+        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          didInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBe true
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).toHaveBeenCalled()
+
+          options = willInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+          expect(options.preventDefault).toBeDefined()
+
+          options = didInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+
+        it "text insertion is prevented when preventDefault is called from a will-insert-text handler", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ({preventDefault}) ->
+            preventDefault()
+
+          didInsertSpy = jasmine.createSpy()
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBe false
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).not.toHaveBeenCalled()
+
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->
         describe "when the cursor is at the beginning of a line", ->
