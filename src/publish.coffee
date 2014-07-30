@@ -271,8 +271,8 @@ class Publish extends Command
       callback()
 
   setPackageName: (pack, name, callback) ->
-    if pack.name == name
-      throw new Error('New package name matches old package name')
+    if pack.name is name
+      return callback(new Error('New package name matches old package name'))
 
     pack.name = name
     @saveMetadata(pack)
