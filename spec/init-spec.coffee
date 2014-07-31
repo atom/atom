@@ -5,7 +5,7 @@ apm = require '../lib/apm-cli'
 fs = require '../lib/fs'
 
 describe "apm init", ->
-  [packagePath, themePath] = []
+  [packagePath, themePath, languagePath] = []
 
   beforeEach ->
     silenceOutput()
@@ -15,6 +15,7 @@ describe "apm init", ->
     spyOn(process, 'cwd').andReturn(currentDir)
     packagePath = path.join(currentDir, 'fake-package')
     themePath = path.join(currentDir, 'fake-theme')
+    languagePath = path.join(currentDir, 'language-fake')
     process.env.GITHUB_USER = 'somebody'
 
   describe "when creating a package", ->
@@ -142,3 +143,19 @@ describe "apm init", ->
 
         runs ->
           expect(callback.argsForCall[0][0].message.length).toBeGreaterThan 0
+
+  describe "when creating a language", ->
+    it "generates the proper file structure", ->
+      callback = jasmine.createSpy('callback')
+      apm.run(['init', '--language', 'fake'], callback)
+
+      waitsFor 'waiting for init to complete', ->
+        callback.callCount is 1
+
+      runs ->
+        expect(fs.existsSync(languagePath)).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'grammars', 'language-fake.cson'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'scoped-properties', 'language-fake.cson'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'snippets', 'language-fake.cson'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'spec', 'language-fake-spec.coffee'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'package.json'))).toBeTruthy()
