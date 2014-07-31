@@ -306,9 +306,8 @@ class Publish extends Command
       return callback(error)
 
     if version?.length > 0 or rename?.length > 0
-      unless version?.length > 0
-        version = 'patch'
-        originalName = pack.name
+      version = 'patch' unless version?.length > 0
+      originalName = pack.name if rename?.length > 0
 
       @registerPackage pack, (error, firstTimePublishing) =>
         return callback(error) if error?
