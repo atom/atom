@@ -264,7 +264,7 @@ class Publish extends Command
           @logFailure()
           return callback(error)
 
-        config.getSetting 'git', (gitCommand) ->
+        config.getSetting 'git', (gitCommand) =>
           gitCommand ?= 'git'
           @spawn gitCommand, ['add', 'package.json'], (code, stderr='', stdout='') =>
             unless code is 0
