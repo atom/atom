@@ -26,7 +26,7 @@
     "coffee-script": "1.7.0",
     "coffeestack": "0.7.0",
     "delegato": "^1",
-    "emissary": "^1.2.1",
+    "emissary": "^1.2.2",
     "first-mate": "^2.0.1",
     "fs-plus": "^2.2.6",
     "fstream": "0.1.24",
