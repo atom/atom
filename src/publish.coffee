@@ -204,7 +204,7 @@ class Publish extends Command
     options = remaining.shift() if remaining.length >= 2
     callback = remaining.shift()
 
-    process.stdout.write "Publishing #{options.rename || pack.name}@#{tag} "
+    process.stdout.write "Publishing #{options.rename ? pack.name}@#{tag} "
     @createPackageVersion pack.name, tag, options, (error) =>
       if error?
         @logFailure()
