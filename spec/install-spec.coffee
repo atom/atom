@@ -176,7 +176,6 @@ describe 'apm install', ->
         testModule2Directory = path.join(atomHome, 'packages', 'test-module2')
         packagesFilePath = path.join(__dirname, 'fixtures', 'packages.txt')
 
-
         callback = jasmine.createSpy('callback')
         apm.run(['install', '--packages-file', packagesFilePath], callback)
 
@@ -192,7 +191,6 @@ describe 'apm install', ->
 
       it 'calls back with an error when the file does not exist', ->
         badFilePath = path.join(__dirname, 'fixtures', 'not-packages.txt')
-
 
         callback = jasmine.createSpy('callback')
         apm.run(['install', '--packages-file', badFilePath], callback)
