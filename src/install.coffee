@@ -37,7 +37,7 @@ class Install extends Command
       directory.
 
       A packages file can be specified that is a newline separated list of
-      packages to install with optional versions using the
+      package names to install with optional versions using the
       `package-name@version` syntax.
     """
     options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
