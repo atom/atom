@@ -54,16 +54,17 @@ class Develop extends Command
         callback("Request for package information failed: #{message}")
 
   cloneRepository: (repoUrl, packageDirectory, options) ->
-    command = "git"
-    args = ['clone', '--recursive', repoUrl, packageDirectory]
-    process.stdout.write "Cloning #{repoUrl} "
-    @spawn command, args, (code, stderr='', stdout='') =>
-      if code is 0
-        @logSuccess()
-        @installDependencies(packageDirectory, options)
-      else
-        @logFailure()
-        options.callback("#{stdout}\n#{stderr}".trim())
+    config.getSetting 'git', (command) =>
+      command ?= "git"
+      args = ['clone', '--recursive', repoUrl, packageDirectory]
+      process.stdout.write "Cloning #{repoUrl} "
+      @spawn command, args, (code, stderr='', stdout='') =>
+        if code is 0
+          @logSuccess()
+          @installDependencies(packageDirectory, options)
+        else
+          @logFailure()
+          options.callback("#{stdout}\n#{stderr}".trim())
 
   installDependencies: (packageDirectory, options) ->
     process.chdir(packageDirectory)
