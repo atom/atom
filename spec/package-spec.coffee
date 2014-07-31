@@ -5,6 +5,9 @@ ThemePackage = require '../src/theme-package'
 
 describe "Package", ->
   describe "when the package contains incompatible native modules", ->
+    beforeEach ->
+      spyOn(atom, 'inDevMode').andReturn(false)
+
     it "does not activate it", ->
       packagePath = atom.project.resolve('packages/package-with-incompatible-native-module')
       pack = new Package(packagePath)
