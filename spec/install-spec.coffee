@@ -169,3 +169,34 @@ describe 'apm install', ->
             expect(fs.isFileSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBeTruthy()
           else
             expect(fs.realpathSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBe fs.realpathSync(path.join(testModuleDirectory, 'node_modules', 'test-module-with-bin', 'bin', 'abin.js'))
+
+    describe 'when a packages file is specified', ->
+      it 'installs all the packages listed in the file', ->
+        testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
+        testModule2Directory = path.join(atomHome, 'packages', 'test-module2')
+        packagesFilePath = path.join(__dirname, 'fixtures', 'packages.txt')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', '--packages-file', packagesFilePath], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModule2Directory, 'index2.js'))).toBeTruthy()
+          expect(fs.existsSync(path.join(testModule2Directory, 'package.json'))).toBeTruthy()
+          expect(callback.mostRecentCall.args[0]).toBeNull()
+
+      it 'calls back with an error when the file does not exist', ->
+        badFilePath = path.join(__dirname, 'fixtures', 'not-packages.txt')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', '--packages-file', badFilePath], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.mostRecentCall.args[0]).not.toBeNull()

@@ -28,18 +28,24 @@ class Install extends Command
 
       Usage: apm install [<package_name>...]
              apm install <package_name>@<package_version>
+             apm install --packages-file my-packages.txt
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
       If no package name is given then all the dependencies in the package.json
       file are installed to the node_modules folder in the current working
       directory.
+
+      A packages file can be specified that is a newline separated list of
+      package names to install with optional versions using the
+      `package-name@version` syntax.
     """
     options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
     options.boolean('check').describe('check', 'Check that native build tools are installed')
+    options.string('packages-file').describe('packages-file', 'A text file containing the packages to install')
 
   installNode: (callback) =>
     installNodeArgs = ['install']
@@ -356,9 +362,19 @@ class Install extends Command
       @fork @atomNpmPath, buildArgs, buildOptions, (args...) =>
         @logCommandResults(callback, args...)
 
+  packageNamesFromPath: (filePath) ->
+    filePath = path.resolve(filePath)
+
+    unless fs.isFileSync(filePath)
+      throw new Error("File '#{filePath}' does not exist")
+
+    packages = fs.readFileSync(filePath, 'utf8')
+    @sanitizePackageNames(packages.split(/\s/))
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
+    packagesFilePath = options.argv['packages-file']
 
     @createAtomDirectories()
 
@@ -375,8 +391,14 @@ class Install extends Command
         @installPackage({name, version}, options, callback)
 
     commands = []
-    packageNames = @packageNamesFromArgv(options.argv)
-    packageNames.push('.') if packageNames.length is 0
+    if packagesFilePath
+      try
+        packageNames = @packageNamesFromPath(packagesFilePath)
+      catch error
+        return callback(error)
+    else
+      packageNames = @packageNamesFromArgv(options.argv)
+      packageNames.push('.') if packageNames.length is 0
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)
