@@ -371,7 +371,7 @@ class Package
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
     localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
-    if not atom.inDevMode()
+    unless atom.inDevMode()
       try
         {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
       return incompatibleNativeModules if incompatibleNativeModules?
