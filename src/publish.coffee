@@ -264,20 +264,22 @@ class Publish extends Command
           @logFailure()
           return callback(error)
 
-        @spawn 'git', ['add', 'package.json'], (code, stderr='', stdout='') =>
-          unless code is 0
-            @logFailure()
-            addOutput = "#{stdout}\n#{stderr}".trim()
-            return callback("`git add package.json` failed: #{addOutput}")
-
-          @spawn 'git', ['commit', '-m', message], (code, stderr='', stdout='') =>
-            if code is 0
-              @logSuccess()
-              callback()
-            else
+        config.getSetting 'git', (gitCommand) ->
+          gitCommand ?= 'git'
+          @spawn gitCommand, ['add', 'package.json'], (code, stderr='', stdout='') =>
+            unless code is 0
               @logFailure()
-              commitOutput = "#{stdout}\n#{stderr}".trim()
-              callback("Failed to commit package.json: #{commitOutput}")
+              addOutput = "#{stdout}\n#{stderr}".trim()
+              return callback("`git add package.json` failed: #{addOutput}")
+
+            @spawn gitCommand, ['commit', '-m', message], (code, stderr='', stdout='') =>
+              if code is 0
+                @logSuccess()
+                callback()
+              else
+                @logFailure()
+                commitOutput = "#{stdout}\n#{stderr}".trim()
+                callback("Failed to commit package.json: #{commitOutput}")
     else
       # Just fall through if the name is empty
       callback()
