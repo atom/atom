@@ -36,7 +36,9 @@ class Command
   showHelp: (argv) -> @parseOptions?(argv)?.showHelp()
 
   packageNamesFromArgv: (argv) ->
-    packageNames = argv._ ? []
+    @sanitizePackageNames(argv._)
+
+  sanitizePackageNames: (packageNames=[]) ->
     packageNames = packageNames.map (packageName) -> packageName.trim()
     _.compact(_.uniq(packageNames))
 
