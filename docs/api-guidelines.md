@@ -21,7 +21,9 @@ __Good__
 * Use the method on the model
   * `Editor.toggleSoftTabs()`
 * One clear way to subscribe to events
-  * `subscribe thing, 'event', -> ...`
+  * `subscription = @subscribe thing, 'event', -> ...`
+* One clear way to unsubscribe to events
+  * `subscription.off()` only; not `thing.off 'event', -> ...`
 
 ## Essential vs Extended
 
@@ -73,7 +75,7 @@ objectForThing(thing)
 There will be no `off()` method on objects. `on()` will return a subscription object which contains the `off()` method.
 
 * Events should be emitted with one event object as an argument, rather than a bunch of arguments.
-* If an event is cancelable, it will provide a `preventDefault` function in the event object.
+* If an event is cancelable, it will provide a `cancel` function in the event object.
 
 ### Naming
 
