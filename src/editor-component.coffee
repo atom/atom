@@ -227,6 +227,7 @@ EditorComponent = React.createClass
 
   requestUpdate: ->
     return unless @isMounted()
+    @pauseDOMPolling()
 
     if @updatesPaused
       @updateRequestedWhilePaused = true
