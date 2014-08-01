@@ -1,4 +1,4 @@
-{extend, toArray} = require 'underscore-plus'
+{extend, toArray, isEqual} = require 'underscore-plus'
 Decoration = require './decoration'
 
 WrapperDiv = document.createElement('div')
@@ -10,6 +10,8 @@ class EditorTileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @renderedDecorationsByLineId = {}
+    @cursorPixelRectsById = {}
+    @cursorNodesById = {}
 
     @domNode = document.createElement('div')
     @domNode.style['-webkit-transform'] = @getTransform()
@@ -20,6 +22,7 @@ class EditorTileComponent
     extend(@props, newProps)
     @domNode.style['-webkit-transform'] = @getTransform()
     @updateLines()
+    @updateCursors()
 
   getTransform: ->
     {startRow, lineHeightInPixels, scrollTop, scrollLeft} = @props
@@ -237,3 +240,43 @@ class EditorTileComponent
   pushScope: (scopeStack, scope) ->
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+
+  updateCursors: ->
+    {cursorPixelRects, startRow, lineHeightInPixels} = @props
+
+    for id of @cursorPixelRectsById
+      @removeCursorNode(id) unless cursorPixelRects?.hasOwnProperty(id)
+
+    if cursorPixelRects?
+      for id, newPixelRect of cursorPixelRects
+        newPixelRect.top -= startRow * lineHeightInPixels
+
+        if oldPixelRect = @cursorPixelRectsById[id]
+          console.log "compare equality", oldPixelRect, newPixelRect
+          unless isEqual(oldPixelRect, newPixelRect)
+            @updateCursorNode(id, newPixelRect)
+        else
+          @buildCursorNode(id, newPixelRect)
+
+  updateCursorNode: (id, pixelRect) ->
+    console.log "UPDATE", id
+    {top, left, height, width} = pixelRect
+    @cursorNodesById[id].style.top = top + 'px'
+    @cursorNodesById[id].style.left = left + 'px'
+    @cursorNodesById[id].style.height = height + 'px'
+    @cursorNodesById[id].style.width = width + 'px'
+    @cursorPixelRectsById[id] = pixelRect
+
+  buildCursorNode: (id, pixelRect) ->
+    cursorNode = document.createElement('div')
+    cursorNode.className = 'cursor'
+    cursorNode.style.position = 'absolute'
+    @cursorNodesById[id] = cursorNode
+    @cursorPixelRectsById[id] = pixelRect
+    @updateCursorNode(id, pixelRect)
+    @domNode.appendChild(cursorNode)
+
+  removeCursorNode: (id) ->
+    @domNode.removeChild(@cursorNodesById[id])
+    delete @cursorPixelRectsById[id]
+    delete @cursorNodesById[id]

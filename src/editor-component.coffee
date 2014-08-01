@@ -295,7 +295,9 @@ EditorComponent = React.createClass
       {cursor} = selection
       screenRange = cursor.getScreenRange()
       if renderedStartRow <= screenRange.start.row < renderedEndRow
-        cursorPixelRects[cursor.id] = editor.pixelRectForScreenRange(screenRange)
+        pixelRect = editor.pixelRectForScreenRange(screenRange)
+        pixelRect.startRow = screenRange.start.row
+        cursorPixelRects[cursor.id] = pixelRect
     cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->

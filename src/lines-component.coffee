@@ -73,19 +73,28 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   updateTiles: ->
-    {editor, showIndentGuide, mini, invisibles, backgroundColor} = @props
-    {renderedRowRange, lineHeightInPixels, scrollTop, scrollLeft, lineWidth} = @props
-    {lineDecorations, pendingChanges} = @props
+    {editor, showIndentGuide, mini, invisibles, backgroundColor, lineHeightInPixels, lineWidth} = @props
+    {renderedRowRange, scrollTop, scrollLeft, lineDecorations, pendingChanges} = @props
+    {cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     domNode = @getDOMNode()
 
     [visibleStartRow, visibleEndRow] = renderedRowRange
     visibleStartRow = @tileStartRowForScreenRow(visibleStartRow)
 
+    console.log cursorPixelRects
+
+    cursorPixelRectsByTileStartRow = {}
+    for id, pixelRect of cursorPixelRects
+      tileStartRow = @tileStartRowForScreenRow(pixelRect.startRow)
+      cursorPixelRectsByTileStartRow[tileStartRow] ?= {}
+      cursorPixelRectsByTileStartRow[tileStartRow][id] = pixelRect
+
     for startRow in [visibleStartRow...visibleEndRow] by @tileSize
       endRow = startRow + @tileSize
       props = {
         editor, showIndentGuide, mini, invisibles, backgroundColor, startRow, endRow,
-        lineHeightInPixels, scrollTop, scrollLeft, lineWidth, lineDecorations, pendingChanges
+        lineHeightInPixels, scrollTop, scrollLeft, lineWidth, lineDecorations, pendingChanges,
+        cursorBlinkPeriod, cursorBlinkResumeDelay, cursorPixelRects: cursorPixelRectsByTileStartRow[startRow]
       }
 
       if tileComponent = @tileComponentsByStartRow[startRow]
