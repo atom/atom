@@ -1969,6 +1969,9 @@ class Editor extends Model
     @emit 'grammar-changed'
 
   handleMarkerCreated: (marker) =>
+    if marker is undefined
+      return null
+
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
 
