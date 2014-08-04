@@ -210,19 +210,23 @@ class WorkspaceView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Updates the application's title, based on whichever file is open.
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
       if item = @getModel().getActivePaneItem()
-        @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
+        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        path = item.getPath?() ? projectPath
+        @setTitle(title, path)
       else
-        @setTitle(projectPath)
+        @setTitle(projectPath, projectPath)
     else
       @setTitle('untitled')
 
-  # Sets the application's title.
-  setTitle: (title) ->
+  # Sets the application's title (and the proxy icon on OS X)
+  setTitle: (title, path) ->
     document.title = title
+    atom.getCurrentWindow().setRepresentedFilename(path ? '')
 
   # Get all editor views.
   #
