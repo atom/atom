@@ -216,17 +216,17 @@ class WorkspaceView extends View
     if projectPath = atom.project.getPath()
       if item = @getModel().getActivePaneItem()
         title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
-        path = item.getPath?() ? projectPath
-        @setTitle(title, path)
+        proxyIconPath = item.getPath?() ? projectPath
+        @setTitle(title, proxyIconPath)
       else
         @setTitle(projectPath, projectPath)
     else
       @setTitle('untitled')
 
   # Sets the application's title (and the proxy icon on OS X)
-  setTitle: (title, path) ->
+  setTitle: (title, proxyIconPath) ->
     document.title = title
-    atom.getCurrentWindow().setRepresentedFilename(path ? '')
+    atom.getCurrentWindow().setRepresentedFilename(proxyIconPath ? '')
 
   # Get all editor views.
   #
