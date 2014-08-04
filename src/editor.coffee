@@ -1588,8 +1588,14 @@ class Editor extends Model
   moveCursorToBeginningOfPreviousParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
 
-  scrollToCursorPosition: ->
-    @getCursor().autoscroll()
+  # Public: Scroll the editor to reveal the most recently added cursor if it is
+  # off-screen.
+  #
+  # options - An optional hash of options.
+  #   :center - Center the editor around the cursor if possible. Defauls to
+  #             true.
+  scrollToCursorPosition: (options) ->
+    @getCursor().autoscroll(center: options?.center ? true)
 
   pageUp: ->
     newScrollTop = @getScrollTop() - @getHeight()

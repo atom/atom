@@ -641,9 +641,9 @@ class EditorView extends View
     @scrollBottom(@editor.getScreenLineCount() * @lineHeight)
 
   # Public: Scrolls the editor to the position of the most recently added
-  # cursor.
+  # cursor if it isn't current on screen.
   #
-  # The editor is also centered.
+  # The editor is centered around the cursor's position if possible.
   scrollToCursorPosition: ->
     @scrollToBufferPosition(@editor.getCursorBufferPosition(), center: true)
 

@@ -3301,19 +3301,24 @@ describe "Editor", ->
       expect(editor.getText()).toBe '     '
 
   describe ".scrollToCursorPosition()", ->
-    it "scrolls the last cursor into view", ->
+    it "scrolls the last cursor into view, centering around the cursor if possible and the 'center' option isn't false", ->
       editor.setCursorScreenPosition([8, 8])
       editor.setLineHeightInPixels(10)
       editor.setDefaultCharWidth(10)
-      editor.setHeight(50)
+      editor.setHeight(60)
       editor.setWidth(50)
       editor.setHorizontalScrollbarHeight(0)
       expect(editor.getScrollTop()).toBe 0
       expect(editor.getScrollLeft()).toBe 0
 
       editor.scrollToCursorPosition()
-      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
+      expect(editor.getScrollTop()).toBe (8.5 * 10) - 30
+      expect(editor.getScrollBottom()).toBe (8.5 * 10) + 30
       expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
+
+      editor.setScrollTop(0)
+      editor.scrollToCursorPosition(center: false)
+      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
 
   describe ".pageUp/Down()", ->
     it "scrolls one screen height up or down and moves the cursor one page length", ->
