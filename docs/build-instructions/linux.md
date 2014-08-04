@@ -6,21 +6,21 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
-  * git
-  * [node.js](http://nodejs.org/download/) v0.10.x
-  * [npm](http://www.npmjs.org/) v1.4.x (bundled with node.js)
+  * [Git](http://git-scm.com/)
+  * [Node.js](http://nodejs.org/download/) v0.10.x
+  * [npm](http://www.npmjs.org/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
-  * libgnome-keyring-dev
+  * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
 ### Ubuntu / Debian
 * `sudo apt-get install build-essential git libgnome-keyring-dev`
-* Instructions for  [node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+* Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
 ### Fedora
 * `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
-* Instructions for [node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
+* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
 
 ### Arch
 * `sudo pacman -S base-devel git nodejs libgnome-keyring`
@@ -78,7 +78,7 @@ See also https://github.com/atom/atom/issues/2082.
 ### /usr/bin/env: node: No such file or directory
 
 If you get this notice when attempting to `script/build`, you either do not
-have nodejs installed, or node isn't identified as nodejs on your machine.
+have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
 
