@@ -30,31 +30,91 @@ fdescribe "DisplayStateManager", ->
 
   describe "initial state", ->
     it "breaks the visible lines into tiles", ->
-      expect(stateManager.getState().get('tiles').toJS()).toEqual
+      expect(stateManager.getState().get('tiles')).toHaveValues
         0:
           startRow: 0
           left: 0
           top: 0
           width: editor.getScrollWidth()
           height: 50
-          lines: editor.linesForScreenRows(0, 4)
           lineHeightInPixels: 10
+          lines: editor.linesForScreenRows(0, 4)
         5:
           startRow: 5
           left: 0
           top: 50
           width: editor.getScrollWidth()
           height: 50
-          lines: editor.linesForScreenRows(5, 9)
           lineHeightInPixels: 10
+          lines: editor.linesForScreenRows(5, 9)
         10:
           startRow: 10
           left: 0
           top: 100
           width: editor.getScrollWidth()
           height: 50
-          lines: editor.linesForScreenRows(10, 14)
           lineHeightInPixels: 10
+          lines: editor.linesForScreenRows(10, 14)
+
+  describe "when the height is changed", ->
+    it "updates the rendered tiles based on the new height", ->
+      editor.setHeight(150)
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          startRow: 0
+          top: 0
+        5:
+          startRow: 5
+          top: 50
+        10:
+          startRow: 10
+          top: 100
+        15:
+          startRow: 15
+          top: 150
+
+      editor.setHeight(70)
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          startRow: 0
+          top: 0
+        5:
+          startRow: 5
+          top: 50
+
+  describe "when the width is changed", ->
+    it "updates the tiles with the new width", ->
+      editor.setWidth(700)
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          width: 700
+        5:
+          width: 700
+        10:
+          width: 700
+
+  describe "when the lineHeightInPixels is changed", ->
+    it "updates the rendered tiles and assigns a new lineHeightInPixels value to all tiles", ->
+      editor.setScrollTop(10)
+      editor.setLineHeightInPixels(7)
+
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          startRow: 0
+          top: 0 - 10
+          lineHeightInPixels: 7
+        5:
+          startRow: 5
+          top: 7 * 5 - 10
+          lineHeightInPixels: 7
+        10:
+          startRow: 10
+          top: 7 * 10 - 10
+          lineHeightInPixels: 7
+        15:
+          startRow: 15
+          top: 7 * 15 - 10
+          lineHeightInPixels: 7
 
   describe "when the editor is scrolled vertically", ->
     it "updates the visible tiles and their top positions", ->
@@ -88,13 +148,10 @@ fdescribe "DisplayStateManager", ->
       expect(stateManager.getState().get('tiles')).toHaveValues
         0:
           left: -30
-          top: 0
         5:
           left: -30
-          top: 50
         10:
           left: -30
-          top: 100
 
   describe "when the lines are changed", ->
     it "updates the lines in the tiles", ->
