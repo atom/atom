@@ -110,6 +110,7 @@ class WorkspaceView extends View
     atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
+    @on 'pane:active-item-modified-changed', '.active.pane', => @updateDocumentEdited()
 
     @command 'application:about', -> ipc.send('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
@@ -227,6 +228,12 @@ class WorkspaceView extends View
   setTitle: (title, proxyIconPath) ->
     document.title = title
     atom.getCurrentWindow().setRepresentedFilename(proxyIconPath ? '')
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: ->
+    modified = @getModel().getActivePaneItem()?.isModified?() ? false
+    atom.getCurrentWindow().setDocumentEdited modified
 
   # Get all editor views.
   #
