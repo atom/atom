@@ -66,6 +66,19 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     * https://github.com/TooTallNate/node-gyp/issues/297
     * https://code.google.com/p/gyp/issues/detail?id=393
 
+* `script/build` stops at installing runas with 'Failed at the runas@0.5.4 install script.'
+  
+  See the next item.
+
+* `error MSB8020: The build tools for Visual Studio 2010 (Platform Toolset = 'v100') cannot be found.`
+   
+  * If you're building atom with Visual Studio 2013 try executing the following
+    command in your Git shell and then re-run `script/build`:
+
+    ```
+    $env:GYP_MSVS_VERSION=2013
+    ```
+
 * Other `node-gyp` errors on first build attempt, even though the right node and python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
 
