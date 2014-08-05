@@ -310,3 +310,17 @@ describe "ThemeManager", ->
       runs ->
         expect(console.warn.callCount).toBe 1
         expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+
+  describe "when in safemode", ->
+    beforeEach ->
+    themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath, safeMode: true})
+
+    it "loads the defaults themes", ->
+      waitsForPromise ->
+        themeManager.activateThemes()
+
+      runs ->
+        activeThemeNames = themeManager.getActiveNames()
+        expect(activeThemeNames.length).toBe(2)
+        expect(activeThemeNames).toContain('atom-dark-ui')
+        expect(activeThemeNames).toContain('atom-dark-syntax')
