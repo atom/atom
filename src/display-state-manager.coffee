@@ -26,11 +26,12 @@ class DisplayStateManager
     Math.max(@editor.getScrollWidth(), @editor.getWidth())
 
   observeEditor: ->
-    @subscribe @editor.$width.changes, @updateTiles
-    @subscribe @editor.$height.changes, @updateTiles
-    @subscribe @editor.$lineHeightInPixels.changes, @updateTiles
-    @subscribe @editor.$scrollLeft.changes, @updateTiles
-    @subscribe @editor.$scrollTop.changes, @updateTiles
+    @subscribe @editor.$width.changes, => @updateTiles()
+    @subscribe @editor.$height.changes, => @updateTiles()
+    @subscribe @editor.$lineHeightInPixels.changes, => @updateTiles()
+    @subscribe @editor.$scrollLeft.changes, => @updateTiles()
+    @subscribe @editor.$scrollTop.changes, => @updateTiles()
+    @subscribe @editor, 'screen-lines-changed', (change) => @updateTiles(change)
 
   tileStartRowForScreenRow: (screenRow) ->
     screenRow - (screenRow % @getTileSize())
@@ -50,7 +51,7 @@ class DisplayStateManager
         for tileStartRow in [visibleStartRow..visibleEndRow] by @getTileSize()
           tiles.set(tileStartRow, @buildTile(tileStartRow))
 
-  updateTiles: =>
+  updateTiles: (change) ->
     visibleStartRow = @tileStartRowForScreenRow(@getVisibleStartRow())
     visibleEndRow = @getVisibleEndRow()
     lineHeightInPixels = @editor.getLineHeightInPixels()
@@ -63,7 +64,7 @@ class DisplayStateManager
 
         for tileStartRow in [visibleStartRow..visibleEndRow] by @getTileSize()
           if tile = tiles.get(tileStartRow)
-            tiles.set(tileStartRow, @updateTile(tileStartRow, tile))
+            tiles.set(tileStartRow, @updateTile(tileStartRow, tile, change))
           else
             tiles.set(tileStartRow, @buildTile(tileStartRow))
 
@@ -77,12 +78,16 @@ class DisplayStateManager
       top: startRow * lineHeightInPixels - @editor.getScrollTop()
       width: @getLineWidth()
       height: lineHeightInPixels * tileSize
-      lines: Immutable.Sequence(@editor.linesForScreenRows(startRow, startRow + tileSize - 1))
+      lines: Immutable.Vector(@editor.linesForScreenRows(startRow, startRow + tileSize - 1)...)
       lineHeightInPixels: @editor.getLineHeightInPixels()
 
-  updateTile: (startRow, tile) ->
+  updateTile: (startRow, tile, change) ->
+    endRow = startRow + @getTileSize()
+
     tile.withMutations (tile) =>
       tile.set 'left', 0 - @editor.getScrollLeft()
       tile.set 'top', (startRow * @editor.getLineHeightInPixels()) - @editor.getScrollTop()
       tile.set 'width', @getLineWidth()
       tile.set 'lineHeightInPixels', @editor.getLineHeightInPixels()
+      if change? and change.start < endRow
+        tile.set 'lines', Immutable.Vector(@editor.linesForScreenRows(startRow, endRow - 1)...)

@@ -35,6 +35,9 @@ class EditorTileComponent
     if @stateChangedForKeys('width')
       @domNode.style.width = @state.get('width') + 'px'
 
+    if @stateChangedForKeys('lines')
+      @updateLines()
+
     # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
     # @updateLines()
     # @updateCursors()
@@ -60,14 +63,14 @@ class EditorTileComponent
       @lineIdsByScreenRow[screenRow] = line.id
 
   updateLines: ->
-    {editor, startRow, endRow} = @props
-    lines = editor.linesForScreenRows(startRow, endRow - 1)
+    lines = @state.get('lines')
     @removeLineNodes(lines)
     @appendOrUpdateVisibleLineNodes(lines)
 
   removeLineNodes: (lines=[]) ->
     lineIds = new Set
-    lineIds.add(line.id.toString()) for line in lines
+    lines.forEach (line) -> lineIds.add(line.id.toString())
+
     for lineId, lineNode of @lineNodesByLineId when not lineIds.has(lineId)
       screenRow = @screenRowsByLineId[lineId]
       delete @lineNodesByLineId[lineId]
@@ -83,7 +86,7 @@ class EditorTileComponent
     newLines = null
     newLinesHTML = null
 
-    for line, index in visibleLines
+    visibleLines.forEach (line, index) =>
       screenRow = startRow + index
 
       if @hasLineNode(line.id)
@@ -96,7 +99,7 @@ class EditorTileComponent
         @screenRowsByLineId[line.id] = screenRow
         @lineIdsByScreenRow[screenRow] = line.id
 
-      @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
+      # @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
 
     return unless newLines?
 
@@ -108,24 +111,28 @@ class EditorTileComponent
       @domNode.appendChild(lineNode)
 
   updateLineNode: (line, screenRow) ->
-    {startRow, editor, lineHeightInPixels, lineDecorations, lineWidth} = @props
+    startRow = @state.get('startRow')
+    lineWidth = @state.get('width')
+    lineHeightInPixels = @state.get('lineHeightInPixels')
+
+    # {lineDecorations} = @props
     lineNode = @lineNodesByLineId[line.id]
 
-    decorations = lineDecorations[screenRow]
-    previousDecorations = @renderedDecorationsByLineId[line.id]
+    # decorations = lineDecorations[screenRow]
+    # previousDecorations = @renderedDecorationsByLineId[line.id]
 
-    if previousDecorations?
-      for id, decoration of previousDecorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
-          lineNode.classList.remove(decoration.class)
-
-    if decorations?
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
-          lineNode.classList.add(decoration.class)
+    # if previousDecorations?
+    #   for id, decoration of previousDecorations
+    #     if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
+    #       lineNode.classList.remove(decoration.class)
+    #
+    # if decorations?
+    #   for id, decoration of decorations
+    #     if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
+    #       lineNode.classList.add(decoration.class)
 
     unless @screenRowsByLineId[line.id] is screenRow
-      lineNode.style.top = (screenRow - startRow) * lineHeightInPixels + 'px'
+      lineNode.style.top =  (screenRow - startRow) * lineHeightInPixels + 'px'
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id

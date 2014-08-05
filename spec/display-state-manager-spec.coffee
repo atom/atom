@@ -5,7 +5,7 @@ TextBuffer = require 'text-buffer'
 Editor = require '../src/editor'
 
 fdescribe "DisplayStateManager", ->
-  [editor, stateManager] = []
+  [buffer, editor, stateManager] = []
 
   beforeEach ->
     @addMatchers
@@ -96,6 +96,17 @@ fdescribe "DisplayStateManager", ->
           left: -30
           top: 100
 
+  describe "when the lines are changed", ->
+    it "updates the lines in the tiles", ->
+      buffer.setTextInRange([[3, 5], [7, 0]], "a\nb\nc\nd")
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          lines: editor.linesForScreenRows(0, 4)
+        5:
+          lines: editor.linesForScreenRows(5, 9)
+        10:
+          lines: editor.linesForScreenRows(10, 14)
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}
@@ -120,5 +131,5 @@ ToHaveValuesMatcher = (expected) ->
   notText = if @isNot then " not" else ""
   this.message = => "Immutable object did not have expected values: #{jasmine.pp(wrongValues)}"
   checkValues(@actual.toJS(), expected)
-  console.log wrongValues unless hasAllValues
+  console.warn "Invalid values:", wrongValues unless hasAllValues
   hasAllValues

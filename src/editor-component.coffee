@@ -60,8 +60,6 @@ EditorComponent = React.createClass
       displayState = @displayStateManager.getState()
       tilesState = displayState.get('tiles')
 
-      console.log tilesState.toJS()
-
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
