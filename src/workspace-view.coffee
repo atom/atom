@@ -217,7 +217,7 @@ class WorkspaceView extends View
     if projectPath = atom.project.getPath()
       if item = @getModel().getActivePaneItem()
         title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
-        proxyIconPath = item.getPath?() ? projectPath
+        proxyIconPath = item.getPath?() ? ''
         @setTitle(title, proxyIconPath)
       else
         @setTitle(projectPath, projectPath)
