@@ -5,7 +5,7 @@ WrapperDiv = document.createElement('div')
 
 module.exports =
 class EditorTileComponent
-  constructor: (@props) ->
+  constructor: (@state) ->
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
@@ -14,35 +14,45 @@ class EditorTileComponent
     @cursorNodesById = {}
 
     @domNode = document.createElement('div')
+    @domNode.style.position = 'absolute'
     @domNode.style['-webkit-transform'] = @getTransform()
+    @domNode.style.height = @state.get('height') + 'px'
+    @domNode.style.width = @state.get('width') + 'px'
     @buildLines()
 
-  updateProps: (newProps) ->
-    @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
-    extend(@props, newProps)
-    @domNode.style['-webkit-transform'] = @getTransform()
-    @updateLines()
-    @updateCursors()
+  stateChangedForKeys: ->
+    for key in arguments
+      return true if @prevState?.get(key) isnt @state.get(key)
+    false
+
+  update: (newState) ->
+    @prevState = @state
+    @state = newState
+
+    if @stateChangedForKeys('top', 'left')
+      @domNode.style['-webkit-transform'] = @getTransform()
+
+    if @stateChangedForKeys('width')
+      @domNode.style.width = @state.get('width') + 'px'
+
+    # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
+    # @updateLines()
+    # @updateCursors()
 
   getTransform: ->
-    {startRow, lineHeightInPixels, scrollTop, scrollLeft} = @props
-    left = -scrollLeft
-    top = (startRow * lineHeightInPixels) - scrollTop
-    "translate3d(#{left}px, #{top}px, 0px)"
+    "translate3d(#{@state.get('left')}px, #{@state.get('top')}px, 0px)"
 
   buildLines: ->
-    {editor, startRow, endRow} = @props
+    startRow = @state.get('startRow')
+    lines = @state.get('lines')
 
-    lines = editor.linesForScreenRows(startRow, endRow - 1)
     linesHTML = ""
-
-    for line, i in lines
+    lines.forEach (line, i) =>
       screenRow = startRow + i
       linesHTML += @buildLineHTML(line, screenRow)
-
     @domNode.innerHTML = linesHTML
 
-    for line, i in lines
+    lines.forEach (line, i) =>
       screenRow = startRow + i
       lineNode = @domNode.children[i]
       @lineNodesByLineId[line.id] = lineNode
@@ -67,7 +77,8 @@ class EditorTileComponent
       @domNode.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: (visibleLines) ->
-    {startRow, lineDecorations} = @props
+    startRow = @state.get('startRow')
+    # {startRow, lineDecorations} = @props
 
     newLines = null
     newLinesHTML = null
@@ -133,7 +144,10 @@ class EditorTileComponent
     decorations? and decorations[decoration.id] is decoration
 
   buildLineHTML: (line, screenRow) ->
-    {startRow, lineHeightInPixels, lineWidth} = @props
+    startRow = @state.get('startRow')
+    lineHeightInPixels = @state.get('lineHeightInPixels')
+    width = @state.get('width')
+
     {text, fold, isSoftWrapped, indentLevel} = line
 
     classes = @getLineClasses(screenRow)
@@ -152,6 +166,7 @@ class EditorTileComponent
     lineHTML
 
   getLineClasses: (screenRow) ->
+    return 'line'
     classes = ''
     if decorations = @props.lineDecorations[screenRow]
       for id, decoration of decorations
@@ -160,7 +175,9 @@ class EditorTileComponent
     classes + 'line'
 
   buildEmptyLineInnerHTML: (line) ->
-    {showIndentGuide, invisibles} = @props
+    invisibles = {}
+    showIndentGuide = false
+    # {showIndentGuide, invisibles} = @props
     {cr, eol} = invisibles
     {indentLevel, tabLength} = line
 
@@ -184,10 +201,14 @@ class EditorTileComponent
 
       lineHTML
     else
-      @buildEndOfLineHTML(line, @props.invisibles) or '&nbsp;'
+      # @buildEndOfLineHTML(line, @props.invisibles) or '&nbsp;'
+      @buildEndOfLineHTML(line, {}) or '&nbsp;'
 
   buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide, invisibles} = @props
+    # {invisibles, mini, showIndentGuide} = @props
+    invisibles = {}
+    mini = false
+    showIndentGuide = false
     {tokens, text} = line
     innerHTML = ""
 
@@ -204,7 +225,8 @@ class EditorTileComponent
     innerHTML
 
   buildEndOfLineHTML: (line, invisibles) ->
-    return '' if @props.mini or line.isSoftWrapped()
+    # return '' if @props.mini or line.isSoftWrapped()
+    return '' if line.isSoftWrapped()
 
     html = ''
     # Note the lack of '?' in the character checks. A user can set the chars
@@ -242,6 +264,7 @@ class EditorTileComponent
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateCursors: ->
+    return
     {cursorPixelRects, startRow, lineHeightInPixels} = @props
 
     for id of @cursorPixelRectsById
@@ -252,14 +275,12 @@ class EditorTileComponent
         newPixelRect.top -= startRow * lineHeightInPixels
 
         if oldPixelRect = @cursorPixelRectsById[id]
-          console.log "compare equality", oldPixelRect, newPixelRect
           unless isEqual(oldPixelRect, newPixelRect)
             @updateCursorNode(id, newPixelRect)
         else
           @buildCursorNode(id, newPixelRect)
 
   updateCursorNode: (id, pixelRect) ->
-    console.log "UPDATE", id
     {top, left, height, width} = pixelRect
     @cursorNodesById[id].style.top = top + 'px'
     @cursorNodesById[id].style.left = left + 'px'

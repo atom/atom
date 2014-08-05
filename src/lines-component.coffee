@@ -27,6 +27,8 @@ LinesComponent = React.createClass
     @tileComponentsByStartRow = {}
 
   shouldComponentUpdate: (newProps) ->
+    return newProps.tilesState isnt @props.tilesState
+
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
@@ -51,7 +53,7 @@ LinesComponent = React.createClass
     return unless performedInitialMeasurement
 
     @clearTiles() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
-    @updateTiles()
+    @updateTiles(prevProps)
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
   lineNodeForScreenRow: (screenRow) ->
@@ -72,42 +74,23 @@ LinesComponent = React.createClass
     editor.setLineHeightInPixels(lineHeightInPixels)
     editor.setDefaultCharWidth(charWidth)
 
-  updateTiles: ->
-    {editor, showIndentGuide, mini, invisibles, backgroundColor, lineHeightInPixels, lineWidth} = @props
-    {renderedRowRange, scrollTop, scrollLeft, lineDecorations, pendingChanges} = @props
-    {cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+  updateTiles: (prevProps) ->
     domNode = @getDOMNode()
 
-    [visibleStartRow, visibleEndRow] = renderedRowRange
-    visibleStartRow = @tileStartRowForScreenRow(visibleStartRow)
-
-    console.log cursorPixelRects
-
-    cursorPixelRectsByTileStartRow = {}
-    for id, pixelRect of cursorPixelRects
-      tileStartRow = @tileStartRowForScreenRow(pixelRect.startRow)
-      cursorPixelRectsByTileStartRow[tileStartRow] ?= {}
-      cursorPixelRectsByTileStartRow[tileStartRow][id] = pixelRect
-
-    for startRow in [visibleStartRow...visibleEndRow] by @tileSize
-      endRow = startRow + @tileSize
-      props = {
-        editor, showIndentGuide, mini, invisibles, backgroundColor, startRow, endRow,
-        lineHeightInPixels, scrollTop, scrollLeft, lineWidth, lineDecorations, pendingChanges,
-        cursorBlinkPeriod, cursorBlinkResumeDelay, cursorPixelRects: cursorPixelRectsByTileStartRow[startRow]
-      }
-
-      if tileComponent = @tileComponentsByStartRow[startRow]
-        tileComponent.updateProps(props)
-      else
-        tileComponent = new EditorTileComponent(props)
-        @tileComponentsByStartRow[startRow] = tileComponent
-        domNode.appendChild(tileComponent.domNode)
-
-    for startRow, tileComponent of @tileComponentsByStartRow
-      unless visibleStartRow <= startRow < visibleEndRow
+    prevProps.tilesState?.forEach (tileState, tileStartRow) =>
+      unless @props.tilesState.has(tileStartRow)
+        tileComponent = @tileComponentsByStartRow[tileStartRow]
         domNode.removeChild(tileComponent.domNode)
-        delete @tileComponentsByStartRow[startRow]
+        delete @tileComponentsByStartRow[tileStartRow]
+
+    @props.tilesState.forEach (tileState, tileStartRow) =>
+      if prevProps.tilesState?.has(tileStartRow)
+        tileComponent = @tileComponentsByStartRow[tileStartRow]
+        tileComponent.update(tileState)
+      else
+        tileComponent = new EditorTileComponent(tileState)
+        @tileComponentsByStartRow[tileStartRow] = tileComponent
+        domNode.appendChild(tileComponent.domNode)
 
   clearTiles: ->
     for startRow, tileComponent of @tileComponentsByStartRow
@@ -119,6 +102,7 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
+    return
     {editor} = @props
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
