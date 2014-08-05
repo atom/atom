@@ -164,6 +164,23 @@ fdescribe "DisplayStateManager", ->
         10:
           lines: editor.linesForScreenRows(10, 14)
 
+  describe "line decorations", ->
+    it "updates the display state when decorations are added, updated, and destroyed", ->
+      marker = editor.markBufferRange([[3, 4], [5, 6]])
+      decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
+
+      expectedDecorations = {}
+      expectedDecorations[decoration.id] = decoration.getParams()
+
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          lineDecorations:
+            3: expectedDecorations
+            4: expectedDecorations
+        5:
+          lineDecorations:
+            5: expectedDecorations
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}

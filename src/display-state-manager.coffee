@@ -32,6 +32,7 @@ class DisplayStateManager
     @subscribe @editor.$scrollLeft.changes, @onScrollLeftChanged
     @subscribe @editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe @editor, 'screen-lines-changed', @onScreenLinesChanged
+    @subscribe @editor, 'decoration-added', @onDecorationAdded
 
   tileStartRowForScreenRow: (screenRow) ->
     screenRow - (screenRow % @getTileSize())
@@ -76,8 +77,9 @@ class DisplayStateManager
       top: startRow * lineHeightInPixels - @editor.getScrollTop()
       width: @getLineWidth()
       height: lineHeightInPixels * tileSize
-      lines: Immutable.Vector(@editor.linesForScreenRows(startRow, startRow + tileSize - 1)...)
       lineHeightInPixels: @editor.getLineHeightInPixels()
+      lines: Immutable.Vector(@editor.linesForScreenRows(startRow, startRow + tileSize - 1)...)
+      lineDecorations: Immutable.Map()
 
   onWidthChanged: (width) =>
     @updateTiles (tileStartRow, tile) => tile.set('width', width)
@@ -115,3 +117,23 @@ class DisplayStateManager
       if change.start < tileEndRow
         tile.set 'lines',
           Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
+
+  onDecorationAdded: (marker, decoration) =>
+    {start, end} = marker.getScreenRange()
+    decorationStartRow = start.row
+    decorationEndRow = end.row
+    tileSize = @getTileSize()
+
+    @updateTiles (tileStartRow, tile) ->
+      tileEndRow = tileStartRow + tileSize
+      if decorationEndRow < tileStartRow or tileEndRow <= decorationStartRow
+        tile
+      else
+        startRow = Math.max(decorationStartRow, tileStartRow)
+        endRow = Math.min(decorationEndRow, tileEndRow - 1)
+        tile.update 'lineDecorations', (lineDecorations) ->
+          lineDecorations.withMutations (lineDecorations) ->
+            for row in [startRow..endRow]
+              lineDecorations.update row, (decorationsById) ->
+                decorationsById ?= Immutable.Map()
+                decorationsById.set(decoration.id, decoration.getParams())
