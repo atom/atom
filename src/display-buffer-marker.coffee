@@ -220,8 +220,8 @@ class DisplayBufferMarker
       @oldTailScreenPosition, newTailScreenPosition,
       @oldHeadBufferPosition, newHeadBufferPosition,
       @oldTailBufferPosition, newTailBufferPosition,
-      textChanged,
-      isValid
+      @wasValid, isValid,
+      textChanged
     }
 
     @oldHeadBufferPosition = newHeadBufferPosition

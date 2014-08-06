@@ -165,13 +165,12 @@ fdescribe "DisplayStateManager", ->
           lines: editor.linesForScreenRows(10, 14)
 
   describe "line decorations", ->
-    it "updates the display state when decorations are added, updated, and destroyed", ->
-      marker = editor.markBufferRange([[3, 4], [5, 6]])
+    it "updates the display state when decorations are added, updated, invalidated, or removed", ->
+      marker = editor.markBufferRange([[3, 4], [5, 6]], invalidate: 'touch')
       decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
 
       expectedDecorations = {}
       expectedDecorations[decoration.id] = decoration.getParams()
-
       expect(stateManager.getState().get('tiles')).toHaveValues
         0:
           lineDecorations:
@@ -180,6 +179,35 @@ fdescribe "DisplayStateManager", ->
         5:
           lineDecorations:
             5: expectedDecorations
+
+      marker.setBufferRange([[8, 4], [10, 6]])
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        5:
+          lineDecorations:
+            8: expectedDecorations
+            9: expectedDecorations
+        10:
+          lineDecorations:
+            10: expectedDecorations
+      expect(stateManager.getState().getIn(['tiles', 0, 'lineDecorations']).toJS()).toEqual {}
+
+      buffer.insert([8, 5], 'invalidate marker')
+      expect(stateManager.getState().getIn(['tiles', 5, 'lineDecorations']).toJS()).toEqual {}
+      expect(stateManager.getState().getIn(['tiles', 10, 'lineDecorations']).toJS()).toEqual {}
+
+      buffer.undo()
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        5:
+          lineDecorations:
+            8: expectedDecorations
+            9: expectedDecorations
+        10:
+          lineDecorations:
+            10: expectedDecorations
+
+      marker.destroy()
+      expect(stateManager.getState().getIn(['tiles', 5, 'lineDecorations']).toJS()).toEqual {}
+      expect(stateManager.getState().getIn(['tiles', 10, 'lineDecorations']).toJS()).toEqual {}
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
