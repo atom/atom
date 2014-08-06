@@ -185,6 +185,90 @@ describe "DisplayStateManager", ->
             startRow: 10
             lines: editor.linesForScreenRows(10, 14)
 
+  describe "line decorations", ->
+    marker = null
+
+    beforeEach ->
+      marker = editor.markBufferRange([[3, 4], [5, 6]], invalidate: 'touch')
+
+    describe "initial state", ->
+      it "renders existing line decorations on the appropriate lines", ->
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
+
+        presenter = new EditorPresenter(editor)
+
+        decorationsById = {}
+        decorationsById[decoration.id] = decoration.getParams()
+        expect(presenter.tiles).toHaveValues
+          0:
+            lineDecorations:
+              3: decorationsById
+              4: decorationsById
+          5:
+            lineDecorations:
+              5: decorationsById
+
+    describe "when a line decorations is added, updated, invalidated, or removed", ->
+      ffit "updates the presented line decorations accordingly", ->
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
+
+        decorationsById = {}
+        decorationsById[decoration.id] = decoration.getParams()
+        expect(presenter.tiles).toHaveValues
+          0:
+            lineDecorations:
+              3: decorationsById
+              4: decorationsById
+          5:
+            lineDecorations:
+              5: decorationsById
+
+        marker.setBufferRange([[8, 4], [10, 6]])
+        expect(presenter.tiles).toHaveValues
+          0:
+            lineDecorations:
+              3: null
+              4: null
+          5:
+            lineDecorations:
+              5: null
+              8: decorationsById
+              9: decorationsById
+          10:
+            lineDecorations:
+              10: decorationsById
+
+        buffer.insert([8, 5], 'invalidate marker')
+        expect(presenter.tiles).toHaveValues
+          5:
+            lineDecorations:
+              8: null
+              9: null
+          10:
+            lineDecorations:
+              10: null
+
+        buffer.undo()
+        expect(presenter.tiles).toHaveValues
+          5:
+            lineDecorations:
+              8: decorationsById
+              9: decorationsById
+          10:
+            lineDecorations:
+              10: decorationsById
+
+        marker.destroy()
+        expect(presenter.tiles).toHaveValues
+          5:
+            lineDecorations:
+              8: null
+              9: null
+          10:
+            lineDecorations:
+              10: null
+
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}
