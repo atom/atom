@@ -165,8 +165,12 @@ fdescribe "DisplayStateManager", ->
           lines: editor.linesForScreenRows(10, 14)
 
   describe "line decorations", ->
-    it "updates the display state when decorations are added, updated, invalidated, or removed", ->
+    marker = null
+
+    beforeEach ->
       marker = editor.markBufferRange([[3, 4], [5, 6]], invalidate: 'touch')
+
+    it "updates the display state when decorations are added, updated, invalidated, or removed", ->
       decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
 
       decorationParamsById = {}
@@ -224,6 +228,21 @@ fdescribe "DisplayStateManager", ->
         10:
           lineDecorations:
             10: null
+
+    describe "when the decoration's 'onlyHead' property is true", ->
+      it "only applies the decoration's class to lines containing the marker's head", ->
+        decoration = editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
+        decorationParamsById = {}
+        decorationParamsById[decoration.id] = decoration.getParams()
+
+        expect(stateManager.getState().get('tiles')).toHaveValues
+          0:
+            lineDecorations:
+              3: null
+              4: null
+          5:
+            lineDecorations:
+              5: decorationParamsById
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true

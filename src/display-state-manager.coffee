@@ -191,6 +191,9 @@ class DisplayStateManager
   rowRangeForLineDecoration: (decoration, headPosition, tailPosition, valid) ->
     return unless valid
 
+    if decoration.getParams().onlyHead
+      return [headPosition.row, headPosition.row]
+
     start = Math.min(headPosition.row, tailPosition.row)
     end = Math.max(headPosition.row, tailPosition.row)
     [start, end]
