@@ -11,7 +11,7 @@ class DisplayStateManager
   Subscriber.includeInto(this)
 
   constructor: (@editor) ->
-    @state = @buildInitialState()
+    @buildInitialState()
     @observeEditor()
 
   getState: -> @state
@@ -39,16 +39,19 @@ class DisplayStateManager
   tileStartRowForScreenRow: (screenRow) ->
     screenRow - (screenRow % @getTileSize())
 
-  getTileRowRange: ->
+  getVisibleRowRange: ->
     heightInLines = Math.floor(@editor.getHeight() / @editor.getLineHeightInPixels())
     startRow = Math.ceil(@editor.getScrollTop() / @editor.getLineHeightInPixels())
     endRow = Math.min(@editor.getLineCount(), startRow + heightInLines)
+    [startRow, endRow]
+
+  getTileRowRange: ->
+    [startRow, endRow] = @getVisibleRowRange()
     [@tileStartRowForScreenRow(startRow), @tileStartRowForScreenRow(endRow)]
 
   buildInitialState: ->
     [startRow, endRow] = @getTileRowRange()
-
-    Immutable.Map
+    @state = Immutable.Map
       tiles: Immutable.Map().withMutations (tiles) =>
         for tileStartRow in [startRow..endRow] by @getTileSize()
           tiles.set(tileStartRow, @buildTile(tileStartRow))
@@ -79,19 +82,32 @@ class DisplayStateManager
       else
         fn(tileStartRow, tile)
 
-  buildTile: (startRow) ->
+  buildTile: (tileStartRow) ->
     lineHeightInPixels = @editor.getLineHeightInPixels()
     tileSize = @getTileSize()
+    tileEndRow = tileStartRow + tileSize
 
     Immutable.Map
-      startRow: startRow
+      startRow: tileStartRow
       left: 0 - @editor.getScrollLeft()
-      top: startRow * lineHeightInPixels - @editor.getScrollTop()
+      top: tileStartRow * lineHeightInPixels - @editor.getScrollTop()
       width: @getLineWidth()
       height: lineHeightInPixels * tileSize
       lineHeightInPixels: @editor.getLineHeightInPixels()
-      lines: Immutable.Vector(@editor.linesForScreenRows(startRow, startRow + tileSize - 1)...)
-      lineDecorations: Immutable.Map()
+      lines: Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
+      lineDecorations: @buildLineDecorationsForTile(tileStartRow, tileEndRow)
+
+  buildLineDecorationsForTile: (tileStartRow, tileEndRow) ->
+    Immutable.Map().withMutations (lineDecorations) =>
+      for markerId, decorations of @editor.decorationsForScreenRowRange(tileStartRow, tileEndRow)
+        {start, end} = @editor.getMarker(markerId).getScreenRange()
+        startRow = Math.max(start.row, tileStartRow)
+        endRow = Math.min(end.row, tileEndRow)
+        for row in [startRow..endRow]
+          for decoration in decorations
+            lineDecorations.update row, (decorationsById) ->
+              decorationsById ?= Immutable.Map()
+              decorationsById.set(decoration.id, decoration.getParams())
 
   onWidthChanged: (width) =>
     @updateTiles (tileStartRow, tile) => tile.set('width', width)
@@ -168,8 +184,8 @@ class DisplayStateManager
         lineDecorations.withMutations (lineDecorations) ->
           for row in [startRow..endRow]
             lineDecorations.update row, (decorationsById) ->
-              decorationsById.delete(decorationId)
-            if lineDecorations.get(row).length is 0
+              decorationsById?.delete(decorationId)
+            if lineDecorations.get(row)?.length is 0
               lineDecorations.delete(row)
 
   addLineDecorations: (decorationStartRow, decorationEndRow, decoration) ->
