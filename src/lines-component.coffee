@@ -27,7 +27,7 @@ LinesComponent = React.createClass
     @tileComponentsByStartRow = {}
 
   shouldComponentUpdate: (newProps) ->
-    return newProps.tilesState isnt @props.tilesState
+    return true
 
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
@@ -53,7 +53,7 @@ LinesComponent = React.createClass
     return unless performedInitialMeasurement
 
     @clearTiles() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
-    @updateTiles(prevProps)
+    @updateTiles()
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
   lineNodeForScreenRow: (screenRow) ->
@@ -74,21 +74,21 @@ LinesComponent = React.createClass
     editor.setLineHeightInPixels(lineHeightInPixels)
     editor.setDefaultCharWidth(charWidth)
 
-  updateTiles: (prevProps) ->
+  updateTiles: ->
+    {tilePresenters} = @props
     domNode = @getDOMNode()
 
-    prevProps.tilesState?.forEach (tileState, tileStartRow) =>
-      unless @props.tilesState.has(tileStartRow)
-        tileComponent = @tileComponentsByStartRow[tileStartRow]
+    for tileStartRow, tileComponent of @tileComponentsByStartRow
+      unless tilePresenters[tileStartRow]?
         domNode.removeChild(tileComponent.domNode)
         delete @tileComponentsByStartRow[tileStartRow]
 
-    @props.tilesState.forEach (tileState, tileStartRow) =>
-      if prevProps.tilesState?.has(tileStartRow)
+    for tileStartRow, tilePresenter of tilePresenters
+      if tileComponent = @tileComponentsByStartRow[tileStartRow]
         tileComponent = @tileComponentsByStartRow[tileStartRow]
-        tileComponent.update(tileState)
+        tileComponent.update()
       else
-        tileComponent = new EditorTileComponent(tileState)
+        tileComponent = new EditorTileComponent(tilePresenter)
         @tileComponentsByStartRow[tileStartRow] = tileComponent
         domNode.appendChild(tileComponent.domNode)
 

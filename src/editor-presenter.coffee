@@ -1,7 +1,8 @@
-{Subscriber, Emitter} = require 'emissary'
+{Emitter, Subscriber} = require 'emissary'
 
 module.exports =
 class EditorPresenter
+  Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
   constructor: (@editor) ->
@@ -44,6 +45,8 @@ class EditorPresenter
       else
         tileEndRow = tileStartRow + @getTileSize()
         @tiles[tileStartRow] = new TilePresenter(@editor, tileStartRow, tileEndRow)
+
+    @emit 'did-change'
 
   onWidthChanged: =>
     @updateTiles (tile) -> tile.updateWidth()

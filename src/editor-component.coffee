@@ -10,7 +10,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
-DisplayStateManager = require './display-state-manager'
+EditorPresenter = require './editor-presenter'
 
 module.exports =
 EditorComponent = React.createClass
@@ -57,8 +57,7 @@ EditorComponent = React.createClass
     style = {}
 
     if @performedInitialMeasurement
-      displayState = @displayStateManager.getState()
-      tilesState = displayState.get('tiles')
+      tilePresenters = @presenter.tiles
 
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
@@ -110,7 +109,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         LinesComponent {
-          ref: 'lines', tilesState,
+          ref: 'lines', tilePresenters,
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
@@ -171,8 +170,8 @@ EditorComponent = React.createClass
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
-    @displayStateManager = new DisplayStateManager(@props.editor)
-    @subscribe @displayStateManager, 'did-change-state', @requestUpdate
+    @presenter = new EditorPresenter(@props.editor)
+    @subscribe @presenter, 'did-change', @requestUpdate
 
   componentDidMount: ->
     {editor} = @props

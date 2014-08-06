@@ -5,7 +5,14 @@ WrapperDiv = document.createElement('div')
 
 module.exports =
 class EditorTileComponent
-  constructor: (@state) ->
+  top: null
+  left: null
+  height: null
+  width: null
+  lineHeightInPixels: null
+  lineWidths: null
+
+  constructor: (@presenter) ->
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
@@ -15,47 +22,54 @@ class EditorTileComponent
 
     @domNode = document.createElement('div')
     @domNode.style.position = 'absolute'
-    @domNode.style['-webkit-transform'] = @getTransform()
-    @domNode.style.height = @state.get('height') + 'px'
-    @domNode.style.width = @state.get('width') + 'px'
+
+
     @buildLines()
+    @update()
 
   stateChangedForKeys: ->
     for key in arguments
       return true if @prevState?.get(key) isnt @state.get(key)
     false
 
-  update: (newState) ->
-    @prevState = @state
-    @state = newState
-
-    if @stateChangedForKeys('top', 'left')
-      @domNode.style['-webkit-transform'] = @getTransform()
-
-    if @stateChangedForKeys('width')
-      @domNode.style.width = @state.get('width') + 'px'
-
-    if @stateChangedForKeys('lines', 'lineDecorations')
-      @updateLines()
+  update: ->
+    @updateTransform()
+    @updateWidth()
+    @updateHeight()
+    @updateLines()
 
     # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
-    # @updateLines()
     # @updateCursors()
 
-  getTransform: ->
-    "translate3d(#{@state.get('left')}px, #{@state.get('top')}px, 0px)"
+  updateTransform: ->
+    {left, top} = @presenter
+    unless left is @left and top is @top
+      @domNode.style['-webkit-transform'] = "translate3d(#{left}px, #{top}px, 0px)"
+      @left = left
+      @top = top
+
+  updateWidth: ->
+    {width} = @presenter
+    unless width is @width
+      @domNode.style.width = width + 'px'
+      @width = width
+
+  updateHeight: ->
+    {height} = @presenter
+    unless height is @height
+      @domNode.style.height = height + 'px'
+      @height = height
 
   buildLines: ->
-    startRow = @state.get('startRow')
-    lines = @state.get('lines')
+    {startRow, lines} = @presenter
 
     linesHTML = ""
-    lines.forEach (line, i) =>
+    for line, i in lines
       screenRow = startRow + i
       linesHTML += @buildLineHTML(line, screenRow)
     @domNode.innerHTML = linesHTML
 
-    lines.forEach (line, i) =>
+    for line, i in lines
       screenRow = startRow + i
       lineNode = @domNode.children[i]
       @lineNodesByLineId[line.id] = lineNode
@@ -63,13 +77,14 @@ class EditorTileComponent
       @lineIdsByScreenRow[screenRow] = line.id
 
   updateLines: ->
-    lines = @state.get('lines')
-    @removeLineNodes(lines)
-    @appendOrUpdateVisibleLineNodes(lines)
+    {lines, width} = @presenter
+    @removeLineNodes()
+    @appendOrUpdateVisibleLineNodes()
+    @lineWidths = width
 
-  removeLineNodes: (lines=[]) ->
+  removeLineNodes: () ->
     lineIds = new Set
-    lines.forEach (line) -> lineIds.add(line.id.toString())
+    lineIds.add(line.id.toString()) for line in @presenter.lines
 
     for lineId, lineNode of @lineNodesByLineId when not lineIds.has(lineId)
       screenRow = @screenRowsByLineId[lineId]
@@ -79,13 +94,13 @@ class EditorTileComponent
       delete @renderedDecorationsByLineId[lineId]
       @domNode.removeChild(lineNode)
 
-  appendOrUpdateVisibleLineNodes: (visibleLines) ->
-    startRow = @state.get('startRow')
+  appendOrUpdateVisibleLineNodes: ->
+    {startRow, lines, lineHeightInPixels, width} = @presenter
 
     newLines = null
     newLinesHTML = null
 
-    visibleLines.forEach (line, index) =>
+    for line, index in lines
       screenRow = startRow + index
 
       if @hasLineNode(line.id)
@@ -98,6 +113,9 @@ class EditorTileComponent
         @screenRowsByLineId[line.id] = screenRow
         @lineIdsByScreenRow[screenRow] = line.id
 
+    @lineHeightInPixels = lineHeightInPixels
+    @lineWidths = width
+
     return unless newLines?
 
     WrapperDiv.innerHTML = newLinesHTML
@@ -108,28 +126,31 @@ class EditorTileComponent
       @domNode.appendChild(lineNode)
 
   updateLineNode: (line, screenRow) ->
-    startRow = @state.get('startRow')
-    lineWidth = @state.get('width')
-    lineHeightInPixels = @state.get('lineHeightInPixels')
+    {startRow, lineHeightInPixels, width} = @presenter
 
     lineNode = @lineNodesByLineId[line.id]
 
-    unless @screenRowsByLineId[line.id] is screenRow
+    unless width is @lineWidths
+      lineNode.style.width = width + 'px'
+
+    unless @screenRowsByLineId[line.id] is screenRow and lineHeightInPixels is @lineHeightInPixels
       lineNode.style.top =  (screenRow - startRow) * lineHeightInPixels + 'px'
+
+    unless @screenRowsByLineId[line.id] is screenRow
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
 
-    prevLineDecorations = @prevState?.get('lineDecorations').get(screenRow)
-    lineDecorations = @state.get('lineDecorations').get(screenRow)
-    if lineDecorations isnt prevLineDecorations
-      prevLineDecorations?.forEach (decoration) ->
-        unless lineDecorations?.has(decoration.id)
-          lineNode.classList.remove(decoration.class)
-
-      lineDecorations?.forEach (decoration) ->
-        unless prevLineDecorations?.has(decoration.id)
-          lineNode.classList.add(decoration.class)
+    # prevLineDecorations = @prevState?.get('lineDecorations').get(screenRow)
+    # lineDecorations = @state.get('lineDecorations').get(screenRow)
+    # if lineDecorations isnt prevLineDecorations
+    #   prevLineDecorations?.forEach (decoration) ->
+    #     unless lineDecorations?.has(decoration.id)
+    #       lineNode.classList.remove(decoration.class)
+    #
+    #   lineDecorations?.forEach (decoration) ->
+    #     unless prevLineDecorations?.has(decoration.id)
+    #       lineNode.classList.add(decoration.class)
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
@@ -145,15 +166,12 @@ class EditorTileComponent
     decorations? and decorations[decoration.id] is decoration
 
   buildLineHTML: (line, screenRow) ->
-    startRow = @state.get('startRow')
-    lineHeightInPixels = @state.get('lineHeightInPixels')
-    width = @state.get('width')
-
+    {startRow, lineHeightInPixels, width} = @presenter
     {text, fold, isSoftWrapped, indentLevel} = line
 
     classes = @getLineClasses(screenRow)
     top = (screenRow - startRow) * lineHeightInPixels
-    style = "position: absolute; top: #{top}px; width: 100%;"
+    style = "position: absolute; top: #{top}px; width: #{width}px;"
 
     lineHTML = """<div class="#{classes}" style="#{style}">"""
 
@@ -168,9 +186,10 @@ class EditorTileComponent
 
   getLineClasses: (screenRow) ->
     classes = ''
-    if decorationsById = @state.get('lineDecorations').get(screenRow)
-      decorationsById.forEach (decoration) ->
-        classes += decoration.class + ' '
+
+    # if decorationsById = @presenter.lineDecorations[screenRow]
+    #   decorationsById.forEach (decoration) ->
+    #     classes += decoration.class + ' '
     classes + 'line'
 
   buildEmptyLineInnerHTML: (line) ->
