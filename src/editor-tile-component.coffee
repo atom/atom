@@ -35,7 +35,7 @@ class EditorTileComponent
     if @stateChangedForKeys('width')
       @domNode.style.width = @state.get('width') + 'px'
 
-    if @stateChangedForKeys('lines')
+    if @stateChangedForKeys('lines', 'lineDecorations')
       @updateLines()
 
     # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
@@ -81,7 +81,6 @@ class EditorTileComponent
 
   appendOrUpdateVisibleLineNodes: (visibleLines) ->
     startRow = @state.get('startRow')
-    # {startRow, lineDecorations} = @props
 
     newLines = null
     newLinesHTML = null
@@ -99,8 +98,6 @@ class EditorTileComponent
         @screenRowsByLineId[line.id] = screenRow
         @lineIdsByScreenRow[screenRow] = line.id
 
-      # @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
-
     return unless newLines?
 
     WrapperDiv.innerHTML = newLinesHTML
@@ -115,27 +112,24 @@ class EditorTileComponent
     lineWidth = @state.get('width')
     lineHeightInPixels = @state.get('lineHeightInPixels')
 
-    # {lineDecorations} = @props
     lineNode = @lineNodesByLineId[line.id]
-
-    # decorations = lineDecorations[screenRow]
-    # previousDecorations = @renderedDecorationsByLineId[line.id]
-
-    # if previousDecorations?
-    #   for id, decoration of previousDecorations
-    #     if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
-    #       lineNode.classList.remove(decoration.class)
-    #
-    # if decorations?
-    #   for id, decoration of decorations
-    #     if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
-    #       lineNode.classList.add(decoration.class)
 
     unless @screenRowsByLineId[line.id] is screenRow
       lineNode.style.top =  (screenRow - startRow) * lineHeightInPixels + 'px'
       lineNode.dataset.screenRow = screenRow
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
+
+    prevLineDecorations = @prevState?.get('lineDecorations').get(screenRow)
+    lineDecorations = @state.get('lineDecorations').get(screenRow)
+    if lineDecorations isnt prevLineDecorations
+      prevLineDecorations?.forEach (decoration) ->
+        unless lineDecorations?.has(decoration.id)
+          lineNode.classList.remove(decoration.class)
+
+      lineDecorations?.forEach (decoration) ->
+        unless prevLineDecorations?.has(decoration.id)
+          lineNode.classList.add(decoration.class)
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
@@ -173,12 +167,10 @@ class EditorTileComponent
     lineHTML
 
   getLineClasses: (screenRow) ->
-    return 'line'
     classes = ''
-    if decorations = @props.lineDecorations[screenRow]
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line')
-          classes += decoration.class + ' '
+    if decorationsById = @state.get('lineDecorations').get(screenRow)
+      decorationsById.forEach (decoration) ->
+        classes += decoration.class + ' '
     classes + 'line'
 
   buildEmptyLineInnerHTML: (line) ->
