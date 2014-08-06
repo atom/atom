@@ -131,14 +131,17 @@ class DisplayStateManager
           Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
 
   onDecorationAdded: (marker, decoration) =>
+    return unless decoration.isType('line')
     {start, end} = marker.getScreenRange()
     @addLineDecorations(start.row, end.row, decoration.getParams())
 
   onDecorationRemoved: (marker, decoration) =>
+    return unless decoration.isType('line')
     {start, end} = marker.getScreenRange()
     @removeLineDecorations(start.row, end.row, decoration.id)
 
   onDecorationChanged: (marker, decoration, change) =>
+    return unless decoration.isType('line')
     @state.withMutations =>
       if change.wasValid
         oldTailRow = change.oldTailBufferPosition.row
