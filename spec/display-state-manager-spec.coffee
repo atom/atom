@@ -230,11 +230,36 @@ fdescribe "DisplayStateManager", ->
             10: null
 
     describe "when the decoration's 'onlyHead' property is true", ->
-      it "only applies the decoration's class to lines containing the marker's head", ->
-        decoration = editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
+      it "only applies the decoration to lines containing the marker's head", ->
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'only-head', onlyHead: true)
         decorationParamsById = {}
         decorationParamsById[decoration.id] = decoration.getParams()
 
+        expect(stateManager.getState().get('tiles')).toHaveValues
+          0:
+            lineDecorations:
+              3: null
+              4: null
+          5:
+            lineDecorations:
+              5: decorationParamsById
+
+    describe "when the decoration's 'onlyEmpty' property is true", ->
+      it "only applies the decoration if the marker is empty", ->
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'only-empty', onlyEmpty: true)
+        decorationParamsById = {}
+        decorationParamsById[decoration.id] = decoration.getParams()
+
+        expect(stateManager.getState().get('tiles')).toHaveValues
+          0:
+            lineDecorations:
+              3: null
+              4: null
+          5:
+            lineDecorations:
+              5: null
+
+        marker.clearTail()
         expect(stateManager.getState().get('tiles')).toHaveValues
           0:
             lineDecorations:

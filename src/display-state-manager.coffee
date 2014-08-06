@@ -150,19 +150,22 @@ class DisplayStateManager
   onDecorationAdded: (marker, decoration) =>
     return unless decoration.isType('line')
 
+    id = decoration.id
+    params = decoration.getParams()
     headPosition = marker.getHeadScreenPosition()
     tailPosition = marker.getTailScreenPosition()
     valid = marker.isValid()
 
-    if rowRange = @rowRangeForLineDecoration(decoration, headPosition, tailPosition, valid)
+    if rowRange = @rowRangeForLineDecoration(params, headPosition, tailPosition, valid)
       [start, end] = rowRange
-      params = decoration.getParams()
       @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
-        @tileWithLineDecorations(tile, start, end, decoration.id, params)
+        @tileWithLineDecorations(tile, start, end, id, params)
 
   onDecorationRemoved: (marker, decoration) =>
     return unless decoration.isType('line')
 
+    id = decoration.id
+    params = decoration.getParams()
     headPosition = marker.getHeadScreenPosition()
     tailPosition = marker.getTailScreenPosition()
     valid = true # FIXME: Why is a marker invalidated when destroyed? That seems wrong.
@@ -170,29 +173,33 @@ class DisplayStateManager
     if rowRange = @rowRangeForLineDecoration(decoration, headPosition, tailPosition, valid)
       [start, end] = rowRange
       @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
-        @tileWithoutLineDecorations(tile, start, end, decoration.id)
+        @tileWithoutLineDecorations(tile, start, end, id)
 
   onDecorationChanged: (marker, decoration, change) =>
     return unless decoration.isType('line')
 
+    params = decoration.getParams()
+
     {oldHeadScreenPosition, oldTailScreenPosition, wasValid} = change
-    if rowRangeToRemove = @rowRangeForLineDecoration(decoration, oldHeadScreenPosition, oldTailScreenPosition, wasValid)
+    if rowRangeToRemove = @rowRangeForLineDecoration(params, oldHeadScreenPosition, oldTailScreenPosition, wasValid)
       [start, end] = rowRangeToRemove
       @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
         @tileWithoutLineDecorations(tile, start, end, decoration.id)
 
     {newHeadScreenPosition, newTailScreenPosition, isValid} = change
-    if rowRangeToAdd = @rowRangeForLineDecoration(decoration, newHeadScreenPosition, newTailScreenPosition, isValid)
+    if rowRangeToAdd = @rowRangeForLineDecoration(params, newHeadScreenPosition, newTailScreenPosition, isValid)
       [start, end] = rowRangeToAdd
-      params = decoration.getParams()
       @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
         @tileWithLineDecorations(tile, start, end, decoration.id, params)
 
-  rowRangeForLineDecoration: (decoration, headPosition, tailPosition, valid) ->
+  rowRangeForLineDecoration: (params, headPosition, tailPosition, valid) ->
     return unless valid
 
-    if decoration.getParams().onlyHead
+    if params.onlyHead
       return [headPosition.row, headPosition.row]
+
+    if params.onlyEmpty
+      return unless headPosition.isEqual(tailPosition)
 
     start = Math.min(headPosition.row, tailPosition.row)
     end = Math.max(headPosition.row, tailPosition.row)
