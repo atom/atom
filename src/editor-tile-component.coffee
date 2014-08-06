@@ -22,7 +22,7 @@ class EditorTileComponent
 
     @domNode = document.createElement('div')
     @domNode.style.position = 'absolute'
-
+    @domNode.style.overflow = 'hidden'
 
     @buildLines()
     @update()

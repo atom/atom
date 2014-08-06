@@ -32,14 +32,20 @@ describe "DisplayStateManager", ->
           0:
             startRow: 0
             top: 0
+            width: editor.getWidth()
+            height: 5 * 10
             lineHeightInPixels: 10
           5:
             startRow: 5
             top: 50
+            width: editor.getWidth()
+            height: 5 * 10
             lineHeightInPixels: 10
           10:
             startRow: 10
             top: 100
+            width: editor.getWidth()
+            height: 5 * 10
             lineHeightInPixels: 10
 
     describe "when the width is changed", ->
@@ -88,18 +94,22 @@ describe "DisplayStateManager", ->
           0:
             startRow: 0
             top: 0 - 10
+            height: 5 * 7
             lineHeightInPixels: 7
           5:
             startRow: 5
             top: 7 * 5 - 10
+            height: 5 * 7
             lineHeightInPixels: 7
           10:
             startRow: 10
             top: 7 * 10 - 10
+            height: 5 * 7
             lineHeightInPixels: 7
           15:
             startRow: 15
             top: 7 * 15 - 10
+            height: 5 * 7
             lineHeightInPixels: 7
 
     describe "when scrollTop changes", ->
@@ -162,7 +172,7 @@ describe "DisplayStateManager", ->
             lines: editor.linesForScreenRows(10, 14)
 
     describe "when the screen lines change", ->
-      ffit "updates the lines in the tiles to reflect the change", ->
+      it "updates the lines in the tiles to reflect the change", ->
         buffer.setTextInRange([[3, 5], [7, 0]], "a\nb\nc\nd")
         expect(presenter.tiles).toHaveValues
           0:

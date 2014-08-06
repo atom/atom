@@ -79,9 +79,13 @@ class TilePresenter
   updateWidth: ->
     @width = @editor.getWidth()
 
+  updateHeight: ->
+    @height = (@endRow - @startRow) * @editor.getLineHeightInPixels()
+
   updateLineHeightInPixels: ->
     @lineHeightInPixels = @editor.getLineHeightInPixels()
     @updateTop()
+    @updateHeight()
 
   updateScrollTop: ->
     @updateTop()
