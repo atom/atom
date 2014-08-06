@@ -121,7 +121,7 @@ class DisplayStateManager
 
   onScrollLeftChanged: (scrollLeft) =>
     @updateTiles (tileStartRow, tile) ->
-      wwtile.set('left', 0 - scrollLeft)
+      tile.set('left', 0 - scrollLeft)
 
   onScreenLinesChanged: (change) =>
     @updateTiles (tileStartRow, tile) =>
