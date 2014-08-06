@@ -12,6 +12,7 @@ class EditorPresenter
     @subscribe @editor.$height, @onHeightChanged
     @subscribe @editor.$lineHeightInPixels, @onLineHeightInPixelsChanged
     @subscribe @editor.$scrollTop, @onScrollTopChanged
+    @subscribe @editor.$scrollLeft, @onScrollLeftChanged
     @subscribe @editor, 'screen-lines-changed', @onScreenLinesChanged
 
   getTileSize: -> 5
@@ -56,17 +57,20 @@ class EditorPresenter
   onScrollTopChanged: =>
     @updateTiles (tile) -> tile.updateScrollTop()
 
+  onScrollLeftChanged: =>
+    @updateTiles (tile) -> tile.updateScrollLeft()
+
   onScreenLinesChanged: (change) =>
     @updateTiles (tile) ->
       unless tile.endRow < change.start
         tile.updateLines()
 
-
 class TilePresenter
   constructor: (@editor, @startRow, @endRow) ->
     @updateWidth()
     @updateLineHeightInPixels()
-    @updateTop()
+    @updateScrollTop()
+    @updateScrollLeft()
     @updateLines()
 
   updateWidth: ->
@@ -78,6 +82,9 @@ class TilePresenter
 
   updateScrollTop: ->
     @updateTop()
+
+  updateScrollLeft: ->
+    @left = 0 - @editor.getScrollLeft()
 
   updateTop: ->
     @top = @startRow * @editor.getLineHeightInPixels() - @editor.getScrollTop()

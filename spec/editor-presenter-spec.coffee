@@ -128,6 +128,25 @@ describe "DisplayStateManager", ->
             top: 80
             lines: editor.linesForScreenRows(15, 19)
 
+    describe "when scrollLeft changes", ->
+      it "updates the rendered tiles to reflect the change", ->
+        expect(presenter.tiles).toHaveValues
+          0:
+            left: 0
+          5
+            left: 0
+          10:
+            left: 0
+
+        editor.setScrollLeft(30)
+        expect(presenter.tiles).toHaveValues
+          0:
+            left: -30
+          5:
+            left: -30
+          10:
+            left: -30
+
   describe "lines", ->
     describe "initial state", ->
       it "breaks lines into tiles", ->
