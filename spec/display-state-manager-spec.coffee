@@ -4,7 +4,7 @@ DisplayStateManager = require '../src/display-state-manager'
 TextBuffer = require 'text-buffer'
 Editor = require '../src/editor'
 
-fdescribe "DisplayStateManager", ->
+describe "DisplayStateManager", ->
   [buffer, editor, stateManager] = []
 
   beforeEach ->

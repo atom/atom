@@ -96,6 +96,7 @@ class DisplayStateManager
       lineHeightInPixels: @editor.getLineHeightInPixels()
       lines: Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
       lineDecorations: Immutable.Map()
+      cursors: Immutable.Map()
 
     @tileWithInitialLineDecorations(tile)
 
@@ -118,6 +119,14 @@ class DisplayStateManager
           unless end < tileStart or tileEnd <= start
             tile = @tileWithLineDecorations(tile, start, end, id, params)
 
+    tile
+
+  tileWithInitialCursors: (tile) ->
+    tileStart = tile.get('startRow')
+    tileEnd = tileStart + @getTileSize()
+    for cursor in @editor.getCursors()
+      if tileStart <= cursor.getScreenRow() < tileEnd
+        tile = @tileWithCursor(tile, cursor)
     tile
 
   onWidthChanged: (width) =>
@@ -244,3 +253,5 @@ class DisplayStateManager
             decorationsById?.delete(decorationId)
           if lineDecorations.get(row)?.length is 0
             lineDecorations.delete(row)
+
+  tileWithCursor: (tile, cursor) ->
