@@ -269,6 +269,31 @@ fdescribe "DisplayStateManager", ->
             lineDecorations:
               5: decorationParamsById
 
+    describe "when the decoration's 'onlyNonEmpty' property is true", ->
+      it "only applies the decoration if the marker is non-empty", ->
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'only-non-empty', onlyNonEmpty: true)
+        decorationParamsById = {}
+        decorationParamsById[decoration.id] = decoration.getParams()
+
+        expect(stateManager.getState().get('tiles')).toHaveValues
+          0:
+            lineDecorations:
+              3: decorationParamsById
+              4: decorationParamsById
+          5:
+            lineDecorations:
+              5: decorationParamsById
+
+        marker.clearTail()
+        expect(stateManager.getState().get('tiles')).toHaveValues
+          0:
+            lineDecorations:
+              3: null
+              4: null
+          5:
+            lineDecorations:
+              5: null
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}

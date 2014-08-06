@@ -201,6 +201,9 @@ class DisplayStateManager
     if params.onlyEmpty
       return unless headPosition.isEqual(tailPosition)
 
+    if params.onlyNonEmpty
+      return if headPosition.isEqual(tailPosition)
+
     start = Math.min(headPosition.row, tailPosition.row)
     end = Math.max(headPosition.row, tailPosition.row)
     [start, end]
