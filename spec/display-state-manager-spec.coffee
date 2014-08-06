@@ -229,6 +229,22 @@ fdescribe "DisplayStateManager", ->
           lineDecorations:
             10: null
 
+    it "renders line decorations in the initial state", ->
+      decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
+
+      newStateManager = new DisplayStateManager(editor)
+
+      decorationParamsById = {}
+      decorationParamsById[decoration.id] = decoration.getParams()
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          lineDecorations:
+            3: decorationParamsById
+            4: decorationParamsById
+        5:
+          lineDecorations:
+            5: decorationParamsById
+
     describe "when the decoration's 'onlyHead' property is true", ->
       it "only applies the decoration to lines containing the marker's head", ->
         decoration = editor.decorateMarker(marker, type: 'line', class: 'only-head', onlyHead: true)

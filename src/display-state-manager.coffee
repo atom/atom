@@ -87,7 +87,7 @@ class DisplayStateManager
     tileSize = @getTileSize()
     tileEndRow = tileStartRow + tileSize
 
-    Immutable.Map
+    tile = Immutable.Map
       startRow: tileStartRow
       left: 0 - @editor.getScrollLeft()
       top: tileStartRow * lineHeightInPixels - @editor.getScrollTop()
@@ -95,19 +95,30 @@ class DisplayStateManager
       height: lineHeightInPixels * tileSize
       lineHeightInPixels: @editor.getLineHeightInPixels()
       lines: Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
-      lineDecorations: @buildLineDecorationsForTile(tileStartRow, tileEndRow)
+      lineDecorations: Immutable.Map()
 
-  buildLineDecorationsForTile: (tileStartRow, tileEndRow) ->
-    Immutable.Map().withMutations (lineDecorations) =>
-      for markerId, decorations of @editor.decorationsForScreenRowRange(tileStartRow, tileEndRow)
-        {start, end} = @editor.getMarker(markerId).getScreenRange()
-        startRow = Math.max(start.row, tileStartRow)
-        endRow = Math.min(end.row, tileEndRow)
-        for row in [startRow..endRow]
-          for decoration in decorations
-            lineDecorations.update row, (decorationsById) ->
-              decorationsById ?= Immutable.Map()
-              decorationsById.set(decoration.id, decoration.getParams())
+    @tileWithInitialLineDecorations(tile)
+
+  tileWithInitialLineDecorations: (tile) ->
+    tileStart = tile.get('startRow')
+    tileEnd = tileStart + @getTileSize()
+
+    for markerId, decorations of @editor.decorationsForScreenRowRange(tileStart, tileEnd)
+      marker = @editor.getMarker(markerId)
+      headPosition = marker.getHeadScreenPosition()
+      tailPosition = marker.getTailScreenPosition()
+      valid = marker.isValid()
+      for decoration in decorations
+        continue unless decoration.isType('line')
+
+        id = decoration.id
+        params = decoration.getParams()
+        if rowRange = @rowRangeForLineDecoration(params, headPosition, tailPosition, valid)
+          [start, end] = rowRange
+          unless end < tileStart or tileEnd <= start
+            tile = @tileWithLineDecorations(tile, start, end, id, params)
+
+    tile
 
   onWidthChanged: (width) =>
     @updateTiles (tileStartRow, tile) => tile.set('width', width)
@@ -145,7 +156,6 @@ class DisplayStateManager
       if change.start < tileEndRow
         tile.set 'lines',
           Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
-
 
   onDecorationAdded: (marker, decoration) =>
     return unless decoration.isType('line')
