@@ -1,4 +1,4 @@
-{extend, toArray, isEqual} = require 'underscore-plus'
+{extend, toArray, isEqual, clone} = require 'underscore-plus'
 Decoration = require './decoration'
 
 WrapperDiv = document.createElement('div')
@@ -16,7 +16,7 @@ class EditorTileComponent
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
-    @renderedDecorationsByLineId = {}
+    @lineDecorationsByLineId = {}
     @cursorPixelRectsById = {}
     @cursorNodesById = {}
 
@@ -61,7 +61,7 @@ class EditorTileComponent
       @height = height
 
   buildLines: ->
-    {startRow, lines} = @presenter
+    {startRow, lines, lineDecorations} = @presenter
 
     linesHTML = ""
     for line, i in lines
@@ -74,6 +74,7 @@ class EditorTileComponent
       lineNode = @domNode.children[i]
       @lineNodesByLineId[line.id] = lineNode
       @screenRowsByLineId[line.id] = screenRow
+      @lineDecorationsByLineId[line.id] = clone(lineDecorations[screenRow])
       @lineIdsByScreenRow[screenRow] = line.id
 
   updateLines: ->
@@ -91,7 +92,7 @@ class EditorTileComponent
       delete @lineNodesByLineId[lineId]
       delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
       delete @screenRowsByLineId[lineId]
-      delete @renderedDecorationsByLineId[lineId]
+      delete @lineDecorationsByLineId[lineId]
       @domNode.removeChild(lineNode)
 
   appendOrUpdateVisibleLineNodes: ->
@@ -141,16 +142,23 @@ class EditorTileComponent
       @screenRowsByLineId[line.id] = screenRow
       @lineIdsByScreenRow[screenRow] = line.id
 
-    # prevLineDecorations = @prevState?.get('lineDecorations').get(screenRow)
-    # lineDecorations = @state.get('lineDecorations').get(screenRow)
-    # if lineDecorations isnt prevLineDecorations
-    #   prevLineDecorations?.forEach (decoration) ->
-    #     unless lineDecorations?.has(decoration.id)
-    #       lineNode.classList.remove(decoration.class)
-    #
-    #   lineDecorations?.forEach (decoration) ->
-    #     unless prevLineDecorations?.has(decoration.id)
-    #       lineNode.classList.add(decoration.class)
+    @updateLineDecorations(lineNode, line, screenRow)
+
+  updateLineDecorations: (lineNode, line, screenRow) ->
+    desiredDecorations = @presenter.lineDecorations[screenRow]
+
+    if currentDecorations = @lineDecorationsByLineId[line.id]
+      for id, decoration of currentDecorations
+        unless desiredDecorations?[id]?
+          lineNode.classList.remove(decoration.class)
+          delete currentDecorations[id]
+
+    if desiredDecorations?
+      currentDecorations = (@lineDecorationsByLineId[line.id] ?= {})
+      for id, decoration of desiredDecorations
+        unless currentDecorations[id]?
+          lineNode.classList.add(decoration.class)
+          currentDecorations[id] = decoration
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
@@ -186,10 +194,9 @@ class EditorTileComponent
 
   getLineClasses: (screenRow) ->
     classes = ''
-
-    # if decorationsById = @presenter.lineDecorations[screenRow]
-    #   decorationsById.forEach (decoration) ->
-    #     classes += decoration.class + ' '
+    if lineDecorationsForScreenRow = @presenter.lineDecorations[screenRow]
+      for id, decoration of lineDecorationsForScreenRow
+        classes += decoration.class + ' '
     classes + 'line'
 
   buildEmptyLineInnerHTML: (line) ->

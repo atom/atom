@@ -209,7 +209,7 @@ describe "DisplayStateManager", ->
               5: decorationsById
 
     describe "when a line decorations is added, updated, invalidated, or removed", ->
-      ffit "updates the presented line decorations accordingly", ->
+      it "updates the presented line decorations accordingly", ->
         decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
 
         decorationsById = {}
