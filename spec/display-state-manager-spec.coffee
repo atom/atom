@@ -169,45 +169,61 @@ fdescribe "DisplayStateManager", ->
       marker = editor.markBufferRange([[3, 4], [5, 6]], invalidate: 'touch')
       decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
 
-      expectedDecorations = {}
-      expectedDecorations[decoration.id] = decoration.getParams()
+      decorationParamsById = {}
+      decorationParamsById[decoration.id] = decoration.getParams()
       expect(stateManager.getState().get('tiles')).toHaveValues
         0:
           lineDecorations:
-            3: expectedDecorations
-            4: expectedDecorations
+            3: decorationParamsById
+            4: decorationParamsById
         5:
           lineDecorations:
-            5: expectedDecorations
+            5: decorationParamsById
 
       marker.setBufferRange([[8, 4], [10, 6]])
       expect(stateManager.getState().get('tiles')).toHaveValues
+        0:
+          lineDecorations:
+            3: null
+            4: null
         5:
           lineDecorations:
-            8: expectedDecorations
-            9: expectedDecorations
+            5: null
+            8: decorationParamsById
+            9: decorationParamsById
         10:
           lineDecorations:
-            10: expectedDecorations
-      expect(stateManager.getState().getIn(['tiles', 0, 'lineDecorations']).toJS()).toEqual {}
+            10: decorationParamsById
 
       buffer.insert([8, 5], 'invalidate marker')
-      expect(stateManager.getState().getIn(['tiles', 5, 'lineDecorations']).toJS()).toEqual {}
-      expect(stateManager.getState().getIn(['tiles', 10, 'lineDecorations']).toJS()).toEqual {}
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        5:
+          lineDecorations:
+            8: null
+            9: null
+        10:
+          lineDecorations:
+            10: null
 
       buffer.undo()
       expect(stateManager.getState().get('tiles')).toHaveValues
         5:
           lineDecorations:
-            8: expectedDecorations
-            9: expectedDecorations
+            8: decorationParamsById
+            9: decorationParamsById
         10:
           lineDecorations:
-            10: expectedDecorations
+            10: decorationParamsById
 
       marker.destroy()
-      expect(stateManager.getState().getIn(['tiles', 5, 'lineDecorations']).toJS()).toEqual {}
-      expect(stateManager.getState().getIn(['tiles', 10, 'lineDecorations']).toJS()).toEqual {}
+      expect(stateManager.getState().get('tiles')).toHaveValues
+        5:
+          lineDecorations:
+            8: null
+            9: null
+        10:
+          lineDecorations:
+            10: null
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
@@ -215,20 +231,27 @@ ToHaveValuesMatcher = (expected) ->
 
   checkValues = (actual, expected, keyPath=[]) ->
    for key, expectedValue of expected
-     key = numericKey if numericKey = parseInt(key)
-     currentKeyPath = keyPath.concat([key])
+    key = numericKey if numericKey = parseInt(key)
+    currentKeyPath = keyPath.concat([key])
 
-     if actual.hasOwnProperty(key)
-       actualValue = actual[key]
-       if expectedValue.constructor is Object
-         checkValues(actualValue, expectedValue, currentKeyPath)
-       else
-         unless _.isEqual(actualValue, expectedValue)
-           hasAllValues = false
-           _.setValueForKeyPath(wrongValues, currentKeyPath.join('.'), {actualValue, expectedValue})
-     else
-       hasAllValues = false
-       _.setValueForKeyPath(wrongValues, currentKeyPath.join('.'), {expectedValue})
+    if expectedValue?
+      if actual.hasOwnProperty(key)
+        actualValue = actual[key]
+        if expectedValue.constructor is Object and _.size(expectedValue) > 0
+          checkValues(actualValue, expectedValue, currentKeyPath)
+        else
+          unless _.isEqual(actualValue, expectedValue)
+            hasAllValues = false
+            _.setValueForKeyPath(wrongValues, currentKeyPath.join('.'), {actualValue, expectedValue})
+      else
+        hasAllValues = false
+        _.setValueForKeyPath(wrongValues, currentKeyPath.join('.'), {expectedValue})
+    else
+      actualValue = actual[key]
+      if actualValue?
+        hasAllValues = false
+        _.setValueForKeyPath(wrongValues, currentKeyPath.join('.'), {actualValue, expectedValue})
+
 
   notText = if @isNot then " not" else ""
   this.message = => "Immutable object did not have expected values: #{jasmine.pp(wrongValues)}"
