@@ -146,59 +146,78 @@ class DisplayStateManager
         tile.set 'lines',
           Immutable.Vector(@editor.linesForScreenRows(tileStartRow, tileEndRow - 1)...)
 
+
   onDecorationAdded: (marker, decoration) =>
     return unless decoration.isType('line')
-    {start, end} = marker.getScreenRange()
-    @addLineDecorations(start.row, end.row, decoration.getParams())
+
+    headPosition = marker.getHeadScreenPosition()
+    tailPosition = marker.getTailScreenPosition()
+    valid = marker.isValid()
+
+    if rowRange = @rowRangeForLineDecoration(decoration, headPosition, tailPosition, valid)
+      [start, end] = rowRange
+      params = decoration.getParams()
+      @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
+        @tileWithLineDecorations(tile, start, end, decoration.id, params)
 
   onDecorationRemoved: (marker, decoration) =>
     return unless decoration.isType('line')
-    {start, end} = marker.getScreenRange()
-    @removeLineDecorations(start.row, end.row, decoration.id)
+
+    headPosition = marker.getHeadScreenPosition()
+    tailPosition = marker.getTailScreenPosition()
+    valid = true # FIXME: Why is a marker invalidated when destroyed? That seems wrong.
+
+    if rowRange = @rowRangeForLineDecoration(decoration, headPosition, tailPosition, valid)
+      [start, end] = rowRange
+      @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
+        @tileWithoutLineDecorations(tile, start, end, decoration.id)
 
   onDecorationChanged: (marker, decoration, change) =>
     return unless decoration.isType('line')
-    @state.withMutations =>
-      if change.wasValid
-        oldTailRow = change.oldTailBufferPosition.row
-        oldHeadRow = change.oldHeadBufferPosition.row
-        oldStartRow = Math.min(oldTailRow, oldHeadRow)
-        oldEndRow = Math.max(oldTailRow, oldHeadRow)
-        @removeLineDecorations(oldStartRow, oldEndRow, decoration.id)
 
-      if change.isValid
-        newTailRow = change.newTailBufferPosition.row
-        newHeadRow = change.newHeadBufferPosition.row
-        newStartRow = Math.min(newTailRow, newHeadRow)
-        newEndRow = Math.max(newTailRow, newHeadRow)
-        @addLineDecorations(newStartRow, newEndRow, decoration.getParams())
+    {oldHeadScreenPosition, oldTailScreenPosition, wasValid} = change
+    if rowRangeToRemove = @rowRangeForLineDecoration(decoration, oldHeadScreenPosition, oldTailScreenPosition, wasValid)
+      [start, end] = rowRangeToRemove
+      @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
+        @tileWithoutLineDecorations(tile, start, end, decoration.id)
 
-  removeLineDecorations: (decorationStartRow, decorationEndRow, decorationId) ->
-    tileSize = @getTileSize()
+    {newHeadScreenPosition, newTailScreenPosition, isValid} = change
+    if rowRangeToAdd = @rowRangeForLineDecoration(decoration, newHeadScreenPosition, newTailScreenPosition, isValid)
+      [start, end] = rowRangeToAdd
+      params = decoration.getParams()
+      @updateTilesIntersectingRowRange start, end, (tileStart, tile) =>
+        @tileWithLineDecorations(tile, start, end, decoration.id, params)
 
-    @updateTilesIntersectingRowRange decorationStartRow, decorationEndRow, (tileStartRow, tile) ->
-      tileEndRow = tileStartRow + tileSize
-      startRow = Math.max(decorationStartRow, tileStartRow)
-      endRow = Math.min(decorationEndRow, tileEndRow - 1)
-      tile.update 'lineDecorations', (lineDecorations) ->
-        lineDecorations.withMutations (lineDecorations) ->
-          for row in [startRow..endRow]
-            lineDecorations.update row, (decorationsById) ->
-              decorationsById?.delete(decorationId)
-            if lineDecorations.get(row)?.length is 0
-              lineDecorations.delete(row)
+  rowRangeForLineDecoration: (decoration, headPosition, tailPosition, valid) ->
+    return unless valid
 
-  addLineDecorations: (decorationStartRow, decorationEndRow, decoration) ->
-    tileSize = @getTileSize()
+    start = Math.min(headPosition.row, tailPosition.row)
+    end = Math.max(headPosition.row, tailPosition.row)
+    [start, end]
 
-    @updateTilesIntersectingRowRange decorationStartRow, decorationEndRow, (tileStartRow, tile) ->
-      tileEndRow = tileStartRow + tileSize
-      startRow = Math.max(decorationStartRow, tileStartRow)
-      endRow = Math.min(decorationEndRow, tileEndRow - 1)
+  tileWithLineDecorations: (tile, start, end, decorationId, decorationParams) ->
+    tileStart = tile.get('startRow')
+    tileEnd = tileStart + @getTileSize()
+    start = Math.max(start, tileStart)
+    end = Math.min(end, tileEnd)
 
-      tile.update 'lineDecorations', (lineDecorations) ->
-        lineDecorations.withMutations (lineDecorations) ->
-          for row in [startRow..endRow]
-            lineDecorations.update row, (decorationsById) ->
-              decorationsById ?= Immutable.Map()
-              decorationsById.set(decoration.id, decoration)
+    tile.update 'lineDecorations', (lineDecorations) ->
+      lineDecorations.withMutations (lineDecorations) ->
+        for row in [start..end]
+          lineDecorations.update row, (decorationsById) ->
+            decorationsById ?= Immutable.Map()
+            decorationsById.set(decorationId, decorationParams)
+
+  tileWithoutLineDecorations: (tile, start, end, decorationId) ->
+    tileStart = tile.get('startRow')
+    tileEnd = tileStart + @getTileSize()
+    start = Math.max(start, tileStart)
+    end = Math.min(end, tileEnd)
+
+    tile.update 'lineDecorations', (lineDecorations) ->
+      lineDecorations.withMutations (lineDecorations) ->
+        for row in [start..end]
+          lineDecorations.update row, (decorationsById) ->
+            decorationsById?.delete(decorationId)
+          if lineDecorations.get(row)?.length is 0
+            lineDecorations.delete(row)
