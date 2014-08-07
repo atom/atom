@@ -1171,7 +1171,7 @@ describe "DisplayBuffer", ->
   describe "::lineNumbersForScreenRows(startRow, endRow)", ->
     it "returns the line numbers for the given screen row range, inclusive of the endRow", ->
       displayBuffer.createFold(4, 7)
-      displayBuffer.setEditorWidthInChars(50)
+      displayBuffer.setEditorWidthInChars(30)
       displayBuffer.setSoftWrap(true)
 
-      expect(displayBuffer.lineNumbersForScreenRows(4, 9)).toEqual [null, 5, 9, null, 10, 11]
+      expect(displayBuffer.lineNumbersForScreenRows(6, 11)).toEqual ['4.2', '5', '9', '9.1', '9.2', '10']

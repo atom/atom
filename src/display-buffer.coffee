@@ -409,27 +409,36 @@ class DisplayBuffer extends Model
       @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
 
   # Given starting and ending screen rows, this returns an array of the line
-  # numbers corresponding to every screen row in the range.
+  # number strings corresponding to every screen row in the range.
   #
   # Line numbers start at 1 as opposed to row numbers which start at 0.
-  # The absence of a line number for soft-wrapped line segments is represented
-  # by `null.`
+  # Soft wrapped lines are indicated by dot-separated strings. For example, if
+  # line 9 wraps twice, it will appear as '9', '9.1', '9.2'.
   #
   # startScreenRow - The screen row {Number} to start at
   # endScreenRow - The screen row {Number} to end at, inclusive.
   #
-  # Returns an {Array} of line numbers as {Number}s.
+  # Returns an {Array} of line numbers as {String}s.
   lineNumbersForScreenRows: (startScreenRow, endScreenRow) ->
-    bufferRows = @bufferRowsForScreenRows(Math.max(0, startScreenRow - 1), endScreenRow)
-    lastBufferRow = bufferRows.shift()
+    bufferRows = @bufferRowsForScreenRows(startScreenRow, endScreenRow)
+
+    # Pad the leading
+    leadingSoftWraps = 0
+    while @bufferRowForScreenRow(startScreenRow - leadingSoftWraps - 1) is bufferRows[0]
+      bufferRows.unshift(bufferRows[0])
+      leadingSoftWraps++
+
     lineNumbers = []
     for bufferRow in bufferRows
+      lineNumber = (bufferRow + 1).toString()
       if bufferRow is lastBufferRow
-        lineNumbers.push(null)
+        lineNumber += ".#{++softWraps}"
       else
-        lineNumbers.push(bufferRow + 1)
         lastBufferRow = bufferRow
-    lineNumbers
+        softWraps = 0
+      lineNumbers.push(lineNumber)
+
+    lineNumbers[leadingSoftWraps..]
 
   # Creates a new fold between two row numbers.
   #
