@@ -359,6 +359,28 @@ describe "DisplayStateManager", ->
           10:
             lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
+      it "updates the maxLineNumberDigits if necessary", ->
+        buffer.setText('')
+        expect(presenter.gutterTiles).toHaveValues
+          0:
+            maxLineNumberDigits: 1
+
+        buffer.setText([0..10].join('\n'))
+        expect(presenter.gutterTiles).toHaveValues
+          0:
+            maxLineNumberDigits: 2
+          5:
+            maxLineNumberDigits: 2
+          10:
+            maxLineNumberDigits: 2
+
+        buffer.delete([[8, 0], [Infinity, 0]])
+        expect(presenter.gutterTiles).toHaveValues
+          0:
+            maxLineNumberDigits: 1
+          5:
+            maxLineNumberDigits: 1
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}

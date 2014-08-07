@@ -238,9 +238,13 @@ class GutterTilePresenter
     @lineNumbers = @editor.lineNumbersForScreenRows(@startRow, @endRow - 1)
     @maxLineNumberDigits = @editor.getLineCount().toString().length
 
+  updateMaxLineNumberDigits: ->
+    @maxLineNumberDigits = @editor.getLineCount().toString().length
+
   onScreenLinesChanged: (change) ->
-    if (change.bufferDelta isnt 0 or change.screenDelta isnt 0) and change.start < @endRow
-      @updateLineNumbers()
+    if change.bufferDelta isnt 0 or change.screenDelta isnt 0
+      @updateMaxLineNumberDigits()
+      @updateLineNumbers() if change.start < @endRow
 
   onDecorationAdded: (decoration) ->
 
