@@ -34,7 +34,6 @@
     "git-utils": "^2.1.3",
     "grim": "0.11.0",
     "guid": "0.0.10",
-    "immutable": "^2.0.4",
     "jasmine-tagged": "^1.1.2",
     "less-cache": "0.13.0",
     "mixto": "^1",
