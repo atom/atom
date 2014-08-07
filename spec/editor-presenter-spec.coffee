@@ -301,7 +301,7 @@ describe "DisplayStateManager", ->
             lineDecorations:
               5: decorationsById
 
-    describe "when a line decorations is added, updated, invalidated, or removed", ->
+    describe "when a line decoration is added, updated, invalidated, or removed", ->
       it "updates the presented line decorations accordingly", ->
         decoration = editor.decorateMarker(marker, type: 'line', class: 'test')
 
@@ -397,6 +397,89 @@ describe "DisplayStateManager", ->
             maxLineNumberDigits: 1
           5:
             maxLineNumberDigits: 1
+
+  describe "line number decorations", ->
+    marker = null
+
+    beforeEach ->
+      marker = editor.markBufferRange([[3, 4], [5, 6]], invalidate: 'touch')
+
+    describe "initial state", ->
+      it "renders existing line number decorations on the appropriate lines", ->
+        decoration = editor.decorateMarker(marker, type: 'gutter', class: 'test')
+
+        presenter = new EditorPresenter(editor)
+
+        decorationsById = {}
+        decorationsById[decoration.id] = decoration.getParams()
+        expect(presenter.gutter.tiles).toHaveValues
+          0:
+            lineNumberDecorations:
+              3: decorationsById
+              4: decorationsById
+          5:
+            lineNumberDecorations:
+              5: decorationsById
+
+    describe "when a line number decorations is added, updated, invalidated, or removed", ->
+      it "updates the presented line decorations accordingly", ->
+        decoration = editor.decorateMarker(marker, type: 'gutter', class: 'test')
+
+        decorationsById = {}
+        decorationsById[decoration.id] = decoration.getParams()
+        expect(presenter.gutter.tiles).toHaveValues
+          0:
+            lineNumberDecorations:
+              3: decorationsById
+              4: decorationsById
+          5:
+            lineNumberDecorations:
+              5: decorationsById
+
+        marker.setBufferRange([[8, 4], [10, 6]])
+        expect(presenter.gutter.tiles).toHaveValues
+          0:
+            lineNumberDecorations:
+              3: null
+              4: null
+          5:
+            lineNumberDecorations:
+              5: null
+              8: decorationsById
+              9: decorationsById
+          10:
+            lineNumberDecorations:
+              10: decorationsById
+
+        buffer.insert([8, 5], 'invalidate marker')
+        expect(presenter.gutter.tiles).toHaveValues
+          5:
+            lineNumberDecorations:
+              8: null
+              9: null
+          10:
+            lineNumberDecorations:
+              10: null
+
+        buffer.undo()
+        expect(presenter.gutter.tiles).toHaveValues
+          5:
+            lineNumberDecorations:
+              8: decorationsById
+              9: decorationsById
+          10:
+            lineNumberDecorations:
+              10: decorationsById
+
+        marker.destroy()
+        expect(presenter.gutter.tiles).toHaveValues
+          5:
+            lineNumberDecorations:
+              8: null
+              9: null
+          10:
+            lineNumberDecorations:
+              10: null
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true

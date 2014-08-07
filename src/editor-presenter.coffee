@@ -217,8 +217,16 @@ class ContentTilePresenter
 
 class GutterTilePresenter
   constructor: (@editor, @startRow, @endRow) ->
+    @lineNumberDecorations = {}
+
+    @populateDecorations()
     @updateLineHeightInPixels()
     @updateScrollTop()
+
+  populateDecorations: ->
+    for markerId, decorations of @editor.decorationsForScreenRowRange(@startRow, @endRow)
+      for decoration in decorations
+        @onDecorationAdded(decoration)
 
   updateLineHeightInPixels: ->
     @lineHeightInPixels = @editor.getLineHeightInPixels()
@@ -252,7 +260,57 @@ class GutterTilePresenter
       @updateLineNumbers() if change.start < @endRow
 
   onDecorationAdded: (decoration) ->
+    return unless decoration.isType('gutter')
+
+    marker = decoration.getMarker()
+    headRow = marker.getHeadScreenPosition().row
+    tailRow = marker.getTailScreenPosition().row
+    valid = marker.isValid()
+    params = decoration.getParams()
+
+    if rowRange = @rowRangeForLineNumberDecoration(params, headRow, tailRow, valid)
+      @addLineNumberDecorations(params, rowRange...)
 
   onDecorationRemoved: (decoration) ->
+    return unless decoration.isType('gutter')
+
+    marker = decoration.getMarker()
+    headRow = marker.getHeadScreenPosition().row
+    tailRow = marker.getTailScreenPosition().row
+    valid = true # FIXME: Markers shouldn't always be invalidated when destroyed
+    params = decoration.getParams()
+
+    if rowRange = @rowRangeForLineNumberDecoration(params, headRow, tailRow, valid)
+      @removeLineNumberDecorations(params, rowRange...)
 
   onDecorationChanged: (decoration, change) ->
+    return unless decoration.isType('gutter')
+
+    params = decoration.getParams()
+
+    {oldHeadScreenPosition, oldTailScreenPosition, wasValid} = change
+    if rowRange = @rowRangeForLineNumberDecoration(params, oldHeadScreenPosition.row, oldTailScreenPosition.row, wasValid)
+      @removeLineNumberDecorations(params, rowRange...)
+
+    {newHeadScreenPosition, newTailScreenPosition, isValid} = change
+    if rowRange = @rowRangeForLineNumberDecoration(params, newHeadScreenPosition.row, newTailScreenPosition.row, isValid)
+      @addLineNumberDecorations(params, rowRange...)
+
+  addLineNumberDecorations: (params, decorationStartRow, decorationEndRow) ->
+    unless decorationEndRow < @startRow or @endRow <= decorationStartRow
+      for row in [decorationStartRow..decorationEndRow]
+        @lineNumberDecorations[row] ?= {}
+        @lineNumberDecorations[row][params.id] = params
+
+  removeLineNumberDecorations: (params, decorationStartRow, decorationEndRow) ->
+    unless decorationEndRow < @startRow or @endRow <= decorationStartRow
+      for row in [decorationStartRow..decorationEndRow]
+        delete @lineNumberDecorations[row][params.id]
+        delete @lineNumberDecorations[row] if _.size(@lineNumberDecorations[row]) is 0
+
+  rowRangeForLineNumberDecoration: (decoration, headRow, tailRow, valid) ->
+    return unless valid
+
+    startRow = Math.min(headRow, tailRow)
+    endRow = Math.max(headRow, tailRow)
+    [startRow, endRow]
