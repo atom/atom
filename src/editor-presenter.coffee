@@ -11,6 +11,8 @@ class EditorPresenter
     @gutter = {tiles: {}, dummyTile: {dummy: true}}
     @updateTiles()
     @updateDummyGutterTile()
+    @scrollTop = @editor.getScrollTop()
+    @scrollLeft = @editor.getScrollLeft()
 
     @subscribe @editor.$width, @onWidthChanged
     @subscribe @editor.$height, @onHeightChanged
@@ -93,10 +95,10 @@ class EditorPresenter
   onLineHeightInPixelsChanged: =>
     @updateTiles (tile) -> tile.updateLineHeightInPixels()
 
-  onScrollTopChanged: =>
+  onScrollTopChanged: (@scrollTop) =>
     @updateTiles (tile) -> tile.updateScrollTop()
 
-  onScrollLeftChanged: =>
+  onScrollLeftChanged: (@scrollLeft) =>
     @updateTiles (tile) -> tile.updateScrollLeft()
 
   onScreenLinesChanged: (change) =>

@@ -26,6 +26,15 @@ describe "DisplayStateManager", ->
   afterEach ->
     editor.destroy()
 
+  describe "scrollPosition", ->
+    it "maintains the scrollTop and scrollLeft as top-level presenter properties", ->
+      expect(presenter.scrollTop).toBe 0
+      expect(presenter.scrollLeft).toBe 0
+      editor.setScrollTop(20)
+      editor.setScrollLeft(30)
+      expect(presenter.scrollTop).toBe 20
+      expect(presenter.scrollLeft).toBe 30
+
   describe "tiles", ->
     describe "initial state", ->
       it "renders tiles that overlap the visible row range", ->
