@@ -23,8 +23,8 @@ class EditorPresenter
   getTileSize: -> 5
 
   getVisibleRowRange: ->
-    heightInLines = Math.floor(@editor.getHeight() / @editor.getLineHeightInPixels())
-    startRow = Math.ceil(@editor.getScrollTop() / @editor.getLineHeightInPixels())
+    heightInLines = Math.ceil(@editor.getHeight() / @editor.getLineHeightInPixels())
+    startRow = Math.floor(@editor.getScrollTop() / @editor.getLineHeightInPixels())
     endRow = Math.min(@editor.getLineCount(), startRow + heightInLines)
     [startRow, endRow]
 
