@@ -1,4 +1,4 @@
-{toArray, multiplyString} = require 'underscore-plus'
+{toArray, multiplyString, clone} = require 'underscore-plus'
 WrapperDiv = document.createElement('div')
 
 module.exports =
@@ -6,7 +6,7 @@ class GutterTileComponent
   constructor: (@presenter) ->
     @lineNumberNodesById = {}
     @screenRowsByLineNumberId = {}
-    @renderedDecorationsByLineNumberId = {}
+    @lineNumberDecorationsByLineNumberId = {}
 
     @domNode = document.createElement('div')
     @domNode.style.overflow = 'hidden'
@@ -42,20 +42,22 @@ class GutterTileComponent
       @height = height
 
   updateLineNumbers: ->
+    {lineNumbers, lineNumberDecorations} = @presenter
+
     lineNumbersSet = new Set
-    lineNumbersSet.add(lineNumber) for lineNumber in @presenter.lineNumbers
+    lineNumbersSet.add(lineNumber) for lineNumber in lineNumbers
 
     for lineNumberId, lineNumberNode of @lineNumberNodesById
       unless lineNumbersSet.has(lineNumberId)
         delete @lineNumberNodesById[lineNumberId]
         delete @screenRowsByLineNumberId[lineNumberId]
-        delete @renderedDecorationsByLineNumberId[lineNumberId]
+        delete @lineNumberDecorationsByLineNumberId[lineNumberId]
         @domNode.removeChild(lineNumberNode)
 
     newLineNumberIds = []
     newLineNumbersHTML = ""
 
-    for lineNumberId, i in @presenter.lineNumbers
+    for lineNumberId, i in lineNumbers
       screenRow = @presenter.startRow + i
 
       if @lineNumberNodesById[lineNumberId]?
@@ -65,8 +67,7 @@ class GutterTileComponent
         newLineNumbersHTML += @buildLineNumberHTML(lineNumberId, screenRow)
         @screenRowsByLineNumberId[lineNumberId] = screenRow
         # @lineNumberIdsByScreenRow[screenRow] = id
-
-      # @renderedDecorationsByLineNumberId[id] = lineDecorations[screenRow]
+        @lineNumberDecorationsByLineNumberId[lineNumberId] = clone(lineNumberDecorations[screenRow])
 
     if newLineNumberIds.length > 0
       WrapperDiv.innerHTML = newLineNumbersHTML
@@ -74,10 +75,11 @@ class GutterTileComponent
 
       for lineNumberId, i in newLineNumberIds
         @lineNumberNodesById[lineNumberId] = newLineNumberNodes[i]
+        @lineNumberDecorationsByLineNumberId
         @domNode.appendChild(newLineNumberNodes[i])
 
   buildLineNumberHTML: (lineNumberId, screenRow) ->
-    {lineHeightInPixels, lineDecorations} = @presenter
+    {lineHeightInPixels, lineNumberDecorations} = @presenter
 
     if screenRow?
       top = (screenRow - @presenter.startRow) * lineHeightInPixels
@@ -87,16 +89,13 @@ class GutterTileComponent
 
     innerHTML = @buildLineNumberInnerHTML(lineNumberId)
 
-    # classes = ''
-    # if lineDecorations? and decorations = lineDecorations[screenRow]
-    #   for id, decoration of decorations
-    #     if Decoration.isType(decoration, 'gutter')
-    #       classes += decoration.class + ' '
+    classes = ''
+    if decorationsById = lineNumberDecorations?[screenRow]
+      for id, decoration of decorationsById
+        classes += decoration.class + ' '
 
     # classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
-    # classes += "line-number line-number-#{bufferRow}"
-
-    classes = "line-number"
+    classes += "line-number line-number-#{lineNumberId.replace(/\..*/, '')}"
 
     "<div class=\"#{classes}\" style=\"#{style}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
@@ -122,22 +121,27 @@ class GutterTileComponent
     # else
     #   node.classList.remove('foldable')
 
-    # decorations = lineDecorations[screenRow]
-    # previousDecorations = @renderedDecorationsByLineNumberId[lineNumberId]
-    #
-    # if previousDecorations?
-    #   for id, decoration of previousDecorations
-    #     if Decoration.isType(decoration, 'gutter') and not @hasDecoration(decorations, decoration)
-    #       node.classList.remove(decoration.class)
-    #
-    # if decorations?
-    #   for id, decoration of decorations
-    #     if Decoration.isType(decoration, 'gutter') and not @hasDecoration(previousDecorations, decoration)
-    #       node.classList.add(decoration.class)
-    #
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
       {lineHeightInPixels} = @presenter
       node.style.top = screenRow * lineHeightInPixels + 'px'
       node.dataset.screenRow = screenRow
       @screenRowsByLineNumberId[lineNumberId] = screenRow
       # @lineNumberIdsByScreenRow[screenRow] = lineNumberId
+
+    @updateLineNumberDecorations(node, lineNumberId, screenRow)
+
+  updateLineNumberDecorations: (lineNumberNode, lineNumberId, screenRow) ->
+    desiredDecorations = @presenter.lineNumberDecorations[screenRow]
+
+    if currentDecorations = @lineNumberDecorationsByLineNumberId[lineNumberId]
+      for id, decoration of currentDecorations
+        unless desiredDecorations?[id]?
+          lineNumberNode.classList.remove(decoration.class)
+          delete currentDecorations[id]
+
+    if desiredDecorations?
+      currentDecorations = (@lineNumberDecorationsByLineNumberId[lineNumberId] ?= {})
+      for id, decoration of desiredDecorations
+        unless currentDecorations[id]?
+          lineNumberNode.classList.add(decoration.class)
+          currentDecorations[id] = decoration
