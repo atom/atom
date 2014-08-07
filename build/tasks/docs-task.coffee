@@ -147,16 +147,22 @@ downloadIncludes = (callback) ->
   includes = [
     {repo: 'atom-keymap', file: 'src/keymap-manager.coffee'}
     {repo: 'atom-keymap', file: 'src/key-binding.coffee'}
+    {repo: 'atom-keymap', file: 'package.json'}
     {repo: 'first-mate',  file: 'src/grammar.coffee'}
     {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
+    {repo: 'first-mate',  file: 'package.json'}
     {repo: 'node-pathwatcher', file: 'src/directory.coffee'}
     {repo: 'node-pathwatcher', file: 'src/file.coffee'}
+    {repo: 'node-pathwatcher', file: 'package.json'}
     {repo: 'space-pen',   file: 'src/space-pen.coffee'}
+    {repo: 'space-pen',   file: 'package.json'}
     {repo: 'text-buffer', file: 'src/marker.coffee'}
     {repo: 'text-buffer', file: 'src/point.coffee'}
     {repo: 'text-buffer', file: 'src/range.coffee'}
     {repo: 'text-buffer', file: 'src/text-buffer.coffee'}
+    {repo: 'text-buffer', file: 'package.json'}
     {repo: 'theorist',    file: 'src/model.coffee'}
+    {repo: 'theorist',    file: 'package.json'}
   ]
 
   async.map(includes, downloadFileFromRepo, callback)
