@@ -1167,3 +1167,11 @@ describe "DisplayBuffer", ->
 
       expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + operatorWidth * 2 + cursorWidth
       expect(changedSpy.callCount).toBe 1
+
+  describe "::lineNumbersForScreenRows(startRow, endRow)", ->
+    it "returns the line numbers for the given screen row range, inclusive of the endRow", ->
+      displayBuffer.createFold(4, 7)
+      displayBuffer.setEditorWidthInChars(50)
+      displayBuffer.setSoftWrap(true)
+
+      expect(displayBuffer.lineNumbersForScreenRows(4, 9)).toEqual [null, 5, 9, null, 10, 11]

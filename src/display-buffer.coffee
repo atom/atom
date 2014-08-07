@@ -401,12 +401,35 @@ class DisplayBuffer extends Model
   # buffer rows corresponding to every screen row in the range
   #
   # startScreenRow - The screen row {Number} to start at
-  # endScreenRow - The screen row {Number} to end at (default: the last screen row)
+  # endScreenRow - The screen row {Number} to end at, inclusive.
   #
   # Returns an {Array} of buffer rows as {Numbers}s.
   bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
     for screenRow in [startScreenRow..endScreenRow]
       @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
+
+  # Given starting and ending screen rows, this returns an array of the line
+  # numbers corresponding to every screen row in the range.
+  #
+  # Line numbers start at 1 as opposed to row numbers which start at 0.
+  # The absence of a line number for soft-wrapped line segments is represented
+  # by `null.`
+  #
+  # startScreenRow - The screen row {Number} to start at
+  # endScreenRow - The screen row {Number} to end at, inclusive.
+  #
+  # Returns an {Array} of line numbers as {Number}s.
+  lineNumbersForScreenRows: (startScreenRow, endScreenRow) ->
+    bufferRows = @bufferRowsForScreenRows(Math.max(0, startScreenRow - 1), endScreenRow)
+    lastBufferRow = bufferRows.shift()
+    lineNumbers = []
+    for bufferRow in bufferRows
+      if bufferRow is lastBufferRow
+        lineNumbers.push(null)
+      else
+        lineNumbers.push(bufferRow + 1)
+        lastBufferRow = bufferRow
+    lineNumbers
 
   # Creates a new fold between two row numbers.
   #

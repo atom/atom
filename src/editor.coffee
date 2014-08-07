@@ -591,6 +591,9 @@ class Editor extends Model
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
+  # {Delegats to: DisplayBuffer.lineNumbersForScreenRows}
+  lineNumbersForScreenRows: (startRow, endRow) -> @displayBuffer.lineNumbersForScreenRows(startRow, endRow)
+
   bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
 
   # Public: Get the syntactic scopes for the given position in buffer
