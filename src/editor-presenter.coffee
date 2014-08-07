@@ -8,8 +8,9 @@ class EditorPresenter
 
   constructor: (@editor) ->
     @content = {tiles: {}}
-    @gutter = {tiles: {}}
+    @gutter = {tiles: {}, dummyTile: {dummy: true}}
     @updateTiles()
+    @updateDummyGutterTile()
 
     @subscribe @editor.$width, @onWidthChanged
     @subscribe @editor.$height, @onHeightChanged
@@ -80,6 +81,9 @@ class EditorPresenter
         tileEndRow = tileStartRow + @getGutterTileSize()
         @gutter.tiles[tileStartRow] = new GutterTilePresenter(@editor, tileStartRow, tileEndRow)
 
+  updateDummyGutterTile: ->
+    @gutter.dummyTile.maxLineNumberDigits = @editor.getLineCount().toString().length
+
   onWidthChanged: =>
     @updateTiles (tile) -> tile.updateWidth()
 
@@ -96,6 +100,7 @@ class EditorPresenter
     @updateTiles (tile) -> tile.updateScrollLeft()
 
   onScreenLinesChanged: (change) =>
+    @updateDummyGutterTile() if change.bufferDelta isnt 0
     @updateTiles (tile) -> tile.onScreenLinesChanged(change)
 
   onDecorationAdded: (marker, decoration) =>

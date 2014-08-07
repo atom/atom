@@ -74,6 +74,12 @@ describe "DisplayStateManager", ->
                 lineHeightInPixels: 10
                 lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
+      it "renders a dummy gutter tile to maintain the proper gutter width", ->
+        expect(presenter.gutter).toHaveValues
+          dummyTile:
+            dummy: true
+            maxLineNumberDigits: 2
+
     describe "when the width is changed", ->
       it "updates the line tiles with the new width", ->
         editor.setWidth(700)
@@ -369,11 +375,13 @@ describe "DisplayStateManager", ->
 
       it "updates the maxLineNumberDigits if necessary", ->
         buffer.setText('')
+        expect(presenter.gutter.dummyTile.maxLineNumberDigits).toBe 1
         expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 1
 
         buffer.setText([0..10].join('\n'))
+        expect(presenter.gutter.dummyTile.maxLineNumberDigits).toBe 2
         expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 2
@@ -383,6 +391,7 @@ describe "DisplayStateManager", ->
             maxLineNumberDigits: 2
 
         buffer.delete([[8, 0], [Infinity, 0]])
+        expect(presenter.gutter.dummyTile.maxLineNumberDigits).toBe 1
         expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 1
