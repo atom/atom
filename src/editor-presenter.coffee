@@ -7,7 +7,8 @@ class EditorPresenter
   Subscriber.includeInto(this)
 
   constructor: (@editor) ->
-    @tiles = {}
+    @lineTiles = {}
+    @gutterTiles = {}
     @updateTiles()
 
     @subscribe @editor.$width, @onWidthChanged
@@ -20,7 +21,9 @@ class EditorPresenter
     @subscribe @editor, 'decoration-removed', @onDecorationRemoved
     @subscribe @editor, 'decoration-changed', @onDecorationChanged
 
-  getTileSize: -> 5
+  getLineTileSize: -> 5
+
+  getGutterTileSize: -> 20
 
   getVisibleRowRange: ->
     heightInLines = Math.ceil(@editor.getHeight() / @editor.getLineHeightInPixels())
@@ -28,29 +31,54 @@ class EditorPresenter
     endRow = Math.min(@editor.getLineCount(), startRow + heightInLines)
     [startRow, endRow]
 
-  getTileRowRange: ->
+  lineTileStartRowForRow: (startRow) ->
+    startRow - (startRow % @getLineTileSize())
+
+  gutterTileStartRowForRow: (startRow) ->
+    startRow - (startRow % @getGutterTileSize())
+
+  getLineTileRowRange: ->
     [startRow, endRow] = @getVisibleRowRange()
-    startRow = @tileStartRowForRow(startRow)
-    endRow = @tileStartRowForRow(endRow) + @getTileSize()
+    startRow = @lineTileStartRowForRow(startRow)
+    endRow = @lineTileStartRowForRow(endRow) + @getLineTileSize()
     [startRow, endRow]
 
-  tileStartRowForRow: (row) ->
-    row - (row % @getTileSize())
+  getGutterTileRowRange: ->
+    [startRow, endRow] = @getVisibleRowRange()
+    startRow = @gutterTileStartRowForRow(startRow)
+    endRow = @gutterTileStartRowForRow(endRow) + @getGutterTileSize()
+    [startRow, endRow]
 
   updateTiles: (fn) ->
-    [startRow, endRow] = @getTileRowRange()
+    @updateLineTiles(fn)
+    @updateGutterTiles(fn)
+    @emit 'did-change'
 
-    for tileStartRow of @tiles
-      delete @tiles[tileStartRow] unless startRow <= tileStartRow < endRow
+  updateLineTiles: (fn) ->
+    [startRow, endRow] = @getLineTileRowRange()
 
-    for tileStartRow in [startRow...endRow] by @getTileSize()
-      if existingTile = @tiles[tileStartRow]
+    for tileStartRow of @lineTiles
+      delete @lineTiles[tileStartRow] unless startRow <= tileStartRow < endRow
+
+    for tileStartRow in [startRow...endRow] by @getLineTileSize()
+      if existingTile = @lineTiles[tileStartRow]
         fn?(existingTile)
       else
-        tileEndRow = tileStartRow + @getTileSize()
-        @tiles[tileStartRow] = new TilePresenter(@editor, tileStartRow, tileEndRow)
+        tileEndRow = tileStartRow + @getLineTileSize()
+        @lineTiles[tileStartRow] = new LineTilePresenter(@editor, tileStartRow, tileEndRow)
 
-    @emit 'did-change'
+  updateGutterTiles: (fn) ->
+    [startRow, endRow] = @getGutterTileRowRange()
+
+    for tileStartRow of @gutterTiles
+      delete @gutterTiles[tileStartRow] unless startRow <= tileStartRow < endRow
+
+    for tileStartRow in [startRow...endRow] by @getGutterTileSize()
+      if existingTile = @gutterTiles[tileStartRow]
+        fn?(existingTile)
+      else
+        tileEndRow = tileStartRow + @getGutterTileSize()
+        @gutterTiles[tileStartRow] = new GutterTilePresenter(@editor, tileStartRow, tileEndRow)
 
   onWidthChanged: =>
     @updateTiles (tile) -> tile.updateWidth()
@@ -81,7 +109,7 @@ class EditorPresenter
   onDecorationChanged: (marker, decoration, change) =>
     @updateTiles (tile) -> tile.onDecorationChanged(decoration, change)
 
-class TilePresenter
+class LineTilePresenter
   constructor: (@editor, @startRow, @endRow) ->
     @lineDecorations = {}
     @updateWidth()
@@ -180,3 +208,37 @@ class TilePresenter
     startRow = Math.min(headRow, tailRow)
     endRow = Math.max(headRow, tailRow)
     [startRow, endRow]
+
+class GutterTilePresenter
+  constructor: (@editor, @startRow, @endRow) ->
+    @updateLineHeightInPixels()
+    @updateScrollTop()
+
+  updateLineHeightInPixels: ->
+    @lineHeightInPixels = @editor.getLineHeightInPixels()
+    @updateTop()
+    @updateHeight()
+    @updateLines()
+
+  updateScrollLeft: -> # NO-OP
+
+  updateScrollTop: ->
+    @updateTop()
+
+  updateTop: ->
+    @top = @startRow * @editor.getLineHeightInPixels() - @editor.getScrollTop()
+
+  updateWidth: -> # NO-OP
+
+  updateHeight: ->
+    @height = (@endRow - @startRow) * @editor.getLineHeightInPixels()
+
+  updateLines: ->
+    @lineNumbers = @editor.lineNumbersForScreenRows(@startRow, @endRow - 1)
+    @maxLineNumberDigits = @editor.getLineCount().toString().length
+
+  onDecorationAdded: (decoration) ->
+
+  onDecorationRemoved: (decoration) ->
+
+  onDecorationChanged: (decoration, change) ->

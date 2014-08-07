@@ -8,7 +8,8 @@ describe "DisplayStateManager", ->
 
   beforeEach ->
     @addMatchers(toHaveValues: ToHaveValuesMatcher)
-    spyOn(EditorPresenter::, 'getTileSize').andReturn 5
+    spyOn(EditorPresenter::, 'getLineTileSize').andReturn 5
+    spyOn(EditorPresenter::, 'getGutterTileSize').andReturn 5
 
     buffer = new TextBuffer(filePath: atom.project.resolve('sample.js'))
     buffer.loadSync()
@@ -28,7 +29,7 @@ describe "DisplayStateManager", ->
   describe "tiles", ->
     describe "initial state", ->
       it "renders tiles that overlap the visible row range", ->
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             top: 0
@@ -51,7 +52,7 @@ describe "DisplayStateManager", ->
     describe "when the width is changed", ->
       it "updates the tiles with the new width", ->
         editor.setWidth(700)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             width: 700
           5:
@@ -62,7 +63,7 @@ describe "DisplayStateManager", ->
     describe "when the height is changed", ->
       it "updates the rendered tiles to reflect the changed", ->
         editor.setHeight(150)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             top: 0
@@ -77,7 +78,7 @@ describe "DisplayStateManager", ->
             top: 150
 
         editor.setHeight(70)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             top: 0
@@ -90,7 +91,7 @@ describe "DisplayStateManager", ->
         editor.setScrollTop(10)
         editor.setLineHeightInPixels(7)
 
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             top: 0 - 10
@@ -115,7 +116,7 @@ describe "DisplayStateManager", ->
     describe "when scrollTop changes", ->
       it "updates the rendered tiles to reflect the change", ->
         editor.setScrollTop(20)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             top: -20
             lines: editor.linesForScreenRows(0, 4)
@@ -127,7 +128,7 @@ describe "DisplayStateManager", ->
             lines: editor.linesForScreenRows(10, 14)
 
         editor.setScrollTop(70)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           5:
             top: -20
             lines: editor.linesForScreenRows(5, 9)
@@ -140,7 +141,7 @@ describe "DisplayStateManager", ->
 
     describe "when scrollLeft changes", ->
       it "updates the rendered tiles to reflect the change", ->
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             left: 0
           5
@@ -149,7 +150,7 @@ describe "DisplayStateManager", ->
             left: 0
 
         editor.setScrollLeft(30)
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             left: -30
           5:
@@ -160,7 +161,7 @@ describe "DisplayStateManager", ->
   describe "lines", ->
     describe "initial state", ->
       it "breaks lines into tiles", ->
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             lines: editor.linesForScreenRows(0, 4)
@@ -174,7 +175,7 @@ describe "DisplayStateManager", ->
     describe "when the screen lines change", ->
       it "updates the lines in the tiles to reflect the change", ->
         buffer.setTextInRange([[3, 5], [7, 0]], "a\nb\nc\nd")
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             startRow: 0
             lines: editor.linesForScreenRows(0, 4)
@@ -199,7 +200,7 @@ describe "DisplayStateManager", ->
 
         decorationsById = {}
         decorationsById[decoration.id] = decoration.getParams()
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             lineDecorations:
               3: decorationsById
@@ -214,7 +215,7 @@ describe "DisplayStateManager", ->
 
         decorationsById = {}
         decorationsById[decoration.id] = decoration.getParams()
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             lineDecorations:
               3: decorationsById
@@ -224,7 +225,7 @@ describe "DisplayStateManager", ->
               5: decorationsById
 
         marker.setBufferRange([[8, 4], [10, 6]])
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           0:
             lineDecorations:
               3: null
@@ -239,7 +240,7 @@ describe "DisplayStateManager", ->
               10: decorationsById
 
         buffer.insert([8, 5], 'invalidate marker')
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           5:
             lineDecorations:
               8: null
@@ -249,7 +250,7 @@ describe "DisplayStateManager", ->
               10: null
 
         buffer.undo()
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           5:
             lineDecorations:
               8: decorationsById
@@ -259,7 +260,7 @@ describe "DisplayStateManager", ->
               10: decorationsById
 
         marker.destroy()
-        expect(presenter.tiles).toHaveValues
+        expect(presenter.lineTiles).toHaveValues
           5:
             lineDecorations:
               8: null
@@ -268,6 +269,31 @@ describe "DisplayStateManager", ->
             lineDecorations:
               10: null
 
+  describe "gutter tiles", ->
+    describe "initial state", ->
+      it "renders gutter tiles that overlap the visible row range", ->
+        expect(presenter.gutterTiles).toHaveValues
+          0:
+            startRow: 0
+            top: 0
+            height: 5 * 10
+            lineHeightInPixels: 10
+            maxLineNumberDigits: 2
+            lineNumbers: editor.lineNumbersForScreenRows(0, 4)
+          5:
+            startRow: 5
+            top: 50
+            height: 5 * 10
+            lineHeightInPixels: 10
+            maxLineNumberDigits: 2
+            lineNumbers: editor.lineNumbersForScreenRows(5, 9)
+          10:
+            startRow: 10
+            top: 100
+            height: 5 * 10
+            lineHeightInPixels: 10
+            maxLineNumberDigits: 2
+            lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true

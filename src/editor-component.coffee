@@ -57,7 +57,7 @@ EditorComponent = React.createClass
     style = {}
 
     if @performedInitialMeasurement
-      tilePresenters = @presenter.tiles
+      lineTilePresenters = @presenter.lineTiles
 
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
@@ -109,7 +109,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         LinesComponent {
-          ref: 'lines', tilePresenters,
+          ref: 'lines', lineTilePresenters,
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
