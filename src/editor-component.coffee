@@ -990,8 +990,8 @@ EditorComponent = React.createClass
     {clientX, clientY} = event
 
     linesClientRect = @refs.lines.getDOMNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top
-    left = clientX - linesClientRect.left
+    top = clientY - linesClientRect.top + @presenter.scrollTop
+    left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
   getModel: ->
