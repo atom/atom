@@ -347,6 +347,18 @@ describe "DisplayStateManager", ->
             lineDecorations:
               10: null
 
+  describe "line numbers", ->
+    describe "when the screen lines change", ->
+      it "updates the line numbers to reflect the change", ->
+        editor.createFold(4, 7)
+        expect(presenter.gutterTiles).toHaveValues
+          0:
+            lineNumbers: editor.lineNumbersForScreenRows(0, 4)
+          5:
+            lineNumbers: editor.lineNumbersForScreenRows(5, 9)
+          10:
+            lineNumbers: editor.lineNumbersForScreenRows(10, 14)
+
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
   wrongValues = {}

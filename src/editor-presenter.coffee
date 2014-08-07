@@ -96,9 +96,7 @@ class EditorPresenter
     @updateTiles (tile) -> tile.updateScrollLeft()
 
   onScreenLinesChanged: (change) =>
-    @updateTiles (tile) ->
-      unless tile.endRow < change.start
-        tile.updateLines()
+    @updateTiles (tile) -> tile.onScreenLinesChanged(change)
 
   onDecorationAdded: (marker, decoration) =>
     @updateTiles (tile) -> tile.onDecorationAdded(decoration)
@@ -146,6 +144,9 @@ class LineTilePresenter
     for markerId, decorations of @editor.decorationsForScreenRowRange(@startRow, @endRow)
       for decoration in decorations
         @onDecorationAdded(decoration)
+
+  onScreenLinesChanged: (change) ->
+    @updateLines() if change.start < @endRow
 
   onDecorationAdded: (decoration) ->
     if decoration.isType('line')
@@ -218,7 +219,7 @@ class GutterTilePresenter
     @lineHeightInPixels = @editor.getLineHeightInPixels()
     @updateTop()
     @updateHeight()
-    @updateLines()
+    @updateLineNumbers()
 
   updateScrollLeft: -> # NO-OP
 
@@ -233,9 +234,13 @@ class GutterTilePresenter
   updateHeight: ->
     @height = (@endRow - @startRow) * @editor.getLineHeightInPixels()
 
-  updateLines: ->
+  updateLineNumbers: ->
     @lineNumbers = @editor.lineNumbersForScreenRows(@startRow, @endRow - 1)
     @maxLineNumberDigits = @editor.getLineCount().toString().length
+
+  onScreenLinesChanged: (change) ->
+    if (change.bufferDelta isnt 0 or change.screenDelta isnt 0) and change.start < @endRow
+      @updateLineNumbers()
 
   onDecorationAdded: (decoration) ->
 
