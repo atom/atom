@@ -29,28 +29,51 @@ describe "DisplayStateManager", ->
   describe "tiles", ->
     describe "initial state", ->
       it "renders tiles that overlap the visible row range", ->
-        expect(presenter.lineTiles).toHaveValues
-          0:
-            startRow: 0
-            top: 0
-            width: editor.getWidth()
-            height: 5 * 10
-            lineHeightInPixels: 10
-          5:
-            startRow: 5
-            top: 50
-            width: editor.getWidth()
-            height: 5 * 10
-            lineHeightInPixels: 10
-          10:
-            startRow: 10
-            top: 100
-            width: editor.getWidth()
-            height: 5 * 10
-            lineHeightInPixels: 10
+        expect(presenter).toHaveValues
+          lineTiles:
+            0:
+              startRow: 0
+              top: 0
+              width: editor.getWidth()
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lines: editor.linesForScreenRows(0, 4)
+            5:
+              startRow: 5
+              top: 50
+              width: editor.getWidth()
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lines: editor.linesForScreenRows(5, 9)
+            10:
+              startRow: 10
+              top: 100
+              width: editor.getWidth()
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lines: editor.linesForScreenRows(10, 14)
+          gutterTiles:
+            0:
+              startRow: 0
+              top: 0
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lineNumbers: editor.lineNumbersForScreenRows(0, 4)
+            5:
+              startRow: 5
+              top: 50
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lineNumbers: editor.lineNumbersForScreenRows(5, 9)
+            10:
+              startRow: 10
+              top: 100
+              height: 5 * 10
+              lineHeightInPixels: 10
+              lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
     describe "when the width is changed", ->
-      it "updates the tiles with the new width", ->
+      it "updates the line tiles with the new width", ->
         editor.setWidth(700)
         expect(presenter.lineTiles).toHaveValues
           0:
@@ -61,71 +84,126 @@ describe "DisplayStateManager", ->
             width: 700
 
     describe "when the height is changed", ->
-      it "updates the rendered tiles to reflect the changed", ->
-        editor.setHeight(150)
-        expect(presenter.lineTiles).toHaveValues
-          0:
-            startRow: 0
-            top: 0
-          5:
-            startRow: 5
-            top: 50
-          10:
-            startRow: 10
-            top: 100
-          15:
-            startRow: 15
-            top: 150
+      it "updates the rendered tiles to reflect the change", ->
+        editor.setHeight(160)
+        expect(presenter).toHaveValues
+          lineTiles:
+            0:
+              startRow: 0
+              top: 0
+            5:
+              startRow: 5
+              top: 50
+            10:
+              startRow: 10
+              top: 100
+            15:
+              startRow: 15
+              top: 150
+          gutterTiles:
+            0:
+              startRow: 0
+              top: 0
+            5:
+              startRow: 5
+              top: 50
+            10:
+              startRow: 10
+              top: 100
+            15:
+              startRow: 15
+              top: 150
 
         editor.setHeight(70)
-        expect(presenter.lineTiles).toHaveValues
-          0:
-            startRow: 0
-            top: 0
-          5:
-            startRow: 5
-            top: 50
+        expect(presenter).toHaveValues
+          lineTiles:
+            0:
+              startRow: 0
+              top: 0
+            5:
+              startRow: 5
+              top: 50
+          gutterTiles:
+            0:
+              startRow: 0
+              top: 0
+            5:
+              startRow: 5
+              top: 50
 
     describe "when lineHeightInPixels changes", ->
       it "updates the rendered tiles to reflect the change", ->
         editor.setScrollTop(10)
         editor.setLineHeightInPixels(7)
 
-        expect(presenter.lineTiles).toHaveValues
-          0:
-            startRow: 0
-            top: 0 - 10
-            height: 5 * 7
-            lineHeightInPixels: 7
-          5:
-            startRow: 5
-            top: 7 * 5 - 10
-            height: 5 * 7
-            lineHeightInPixels: 7
-          10:
-            startRow: 10
-            top: 7 * 10 - 10
-            height: 5 * 7
-            lineHeightInPixels: 7
-          15:
-            startRow: 15
-            top: 7 * 15 - 10
-            height: 5 * 7
-            lineHeightInPixels: 7
+        expect(presenter).toHaveValues
+          lineTiles:
+            0:
+              startRow: 0
+              top: 0 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            5:
+              startRow: 5
+              top: 7 * 5 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            10:
+              startRow: 10
+              top: 7 * 10 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            15:
+              startRow: 15
+              top: 7 * 15 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+          gutterTiles:
+            0:
+              startRow: 0
+              top: 0 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            5:
+              startRow: 5
+              top: 7 * 5 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            10:
+              startRow: 10
+              top: 7 * 10 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
+            15:
+              startRow: 15
+              top: 7 * 15 - 10
+              height: 5 * 7
+              lineHeightInPixels: 7
 
     describe "when scrollTop changes", ->
       it "updates the rendered tiles to reflect the change", ->
         editor.setScrollTop(20)
-        expect(presenter.lineTiles).toHaveValues
-          0:
-            top: -20
-            lines: editor.linesForScreenRows(0, 4)
-          5:
-            top: 30
-            lines: editor.linesForScreenRows(5, 9)
-          10:
-            top: 80
-            lines: editor.linesForScreenRows(10, 14)
+        expect(presenter).toHaveValues
+          lineTiles:
+            0:
+              top: -20
+              lines: editor.linesForScreenRows(0, 4)
+            5:
+              top: 30
+              lines: editor.linesForScreenRows(5, 9)
+            10:
+              top: 80
+              lines: editor.linesForScreenRows(10, 14)
+          gutterTiles:
+            0:
+              top: -20
+              lineNumbers: editor.lineNumbersForScreenRows(0, 4)
+            5:
+              top: 30
+              lineNumbers: editor.lineNumbersForScreenRows(5, 9)
+            10:
+              top: 80
+              lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
         editor.setScrollTop(70)
         expect(presenter.lineTiles).toHaveValues
@@ -268,32 +346,6 @@ describe "DisplayStateManager", ->
           10:
             lineDecorations:
               10: null
-
-  describe "gutter tiles", ->
-    describe "initial state", ->
-      it "renders gutter tiles that overlap the visible row range", ->
-        expect(presenter.gutterTiles).toHaveValues
-          0:
-            startRow: 0
-            top: 0
-            height: 5 * 10
-            lineHeightInPixels: 10
-            maxLineNumberDigits: 2
-            lineNumbers: editor.lineNumbersForScreenRows(0, 4)
-          5:
-            startRow: 5
-            top: 50
-            height: 5 * 10
-            lineHeightInPixels: 10
-            maxLineNumberDigits: 2
-            lineNumbers: editor.lineNumbersForScreenRows(5, 9)
-          10:
-            startRow: 10
-            top: 100
-            height: 5 * 10
-            lineHeightInPixels: 10
-            maxLineNumberDigits: 2
-            lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
 ToHaveValuesMatcher = (expected) ->
   hasAllValues = true
