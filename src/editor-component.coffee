@@ -186,6 +186,7 @@ EditorComponent = React.createClass
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
     @unsubscribe()
+    window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
 
