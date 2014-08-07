@@ -27,7 +27,7 @@ class AtomWindow
 
     global.atomApplication.addWindow(this)
 
-    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
+    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath, 'auto-hide-menu-bar': true
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
