@@ -75,15 +75,15 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   updateTiles: ->
-    {lineTilePresenters} = @props
+    {contentPresenter} = @props
     domNode = @getDOMNode()
 
     for tileStartRow, tileComponent of @tileComponentsByStartRow
-      unless lineTilePresenters[tileStartRow]?
+      unless contentPresenter.tiles[tileStartRow]?
         domNode.removeChild(tileComponent.domNode)
         delete @tileComponentsByStartRow[tileStartRow]
 
-    for tileStartRow, tilePresenter of lineTilePresenters
+    for tileStartRow, tilePresenter of contentPresenter.tiles
       if tileComponent = @tileComponentsByStartRow[tileStartRow]
         tileComponent = @tileComponentsByStartRow[tileStartRow]
         tileComponent.update()

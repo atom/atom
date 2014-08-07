@@ -51,14 +51,14 @@ EditorComponent = React.createClass
   render: ->
     {focused, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    contentPresenter = @presenter.content
+    gutterPresenter = @presenter.gutter
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
     style = {}
 
     if @performedInitialMeasurement
-      lineTilePresenters = @presenter.lineTiles
-
       renderedRowRange = @getRenderedRowRange()
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
@@ -94,7 +94,8 @@ EditorComponent = React.createClass
     div {className, style, tabIndex: -1},
       if @shouldRenderGutter()
         GutterComponent {
-          ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
+          ref: 'gutter', gutterPresenter
+          onMouseDown: @onGutterMouseDown, lineDecorations,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
           @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
@@ -109,7 +110,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         LinesComponent {
-          ref: 'lines', lineTilePresenters,
+          ref: 'lines', contentPresenter,
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
