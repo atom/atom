@@ -8,7 +8,7 @@ describe "DisplayStateManager", ->
 
   beforeEach ->
     @addMatchers(toHaveValues: ToHaveValuesMatcher)
-    spyOn(EditorPresenter::, 'getLineTileSize').andReturn 5
+    spyOn(EditorPresenter::, 'getContentTileSize').andReturn 5
     spyOn(EditorPresenter::, 'getGutterTileSize').andReturn 5
 
     buffer = new TextBuffer(filePath: atom.project.resolve('sample.js'))
@@ -30,52 +30,54 @@ describe "DisplayStateManager", ->
     describe "initial state", ->
       it "renders tiles that overlap the visible row range", ->
         expect(presenter).toHaveValues
-          lineTiles:
-            0:
-              startRow: 0
-              top: 0
-              width: editor.getWidth()
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lines: editor.linesForScreenRows(0, 4)
-            5:
-              startRow: 5
-              top: 50
-              width: editor.getWidth()
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lines: editor.linesForScreenRows(5, 9)
-            10:
-              startRow: 10
-              top: 100
-              width: editor.getWidth()
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lines: editor.linesForScreenRows(10, 14)
-          gutterTiles:
-            0:
-              startRow: 0
-              top: 0
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lineNumbers: editor.lineNumbersForScreenRows(0, 4)
-            5:
-              startRow: 5
-              top: 50
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lineNumbers: editor.lineNumbersForScreenRows(5, 9)
-            10:
-              startRow: 10
-              top: 100
-              height: 5 * 10
-              lineHeightInPixels: 10
-              lineNumbers: editor.lineNumbersForScreenRows(10, 14)
+          content:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+                width: editor.getWidth()
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lines: editor.linesForScreenRows(0, 4)
+              5:
+                startRow: 5
+                top: 50
+                width: editor.getWidth()
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lines: editor.linesForScreenRows(5, 9)
+              10:
+                startRow: 10
+                top: 100
+                width: editor.getWidth()
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lines: editor.linesForScreenRows(10, 14)
+          gutter:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lineNumbers: editor.lineNumbersForScreenRows(0, 4)
+              5:
+                startRow: 5
+                top: 50
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lineNumbers: editor.lineNumbersForScreenRows(5, 9)
+              10:
+                startRow: 10
+                top: 100
+                height: 5 * 10
+                lineHeightInPixels: 10
+                lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
     describe "when the width is changed", ->
       it "updates the line tiles with the new width", ->
         editor.setWidth(700)
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             width: 700
           5:
@@ -87,49 +89,53 @@ describe "DisplayStateManager", ->
       it "updates the rendered tiles to reflect the change", ->
         editor.setHeight(160)
         expect(presenter).toHaveValues
-          lineTiles:
-            0:
-              startRow: 0
-              top: 0
-            5:
-              startRow: 5
-              top: 50
-            10:
-              startRow: 10
-              top: 100
-            15:
-              startRow: 15
-              top: 150
-          gutterTiles:
-            0:
-              startRow: 0
-              top: 0
-            5:
-              startRow: 5
-              top: 50
-            10:
-              startRow: 10
-              top: 100
-            15:
-              startRow: 15
-              top: 150
+          content:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+              5:
+                startRow: 5
+                top: 50
+              10:
+                startRow: 10
+                top: 100
+              15:
+                startRow: 15
+                top: 150
+          gutter:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+              5:
+                startRow: 5
+                top: 50
+              10:
+                startRow: 10
+                top: 100
+              15:
+                startRow: 15
+                top: 150
 
         editor.setHeight(70)
         expect(presenter).toHaveValues
-          lineTiles:
-            0:
-              startRow: 0
-              top: 0
-            5:
-              startRow: 5
-              top: 50
-          gutterTiles:
-            0:
-              startRow: 0
-              top: 0
-            5:
-              startRow: 5
-              top: 50
+          content:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+              5:
+                startRow: 5
+                top: 50
+          gutter:
+            tiles:
+              0:
+                startRow: 0
+                top: 0
+              5:
+                startRow: 5
+                top: 50
 
     describe "when lineHeightInPixels changes", ->
       it "updates the rendered tiles to reflect the change", ->
@@ -137,54 +143,56 @@ describe "DisplayStateManager", ->
         editor.setLineHeightInPixels(7)
 
         expect(presenter).toHaveValues
-          lineTiles:
-            0:
-              startRow: 0
-              top: 0 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            5:
-              startRow: 5
-              top: 7 * 5 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            10:
-              startRow: 10
-              top: 7 * 10 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            15:
-              startRow: 15
-              top: 7 * 15 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-          gutterTiles:
-            0:
-              startRow: 0
-              top: 0 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            5:
-              startRow: 5
-              top: 7 * 5 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            10:
-              startRow: 10
-              top: 7 * 10 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
-            15:
-              startRow: 15
-              top: 7 * 15 - 10
-              height: 5 * 7
-              lineHeightInPixels: 7
+          content:
+            tiles:
+              0:
+                startRow: 0
+                top: 0 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              5:
+                startRow: 5
+                top: 7 * 5 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              10:
+                startRow: 10
+                top: 7 * 10 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              15:
+                startRow: 15
+                top: 7 * 15 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+          gutter:
+            tiles:
+              0:
+                startRow: 0
+                top: 0 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              5:
+                startRow: 5
+                top: 7 * 5 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              10:
+                startRow: 10
+                top: 7 * 10 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
+              15:
+                startRow: 15
+                top: 7 * 15 - 10
+                height: 5 * 7
+                lineHeightInPixels: 7
 
     describe "when scrollTop changes", ->
       it "updates the rendered tiles to reflect the change", ->
         editor.setScrollTop(20)
         expect(presenter).toHaveValues
-          lineTiles:
+          content:tiles:
             0:
               top: -20
               lines: editor.linesForScreenRows(0, 4)
@@ -194,7 +202,7 @@ describe "DisplayStateManager", ->
             10:
               top: 80
               lines: editor.linesForScreenRows(10, 14)
-          gutterTiles:
+          gutter:tiles:
             0:
               top: -20
               lineNumbers: editor.lineNumbersForScreenRows(0, 4)
@@ -206,7 +214,7 @@ describe "DisplayStateManager", ->
               lineNumbers: editor.lineNumbersForScreenRows(10, 14)
 
         editor.setScrollTop(70)
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           5:
             top: -20
             lines: editor.linesForScreenRows(5, 9)
@@ -219,7 +227,7 @@ describe "DisplayStateManager", ->
 
     describe "when scrollLeft changes", ->
       it "updates the rendered tiles to reflect the change", ->
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             left: 0
           5
@@ -228,7 +236,7 @@ describe "DisplayStateManager", ->
             left: 0
 
         editor.setScrollLeft(30)
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             left: -30
           5:
@@ -239,7 +247,7 @@ describe "DisplayStateManager", ->
   describe "lines", ->
     describe "initial state", ->
       it "breaks lines into tiles", ->
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             startRow: 0
             lines: editor.linesForScreenRows(0, 4)
@@ -253,7 +261,7 @@ describe "DisplayStateManager", ->
     describe "when the screen lines change", ->
       it "updates the lines in the tiles to reflect the change", ->
         buffer.setTextInRange([[3, 5], [7, 0]], "a\nb\nc\nd")
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             startRow: 0
             lines: editor.linesForScreenRows(0, 4)
@@ -278,7 +286,7 @@ describe "DisplayStateManager", ->
 
         decorationsById = {}
         decorationsById[decoration.id] = decoration.getParams()
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             lineDecorations:
               3: decorationsById
@@ -293,7 +301,7 @@ describe "DisplayStateManager", ->
 
         decorationsById = {}
         decorationsById[decoration.id] = decoration.getParams()
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             lineDecorations:
               3: decorationsById
@@ -303,7 +311,7 @@ describe "DisplayStateManager", ->
               5: decorationsById
 
         marker.setBufferRange([[8, 4], [10, 6]])
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           0:
             lineDecorations:
               3: null
@@ -318,7 +326,7 @@ describe "DisplayStateManager", ->
               10: decorationsById
 
         buffer.insert([8, 5], 'invalidate marker')
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           5:
             lineDecorations:
               8: null
@@ -328,7 +336,7 @@ describe "DisplayStateManager", ->
               10: null
 
         buffer.undo()
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           5:
             lineDecorations:
               8: decorationsById
@@ -338,7 +346,7 @@ describe "DisplayStateManager", ->
               10: decorationsById
 
         marker.destroy()
-        expect(presenter.lineTiles).toHaveValues
+        expect(presenter.content.tiles).toHaveValues
           5:
             lineDecorations:
               8: null
@@ -351,7 +359,7 @@ describe "DisplayStateManager", ->
     describe "when the screen lines change", ->
       it "updates the line numbers to reflect the change", ->
         editor.createFold(4, 7)
-        expect(presenter.gutterTiles).toHaveValues
+        expect(presenter.gutter.tiles).toHaveValues
           0:
             lineNumbers: editor.lineNumbersForScreenRows(0, 4)
           5:
@@ -361,12 +369,12 @@ describe "DisplayStateManager", ->
 
       it "updates the maxLineNumberDigits if necessary", ->
         buffer.setText('')
-        expect(presenter.gutterTiles).toHaveValues
+        expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 1
 
         buffer.setText([0..10].join('\n'))
-        expect(presenter.gutterTiles).toHaveValues
+        expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 2
           5:
@@ -375,7 +383,7 @@ describe "DisplayStateManager", ->
             maxLineNumberDigits: 2
 
         buffer.delete([[8, 0], [Infinity, 0]])
-        expect(presenter.gutterTiles).toHaveValues
+        expect(presenter.gutter.tiles).toHaveValues
           0:
             maxLineNumberDigits: 1
           5:

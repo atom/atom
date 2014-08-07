@@ -7,8 +7,8 @@ class EditorPresenter
   Subscriber.includeInto(this)
 
   constructor: (@editor) ->
-    @lineTiles = {}
-    @gutterTiles = {}
+    @content = {tiles: {}}
+    @gutter = {tiles: {}}
     @updateTiles()
 
     @subscribe @editor.$width, @onWidthChanged
@@ -21,7 +21,7 @@ class EditorPresenter
     @subscribe @editor, 'decoration-removed', @onDecorationRemoved
     @subscribe @editor, 'decoration-changed', @onDecorationChanged
 
-  getLineTileSize: -> 5
+  getContentTileSize: -> 5
 
   getGutterTileSize: -> 20
 
@@ -31,16 +31,16 @@ class EditorPresenter
     endRow = Math.min(@editor.getLineCount(), startRow + heightInLines)
     [startRow, endRow]
 
-  lineTileStartRowForRow: (startRow) ->
-    startRow - (startRow % @getLineTileSize())
+  contentTileStartRowForRow: (startRow) ->
+    startRow - (startRow % @getContentTileSize())
 
   gutterTileStartRowForRow: (startRow) ->
     startRow - (startRow % @getGutterTileSize())
 
-  getLineTileRowRange: ->
+  getContentTileRowRange: ->
     [startRow, endRow] = @getVisibleRowRange()
-    startRow = @lineTileStartRowForRow(startRow)
-    endRow = @lineTileStartRowForRow(endRow) + @getLineTileSize()
+    startRow = @contentTileStartRowForRow(startRow)
+    endRow = @contentTileStartRowForRow(endRow) + @getContentTileSize()
     [startRow, endRow]
 
   getGutterTileRowRange: ->
@@ -50,35 +50,35 @@ class EditorPresenter
     [startRow, endRow]
 
   updateTiles: (fn) ->
-    @updateLineTiles(fn)
+    @updateContentTiles(fn)
     @updateGutterTiles(fn)
     @emit 'did-change'
 
-  updateLineTiles: (fn) ->
-    [startRow, endRow] = @getLineTileRowRange()
+  updateContentTiles: (fn) ->
+    [startRow, endRow] = @getContentTileRowRange()
 
-    for tileStartRow of @lineTiles
-      delete @lineTiles[tileStartRow] unless startRow <= tileStartRow < endRow
+    for tileStartRow of @content.tiles
+      delete @content.tiles[tileStartRow] unless startRow <= tileStartRow < endRow
 
-    for tileStartRow in [startRow...endRow] by @getLineTileSize()
-      if existingTile = @lineTiles[tileStartRow]
+    for tileStartRow in [startRow...endRow] by @getContentTileSize()
+      if existingTile = @content.tiles[tileStartRow]
         fn?(existingTile)
       else
-        tileEndRow = tileStartRow + @getLineTileSize()
-        @lineTiles[tileStartRow] = new LineTilePresenter(@editor, tileStartRow, tileEndRow)
+        tileEndRow = tileStartRow + @getContentTileSize()
+        @content.tiles[tileStartRow] = new ContentTilePresenter(@editor, tileStartRow, tileEndRow)
 
   updateGutterTiles: (fn) ->
     [startRow, endRow] = @getGutterTileRowRange()
 
-    for tileStartRow of @gutterTiles
-      delete @gutterTiles[tileStartRow] unless startRow <= tileStartRow < endRow
+    for tileStartRow of @gutter.tiles
+      delete @gutter.tiles[tileStartRow] unless startRow <= tileStartRow < endRow
 
     for tileStartRow in [startRow...endRow] by @getGutterTileSize()
-      if existingTile = @gutterTiles[tileStartRow]
+      if existingTile = @gutter.tiles[tileStartRow]
         fn?(existingTile)
       else
         tileEndRow = tileStartRow + @getGutterTileSize()
-        @gutterTiles[tileStartRow] = new GutterTilePresenter(@editor, tileStartRow, tileEndRow)
+        @gutter.tiles[tileStartRow] = new GutterTilePresenter(@editor, tileStartRow, tileEndRow)
 
   onWidthChanged: =>
     @updateTiles (tile) -> tile.updateWidth()
@@ -107,7 +107,7 @@ class EditorPresenter
   onDecorationChanged: (marker, decoration, change) =>
     @updateTiles (tile) -> tile.onDecorationChanged(decoration, change)
 
-class LineTilePresenter
+class ContentTilePresenter
   constructor: (@editor, @startRow, @endRow) ->
     @lineDecorations = {}
     @updateWidth()
