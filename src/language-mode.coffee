@@ -318,3 +318,7 @@ class LanguageMode
 
   foldEndRegexForScopes: (scopes) ->
     @getRegexForProperty(scopes, 'editor.foldEndPattern')
+
+  requireHardTabs: ->
+    scopes = [@editor.getGrammar().scopeName]
+    atom.syntax.getProperty(scopes, 'editor.requireHardTabs')

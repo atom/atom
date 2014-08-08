@@ -17,6 +17,19 @@ describe "Editor", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
+  describe "when a grammar requires hard tabs", ->
+    it "always inserts hard tabs when indent is called", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('package-hard-tab-grammar')
+
+      runs ->
+        editor.setText("1\n  <- these are spaces\n")
+        editor.getCursor().setBufferPosition([2, 0])
+        editor.setGrammar(atom.syntax.selectGrammar('.hard-tabs'))
+        editor.indent()
+        text = editor.getBuffer().getTextInRange([[2, 0], [2, Infinity]])
+        expect(text).toBe "\t"
+
   describe "when the editor is deserialized", ->
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])

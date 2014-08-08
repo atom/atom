@@ -1,0 +1,10 @@
+'fileTypes': ['hard-tabs']
+'name': 'Tabs like diamonds'
+'scopeName': 'source.hard-tabs'
+
+'patterns': [
+  {
+    'name': 'keyword.word'
+    'match': '\\w+'
+  }
+]

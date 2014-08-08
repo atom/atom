@@ -1,0 +1,3 @@
+'.source.hard-tabs':
+  'editor':
+    'requireHardTabs': true
