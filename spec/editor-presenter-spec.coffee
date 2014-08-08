@@ -89,6 +89,35 @@ describe "DisplayStateManager", ->
             dummy: true
             maxLineNumberDigits: 2
 
+      it "assigns the backgroundColor on the content and gutter tiles, favoring the gutter's background color if it's assigned", ->
+        editor.setBackgroundColor('#ff0')
+        presenter = new EditorPresenter(editor)
+        expect(presenter).toHaveValues
+          content:
+            tiles:
+              0: backgroundColor: '#ff0'
+              5: backgroundColor: '#ff0'
+              10: backgroundColor: '#ff0'
+          gutter:
+            tiles:
+              0: backgroundColor: '#ff0'
+              5: backgroundColor: '#ff0'
+              10: backgroundColor: '#ff0'
+
+        editor.setGutterBackgroundColor('#a00')
+        presenter = new EditorPresenter(editor)
+        expect(presenter).toHaveValues
+          content:
+            tiles:
+              0: backgroundColor: '#ff0'
+              5: backgroundColor: '#ff0'
+              10: backgroundColor: '#ff0'
+          gutter:
+            tiles:
+              0: backgroundColor: '#a00'
+              5: backgroundColor: '#a00'
+              10: backgroundColor: '#a00'
+
     describe "when the width is changed", ->
       it "updates the line tiles with the new width", ->
         editor.setWidth(700)
@@ -258,6 +287,34 @@ describe "DisplayStateManager", ->
             left: -30
           10:
             left: -30
+
+    describe "when the backgroundColor or gutterBackgroundColor change", ->
+      it "updates the backgroundColor of the tiles", ->
+        editor.setBackgroundColor('#abe')
+        expect(presenter).toHaveValues
+          content:
+            tiles:
+              0: backgroundColor: '#abe'
+              5: backgroundColor: '#abe'
+              10: backgroundColor: '#abe'
+          gutter:
+            tiles:
+              0: backgroundColor: '#abe'
+              5: backgroundColor: '#abe'
+              10: backgroundColor: '#abe'
+
+        editor.setGutterBackgroundColor('#dad')
+        expect(presenter).toHaveValues
+          content:
+            tiles:
+              0: backgroundColor: '#abe'
+              5: backgroundColor: '#abe'
+              10: backgroundColor: '#abe'
+          gutter:
+            tiles:
+              0: backgroundColor: '#dad'
+              5: backgroundColor: '#dad'
+              10: backgroundColor: '#dad'
 
   describe "lines", ->
     describe "initial state", ->

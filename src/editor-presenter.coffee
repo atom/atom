@@ -14,11 +14,13 @@ class EditorPresenter
     @scrollTop = @editor.getScrollTop()
     @scrollLeft = @editor.getScrollLeft()
 
-    @subscribe @editor.$width, @onWidthChanged
-    @subscribe @editor.$height, @onHeightChanged
-    @subscribe @editor.$lineHeightInPixels, @onLineHeightInPixelsChanged
-    @subscribe @editor.$scrollTop, @onScrollTopChanged
-    @subscribe @editor.$scrollLeft, @onScrollLeftChanged
+    @subscribe @editor.$width.changes, @onWidthChanged
+    @subscribe @editor.$height.changes, @onHeightChanged
+    @subscribe @editor.$lineHeightInPixels.changes, @onLineHeightInPixelsChanged
+    @subscribe @editor.$scrollTop.changes, @onScrollTopChanged
+    @subscribe @editor.$scrollLeft.changes, @onScrollLeftChanged
+    @subscribe @editor.$backgroundColor.changes, @onBackgroundColorChanged
+    @subscribe @editor.$gutterBackgroundColor.changes, @onBackgroundColorChanged
     @subscribe @editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe @editor, 'decoration-added', @onDecorationAdded
     @subscribe @editor, 'decoration-removed', @onDecorationRemoved
@@ -105,6 +107,9 @@ class EditorPresenter
     @updateDummyGutterTile() if change.bufferDelta isnt 0
     @updateTiles (tile) -> tile.onScreenLinesChanged(change)
 
+  onBackgroundColorChanged: =>
+    @updateTiles (tile) -> tile.updateBackgroundColor()
+
   onDecorationAdded: (marker, decoration) =>
     @updateTiles (tile) -> tile.onDecorationAdded(decoration)
 
@@ -121,6 +126,7 @@ class ContentTilePresenter
     @updateLineHeightInPixels()
     @updateScrollTop()
     @updateScrollLeft()
+    @updateBackgroundColor()
     @updateLines()
     @populateDecorations()
 
@@ -140,6 +146,9 @@ class ContentTilePresenter
 
   updateScrollLeft: ->
     @left = 0 - @editor.getScrollLeft()
+
+  updateBackgroundColor: ->
+    @backgroundColor = @editor.getBackgroundColor()
 
   updateTop: ->
     @top = @startRow * @editor.getLineHeightInPixels() - @editor.getScrollTop()
@@ -224,6 +233,7 @@ class GutterTilePresenter
     @populateDecorations()
     @updateLineHeightInPixels()
     @updateScrollTop()
+    @updateBackgroundColor()
 
   populateDecorations: ->
     for markerId, decorations of @editor.decorationsForScreenRowRange(@startRow, @endRow)
@@ -240,6 +250,9 @@ class GutterTilePresenter
 
   updateScrollTop: ->
     @updateTop()
+
+  updateBackgroundColor: ->
+    @backgroundColor = @editor.getGutterBackgroundColor() ? @editor.getBackgroundColor()
 
   updateTop: ->
     @top = @startRow * @editor.getLineHeightInPixels() - @editor.getScrollTop()

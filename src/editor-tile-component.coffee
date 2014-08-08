@@ -11,6 +11,7 @@ class EditorTileComponent
   width: null
   lineHeightInPixels: null
   lineWidths: null
+  backgroundColor: null
 
   constructor: (@presenter) ->
     @lineNodesByLineId = {}
@@ -36,6 +37,7 @@ class EditorTileComponent
     @updateTransform()
     @updateWidth()
     @updateHeight()
+    @updateBackgroundColor()
     @updateLines()
 
     # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
@@ -59,6 +61,12 @@ class EditorTileComponent
     unless height is @height
       @domNode.style.height = height + 'px'
       @height = height
+
+  updateBackgroundColor: ->
+    {backgroundColor} = @presenter
+    unless backgroundColor is @backgroundColor
+      @domNode.style.backgroundColor = backgroundColor
+      @backgroundColor = backgroundColor
 
   buildLines: ->
     {startRow, lines, lineDecorations} = @presenter

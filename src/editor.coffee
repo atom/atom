@@ -152,6 +152,10 @@ class Editor extends Model
   updateBatchDepth: 0
   selectionFlashDuration: 500
 
+  @properties
+    backgroundColor: null
+    gutterBackgroundColor: null
+
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
@@ -2027,6 +2031,12 @@ class Editor extends Model
 
   getScrollHeight: -> @displayBuffer.getScrollHeight()
   getScrollWidth: (scrollWidth) -> @displayBuffer.getScrollWidth(scrollWidth)
+
+  setBackgroundColor: (@backgroundColor) -> @backgroundColor
+  getBackgroundColor: -> @backgroundColor
+
+  setGutterBackgroundColor: (@gutterBackgroundColor) -> @gutterBackgroundColor
+  getGutterBackgroundColor: -> @gutterBackgroundColor
 
   getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
 

@@ -843,17 +843,20 @@ EditorComponent = React.createClass
       @remeasureCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
-    {parentView} = @props
+    {editor, parentView} = @props
     {showLineNumbers} = @state
     {backgroundColor} = getComputedStyle(parentView.element)
 
     if backgroundColor isnt @backgroundColor
+      editor.setBackgroundColor(backgroundColor)
       @backgroundColor = backgroundColor
       @requestUpdate() unless suppressUpdate
 
     if @shouldRenderGutter()
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
+      gutterBackgroundColor = null if gutterBackgroundColor is 'rgba(0, 0, 0, 0)'
       if gutterBackgroundColor isnt @gutterBackgroundColor
+        editor.setGutterBackgroundColor(backgroundColor)
         @gutterBackgroundColor = gutterBackgroundColor
         @requestUpdate() unless suppressUpdate
 

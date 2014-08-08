@@ -27,6 +27,7 @@ class GutterTileComponent
     return if @presenter.dummy
     @updateTransform()
     @updateHeight()
+    @updateBackgroundColor()
     @updateLineNumbers()
 
   updateTransform: ->
@@ -40,6 +41,12 @@ class GutterTileComponent
     unless height is @height
       @domNode.style.height = height + 'px'
       @height = height
+
+  updateBackgroundColor: ->
+    {backgroundColor} = @presenter
+    unless backgroundColor is @backgroundColor
+      @domNode.style.backgroundColor = backgroundColor
+      @backgroundColor = backgroundColor
 
   updateLineNumbers: ->
     {lineNumbers, lineNumberDecorations} = @presenter
