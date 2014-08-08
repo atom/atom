@@ -24,6 +24,7 @@ GutterComponent = React.createClass
 
   componentDidMount: ->
     @appendDummyTile()
+    @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
 
   componentDidUpdate: (oldProps) ->
     if @props.performedInitialMeasurement
@@ -36,12 +37,16 @@ GutterComponent = React.createClass
 
     for tileStartRow, tileComponent of @tileComponentsByStartRow
       unless gutterPresenter.tiles[tileStartRow]?
-        domNode.removeChild(tileComponent.domNode)
-        delete @tileComponentsByStartRow[tileStartRow]
+        if tileComponent.domNode is @preservedTileNode
+          tileComponent.preserve()
+        else
+          domNode.removeChild(tileComponent.domNode)
+          delete @tileComponentsByStartRow[tileStartRow]
 
     for tileStartRow, tilePresenter of gutterPresenter.tiles
       if tileComponent = @tileComponentsByStartRow[tileStartRow]
         tileComponent = @tileComponentsByStartRow[tileStartRow]
+        tileComponent.revive(tilePresenter) if tileComponent.preserved
         tileComponent.update()
       else
         tileComponent = new GutterTileComponent(tilePresenter)
@@ -77,3 +82,8 @@ GutterComponent = React.createClass
         editor.unfoldBufferRow(bufferRow)
       else
         editor.foldBufferRow(bufferRow)
+
+  onMouseWheel: (event) ->
+    node = event.target
+    node = node.parentNode until not node? or node.dataset.tile
+    @preservedTileNode = node

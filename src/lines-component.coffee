@@ -18,6 +18,7 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   tileSize: 5
+  preservedTileNode: null
 
   render: ->
     div className: 'lines'
@@ -25,6 +26,9 @@ LinesComponent = React.createClass
   componentWillMount: ->
     @measuredLines = new WeakSet
     @tileComponentsByStartRow = {}
+
+  componentDidMount: ->
+    @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
 
   shouldComponentUpdate: (newProps) ->
     return true
@@ -80,12 +84,16 @@ LinesComponent = React.createClass
 
     for tileStartRow, tileComponent of @tileComponentsByStartRow
       unless contentPresenter.tiles[tileStartRow]?
-        domNode.removeChild(tileComponent.domNode)
-        delete @tileComponentsByStartRow[tileStartRow]
+        if tileComponent.domNode is @preservedTileNode
+          tileComponent.preserve()
+        else
+          domNode.removeChild(tileComponent.domNode)
+          delete @tileComponentsByStartRow[tileStartRow]
 
     for tileStartRow, tilePresenter of contentPresenter.tiles
       if tileComponent = @tileComponentsByStartRow[tileStartRow]
         tileComponent = @tileComponentsByStartRow[tileStartRow]
+        tileComponent.revive(tilePresenter) if tileComponent.preserved
         tileComponent.update()
       else
         tileComponent = new EditorTileComponent(tilePresenter)
@@ -153,3 +161,8 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
+
+  onMouseWheel: (event) ->
+    node = event.target
+    node = node.parentNode until node.dataset.tile
+    @preservedTileNode = node

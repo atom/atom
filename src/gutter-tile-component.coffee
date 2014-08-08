@@ -3,12 +3,15 @@ WrapperDiv = document.createElement('div')
 
 module.exports =
 class GutterTileComponent
+  preserved: false
+
   constructor: (@presenter) ->
     @lineNumberNodesById = {}
     @screenRowsByLineNumberId = {}
     @lineNumberDecorationsByLineNumberId = {}
 
     @domNode = document.createElement('div')
+    @domNode.dataset.tile = true
     @domNode.style.overflow = 'hidden'
     if @presenter.dummy
       @domNode.style.visibility = 'hidden'
@@ -29,6 +32,15 @@ class GutterTileComponent
     @updateHeight()
     @updateBackgroundColor()
     @updateLineNumbers()
+
+  preserve: ->
+    return if @preserved
+    @domNode.style.visibility = 'hidden'
+    @preserved = true
+
+  revive: (@presenter) ->
+    @domNode.style.visibility = ''
+    @visible = true
 
   updateTransform: ->
     {top} = @presenter

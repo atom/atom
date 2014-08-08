@@ -12,6 +12,7 @@ class EditorTileComponent
   lineHeightInPixels: null
   lineWidths: null
   backgroundColor: null
+  preserved: false
 
   constructor: (@presenter) ->
     @lineNodesByLineId = {}
@@ -22,6 +23,7 @@ class EditorTileComponent
     @cursorNodesById = {}
 
     @domNode = document.createElement('div')
+    @domNode.dataset.tile = true
     @domNode.style.position = 'absolute'
     @domNode.style.overflow = 'hidden'
 
@@ -42,6 +44,15 @@ class EditorTileComponent
 
     # @clearScreenRowCaches() if newProps.lineHeightInPixels isnt @props.lineHeightInPixels
     # @updateCursors()
+
+  preserve: ->
+    return if @preserved
+    @domNode.style.visibility = 'hidden'
+    @preserved = true
+
+  revive: (@presenter) ->
+    @domNode.style.visibility = ''
+    @visible = true
 
   updateTransform: ->
     {left, top} = @presenter
