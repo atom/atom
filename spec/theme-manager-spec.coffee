@@ -313,7 +313,7 @@ describe "ThemeManager", ->
 
   describe "when in safemode", ->
     beforeEach ->
-    themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath, safeMode: true})
+      themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath, safeMode: true})
 
     it "loads the defaults themes", ->
       waitsForPromise ->
