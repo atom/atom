@@ -130,7 +130,7 @@ module.exports = (grunt) ->
 
     atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir}
 
-    docsOutputDir: 'docs/output/api'
+    docsOutputDir: 'docs/api'
 
     coffee: coffeeConfig
 

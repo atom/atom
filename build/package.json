@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "biscotto": ">=2.1.1 <3.0",
+    "metadoc": "~0.0",
+    "grappa": "~0.0",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",

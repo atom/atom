@@ -3,6 +3,10 @@ path = require 'path'
 async = require 'async'
 fs = require 'fs-plus'
 request = require 'request'
+_ = require 'underscore-plus'
+
+metadoc = require 'metadoc'
+grappa = require 'grappa'
 
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
@@ -14,53 +18,24 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
-
     docsOutputDir = grunt.config.get('docsOutputDir')
+    downloadIncludes (error, includedModules) ->
+      metadata = metadoc.generateMetadata(['.'].concat(includedModules))
+      grappaJson = grappa.digest(metadata)
 
-    downloadIncludes (error, includePaths) ->
-      if error?
-        done(error)
-      else
-        rm(docsOutputDir)
-        args = [
-          commonArgs...
-          '--title', 'Atom API Documentation'
-          '-o', docsOutputDir
-          '-r', 'docs/README.md'
-          '--stability', '1'
-          'src/'
-          includePaths...
-        ]
-        grunt.util.spawn({cmd, args, opts}, done)
+      files = [{
+        filePath: path.join(docsOutputDir, 'metadata.json')
+        contents: JSON.stringify(metadata, null, '  ')
+      }, {
+        filePath: path.join(docsOutputDir, 'grappa.json')
+        contents: JSON.stringify(grappaJson, null, '  ')
+      }]
 
-  grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
-    done = @async()
-    downloadIncludes (error, includePaths) ->
-      if error?
-        done(error)
-      else
-        args = [
-          commonArgs...
-          '--noOutput'
-          'src/'
-          includePaths...
-        ]
-        grunt.util.spawn({cmd, args, opts}, done)
+      writeFile = ({filePath, contents}, callback) ->
+        fs.writeFile filePath, contents, (error) ->
+          callback()
 
-  grunt.registerTask 'missing-docs', 'Generate stats about the doc coverage', ->
-    done = @async()
-    downloadIncludes (error, includePaths) ->
-      if error?
-        done(error)
-      else
-        args = [
-          commonArgs...
-          '--noOutput'
-          '--missing'
-          'src/'
-          includePaths...
-        ]
-        grunt.util.spawn({cmd, args, opts}, done)
+      async.map files, writeFile, -> done()
 
   grunt.registerTask 'copy-docs', 'Copies over latest API docs to atom-docs', ->
     done = @async()
@@ -165,4 +140,8 @@ downloadIncludes = (callback) ->
     {repo: 'theorist',    file: 'package.json'}
   ]
 
-  async.map(includes, downloadFileFromRepo, callback)
+  async.map includes, downloadFileFromRepo, (error, allPaths) ->
+    includeDirectories = null
+    if allPaths?
+      includeDirectories = _.unique allPaths.map (dir) -> /^docs\/includes\/[a-z-]+/.exec(dir)[0]
+    callback(error, includeDirectories)
