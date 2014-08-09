@@ -1,4 +1,5 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
+TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
 describe "TokenizedBuffer", ->
@@ -11,6 +12,9 @@ describe "TokenizedBuffer", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
+
+  afterEach ->
+    tokenizedBuffer?.destroy()
 
   startTokenizing = (tokenizedBuffer) ->
     tokenizedBuffer.setVisible(true)
@@ -583,6 +587,20 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+
+  describe "when the editor.showInvisibles and editor.invisibles config values change", ->
+    beforeEach ->
+
+    it "updates the tokens with the appropriate invisible characters", ->
+      buffer = new TextBuffer(text: "  \t a line with tabs\tand \tspaces \t ")
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+      atom.config.set('editor.invisibles', space: 'S', tab: 'T')
+      atom.config.set('editor.showInvisibles', true)
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
 
   describe "leading and trailing whitespace", ->
     beforeEach ->

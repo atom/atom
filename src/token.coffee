@@ -142,8 +142,7 @@ class Token
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if invisibles.tab
-      value = if invisibles.tab then @value.replace(StartCharacterRegex, invisibles.tab) else @value
-      html = "<span class='#{classes}'>#{@escapeString(value)}</span>"
+      html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"
     else
       startIndex = 0
       endIndex = @value.length
@@ -156,7 +155,6 @@ class Token
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if invisibles.space
 
-        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
         leadingHtml = "<span class='#{classes}'>#{match[0]}</span>"
 
         startIndex = match[0].length
@@ -167,7 +165,6 @@ class Token
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
         classes += ' invisible-character' if invisibles.space
 
-        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
         trailingHtml = "<span class='#{classes}'>#{match[0]}</span>"
 
         endIndex = match.index

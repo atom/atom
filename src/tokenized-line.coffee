@@ -1,10 +1,14 @@
 _ = require 'underscore-plus'
 
+NonWhitespaceRegex = /\S/
+LeadingWhitespaceRegex = /^\s*/
+TrailingWhitespaceRegex = /\s*$/
+RepeatedSpaceRegex = /[ ]/g
 idCounter = 1
 
 module.exports =
 class TokenizedLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
@@ -12,6 +16,7 @@ class TokenizedLine
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
+    @substituteInvisibleCharacters() if @invisibles
 
   buildText: ->
     text = ""
@@ -133,8 +138,8 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespacePosition = @text.search(/\S/)
-    firstTrailingWhitespacePosition = @text.search(/\s*$/)
+    firstNonWhitespacePosition = @text.search(NonWhitespaceRegex)
+    firstTrailingWhitespacePosition = @text.search(TrailingWhitespaceRegex)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     position = 0
     for token, i in @tokens
@@ -142,6 +147,29 @@ class TokenizedLine
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
       token.hasTrailingWhitespace = @lineEnding? and (position + token.value.length > firstTrailingWhitespacePosition)
       position += token.value.length
+
+  substituteInvisibleCharacters: ->
+    invisibles = @invisibles
+    changedText = false
+
+    for token, i in @tokens
+      if token.isHardTab
+        if invisibles.tab
+          token.value = invisibles.tab + token.value.substring(invisibles.tab.length)
+          changedText = true
+
+      else
+        if invisibles.space
+          if token.hasLeadingWhitespace
+            token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
+              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            changedText = true
+          if token.hasTrailingWhitespace
+            token.value = token.value.replace TrailingWhitespaceRegex, (leadingWhitespace) ->
+              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            changedText = true
+
+    @text = @buildText() if changedText
 
   isComment: ->
     for token in @tokens
