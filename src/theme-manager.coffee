@@ -16,7 +16,7 @@ module.exports =
 class ThemeManager
   Emitter.includeInto(this)
 
-  constructor: ({@packageManager, @resourcePath, @configDirPath}) ->
+  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @lessCache = null
     @packageManager.registerPackageActivator(this, ['theme'])
 
@@ -46,6 +46,7 @@ class ThemeManager
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
+    return ['atom-dark-ui', 'atom-dark-syntax'] if @safeMode
     themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
     themeNames = themeNames.filter (themeName) ->

@@ -156,7 +156,7 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
-    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
+    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
