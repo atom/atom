@@ -37,11 +37,13 @@ class WindowEventHandler
       @reloadRequested = false
       confirmed
 
-    @subscribe $(window), 'blur unload', ->
+    @subscribe $(window), 'blur beforeunload', ->
       atom.storeDefaultWindowDimensions()
+      null
 
-    @subscribe $(window), 'unload', ->
+    @subscribe $(window), 'beforeunload', ->
       atom.storeWindowDimensions()
+      null
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 

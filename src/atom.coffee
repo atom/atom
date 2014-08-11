@@ -311,10 +311,10 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    $(window).on 'unload', =>
+    $(window).on 'beforeunload', =>
       $(document.body).css('visibility', 'hidden')
       @unloadEditorWindow()
-      false
+      null
 
     @displayWindow()
 
