@@ -138,15 +138,17 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespacePosition = @text.search(NonWhitespaceRegex)
-    firstTrailingWhitespacePosition = @text.search(TrailingWhitespaceRegex)
-    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
-    position = 0
-    for token, i in @tokens
-      token.hasLeadingWhitespace =  position < firstNonWhitespacePosition
+    firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
+    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+    index = 0
+    for token in @tokens
+      if token.hasLeadingWhitespace =  index < firstNonWhitespaceIndex
+        token.firstNonWhitespaceIndex = firstNonWhitespaceIndex - index
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
-      token.hasTrailingWhitespace = @lineEnding? and (position + token.value.length > firstTrailingWhitespacePosition)
-      position += token.value.length
+      if token.hasTrailingWhitespace = @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
+        token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
+      index += token.value.length
 
   substituteInvisibleCharacters: ->
     invisibles = @invisibles

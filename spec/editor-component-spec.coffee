@@ -221,10 +221,14 @@ describe "EditorComponent", ->
         atom.config.set("editor.showInvisibles", true)
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
-      it "displays spaces, tabs, and newlines as visible characters", ->
+      it "displays leading/trailing spaces, tabs, and newlines as visible characters", ->
         editor.setText " a line with tabs\tand spaces "
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
+
+        leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+        expect(leafNodes[0].classList.contains('invisible-character')).toBe true
+        expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe true
 
       it "displays newlines as their own token outside of the other tokens' scopes", ->
         editor.setText "var"
