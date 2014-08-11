@@ -47,6 +47,8 @@ class WindowEventHandler
 
     @subscribe $(window), 'blur', -> atom.storeDefaultWindowDimensions()
 
+    @subscribe $(window), 'unload', -> atom.removeEditorWindow()
+
     @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 
     @subscribeToCommand $(window), 'window:close', -> atom.close()

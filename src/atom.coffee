@@ -322,12 +322,17 @@ class Atom extends Model
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
     @saveSync()
-    @workspaceView.remove()
-    @workspaceView = null
-    @project.destroy()
-    @windowEventHandler?.unsubscribe()
-    @keymaps.destroy()
     @windowState = null
+
+  removeEditorWindow: ->
+    return if not @project and not @workspaceView
+
+    @workspaceView?.remove()
+    @workspaceView = null
+    @project?.destroy()
+    @project = null
+
+    @windowEventHandler?.unsubscribe()
 
   loadThemes: ->
     @themes.load()

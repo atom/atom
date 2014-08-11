@@ -113,6 +113,7 @@ describe "Window", ->
       expect(atom.state.project).toEqual projectState
       expect(atom.saveSync).toHaveBeenCalled()
 
+  describe ".removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->
       waitsForPromise ->
         atom.workspace.open("sample.js")
@@ -123,7 +124,7 @@ describe "Window", ->
         pane.splitRight(pane.copyActiveItem())
         expect(atom.workspaceView.find('.editor').length).toBe 2
 
-        atom.unloadEditorWindow()
+        atom.removeEditorWindow()
 
         expect(buffer.getSubscriptionCount()).toBe 0
 
