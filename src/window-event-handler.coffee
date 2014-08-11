@@ -38,10 +38,7 @@ class WindowEventHandler
 
       atom.storeDefaultWindowDimensions()
       atom.storeWindowDimensions()
-
-      if confirmed
-        $(document.body).css('visibility', 'hidden')
-        atom.unloadEditorWindow()
+      atom.unloadEditorWindow() if confirmed
 
       confirmed
 
