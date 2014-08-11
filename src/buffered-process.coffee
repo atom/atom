@@ -55,7 +55,10 @@ class BufferedProcess
             "\"#{arg.replace(/"/g, '\\"')}\""
       else
         cmdArgs = []
-      cmdArgs.unshift("\"#{command}\"")
+      if /\s/.test(command)
+        cmdArgs.unshift("\"#{command}\"")
+      else
+        cmdArgs.unshift(command)
       cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
