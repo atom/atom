@@ -601,6 +601,8 @@ describe "TokenizedBuffer", ->
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
+      # Also needs to work for copies
+      expect(tokenizedBuffer.lineForScreenRow(0).copy().text).toBe "SST Sa line with tabsTand T spacesSTS"
 
   describe "leading and trailing whitespace", ->
     beforeEach ->
@@ -667,6 +669,16 @@ describe "TokenizedBuffer", ->
       expect(segment2.tokens[6].value).toBe '  '
       expect(segment2.tokens[6].hasTrailingWhitespace).toBe true
       expect(segment2.tokens[6].firstTrailingWhitespaceIndex).toBe 0
+
+    it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
+      buffer.setText("  \t a line with tabs\tand \tspaces \t ")
+      atom.config.set('editor.invisibles', space: 'S', tab: 'T')
+      atom.config.set('editor.showInvisibles', true)
+      fullyTokenize(tokenizedBuffer)
+
+      line = tokenizedBuffer.lineForScreenRow(0).copy()
+      expect(line.tokens[0].hasLeadingWhitespace).toBe true
+      expect(line.tokens[line.tokens.length - 1].hasTrailingWhitespace).toBe true
 
   describe "indent level", ->
     beforeEach ->
