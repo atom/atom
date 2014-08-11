@@ -35,15 +35,17 @@ class WindowEventHandler
       confirmed = atom.workspaceView?.confirmClose()
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
+
+      atom.storeDefaultWindowDimensions()
+      atom.storeWindowDimensions()
+
+      if confirmed
+        $(document.body).css('visibility', 'hidden')
+        atom.unloadEditorWindow()
+
       confirmed
 
-    @subscribe $(window), 'blur beforeunload', ->
-      atom.storeDefaultWindowDimensions()
-      null
-
-    @subscribe $(window), 'beforeunload', ->
-      atom.storeWindowDimensions()
-      null
+    @subscribe $(window), 'blur', -> atom.storeDefaultWindowDimensions()
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 
