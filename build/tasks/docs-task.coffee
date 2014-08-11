@@ -5,8 +5,8 @@ fs = require 'fs-plus'
 request = require 'request'
 _ = require 'underscore-plus'
 
-metadoc = require 'metadoc'
-grappa = require 'grappa'
+donna = require 'donna'
+tello = require 'tello'
 
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
@@ -20,15 +20,15 @@ module.exports = (grunt) ->
     done = @async()
     docsOutputDir = grunt.config.get('docsOutputDir')
     downloadIncludes (error, includedModules) ->
-      metadata = metadoc.generateMetadata(['.'].concat(includedModules))
-      grappaJson = grappa.digest(metadata)
+      metadata = donna.generateMetadata(['.'].concat(includedModules))
+      telloJson = tello.digest(metadata)
 
       files = [{
-        filePath: path.join(docsOutputDir, 'metadata.json')
+        filePath: path.join(docsOutputDir, 'donna.json')
         contents: JSON.stringify(metadata, null, '  ')
       }, {
-        filePath: path.join(docsOutputDir, 'grappa.json')
-        contents: JSON.stringify(grappaJson, null, '  ')
+        filePath: path.join(docsOutputDir, 'tello.json')
+        contents: JSON.stringify(telloJson, null, '  ')
       }]
 
       writeFile = ({filePath, contents}, callback) ->
