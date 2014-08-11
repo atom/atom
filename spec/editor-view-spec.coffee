@@ -2998,8 +2998,8 @@ describe "EditorView", ->
         expect(editorView.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
 
     it "correctly calculates the position left for non-monospaced invisibles", ->
-      editorView.setShowInvisibles(true)
-      editorView.setInvisibles tab: '♘'
+      atom.config.set('editor.showInvisibles', true)
+      atom.config.set('editor.invisibles', tab: '♘')
       editor.setText('\tx')
 
       editorView.setFontFamily('serif')
