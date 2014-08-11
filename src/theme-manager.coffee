@@ -46,11 +46,32 @@ class ThemeManager
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
-    return ['atom-dark-ui', 'atom-dark-syntax'] if @safeMode
     themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
     themeNames = themeNames.filter (themeName) ->
       themeName and typeof themeName is 'string'
+
+    # Use a built-in syntax and UI theme when in safe mode since themes
+    # installed to ~/.atom/packages will not be loaded.
+    if @safeMode
+      builtInThemeNames = [
+        'atom-dark-syntax'
+        'atom-dark-ui'
+        'atom-light-syntax'
+        'atom-light-ui'
+        'base16-tomorrow-dark-theme'
+        'base16-tomorrow-light-theme'
+        'solarized-dark-syntax'
+        'solarized-light-syntax'
+      ]
+      themeNames = _.intersection(themeNames, builtInThemeNames)
+      if themeNames.length is 0
+        themeNames = ['atom-dark-syntax', 'atom-dark-ui']
+      else if themeNames.length is 1
+        if _.endsWith(themeNames[0], '-ui')
+          themeNames.unshift('atom-dark-syntax')
+        else
+          themeNames.push('atom-dark-ui')
 
     # Reverse so the first (top) theme is loaded after the others. We want
     # the first/top theme to override later themes in the stack.
