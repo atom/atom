@@ -211,7 +211,7 @@ describe "EditorComponent", ->
         atom.config.set("editor.invisibles", invisibles)
 
       it "re-renders the lines when the showInvisibles config option changes", ->
-        editor.setText " a line with tabs\tand spaces "
+        editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
@@ -222,7 +222,7 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays leading/trailing spaces, tabs, and newlines as visible characters", ->
-        editor.setText " a line with tabs\tand spaces "
+        editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
@@ -231,7 +231,7 @@ describe "EditorComponent", ->
         expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe true
 
       it "displays newlines as their own token outside of the other tokens' scopes", ->
-        editor.setText "var"
+        editor.setText "var\n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
@@ -272,7 +272,7 @@ describe "EditorComponent", ->
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->
-          editor.setText "a line that wraps "
+          editor.setText "a line that wraps \n"
           editor.setSoftWrap(true)
           nextAnimationFrame()
           componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
