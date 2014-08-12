@@ -154,3 +154,5 @@ class BufferedProcess
       @killOnWindows()
     else
       @killProcess()
+
+    undefined
