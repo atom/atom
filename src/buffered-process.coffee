@@ -117,8 +117,34 @@ class BufferedProcess
       onLines(buffered) if buffered.length > 0
       onDone()
 
+  # Kill all child processes of the spawned cmd.exe process on Windows.
+  #
+  # This is required since killing the cmd.exe does not terminate child
+  # processes.
+  killAllChildProcessesOnWindows: ->
+    parentPid = @process.pid
+    cmd = 'wmic'
+    args = [
+      'process'
+      'where'
+      "(ParentProcessId=#{parentPid})"
+      'get'
+      'processid'
+    ]
+
+    wmicProcess = ChildProcess.spawn(cmd, args)
+    output = ''
+    wmicProcess.stdout.on 'data', (data) -> output += data
+    wmicProcess.stdout.on 'close', ->
+      pidsToKill = output.split('\n')
+                    .filter (pid) -> /^\d+$/.test(pid)
+                    .map (pid) -> parseInt(pid)
+                    .filter (pid) -> not pid is parentPid
+      process.kill(pid) for pid in pidsToKill
+
   # Public: Terminate the process.
   kill: ->
     @killed = true
+    @killAllChildProcessesOnWindows() if process.platform is 'win32'
     @process.kill()
     @process = null
