@@ -40,8 +40,6 @@ class BufferedProcess
   #           containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
-    # Quick hack. Killing @process will only kill cmd.exe, and not the child
-    # process and will just orphan it. Does not escape ^ (cmd's escape symbol).
     # Related to joyent/node#2318
     if process.platform is "win32"
       # Quote all arguments and escapes inner quotes
