@@ -21,7 +21,6 @@
   'cmd-O': 'application:open-dev'
   'cmd-alt-ctrl-s': 'application:run-all-specs'
   'enter': 'core:confirm'
-  'num-enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
