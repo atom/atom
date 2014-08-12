@@ -56,7 +56,7 @@ class MenuManager
   #   :submenu - An optional {Array} of sub menu items.
   #
   # Returns nothing.
-  remove: ->
+  remove: (items) ->
     @update()
 
   # Should the binding for the given selector be included in the menu
