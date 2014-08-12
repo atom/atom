@@ -273,9 +273,10 @@ class Cursor extends Model
   # line.
   moveToFirstCharacterOfLine: ->
     {row, column} = @getScreenPosition()
-    screenline = @editor.lineForScreenRow(row)
 
-    goalColumn = screenline.text.search(/\S/)
+    bufferRange = @editor.bufferRangeForScreenRange([[row, 0], [row, Infinity]])
+    screenLineText = @editor.getTextInBufferRange(bufferRange)
+    goalColumn = screenLineText.search(/\S/)
     goalColumn = 0 if goalColumn == column or goalColumn == -1
     @setScreenPosition([row, goalColumn])
 
