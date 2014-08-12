@@ -22,12 +22,12 @@ LinesComponent = React.createClass
     if performedInitialMeasurement
       {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects} = @props
+      {scrollTop, scrollLeft, cursorPixelRects, mini} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
+        backgroundColor: if mini then null else backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?

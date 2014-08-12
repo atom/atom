@@ -2103,6 +2103,9 @@ describe "EditorComponent", ->
     it "adds the 'mini' class to the wrapper view", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
+    it "does not have an opaque background on lines", ->
+      expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
+
     it "does not render invisible characters", ->
       component.setInvisibles(eol: 'E')
       component.setShowInvisibles(true)

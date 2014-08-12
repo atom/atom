@@ -112,7 +112,7 @@ EditorComponent = React.createClass
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay
+          cursorBlinkPeriod, cursorBlinkResumeDelay, mini
         }
 
         ScrollbarComponent
