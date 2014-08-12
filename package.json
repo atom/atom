@@ -45,7 +45,7 @@
     "property-accessors": "^1",
     "q": "^1.0.1",
     "random-words": "0.0.1",
-    "react-atom-fork": "^0.11.1",
+    "react-atom-fork": "^0.11.2",
     "reactionary-atom-fork": "^1.0.0",
     "runas": "1.0.1",
     "scandal": "1.0.0",
@@ -109,7 +109,6 @@
     "welcome": "0.17.0",
     "whitespace": "0.25.0",
     "wrap-guide": "0.21.0",
-
     "language-c": "0.26.0",
     "language-coffee-script": "0.29.0",
     "language-css": "0.17.0",

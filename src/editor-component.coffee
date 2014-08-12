@@ -10,6 +10,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
+EditorPresenter = require './editor-presenter'
 
 module.exports =
 EditorComponent = React.createClass
@@ -50,6 +51,8 @@ EditorComponent = React.createClass
   render: ->
     {focused, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    contentPresenter = @presenter.content
+    gutterPresenter = @presenter.gutter
     maxLineNumberDigits = editor.getLineCount().toString().length
     invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
@@ -91,7 +94,8 @@ EditorComponent = React.createClass
     div {className, style, tabIndex: -1},
       if @shouldRenderGutter()
         GutterComponent {
-          ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
+          ref: 'gutter', gutterPresenter
+          onMouseDown: @onGutterMouseDown, lineDecorations,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
           @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
@@ -106,7 +110,7 @@ EditorComponent = React.createClass
           onBlur: @onInputBlurred
 
         LinesComponent {
-          ref: 'lines',
+          ref: 'lines', contentPresenter,
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
@@ -167,6 +171,9 @@ EditorComponent = React.createClass
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @presenter = new EditorPresenter(@props.editor)
+    @subscribe @presenter, 'did-change', @requestUpdate
+
   componentDidMount: ->
     {editor} = @props
 
@@ -214,19 +221,21 @@ EditorComponent = React.createClass
       @measureScrollbars() if @measuringScrollbars
 
   performInitialMeasurement: ->
+    console.log "INITIAL MEASUREMENT"
     @updatesPaused = true
     @measureHeightAndWidth()
     @sampleFontStyling()
     @sampleBackgroundColors()
     @measureScrollbars()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
-    @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
+    # @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
     @updatesPaused = false
     @performedInitialMeasurement = true
 
   requestUpdate: ->
     return unless @isMounted()
+    @pauseDOMPolling()
 
     if @updatesPaused
       @updateRequestedWhilePaused = true
@@ -294,7 +303,9 @@ EditorComponent = React.createClass
       {cursor} = selection
       screenRange = cursor.getScreenRange()
       if renderedStartRow <= screenRange.start.row < renderedEndRow
-        cursorPixelRects[cursor.id] = editor.pixelRectForScreenRange(screenRange)
+        pixelRect = editor.pixelRectForScreenRange(screenRange)
+        pixelRect.startRow = screenRange.start.row
+        cursorPixelRects[cursor.id] = pixelRect
     cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->
@@ -532,6 +543,7 @@ EditorComponent = React.createClass
     event.preventDefault() unless event.data is ' '
 
     return unless @isInputEnabled()
+    event.reactSkipEventDispatch = true
 
     {editor} = @props
     inputNode = event.target
@@ -831,17 +843,20 @@ EditorComponent = React.createClass
       @remeasureCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
-    {parentView} = @props
+    {editor, parentView} = @props
     {showLineNumbers} = @state
     {backgroundColor} = getComputedStyle(parentView.element)
 
     if backgroundColor isnt @backgroundColor
+      editor.setBackgroundColor(backgroundColor)
       @backgroundColor = backgroundColor
       @requestUpdate() unless suppressUpdate
 
     if @shouldRenderGutter()
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
+      gutterBackgroundColor = null if gutterBackgroundColor is 'rgba(0, 0, 0, 0)'
       if gutterBackgroundColor isnt @gutterBackgroundColor
+        editor.setGutterBackgroundColor(backgroundColor)
         @gutterBackgroundColor = gutterBackgroundColor
         @requestUpdate() unless suppressUpdate
 
@@ -978,8 +993,8 @@ EditorComponent = React.createClass
     {clientX, clientY} = event
 
     linesClientRect = @refs.lines.getDOMNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top
-    left = clientX - linesClientRect.left
+    top = clientY - linesClientRect.top + @presenter.scrollTop
+    left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
   getModel: ->

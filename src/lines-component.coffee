@@ -7,6 +7,7 @@ React = require 'react-atom-fork'
 Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+EditorTileComponent = require './editor-tile-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -16,48 +17,22 @@ module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
+  tileSize: 5
+  preservedTileNode: null
+
   render: ->
-    {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
-
-    if performedInitialMeasurement
-      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
-      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects} = @props
-      style =
-        height: Math.max(scrollHeight, scrollViewHeight)
-        width: scrollWidth
-        WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
-
-    div {className: 'lines', style},
-      div className: 'placeholder-text', placeholderText if placeholderText?
-
-      CursorsComponent {
-        cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay, lineHeightInPixels,
-        defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement
-      }
-
-      HighlightsComponent {
-        editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
-        scopedCharacterWidthsChangeCount, performedInitialMeasurement
-      }
-
-  getTransform: ->
-    {scrollTop, scrollLeft, useHardwareAcceleration} = @props
-
-    if useHardwareAcceleration
-      "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
-    else
-      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
+    div className: 'lines'
 
   componentWillMount: ->
     @measuredLines = new WeakSet
-    @lineNodesByLineId = {}
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
-    @renderedDecorationsByLineId = {}
+    @tileComponentsByStartRow = {}
+
+  componentDidMount: ->
+    @getDOMNode().addEventListener 'mousewheel', @onMouseWheel
 
   shouldComponentUpdate: (newProps) ->
+    return true
+
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
       'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
@@ -78,209 +53,19 @@ LinesComponent = React.createClass
     false
 
   componentDidUpdate: (prevProps) ->
-    {visible, scrollingVertically, performedInitialMeasurement} = @props
+    {performedInitialMeasurement, visible, scrollingVertically} = @props
     return unless performedInitialMeasurement
 
-    @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
-    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
-    @updateLines(@props.lineWidth isnt prevProps.lineWidth)
+    @clearTiles() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
+    @updateTiles()
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
-  clearScreenRowCaches: ->
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
-
-  updateLines: (updateWidth) ->
-    {editor, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
-    [startRow, endRow] = renderedRowRange
-
-    visibleLines = editor.linesForScreenRows(startRow, endRow - 1)
-    @removeLineNodes(visibleLines)
-    @appendOrUpdateVisibleLineNodes(visibleLines, startRow, updateWidth)
-
-  removeLineNodes: (visibleLines=[]) ->
-    {mouseWheelScreenRow} = @props
-    visibleLineIds = new Set
-    visibleLineIds.add(line.id.toString()) for line in visibleLines
-    node = @getDOMNode()
-    for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
-      screenRow = @screenRowsByLineId[lineId]
-      if not screenRow? or screenRow isnt mouseWheelScreenRow
-        delete @lineNodesByLineId[lineId]
-        delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
-        delete @screenRowsByLineId[lineId]
-        delete @renderedDecorationsByLineId[lineId]
-        node.removeChild(lineNode)
-
-  appendOrUpdateVisibleLineNodes: (visibleLines, startRow, updateWidth) ->
-    {lineDecorations} = @props
-
-    newLines = null
-    newLinesHTML = null
-
-    for line, index in visibleLines
-      screenRow = startRow + index
-
-      if @hasLineNode(line.id)
-        @updateLineNode(line, screenRow, updateWidth)
-      else
-        newLines ?= []
-        newLinesHTML ?= ""
-        newLines.push(line)
-        newLinesHTML += @buildLineHTML(line, screenRow)
-        @screenRowsByLineId[line.id] = screenRow
-        @lineIdsByScreenRow[screenRow] = line.id
-
-      @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
-
-    return unless newLines?
-
-    WrapperDiv.innerHTML = newLinesHTML
-    newLineNodes = toArray(WrapperDiv.children)
-    node = @getDOMNode()
-    for line, i in newLines
-      lineNode = newLineNodes[i]
-      @lineNodesByLineId[line.id] = lineNode
-      node.appendChild(lineNode)
-
-  hasLineNode: (lineId) ->
-    @lineNodesByLineId.hasOwnProperty(lineId)
-
-  buildLineHTML: (line, screenRow) ->
-    {editor, mini, showIndentGuide, lineHeightInPixels, lineDecorations, lineWidth} = @props
-    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
-
-    classes = ''
-    if decorations = lineDecorations[screenRow]
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line')
-          classes += decoration.class + ' '
-    classes += 'line'
-
-    top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{lineWidth}px;\" data-screen-row=\"#{screenRow}\">"
-
-    if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(line)
-    else
-      lineHTML += @buildLineInnerHTML(line)
-
-    lineHTML += '<span class="fold-marker"></span>' if fold
-    lineHTML += "</div>"
-    lineHTML
-
-  buildEmptyLineInnerHTML: (line) ->
-    {showIndentGuide, invisibles} = @props
-    {cr, eol} = invisibles
-    {indentLevel, tabLength} = line
-
-    if showIndentGuide and indentLevel > 0
-      invisiblesToRender = []
-      invisiblesToRender.push(cr) if cr? and line.lineEnding is '\r\n'
-      invisiblesToRender.push(eol) if eol?
-
-      lineHTML = ''
-      for i in [0...indentLevel]
-        lineHTML += "<span class='indent-guide'>"
-        for j in [0...tabLength]
-          if invisible = invisiblesToRender.shift()
-            lineHTML += "<span class='invisible-character'>#{invisible}</span>"
-          else
-            lineHTML += ' '
-        lineHTML += "</span>"
-
-      while invisiblesToRender.length
-        lineHTML += "<span class='invisible-character'>#{invisiblesToRender.shift()}</span>"
-
-      lineHTML
-    else
-      @buildEndOfLineHTML(line, @props.invisibles) or '&nbsp;'
-
-  buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide, invisibles} = @props
-    {tokens, text} = line
-    innerHTML = ""
-
-    scopeStack = []
-    firstTrailingWhitespacePosition = text.search(/\s*$/)
-    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
-    for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly))
-      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
-
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += @buildEndOfLineHTML(line, invisibles)
-    innerHTML
-
-  buildEndOfLineHTML: (line, invisibles) ->
-    return '' if @props.mini or line.isSoftWrapped()
-
-    html = ''
-    # Note the lack of '?' in the character checks. A user can set the chars
-    # to an empty string which we will interpret as not-set
-    if invisibles.cr and line.lineEnding is '\r\n'
-      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
-    if invisibles.eol
-      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
-
-    html
-
-  updateScopeStack: (scopeStack, desiredScopes) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i] is desiredScopes[i]
-
-    # Pop scopes until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      html += @pushScope(scopeStack, desiredScopes[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
-
-  updateLineNode: (line, screenRow, updateWidth) ->
-    {editor, lineHeightInPixels, lineDecorations, lineWidth} = @props
-    lineNode = @lineNodesByLineId[line.id]
-
-    decorations = lineDecorations[screenRow]
-    previousDecorations = @renderedDecorationsByLineId[line.id]
-
-    if previousDecorations?
-      for id, decoration of previousDecorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
-          lineNode.classList.remove(decoration.class)
-
-    if decorations?
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
-          lineNode.classList.add(decoration.class)
-
-    lineNode.style.width = lineWidth + 'px' if updateWidth
-
-    unless @screenRowsByLineId[line.id] is screenRow
-      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
-      lineNode.dataset.screenRow = screenRow
-      @screenRowsByLineId[line.id] = screenRow
-      @lineIdsByScreenRow[screenRow] = line.id
-
-  hasDecoration: (decorations, decoration) ->
-    decorations? and decorations[decoration.id] is decoration
-
   lineNodeForScreenRow: (screenRow) ->
-    @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
+    tileComponent = @tileComponentsByStartRow[@tileStartRowForScreenRow(screenRow)]
+    tileComponent?.lineNodeForScreenRow(screenRow)
+
+  tileStartRowForScreenRow: (screenRow) ->
+    screenRow - (screenRow % @tileSize)
 
   measureLineHeightAndDefaultCharWidth: ->
     node = @getDOMNode()
@@ -293,19 +78,48 @@ LinesComponent = React.createClass
     editor.setLineHeightInPixels(lineHeightInPixels)
     editor.setDefaultCharWidth(charWidth)
 
+  updateTiles: ->
+    {contentPresenter} = @props
+    domNode = @getDOMNode()
+
+    for tileStartRow, tileComponent of @tileComponentsByStartRow
+      unless contentPresenter.tiles[tileStartRow]?
+        if tileComponent.domNode is @preservedTileNode
+          tileComponent.preserve()
+        else
+          domNode.removeChild(tileComponent.domNode)
+          delete @tileComponentsByStartRow[tileStartRow]
+
+    for tileStartRow, tilePresenter of contentPresenter.tiles
+      if tileComponent = @tileComponentsByStartRow[tileStartRow]
+        tileComponent = @tileComponentsByStartRow[tileStartRow]
+        tileComponent.revive(tilePresenter) if tileComponent.preserved
+        tileComponent.update()
+      else
+        tileComponent = new EditorTileComponent(tilePresenter)
+        @tileComponentsByStartRow[tileStartRow] = tileComponent
+        domNode.appendChild(tileComponent.domNode)
+
+  clearTiles: ->
+    for startRow, tileComponent of @tileComponentsByStartRow
+      domNode.removeChild(tileComponent.domNode)
+      delete @tileComponentsByStartRow[startRow]
+
   remeasureCharacterWidths: ->
     @clearScopedCharWidths()
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
+    return
     {editor} = @props
     [visibleStartRow, visibleEndRow] = @props.renderedRowRange
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
-      for tokenizedLine in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+      for tokenizedLine, i in editor.linesForScreenRows(visibleStartRow, visibleEndRow - 1)
+        screenRow = visibleStartRow + i
         unless @measuredLines.has(tokenizedLine)
-          lineNode = @lineNodesByLineId[tokenizedLine.id]
+          lineNode = @lineNodeForScreenRow(screenRow)
           @measureCharactersInLine(tokenizedLine, lineNode)
       return
 
@@ -347,3 +161,8 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
+
+  onMouseWheel: (event) ->
+    node = event.target
+    node = node.parentNode until node.dataset.tile
+    @preservedTileNode = node
