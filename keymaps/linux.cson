@@ -1,7 +1,6 @@
 'body':
   # Atom Specific
   'enter': 'core:confirm'
-  'num-enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
