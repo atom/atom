@@ -138,7 +138,10 @@ class BufferedProcess
                     .filter (pid) -> /^\d+$/.test(pid)
                     .map (pid) -> parseInt(pid)
                     .filter (pid) -> pid isnt parentPid and 0 < pid < Infinity
-      process.kill(pid) for pid in pidsToKill
+
+      for pid in pidsToKill
+        try
+          process.kill(pid)
       @killProcess()
 
   killProcess: ->
