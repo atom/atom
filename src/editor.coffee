@@ -629,8 +629,8 @@ class Editor extends Model
 
   # Public: For each selection, replace the selected text with the given text.
   #
-  # Emits: `will-insert-text -> ({text, preventDefault})` before the text has
-  # been inserted. Calling `preventDefault` will prevent the text from being
+  # Emits: `will-insert-text -> ({text, cancel})` before the text has
+  # been inserted. Calling `cancel` will prevent the text from being
   # inserted.
   # Emits: `did-insert-text -> ({text})` after the text has been inserted.
   #
@@ -640,8 +640,8 @@ class Editor extends Model
   # Returns a {Bool} indicating whether or not the text was inserted.
   insertText: (text, options={}) ->
     willInsert = true
-    preventDefault = -> willInsert = false
-    @emit('will-insert-text', {preventDefault, text})
+    cancel = -> willInsert = false
+    @emit('will-insert-text', {cancel, text})
 
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
