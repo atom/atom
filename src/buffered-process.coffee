@@ -119,7 +119,7 @@ class BufferedProcess
   #
   # This is required since killing the cmd.exe does not terminate child
   # processes.
-  killAllChildProcessesOnWindows: ->
+  killOnWindows: ->
     parentPid = @process.pid
     cmd = 'wmic'
     args = [
@@ -133,16 +133,24 @@ class BufferedProcess
     wmicProcess = ChildProcess.spawn(cmd, args)
     output = ''
     wmicProcess.stdout.on 'data', (data) -> output += data
-    wmicProcess.stdout.on 'close', ->
+    wmicProcess.stdout.on 'close', =>
       pidsToKill = output.split('\n')
                     .filter (pid) -> /^\d+$/.test(pid)
                     .map (pid) -> parseInt(pid)
                     .filter (pid) -> not pid is parentPid
       process.kill(pid) for pid in pidsToKill
+      @killProcess()
+
+  killProcess: ->
+    @process?.kill()
+    @process = null
 
   # Public: Terminate the process.
   kill: ->
+    return if @killed
+
     @killed = true
-    @killAllChildProcessesOnWindows() if process.platform is 'win32'
-    @process.kill()
-    @process = null
+    if process.platform is 'win32'
+      @killOnWindows()
+    else
+      @killProcess()
