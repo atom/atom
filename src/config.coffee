@@ -108,7 +108,10 @@ class Config
 
     if value?
       value = _.deepClone(value)
-      _.defaults(value, defaultValue) if typeof defaultValue is 'object'
+      valueIsObject = _.isObject(value) and not _.isArray(value)
+      defaultValueIsObject = _.isObject(defaultValue) and not _.isArray(defaultValue)
+      if valueIsObject and defaultValueIsObject
+        _.defaults(value, defaultValue)
     else
       value = _.deepClone(defaultValue)
 
