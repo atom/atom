@@ -3,6 +3,7 @@ React = require 'react-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
+grim = require 'grim'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
@@ -943,6 +944,7 @@ EditorComponent = React.createClass
 
   # Deprecated
   setInvisibles: (invisibles={}) ->
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
     atom.config.set('editor.invisibles', invisibles)
 
   # Deprecated
