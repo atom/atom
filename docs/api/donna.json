@@ -249,6 +249,7 @@
             "0": {
               "type": "class",
               "name": "Atom",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -5005,6 +5006,7 @@
             "0": {
               "type": "class",
               "name": "BufferedNodeProcess",
+              "superClass": "BufferedProcess",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -7127,6 +7129,7 @@
             "0": {
               "type": "class",
               "name": "CursorView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -7798,6 +7801,7 @@
             "0": {
               "type": "class",
               "name": "Cursor",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -11634,6 +11638,7 @@
             "0": {
               "type": "class",
               "name": "BufferToScreenConversionError",
+              "superClass": "Error",
               "classProperties": [],
               "prototypeProperties": [
                 [
@@ -11679,6 +11684,7 @@
             "0": {
               "type": "class",
               "name": "DisplayBuffer",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -15438,6 +15444,7 @@
             "0": {
               "type": "class",
               "name": "EditorView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -19248,6 +19255,7 @@
             "0": {
               "type": "class",
               "name": "Editor",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -28592,6 +28600,7 @@
             "0": {
               "type": "class",
               "name": "GutterView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -34753,6 +34762,7 @@
             "0": {
               "type": "class",
               "name": "PaneAxisView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -35030,6 +35040,7 @@
             "0": {
               "type": "class",
               "name": "PaneAxis",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -35382,6 +35393,7 @@
             "0": {
               "type": "class",
               "name": "PaneColumnView",
+              "superClass": "PaneAxisView",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -35564,6 +35576,7 @@
             "0": {
               "type": "class",
               "name": "PaneContainerView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -36308,6 +36321,7 @@
             "0": {
               "type": "class",
               "name": "PaneContainer",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -36769,6 +36783,7 @@
             "0": {
               "type": "class",
               "name": "PaneRowView",
+              "superClass": "PaneAxisView",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -36950,6 +36965,7 @@
             "0": {
               "type": "class",
               "name": "PaneView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -37881,6 +37897,7 @@
             "0": {
               "type": "class",
               "name": "Pane",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -39269,6 +39286,7 @@
             "0": {
               "type": "class",
               "name": "Project",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -40317,6 +40335,7 @@
             "0": {
               "type": "class",
               "name": "ReactEditorView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -42166,6 +42185,7 @@
             "0": {
               "type": "class",
               "name": "ScrollView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -42623,6 +42643,7 @@
             "0": {
               "type": "class",
               "name": "SelectListView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -43399,6 +43420,7 @@
             "0": {
               "type": "class",
               "name": "SelectionView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -43847,6 +43869,7 @@
             "0": {
               "type": "class",
               "name": "Selection",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -46482,6 +46505,7 @@
             "0": {
               "type": "class",
               "name": "Syntax",
+              "superClass": "GrammarRegistry",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -48052,6 +48076,7 @@
             "0": {
               "type": "class",
               "name": "ThemePackage",
+              "superClass": "Package",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -49096,6 +49121,7 @@
             "0": {
               "type": "class",
               "name": "TokenizedBuffer",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -51641,6 +51667,7 @@
             "0": {
               "type": "class",
               "name": "WorkspaceView",
+              "superClass": "View",
               "bindingType": "exports",
               "classProperties": [
                 [
@@ -52805,6 +52832,7 @@
             "0": {
               "type": "class",
               "name": "Workspace",
+              "superClass": "Model",
               "bindingType": "exports",
               "classProperties": [],
               "prototypeProperties": [
@@ -57704,6 +57732,7 @@
             "0": {
               "type": "class",
               "name": "View",
+              "superClass": "jQuery",
               "classProperties": [
                 [
                   59,

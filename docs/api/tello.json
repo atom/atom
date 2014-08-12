@@ -2,6 +2,7 @@
   "classes": {
     "Atom": {
       "name": "Atom",
+      "superClass": "Model",
       "filename": "src/atom.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/atom.coffee#L36",
       "sections": [],
@@ -261,6 +262,7 @@
     },
     "BufferedNodeProcess": {
       "name": "BufferedNodeProcess",
+      "superClass": "BufferedProcess",
       "filename": "src/buffered-node-process.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/buffered-node-process.coffee#L15",
       "sections": [],
@@ -595,6 +597,7 @@
     },
     "Cursor": {
       "name": "Cursor",
+      "superClass": "Model",
       "filename": "src/cursor.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/cursor.coffee#L11",
       "sections": [],
@@ -1157,6 +1160,7 @@
     },
     "EditorView": {
       "name": "EditorView",
+      "superClass": "View",
       "filename": "src/editor-view.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/editor-view.coffee#L42",
       "sections": [],
@@ -1479,6 +1483,7 @@
     },
     "Editor": {
       "name": "Editor",
+      "superClass": "Model",
       "filename": "src/editor.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/editor.coffee#L139",
       "sections": [],
@@ -3636,6 +3641,7 @@
     },
     "PaneView": {
       "name": "PaneView",
+      "superClass": "View",
       "filename": "src/pane-view.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/pane-view.coffee#L15",
       "sections": [],
@@ -3670,6 +3676,7 @@
     },
     "Pane": {
       "name": "Pane",
+      "superClass": "Model",
       "filename": "src/pane.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/pane.coffee#L12",
       "sections": [],
@@ -3946,6 +3953,7 @@
     },
     "Project": {
       "name": "Project",
+      "superClass": "Model",
       "filename": "src/project.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/project.coffee#L22",
       "sections": [],
@@ -4045,6 +4053,7 @@
     },
     "ScrollView": {
       "name": "ScrollView",
+      "superClass": "View",
       "filename": "src/scroll-view.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/scroll-view.coffee#L22",
       "sections": [],
@@ -4060,6 +4069,7 @@
     },
     "SelectListView": {
       "name": "SelectListView",
+      "superClass": "View",
       "filename": "src/select-list-view.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/select-list-view.coffee#L37",
       "sections": [],
@@ -4228,6 +4238,7 @@
     },
     "Selection": {
       "name": "Selection",
+      "superClass": "Model",
       "filename": "src/selection.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/selection.coffee#L7",
       "sections": [],
@@ -4734,6 +4745,7 @@
     },
     "Syntax": {
       "name": "Syntax",
+      "superClass": "GrammarRegistry",
       "filename": "src/syntax.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/syntax.coffee#L19",
       "sections": [],
@@ -4891,6 +4903,7 @@
     },
     "WorkspaceView": {
       "name": "WorkspaceView",
+      "superClass": "View",
       "filename": "src/workspace-view.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/workspace-view.coffee#L56",
       "sections": [],
@@ -5091,6 +5104,7 @@
     },
     "Workspace": {
       "name": "Workspace",
+      "superClass": "Model",
       "filename": "src/workspace.coffee",
       "srcUrl": "https://github.com/atom/atom/blob/v0.121.0/src/workspace.coffee#L19",
       "sections": [],
@@ -5954,6 +5968,7 @@
     },
     "View": {
       "name": "View",
+      "superClass": "jQuery",
       "filename": "src/space-pen.coffee",
       "srcUrl": "https://github.com/atom/space-pen/blob/v3.3.0/src/space-pen.coffee#L59",
       "sections": [],
