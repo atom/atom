@@ -193,7 +193,7 @@ LinesComponent = React.createClass
       @buildEndOfLineHTML(line) or '&nbsp;'
 
   buildLineInnerHTML: (line) ->
-    {mini, showIndentGuide, invisibles} = @props
+    {mini, showIndentGuide} = @props
     {tokens, text} = line
     innerHTML = ""
 
@@ -203,7 +203,7 @@ LinesComponent = React.createClass
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly))
-      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+      innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
     innerHTML += @buildEndOfLineHTML(line)

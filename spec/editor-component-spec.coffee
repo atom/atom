@@ -216,9 +216,11 @@ describe "EditorComponent", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
         atom.config.set("editor.showInvisibles", false)
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
         atom.config.set("editor.showInvisibles", true)
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays leading/trailing spaces, tabs, and newlines as visible characters", ->

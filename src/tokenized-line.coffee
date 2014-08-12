@@ -166,16 +166,19 @@ class TokenizedLine
       if token.isHardTab
         if invisibles.tab
           token.value = invisibles.tab + token.value.substring(invisibles.tab.length)
+          token.hasInvisibleCharacters = true
           changedText = true
       else
         if invisibles.space
           if token.hasLeadingWhitespace
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            token.hasInvisibleCharacters = true
             changedText = true
           if token.hasTrailingWhitespace
             token.value = token.value.replace TrailingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            token.hasInvisibleCharacters = true
             changedText = true
 
     @text = @buildText() if changedText

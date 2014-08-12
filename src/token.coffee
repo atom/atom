@@ -20,6 +20,7 @@ class Token
   hasTrailingWhitespace: false
   firstNonWhitespaceIndex: null
   firstTrailingWhitespaceIndex: null
+  hasInvisibleCharacters: false
 
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
@@ -134,12 +135,11 @@ class Token
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
-  getValueAsHtml: ({invisibles, hasIndentGuide})->
-    invisibles ?= {}
+  getValueAsHtml: ({hasIndentGuide})->
     if @isHardTab
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
-      classes += ' invisible-character' if invisibles.tab
+      classes += ' invisible-character' if @hasInvisibleCharacters
       html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"
     else
       startIndex = 0
@@ -153,7 +153,7 @@ class Token
 
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
-        classes += ' invisible-character' if invisibles.space
+        classes += ' invisible-character' if @hasInvisibleCharacters
 
         leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
         startIndex = @firstNonWhitespaceIndex
@@ -164,7 +164,7 @@ class Token
 
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
-        classes += ' invisible-character' if invisibles.space
+        classes += ' invisible-character' if @hasInvisibleCharacters
 
         trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
 
