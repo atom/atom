@@ -104,14 +104,7 @@ class TokenizedBuffer extends Model
 
   setShowInvisibles: (@showInvisibles) ->
 
-  setInvisibles: (invisibles={}) ->
-    _.defaults invisibles,
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
-
-    @invisibles = invisibles
+  setInvisibles: (@invisibles={}) ->
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
