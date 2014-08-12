@@ -2040,7 +2040,7 @@ class Editor extends Model
   setScrollRight: (scrollRight) -> @displayBuffer.setScrollRight(scrollRight)
 
   getScrollHeight: -> @displayBuffer.getScrollHeight()
-  getScrollWidth: (scrollWidth) -> @displayBuffer.getScrollWidth(scrollWidth)
+  getScrollWidth: -> @displayBuffer.getScrollWidth()
 
   getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
 
