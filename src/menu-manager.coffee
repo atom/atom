@@ -59,6 +59,16 @@ class MenuManager
   remove: (items) ->
     @update()
 
+  # Delete items from the template in such a way that only the leafs of the
+  # item definition are removed.
+  delete: (menu, item) ->
+    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
+      @delete(match.submenu, i) for i in item.submenu
+    else
+      index = menu.indexOf(item)
+      if index > -1
+        menu.splice(index, 1)
+
   # Should the binding for the given selector be included in the menu
   # commands.
   #
