@@ -1,0 +1,14 @@
+{
+  "name": "indico",
+  "main": "./lib/indico",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "activationEvents": ["indico:toggle"],
+  "repository": "https://github.com/atom/indico",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+  }
+}

@@ -1,0 +1,16 @@
+# See https://atom.io/docs/latest/creating-a-package#menus for more details
+'context-menu':
+  '.overlayer':
+      'Enable indico': 'indico:toggle'
+
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'indico'
+      'submenu': [
+        { 'label': 'Toggle', 'command': 'indico:toggle' }
+      ]
+    ]
+  }
+]
