@@ -209,6 +209,7 @@ describe "EditorComponent", ->
 
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
+        nextAnimationFrame()
 
       it "re-renders the lines when the showInvisibles config option changes", ->
         editor.setText " a line with tabs\tand spaces \n"
