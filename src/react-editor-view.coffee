@@ -10,6 +10,7 @@ class ReactEditorView extends View
   @content: (params) ->
     attributes = params.attributes ? {}
     attributes.class = 'editor react editor-colors'
+    attributes.tabIndex = -1
     @div attributes
 
   focusOnAttach: false
@@ -55,6 +56,11 @@ class ReactEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
+    @on 'focus', =>
+      if @component?
+        @component.onFocus()
+      else
+        @focusOnAttach = true
 
   getEditor: -> @editor
 
@@ -142,12 +148,6 @@ class ReactEditorView extends View
 
   getPane: ->
     @parent('.item-views').parents('.pane').view()
-
-  focus: ->
-    if @component?
-      @component.onFocus()
-    else
-      @focusOnAttach = true
 
   hide: ->
     super
