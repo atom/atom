@@ -1470,6 +1470,15 @@ describe "Editor", ->
 
   describe "buffer manipulation", ->
     describe ".insertText(text)", ->
+      describe "when there is a single selection", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 0], [1, 2]])
+
+        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+          range = editor.insertText('xxx')
+          expect(range).toEqual [ [[1, 0], [1, 3]] ]
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
       describe "when there are multiple empty selections", ->
         describe "when the cursors are on the same line", ->
           it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
@@ -1546,6 +1555,48 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[1,0], [2,0]])
           editor.insertText('holy cow')
           expect(editor.lineForScreenRow(2).fold).toBeUndefined()
+
+      describe "when will-insert-text and did-insert-text events are used", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 0], [1, 2]])
+
+        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          didInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBeTruthy()
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).toHaveBeenCalled()
+
+          options = willInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+          expect(options.cancel).toBeDefined()
+
+          options = didInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+
+        it "text insertion is prevented when cancel is called from a will-insert-text handler", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ({cancel}) ->
+            cancel()
+
+          didInsertSpy = jasmine.createSpy()
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBe false
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).not.toHaveBeenCalled()
 
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->

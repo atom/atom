@@ -169,9 +169,6 @@ class ReactEditorView extends View
   pageUp: ->
     @editor.pageUp()
 
-  getModel: ->
-    @component?.getModel()
-
   getFirstVisibleScreenRow: ->
     @editor.getVisibleRowRange()[0]
 

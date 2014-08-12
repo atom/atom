@@ -629,12 +629,29 @@ class Editor extends Model
 
   # Public: For each selection, replace the selected text with the given text.
   #
+  # Emits: `will-insert-text -> ({text, cancel})` before the text has
+  # been inserted. Calling `cancel` will prevent the text from being
+  # inserted.
+  # Emits: `did-insert-text -> ({text})` after the text has been inserted.
+  #
   # text - A {String} representing the text to insert.
   # options - See {Selection::insertText}.
+  #
+  # Returns a {Bool} indicating whether or not the text was inserted.
   insertText: (text, options={}) ->
-    options.autoIndentNewline ?= @shouldAutoIndent()
-    options.autoDecreaseIndent ?= @shouldAutoIndent()
-    @mutateSelectedText (selection) -> selection.insertText(text, options)
+    willInsert = true
+    cancel = -> willInsert = false
+    @emit('will-insert-text', {cancel, text})
+
+    if willInsert
+      options.autoIndentNewline ?= @shouldAutoIndent()
+      options.autoDecreaseIndent ?= @shouldAutoIndent()
+      @mutateSelectedText (selection) =>
+        range = selection.insertText(text, options)
+        @emit('did-insert-text', {text, range})
+        range
+    else
+      false
 
   # Public: For each selection, replace the selected text with a newline.
   insertNewline: ->
