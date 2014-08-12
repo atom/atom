@@ -134,7 +134,7 @@ class BufferedProcess
     output = ''
     wmicProcess.stdout.on 'data', (data) -> output += data
     wmicProcess.stdout.on 'close', =>
-      pidsToKill = output.split('\n')
+      pidsToKill = output.split(/\s+/)
                     .filter (pid) -> /^\d+$/.test(pid)
                     .map (pid) -> parseInt(pid)
                     .filter (pid) -> not pid is parentPid
