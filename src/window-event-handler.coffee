@@ -23,9 +23,9 @@ class WindowEventHandler
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
 
-    @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
+    @subscribe $(window), 'focus', -> document.body.classList.remove('is-blurred')
 
-    @subscribe $(window), 'blur', -> $("body").addClass('is-blurred')
+    @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       unless fs.isDirectorySync(pathToOpen)
@@ -35,13 +35,16 @@ class WindowEventHandler
       confirmed = atom.workspaceView?.confirmClose()
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
+
+      atom.storeDefaultWindowDimensions()
+      atom.storeWindowDimensions()
+      atom.unloadEditorWindow() if confirmed
+
       confirmed
 
-    @subscribe $(window), 'blur unload', ->
-      atom.storeDefaultWindowDimensions()
+    @subscribe $(window), 'blur', -> atom.storeDefaultWindowDimensions()
 
-    @subscribe $(window), 'unload', ->
-      atom.storeWindowDimensions()
+    @subscribe $(window), 'unload', -> atom.removeEditorWindow()
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', -> atom.toggleFullScreen()
 

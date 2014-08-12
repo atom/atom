@@ -311,11 +311,6 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    $(window).on 'unload', =>
-      $(document.body).css('visibility', 'hidden')
-      @unloadEditorWindow()
-      false
-
     @displayWindow()
 
   unloadEditorWindow: ->
@@ -327,12 +322,17 @@ class Atom extends Model
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
     @saveSync()
-    @workspaceView.remove()
-    @workspaceView = null
-    @project.destroy()
-    @windowEventHandler?.unsubscribe()
-    @keymaps.destroy()
     @windowState = null
+
+  removeEditorWindow: ->
+    return if not @project and not @workspaceView
+
+    @workspaceView?.remove()
+    @workspaceView = null
+    @project?.destroy()
+    @project = null
+
+    @windowEventHandler?.unsubscribe()
 
   loadThemes: ->
     @themes.load()
