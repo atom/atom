@@ -189,6 +189,7 @@ EditorComponent = React.createClass
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
+    @props.editor.destroy()
 
   componentWillUpdate: ->
     wasVisible = @visible
