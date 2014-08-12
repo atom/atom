@@ -450,7 +450,9 @@ class Editor extends Model
       else
         confirmed = true
 
-      repo.checkoutHead(filePath) if confirmed
+      if confirmed
+        @buffer.reload() if @buffer.isModified()
+        repo.checkoutHead(filePath)
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
