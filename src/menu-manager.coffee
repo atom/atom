@@ -39,6 +39,26 @@ class MenuManager
     @merge(@template, item) for item in items
     @update()
 
+  # Public: Remove the given item definition from the existing template.
+  #
+  # ## Example
+  # ```coffee
+  #   atom.menu.remove [
+  #     {
+  #       label: 'Hello'
+  #       submenu : [{label: 'World!'}]
+  #     }
+  #  ]
+  #```
+  #
+  # items - An {Array} of menu item {Object}s containing the keys:
+  #   :label   - The {String} menu label.
+  #   :submenu - An optional {Array} of sub menu items.
+  #
+  # Returns nothing.
+  remove: ->
+    @update()
+
   # Should the binding for the given selector be included in the menu
   # commands.
   #
