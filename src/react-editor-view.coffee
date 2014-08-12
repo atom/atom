@@ -66,6 +66,7 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
+  Object.defineProperty @::, 'mini', get: -> @component?.props.mini
 
   afterAttach: (onDom) ->
     return unless onDom
