@@ -248,10 +248,12 @@ describe "EditorComponent", ->
 
       it "renders an nbsp on empty lines when the line-ending character is an empty string", ->
         atom.config.set("editor.invisibles", eol: '')
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
-      it "renders an nbsp on empty lines when no line-ending character is defined", ->
-        atom.config.set("editor.invisibles", eol: null)
+      it "renders an nbsp on empty lines when the line-ending character is false", ->
+        atom.config.set("editor.invisibles", eol: false)
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->

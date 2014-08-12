@@ -103,8 +103,16 @@ class Config
   # Returns the value from Atom's default settings, the user's configuration
   # file, or `null` if the key doesn't exist in either.
   get: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
-    _.deepClone(value)
+    value = _.valueForKeyPath(@settings, keyPath)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+
+    if value?
+      value = _.deepClone(value)
+      _.defaults(value, defaultValue) if typeof defaultValue is 'object'
+    else
+      value = _.deepClone(defaultValue)
+
+    value
 
   # Public: Retrieves the setting for the given key as an integer.
   #
