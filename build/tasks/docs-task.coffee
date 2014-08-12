@@ -11,10 +11,7 @@ tello = require 'tello'
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
 
-  cmd = path.join('node_modules', '.bin', 'coffee')
-  commonArgs = [path.join('build', 'node_modules', '.bin', 'biscotto'), '--']
-  opts =
-    stdio: 'inherit'
+  opts = stdio: 'inherit'
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
@@ -33,7 +30,7 @@ module.exports = (grunt) ->
 
       writeFile = ({filePath, contents}, callback) ->
         fs.writeFile filePath, contents, (error) ->
-          callback()
+          callback(error)
 
       async.map files, writeFile, -> done()
 
