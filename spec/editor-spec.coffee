@@ -1578,14 +1578,14 @@ describe "Editor", ->
 
           options = willInsertSpy.mostRecentCall.args[0]
           expect(options.text).toBe 'xxx'
-          expect(options.preventDefault).toBeDefined()
+          expect(options.cancel).toBeDefined()
 
           options = didInsertSpy.mostRecentCall.args[0]
           expect(options.text).toBe 'xxx'
 
-        it "text insertion is prevented when preventDefault is called from a will-insert-text handler", ->
-          willInsertSpy = jasmine.createSpy().andCallFake ({preventDefault}) ->
-            preventDefault()
+        it "text insertion is prevented when cancel is called from a will-insert-text handler", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ({cancel}) ->
+            cancel()
 
           didInsertSpy = jasmine.createSpy()
 
