@@ -225,8 +225,9 @@ class TokenizedBuffer extends Model
     tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
+    lineEnding = @buffer.lineEndingForRow(row)
     invisibles = @invisibles if @showInvisibles
-    new TokenizedLine({tokens, tabLength, indentLevel, invisibles})
+    new TokenizedLine({tokens, tabLength, indentLevel, invisibles, lineEnding})
 
   buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)

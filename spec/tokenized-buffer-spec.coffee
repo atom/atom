@@ -604,6 +604,26 @@ describe "TokenizedBuffer", ->
       # Also needs to work for copies
       expect(tokenizedBuffer.lineForScreenRow(0).copy().text).toBe "SST Sa line with tabsTand T spacesSTS"
 
+    it "assigns endOfLineInvisibles to tokenized lines", ->
+      buffer = new TextBuffer(text: "a line that ends in a carriage-return-line-feed \r\na line that ends in just a line-feed\na line with no ending")
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+
+      atom.config.set('editor.showInvisibles', true)
+      atom.config.set('editor.invisibles', cr: 'R', eol: 'N')
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R', 'N']
+      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual ['N']
+
+      # Lines ending in soft wraps get no invisibles
+      [left, right] = tokenizedBuffer.lineForScreenRow(0).softWrapAt(20)
+      expect(left.endOfLineInvisibles).toBe null
+      expect(right.endOfLineInvisibles).toEqual ['R', 'N']
+
+      atom.config.set('editor.invisibles', cr: 'R', eol: false)
+      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R']
+      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual []
+
   describe "leading and trailing whitespace", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')

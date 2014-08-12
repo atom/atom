@@ -8,6 +8,8 @@ idCounter = 1
 
 module.exports =
 class TokenizedLine
+  endOfLineInvisibles: null
+
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
     @tokens = @breakOutAtomicTokens(tokens)
@@ -16,7 +18,9 @@ class TokenizedLine
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
-    @substituteInvisibleCharacters() if @invisibles
+    if @invisibles
+      @substituteInvisibleCharacters()
+      @buildEndOfLineInvisibles() if @lineEnding?
 
   buildText: ->
     text = ""
@@ -95,12 +99,14 @@ class TokenizedLine
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
+      invisibles: @invisibles
       lineEnding: null
     )
     rightFragment = new TokenizedLine(
       tokens: rightTokens
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
+      invisibles: @invisibles
       lineEnding: @lineEnding
     )
     [leftFragment, rightFragment]
@@ -173,6 +179,17 @@ class TokenizedLine
             changedText = true
 
     @text = @buildText() if changedText
+
+  buildEndOfLineInvisibles: ->
+    @endOfLineInvisibles = []
+    {cr, eol} = @invisibles
+
+    switch @lineEnding
+      when '\r\n'
+        @endOfLineInvisibles.push(cr) if cr
+        @endOfLineInvisibles.push(eol) if eol
+      when '\n'
+        @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
     for token in @tokens
