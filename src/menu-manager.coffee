@@ -57,6 +57,7 @@ class MenuManager
   #
   # Returns nothing.
   remove: (items) ->
+    @delete(@template, item) for item in items
     @update()
 
   # Delete items from the template in such a way that only the leafs of the
