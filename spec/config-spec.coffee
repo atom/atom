@@ -23,6 +23,18 @@ describe "Config", ->
       retrievedValue.array[1].b = 2.1
       expect(atom.config.get('value')).toEqual(array: [1, b: 2, 3])
 
+    it "merges defaults into the returned value if both the assigned value and the default value are objects", ->
+      atom.config.setDefaults("foo", a: 1, b: 2)
+      atom.config.set("foo", a: 3)
+      expect(atom.config.get("foo")).toEqual {a: 3, b: 2}
+
+      atom.config.set("foo", 7)
+      expect(atom.config.get("foo")).toBe 7
+
+      atom.config.set("bar.baz", a: 3)
+      atom.config.setDefaults("bar", baz: 7)
+      expect(atom.config.get("bar.baz")).toEqual {a: 3}
+
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
       expect(atom.config.set("foo.bar.baz", 42)).toBe 42

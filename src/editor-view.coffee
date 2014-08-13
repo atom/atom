@@ -59,6 +59,11 @@ class EditorView extends View
     scrollSensitivity: 40
     useHardwareAcceleration: true
     confirmCheckoutHead: true
+    invisibles:
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
 
   @nextEditorId: 1
 

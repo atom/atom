@@ -2,11 +2,7 @@ _ = require 'underscore-plus'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
-LeadingSpaceRegex = /^[ ]+/
-TrailingSpaceRegex = /[ ]+$/
 EscapeRegex = /[&"'<>]/g
-CharacterRegex = /./g
-StartCharacterRegex = /^./
 StartDotRegex = /^\.?/
 WhitespaceRegex = /\S/
 
@@ -22,6 +18,9 @@ class Token
   isHardTab: null
   hasLeadingWhitespace: false
   hasTrailingWhitespace: false
+  firstNonWhitespaceIndex: null
+  firstTrailingWhitespaceIndex: null
+  hasInvisibleCharacters: false
 
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
@@ -136,14 +135,12 @@ class Token
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
-  getValueAsHtml: ({invisibles, hasIndentGuide})->
-    invisibles ?= {}
+  getValueAsHtml: ({hasIndentGuide})->
     if @isHardTab
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
-      classes += ' invisible-character' if invisibles.tab
-      value = if invisibles.tab then @value.replace(StartCharacterRegex, invisibles.tab) else @value
-      html = "<span class='#{classes}'>#{@escapeString(value)}</span>"
+      classes += ' invisible-character' if @hasInvisibleCharacters
+      html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"
     else
       startIndex = 0
       endIndex = @value.length
@@ -151,26 +148,27 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if @hasLeadingWhitespace and match = LeadingSpaceRegex.exec(@value)
+      if @hasLeadingWhitespace
+        leadingWhitespace = @value.substring(0, @firstNonWhitespaceIndex)
+
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
-        classes += ' invisible-character' if invisibles.space
+        classes += ' invisible-character' if @hasInvisibleCharacters
 
-        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
-        leadingHtml = "<span class='#{classes}'>#{match[0]}</span>"
+        leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
+        startIndex = @firstNonWhitespaceIndex
 
-        startIndex = match[0].length
+      if @hasTrailingWhitespace
+        tokenIsOnlyWhitespace = @firstTrailingWhitespaceIndex is 0
+        trailingWhitespace = @value.substring(@firstTrailingWhitespaceIndex)
 
-      if @hasTrailingWhitespace and match = TrailingSpaceRegex.exec(@value)
-        tokenIsOnlyWhitespace = match[0].length is @value.length
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
-        classes += ' invisible-character' if invisibles.space
+        classes += ' invisible-character' if @hasInvisibleCharacters
 
-        match[0] = match[0].replace(CharacterRegex, invisibles.space) if invisibles.space
-        trailingHtml = "<span class='#{classes}'>#{match[0]}</span>"
+        trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
 
-        endIndex = match.index
+        endIndex = @firstTrailingWhitespaceIndex
 
       html = leadingHtml
       if @value.length > MaxTokenLength

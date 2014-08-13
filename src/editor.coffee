@@ -159,13 +159,16 @@ class Editor extends Model
   @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
 
     @cursors = []
     @selections = []
 
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
+    if @shouldShowInvisibles()
+      invisibles = atom.config.get('editor.invisibles')
+
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap, invisibles})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
@@ -185,6 +188,9 @@ class Editor extends Model
 
     @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+
+    @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (show) => @updateInvisibles()
+    @subscribe atom.config.observe 'editor.invisibles', callNow: false, => @updateInvisibles()
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -280,6 +286,11 @@ class Editor extends Model
 
   # Controls visibility based on the given {Boolean}.
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
+
+  setMini: (mini) ->
+    if mini isnt @mini
+      @mini = mini
+      @updateInvisibles()
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
@@ -1965,6 +1976,15 @@ class Editor extends Model
 
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
+
+  shouldShowInvisibles: ->
+    not @mini and atom.config.get('editor.showInvisibles')
+
+  updateInvisibles: ->
+    if @shouldShowInvisibles()
+      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles'))
+    else
+      @displayBuffer.setInvisibles(null)
 
   # Public: Batch multiple operations as a single undo/redo step.
   #

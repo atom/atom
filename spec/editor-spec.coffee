@@ -499,6 +499,15 @@ describe "Editor", ->
           cursor = editor.getCursor()
           expect(cursor.getBufferPosition()).toEqual [1,0]
 
+        describe "when invisible characters are enabled", ->
+          it "moves to the first character of the current line without being confused by the invisible characters", ->
+            atom.config.set('editor.showInvisibles', true)
+            editor.setCursorScreenPosition [1,7]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,2]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,0]
+
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
         editor.setCursorBufferPosition [0, 8]

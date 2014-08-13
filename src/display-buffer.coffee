@@ -38,10 +38,10 @@ class DisplayBuffer extends Model
   verticalScrollbarWidth: 15
   scopedCharacterWidthsChangeCount: 0
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
     @softWrap ?= atom.config.get('editor.softWrap') ? false
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -81,7 +81,7 @@ class DisplayBuffer extends Model
     params
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @invisibles})
     newDisplayBuffer.setScrollTop(@getScrollTop())
     newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
@@ -339,6 +339,9 @@ class DisplayBuffer extends Model
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
+
+  setInvisibles: (@invisibles) ->
+    @tokenizedBuffer.setInvisibles(@invisibles)
 
   # Deprecated: Use the softWrap property directly
   setSoftWrap: (@softWrap) -> @softWrap

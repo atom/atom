@@ -3,6 +3,7 @@ React = require 'react-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
+grim = require 'grim'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
@@ -48,10 +49,9 @@ EditorComponent = React.createClass
   domPollingPaused: false
 
   render: ->
-    {focused, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
+    {focused, showIndentGuide, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
     style = {}
 
@@ -109,7 +109,7 @@ EditorComponent = React.createClass
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
-          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
           cursorBlinkPeriod, cursorBlinkResumeDelay, mini
@@ -190,6 +190,9 @@ EditorComponent = React.createClass
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
     @props.editor.destroy()
+
+  componentWillReceiveProps: (newProps) ->
+    @props.editor.setMini(newProps.mini)
 
   componentWillUpdate: ->
     wasVisible = @visible
@@ -522,8 +525,6 @@ EditorComponent = React.createClass
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
-    @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
-    @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
@@ -944,24 +945,14 @@ EditorComponent = React.createClass
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
 
-  # Public: Defines which characters are invisible.
-  #
-  # invisibles - An {Object} defining the invisible characters:
-  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
-  #   :space - The space invisible {String} (default: `\u00b7`).
-  #   :tab   - The tab invisible {String} (default: `\u00bb`).
-  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
+  # Deprecated
   setInvisibles: (invisibles={}) ->
-    defaults invisibles,
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
+    atom.config.set('editor.invisibles', invisibles)
 
-    @setState({invisibles})
-
+  # Deprecated
   setShowInvisibles: (showInvisibles) ->
-    @setState({showInvisibles})
+    atom.config.set('editor.showInvisibles', showInvisibles)
 
   setShowLineNumbers: (showLineNumbers) ->
     @setState({showLineNumbers})
