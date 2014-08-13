@@ -72,6 +72,7 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: true
     useReactEditor: true
+    useReactMiniEditors: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
