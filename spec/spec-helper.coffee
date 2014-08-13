@@ -211,6 +211,13 @@ addCustomMatchers = (spec) ->
       element = element.get(0) if element.jquery
       element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
 
+    toShow: ->
+      notText = if @isNot then " not" else ""
+      element = @actual
+      element = element.get(0) if element.jquery
+      @message = -> return "Expected element '#{element}' or its descendants #{notText} to show."
+      element.style.display in ['block', 'inline-block', 'static', 'fixed']
+
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
