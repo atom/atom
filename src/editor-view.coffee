@@ -58,6 +58,7 @@ class EditorView extends View
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
     useHardwareAcceleration: true
+    confirmCheckoutHead: true
 
   @nextEditorId: 1
 

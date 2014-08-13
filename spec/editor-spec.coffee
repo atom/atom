@@ -3429,3 +3429,24 @@ describe "Editor", ->
       editor.selectPageUp()
       expect(editor.getScrollTop()).toBe 0
       expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [12,2]]]
+
+  describe ".checkoutHead()", ->
+    [repo] = []
+
+    beforeEach ->
+      repo = jasmine.createSpyObj('repo', ['checkoutHead'])
+      spyOn(atom.project, "getRepo").andReturn(repo)
+
+    it "displays a confirmation dialog by default", ->
+      spyOn(atom, "confirm")
+      editor.checkoutHead()
+
+      args = atom.confirm.mostRecentCall.args[0]
+      expect(Object.keys(args.buttons)).toEqual ["Revert", "Cancel"]
+
+    it "does not display a dialog when confirmation is disabled", ->
+      spyOn(atom, "confirm")
+      atom.config.set("editor.confirmCheckoutHead", false)
+      editor.checkoutHead()
+
+      expect(atom.confirm).not.toHaveBeenCalled()
