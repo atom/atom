@@ -511,8 +511,14 @@ EditorComponent = React.createClass
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
 
-    for command, listener of listenersByCommandName
-      parentView.command command, listener
+    addListener = (command, listener) ->
+      parentView.command command, (event) ->
+        event.stopPropagation()
+        listener(event)
+
+    addListener(command, listener) for command, listener of listenersByCommandName
+
+    return
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
