@@ -67,7 +67,7 @@ class WorkspaceView extends View
     ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
     excludeVcsIgnoredPaths: true
     disabledPackages: []
-    themes: ['atom-dark-ui', 'atom-dark-syntax']
+    themes: ['indico-ui', 'indico-syntax']
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
     destroyEmptyPanes: true

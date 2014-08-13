@@ -5,6 +5,7 @@ LessCache = require 'less-cache'
 module.exports = (grunt) ->
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled LESS files', ->
     prebuiltConfigurations = [
+      ['indico-ui', 'indico-syntax']
       ['atom-dark-ui', 'atom-dark-syntax']
       ['atom-dark-ui', 'atom-light-syntax']
       ['atom-dark-ui', 'solarized-dark-syntax']
