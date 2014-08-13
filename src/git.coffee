@@ -100,7 +100,7 @@ class Git
 
     fileName = basename(filePath)
 
-    revert = =>
+    checkoutHead = =>
       editor.buffer.reload() if editor.buffer.isModified()
       @checkoutHead(filePath)
 
@@ -109,10 +109,10 @@ class Git
         message: 'Confirm Discard Changes'
         detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\"?"
         buttons:
-          OK: revert
+          OK: checkoutHead
           Cancel: null
     else
-      revert()
+      checkoutHead()
 
   # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
   # and releases the underlying libgit2 repository handle.
