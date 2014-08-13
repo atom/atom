@@ -15,6 +15,7 @@ class MenuManager
     @pendingUpdateOperation = null
     @template = []
     atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.packages.on 'activated', => @sortPackagesMenu()
 
   # Public: Adds the given item definition to the existing template.
   #
@@ -130,3 +131,14 @@ class MenuManager
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
     element?.classList.toString().split(' ') ? []
+
+  sortPackagesMenu: ->
+    packagesMenu = @template.find ({label}) => @normalizeLabel(label) is 'Packages'
+    return unless packagesMenu?.submenu?
+
+    packagesMenu.submenu.sort (item1, item2) =>
+      if item1.label and item2.label
+        @normalizeLabel(item1.label).localeCompare(@normalizeLabel(item2.label))
+      else
+        0
+    @update()
