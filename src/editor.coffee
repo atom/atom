@@ -446,25 +446,6 @@ class Editor extends Model
   # filePath - A {String} path.
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
-  checkoutHead: ->
-    if (filePath = @getPath()) and (repo = atom.project.getRepo())
-      confirmed = false
-
-      if atom.config.get("editor.confirmCheckoutHead")
-        atom.confirm
-          message: "Are you sure you want to revert this file to the last Git commit?"
-          detailedMessage: "You are reverting: #{filePath}"
-          buttons:
-            "Revert": ->
-              confirmed = true
-            "Cancel": null
-      else
-        confirmed = true
-
-      if confirmed
-        @buffer.reload() if @buffer.isModified()
-        repo.checkoutHead(filePath)
-
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
     if filePath = @getPath()

@@ -93,6 +93,25 @@ class Git
         @getPathStatus(path)
     @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
 
+  # Subscribes to editor view event.
+  checkoutHeadForEditor: (editor) ->
+    filePath = editor.getPath()
+    return unless filePath
+
+    revert = =>
+      editor.buffer.reload() if editor.buffer.isModified()
+      @checkoutHead(filePath)
+
+    if atom.config.get('editor.confirmCheckoutHead')
+      atom.confirm
+        message: "Are you sure you want to revert this file to the last Git commit?"
+        detailedMessage: "You are reverting: #{filePath}"
+        buttons:
+          Revert: revert
+          Cancel: null
+    else
+      revert()
+
   # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
   # and releases the underlying libgit2 repository handle.
   destroy: ->
