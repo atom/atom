@@ -191,6 +191,9 @@ EditorComponent = React.createClass
     @domPollingIntervalId = null
     @props.editor.destroy()
 
+  componentWillReceiveProps: (newProps) ->
+    @props.editor.setMini(newProps.mini)
+
   componentWillUpdate: ->
     wasVisible = @visible
     @visible = @isVisible()

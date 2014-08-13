@@ -2116,8 +2116,9 @@ describe "EditorComponent", ->
       expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
-      component.setInvisibles(eol: 'E')
-      component.setShowInvisibles(true)
+      atom.config.set('editor.invisibles', eol: 'E')
+      atom.config.set('editor.showInvisibles', true)
+      nextAnimationFrame()
       expect(component.lineNodeForScreenRow(0).textContent).toBe 'var quicksort = function () {'
 
     it "does not assign an explicit line-height on the editor contents", ->

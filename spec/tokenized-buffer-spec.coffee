@@ -588,7 +588,7 @@ describe "TokenizedBuffer", ->
       atom.config.set('editor.tabLength', 0)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
 
-  describe "when the editor.showInvisibles and editor.invisibles config values change", ->
+  describe "when the invisibles value changes", ->
     beforeEach ->
 
     it "updates the tokens with the appropriate invisible characters", ->
@@ -596,8 +596,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
-      atom.config.set('editor.invisibles', space: 'S', tab: 'T')
-      atom.config.set('editor.showInvisibles', true)
+      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
@@ -609,7 +608,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
 
       atom.config.set('editor.showInvisibles', true)
-      atom.config.set('editor.invisibles', cr: 'R', eol: 'N')
+      tokenizedBuffer.setInvisibles(cr: 'R', eol: 'N')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R', 'N']
@@ -620,7 +619,7 @@ describe "TokenizedBuffer", ->
       expect(left.endOfLineInvisibles).toBe null
       expect(right.endOfLineInvisibles).toEqual ['R', 'N']
 
-      atom.config.set('editor.invisibles', cr: 'R', eol: false)
+      tokenizedBuffer.setInvisibles(cr: 'R', eol: false)
       expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R']
       expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual []
 
@@ -692,8 +691,8 @@ describe "TokenizedBuffer", ->
 
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
       buffer.setText("  \t a line with tabs\tand \tspaces \t ")
-      atom.config.set('editor.invisibles', space: 'S', tab: 'T')
-      atom.config.set('editor.showInvisibles', true)
+
+      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       line = tokenizedBuffer.lineForScreenRow(0).copy()

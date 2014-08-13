@@ -19,10 +19,8 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
 
-  constructor: ({@buffer, @tabLength}) ->
+  constructor: ({@buffer, @tabLength, @invisibles}) ->
     @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
-    @setShowInvisibles(atom.config.get('editor.showInvisibles'))
-    @setInvisibles(atom.config.get('editor.invisibles'))
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
@@ -41,14 +39,6 @@ class TokenizedBuffer extends Model
 
     @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
       @setTabLength(atom.config.getPositiveInt('editor.tabLength', 2))
-
-    @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (showInvisibles) =>
-      @setShowInvisibles(showInvisibles)
-      @retokenizeLines()
-
-    @subscribe atom.config.observe 'editor.invisibles', callNow: false, (invisibles) =>
-      @setInvisibles(invisibles)
-      @retokenizeLines()
 
     @reloadGrammar()
 
@@ -102,9 +92,10 @@ class TokenizedBuffer extends Model
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
 
-  setShowInvisibles: (@showInvisibles) ->
-
-  setInvisibles: (@invisibles={}) ->
+  setInvisibles: (invisibles) ->
+    if invisibles isnt @invisibles
+      @invisibles = invisibles
+      @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -219,17 +210,15 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    invisibles = @invisibles if @showInvisibles
-    new TokenizedLine({tokens, tabLength, indentLevel, invisibles, lineEnding})
+    new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
   buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    invisibles = @invisibles if @showInvisibles
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, invisibles})
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
   # FIXME: benogle says: These are actually buffer rows as all buffer rows are
   # accounted for in @tokenizedLines
