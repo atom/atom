@@ -436,6 +436,10 @@ class Editor extends Model
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
   checkoutHead: ->
+    # repo.checkoutHead won't work if there are unsaved modifications, so
+    # revert those first
+    @buffer.reload() if @buffer.isModified()
+
     if filePath = @getPath()
       atom.project.getRepo()?.checkoutHead(filePath)
 

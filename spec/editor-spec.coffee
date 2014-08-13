@@ -2612,6 +2612,13 @@ describe "Editor", ->
         expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
         expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
 
+    describe "checkoutHead", ->
+      it "reverts unsaved changes too", ->
+        prevText = buffer.getText()
+        buffer.setText('changed')
+        editor.checkoutHead()
+        expect(buffer.getText()).toBe prevText
+
     describe "begin/commitTransaction()", ->
       it "restores the selection when the transaction is undone/redone", ->
         buffer.setText('1234')
