@@ -104,7 +104,7 @@ class Git
       editor.buffer.reload() if editor.buffer.isModified()
       @checkoutHead(filePath)
 
-    if atom.config.get('editor.confirmCheckoutHead')
+    if atom.config.get('editor.confirmCheckoutHeadRevision')
       atom.confirm
         message: 'Confirm Checkout HEAD Revision'
         detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\" since the last Git commit?"

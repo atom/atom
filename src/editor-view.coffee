@@ -58,7 +58,7 @@ class EditorView extends View
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
     useHardwareAcceleration: true
-    confirmCheckoutHead: true
+    confirmCheckoutHeadRevision: true
     invisibles:
       eol: '\u00ac'
       space: '\u00b7'

@@ -136,7 +136,7 @@ describe "Git", ->
 
     it "displays a confirmation dialog by default", ->
       spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
-      atom.config.set('editor.confirmCheckoutHead', true)
+      atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
       repo.checkoutHeadForEditor(editor)
 
@@ -144,7 +144,7 @@ describe "Git", ->
 
     it "does not display a dialog when confirmation is disabled", ->
       spyOn(atom, 'confirm')
-      atom.config.set('editor.confirmCheckoutHead', false)
+      atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
       repo.checkoutHeadForEditor(editor)
 
