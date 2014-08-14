@@ -56,7 +56,6 @@ class Workspace extends Model
   serializeParams: ->
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
-    maximized: atom.isMaximized()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
 
   getPackageNamesWithActiveGrammars: ->

@@ -196,7 +196,8 @@ class Atom extends Model
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
     [width, height] = browserWindow.getSize()
-    {x, y, width, height}
+    maximized = browserWindow.isMaximized()
+    {x, y, width, height, maximized}
 
   # Public: Set the dimensions of the window.
   #
@@ -209,13 +210,17 @@ class Atom extends Model
   #   :y - The new y coordinate.
   #   :width - The new width.
   #   :height - The new height.
+  #   :maximized - A {Boolean} for the maximized window state.
   setWindowDimensions: ({x, y, width, height}) ->
-    if width? and height?
-      @setSize(width, height)
-    if x? and y?
-      @setPosition(x, y)
+    if maximized and process.platform isnt 'darwin'
+      @maximize()
     else
-      @center()
+      if width? and height?
+        @setSize(width, height)
+      if x? and y?
+        @setPosition(x, y)
+      else
+        @center()
 
   # Returns true if the dimensions are useable, false if they should be ignored.
   # Work around for https://github.com/atom/atom-shell/issues/473
@@ -461,7 +466,6 @@ class Atom extends Model
       @show()
       @focus()
       @setFullScreen(true) if @workspace.fullScreen
-      @maximize() if @workspace.maximized and process.platform isnt 'darwin'
 
   # Public: Close the current window.
   close: ->
