@@ -119,6 +119,38 @@ describe "Git", ->
       repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
 
+  describe ".checkoutHeadForEditor(editor)", ->
+    [filePath, editor] = []
+
+    beforeEach ->
+      workingDirPath = copyRepository()
+      repo = new Git(workingDirPath)
+      filePath = path.join(workingDirPath, 'a.txt')
+      fs.writeFileSync(filePath, 'ch ch changes')
+
+      waitsForPromise ->
+        atom.workspace.open(filePath)
+
+      runs ->
+        editor = atom.workspace.getActiveEditor()
+
+    it "displays a confirmation dialog by default", ->
+      spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
+      atom.config.set('editor.confirmCheckoutHeadRevision', true)
+
+      repo.checkoutHeadForEditor(editor)
+
+      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+
+    it "does not display a dialog when confirmation is disabled", ->
+      spyOn(atom, 'confirm')
+      atom.config.set('editor.confirmCheckoutHeadRevision', false)
+
+      repo.checkoutHeadForEditor(editor)
+
+      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+      expect(atom.confirm).not.toHaveBeenCalled()
+
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
       repo = new Git(require.resolve('./fixtures/git/master.git/HEAD'))

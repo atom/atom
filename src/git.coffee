@@ -1,4 +1,4 @@
-{join} = require 'path'
+{basename, join} = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter, Subscriber} = require 'emissary'
@@ -92,6 +92,27 @@ class Git
       if path = buffer.getPath()
         @getPathStatus(path)
     @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
+
+  # Subscribes to editor view event.
+  checkoutHeadForEditor: (editor) ->
+    filePath = editor.getPath()
+    return unless filePath
+
+    fileName = basename(filePath)
+
+    checkoutHead = =>
+      editor.buffer.reload() if editor.buffer.isModified()
+      @checkoutHead(filePath)
+
+    if atom.config.get('editor.confirmCheckoutHeadRevision')
+      atom.confirm
+        message: 'Confirm Checkout HEAD Revision'
+        detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\" since the last Git commit?"
+        buttons:
+          OK: checkoutHead
+          Cancel: null
+    else
+      checkoutHead()
 
   # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
   # and releases the underlying libgit2 repository handle.
