@@ -644,7 +644,7 @@ class Editor extends Model
   # text - A {String} representing the text to insert.
   # options - See {Selection::insertText}.
   #
-  # Returns a {Bool} indicating whether or not the text was inserted.
+  # Returns a {Boolean} indicating whether or not the text was inserted.
   insertText: (text, options={}) ->
     willInsert = true
     cancel = -> willInsert = false
