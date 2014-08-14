@@ -313,7 +313,8 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    @displayWindow(maximize: dimensions?.maximized)
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
+    @displayWindow({maximize})
 
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
