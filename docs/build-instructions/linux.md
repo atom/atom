@@ -51,6 +51,20 @@ From the cloned repository directory:
 
 Use the newly installed atom by restarting any running atom instances.
 
+## Advanced Options
+
+### Custom install directory
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+### Custom build directory
+
+```sh
+sudo script/grunt install --build-dir /build/atom/here
+```
+
 ## Troubleshooting
 
 ### Exception: "TypeError: Unable to watch path"
