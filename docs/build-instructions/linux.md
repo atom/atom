@@ -65,7 +65,7 @@ sudo script/grunt install --install-dir /install/atom/here
 ### Custom build directory
 
 ```sh
-sudo script/grunt install --build-dir /build/atom/here
+script/build --build-dir /build/atom/here
 ```
 
 ## Troubleshooting
