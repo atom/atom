@@ -225,9 +225,9 @@ class WorkspaceView extends View
       @setTitle('untitled')
 
   # Sets the application's title (and the proxy icon on OS X)
-  setTitle: (title, proxyIconPath) ->
+  setTitle: (title, proxyIconPath='') ->
     document.title = title
-    atom.getCurrentWindow().setRepresentedFilename(proxyIconPath ? '')
+    atom.setRepresentedFilename(proxyIconPath)
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.

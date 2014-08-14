@@ -474,6 +474,9 @@ class Atom extends Model
   setDocumentEdited: (edited) ->
     ipc.send('call-window-method', 'setDocumentEdited', edited)
 
+  setRepresentedFilename: (filename) ->
+    ipc.send('call-window-method', 'setRepresentedFilename', filename)
+
   # Public: Is the current window in development mode?
   inDevMode: ->
     @getLoadSettings().devMode
