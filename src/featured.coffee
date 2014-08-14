@@ -34,11 +34,11 @@ class Featured extends Command
       json: true
     requestSettings.qs = engine: atomVersion if atomVersion
 
-    request.get requestSettings, (error, response, body={}) ->
+    request.get requestSettings, (error, response, body=[]) ->
       if error?
         callback(error)
       else if response.statusCode is 200
-        packages = body.filter (pack) -> pack.releases?.latest?
+        packages = body.filter (pack) -> pack?.releases?.latest?
         packages = packages.map ({readme, metadata, downloads}) -> _.extend({}, metadata, {readme, downloads})
         packages = _.sortBy(packages, 'name')
         callback(null, packages)
