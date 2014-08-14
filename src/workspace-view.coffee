@@ -110,7 +110,7 @@ class WorkspaceView extends View
     atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
-    @on 'pane:active-item-modified-changed', '.active.pane', => @updateDocumentEdited()
+    @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
 
     @command 'application:about', -> ipc.send('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')

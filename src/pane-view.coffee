@@ -143,8 +143,7 @@ class PaneView extends View
   onActiveItemChanged: (item) =>
     if @previousActiveItem?.off?
       @previousActiveItem.off 'title-changed', @activeItemTitleChanged
-      @previousActiveItem.off 'modified-status-changed',
-                              @activeItemModifiedChanged
+      @previousActiveItem.off 'modified-status-changed', @activeItemModifiedChanged
     @previousActiveItem = item
 
     return unless item?
@@ -189,7 +188,7 @@ class PaneView extends View
     @trigger 'pane:active-item-title-changed'
 
   activeItemModifiedChanged: =>
-    @trigger 'pane:active-item-modified-changed'
+    @trigger 'pane:active-item-modified-status-changed'
 
   viewForItem: (item) ->
     return unless item?
