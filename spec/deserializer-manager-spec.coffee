@@ -5,7 +5,7 @@ describe ".deserialize(state)", ->
 
   class Foo
     @deserialize: ({name}) -> new Foo(name)
-    constructor: (@name) -> return
+    constructor: (@name) ->
 
   beforeEach ->
     deserializer = new DeserializerManager()

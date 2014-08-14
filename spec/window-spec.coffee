@@ -138,8 +138,8 @@ describe "Window", ->
 
       event = $.Event(type)
       event.originalEvent = { dataTransfer }
-      event.preventDefault = -> return
-      event.stopPropagation = -> return
+      event.preventDefault = ->
+      event.stopPropagation = ->
       event
 
     describe "when a file is dragged to window", ->

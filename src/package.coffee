@@ -325,7 +325,7 @@ class Package
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []
-    disabledHandler = -> return
+    disabledHandler = ->
     $ ?= require('./space-pen-extensions').$
     element = $(event.target)
     while element.length

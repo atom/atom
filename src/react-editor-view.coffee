@@ -226,13 +226,13 @@ class ReactEditorView extends View
   setInputEnabled: (inputEnabled) ->
     @component.setInputEnabled(inputEnabled)
 
-  requestDisplayUpdate: -> return # No-op shim for find-and-replace
+  requestDisplayUpdate: -> # No-op shim for find-and-replace
 
-  updateDisplay: -> return        # No-op shim for package specs
+  updateDisplay: ->        # No-op shim for package specs
 
-  resetDisplay: -> return         # No-op shim for package specs
+  resetDisplay: ->         # No-op shim for package specs
 
-  redraw: -> return               # No-op shim
+  redraw: ->               # No-op shim
 
   setPlaceholderText: (placeholderText) ->
     if @component?

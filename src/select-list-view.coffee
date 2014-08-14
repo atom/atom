@@ -177,7 +177,7 @@ class SelectListView extends View
   # Public: Set the maximum numbers of items to display in the list.
   #
   # maxItems - The maximum {Number} of items to display.
-  setMaxItems: (@maxItems) -> return
+  setMaxItems: (@maxItems) ->
 
   selectPreviousItemView: ->
     view = @getSelectedItemView().prev()
@@ -256,7 +256,7 @@ class SelectListView extends View
   # editor.
   #
   # Returns the property name to fuzzy filter by.
-  getFilterKey: -> return
+  getFilterKey: ->
 
   # Public: Focus the fuzzy filter editor view.
   focusFilterEditor: ->

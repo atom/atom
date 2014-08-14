@@ -84,7 +84,7 @@ class AtomReporter extends View
     else
       @message.text "#{@failedCount} failures"
 
-  reportSuiteResults: (suite) -> return
+  reportSuiteResults: (suite) ->
 
   reportSpecResults: (spec) ->
     @completeSpecCount++

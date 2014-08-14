@@ -90,7 +90,7 @@ class TokenizedBuffer extends Model
   # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (@tabLength) -> return
+  setTabLength: (@tabLength) ->
 
   setInvisibles: (invisibles) ->
     if invisibles isnt @invisibles

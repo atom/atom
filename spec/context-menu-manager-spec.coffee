@@ -161,7 +161,7 @@ describe "ContextMenuManager", ->
   describe "executeBuildHandlers", ->
     menuTemplate = [
         label: 'label'
-        executeAtBuild: -> return
+        executeAtBuild: ->
       ]
     event =
       target: null
