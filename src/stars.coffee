@@ -45,7 +45,7 @@ class Stars extends Command
         @requestStarredPackages(requestSettings, callback)
 
   requestStarredPackages: (requestSettings, callback) ->
-    request.get requestSettings, (error, response, body={}) ->
+    request.get requestSettings, (error, response, body=[]) ->
       if error?
         callback(error)
       else if response.statusCode is 200
