@@ -212,6 +212,7 @@ class Atom extends Model
   #   :height - The new height.
   #   :maximized - A {Boolean} for the maximized window state.
   setWindowDimensions: ({x, y, width, height, maximized}) ->
+    # Maximized state only applies on Windows and Linux
     if maximized and process.platform isnt 'darwin'
       @maximize()
     else
