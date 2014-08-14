@@ -198,6 +198,7 @@ class Publish extends Command
   #
   # pack - The package metadata.
   # tag - The Git tag string of the package version to publish.
+  # options - An options Object (optional).
   # callback - The callback function to invoke when done with an error as the
   #            first argument.
   publishPackage: (pack, tag, remaining...) ->
