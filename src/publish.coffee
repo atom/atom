@@ -330,7 +330,7 @@ class Publish extends Command
                   # current name, not the new one, or it will 404.
                   rename = pack.name
                   pack.name = originalName
-                @publishPackage pack, tag, {rename: rename},  (error) =>
+                @publishPackage pack, tag, {rename},  (error) =>
                   if firstTimePublishing and not error?
                     @logFirstTimePublishMessage(pack)
                   callback(error)
