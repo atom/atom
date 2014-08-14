@@ -460,7 +460,8 @@ class Atom extends Model
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @workspaceView.fullScreen
+      @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if @workspace.maximized and process.platform isnt 'darwin'
 
   # Public: Close the current window.
   close: ->
@@ -497,6 +498,12 @@ class Atom extends Model
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
+
+  maximize: ->
+    ipc.send('call-window-method', 'maximize')
+
+  isMaximized: ->
+    @getCurrentWindow().isMaximized()
 
   # Public: Get the version of the Atom application.
   #
