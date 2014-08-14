@@ -210,18 +210,13 @@ class Atom extends Model
   #   :y - The new y coordinate.
   #   :width - The new width.
   #   :height - The new height.
-  #   :maximized - A {Boolean} for the maximized window state.
-  setWindowDimensions: ({x, y, width, height, maximized}) ->
-    # Maximized state only applies on Windows and Linux
-    if maximized and process.platform isnt 'darwin'
-      @maximize()
+  setWindowDimensions: ({x, y, width, height}) ->
+    if width? and height?
+      @setSize(width, height)
+    if x? and y?
+      @setPosition(x, y)
     else
-      if width? and height?
-        @setSize(width, height)
-      if x? and y?
-        @setPosition(x, y)
-      else
-        @center()
+      @center()
 
   # Returns true if the dimensions are useable, false if they should be ignored.
   # Work around for https://github.com/atom/atom-shell/issues/473
@@ -255,6 +250,7 @@ class Atom extends Model
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
+    dimensions
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
@@ -304,7 +300,7 @@ class Atom extends Model
     CommandInstaller.installApmCommand resourcePath, false, (error) ->
       console.warn error.message if error?
 
-    @restoreWindowDimensions()
+    dimensions = @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
@@ -317,7 +313,7 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    @displayWindow()
+    @displayWindow(maximize: dimensions?.maximized)
 
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
@@ -462,11 +458,12 @@ class Atom extends Model
   #
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
-  displayWindow: ->
+  displayWindow: ({maximize}={})->
     setImmediate =>
       @show()
       @focus()
       @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if maximize
 
   # Public: Close the current window.
   close: ->
