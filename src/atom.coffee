@@ -506,9 +506,6 @@ class Atom extends Model
   maximize: ->
     ipc.send('call-window-method', 'maximize')
 
-  isMaximized: ->
-    @getCurrentWindow().isMaximized()
-
   # Public: Get the version of the Atom application.
   #
   # Returns the version text {String}.
