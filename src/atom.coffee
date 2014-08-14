@@ -196,7 +196,8 @@ class Atom extends Model
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
     [width, height] = browserWindow.getSize()
-    {x, y, width, height}
+    maximized = browserWindow.isMaximized()
+    {x, y, width, height, maximized}
 
   # Public: Set the dimensions of the window.
   #
@@ -249,6 +250,7 @@ class Atom extends Model
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
+    dimensions
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
@@ -298,7 +300,7 @@ class Atom extends Model
     CommandInstaller.installApmCommand resourcePath, false, (error) ->
       console.warn error.message if error?
 
-    @restoreWindowDimensions()
+    dimensions = @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
@@ -311,7 +313,8 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    @displayWindow()
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
+    @displayWindow({maximize})
 
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
@@ -456,11 +459,12 @@ class Atom extends Model
   #
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
-  displayWindow: ->
+  displayWindow: ({maximize}={})->
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @workspaceView.fullScreen
+      @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if maximize
 
   # Public: Close the current window.
   close: ->
@@ -497,6 +501,9 @@ class Atom extends Model
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
+
+  maximize: ->
+    ipc.send('call-window-method', 'maximize')
 
   # Public: Get the version of the Atom application.
   #
