@@ -15,6 +15,7 @@ describe "apm init", ->
     spyOn(process, 'cwd').andReturn(currentDir)
     packagePath = path.join(currentDir, 'fake-package')
     themePath = path.join(currentDir, 'fake-theme')
+    process.env.GITHUB_USER = 'somebody'
 
   describe "when creating a package", ->
     it "generates the proper file structure", ->
@@ -37,6 +38,8 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
+        expect(JSON.parse(fs.readFileSync(path.join(packagePath, 'package.json'))).name).toBe 'fake-package'
+        expect(JSON.parse(fs.readFileSync(path.join(packagePath, 'package.json'))).repository).toBe 'https://github.com/somebody/fake-package'
 
     describe "when converting a TextMate bundle", ->
       beforeEach ->
@@ -56,6 +59,8 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(packagePath, 'README.md'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'package.json'))).toBeTruthy()
         expect(fs.existsSync(path.join(packagePath, 'LICENSE.md'))).toBeFalsy()
+        expect(JSON.parse(fs.readFileSync(path.join(packagePath, 'package.json'))).name).toBe 'fake-package'
+        expect(JSON.parse(fs.readFileSync(path.join(packagePath, 'package.json'))).repository).toBe 'https://github.com/somebody/fake-package'
         expect(CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.rd.tm']['Attach']).toEqual {
           body: 'attach($1) *outlet'
           prefix: 'att'
@@ -87,6 +92,8 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(themePath, 'index.less'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
         expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
+        expect(JSON.parse(fs.readFileSync(path.join(themePath, 'package.json'))).name).toBe 'fake-theme'
+        expect(JSON.parse(fs.readFileSync(path.join(themePath, 'package.json'))).repository).toBe 'https://github.com/somebody/fake-theme'
 
     describe "when converting a TextMate theme", ->
       it "generates the proper file structure", ->
@@ -122,6 +129,8 @@ describe "apm init", ->
           expect(fs.existsSync(path.join(themePath, 'README.md'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'package.json'))).toBeTruthy()
           expect(fs.existsSync(path.join(themePath, 'LICENSE.md'))).toBeFalsy()
+          expect(JSON.parse(fs.readFileSync(path.join(themePath, 'package.json'))).name).toBe 'fake-theme'
+          expect(JSON.parse(fs.readFileSync(path.join(themePath, 'package.json'))).repository).toBe 'https://github.com/somebody/fake-theme'
 
       it "logs an error if it doesn't have all the required color settings", ->
         callback = jasmine.createSpy('callback')

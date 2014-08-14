@@ -92,6 +92,7 @@ class Init extends Command
 
   generateFromTemplate: (packagePath, templatePath) ->
     packageName = path.basename(packagePath)
+    packageAuthor = process.env.GITHUB_USER or 'atom'
 
     fs.makeTreeSync(packagePath)
 
@@ -109,8 +110,12 @@ class Init extends Command
       else if fs.isFileSync(templateChildPath)
         fs.makeTreeSync(path.dirname(sourcePath))
         contents = fs.readFileSync(templateChildPath).toString()
-        content = @replacePackageNamePlaceholders(contents, packageName)
-        fs.writeFileSync(sourcePath, content)
+        contents = @replacePackageNamePlaceholders(contents, packageName)
+        contents = @replacePackageAuthorPlaceholders(contents, packageAuthor)
+        fs.writeFileSync(sourcePath, contents)
+
+  replacePackageAuthorPlaceholders: (string, packageAuthor) ->
+    string.replace(/__package-author__/g, packageAuthor)
 
   replacePackageNamePlaceholders: (string, packageName) ->
     placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g
