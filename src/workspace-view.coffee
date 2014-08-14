@@ -110,6 +110,7 @@ class WorkspaceView extends View
     atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
+    @on 'pane:active-item-modified-changed', '.active.pane', => @updateDocumentEdited()
 
     @command 'application:about', -> ipc.send('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
@@ -210,19 +211,29 @@ class WorkspaceView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Updates the application's title, based on whichever file is open.
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
       if item = @getModel().getActivePaneItem()
-        @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
+        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        proxyIconPath = item.getPath?() ? ''
+        @setTitle(title, proxyIconPath)
       else
-        @setTitle(projectPath)
+        @setTitle(projectPath, projectPath)
     else
       @setTitle('untitled')
 
-  # Sets the application's title.
-  setTitle: (title) ->
+  # Sets the application's title (and the proxy icon on OS X)
+  setTitle: (title, proxyIconPath) ->
     document.title = title
+    atom.getCurrentWindow().setRepresentedFilename(proxyIconPath ? '')
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: ->
+    modified = @getModel().getActivePaneItem()?.isModified?() ? false
+    atom.getCurrentWindow().setDocumentEdited modified
 
   # Get all editor views.
   #
