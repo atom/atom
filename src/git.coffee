@@ -106,7 +106,7 @@ class Git
 
     if atom.config.get('editor.confirmCheckoutHead')
       atom.confirm
-        message: 'Confirm Discard Changes'
+        message: 'Confirm Checkout HEAD Revision'
         detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\" since the last Git commit?"
         buttons:
           OK: checkoutHead
