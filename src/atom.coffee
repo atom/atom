@@ -451,6 +451,7 @@ class Atom extends Model
   center: ->
     ipc.send('call-window-method', 'center')
 
+
   # Schedule the window to be shown and focused on the next tick.
   #
   # This is done in a next tick to prevent a white flicker from occurring
@@ -469,6 +470,9 @@ class Atom extends Model
     app = remote.require('app')
     app.emit('will-exit')
     remote.process.exit(status)
+
+  setDocumentEdited: (edited) ->
+    ipc.send('call-window-method', 'setDocumentEdited', edited)
 
   # Public: Is the current window in development mode?
   inDevMode: ->

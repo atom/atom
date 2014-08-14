@@ -232,8 +232,8 @@ class WorkspaceView extends View
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
   updateDocumentEdited: ->
-    modified = @getModel().getActivePaneItem()?.isModified?() ? false
-    atom.getCurrentWindow().setDocumentEdited modified
+    modified = @model.getActivePaneItem()?.isModified?() ? false
+    atom.setDocumentEdited(modified)
 
   # Get all editor views.
   #
