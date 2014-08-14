@@ -212,8 +212,11 @@ class WorkspaceView extends View
 
   # Updates the application's title, based on whichever file is open.
   updateTitle: ->
+    item = @getModel().getActivePaneItem()
+    atom.getCurrentWindow().setRepresentedFilename(item?.getPath?() ? "")
+
     if projectPath = atom.project.getPath()
-      if item = @getModel().getActivePaneItem()
+      if item?
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
         @setTitle(projectPath)
