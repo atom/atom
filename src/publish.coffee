@@ -202,6 +202,7 @@ class Publish extends Command
   #            first argument.
   publishPackage: (pack, tag, remaining...) ->
     options = remaining.shift() if remaining.length >= 2
+    options ?= {}
     callback = remaining.shift()
 
     process.stdout.write "Publishing #{options.rename or pack.name}@#{tag} "
