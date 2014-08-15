@@ -16,8 +16,6 @@ class Token
   scopes: null
   isAtomic: null
   isHardTab: null
-  hasLeadingWhitespace: false
-  hasTrailingWhitespace: false
   firstNonWhitespaceIndex: null
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
@@ -34,9 +32,26 @@ class Token
     /^meta\.brace\b/.test(_.last(@scopes))
 
   splitAt: (splitIndex) ->
-    value1 = @value.substring(0, splitIndex)
-    value2 = @value.substring(splitIndex)
-    [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
+    leftToken = new Token(value: @value.substring(0, splitIndex), scopes: @scopes)
+    rightToken = new Token(value: @value.substring(splitIndex), scopes: @scopes)
+
+    if @firstNonWhitespaceIndex?
+      leftToken.firstNonWhitespaceIndex = Math.min(splitIndex, @firstNonWhitespaceIndex)
+      leftToken.hasInvisibleCharacters = @hasInvisibleCharacters
+
+      if @firstNonWhitespaceIndex > splitIndex
+        rightToken.firstNonWhitespaceIndex = @firstNonWhitespaceIndex - splitIndex
+        rightToken.hasInvisibleCharacters = @hasInvisibleCharacters
+
+    if @firstTrailingWhitespaceIndex?
+      rightToken.firstTrailingWhitespaceIndex = Math.max(0, @firstTrailingWhitespaceIndex - splitIndex)
+      rightToken.hasInvisibleCharacters = @hasInvisibleCharacters
+
+      if @firstTrailingWhitespaceIndex < splitIndex
+        leftToken.firstTrailingWhitespaceIndex = @firstTrailingWhitespaceIndex
+        leftToken.hasInvisibleCharacters = @hasInvisibleCharacters
+
+    [leftToken, rightToken]
 
   whitespaceRegexForTabLength: (tabLength) ->
     WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
@@ -148,7 +163,7 @@ class Token
       leadingHtml = ''
       trailingHtml = ''
 
-      if @hasLeadingWhitespace
+      if @hasLeadingWhitespace()
         leadingWhitespace = @value.substring(0, @firstNonWhitespaceIndex)
 
         classes = 'leading-whitespace'
@@ -158,12 +173,12 @@ class Token
         leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
         startIndex = @firstNonWhitespaceIndex
 
-      if @hasTrailingWhitespace
+      if @hasTrailingWhitespace()
         tokenIsOnlyWhitespace = @firstTrailingWhitespaceIndex is 0
         trailingWhitespace = @value.substring(@firstTrailingWhitespaceIndex)
 
         classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace and tokenIsOnlyWhitespace
+        classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace() and tokenIsOnlyWhitespace
         classes += ' invisible-character' if @hasInvisibleCharacters
 
         trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
@@ -198,3 +213,9 @@ class Token
       when '<' then '&lt;'
       when '>' then '&gt;'
       else match
+
+  hasLeadingWhitespace: ->
+    @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
+
+  hasTrailingWhitespace: ->
+    @firstTrailingWhitespaceIndex? and @firstTrailingWhitespaceIndex < @value.length

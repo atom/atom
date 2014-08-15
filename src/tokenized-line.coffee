@@ -150,11 +150,9 @@ class TokenizedLine
     index = 0
     for token in @tokens
       if index < firstNonWhitespaceIndex
-        token.hasLeadingWhitespace = true
         token.firstNonWhitespaceIndex = Math.min(index + token.value.length, firstNonWhitespaceIndex - index)
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
       if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
-        token.hasTrailingWhitespace = true
         token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
       index += token.value.length
 
@@ -170,12 +168,12 @@ class TokenizedLine
           changedText = true
       else
         if invisibles.space
-          if token.hasLeadingWhitespace
+          if token.hasLeadingWhitespace()
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true
             changedText = true
-          if token.hasTrailingWhitespace
+          if token.hasTrailingWhitespace()
             token.value = token.value.replace TrailingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true

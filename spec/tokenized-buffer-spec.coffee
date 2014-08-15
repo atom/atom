@@ -629,53 +629,37 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
-    it "sets ::hasLeadingWhitespace to true and assigns ::firstNonWhitespaceIndex on tokens that have leading whitespace", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].hasLeadingWhitespace).toBe false
+    it "assigns ::firstNonWhitespaceIndex on tokens that have leading whitespace", ->
       expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].firstNonWhitespaceIndex).toBe null
-
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].hasLeadingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].firstNonWhitespaceIndex).toBe 2
-
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].hasLeadingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].firstNonWhitespaceIndex).toBe null
 
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].hasLeadingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].firstNonWhitespaceIndex).toBe 2
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].hasLeadingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].firstNonWhitespaceIndex).toBe 2
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].hasLeadingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].firstNonWhitespaceIndex).toBe null
 
       # The 4th token *has* leading whitespace, but isn't entirely whitespace
       buffer.insert([5, 0], ' ')
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].hasLeadingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].firstNonWhitespaceIndex).toBe 1
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].hasLeadingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].firstNonWhitespaceIndex).toBe null
 
       # Lines that are *only* whitespace are not considered to have leading whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstNonWhitespaceIndex).toBe null
 
-    it "sets ::hasTrailingWhitespace to true and assigns ::firstTrailingWhitespaceIndex on tokens that have trailing whitespace", ->
+    it "assigns ::firstTrailingWhitespaceIndex on tokens that have trailing whitespace", ->
       buffer.insert([0, Infinity], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].hasTrailingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].firstTrailingWhitespaceIndex).toBe null
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].hasTrailingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].firstTrailingWhitespaceIndex).toBe 0
 
       # The last token *has* trailing whitespace, but isn't entirely whitespace
       buffer.setTextInRange([[2, 39], [2, 40]], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].hasTrailingWhitespace).toBe false
       expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].firstTrailingWhitespaceIndex).toBe null
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].hasTrailingWhitespace).toBe true
       console.log tokenizedBuffer.lineForScreenRow(2).tokens[15]
       expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].firstTrailingWhitespaceIndex).toBe 6
 
       # Lines that are *only* whitespace are considered to have trailing whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasTrailingWhitespace).toBe true
       expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstTrailingWhitespaceIndex).toBe 0
 
     it "only marks trailing whitespace on the last segment of a soft-wrapped line", ->
@@ -683,10 +667,8 @@ describe "TokenizedBuffer", ->
       tokenizedLine = tokenizedBuffer.lineForScreenRow(0)
       [segment1, segment2] = tokenizedLine.softWrapAt(16)
       expect(segment1.tokens[5].value).toBe ' '
-      expect(segment1.tokens[5].hasTrailingWhitespace).toBe false
       expect(segment1.tokens[5].firstTrailingWhitespaceIndex).toBe null
       expect(segment2.tokens[6].value).toBe '  '
-      expect(segment2.tokens[6].hasTrailingWhitespace).toBe true
       expect(segment2.tokens[6].firstTrailingWhitespaceIndex).toBe 0
 
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
@@ -696,8 +678,23 @@ describe "TokenizedBuffer", ->
       fullyTokenize(tokenizedBuffer)
 
       line = tokenizedBuffer.lineForScreenRow(0).copy()
-      expect(line.tokens[0].hasLeadingWhitespace).toBe true
-      expect(line.tokens[line.tokens.length - 1].hasTrailingWhitespace).toBe true
+      expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
+
+    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
+      tokenizedBuffer.setInvisibles(space: 'S')
+      buffer.setText(" token ")
+      fullyTokenize(tokenizedBuffer)
+      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
+
+      [leftToken, rightToken] = token.splitAt(1)
+      expect(leftToken.hasInvisibleCharacters).toBe true
+      expect(leftToken.firstNonWhitespaceIndex).toBe 1
+      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
+
+      expect(leftToken.hasInvisibleCharacters).toBe true
+      expect(rightToken.firstNonWhitespaceIndex).toBe null
+      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
 
   describe "indent level", ->
     beforeEach ->
