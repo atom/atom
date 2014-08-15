@@ -981,7 +981,7 @@ class DisplayBuffer extends Model
     @tokenizedBuffer.destroy()
     @unsubscribe()
 
-  logLines: (start=0, end=@getLastRow())->
+  logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
       line = @lineForRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length

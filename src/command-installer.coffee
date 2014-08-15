@@ -41,7 +41,7 @@ module.exports =
         callback()
         return
 
-      symlinkCommand commandPath, destinationPath, (error) =>
+      symlinkCommand commandPath, destinationPath, (error) ->
         if askForPrivilege and error?.code is 'EACCES'
           try
             error = null

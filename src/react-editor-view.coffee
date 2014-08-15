@@ -181,13 +181,13 @@ class ReactEditorView extends View
   getFontFamily: ->
     @component?.getFontFamily()
 
-  setFontFamily: (fontFamily)->
+  setFontFamily: (fontFamily) ->
     @component?.setFontFamily(fontFamily)
 
   getFontSize: ->
     @component?.getFontSize()
 
-  setFontSize: (fontSize)->
+  setFontSize: (fontSize) ->
     @component?.setFontSize(fontSize)
 
   setWidthInChars: (widthInChars) ->
@@ -228,11 +228,11 @@ class ReactEditorView extends View
 
   requestDisplayUpdate: -> # No-op shim for find-and-replace
 
-  updateDisplay: -> # No-op shim for package specs
+  updateDisplay: ->        # No-op shim for package specs
 
-  resetDisplay: -> # No-op shim for package specs
+  resetDisplay: ->         # No-op shim for package specs
 
-  redraw: -> # No-op shim
+  redraw: ->               # No-op shim
 
   setPlaceholderText: (placeholderText) ->
     if @component?

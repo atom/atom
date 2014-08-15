@@ -39,7 +39,7 @@ class Config
 
     fs.makeTreeSync(@configDirPath)
 
-    queue = async.queue ({sourcePath, destinationPath}, callback) =>
+    queue = async.queue ({sourcePath, destinationPath}, callback) ->
       fs.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 

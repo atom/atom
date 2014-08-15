@@ -120,7 +120,7 @@ class Cursor extends Model
   #                               (default: true)
   #
   # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={})->
+  wordRegExp: ({includeNonWordCharacters}={}) ->
     includeNonWordCharacters ?= true
     nonWordCharacters = atom.config.get('editor.nonWordCharacters')
     segments = ["^[\t ]*$"]
@@ -286,7 +286,7 @@ class Cursor extends Model
     position = @getBufferPosition()
     scanRange = @getCurrentLineBufferRange()
     endOfLeadingWhitespace = null
-    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) =>
+    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
       endOfLeadingWhitespace = range.end
 
     @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
@@ -342,7 +342,7 @@ class Cursor extends Model
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
       if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = range.start
       if not beginningOfWordPosition?.isEqual(currentBufferPosition)
@@ -363,7 +363,7 @@ class Cursor extends Model
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
       if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
         # force it to stop at the beginning of each line
         beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
@@ -384,7 +384,7 @@ class Cursor extends Model
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
       if range.start.row > currentBufferPosition.row
         # force it to stop at the beginning of each line
         endOfWordPosition = new Point(range.start.row, 0)
@@ -414,7 +414,7 @@ class Cursor extends Model
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
       if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
         endOfWordPosition = range.end
       if not endOfWordPosition?.isEqual(currentBufferPosition)
@@ -435,7 +435,7 @@ class Cursor extends Model
     scanRange = [start, @editor.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
       beginningOfNextWordPosition = range.start
       stop()
 
@@ -477,7 +477,7 @@ class Cursor extends Model
     {row, column} = eof
     position = new Point(row, column - 1)
 
-    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) =>
+    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
       if !range.start.isEqual(start)
         position = range.start
         stop()
@@ -490,7 +490,7 @@ class Cursor extends Model
     scanRange = [[row-1, column], [0,0]]
     position = new Point(0, 0)
     zero = new Point(0,0)
-    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) =>
+    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
       if !range.start.isEqual(zero)
         position = range.start
         stop()

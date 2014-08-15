@@ -101,7 +101,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) -> window.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)
