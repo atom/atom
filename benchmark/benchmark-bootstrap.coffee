@@ -1,6 +1,6 @@
 require '../src/window'
 Atom = require '../src/atom'
-atom = new Atom()
+window.atom = Atom.loadOrCreate('spec')
 atom.show() unless atom.getLoadSettings().exitWhenDone
 window.atom = atom
 
@@ -9,5 +9,4 @@ window.atom = atom
 atom.openDevTools()
 
 document.title = "Benchmark Suite"
-benchmarkSuite = require.resolve('./benchmark-suite')
-runSpecSuite(benchmarkSuite, true)
+runSpecSuite('../benchmark/benchmark-suite', atom.getLoadSettings().logFile)
