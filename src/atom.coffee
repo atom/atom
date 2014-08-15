@@ -459,7 +459,7 @@ class Atom extends Model
   #
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
-  displayWindow: ({maximize}={})->
+  displayWindow: ({maximize}={}) ->
     setImmediate =>
       @show()
       @focus()

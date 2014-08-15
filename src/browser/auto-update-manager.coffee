@@ -74,7 +74,7 @@ class AutoUpdateManager
   getState: ->
     @state
 
-  check: ({hidePopups}={})->
+  check: ({hidePopups}={}) ->
     unless hidePopups
       autoUpdater.once 'update-not-available', @onUpdateNotAvailable
       autoUpdater.once 'error', @onUpdateError

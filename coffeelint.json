@@ -4,5 +4,15 @@
   },
   "no_empty_param_list": {
     "level": "error"
+  },
+  "arrow_spacing": {
+    "level": "warn"
+  },
+  "line_endings": {
+    "level": "error",
+    "value": "unix"
+  },
+  "no_interpolation_in_single_quotes": {
+    "level": "error"
   }
 }
