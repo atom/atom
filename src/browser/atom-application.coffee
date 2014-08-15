@@ -407,14 +407,17 @@ class AtomApplication
     safeMode ?= false
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
 
-  runBenchmarks: ->
+  runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
+    specDirectory ?= path.dirname(bootstrapScript)
+
     isSpec = true
-    new AtomWindow({bootstrapScript, @resourcePath, isSpec})
+    devMode = true
+    new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
   locationForPathToOpen: (pathToOpen) ->
     return {pathToOpen} unless pathToOpen
