@@ -39,6 +39,10 @@ Run in terminal:
 
 #### Arch
 
+Make sure you have `wget` installed:
+
+    # pacman -S wget --needed
+
 Install `atom-editor` package from AUR:
 
     wget https://aur.archlinux.org/packages/at/atom-editor/atom-editor.tar.gz
