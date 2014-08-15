@@ -1,7 +1,9 @@
 require '../spec/spec-helper'
 
 path = require 'path'
-{$, _, Point, fs} = require 'atom'
+{$, Point} = require 'atom'
+_ = require 'underscore-plus'
+fs = require 'fs-plus'
 Project = require '../src/project'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
