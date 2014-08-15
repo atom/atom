@@ -6,7 +6,7 @@
     "level": "error"
   },
   "arrow_spacing": {
-    "level": "warn"
+    "level": "error"
   },
   "line_endings": {
     "level": "error",
