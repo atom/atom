@@ -45,6 +45,7 @@ class TokenizedBuffer extends Model
   serializeParams: ->
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
+    invisibles: _.clone(@invisibles)
 
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
@@ -93,7 +94,7 @@ class TokenizedBuffer extends Model
   setTabLength: (@tabLength) ->
 
   setInvisibles: (invisibles) ->
-    if invisibles isnt @invisibles
+    unless _.isEqual(invisibles, @invisibles)
       @invisibles = invisibles
       @retokenizeLines()
 

@@ -168,6 +168,7 @@ class Editor extends Model
     if @shouldShowInvisibles()
       invisibles = atom.config.get('editor.invisibles')
 
+    @displayBuffer?.setInvisibles(invisibles)
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap, invisibles})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true

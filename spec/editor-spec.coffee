@@ -1,4 +1,5 @@
 clipboard = require 'clipboard'
+Editor = require '../src/editor'
 
 describe "Editor", ->
   [buffer, editor, lineLengths] = []
@@ -32,6 +33,26 @@ describe "Editor", ->
       expect(editor2.getSelection(1).isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
+
+    it "preserves the invisibles setting", ->
+      atom.config.set('editor.showInvisibles', true)
+      previousInvisibles = editor.displayBuffer.invisibles
+
+      editor2 = editor.testSerialization()
+
+      expect(editor2.displayBuffer.invisibles).toEqual previousInvisibles
+      expect(editor2.displayBuffer.tokenizedBuffer.invisibles).toEqual previousInvisibles
+
+    it "updates invisibles if the settings have changed between serialization and deserialization", ->
+      atom.config.set('editor.showInvisibles', true)
+      previousInvisibles = editor.displayBuffer.invisibles
+
+      state = editor.serialize()
+      atom.config.set('editor.invisibles', eol: '?')
+      editor2 = Editor.deserialize(state)
+
+      expect(editor2.displayBuffer.invisibles.eol).toBe '?'
+      expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'
 
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->
