@@ -135,7 +135,7 @@ class AtomApplication
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
@@ -387,11 +387,13 @@ class AtomApplication
   # Opens up a new {AtomWindow} to run specs within.
   #
   # options -
-  #   :exitWhenDone - A Boolean that if true, will close the window upon
+  #   :exitWhenDone - A Boolean that, if true, will close the window upon
   #                   completion.
   #   :resourcePath - The path to include specs from.
   #   :specPath - The directory to load specs from.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile}) ->
+  #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
+  #               and ~/.atom/dev/packages, defaults to false.
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -402,16 +404,20 @@ class AtomApplication
 
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile})
+    safeMode ?= false
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
 
-  runBenchmarks: ->
+  runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
       bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
+    specDirectory ?= path.dirname(bootstrapScript)
+
     isSpec = true
-    new AtomWindow({bootstrapScript, @resourcePath, isSpec})
+    devMode = true
+    new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
   locationForPathToOpen: (pathToOpen) ->
     return {pathToOpen} unless pathToOpen

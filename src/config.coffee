@@ -39,7 +39,7 @@ class Config
 
     fs.makeTreeSync(@configDirPath)
 
-    queue = async.queue ({sourcePath, destinationPath}, callback) =>
+    queue = async.queue ({sourcePath, destinationPath}, callback) ->
       fs.copy(sourcePath, destinationPath, callback)
     queue.drain = done
 
@@ -103,8 +103,19 @@ class Config
   # Returns the value from Atom's default settings, the user's configuration
   # file, or `null` if the key doesn't exist in either.
   get: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
-    _.deepClone(value)
+    value = _.valueForKeyPath(@settings, keyPath)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+
+    if value?
+      value = _.deepClone(value)
+      valueIsObject = _.isObject(value) and not _.isArray(value)
+      defaultValueIsObject = _.isObject(defaultValue) and not _.isArray(defaultValue)
+      if valueIsObject and defaultValueIsObject
+        _.defaults(value, defaultValue)
+    else
+      value = _.deepClone(defaultValue)
+
+    value
 
   # Public: Retrieves the setting for the given key as an integer.
   #

@@ -28,7 +28,7 @@ atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
 
 $(window).on 'core:close', -> window.close()
-$(window).on 'unload', ->
+$(window).on 'beforeunload', ->
   atom.storeWindowDimensions()
   atom.saveSync()
 $('html,body').css('overflow', 'auto')
@@ -96,6 +96,7 @@ beforeEach ->
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.set "core.useReactEditor", true
+  config.set "core.useReactMiniEditors", true
   config.save.reset()
   atom.config = config
 
@@ -210,6 +211,13 @@ addCustomMatchers = (spec) ->
       element = @actual
       element = element.get(0) if element.jquery
       element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
+
+    toShow: ->
+      notText = if @isNot then " not" else ""
+      element = @actual
+      element = element.get(0) if element.jquery
+      @message = -> return "Expected element '#{element}' or its descendants #{notText} to show."
+      element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

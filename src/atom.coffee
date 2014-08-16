@@ -156,7 +156,7 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
-    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath})
+    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager(devMode)
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
@@ -196,7 +196,8 @@ class Atom extends Model
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
     [width, height] = browserWindow.getSize()
-    {x, y, width, height}
+    maximized = browserWindow.isMaximized()
+    {x, y, width, height, maximized}
 
   # Public: Set the dimensions of the window.
   #
@@ -249,6 +250,7 @@ class Atom extends Model
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
+    dimensions
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
@@ -298,7 +300,7 @@ class Atom extends Model
     CommandInstaller.installApmCommand resourcePath, false, (error) ->
       console.warn error.message if error?
 
-    @restoreWindowDimensions()
+    dimensions = @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
     @config.setDefaults('editor', require('./editor-view').configDefaults)
@@ -311,12 +313,8 @@ class Atom extends Model
     @requireUserInitScript()
     @menu.update()
 
-    $(window).on 'unload', =>
-      $(document.body).css('visibility', 'hidden')
-      @unloadEditorWindow()
-      false
-
-    @displayWindow()
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
+    @displayWindow({maximize})
 
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
@@ -327,12 +325,17 @@ class Atom extends Model
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
     @saveSync()
-    @workspaceView.remove()
-    @workspaceView = null
-    @project.destroy()
-    @windowEventHandler?.unsubscribe()
-    @keymaps.destroy()
     @windowState = null
+
+  removeEditorWindow: ->
+    return if not @project and not @workspaceView
+
+    @workspaceView?.remove()
+    @workspaceView = null
+    @project?.destroy()
+    @project = null
+
+    @windowEventHandler?.unsubscribe()
 
   loadThemes: ->
     @themes.load()
@@ -451,15 +454,17 @@ class Atom extends Model
   center: ->
     ipc.send('call-window-method', 'center')
 
+
   # Schedule the window to be shown and focused on the next tick.
   #
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
-  displayWindow: ->
+  displayWindow: ({maximize}={})->
     setImmediate =>
       @show()
       @focus()
-      @setFullScreen(true) if @workspaceView.fullScreen
+      @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if maximize
 
   # Public: Close the current window.
   close: ->
@@ -469,6 +474,12 @@ class Atom extends Model
     app = remote.require('app')
     app.emit('will-exit')
     remote.process.exit(status)
+
+  setDocumentEdited: (edited) ->
+    ipc.send('call-window-method', 'setDocumentEdited', edited)
+
+  setRepresentedFilename: (filename) ->
+    ipc.send('call-window-method', 'setRepresentedFilename', filename)
 
   # Public: Is the current window in development mode?
   inDevMode: ->
@@ -490,6 +501,9 @@ class Atom extends Model
   # Public: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
+
+  maximize: ->
+    ipc.send('call-window-method', 'maximize')
 
   # Public: Get the version of the Atom application.
   #

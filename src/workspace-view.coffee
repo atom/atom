@@ -72,6 +72,7 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: true
     useReactEditor: true
+    useReactMiniEditors: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
@@ -110,6 +111,7 @@ class WorkspaceView extends View
     atom.project.on 'path-changed', => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
+    @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
 
     @command 'application:about', -> ipc.send('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
@@ -210,19 +212,28 @@ class WorkspaceView extends View
   confirmClose: ->
     @panes.confirmClose()
 
-  # Updates the application's title, based on whichever file is open.
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
   updateTitle: ->
     if projectPath = atom.project.getPath()
       if item = @getModel().getActivePaneItem()
-        @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
+        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        @setTitle(title, item.getPath?())
       else
-        @setTitle(projectPath)
+        @setTitle(projectPath, projectPath)
     else
       @setTitle('untitled')
 
-  # Sets the application's title.
-  setTitle: (title) ->
+  # Sets the application's title (and the proxy icon on OS X)
+  setTitle: (title, proxyIconPath='') ->
     document.title = title
+    atom.setRepresentedFilename(proxyIconPath)
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: ->
+    modified = @model.getActivePaneItem()?.isModified?() ? false
+    atom.setDocumentEdited(modified)
 
   # Get all editor views.
   #

@@ -22,12 +22,12 @@ LinesComponent = React.createClass
     if performedInitialMeasurement
       {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects} = @props
+      {scrollTop, scrollLeft, cursorPixelRects, mini} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
+        backgroundColor: if mini then null else backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
@@ -60,7 +60,7 @@ LinesComponent = React.createClass
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
-      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'invisibles', 'visible',
+      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
       'placeholderText', 'performedInitialMeasurement', 'backgroundColor', 'cursorPixelRects'
     )
@@ -82,7 +82,7 @@ LinesComponent = React.createClass
     return unless performedInitialMeasurement
 
     @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
-    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide', 'invisibles')
+    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
     @updateLines(@props.lineWidth isnt prevProps.lineWidth)
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
@@ -170,34 +170,30 @@ LinesComponent = React.createClass
     lineHTML
 
   buildEmptyLineInnerHTML: (line) ->
-    {showIndentGuide, invisibles} = @props
-    {cr, eol} = invisibles
-    {indentLevel, tabLength} = line
+    {showIndentGuide} = @props
+    {indentLevel, tabLength, endOfLineInvisibles} = line
 
     if showIndentGuide and indentLevel > 0
-      invisiblesToRender = []
-      invisiblesToRender.push(cr) if cr? and line.lineEnding is '\r\n'
-      invisiblesToRender.push(eol) if eol?
-
+      invisibleIndex = 0
       lineHTML = ''
       for i in [0...indentLevel]
         lineHTML += "<span class='indent-guide'>"
         for j in [0...tabLength]
-          if invisible = invisiblesToRender.shift()
+          if invisible = endOfLineInvisibles?[invisibleIndex++]
             lineHTML += "<span class='invisible-character'>#{invisible}</span>"
           else
             lineHTML += ' '
         lineHTML += "</span>"
 
-      while invisiblesToRender.length
-        lineHTML += "<span class='invisible-character'>#{invisiblesToRender.shift()}</span>"
+      while invisibleIndex < endOfLineInvisibles?.length
+        lineHTML += "<span class='invisible-character'>#{line.endOfLineInvisibles[invisibleIndex++]}</span>"
 
       lineHTML
     else
-      @buildEndOfLineHTML(line, @props.invisibles) or '&nbsp;'
+      @buildEndOfLineHTML(line) or '&nbsp;'
 
   buildLineInnerHTML: (line) ->
-    {invisibles, mini, showIndentGuide, invisibles} = @props
+    {mini, showIndentGuide} = @props
     {tokens, text} = line
     innerHTML = ""
 
@@ -206,24 +202,20 @@ LinesComponent = React.createClass
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly))
-      innerHTML += token.getValueAsHtml({invisibles, hasIndentGuide})
+      hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
+      innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += @buildEndOfLineHTML(line, invisibles)
+    innerHTML += @buildEndOfLineHTML(line)
     innerHTML
 
-  buildEndOfLineHTML: (line, invisibles) ->
-    return '' if @props.mini or line.isSoftWrapped()
+  buildEndOfLineHTML: (line) ->
+    {endOfLineInvisibles} = line
 
     html = ''
-    # Note the lack of '?' in the character checks. A user can set the chars
-    # to an empty string which we will interpret as not-set
-    if invisibles.cr and line.lineEnding is '\r\n'
-      html += "<span class='invisible-character'>#{invisibles.cr}</span>"
-    if invisibles.eol
-      html += "<span class='invisible-character'>#{invisibles.eol}</span>"
-
+    if endOfLineInvisibles?
+      for invisible in endOfLineInvisibles
+        html += "<span class='invisible-character'>#{invisible}</span>"
     html
 
   updateScopeStack: (scopeStack, desiredScopes) ->

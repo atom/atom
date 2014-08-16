@@ -2414,37 +2414,6 @@ describe "EditorView", ->
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editorView.getFirstVisibleScreenRow()).toBe(0)
 
-  describe ".checkoutHead()", ->
-    [filePath] = []
-
-    beforeEach ->
-      workingDirPath = temp.mkdirSync('atom-working-dir')
-      fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
-      atom.project.setPath(workingDirPath)
-      filePath = atom.project.resolve('file.txt')
-
-      waitsForPromise ->
-        atom.workspace.open(filePath).then (o) -> editor = o
-
-      runs ->
-        editorView.edit(editor)
-
-    it "restores the contents of the editor view to the HEAD revision", ->
-      editor.setText('')
-      editor.save()
-
-      fileChangeHandler = jasmine.createSpy('fileChange')
-      editor.getBuffer().file.on 'contents-changed', fileChangeHandler
-
-      editorView.checkoutHead()
-
-      waitsFor "file to trigger contents-changed event", ->
-        fileChangeHandler.callCount > 0
-
-      runs ->
-        expect(editor.getText()).toBe('undefined')
-
   describe ".pixelPositionForBufferPosition(position)", ->
     describe "when the editor view is detached", ->
       it "returns top and left values of 0", ->
@@ -2998,8 +2967,8 @@ describe "EditorView", ->
         expect(editorView.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
 
     it "correctly calculates the position left for non-monospaced invisibles", ->
-      editorView.setShowInvisibles(true)
-      editorView.setInvisibles tab: '♘'
+      atom.config.set('editor.showInvisibles', true)
+      atom.config.set('editor.invisibles', tab: '♘')
       editor.setText('\tx')
 
       editorView.setFontFamily('serif')

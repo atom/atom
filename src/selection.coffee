@@ -381,7 +381,7 @@ class Selection extends Model
   # options - A {Object} with the keys:
   #   :autoIndent - If `true`, the line is indented to an automatically-inferred
   #                 level. Otherwise, {Editor::getTabText} is inserted.
-  indent: ({ autoIndent }={})->
+  indent: ({ autoIndent }={}) ->
     { row, column } = @cursor.getBufferPosition()
 
     if @isEmpty()

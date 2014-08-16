@@ -10,6 +10,7 @@ class ReactEditorView extends View
   @content: (params) ->
     attributes = params.attributes ? {}
     attributes.class = 'editor react editor-colors'
+    attributes.tabIndex = -1
     @div attributes
 
   focusOnAttach: false
@@ -29,6 +30,7 @@ class ReactEditorView extends View
         softWrap: false
         tabLength: 2
         softTabs: true
+        mini: mini
 
     props = defaults({@editor, parentView: this}, props)
     @component = React.renderComponent(EditorComponent(props), @element)
@@ -55,6 +57,11 @@ class ReactEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
+    @on 'focus', =>
+      if @component?
+        @component.onFocus()
+      else
+        @focusOnAttach = true
 
   getEditor: -> @editor
 
@@ -66,6 +73,7 @@ class ReactEditorView extends View
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
+  Object.defineProperty @::, 'mini', get: -> @component?.props.mini
 
   afterAttach: (onDom) ->
     return unless onDom
@@ -115,8 +123,9 @@ class ReactEditorView extends View
     @find('.lines').prepend(view)
 
   beforeRemove: ->
-    React.unmountComponentAtNode(@element) if @component.isMounted()
+    return unless @attached
     @attached = false
+    React.unmountComponentAtNode(@element) if @component.isMounted()
     @trigger 'editor:detached', this
 
   # Public: Split the editor view left.
@@ -142,12 +151,6 @@ class ReactEditorView extends View
   getPane: ->
     @parent('.item-views').parents('.pane').view()
 
-  focus: ->
-    if @component?
-      @component.onFocus()
-    else
-      @focusOnAttach = true
-
   hide: ->
     super
     @pollComponentDOM()
@@ -169,9 +172,6 @@ class ReactEditorView extends View
   pageUp: ->
     @editor.pageUp()
 
-  getModel: ->
-    @component?.getModel()
-
   getFirstVisibleScreenRow: ->
     @editor.getVisibleRowRange()[0]
 
@@ -181,13 +181,13 @@ class ReactEditorView extends View
   getFontFamily: ->
     @component?.getFontFamily()
 
-  setFontFamily: (fontFamily)->
+  setFontFamily: (fontFamily) ->
     @component?.setFontFamily(fontFamily)
 
   getFontSize: ->
     @component?.getFontSize()
 
-  setFontSize: (fontSize)->
+  setFontSize: (fontSize) ->
     @component?.setFontSize(fontSize)
 
   setWidthInChars: (widthInChars) ->
@@ -228,11 +228,11 @@ class ReactEditorView extends View
 
   requestDisplayUpdate: -> # No-op shim for find-and-replace
 
-  updateDisplay: -> # No-op shim for package specs
+  updateDisplay: ->        # No-op shim for package specs
 
-  resetDisplay: -> # No-op shim for package specs
+  resetDisplay: ->         # No-op shim for package specs
 
-  redraw: -> # No-op shim
+  redraw: ->               # No-op shim
 
   setPlaceholderText: (placeholderText) ->
     if @component?

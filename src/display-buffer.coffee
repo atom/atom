@@ -38,10 +38,10 @@ class DisplayBuffer extends Model
   verticalScrollbarWidth: 15
   scopedCharacterWidthsChangeCount: 0
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
     @softWrap ?= atom.config.get('editor.softWrap') ? false
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer})
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -75,13 +75,14 @@ class DisplayBuffer extends Model
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
+    invisibles: _.clone(@invisibles)
 
   deserializeParams: (params) ->
     params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
     params
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @invisibles})
     newDisplayBuffer.setScrollTop(@getScrollTop())
     newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
@@ -339,6 +340,9 @@ class DisplayBuffer extends Model
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
+
+  setInvisibles: (@invisibles) ->
+    @tokenizedBuffer.setInvisibles(@invisibles)
 
   # Deprecated: Use the softWrap property directly
   setSoftWrap: (@softWrap) -> @softWrap
@@ -977,7 +981,7 @@ class DisplayBuffer extends Model
     @tokenizedBuffer.destroy()
     @unsubscribe()
 
-  logLines: (start=0, end=@getLastRow())->
+  logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
       line = @lineForRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length

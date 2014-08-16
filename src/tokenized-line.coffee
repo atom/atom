@@ -1,10 +1,16 @@
 _ = require 'underscore-plus'
 
+NonWhitespaceRegex = /\S/
+LeadingWhitespaceRegex = /^\s*/
+TrailingWhitespaceRegex = /\s*$/
+RepeatedSpaceRegex = /[ ]/g
 idCounter = 1
 
 module.exports =
 class TokenizedLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel}) ->
+  endOfLineInvisibles: null
+
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
@@ -12,6 +18,9 @@ class TokenizedLine
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
+    if @invisibles
+      @substituteInvisibleCharacters()
+      @buildEndOfLineInvisibles() if @lineEnding?
 
   buildText: ->
     text = ""
@@ -90,12 +99,14 @@ class TokenizedLine
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
+      invisibles: @invisibles
       lineEnding: null
     )
     rightFragment = new TokenizedLine(
       tokens: rightTokens
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
+      invisibles: @invisibles
       lineEnding: @lineEnding
     )
     [leftFragment, rightFragment]
@@ -133,15 +144,53 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespacePosition = @text.search(/\S/)
-    firstTrailingWhitespacePosition = @text.search(/\s*$/)
-    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
-    position = 0
-    for token, i in @tokens
-      token.hasLeadingWhitespace =  position < firstNonWhitespacePosition
+    firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
+    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+    index = 0
+    for token in @tokens
+      if index < firstNonWhitespaceIndex
+        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, firstNonWhitespaceIndex - index)
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
-      token.hasTrailingWhitespace = @lineEnding? and (position + token.value.length > firstTrailingWhitespacePosition)
-      position += token.value.length
+      if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
+        token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
+      index += token.value.length
+
+  substituteInvisibleCharacters: ->
+    invisibles = @invisibles
+    changedText = false
+
+    for token, i in @tokens
+      if token.isHardTab
+        if invisibles.tab
+          token.value = invisibles.tab + token.value.substring(invisibles.tab.length)
+          token.hasInvisibleCharacters = true
+          changedText = true
+      else
+        if invisibles.space
+          if token.hasLeadingWhitespace()
+            token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
+              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            token.hasInvisibleCharacters = true
+            changedText = true
+          if token.hasTrailingWhitespace()
+            token.value = token.value.replace TrailingWhitespaceRegex, (leadingWhitespace) ->
+              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
+            token.hasInvisibleCharacters = true
+            changedText = true
+
+    @text = @buildText() if changedText
+
+  buildEndOfLineInvisibles: ->
+    @endOfLineInvisibles = []
+    {cr, eol} = @invisibles
+
+    switch @lineEnding
+      when '\r\n'
+        @endOfLineInvisibles.push(cr) if cr
+        @endOfLineInvisibles.push(eol) if eol
+      when '\n'
+        @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
     for token in @tokens

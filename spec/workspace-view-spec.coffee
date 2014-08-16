@@ -195,13 +195,12 @@ describe "WorkspaceView", ->
       atom.workspaceView.height(200)
       atom.workspaceView.attachToDom()
       rightEditorView = atom.workspaceView.getActiveView()
-      rightEditorView.getEditor().setText("\t  ")
+      rightEditorView.getEditor().setText("\t  \n")
       leftEditorView = rightEditorView.splitLeft()
       expect(rightEditorView.find(".line:first").text()).toBe "    "
       expect(leftEditorView.find(".line:first").text()).toBe "    "
 
-      {invisibles} = rightEditorView.component.state
-      {space, tab, eol} = invisibles
+      {space, tab, eol} = atom.config.get('editor.invisibles')
       withInvisiblesShowing = "#{tab} #{space}#{space}#{eol}"
 
       atom.workspaceView.trigger "window:toggle-invisibles"

@@ -5,7 +5,6 @@
 
   # Atom Specific
   'enter': 'core:confirm'
-  'num-enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
@@ -26,8 +25,8 @@
   'ctrl-n': 'application:new-file'
   'ctrl-s': 'core:save'
   'ctrl-S': 'core:save-as'
-  'ctrl-w': 'core:close'
   'ctrl-f4': 'core:close'
+  'ctrl-w': 'core:close'
   'ctrl-z': 'core:undo'
   'ctrl-shift-z': 'core:redo'
   'ctrl-y': 'core:redo'

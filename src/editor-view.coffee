@@ -58,6 +58,12 @@ class EditorView extends View
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
     useHardwareAcceleration: true
+    confirmCheckoutHeadRevision: true
+    invisibles:
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
 
   @nextEditorId: 1
 
@@ -231,14 +237,14 @@ class EditorView extends View
         'editor:fold-at-indent-level-9': => @editor.foldAllAtIndentLevel(8)
         'editor:toggle-line-comments': => @toggleLineCommentsInSelection()
         'editor:log-cursor-scope': => @logCursorScope()
-        'editor:checkout-head-revision': => @checkoutHead()
+        'editor:checkout-head-revision': => atom.project.getRepo()?.checkoutHeadForEditor(@editor)
         'editor:copy-path': => @copyPathToClipboard()
         'editor:move-line-up': => @editor.moveLineUp()
         'editor:move-line-down': => @editor.moveLineDown()
         'editor:duplicate-lines': => @editor.duplicateLines()
         'editor:join-lines': => @editor.joinLines()
-        'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
-        'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
+        'editor:toggle-indent-guide': -> atom.config.toggle('editor.showIndentGuide')
+        'editor:toggle-line-numbers': ->  atom.config.toggle('editor.showLineNumbers')
         'editor:scroll-to-cursor': => @scrollToCursorPosition()
 
     documentation = {}
@@ -264,7 +270,7 @@ class EditorView extends View
   insertText: (text, options) ->
     @editor.insertText(text, options)
 
-  setHeightInLines: (heightInLines)->
+  setHeightInLines: (heightInLines) ->
     heightInLines ?= @calculateHeightInLines()
     @heightInLines = heightInLines if heightInLines
 
@@ -337,11 +343,6 @@ class EditorView extends View
 
   getPlaceholderText: ->
     @placeholderText
-
-  # Checkout the HEAD revision of this editor's file.
-  checkoutHead: ->
-    if path = @editor.getPath()
-      atom.project.getRepo()?.checkoutHead(path)
 
   configure: ->
     @subscribe atom.config.observe 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -1500,7 +1501,7 @@ class EditorView extends View
       position = 0
       for token in tokens
         @updateScopeStack(line, scopeStack, token.scopes)
-        hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace or (token.hasTrailingWhitespace and lineIsWhitespaceOnly))
+        hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
         line.push(token.getValueAsHtml({invisibles, hasIndentGuide}))
         position += token.value.length
 

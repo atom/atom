@@ -141,13 +141,17 @@ class PaneView extends View
     @activeItem
 
   onActiveItemChanged: (item) =>
-    @previousActiveItem?.off? 'title-changed', @activeItemTitleChanged
+    if @previousActiveItem?.off?
+      @previousActiveItem.off 'title-changed', @activeItemTitleChanged
+      @previousActiveItem.off 'modified-status-changed', @activeItemModifiedChanged
     @previousActiveItem = item
 
     return unless item?
 
     hasFocus = @hasFocus()
-    item.on? 'title-changed', @activeItemTitleChanged
+    if item.on?
+      item.on 'title-changed', @activeItemTitleChanged
+      item.on 'modified-status-changed', @activeItemModifiedChanged
     view = @viewForItem(item)
     otherView.hide() for otherView in @itemViews.children().not(view).views()
     @itemViews.append(view) unless view.parent().is(@itemViews)
@@ -182,6 +186,9 @@ class PaneView extends View
 
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
+
+  activeItemModifiedChanged: =>
+    @trigger 'pane:active-item-modified-status-changed'
 
   viewForItem: (item) ->
     return unless item?

@@ -1,7 +1,9 @@
 require '../spec/spec-helper'
 
 path = require 'path'
-{$, _, Point, fs} = require 'atom'
+{$, Point} = require 'atom'
+_ = require 'underscore-plus'
+fs = require 'fs-plus'
 Project = require '../src/project'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
@@ -101,7 +103,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) -> window.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)

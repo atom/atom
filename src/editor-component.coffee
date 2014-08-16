@@ -3,6 +3,7 @@ React = require 'react-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
+grim = require 'grim'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
@@ -48,10 +49,9 @@ EditorComponent = React.createClass
   domPollingPaused: false
 
   render: ->
-    {focused, showIndentGuide, showInvisibles, showLineNumbers, visible} = @state
+    {focused, showIndentGuide, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    invisibles = if showInvisibles and not mini then @state.invisibles else {}
     hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
     style = {}
 
@@ -109,10 +109,10 @@ EditorComponent = React.createClass
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
-          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow, invisibles,
+          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay
+          cursorBlinkPeriod, cursorBlinkResumeDelay, mini
         }
 
         ScrollbarComponent
@@ -189,6 +189,10 @@ EditorComponent = React.createClass
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
+    @props.editor.destroy()
+
+  componentWillReceiveProps: (newProps) ->
+    @props.editor.setMini(newProps.mini)
 
   componentWillUpdate: ->
     wasVisible = @visible
@@ -406,123 +410,127 @@ EditorComponent = React.createClass
     {parentView, editor, mini} = @props
 
     @addCommandListeners
-      'core:move-left': => editor.moveCursorLeft()
-      'core:move-right': => editor.moveCursorRight()
-      'core:select-left': => editor.selectLeft()
-      'core:select-right': => editor.selectRight()
-      'core:select-all': => editor.selectAll()
-      'core:backspace': => editor.backspace()
-      'core:delete': => editor.delete()
-      'core:undo': => editor.undo()
-      'core:redo': => editor.redo()
-      'core:cut': => editor.cutSelectedText()
-      'core:copy': => editor.copySelectedText()
-      'core:paste': => editor.pasteText()
-      'editor:move-to-previous-word': => editor.moveCursorToPreviousWord()
-      'editor:select-word': => editor.selectWord()
+      'core:move-left': -> editor.moveCursorLeft()
+      'core:move-right': -> editor.moveCursorRight()
+      'core:select-left': -> editor.selectLeft()
+      'core:select-right': -> editor.selectRight()
+      'core:select-all': -> editor.selectAll()
+      'core:backspace': -> editor.backspace()
+      'core:delete': -> editor.delete()
+      'core:undo': -> editor.undo()
+      'core:redo': -> editor.redo()
+      'core:cut': -> editor.cutSelectedText()
+      'core:copy': -> editor.copySelectedText()
+      'core:paste': -> editor.pasteText()
+      'editor:move-to-previous-word': -> editor.moveCursorToPreviousWord()
+      'editor:select-word': -> editor.selectWord()
       'editor:consolidate-selections': @consolidateSelections
-      'editor:delete-to-beginning-of-word': => editor.deleteToBeginningOfWord()
-      'editor:delete-to-beginning-of-line': => editor.deleteToBeginningOfLine()
-      'editor:delete-to-end-of-line': => editor.deleteToEndOfLine()
-      'editor:delete-to-end-of-word': => editor.deleteToEndOfWord()
-      'editor:delete-line': => editor.deleteLine()
-      'editor:cut-to-end-of-line': => editor.cutToEndOfLine()
-      'editor:move-to-beginning-of-next-paragraph': => editor.moveCursorToBeginningOfNextParagraph()
-      'editor:move-to-beginning-of-previous-paragraph': => editor.moveCursorToBeginningOfPreviousParagraph()
-      'editor:move-to-beginning-of-screen-line': => editor.moveCursorToBeginningOfScreenLine()
-      'editor:move-to-beginning-of-line': => editor.moveCursorToBeginningOfLine()
-      'editor:move-to-end-of-screen-line': => editor.moveCursorToEndOfScreenLine()
-      'editor:move-to-end-of-line': => editor.moveCursorToEndOfLine()
-      'editor:move-to-first-character-of-line': => editor.moveCursorToFirstCharacterOfLine()
-      'editor:move-to-beginning-of-word': => editor.moveCursorToBeginningOfWord()
-      'editor:move-to-end-of-word': => editor.moveCursorToEndOfWord()
-      'editor:move-to-beginning-of-next-word': => editor.moveCursorToBeginningOfNextWord()
-      'editor:move-to-previous-word-boundary': => editor.moveCursorToPreviousWordBoundary()
-      'editor:move-to-next-word-boundary': => editor.moveCursorToNextWordBoundary()
-      'editor:select-to-beginning-of-next-paragraph': => editor.selectToBeginningOfNextParagraph()
-      'editor:select-to-beginning-of-previous-paragraph': => editor.selectToBeginningOfPreviousParagraph()
-      'editor:select-to-end-of-line': => editor.selectToEndOfLine()
-      'editor:select-to-beginning-of-line': => editor.selectToBeginningOfLine()
-      'editor:select-to-end-of-word': => editor.selectToEndOfWord()
-      'editor:select-to-beginning-of-word': => editor.selectToBeginningOfWord()
-      'editor:select-to-beginning-of-next-word': => editor.selectToBeginningOfNextWord()
-      'editor:select-to-next-word-boundary': => editor.selectToNextWordBoundary()
-      'editor:select-to-previous-word-boundary': => editor.selectToPreviousWordBoundary()
-      'editor:select-to-first-character-of-line': => editor.selectToFirstCharacterOfLine()
-      'editor:select-line': => editor.selectLine()
-      'editor:transpose': => editor.transpose()
-      'editor:upper-case': => editor.upperCase()
-      'editor:lower-case': => editor.lowerCase()
+      'editor:delete-to-beginning-of-word': -> editor.deleteToBeginningOfWord()
+      'editor:delete-to-beginning-of-line': -> editor.deleteToBeginningOfLine()
+      'editor:delete-to-end-of-line': -> editor.deleteToEndOfLine()
+      'editor:delete-to-end-of-word': -> editor.deleteToEndOfWord()
+      'editor:delete-line': -> editor.deleteLine()
+      'editor:cut-to-end-of-line': -> editor.cutToEndOfLine()
+      'editor:move-to-beginning-of-next-paragraph': -> editor.moveCursorToBeginningOfNextParagraph()
+      'editor:move-to-beginning-of-previous-paragraph': -> editor.moveCursorToBeginningOfPreviousParagraph()
+      'editor:move-to-beginning-of-screen-line': -> editor.moveCursorToBeginningOfScreenLine()
+      'editor:move-to-beginning-of-line': -> editor.moveCursorToBeginningOfLine()
+      'editor:move-to-end-of-screen-line': -> editor.moveCursorToEndOfScreenLine()
+      'editor:move-to-end-of-line': -> editor.moveCursorToEndOfLine()
+      'editor:move-to-first-character-of-line': -> editor.moveCursorToFirstCharacterOfLine()
+      'editor:move-to-beginning-of-word': -> editor.moveCursorToBeginningOfWord()
+      'editor:move-to-end-of-word': -> editor.moveCursorToEndOfWord()
+      'editor:move-to-beginning-of-next-word': -> editor.moveCursorToBeginningOfNextWord()
+      'editor:move-to-previous-word-boundary': -> editor.moveCursorToPreviousWordBoundary()
+      'editor:move-to-next-word-boundary': -> editor.moveCursorToNextWordBoundary()
+      'editor:select-to-beginning-of-next-paragraph': -> editor.selectToBeginningOfNextParagraph()
+      'editor:select-to-beginning-of-previous-paragraph': -> editor.selectToBeginningOfPreviousParagraph()
+      'editor:select-to-end-of-line': -> editor.selectToEndOfLine()
+      'editor:select-to-beginning-of-line': -> editor.selectToBeginningOfLine()
+      'editor:select-to-end-of-word': -> editor.selectToEndOfWord()
+      'editor:select-to-beginning-of-word': -> editor.selectToBeginningOfWord()
+      'editor:select-to-beginning-of-next-word': -> editor.selectToBeginningOfNextWord()
+      'editor:select-to-next-word-boundary': -> editor.selectToNextWordBoundary()
+      'editor:select-to-previous-word-boundary': -> editor.selectToPreviousWordBoundary()
+      'editor:select-to-first-character-of-line': -> editor.selectToFirstCharacterOfLine()
+      'editor:select-line': -> editor.selectLine()
+      'editor:transpose': -> editor.transpose()
+      'editor:upper-case': -> editor.upperCase()
+      'editor:lower-case': -> editor.lowerCase()
 
     unless mini
       @addCommandListeners
-        'core:move-up': => editor.moveCursorUp()
-        'core:move-down': => editor.moveCursorDown()
-        'core:move-to-top': => editor.moveCursorToTop()
-        'core:move-to-bottom': => editor.moveCursorToBottom()
-        'core:page-up': => editor.pageUp()
-        'core:page-down': => editor.pageDown()
-        'core:select-up': => editor.selectUp()
-        'core:select-down': => editor.selectDown()
-        'core:select-to-top': => editor.selectToTop()
-        'core:select-to-bottom': => editor.selectToBottom()
-        'core:select-page-up': => editor.selectPageUp()
-        'core:select-page-down': => editor.selectPageDown()
-        'editor:indent': => editor.indent()
-        'editor:auto-indent': => editor.autoIndentSelectedRows()
-        'editor:indent-selected-rows': => editor.indentSelectedRows()
-        'editor:outdent-selected-rows': => editor.outdentSelectedRows()
-        'editor:newline': => editor.insertNewline()
-        'editor:newline-below': => editor.insertNewlineBelow()
-        'editor:newline-above': => editor.insertNewlineAbove()
-        'editor:add-selection-below': => editor.addSelectionBelow()
-        'editor:add-selection-above': => editor.addSelectionAbove()
-        'editor:split-selections-into-lines': => editor.splitSelectionsIntoLines()
-        'editor:toggle-soft-tabs': => editor.toggleSoftTabs()
-        'editor:toggle-soft-wrap': => editor.toggleSoftWrap()
-        'editor:fold-all': => editor.foldAll()
-        'editor:unfold-all': => editor.unfoldAll()
-        'editor:fold-current-row': => editor.foldCurrentRow()
-        'editor:unfold-current-row': => editor.unfoldCurrentRow()
-        'editor:fold-selection': => editor.foldSelectedLines()
-        'editor:fold-at-indent-level-1': => editor.foldAllAtIndentLevel(0)
-        'editor:fold-at-indent-level-2': => editor.foldAllAtIndentLevel(1)
-        'editor:fold-at-indent-level-3': => editor.foldAllAtIndentLevel(2)
-        'editor:fold-at-indent-level-4': => editor.foldAllAtIndentLevel(3)
-        'editor:fold-at-indent-level-5': => editor.foldAllAtIndentLevel(4)
-        'editor:fold-at-indent-level-6': => editor.foldAllAtIndentLevel(5)
-        'editor:fold-at-indent-level-7': => editor.foldAllAtIndentLevel(6)
-        'editor:fold-at-indent-level-8': => editor.foldAllAtIndentLevel(7)
-        'editor:fold-at-indent-level-9': => editor.foldAllAtIndentLevel(8)
-        'editor:toggle-line-comments': => editor.toggleLineCommentsInSelection()
-        'editor:log-cursor-scope': => editor.logCursorScope()
-        'editor:checkout-head-revision': => editor.checkoutHead()
-        'editor:copy-path': => editor.copyPathToClipboard()
-        'editor:move-line-up': => editor.moveLineUp()
-        'editor:move-line-down': => editor.moveLineDown()
-        'editor:duplicate-lines': => editor.duplicateLines()
-        'editor:join-lines': => editor.joinLines()
-        'editor:toggle-indent-guide': => atom.config.toggle('editor.showIndentGuide')
-        'editor:toggle-line-numbers': =>  atom.config.toggle('editor.showLineNumbers')
-        'editor:scroll-to-cursor': => editor.scrollToCursorPosition()
+        'core:move-up': -> editor.moveCursorUp()
+        'core:move-down': -> editor.moveCursorDown()
+        'core:move-to-top': -> editor.moveCursorToTop()
+        'core:move-to-bottom': -> editor.moveCursorToBottom()
+        'core:page-up': -> editor.pageUp()
+        'core:page-down': -> editor.pageDown()
+        'core:select-up': -> editor.selectUp()
+        'core:select-down': -> editor.selectDown()
+        'core:select-to-top': -> editor.selectToTop()
+        'core:select-to-bottom': -> editor.selectToBottom()
+        'core:select-page-up': -> editor.selectPageUp()
+        'core:select-page-down': -> editor.selectPageDown()
+        'editor:indent': -> editor.indent()
+        'editor:auto-indent': -> editor.autoIndentSelectedRows()
+        'editor:indent-selected-rows': -> editor.indentSelectedRows()
+        'editor:outdent-selected-rows': -> editor.outdentSelectedRows()
+        'editor:newline': -> editor.insertNewline()
+        'editor:newline-below': -> editor.insertNewlineBelow()
+        'editor:newline-above': -> editor.insertNewlineAbove()
+        'editor:add-selection-below': -> editor.addSelectionBelow()
+        'editor:add-selection-above': -> editor.addSelectionAbove()
+        'editor:split-selections-into-lines': -> editor.splitSelectionsIntoLines()
+        'editor:toggle-soft-tabs': -> editor.toggleSoftTabs()
+        'editor:toggle-soft-wrap': -> editor.toggleSoftWrap()
+        'editor:fold-all': -> editor.foldAll()
+        'editor:unfold-all': -> editor.unfoldAll()
+        'editor:fold-current-row': -> editor.foldCurrentRow()
+        'editor:unfold-current-row': -> editor.unfoldCurrentRow()
+        'editor:fold-selection': -> editor.foldSelectedLines()
+        'editor:fold-at-indent-level-1': -> editor.foldAllAtIndentLevel(0)
+        'editor:fold-at-indent-level-2': -> editor.foldAllAtIndentLevel(1)
+        'editor:fold-at-indent-level-3': -> editor.foldAllAtIndentLevel(2)
+        'editor:fold-at-indent-level-4': -> editor.foldAllAtIndentLevel(3)
+        'editor:fold-at-indent-level-5': -> editor.foldAllAtIndentLevel(4)
+        'editor:fold-at-indent-level-6': -> editor.foldAllAtIndentLevel(5)
+        'editor:fold-at-indent-level-7': -> editor.foldAllAtIndentLevel(6)
+        'editor:fold-at-indent-level-8': -> editor.foldAllAtIndentLevel(7)
+        'editor:fold-at-indent-level-9': -> editor.foldAllAtIndentLevel(8)
+        'editor:toggle-line-comments': -> editor.toggleLineCommentsInSelection()
+        'editor:log-cursor-scope': -> editor.logCursorScope()
+        'editor:checkout-head-revision': -> editor.checkoutHead()
+        'editor:copy-path': -> editor.copyPathToClipboard()
+        'editor:move-line-up': -> editor.moveLineUp()
+        'editor:move-line-down': -> editor.moveLineDown()
+        'editor:duplicate-lines': -> editor.duplicateLines()
+        'editor:join-lines': -> editor.joinLines()
+        'editor:toggle-indent-guide': -> atom.config.toggle('editor.showIndentGuide')
+        'editor:toggle-line-numbers': ->  atom.config.toggle('editor.showLineNumbers')
+        'editor:scroll-to-cursor': -> editor.scrollToCursorPosition()
         'benchmark:scroll': @runScrollBenchmark
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
 
-    for command, listener of listenersByCommandName
-      parentView.command command, listener
+    addListener = (command, listener) ->
+      parentView.command command, (event) ->
+        event.stopPropagation()
+        listener(event)
+
+    addListener(command, listener) for command, listener of listenersByCommandName
+
+    return
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
-    @subscribe atom.config.observe 'editor.invisibles', @setInvisibles
-    @subscribe atom.config.observe 'editor.showInvisibles', @setShowInvisibles
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
 
   onFocus: ->
-    @refs.input.focus()
+    @refs.input.focus() if @isMounted()
 
   onTextInput: (event) ->
     event.stopPropagation()
@@ -543,8 +551,7 @@ EditorComponent = React.createClass
     selectedLength = inputNode.selectionEnd - inputNode.selectionStart
     editor.selectLeft() if selectedLength is 1
 
-    editor.insertText(event.data)
-    inputNode.value = event.data
+    inputNode.value = event.data if editor.insertText(event.data)
 
 
   onInputFocused: ->
@@ -938,24 +945,14 @@ EditorComponent = React.createClass
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
 
-  # Public: Defines which characters are invisible.
-  #
-  # invisibles - An {Object} defining the invisible characters:
-  #   :eol   - The end of line invisible {String} (default: `\u00ac`).
-  #   :space - The space invisible {String} (default: `\u00b7`).
-  #   :tab   - The tab invisible {String} (default: `\u00bb`).
-  #   :cr    - The carriage return invisible {String} (default: `\u00a4`).
+  # Deprecated
   setInvisibles: (invisibles={}) ->
-    defaults invisibles,
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
+    atom.config.set('editor.invisibles', invisibles)
 
-    @setState({invisibles})
-
+  # Deprecated
   setShowInvisibles: (showInvisibles) ->
-    @setState({showInvisibles})
+    atom.config.set('editor.showInvisibles', showInvisibles)
 
   setShowLineNumbers: (showLineNumbers) ->
     @setState({showLineNumbers})

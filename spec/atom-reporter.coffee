@@ -119,14 +119,14 @@ class AtomReporter extends View
     grim.clearDeprecations()
 
   handleEvents: ->
-    $(document).on "click", ".spec-toggle", ({currentTarget}) =>
+    $(document).on "click", ".spec-toggle", ({currentTarget}) ->
       element = $(currentTarget)
       specFailures = element.parent().find('.spec-failures')
       specFailures.toggle()
       element.toggleClass('folded')
       false
 
-    $(document).on "click", ".deprecation-toggle", ({currentTarget}) =>
+    $(document).on "click", ".deprecation-toggle", ({currentTarget}) ->
       element = $(currentTarget)
       deprecationList = $(document).find('.deprecation-list')
       deprecationList.toggle()

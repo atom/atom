@@ -15,14 +15,17 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
 ### Ubuntu / Debian
+
 * `sudo apt-get install build-essential git libgnome-keyring-dev`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
 ### Fedora
+
 * `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
 * Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
 
 ### Arch
+
 * `sudo pacman -S base-devel git nodejs libgnome-keyring`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
@@ -50,6 +53,20 @@ From the cloned repository directory:
     ```
 
 Use the newly installed atom by restarting any running atom instances.
+
+## Advanced Options
+
+### Custom install directory
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+### Custom build directory
+
+```sh
+script/build --build-dir /build/atom/here
+```
 
 ## Troubleshooting
 

@@ -310,3 +310,59 @@ describe "ThemeManager", ->
       runs ->
         expect(console.warn.callCount).toBe 1
         expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+
+  describe "when in safe mode", ->
+    beforeEach ->
+      themeManager = new ThemeManager({packageManager: atom.packages, resourcePath, configDirPath, safeMode: true})
+
+    describe 'when the enabled UI and syntax themes are bundled with Atom', ->
+      beforeEach ->
+        atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-syntax'])
+
+        waitsForPromise ->
+          themeManager.activateThemes()
+
+      it 'uses the enabled themes', ->
+        activeThemeNames = themeManager.getActiveNames()
+        expect(activeThemeNames.length).toBe(2)
+        expect(activeThemeNames).toContain('atom-light-ui')
+        expect(activeThemeNames).toContain('atom-dark-syntax')
+
+    describe 'when the enabled UI and syntax themes are not bundled with Atom', ->
+      beforeEach ->
+        atom.config.set('core.themes', ['installed-dark-ui', 'installed-dark-syntax'])
+
+        waitsForPromise ->
+          themeManager.activateThemes()
+
+      it 'uses the default dark UI and syntax themes', ->
+        activeThemeNames = themeManager.getActiveNames()
+        expect(activeThemeNames.length).toBe(2)
+        expect(activeThemeNames).toContain('atom-dark-ui')
+        expect(activeThemeNames).toContain('atom-dark-syntax')
+
+    describe 'when the enabled UI theme is not bundled with Atom', ->
+      beforeEach ->
+        atom.config.set('core.themes', ['installed-dark-ui', 'atom-light-syntax'])
+
+        waitsForPromise ->
+          themeManager.activateThemes()
+
+      it 'uses the default dark UI theme', ->
+        activeThemeNames = themeManager.getActiveNames()
+        expect(activeThemeNames.length).toBe(2)
+        expect(activeThemeNames).toContain('atom-dark-ui')
+        expect(activeThemeNames).toContain('atom-light-syntax')
+
+    describe 'when the enabled syntax theme is not bundled with Atom', ->
+      beforeEach ->
+        atom.config.set('core.themes', ['atom-light-ui', 'installed-dark-syntax'])
+
+        waitsForPromise ->
+          themeManager.activateThemes()
+
+      it 'uses the default dark syntax theme', ->
+        activeThemeNames = themeManager.getActiveNames()
+        expect(activeThemeNames.length).toBe(2)
+        expect(activeThemeNames).toContain('atom-light-ui')
+        expect(activeThemeNames).toContain('atom-dark-syntax')

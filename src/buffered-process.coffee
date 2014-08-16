@@ -40,8 +40,6 @@ class BufferedProcess
   #           containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
-    # Quick hack. Killing @process will only kill cmd.exe, and not the child
-    # process and will just orphan it. Does not escape ^ (cmd's escape symbol).
     # Related to joyent/node#2318
     if process.platform is "win32"
       # Quote all arguments and escapes inner quotes
@@ -55,7 +53,10 @@ class BufferedProcess
             "\"#{arg.replace(/"/g, '\\"')}\""
       else
         cmdArgs = []
-      cmdArgs.unshift("\"#{command}\"")
+      if /\s/.test(command)
+        cmdArgs.unshift("\"#{command}\"")
+      else
+        cmdArgs.unshift(command)
       cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
@@ -114,8 +115,48 @@ class BufferedProcess
       onLines(buffered) if buffered.length > 0
       onDone()
 
+  # Kill all child processes of the spawned cmd.exe process on Windows.
+  #
+  # This is required since killing the cmd.exe does not terminate child
+  # processes.
+  killOnWindows: ->
+    parentPid = @process.pid
+    cmd = 'wmic'
+    args = [
+      'process'
+      'where'
+      "(ParentProcessId=#{parentPid})"
+      'get'
+      'processid'
+    ]
+
+    wmicProcess = ChildProcess.spawn(cmd, args)
+    wmicProcess.on 'error', -> # ignore errors
+    output = ''
+    wmicProcess.stdout.on 'data', (data) -> output += data
+    wmicProcess.stdout.on 'close', =>
+      pidsToKill = output.split(/\s+/)
+                    .filter (pid) -> /^\d+$/.test(pid)
+                    .map (pid) -> parseInt(pid)
+                    .filter (pid) -> pid isnt parentPid and 0 < pid < Infinity
+
+      for pid in pidsToKill
+        try
+          process.kill(pid)
+      @killProcess()
+
+  killProcess: ->
+    @process?.kill()
+    @process = null
+
   # Public: Terminate the process.
   kill: ->
+    return if @killed
+
     @killed = true
-    @process.kill()
-    @process = null
+    if process.platform is 'win32'
+      @killOnWindows()
+    else
+      @killProcess()
+
+    undefined

@@ -19,27 +19,23 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
 
-  constructor: ({@buffer, @tabLength}) ->
+  constructor: ({@buffer, @tabLength, @invisibles}) ->
     @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
-        @resetTokenizedLines() if @hasTokenForSelector(grammar.injectionSelector)
+        @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
       else
         newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
         @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
-    @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
+    @on 'grammar-changed grammar-updated', => @retokenizeLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
     @subscribe @buffer, "path-changed", =>
       @bufferPath = @buffer.getPath()
       @reloadGrammar()
 
-    @subscribe @$tabLength.changes, (tabLength) =>
-      lastRow = @buffer.getLastRow()
-      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
-      @invalidateRow(0)
-      @emit "changed", { start: 0, end: lastRow, delta: 0 }
+    @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
 
     @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
       @setTabLength(atom.config.getPositiveInt('editor.tabLength', 2))
@@ -49,6 +45,7 @@ class TokenizedBuffer extends Model
   serializeParams: ->
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
+    invisibles: _.clone(@invisibles)
 
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
@@ -59,7 +56,7 @@ class TokenizedBuffer extends Model
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar, 'grammar-updated', => @resetTokenizedLines()
+    @subscribe @grammar, 'grammar-updated', => @retokenizeLines()
     @emit 'grammar-changed', grammar
 
   reloadGrammar: ->
@@ -74,11 +71,13 @@ class TokenizedBuffer extends Model
         return true if selector.matches(token.scopes)
     false
 
-  resetTokenizedLines: ->
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, @buffer.getLastRow())
+  retokenizeLines: ->
+    lastRow = @buffer.getLastRow()
+    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
+    @emit "changed", {start: 0, end: lastRow, delta: 0}
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -93,6 +92,11 @@ class TokenizedBuffer extends Model
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
+
+  setInvisibles: (invisibles) ->
+    unless _.isEqual(invisibles, @invisibles)
+      @invisibles = invisibles
+      @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -206,15 +210,16 @@ class TokenizedBuffer extends Model
     tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    new TokenizedLine({tokens, tabLength, indentLevel})
+    lineEnding = @buffer.lineEndingForRow(row)
+    new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
   buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel})
+    {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
   # FIXME: benogle says: These are actually buffer rows as all buffer rows are
   # accounted for in @tokenizedLines

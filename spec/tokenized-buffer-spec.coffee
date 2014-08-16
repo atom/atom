@@ -1,4 +1,5 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
+TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
 describe "TokenizedBuffer", ->
@@ -11,6 +12,9 @@ describe "TokenizedBuffer", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
+
+  afterEach ->
+    tokenizedBuffer?.destroy()
 
   startTokenizing = (tokenizedBuffer) ->
     tokenizedBuffer.setVisible(true)
@@ -584,51 +588,113 @@ describe "TokenizedBuffer", ->
       atom.config.set('editor.tabLength', 0)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
 
+  describe "when the invisibles value changes", ->
+    beforeEach ->
+
+    it "updates the tokens with the appropriate invisible characters", ->
+      buffer = new TextBuffer(text: "  \t a line with tabs\tand \tspaces \t ")
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
+      # Also needs to work for copies
+      expect(tokenizedBuffer.lineForScreenRow(0).copy().text).toBe "SST Sa line with tabsTand T spacesSTS"
+
+    it "assigns endOfLineInvisibles to tokenized lines", ->
+      buffer = new TextBuffer(text: "a line that ends in a carriage-return-line-feed \r\na line that ends in just a line-feed\na line with no ending")
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+
+      atom.config.set('editor.showInvisibles', true)
+      tokenizedBuffer.setInvisibles(cr: 'R', eol: 'N')
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R', 'N']
+      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual ['N']
+
+      # Lines ending in soft wraps get no invisibles
+      [left, right] = tokenizedBuffer.lineForScreenRow(0).softWrapAt(20)
+      expect(left.endOfLineInvisibles).toBe null
+      expect(right.endOfLineInvisibles).toEqual ['R', 'N']
+
+      tokenizedBuffer.setInvisibles(cr: 'R', eol: false)
+      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R']
+      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual []
+
   describe "leading and trailing whitespace", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
-    it "sets ::hasLeadingWhitespace to true on tokens that have leading whitespace", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].hasLeadingWhitespace).toBe false
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].hasLeadingWhitespace).toBe true
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].hasLeadingWhitespace).toBe false
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].hasLeadingWhitespace).toBe true
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].hasLeadingWhitespace).toBe true
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].hasLeadingWhitespace).toBe false
+    it "assigns ::firstNonWhitespaceIndex on tokens that have leading whitespace", ->
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].firstNonWhitespaceIndex).toBe null
+
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].firstNonWhitespaceIndex).toBe null
 
       # The 4th token *has* leading whitespace, but isn't entirely whitespace
       buffer.insert([5, 0], ' ')
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].hasLeadingWhitespace).toBe true
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].firstNonWhitespaceIndex).toBe 1
+      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].firstNonWhitespaceIndex).toBe null
 
       # Lines that are *only* whitespace are not considered to have leading whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasLeadingWhitespace).toBe false
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstNonWhitespaceIndex).toBe null
 
-    it "sets ::hasTrailingWhitespace to true on tokens that have trailing whitespace", ->
+    it "assigns ::firstTrailingWhitespaceIndex on tokens that have trailing whitespace", ->
       buffer.insert([0, Infinity], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].hasTrailingWhitespace).toBe false
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].hasTrailingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].firstTrailingWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].firstTrailingWhitespaceIndex).toBe 0
 
       # The last token *has* trailing whitespace, but isn't entirely whitespace
       buffer.setTextInRange([[2, 39], [2, 40]], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].hasTrailingWhitespace).toBe false
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].hasTrailingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].firstTrailingWhitespaceIndex).toBe null
+      console.log tokenizedBuffer.lineForScreenRow(2).tokens[15]
+      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].firstTrailingWhitespaceIndex).toBe 6
 
       # Lines that are *only* whitespace are considered to have trailing whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].hasTrailingWhitespace).toBe true
+      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstTrailingWhitespaceIndex).toBe 0
 
     it "only marks trailing whitespace on the last segment of a soft-wrapped line", ->
       buffer.insert([0, Infinity], '  ')
       tokenizedLine = tokenizedBuffer.lineForScreenRow(0)
       [segment1, segment2] = tokenizedLine.softWrapAt(16)
       expect(segment1.tokens[5].value).toBe ' '
-      expect(segment1.tokens[5].hasTrailingWhitespace).toBe false
+      expect(segment1.tokens[5].firstTrailingWhitespaceIndex).toBe null
       expect(segment2.tokens[6].value).toBe '  '
-      expect(segment2.tokens[6].hasTrailingWhitespace).toBe true
+      expect(segment2.tokens[6].firstTrailingWhitespaceIndex).toBe 0
+
+    it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
+      buffer.setText("  \t a line with tabs\tand \tspaces \t ")
+
+      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      fullyTokenize(tokenizedBuffer)
+
+      line = tokenizedBuffer.lineForScreenRow(0).copy()
+      expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
+
+    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
+      tokenizedBuffer.setInvisibles(space: 'S')
+      buffer.setText(" token ")
+      fullyTokenize(tokenizedBuffer)
+      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
+
+      [leftToken, rightToken] = token.splitAt(1)
+      expect(leftToken.hasInvisibleCharacters).toBe true
+      expect(leftToken.firstNonWhitespaceIndex).toBe 1
+      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
+
+      expect(leftToken.hasInvisibleCharacters).toBe true
+      expect(rightToken.firstNonWhitespaceIndex).toBe null
+      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
 
   describe "indent level", ->
     beforeEach ->

@@ -1,4 +1,5 @@
 clipboard = require 'clipboard'
+Editor = require '../src/editor'
 
 describe "Editor", ->
   [buffer, editor, lineLengths] = []
@@ -32,6 +33,26 @@ describe "Editor", ->
       expect(editor2.getSelection(1).isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
+
+    it "preserves the invisibles setting", ->
+      atom.config.set('editor.showInvisibles', true)
+      previousInvisibles = editor.displayBuffer.invisibles
+
+      editor2 = editor.testSerialization()
+
+      expect(editor2.displayBuffer.invisibles).toEqual previousInvisibles
+      expect(editor2.displayBuffer.tokenizedBuffer.invisibles).toEqual previousInvisibles
+
+    it "updates invisibles if the settings have changed between serialization and deserialization", ->
+      atom.config.set('editor.showInvisibles', true)
+      previousInvisibles = editor.displayBuffer.invisibles
+
+      state = editor.serialize()
+      atom.config.set('editor.invisibles', eol: '?')
+      editor2 = Editor.deserialize(state)
+
+      expect(editor2.displayBuffer.invisibles.eol).toBe '?'
+      expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'
 
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->
@@ -498,6 +519,15 @@ describe "Editor", ->
           editor.moveCursorToFirstCharacterOfLine()
           cursor = editor.getCursor()
           expect(cursor.getBufferPosition()).toEqual [1,0]
+
+        describe "when invisible characters are enabled", ->
+          it "moves to the first character of the current line without being confused by the invisible characters", ->
+            atom.config.set('editor.showInvisibles', true)
+            editor.setCursorScreenPosition [1,7]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,2]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,0]
 
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
@@ -1470,6 +1500,15 @@ describe "Editor", ->
 
   describe "buffer manipulation", ->
     describe ".insertText(text)", ->
+      describe "when there is a single selection", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 0], [1, 2]])
+
+        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+          range = editor.insertText('xxx')
+          expect(range).toEqual [ [[1, 0], [1, 3]] ]
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
       describe "when there are multiple empty selections", ->
         describe "when the cursors are on the same line", ->
           it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
@@ -1546,6 +1585,48 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[1,0], [2,0]])
           editor.insertText('holy cow')
           expect(editor.lineForScreenRow(2).fold).toBeUndefined()
+
+      describe "when will-insert-text and did-insert-text events are used", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 0], [1, 2]])
+
+        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          didInsertSpy = jasmine.createSpy().andCallFake ->
+            expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBeTruthy()
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).toHaveBeenCalled()
+
+          options = willInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+          expect(options.cancel).toBeDefined()
+
+          options = didInsertSpy.mostRecentCall.args[0]
+          expect(options.text).toBe 'xxx'
+
+        it "text insertion is prevented when cancel is called from a will-insert-text handler", ->
+          willInsertSpy = jasmine.createSpy().andCallFake ({cancel}) ->
+            cancel()
+
+          didInsertSpy = jasmine.createSpy()
+
+          editor.on('will-insert-text', willInsertSpy)
+          editor.on('did-insert-text', didInsertSpy)
+
+          expect(editor.insertText('xxx')).toBe false
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+          expect(willInsertSpy).toHaveBeenCalled()
+          expect(didInsertSpy).not.toHaveBeenCalled()
 
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->

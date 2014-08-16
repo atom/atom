@@ -209,25 +209,32 @@ describe "EditorComponent", ->
 
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
+        nextAnimationFrame()
 
       it "re-renders the lines when the showInvisibles config option changes", ->
-        editor.setText " a line with tabs\tand spaces "
+        editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
         atom.config.set("editor.showInvisibles", false)
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
         atom.config.set("editor.showInvisibles", true)
-        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
-
-      it "displays spaces, tabs, and newlines as visible characters", ->
-        editor.setText " a line with tabs\tand spaces "
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
+      it "displays leading/trailing spaces, tabs, and newlines as visible characters", ->
+        editor.setText " a line with tabs\tand spaces \n"
+        nextAnimationFrame()
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
+
+        leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+        expect(leafNodes[0].classList.contains('invisible-character')).toBe true
+        expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe true
+
       it "displays newlines as their own token outside of the other tokens' scopes", ->
-        editor.setText "var"
+        editor.setText "var\n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
@@ -241,10 +248,12 @@ describe "EditorComponent", ->
 
       it "renders an nbsp on empty lines when the line-ending character is an empty string", ->
         atom.config.set("editor.invisibles", eol: '')
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
-      it "renders an nbsp on empty lines when no line-ending character is defined", ->
-        atom.config.set("editor.invisibles", eol: null)
+      it "renders an nbsp on empty lines when the line-ending character is false", ->
+        atom.config.set("editor.invisibles", eol: false)
+        nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
@@ -268,7 +277,7 @@ describe "EditorComponent", ->
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->
-          editor.setText "a line that wraps "
+          editor.setText "a line that wraps \n"
           editor.setSoftWrap(true)
           nextAnimationFrame()
           componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
@@ -2103,9 +2112,13 @@ describe "EditorComponent", ->
     it "adds the 'mini' class to the wrapper view", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
+    it "does not have an opaque background on lines", ->
+      expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
+
     it "does not render invisible characters", ->
-      component.setInvisibles(eol: 'E')
-      component.setShowInvisibles(true)
+      atom.config.set('editor.invisibles', eol: 'E')
+      atom.config.set('editor.showInvisibles', true)
+      nextAnimationFrame()
       expect(component.lineNodeForScreenRow(0).textContent).toBe 'var quicksort = function () {'
 
     it "does not assign an explicit line-height on the editor contents", ->
