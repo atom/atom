@@ -1,14 +1,14 @@
 {
-  "indentation": {
-    "level": "ignore"
-  },
   "max_line_length": {
     "level": "ignore"
   },
   "no_empty_param_list": {
     "level": "error"
   },
-  "no_unnecessary_fat_arrows": {
-    "level": "ignore"
+  "arrow_spacing": {
+    "level": "error"
+  },
+  "no_interpolation_in_single_quotes": {
+    "level": "error"
   }
 }

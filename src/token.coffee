@@ -150,7 +150,7 @@ class Token
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
-  getValueAsHtml: ({hasIndentGuide})->
+  getValueAsHtml: ({hasIndentGuide}) ->
     if @isHardTab
       classes = 'hard-tab'
       classes += ' indent-guide' if hasIndentGuide
