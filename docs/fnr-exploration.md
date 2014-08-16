@@ -88,3 +88,67 @@ How much faster is it with out markers and no decorations?
 Whoa. Now, it's all about finding the position in char range. The GC isnt even in the picture.
 
 ![no markers](https://cloud.githubusercontent.com/assets/69169/3914913/db1a84cc-2350-11e4-986f-f2feab722cde.png)
+
+## Optimizing Marker creation
+
+So our largest chunk of time is spent creating markers. How slow is marker creation compared to regular object creation + emit
+
+![benchmarks](https://cloud.githubusercontent.com/assets/69169/3939214/2dc9d96a-24c4-11e4-8d3f-757a14b6a60f.png)
+
+It's a lot slower.
+
+This The profile for marker-creation:
+
+![marker-creation-from-buffer](https://cloud.githubusercontent.com/assets/69169/3939227/74b32da4-24c4-11e4-8468-c3098b35b0a4.png)
+
+The profile looked like we were spending some time in `Range.toObject`. Is there a difference between `new Range(new Point(row, 0), new Point(row, 1))` and `[[row, 0], [row, 1]]`? Yeah, and it's pretty big
+
+![use point and range](https://cloud.githubusercontent.com/assets/69169/3939920/7daf04f8-24d0-11e4-9a0d-9b8cdd87f43b.png)
+
+Could optimize it to not use `args...`? __YES__
+
+```coffee
+@fromObject: (object, copy) ->
+  if Array.isArray(object)
+    new this(...)
+```
+
+to
+
+```coffee
+@fromObject: (object, copy) ->
+  if Array.isArray(object)
+    [pointA, pointB] = object
+    new this(pointA, pointB)
+```
+
+And now they are equal performance!
+
+![Optimize range](https://cloud.githubusercontent.com/assets/69169/3939966/83850264-24d1-11e4-81f0-43fc2ed39dc0.png)
+
+### Marker creation in Atom vs TextBuffer
+
+Creation is fast on the text-buffer side, and ~3x+ slower on the atom side. What are we doing?
+
+![atom vs text-buffer](https://cloud.githubusercontent.com/assets/69169/3940109/6962e758-24d5-11e4-92d7-3384f4f98116.png)
+
+Looks like we're spending a lot more time (~4x!) in the garbage collector and a whole lot more time emitting events.
+
+![profile-from-editor](https://cloud.githubusercontent.com/assets/69169/3940132/15fdc6c2-24d6-11e4-8b31-6d4780bf3fba.png)
+
+![profile-from-text-buffer](https://cloud.githubusercontent.com/assets/69169/3940131/15fab5a4-24d6-11e4-8d57-258c4c390b96.png)
+
+#### Subscribing is slow
+
+Commenting out the changed and destroyed handlers in `DisplayBufferMarker` cut the time in _half_.
+
+```coffee
+# @subscribe @bufferMarker, 'destroyed', => @destroyed()
+# @subscribe @bufferMarker, 'changed', (event) => @notifyObservers(event)
+```
+
+![less subscribing](https://cloud.githubusercontent.com/assets/69169/3940319/a1c6c3de-24db-11e4-8da8-bd320b1b1b34.png)
+
+Even using `on` rather than subscribe is faster:
+
+![using on](https://cloud.githubusercontent.com/assets/69169/3940321/d4f5bd96-24db-11e4-8dd6-397c724adbd6.png)
