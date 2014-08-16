@@ -26,7 +26,6 @@ if ! which brew 2> /dev/null; then
 else
     BREW_LOCATION=`which brew`
 fi
-START_DIR=$(cwd)
 OS=$(uname -s)
 cd ~
 mkdir .indico
@@ -117,5 +116,3 @@ case $OS in
         echo 'sorry we currently dont support this OS'
     ;;
     esac
-
-cd $START_DIR
