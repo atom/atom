@@ -1,8 +1,12 @@
 #! /usr/bin/env bash
 
 #exit if any return !=0
-set -e
+#set -e
 
+if [[ whoami -ne "root" ]]; then
+    echo "please run me as root"
+    exit 1
+fi
 if [ -z $BASH ] || [ $BASH = "/bin/sh" ]; then
     echo "Please use the bash interpreter to run this script"
     exit 1
@@ -15,28 +19,25 @@ OS=$(uname -s)
 echo -n "enter a location to install [./]: "
 read INSTALL_DIR
 
-if [ $INSTALL_DIR = ''] 
-then
+if [[ $INSTALL_DIR == '' ]]; then
     INSTALL_DIR=$(pwd)
 fi
-
+#TODO conditionalize this
+#mkdir $INSTALL_DIR/pypackages
 case $OS in
     [Ll]inux)
         DISTRO=$(lsb_release -is)
         VERSION=$(lsb_release -rs)
         PY_INSTALL_DIR=$INSTALL_DIR/pypackages
         PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
-        echo `$PYTHONPATH` >> ~/.bashrc
+        echo $PYTHONPATH >> ~/.bashrc
         case $DISTRO in
             [Ff]edora)
-                if [ $VERSION \> 17]
-                then
-                    if [ ${PYTHON_LOCATION:0:8} = 'which: no']
-                    then
+                if [[ $VERSION > 17 ]]; then
+                    if [[ ${PYTHON_LOCATION:0:8} = 'which: no' ]]; then
                         yum install python
                     fi
-                    if [ ${PIP_LOCATION:0:8} = 'which: no']
-                    then
+                    if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]; then
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
                     fi
@@ -45,8 +46,7 @@ case $OS in
 
                     echo -n "Do you want to install OpenCV. if you already have it select no, if you don't have a lot of disk space select no, if you don't know what opencv is select yes [y/n]: "
                     read OCV
-                    if [ `expr substr $OCV 1 1` = [Yy] ]
-                    then
+                    if [[ `expr substr $OCV 1 1` = [Yy] ]]; then
                         yum install opencv*
                     fi
                     
@@ -63,14 +63,14 @@ case $OS in
                     echo 'are you a godamn troglodyte, get a newer OS'
                 fi
                 ;;
-            ([Uu]buntu | [Dd]ebian | [Mm]int))
-                if [ $DISTRO = [Dd]ebian && $VERSION \> 7 || $VERSION \> 11]
+            [Uu]buntu | [Dd]ebian | [Mm]int)
+                if [[ $DISTRO = [Dd]ebian && $VERSION > 7 || $VERSION > 11 ]]
                 then
-                    if [ ${PYTHON_LOCATION:0:8} = 'which: no']
+                    if [[ ${PYTHON_LOCATION:0:8} = 'which: no' ]]
                     then
                         apt-get install python
                     fi
-                    if [ ${PIP_LOCATION:0:8} = 'which: no']
+                    if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]
                     then
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
@@ -80,7 +80,7 @@ case $OS in
 
                     echo -n "Do you want to install OpenCV. if you already have it select no, if you don't have a lot of disk space select no, if you don't know what opencv is select yes [y/n]: "
                     read OCV
-                    if [ `expr substr $OCV 1 1` = [Yy] ]
+                    if [[ `expr substr $OCV 1 1` = [Yy] ]]
                     then
                         apt-get install python-opencv
                     fi
@@ -107,14 +107,14 @@ case $OS in
         PY_INSTALL_DIR=$INSTALL_DIR/pypackages
         PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
         echo `$PYTHONPATH` >> ~/.bash_profile
-        if [ ${BREW_LOCATION:0:8} = 'which: no']
+        if [[ ${BREW_LOCATION:0:8} = 'which: no' ]]
         then
             command -v brew &>/dev/null || {
                 output "Installing brew"
                 /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
             }
         fi
-        if [ ${PIP_LOCATION:0:8} = 'which: no']
+        if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]
         then
             wget https://bootstrap.pypa.io/get-pip.py
             python get-pip.py
