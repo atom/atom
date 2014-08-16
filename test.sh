@@ -1,29 +1,41 @@
 #! /usr/bin/env bash
 
 #exit if any return !=0
-#set -e
-
-if [[ whoami -ne "root" ]]; then
+if [[ $(id -u) != 0 ]]; then
     echo "please run me as root"
     exit 1
 fi
+
 if [ -z $BASH ] || [ $BASH = "/bin/sh" ]; then
     echo "Please use the bash interpreter to run this script"
     exit 1
 fi
 
-PIP_LOCATION=$( (which pip) 2>&1)
-PYTHON_LOCATION=$( (which python) 2>&1)
-BREW_LOCATION=$( (which brew) 2>&1)
+if ! which pip 2> /dev/null; then
+    PIP_LOCATION='which: no'
+else
+    PIP_LOCATION=$(which pip)
+fi
+if ! which python 2> /dev/null; then
+    PYTHON_LOCATION='which: no'
+else
+    PYTHON_LOCATION=`which python`
+fi
+if ! which brew 2> /dev/null; then
+    BREW_LOCATION='which: no'
+else
+    BREW_LOCATION=`which brew`
+fi
 OS=$(uname -s)
 echo -n "enter a location to install [./]: "
 read INSTALL_DIR
 
 if [[ $INSTALL_DIR == '' ]]; then
-    INSTALL_DIR=$(pwd)
+    INSTALL_DIR=$(pwd)/indcico
 fi
 #TODO conditionalize this
 #mkdir $INSTALL_DIR/pypackages
+set -e
 case $OS in
     [Ll]inux)
         DISTRO=$(lsb_release -is)
@@ -34,10 +46,10 @@ case $OS in
         case $DISTRO in
             [Ff]edora)
                 if [[ $VERSION > 17 ]]; then
-                    if [[ ${PYTHON_LOCATION:0:8} = 'which: no' ]]; then
+                    if [[ $PYTHON_LOCATION = 'which: no' ]]; then
                         yum install python
                     fi
-                    if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]; then
+                    if [[ $PIP_LOCATION = 'which: no' ]]; then
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
                     fi
@@ -66,11 +78,11 @@ case $OS in
             [Uu]buntu | [Dd]ebian | [Mm]int)
                 if [[ $DISTRO = [Dd]ebian && $VERSION > 7 || $VERSION > 11 ]]
                 then
-                    if [[ ${PYTHON_LOCATION:0:8} = 'which: no' ]]
+                    if [[ $PYTHON_LOCATION = 'which: no' ]]
                     then
                         apt-get install python
                     fi
-                    if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]
+                    if [[ $PIP_LOCATION = 'which: no' ]]
                     then
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
@@ -107,14 +119,14 @@ case $OS in
         PY_INSTALL_DIR=$INSTALL_DIR/pypackages
         PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
         echo `$PYTHONPATH` >> ~/.bash_profile
-        if [[ ${BREW_LOCATION:0:8} = 'which: no' ]]
+        if [[ $BREW_LOCATION = 'which: no' ]]
         then
             command -v brew &>/dev/null || {
                 output "Installing brew"
                 /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
             }
         fi
-        if [[ ${PIP_LOCATION:0:8} = 'which: no' ]]
+        if [[ $PIP_LOCATION = 'which: no' ]]
         then
             wget https://bootstrap.pypa.io/get-pip.py
             python get-pip.py
