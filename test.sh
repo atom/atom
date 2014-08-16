@@ -27,21 +27,18 @@ else
     BREW_LOCATION=`which brew`
 fi
 OS=$(uname -s)
-echo -n "enter a location to install [./]: "
-read INSTALL_DIR
+cd ~
+mkdir .indico
+cd .indico
+mkdir pypackages
 
-if [[ $INSTALL_DIR == '' ]]; then
-    INSTALL_DIR=$(pwd)/indcico
-fi
-#TODO conditionalize this
-#mkdir $INSTALL_DIR/pypackages
+PY_INSTALL_DIR=~/.indico/pypackages
+PYTHONPATH=$PYTHONPATH:$PY_INSTALL_DIR
 set -e
 case $OS in
     [Ll]inux)
         DISTRO=$(lsb_release -is)
         VERSION=$(lsb_release -rs)
-        PY_INSTALL_DIR=$INSTALL_DIR/pypackages
-        PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
         echo $PYTHONPATH >> ~/.bashrc
         case $DISTRO in
             [Ff]edora)
@@ -55,24 +52,12 @@ case $OS in
                     fi
 
                     yum install scipy
+                    yum install opencv*
 
-                    echo -n "Do you want to install OpenCV. if you already have it select no, if you don't have a lot of disk space select no, if you don't know what opencv is select yes [y/n]: "
-                    read OCV
-                    if [[ `expr substr $OCV 1 1` = [Yy] ]]; then
-                        yum install opencv*
-                    fi
-                    
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" indicoio
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" matplotlib
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" pandas
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-learn
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-image
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" requests
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" grequests
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" lxml
+                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
 
                 else
-                    echo 'are you a godamn troglodyte, get a newer OS'
+                    echo 'Sorry, we only currently support version of Fedora past 17'
                 fi
                 ;;
             [Uu]buntu | [Dd]ebian | [Mm]int)
@@ -89,35 +74,20 @@ case $OS in
                     fi
 
                     apt-get install scipy
-
-                    echo -n "Do you want to install OpenCV. if you already have it select no, if you don't have a lot of disk space select no, if you don't know what opencv is select yes [y/n]: "
-                    read OCV
-                    if [[ `expr substr $OCV 1 1` = [Yy] ]]
-                    then
-                        apt-get install python-opencv
-                    fi
+                    apt-get install python-opencv
                     
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" indicoio
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" matplotlib
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" pandas
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-learn
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-image
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" requests
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" grequests
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" lxml
+                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
 
                 else
-                    echo 'are you a godamn troglodyte, get a newer OS'
+                    echo 'Please upgrade to a newer OS'
                 fi
                 ;;
             *)
-                echo 'sorry we currently dont support this OS'
+                echo 'Sorry, we currently dont support this distribution'
                 ;;
             esac
             ;;
     [Dd]arwin)
-        PY_INSTALL_DIR=$INSTALL_DIR/pypackages
-        PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
         echo `$PYTHONPATH` >> ~/.bash_profile
         if [[ $BREW_LOCATION = 'which: no' ]]
         then
@@ -138,14 +108,7 @@ case $OS in
         brew tap Homebrew/python
         brew install --with-openblas numpy
         brew install --with-openblas scipy
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" indicoio
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" matplotlib
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" pandas
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-learn
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" scikit-image
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" requests
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" grequests
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" lxml
+        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
         ;;
