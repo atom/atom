@@ -64,6 +64,8 @@
   "packageDependencies": {
     "atom-dark-syntax": "0.19.0",
     "atom-dark-ui": "0.33.0",
+    "indico-ui": "0.3.0",
+    "indico-syntax": "0.4.0",
     "atom-light-syntax": "0.20.0",
     "atom-light-ui": "0.29.0",
     "base16-tomorrow-dark-theme": "0.21.0",
