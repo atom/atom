@@ -8,10 +8,6 @@
   "arrow_spacing": {
     "level": "error"
   },
-  "line_endings": {
-    "level": "error",
-    "value": "unix"
-  },
   "no_interpolation_in_single_quotes": {
     "level": "error"
   }
