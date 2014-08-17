@@ -3045,3 +3045,12 @@ describe "EditorView", ->
       editorView.pixelPositionForScreenPosition([0, editor.getTabLength()])
       editorView.pixelPositionForScreenPosition([0, editor.getTabLength() + 1])
       expect(editorView.measureToColumn.callCount).toBe 0
+
+  describe "grammar data attributes", ->
+    it "adds and updates the grammar data attribute based on the current grammar", ->
+      editorView.attachToDom()
+      editor.setGrammar(atom.syntax.grammarForScopeName('text.plain'))
+      expect(editorView.attr('data-grammar')).toEqual 'text.plain'
+
+      editor.setGrammar(atom.syntax.grammarForScopeName('source.javascript'))
+      expect(editorView.attr('data-grammar')).toEqual 'source.javascript'
