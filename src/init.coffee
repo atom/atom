@@ -17,10 +17,12 @@ class Init extends Command
         apm init -p <package-name>
         apm init -p <package-name> -c ~/Downloads/r.tmbundle
         apm init -p <package-name> -c https://github.com/textmate/r.tmbundle
+        apm init -p <package-name> --template /path/to/your/package/template
 
         apm init -t <theme-name>
         apm init -t <theme-name> -c ~/Downloads/Dawn.tmTheme
         apm init -t <theme-name> -c https://raw.github.com/chriskempson/tomorrow-theme/master/textmate/Tomorrow-Night-Eighties.tmTheme
+        apm init -t <theme-name> --template /path/to/your/theme/template
 
       Generates code scaffolding for either a theme or package depending
       on the option selected.
@@ -29,6 +31,7 @@ class Init extends Command
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
     options.alias('c', 'convert').string('convert').describe('convert', 'Path or URL to TextMate bundle/theme to convert')
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.string('template').describe('template', 'Path to the package or theme template')
 
   run: (options) ->
     {callback} = options
@@ -38,7 +41,7 @@ class Init extends Command
         @convertPackage(options.argv.convert, options.argv.package, callback)
       else
         packagePath = path.resolve(options.argv.package)
-        templatePath = path.resolve(__dirname, '..', 'templates', 'package')
+        templatePath = options.argv.template ? path.resolve(__dirname, '..', 'templates', 'package')
         @generateFromTemplate(packagePath, templatePath)
         callback()
     else if options.argv.theme?.length > 0
@@ -46,7 +49,7 @@ class Init extends Command
         @convertTheme(options.argv.convert, options.argv.theme, callback)
       else
         themePath = path.resolve(options.argv.theme)
-        templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
+        templatePath = options.argv.template ? path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(themePath, templatePath)
         callback()
     else if options.argv.package?
