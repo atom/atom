@@ -100,8 +100,8 @@ class Init extends Command
         fs.removeSync(path.join(destinationPath, 'LICENSE.md'))
         callback()
 
-  generateFromTemplate: (packagePath, templatePath) ->
-    packageName = path.basename(packagePath)
+  generateFromTemplate: (packagePath, templatePath, packageName) ->
+    packageName = path.basename(packagePath) unless packageName?
     packageAuthor = process.env.GITHUB_USER or 'atom'
 
     fs.makeTreeSync(packagePath)
