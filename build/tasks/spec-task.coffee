@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 
 module.exports = (grunt) ->
-  {isAtomPackage, spawn, withPlatform} = require('./task-helpers')(grunt)
+  {isAtomPackage, spawn, platformSwitch} = require('./task-helpers')(grunt)
 
   packageSpecQueue = null
 
@@ -15,13 +15,13 @@ module.exports = (grunt) ->
     rootDir = grunt.config.get('atom.shellAppDir')
     contentsDir = grunt.config.get('atom.contentsDir')
     resourcePath = process.cwd()
-    appPath = withPlatform
+    appPath = platformSwitch
       darwin: -> path.join(contentsDir, 'MacOS', 'Atom')
       linux: -> path.join(contentsDir, 'atom')
       win32: -> path.join(contentsDir, 'atom.exe')
 
     packageSpecQueue = async.queue (packagePath, callback) ->
-      options = withPlatform
+      options = platformSwitch
         darwin: ->
           cmd: appPath
           args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
@@ -64,7 +64,7 @@ module.exports = (grunt) ->
   runCoreSpecs = (callback) ->
     contentsDir = grunt.config.get('atom.contentsDir')
 
-    appPath = withPlatform
+    appPath = platformSwitch
       darwin: -> path.join(contentsDir, 'MacOS', 'Atom')
       win32: -> path.join(contentsDir, 'atom.exe')
       linux: -> path.join(contentsDir, 'atom')
@@ -72,7 +72,7 @@ module.exports = (grunt) ->
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
-    options = withPlatform
+    options = platformSwitch
       darwin: ->
         cmd: appPath
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
@@ -84,7 +84,7 @@ module.exports = (grunt) ->
         args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
 
     spawn options, (error, results, code) ->
-      withPlatform
+      platformSwitch
         darwin: ->
           # TODO: Restore concurrency on Windows
           packageSpecQueue.concurrency = 2
@@ -101,7 +101,7 @@ module.exports = (grunt) ->
 
     # TODO: This should really be parallel on both platforms, however our
     # fixtures step on each others toes currently.
-    method = withPlatform
+    method = platformSwitch
       darwin: -> async.parallel
       linux: -> async.series
       win32: -> async.series

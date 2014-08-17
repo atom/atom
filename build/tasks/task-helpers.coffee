@@ -66,7 +66,7 @@ module.exports = (grunt) ->
     catch error
       false
 
-  withPlatform: (callbacks) ->
+  platformSwitch: (callbacks) ->
     callbacks.unsupported ?= ->
       grunt.warn new Error("Unsupported platform: #{process.platform}!")
 
