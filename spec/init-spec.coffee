@@ -159,6 +159,8 @@ describe "apm init", ->
         expect(fs.existsSync(path.join(languagePath, 'snippets', 'language-fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'spec', 'language-fake-spec.coffee'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'package.json'))).toBeTruthy()
+        expect(JSON.parse(fs.readFileSync(path.join(languagePath, 'package.json'))).name).toBe 'language-fake'
+        expect(JSON.parse(fs.readFileSync(path.join(languagePath, 'package.json'))).repository).toBe 'https://github.com/somebody/language-fake'
 
     it "does not add language prefix to name if already present", ->
       callback = jasmine.createSpy('callback')
