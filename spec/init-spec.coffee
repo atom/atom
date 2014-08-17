@@ -154,7 +154,7 @@ describe "apm init", ->
 
       runs ->
         expect(fs.existsSync(languagePath)).toBeTruthy()
-        expect(fs.existsSync(path.join(languagePath, 'grammars', 'language-fake.cson'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'grammars', 'fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'scoped-properties', 'language-fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'snippets', 'language-fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'spec', 'language-fake-spec.coffee'))).toBeTruthy()

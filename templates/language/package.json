@@ -1,7 +1,7 @@
 {
   "name": "__package-name__",
   "version": "0.0.0",
-  "description": "A short description of your language",
+  "description": "A short description of your language package",
   "repository": "https://github.com/atom/__package-name__",
   "license": "MIT",
   "engines": {
