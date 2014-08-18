@@ -114,6 +114,7 @@ case $OS in
         fi
         brew update
         brew install -v cmake
+        brew install gfortran
         brew tap homebrew/science
         brew install opencv
         brew tap Homebrew/python

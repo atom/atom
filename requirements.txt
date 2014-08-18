@@ -1,6 +1,7 @@
 indicoio>=0.4.2
 matplotlib>=1.3.1
 pandas>=0.14.1
+six>=1.7.3
 scikit-learn>=0.15.1
 scikit-image>=0.10.1
 requests>=2.3.0
