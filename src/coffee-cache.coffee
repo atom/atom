@@ -5,7 +5,10 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+cacheDir = `(function () {
+    var dir = fs.existsSync(process.cwd() + "/.atom") ? process.cwd() + "/.atom" : fs.absolute('~/.atom');
+    return path.join(dir, 'compile-cache');
+  }());`
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 
