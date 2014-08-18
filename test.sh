@@ -27,19 +27,20 @@ else
     BREW_LOCATION=`which brew`
 fi
 OS=$(uname -s)
+REQ=`pwd`
 cd ~
 mkdir .indico
 cd .indico
 mkdir pypackages
 
-PY_INSTALL_DIR=~/.indico/pypackages
+PY_INSTALL_DIR=~/.indico/pypackages/lib/python2.7/site-packages
 PYTHONPATH=$PYTHONPATH:$PY_INSTALL_DIR
 set -e
 case $OS in
     [Ll]inux)
         DISTRO=$(lsb_release -is)
         VERSION=$(lsb_release -rs)
-        echo $PYTHONPATH >> ~/.bashrc
+        echo \$PYTHONPATH=$PYTHONPATH >> ~/.bashrc
         case $DISTRO in
             [Ff]edora)
                 if [[ $VERSION > 17 ]]; then
@@ -50,11 +51,16 @@ case $OS in
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
                     fi
-
+                    
+                    yum install freetype
+                    yum isntall libpng-dev
+                    yum install libxml2
+                    yum install libxslt
                     yum install scipy
                     yum install opencv*
 
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
+                    pip install six
+                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
 
                 else
                     echo 'Sorry, we only currently support version of Fedora past 17'
@@ -72,11 +78,16 @@ case $OS in
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
                     fi
-
-                    apt-get install scipy
+                    
+                    apt-get install freetype*
+                    apt-get install libpng-dev
+                    apt-get install libxml2-dev
+                    apt-get install libxslt-dev
+                    apt-get install python-scipy
                     apt-get install python-opencv
                     
-                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
+                    pip install six
+                    pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
 
                 else
                     echo 'Please upgrade to a newer OS'
@@ -88,7 +99,7 @@ case $OS in
             esac
             ;;
     [Dd]arwin)
-        echo `$PYTHONPATH` >> ~/.bash_profile
+        echo \$PYTHONPATH=$PYTHONPATH >> ~/.bashrc
         if [[ $BREW_LOCATION = 'which: no' ]]
         then
             command -v brew &>/dev/null || {
@@ -108,7 +119,8 @@ case $OS in
         brew tap Homebrew/python
         brew install --with-openblas numpy
         brew install --with-openblas scipy
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r requirements.txt
+        brew install matplotlib
+        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/equirements.txt
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
         ;;
