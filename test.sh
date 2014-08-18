@@ -33,14 +33,14 @@ mkdir .indico
 cd .indico
 mkdir pypackages
 
-PY_INSTALL_DIR=~/.indico/pypackages/lib/python2.7/site-packages
-PYTHONPATH=$PYTHONPATH:$PY_INSTALL_DIR
+PY_INSTALL_DIR=~/.indico/pypackages/
+PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH\lib/python2.7/site-packages
 set -e
 case $OS in
     [Ll]inux)
         DISTRO=$(lsb_release -is)
         VERSION=$(lsb_release -rs)
-        echo \$PYTHONPATH=$PYTHONPATH >> ~/.bashrc
+        echo 'export PYTHONPATH='$PYTHONPATH >> ~/.bashrc
         case $DISTRO in
             [Ff]edora)
                 if [[ $VERSION > 17 ]]; then
@@ -99,7 +99,7 @@ case $OS in
             esac
             ;;
     [Dd]arwin)
-        echo \$PYTHONPATH=$PYTHONPATH >> ~/.bashrc
+        echo 'export PYTHONPATH='$PYTHONPATH >> ~/.bashrc
         if [[ $BREW_LOCATION = 'which: no' ]]
         then
             command -v brew &>/dev/null || {
