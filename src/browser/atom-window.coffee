@@ -38,7 +38,9 @@ class AtomWindow
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+      loadSettings.shellLoadTimeEnd ?= Date.now()
+      loadSettings.shellLoadTimeStart ?= global.shellStartTime
+      loadSettings.shellLoadTime ?= loadSettings.shellLoadTimeEnd - loadSettings.shellLoadTimeStart
 
     loadSettings.initialPath = pathToOpen
     if fs.statSyncNoException(pathToOpen).isFile?()
