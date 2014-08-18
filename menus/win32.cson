@@ -158,16 +158,6 @@
   }
 
   {
-    label: '&Window'
-    submenu: [
-      { label: 'Mi&nimize', command: 'application:minimize' }
-      { label: 'Ma&ximize', command: 'application:zoom' }
-      { type: 'separator' }
-      { label: 'Bring &All to Front', command: 'application:bring-all-windows-to-front' }
-    ]
-  }
-
-  {
     label: '&Help'
     submenu: [
       { label: 'View &Terms of Use', command: 'application:open-terms-of-use' }
