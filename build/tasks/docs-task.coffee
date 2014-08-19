@@ -9,10 +9,6 @@ donna = require 'donna'
 tello = require 'tello'
 
 module.exports = (grunt) ->
-  {rm} = require('./task-helpers')(grunt)
-
-  opts = stdio: 'inherit'
-
   getClassesToInclude = ->
     modulesPath = path.resolve(__dirname, '..', '..', 'node_modules')
     classes = {}
@@ -31,18 +27,7 @@ module.exports = (grunt) ->
     docsOutputDir = grunt.config.get('docsOutputDir')
 
     metadata = donna.generateMetadata(['.'])
-    telloJson = _.extend(tello.digest(metadata), getClassesToInclude())
-
-    files = [{
-      filePath: path.join(docsOutputDir, 'donna.json')
-      contents: JSON.stringify(metadata, null, '  ')
-    }, {
-      filePath: path.join(docsOutputDir, 'tello.json')
-      contents: JSON.stringify(telloJson, null, '  ')
-    }]
-
-    writeFile = ({filePath, contents}, callback) ->
-      fs.writeFile filePath, contents, (error) ->
-        callback(error)
-
-    async.map files, writeFile, -> done()
+    api = _.extend(tello.digest(metadata), getClassesToInclude())
+    apiJson = JSON.stringify(api, null, 2)
+    apiJsonPath = path.join(docsOutputDir, 'api.json')
+    grunt.file.write(apiJsonPath, apiJson)
