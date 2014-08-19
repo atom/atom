@@ -88,9 +88,6 @@ downloadFileFromRepo = ({repo, file}, callback) ->
 
 downloadIncludes = (callback) ->
   includes = [
-    {repo: 'node-pathwatcher', file: 'src/directory.coffee'}
-    {repo: 'node-pathwatcher', file: 'src/file.coffee'}
-    {repo: 'node-pathwatcher', file: 'package.json'}
     {repo: 'space-pen',   file: 'src/space-pen.coffee'}
     {repo: 'space-pen',   file: 'package.json'}
     {repo: 'text-buffer', file: 'src/marker.coffee'}
