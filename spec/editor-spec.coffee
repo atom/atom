@@ -520,12 +520,23 @@ describe "Editor", ->
           cursor = editor.getCursor()
           expect(cursor.getBufferPosition()).toEqual [1,0]
 
-        describe "when invisible characters are enabled", ->
+        describe "when invisible characters are enabled with soft tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
             atom.config.set('editor.showInvisibles', true)
             editor.setCursorScreenPosition [1,7]
             editor.moveCursorToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,2]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,0]
+
+        describe "when invisible characters are enabled with hard tabs", ->
+          it "moves to the first character of the current line without being confused by the invisible characters", ->
+            atom.config.set('editor.showInvisibles', true)
+            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', false)
+
+            editor.setCursorScreenPosition [1,7]
+            editor.moveCursorToFirstCharacterOfLine()
+            expect(editor.getCursorBufferPosition()).toEqual [1,3]
             editor.moveCursorToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,0]
 

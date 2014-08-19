@@ -272,13 +272,20 @@ class Cursor extends Model
   # Public: Moves the cursor to the beginning of the first character in the
   # line.
   moveToFirstCharacterOfLine: ->
-    {row, column} = @getScreenPosition()
+    screenRow = @getScreenRow()
+    lineBufferRange = @editor.bufferRangeForScreenRange([[screenRow, 0], [screenRow, Infinity]])
 
-    bufferRange = @editor.bufferRangeForScreenRange([[row, 0], [row, Infinity]])
-    screenLineText = @editor.getTextInBufferRange(bufferRange)
-    goalColumn = screenLineText.search(/\S/)
-    goalColumn = 0 if goalColumn == column or goalColumn == -1
-    @setScreenPosition([row, goalColumn])
+    firstCharacterColumn = null
+    @editor.scanInBufferRange /\S/, lineBufferRange, ({range, stop}) ->
+      firstCharacterColumn = range.start.column
+      stop()
+
+    if firstCharacterColumn? and firstCharacterColumn isnt @getBufferColumn()
+      targetBufferColumn = firstCharacterColumn
+    else
+      targetBufferColumn = lineBufferRange.start.column
+
+    @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
   # whitespace.
