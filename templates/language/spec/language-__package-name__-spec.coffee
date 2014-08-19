@@ -1,5 +1,5 @@
 # If you want an example of language specs, check out:
-#   - https://raw.githubusercontent.com/atom/language-coffee-script/master/spec/coffee-script-spec.coffee
+# https://github.com/atom/language-gfm/blob/master/spec/gfm-spec.coffee
 
 describe "PackageName grammar", ->
   grammar = null

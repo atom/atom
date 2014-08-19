@@ -1,5 +1,5 @@
 # If you want some example snippets, check out:
-#   - https://raw.githubusercontent.com/atom/language-coffee-script/master/snippets/language-coffee-script.cson
+# https://github.com/atom/language-gfm/blob/master/snippets/gfm.cson
 
 '.source.__package-name__':
   'Method documentation':
