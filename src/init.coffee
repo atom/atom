@@ -24,11 +24,14 @@ class Init extends Command
         apm init -t <theme-name> -c https://raw.github.com/chriskempson/tomorrow-theme/master/textmate/Tomorrow-Night-Eighties.tmTheme
         apm init -t <theme-name> --template /path/to/your/theme/template
 
+        apm init -l <language-name>
+
       Generates code scaffolding for either a theme or package depending
       on the option selected.
     """
     options.alias('p', 'package').string('package').describe('package', 'Generates a basic package')
     options.alias('t', 'theme').string('theme').describe('theme', 'Generates a basic theme')
+    options.alias('l', 'language').string('language').describe('language', 'Generates a basic language package')
     options.alias('c', 'convert').string('convert').describe('convert', 'Path or URL to TextMate bundle/theme to convert')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.string('template').describe('template', 'Path to the package or theme template')
@@ -52,12 +55,18 @@ class Init extends Command
         templatePath = options.argv.template ? path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(themePath, templatePath)
         callback()
+    else if options.argv.language?.length > 0
+      languageName = options.argv.language.replace(/^language-/, '')
+      languagePath = path.resolve("language-#{languageName}")
+      templatePath = path.resolve(__dirname, '..', 'templates', 'language')
+      @generateFromTemplate(languagePath, templatePath, languageName)
+      callback()
     else if options.argv.package?
       callback('You must specify a path after the --package argument')
     else if options.argv.theme?
       callback('You must specify a path after the --theme argument')
     else
-      callback('You must specify either --package or --theme to `apm init`')
+      callback('You must specify either --package, --theme or --language to `apm init`')
 
   convertPackage: (sourcePath, destinationPath, callback) ->
     unless destinationPath
@@ -93,8 +102,8 @@ class Init extends Command
         fs.removeSync(path.join(destinationPath, 'LICENSE.md'))
         callback()
 
-  generateFromTemplate: (packagePath, templatePath) ->
-    packageName = path.basename(packagePath)
+  generateFromTemplate: (packagePath, templatePath, packageName) ->
+    packageName = path.basename(packagePath) unless packageName?
     packageAuthor = process.env.GITHUB_USER or 'atom'
 
     fs.makeTreeSync(packagePath)
