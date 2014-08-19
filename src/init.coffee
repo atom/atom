@@ -56,8 +56,9 @@ class Init extends Command
         @generateFromTemplate(themePath, templatePath)
         callback()
     else if options.argv.language?.length > 0
-      languageName = options.argv.language.replace(/^language-/, '')
-      languagePath = path.resolve("language-#{languageName}")
+      languagePath = path.resolve(options.argv.language)
+      languageName = path.basename(languagePath).replace(/^language-/, '')
+      languagePath = path.join(path.dirname(languagePath), "language-#{languageName}")
       templatePath = path.resolve(__dirname, '..', 'templates', 'language')
       @generateFromTemplate(languagePath, templatePath, languageName)
       callback()
