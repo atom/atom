@@ -2,6 +2,6 @@
 #   - https://raw.githubusercontent.com/atom/language-coffee-script/master/snippets/language-coffee-script.cson
 
 '.source.__package-name__':
-  'If':
-    'prefix': 'if'
-    'body': 'if ${1:condition}\n  ${0:# body...}'
+  'Method documentation':
+    'prefix': 'doc'
+    'body': '@@ ${1:method} - ${2:description}'
