@@ -13,12 +13,24 @@ module.exports = (grunt) ->
 
   opts = stdio: 'inherit'
 
+  getClassesToInclude = ->
+    modulesPath = path.resolve(__dirname, '..', '..', 'node_modules')
+    classes = {}
+    fs.traverseTreeSync modulesPath, (modulePath) ->
+      return true unless path.basename(modulePath) is 'package.json' and fs.isFileSync(modulePath)
+
+      apiPath = path.join(path.dirname(modulePath), 'api.json')
+      if fs.isFileSync(apiPath)
+        _.extend(classes, grunt.file.readJSON(apiPath).classes)
+      true
+    classes
+
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
     docsOutputDir = grunt.config.get('docsOutputDir')
     downloadIncludes (error, includedModules) ->
       metadata = donna.generateMetadata(['.'].concat(includedModules))
-      telloJson = tello.digest(metadata)
+      telloJson = _.extend(tello.digest(metadata), getClassesToInclude())
 
       files = [{
         filePath: path.join(docsOutputDir, 'donna.json')
@@ -71,11 +83,10 @@ downloadFileFromRepo = ({repo, file}, callback) ->
     fs.writeFile downloadPath, contents, (error) ->
       callback(error, downloadPath)
 
+
+
 downloadIncludes = (callback) ->
   includes = [
-    {repo: 'atom-keymap', file: 'src/keymap-manager.coffee'}
-    {repo: 'atom-keymap', file: 'src/key-binding.coffee'}
-    {repo: 'atom-keymap', file: 'package.json'}
     {repo: 'first-mate',  file: 'src/grammar.coffee'}
     {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
     {repo: 'first-mate',  file: 'package.json'}
