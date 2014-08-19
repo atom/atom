@@ -103,7 +103,7 @@ class Init extends Command
         callback()
 
   generateFromTemplate: (packagePath, templatePath, packageName) ->
-    packageName = path.basename(packagePath) unless packageName?
+    packageName ?= path.basename(packagePath)
     packageAuthor = process.env.GITHUB_USER or 'atom'
 
     fs.makeTreeSync(packagePath)
