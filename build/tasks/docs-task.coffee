@@ -88,8 +88,6 @@ downloadFileFromRepo = ({repo, file}, callback) ->
 
 downloadIncludes = (callback) ->
   includes = [
-    {repo: 'space-pen',   file: 'src/space-pen.coffee'}
-    {repo: 'space-pen',   file: 'package.json'}
     {repo: 'text-buffer', file: 'src/marker.coffee'}
     {repo: 'text-buffer', file: 'src/point.coffee'}
     {repo: 'text-buffer', file: 'src/range.coffee'}
