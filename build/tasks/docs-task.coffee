@@ -17,7 +17,8 @@ module.exports = (grunt) ->
     modulesPath = path.resolve(__dirname, '..', '..', 'node_modules')
     classes = {}
     fs.traverseTreeSync modulesPath, (modulePath) ->
-      return true unless path.basename(modulePath) is 'package.json' and fs.isFileSync(modulePath)
+      return true unless path.basename(modulePath) is 'package.json'
+      return true unless fs.isFileSync(modulePath)
 
       apiPath = path.join(path.dirname(modulePath), 'api.json')
       if fs.isFileSync(apiPath)
