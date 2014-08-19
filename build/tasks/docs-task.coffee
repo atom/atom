@@ -87,9 +87,6 @@ downloadFileFromRepo = ({repo, file}, callback) ->
 
 downloadIncludes = (callback) ->
   includes = [
-    {repo: 'first-mate',  file: 'src/grammar.coffee'}
-    {repo: 'first-mate',  file: 'src/grammar-registry.coffee'}
-    {repo: 'first-mate',  file: 'package.json'}
     {repo: 'node-pathwatcher', file: 'src/directory.coffee'}
     {repo: 'node-pathwatcher', file: 'src/file.coffee'}
     {repo: 'node-pathwatcher', file: 'package.json'}
