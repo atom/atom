@@ -63,50 +63,6 @@ module.exports = (grunt) ->
 
     grunt.util.async.waterfall [fetchTag, copyDocs], done
 
-  grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
-    done = @async()
-    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
-
-    fetchTag = (args..., callback) ->
-      cmd = 'git'
-      args = ['describe', '--abbrev=0', '--tags']
-      grunt.util.spawn {cmd, args}, (error, result) ->
-        if error?
-          callback(error)
-        else
-          callback(null, String(result).trim().split('.')[0..1].join('.'))
-
-    stageDocs = (tag, callback) ->
-      cmd = 'git'
-      args = [docsRepoArgs..., 'add', "public/#{tag}"]
-      grunt.util.spawn({cmd, args, opts}, callback)
-
-    fetchSha = (args..., callback) ->
-      cmd = 'git'
-      args = ['rev-parse', 'HEAD']
-      grunt.util.spawn {cmd, args}, (error, result) ->
-        if error?
-          callback(error)
-        else
-          callback(null, String(result).trim())
-
-    commitChanges = (sha, callback) ->
-      cmd = 'git'
-      args = [docsRepoArgs..., 'commit', "-m Update API docs to #{sha}"]
-      grunt.util.spawn({cmd, args, opts}, callback)
-
-    pushOrigin = (args..., callback) ->
-      cmd = 'git'
-      args = [docsRepoArgs..., 'push', 'origin', 'master']
-      grunt.util.spawn({cmd, args, opts}, callback)
-
-    pushHeroku = (args..., callback) ->
-      cmd = 'git'
-      args = [docsRepoArgs..., 'push', 'heroku', 'master']
-      grunt.util.spawn({cmd, args, opts}, callback)
-
-    grunt.util.async.waterfall [fetchTag, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
-
 downloadFileFromRepo = ({repo, file}, callback) ->
   uri = "https://raw.github.com/atom/#{repo}/master/#{file}"
   request uri, (error, response, contents) ->
