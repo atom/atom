@@ -29,23 +29,23 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     done = @async()
     docsOutputDir = grunt.config.get('docsOutputDir')
-    downloadIncludes (error, includedModules) ->
-      metadata = donna.generateMetadata(['.'].concat(includedModules))
-      telloJson = _.extend(tello.digest(metadata), getClassesToInclude())
 
-      files = [{
-        filePath: path.join(docsOutputDir, 'donna.json')
-        contents: JSON.stringify(metadata, null, '  ')
-      }, {
-        filePath: path.join(docsOutputDir, 'tello.json')
-        contents: JSON.stringify(telloJson, null, '  ')
-      }]
+    metadata = donna.generateMetadata(['.'])
+    telloJson = _.extend(tello.digest(metadata), getClassesToInclude())
 
-      writeFile = ({filePath, contents}, callback) ->
-        fs.writeFile filePath, contents, (error) ->
-          callback(error)
+    files = [{
+      filePath: path.join(docsOutputDir, 'donna.json')
+      contents: JSON.stringify(metadata, null, '  ')
+    }, {
+      filePath: path.join(docsOutputDir, 'tello.json')
+      contents: JSON.stringify(telloJson, null, '  ')
+    }]
 
-      async.map files, writeFile, -> done()
+    writeFile = ({filePath, contents}, callback) ->
+      fs.writeFile filePath, contents, (error) ->
+        callback(error)
+
+    async.map files, writeFile, -> done()
 
   grunt.registerTask 'copy-docs', 'Copies over latest API docs to atom-docs', ->
     done = @async()
@@ -75,25 +75,3 @@ module.exports = (grunt) ->
           return false
 
     grunt.util.async.waterfall [fetchTag, copyDocs], done
-
-downloadFileFromRepo = ({repo, file}, callback) ->
-  uri = "https://raw.github.com/atom/#{repo}/master/#{file}"
-  request uri, (error, response, contents) ->
-    return callback(error) if error?
-    downloadPath = path.join('docs', 'includes', repo, file)
-    fs.writeFile downloadPath, contents, (error) ->
-      callback(error, downloadPath)
-
-
-
-downloadIncludes = (callback) ->
-  includes = [
-    {repo: 'theorist',    file: 'src/model.coffee'}
-    {repo: 'theorist',    file: 'package.json'}
-  ]
-
-  async.map includes, downloadFileFromRepo, (error, allPaths) ->
-    includeDirectories = null
-    if allPaths?
-      includeDirectories = _.unique allPaths.map (dir) -> /^docs\/includes\/[a-z-]+/.exec(dir)[0]
-    callback(error, includeDirectories)
