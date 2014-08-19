@@ -1,8 +1,6 @@
 path = require 'path'
 
-async = require 'async'
 fs = require 'fs-plus'
-request = require 'request'
 _ = require 'underscore-plus'
 
 donna = require 'donna'
@@ -23,7 +21,6 @@ module.exports = (grunt) ->
     classes
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
-    done = @async()
     docsOutputDir = grunt.config.get('docsOutputDir')
 
     metadata = donna.generateMetadata(['.'])
