@@ -8,7 +8,7 @@
   "dependencies": {
     "async": "~0.2.9",
     "donna": "~0.0",
-    "tello": "~0.0",
+    "tello": "~0.1",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",
