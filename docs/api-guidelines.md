@@ -91,4 +91,22 @@ Comment doc strings on methods, events, etc
 * callback args?
 * option hashes?
 
+### Method organization
+
+* All methods in classes should be grouped into sections by usage pattern.
+* Methods within a section should be ordered with the most commonly used methods at the top. `Essential` methods always go above `Extended` methods.
+* Sections should be ordered in the class with the most commonly used sections at the top.
+
+A section:
+
+```coffee
+###
+Section: Reading Text
+###
+
+# Essential: Returns a {String} representing the entire contents of the editor.
+getText: -> @buffer.getText()
+```
+
+
 [naming]:https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CodingGuidelines/Articles/NamingMethods.html
