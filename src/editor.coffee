@@ -50,6 +50,23 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
+#
+# ## Events
+#
+# ### will-insert-text
+#
+# Emit before the text has been inserted.
+#
+# * `event` event {Object}
+#   * `text` {String} text to be inserted
+#   * `cancel` {Function} Call to prevent the text from being inserted
+#
+# ### did-insert-text
+#
+# Emit after the text has been inserted.
+#
+# * `event` event {Object}
+#   * `text` {String} text to be inserted
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
