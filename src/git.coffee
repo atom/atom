@@ -20,16 +20,16 @@ Task = require './task'
 # For a repository with submodules this would have the following outcome:
 #
 # ```coffee
-# repo = atom.project.getRepo()
-# repo.getShortHead() # 'master'
-# repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
+#   repo = atom.project.getRepo()
+#   repo.getShortHead() # 'master'
+#   repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
 # ```
 #
-# ## Example
+# ## Examples
 #
-# ```coffeescript
-# git = atom.project.getRepo()
-# console.log git.getOriginUrl()
+# ```coffee
+#   git = atom.project.getRepo()
+#   console.log git.getOriginUrl()
 # ```
 #
 # ## Requiring in packages
@@ -44,12 +44,12 @@ class Git
 
   # Public: Creates a new Git instance.
   #
-  # path - The path to the Git repository to open.
-  # options - An object with the following keys (default: {}):
-  #   :refreshOnWindowFocus - `true` to refresh the index and statuses when the
-  #                           window is focused.
+  # * `path` The {String} path to the Git repository to open.
+  # * `options` An optinal {Object} with the following keys:
+  #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
+  #                            statuses when the window is focused.
   #
-  # Returns a Git instance or null if the repository could not be opened.
+  # Returns a {Git} instance or `null` if the repository could not be opened.
   @open: (path, options) ->
     return null unless path
     try
@@ -114,8 +114,10 @@ class Git
     else
       checkoutHead()
 
-  # Public: Destroy this `Git` object. This destroys any tasks and subscriptions
-  # and releases the underlying libgit2 repository handle.
+  # Public: Destroy this {Git} object.
+  #
+  # This destroys any tasks and subscriptions and releases the underlying
+  # libgit2 repository handle.
   destroy: ->
     if @statusTask?
       @statusTask.terminate()
@@ -147,7 +149,7 @@ class Git
 
   # Public: Get the status of a single path in the repository.
   #
-  # path - A {String} repository-relative path.
+  # `path` A {String} repository-relative path.
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
@@ -196,8 +198,8 @@ class Git
   # `refs/remotes`.  It also shortens the SHA-1 of a detached `HEAD` to 7
   # characters.
   #
-  # path - An optional {String} path in the repository to get this information
-  #        for, only needed if the repository contains submodules.
+  # * `path` An optional {String} path in the repository to get this information
+  #          for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
   getShortHead: (path) -> @getRepo(path).getShortHead()
@@ -207,12 +209,12 @@ class Git
   #
   # This is essentially the same as running:
   #
-  # ```
-  # git reset HEAD -- <path>
-  # git checkout HEAD -- <path>
+  # ```sh
+  #   git reset HEAD -- <path>
+  #   git checkout HEAD -- <path>
   # ```
   #
-  # path - The {String} path to checkout.
+  # * `path` The {String} path to checkout.
   #
   # Returns a {Boolean} that's true if the method was successful.
   checkoutHead: (path) ->
@@ -223,9 +225,9 @@ class Git
 
   # Public: Checks out a branch in your repository.
   #
-  # reference - The String reference to checkout
-  # create -  A Boolean value which, if true creates the new reference if it
-  #           doesn't exist.
+  # * `reference` The {String} reference to checkout.
+  # * `create`    A {Boolean} value which, if true creates the new reference if
+  #               it doesn't exist.
   #
   # Returns a Boolean that's true if the method was successful.
   checkoutReference: (reference, create) ->
@@ -236,18 +238,18 @@ class Git
   # This compares the working directory contents of the path to the `HEAD`
   # version.
   #
-  # path - The {String} path to check.
+  # * `path` The {String} path to check.
   #
   # Returns an {Object} with the following keys:
-  #   :added - The {Number} of added lines.
-  #   :deleted - The {Number} of deleted lines.
+  #   * `added` The {Number} of added lines.
+  #   * `deleted` The {Number} of deleted lines.
   getDiffStats: (path) ->
     repo = @getRepo(path)
     repo.getDiffStats(repo.relativize(path))
 
   # Public: Is the given path a submodule in the repository?
   #
-  # path - The {String} path to check.
+  # * `path` The {String} path to check.
   #
   # Returns a {Boolean}.
   isSubmodule: (path) ->
@@ -262,7 +264,7 @@ class Git
 
   # Public: Get the status of a directory in the repository's working directory.
   #
-  # path - The {String} path to check.
+  # * `path` The {String} path to check.
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
@@ -276,14 +278,14 @@ class Git
   # Public: Retrieves the line diffs comparing the `HEAD` version of the given
   # path and the given text.
   #
-  # path - The {String} path relative to the repository.
-  # text - The {String} to compare against the `HEAD` contents
+  # * `path` The {String} path relative to the repository.
+  # * `text` The {String} to compare against the `HEAD` contents
   #
   # Returns an {Array} of hunk {Object}s with the following keys:
-  #   :oldStart - The line {Number} of the old hunk.
-  #   :newStart - The line {Number} of the new hunk.
-  #   :oldLines - The {Number} of lines in the old hunk.
-  #   :newLines - The {Number} of lines in the new hunk
+  #   * `oldStart` The line {Number} of the old hunk.
+  #   * `newStart` The line {Number} of the new hunk.
+  #   * `oldLines` The {Number} of lines in the old hunk.
+  #   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs: (path, text) ->
     # Ignore eol of line differences on windows so that files checked in as
     # LF don't report every line modified when the text contains CRLF endings.
@@ -293,68 +295,68 @@ class Git
 
   # Public: Returns the git configuration value specified by the key.
   #
-  # path - An optional {String} path in the repository to get this information
-  #        for, only needed if the repository has submodules.
+  # * `path` An optional {String} path in the repository to get this information
+  #          for, only needed if the repository has submodules.
   getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
 
   # Public: Returns the origin url of the repository.
   #
-  # path - An optional {String} path in the repository to get this information
-  #        for, only needed if the repository has submodules.
+  # * `path` An optional {String} path in the repository to get this information
+  #          for, only needed if the repository has submodules.
   getOriginUrl: (path) -> @getConfigValue('remote.origin.url', path)
 
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
-  # path - An optional {String} path in the repo to get this information for,
-  #        only needed if the repository contains submodules.
+  # * `path` An optional {String} path in the repo to get this information for,
+  #          only needed if the repository contains submodules.
   #
   # Returns a {String} branch name such as `refs/remotes/origin/master`.
   getUpstreamBranch: (path) -> @getRepo(path).getUpstreamBranch()
 
-  # Public: Returns the current SHA for the given reference.
+  # Public: Returns the current {String} SHA for the given reference.
   #
-  # reference - The {String} reference to get the target of.
-  # path - An optional {String} path in the repo to get the reference target
-  #        for. Only needed if the repository contains submodules.
+  # * `reference` The {String} reference to get the target of.
+  # * `path` An optional {String} path in the repo to get the reference target
+  #          for. Only needed if the repository contains submodules.
   getReferenceTarget: (reference, path) ->
     @getRepo(path).getReferenceTarget(reference)
 
   # Public: Gets all the local and remote references.
   #
-  # path - An optional {String} path in the repository to get this information
-  #        for, only needed if the repository has submodules.
+  # * `path` An optional {String} path in the repository to get this information
+  #          for, only needed if the repository has submodules.
   #
   # Returns an {Object} with the following keys:
-  #  :heads - An {Array} of head reference names.
-  #  :remotes - An {Array} of remote reference names.
-  #  :tags - An {Array} of tag reference names.
+  #  * `heads`   An {Array} of head reference names.
+  #  * `remotes` An {Array} of remote reference names.
+  #  * `tags`    An {Array} of tag reference names.
   getReferences: (path) -> @getRepo(path).getReferences()
 
   # Public: Returns the number of commits behind the current branch is from the
   # its upstream remote branch.
   #
-  # reference - The {String} branch reference name.
-  # path      - The {String} path in the repository to get this information for,
-  #             only needed if the repository contains submodules.
+  # * `reference` The {String} branch reference name.
+  # * `path`      The {String} path in the repository to get this information for,
+  #               only needed if the repository contains submodules.
   getAheadBehindCount: (reference, path) ->
     @getRepo(path).getAheadBehindCount(reference)
 
   # Public: Get the cached ahead/behind commit counts for the current branch's
   # upstream branch.
   #
-  # path - An optional {String} path in the repository to get this information
-  #        for, only needed if the repository has submodules.
+  # * `path` An optional {String} path in the repository to get this information
+  #          for, only needed if the repository has submodules.
   #
   # Returns an {Object} with the following keys:
-  #   :ahead  - The {Number} of commits ahead.
-  #   :behind - The {Number} of commits behind.
+  #   * `ahead`  The {Number} of commits ahead.
+  #   * `behind` The {Number} of commits behind.
   getCachedUpstreamAheadBehindCount: (path) ->
     @getRepo(path).upstream ? @upstream
 
   # Public: Get the cached status for the given path.
   #
-  # path - A {String} path in the repository, relative or absolute.
+  # * `path` A {String} path in the repository, relative or absolute.
   #
   # Returns a status {Number} or null if the path is not in the cache.
   getCachedPathStatus: (path) ->
