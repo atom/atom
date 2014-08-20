@@ -50,91 +50,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
-#
-# ## Common Tasks
-#
-# This is a subset of methods on this class. Refer to the complete summary for
-# its full capabilities.
-#
-# ### Cursors
-# - {::setCursorBufferPosition}
-# - {::setCursorScreenPosition}
-# - {::moveCursorUp}
-# - {::moveCursorDown}
-# - {::moveCursorLeft}
-# - {::moveCursorRight}
-# - {::moveCursorToBeginningOfWord}
-# - {::moveCursorToEndOfWord}
-# - {::moveCursorToPreviousWordBoundary}
-# - {::moveCursorToNextWordBoundary}
-# - {::moveCursorToBeginningOfNextWord}
-# - {::moveCursorToBeginningOfLine}
-# - {::moveCursorToEndOfLine}
-# - {::moveCursorToFirstCharacterOfLine}
-# - {::moveCursorToTop}
-# - {::moveCursorToBottom}
-#
-# ### Selections
-# - {::getSelectedBufferRange}
-# - {::getSelectedBufferRanges}
-# - {::setSelectedBufferRange}
-# - {::setSelectedBufferRanges}
-# - {::selectUp}
-# - {::selectDown}
-# - {::selectLeft}
-# - {::selectRight}
-# - {::selectToBeginningOfWord}
-# - {::selectToEndOfWord}
-# - {::selectToPreviousWordBoundary}
-# - {::selectToNextWordBoundary}
-# - {::selectWord}
-# - {::selectToBeginningOfLine}
-# - {::selectToEndOfLine}
-# - {::selectToFirstCharacterOfLine}
-# - {::selectToTop}
-# - {::selectToBottom}
-# - {::selectAll}
-# - {::addSelectionForBufferRange}
-# - {::addSelectionAbove}
-# - {::addSelectionBelow}
-# - {::splitSelectionsIntoLines}
-#
-# ### Manipulating Text
-# - {::getText}
-# - {::getSelectedText}
-# - {::setText}
-# - {::setTextInBufferRange}
-# - {::insertText}
-# - {::insertNewline}
-# - {::insertNewlineAbove}
-# - {::insertNewlineBelow}
-# - {::backspace}
-# - {::deleteToBeginningOfWord}
-# - {::deleteToBeginningOfLine}
-# - {::delete}
-# - {::deleteToEndOfLine}
-# - {::deleteToEndOfWord}
-# - {::deleteLine}
-# - {::cutSelectedText}
-# - {::cutToEndOfLine}
-# - {::copySelectedText}
-# - {::pasteText}
-#
-# ### Undo, Redo, and Transactions
-# - {::undo}
-# - {::redo}
-# - {::transact}
-# - {::abortTransaction}
-#
-# ### Markers
-# - {::markBufferRange}
-# - {::markScreenRange}
-# - {::getMarker}
-# - {::findMarkers}
-#
-# ### Decorations
-# - {::decorateMarker}
-# - {::decorationsForScreenRowRange}
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
@@ -244,6 +159,12 @@ class Editor extends Model
     @displayBuffer.destroy()
     @languageMode.destroy()
 
+  # Retrieves the current {TextBuffer}.
+  getBuffer: -> @buffer
+
+  # Retrieves the current buffer's URI.
+  getUri: -> @buffer.getUri()
+
   # Create an {Editor} with its initial state based on this object
   copy: ->
     tabLength = @getTabLength()
@@ -253,6 +174,26 @@ class Editor extends Model
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
+
+  # Controls visibility based on the given {Boolean}.
+  setVisible: (visible) -> @displayBuffer.setVisible(visible)
+
+  setMini: (mini) ->
+    if mini isnt @mini
+      @mini = mini
+      @updateInvisibles()
+
+  # Set the number of characters that can be displayed horizontally in the
+  # editor.
+  #
+  # * `editorWidthInChars` A {Number} representing the width of the {EditorView}
+  # in characters.
+  setEditorWidthInChars: (editorWidthInChars) ->
+    @displayBuffer.setEditorWidthInChars(editorWidthInChars)
+
+  ###
+  Section: File Details
+  ###
 
   # Public: Get the title the editor's title for display in other parts of the
   # UI such as the tabs.
@@ -283,159 +224,8 @@ class Editor extends Model
     else
       'untitled'
 
-  # Controls visibility based on the given {Boolean}.
-  setVisible: (visible) -> @displayBuffer.setVisible(visible)
-
-  setMini: (mini) ->
-    if mini isnt @mini
-      @mini = mini
-      @updateInvisibles()
-
-  # Set the number of characters that can be displayed horizontally in the
-  # editor.
-  #
-  # * `editorWidthInChars` A {Number} representing the width of the {EditorView}
-  # in characters.
-  setEditorWidthInChars: (editorWidthInChars) ->
-    @displayBuffer.setEditorWidthInChars(editorWidthInChars)
-
-  # Public: Sets the column at which column will soft wrap
-  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
-
-  # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
-  # editor.
-  getSoftTabs: -> @softTabs
-
-  # Public: Enable or disable soft tabs for this editor.
-  #
-  # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
-
-  # Public: Toggle soft tabs for this editor
-  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
-
-  # Public: Get whether soft wrap is enabled for this editor.
-  getSoftWrap: -> @displayBuffer.getSoftWrap()
-
-  # Public: Enable or disable soft wrap for this editor.
-  #
-  # * `softWrap` A {Boolean}
-  setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
-
-  # Public: Toggle soft wrap for this editor
-  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
-
-  # Public: Get the text representing a single level of indent.
-  #
-  # If soft tabs are enabled, the text is composed of N spaces, where N is the
-  # tab length. Otherwise the text is a tab character (`\t`).
-  #
-  # Returns a {String}.
-  getTabText: -> @buildIndentString(1)
-
-  # Public: Get the on-screen length of tab characters.
-  #
-  # Returns a {Number}.
-  getTabLength: -> @displayBuffer.getTabLength()
-
-  # Public: Set the on-screen length of tab characters.
-  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
-
-  # Public: Determine if the buffer uses hard or soft tabs.
-  #
-  # Returns `true` if the first non-comment line with leading whitespace starts
-  # with a space character. Returns `false` if it starts with a hard tab (`\t`).
-  #
-  # Returns a {Boolean},
-  usesSoftTabs: ->
-    for bufferRow in [0..@buffer.getLastRow()]
-      continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
-      if match = @buffer.lineForRow(bufferRow).match(/^\s/)
-        return match[0][0] != '\t'
-    undefined
-
-  # Public: Clip the given {Point} to a valid position in the buffer.
-  #
-  # If the given {Point} describes a position that is actually reachable by the
-  # cursor based on the current contents of the buffer, it is returned
-  # unchanged. If the {Point} does not describe a valid position, the closest
-  # valid position is returned instead.
-  #
-  # ## Examples
-  #
-  # ```coffee
-  # editor.clipBufferPosition([-1, -1]) # -> `[0, 0]`
-  #
-  # # When the line at buffer row 2 is 10 characters long
-  # editor.clipBufferPosition([2, Infinity]) # -> `[2, 10]`
-  # ```
-  #
-  # * `bufferPosition` The {Point} representing the position to clip.
-  #
-  # Returns a {Point}.
-  clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
-
-  # Public: Clip the start and end of the given range to valid positions in the
-  # buffer. See {::clipBufferPosition} for more information.
-  #
-  # * `range` The {Range} to clip.
-  #
-  # Returns a {Range}.
-  clipBufferRange: (range) -> @buffer.clipRange(range)
-
-  # Public: Get the indentation level of the given a buffer row.
-  #
-  # Returns how deeply the given row is indented based on the soft tabs and
-  # tab length settings of this editor. Note that if soft tabs are enabled and
-  # the tab length is 2, a row with 4 leading spaces would have an indentation
-  # level of 2.
-  #
-  # * `bufferRow` A {Number} indicating the buffer row.
-  #
-  # Returns a {Number}.
-  indentationForBufferRow: (bufferRow) ->
-    @indentLevelForLine(@lineForBufferRow(bufferRow))
-
-  # Public: Set the indentation level for the given buffer row.
-  #
-  # Inserts or removes hard tabs or spaces based on the soft tabs and tab length
-  # settings of this editor in order to bring it to the given indentation level.
-  # Note that if soft tabs are enabled and the tab length is 2, a row with 4
-  # leading spaces would have an indentation level of 2.
-  #
-  # * `bufferRow` A {Number} indicating the buffer row.
-  # * `newLevel` A {Number} indicating the new indentation level.
-  # * `options` An {Object} with the following keys:
-  #   * `preserveLeadingWhitespace` `true` to preserve any whitespace already at
-  #      the beginning of the line (default: false).
-  setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
-    if preserveLeadingWhitespace
-      endColumn = 0
-    else
-      endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
-    newIndentString = @buildIndentString(newLevel)
-    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
-
-  # Public: Get the indentation level of the given line of text.
-  #
-  # Returns how deeply the given line is indented based on the soft tabs and
-  # tab length settings of this editor. Note that if soft tabs are enabled and
-  # the tab length is 2, a row with 4 leading spaces would have an indentation
-  # level of 2.
-  #
-  # * `line` A {String} representing a line of text.
-  #
-  # Returns a {Number}.
-  indentLevelForLine: (line) ->
-    @displayBuffer.indentLevelForLine(line)
-
-  # Constructs the string used for tabs.
-  buildIndentString: (number, column=0) ->
-    if @getSoftTabs()
-      tabStopViolation = column % @getTabLength()
-      _.multiplyString(" ", Math.floor(number * @getTabLength()) - tabStopViolation)
-    else
-      _.multiplyString("\t", Math.floor(number))
+  # Public: Returns the {String} path of this editor's text buffer.
+  getPath: -> @buffer.getPath()
 
   # Public: Saves the editor's text buffer.
   #
@@ -449,52 +239,73 @@ class Editor extends Model
   # * `filePath` A {String} path.
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
+  # Public: Determine whether the user should be prompted to save before closing
+  # this editor.
+  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
+
+  # Public: Returns {Boolean} `true` if this editor has been modified.
+  isModified: -> @buffer.isModified()
+
+  isEmpty: -> @buffer.isEmpty()
+
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
     if filePath = @getPath()
       atom.clipboard.write(filePath)
 
-  # Public: Returns the {String} path of this editor's text buffer.
-  getPath: -> @buffer.getPath()
+  ###
+  Section: Reading Text
+  ###
 
   # Public: Returns a {String} representing the entire contents of the editor.
   getText: -> @buffer.getText()
 
-  # Public: Replaces the entire contents of the buffer with the given {String}.
-  setText: (text) -> @buffer.setText(text)
-
-  # Get the text in the given {Range}.
+  # Public: Get the text in the given {Range} in buffer coordinates.
+  #
+  # * `range` A {Range} or range-compatible {Array}.
   #
   # Returns a {String}.
-  getTextInRange: (range) -> @buffer.getTextInRange(range)
+  getTextInBufferRange: (range) ->
+    @buffer.getTextInRange(range)
 
   # Public: Returns a {Number} representing the number of lines in the editor.
   getLineCount: -> @buffer.getLineCount()
 
-  # Retrieves the current {TextBuffer}.
-  getBuffer: -> @buffer
-
-  # Public: Retrieves the current buffer's URI.
-  getUri: -> @buffer.getUri()
-
-  # {Delegates to: TextBuffer.isRowBlank}
-  isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
-
-  # Public: Determine if the given row is entirely a comment
-  isBufferRowCommented: (bufferRow) ->
-    if match = @lineForBufferRow(bufferRow).match(/\S/)
-      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
-      new TextMateScopeSelector('comment.*').matches(scopes)
-
-  # {Delegates to: TextBuffer.nextNonBlankRow}
-  nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
-
-  # {Delegates to: TextBuffer.getEndPosition}
-  getEofBufferPosition: -> @buffer.getEndPosition()
+  # {Delegates to: DisplayBuffer.getLineCount}
+  getScreenLineCount: -> @displayBuffer.getLineCount()
 
   # Public: Returns a {Number} representing the last zero-indexed buffer row
   # number of the editor.
   getLastBufferRow: -> @buffer.getLastRow()
+
+  # {Delegates to: DisplayBuffer.getLastRow}
+  getLastScreenRow: -> @displayBuffer.getLastRow()
+
+  # Public: Returns a {String} representing the contents of the line at the
+  # given buffer row.
+  #
+  # * `row` A {Number} representing a zero-indexed buffer row.
+  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+
+  # {Delegates to: DisplayBuffer.lineForRow}
+  lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+
+  # {Delegates to: DisplayBuffer.linesForRows}
+  linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+
+  # Public: Returns a {Number} representing the line length for the given
+  # buffer row, exclusive of its line-ending character(s).
+  #
+  # * `row` A {Number} indicating the buffer row.
+  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+
+  bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
+
+  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
+  bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+
+  # {Delegates to: DisplayBuffer.getMaxLineLength}
+  getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
 
   # Returns the range for the given buffer row.
   #
@@ -504,460 +315,53 @@ class Editor extends Model
   # Returns a {Range}.
   bufferRangeForBufferRow: (row, {includeNewline}={}) -> @buffer.rangeForRow(row, includeNewline)
 
-  # Public: Returns a {String} representing the contents of the line at the
-  # given buffer row.
+  # Get the text in the given {Range}.
   #
-  # * `row` A {Number} representing a zero-indexed buffer row.
-  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  # Returns a {String}.
+  getTextInRange: (range) -> @buffer.getTextInRange(range)
 
-  # Public: Returns a {Number} representing the line length for the given
-  # buffer row, exclusive of its line-ending character(s).
-  #
-  # * `row` A {Number} indicating the buffer row.
-  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  # {Delegates to: TextBuffer.isRowBlank}
+  isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
 
-  # {Delegates to: TextBuffer.scan}
-  scan: (args...) -> @buffer.scan(args...)
+  # {Delegates to: TextBuffer.nextNonBlankRow}
+  nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
 
-  # {Delegates to: TextBuffer.scanInRange}
-  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  # {Delegates to: TextBuffer.getEndPosition}
+  getEofBufferPosition: -> @buffer.getEndPosition()
 
-  # {Delegates to: TextBuffer.backwardsScanInRange}
-  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
-
-  # {Delegates to: TextBuffer.isModified}
-  isModified: -> @buffer.isModified()
-
-  isEmpty: -> @buffer.isEmpty()
-
-  # Public: Determine whether the user should be prompted to save before closing
-  # this editor.
-  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
-
-  # Public: Convert a position in buffer-coordinates to screen-coordinates.
-  #
-  # The position is clipped via {::clipBufferPosition} prior to the conversion.
-  # The position is also clipped via {::clipScreenPosition} following the
-  # conversion, which only makes a difference when `options` are supplied.
-  #
-  # * `bufferPosition` A {Point} or {Array} of [row, column].
-  # * `options` An options hash for {::clipScreenPosition}.
-  #
-  # Returns a {Point}.
-  screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
-
-  # Public: Convert a position in screen-coordinates to buffer-coordinates.
-  #
-  # The position is clipped via {::clipScreenPosition} prior to the conversion.
-  #
-  # * `bufferPosition` A {Point} or {Array} of [row, column].
-  # * `options` An options hash for {::clipScreenPosition}.
-  #
-  # Returns a {Point}.
-  bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
-
-  # Public: Convert a range in buffer-coordinates to screen-coordinates.
+  # Public: Get the {Range} of the paragraph surrounding the most recently added
+  # cursor.
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
+  getCurrentParagraphBufferRange: ->
+    @getCursor().getCurrentParagraphBufferRange()
 
-  # Public: Convert a range in screen-coordinates to buffer-coordinates.
+
+  ###
+  Section: Mutating Text
+  ###
+
+  # Public: Replaces the entire contents of the buffer with the given {String}.
+  setText: (text) -> @buffer.setText(text)
+
+  # Public: Set the text in the given {Range} in buffer coordinates.
   #
-  # Returns a {Range}.
-  bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
-
-  # Public: Clip the given {Point} to a valid position on screen.
+  # * `range` A {Range} or range-compatible {Array}.
+  # * `text` A {String}
   #
-  # If the given {Point} describes a position that is actually reachable by the
-  # cursor based on the current contents of the screen, it is returned
-  # unchanged. If the {Point} does not describe a valid position, the closest
-  # valid position is returned instead.
+  # Returns the {Range} of the newly-inserted text.
+  setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
+
+  # Public: Mutate the text of all the selections in a single transaction.
   #
-  # ## Examples
+  # All the changes made inside the given {Function} can be reverted with a
+  # single call to {::undo}.
   #
-  # ```coffee
-  # editor.clipScreenPosition([-1, -1]) # -> `[0, 0]`
-  #
-  # # When the line at screen row 2 is 10 characters long
-  # editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
-  # ```
-  #
-  # * `bufferPosition` The {Point} representing the position to clip.
-  #
-  # Returns a {Point}.
-  clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
-
-  # {Delegates to: DisplayBuffer.lineForRow}
-  lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
-
-  # {Delegates to: DisplayBuffer.linesForRows}
-  linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
-
-  # {Delegates to: DisplayBuffer.getLineCount}
-  getScreenLineCount: -> @displayBuffer.getLineCount()
-
-  # {Delegates to: DisplayBuffer.getMaxLineLength}
-  getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
-
-  # {Delegates to: DisplayBuffer.getLastRow}
-  getLastScreenRow: -> @displayBuffer.getLastRow()
-
-  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
-  bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
-
-  bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
-
-  # Public: Get the syntactic scopes for the given position in buffer
-  # coordinates.
-  #
-  # For example, if called with a position inside the parameter list of an
-  # anonymous CoffeeScript function, the method returns the following array:
-  # `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
-  #
-  # * `bufferPosition` A {Point} or {Array} of [row, column].
-  #
-  # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
-
-  # Public: Get the range in buffer coordinates of all tokens surrounding the
-  # cursor that match the given scope selector.
-  #
-  # For example, if you wanted to find the string surrounding the cursor, you
-  # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
-  #
-  # Returns a {Range}.
-  bufferRangeForScopeAtCursor: (selector) ->
-    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
-
-  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
-  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
-
-  # Public: Get the syntactic scopes for the most recently added cursor's
-  # position. See {::scopesForBufferPosition} for more information.
-  #
-  # Returns an {Array} of {String}s.
-  getCursorScopes: -> @getCursor().getScopes()
-
-  logCursorScope: ->
-    console.log @getCursorScopes()
-
-  # Public: For each selection, replace the selected text with the given text.
-  #
-  # ## Events
-  #
-  #  * `will-insert-text` Emit before the text has been inserted.
-  #    * `event` event {Object}
-  #      * `text` {String} text to be inserted
-  #      * `cancel` {Function} Call to prevent the text from being inserted
-  #  * `did-insert-text` Emit after the text has been inserted.
-  #    * `event` event {Object}
-  #      * `text` {String} text to be inserted
-  #
-  # * `text` A {String} representing the text to insert.
-  # * `options` See {Selection::insertText}.
-  #
-  # Returns a {Range} when the text has been inserted
-  # Returns a {Bool} false when the text has not been inserted
-  insertText: (text, options={}) ->
-    willInsert = true
-    cancel = -> willInsert = false
-    @emit('will-insert-text', {cancel, text})
-
-    if willInsert
-      options.autoIndentNewline ?= @shouldAutoIndent()
-      options.autoDecreaseIndent ?= @shouldAutoIndent()
-      @mutateSelectedText (selection) =>
-        range = selection.insertText(text, options)
-        @emit('did-insert-text', {text, range})
-        range
-    else
-      false
-
-  # Public: For each selection, replace the selected text with a newline.
-  insertNewline: ->
-    @insertText('\n')
-
-  # Public: For each cursor, insert a newline at beginning the following line.
-  insertNewlineBelow: ->
-    @transact =>
-      @moveCursorToEndOfLine()
-      @insertNewline()
-
-  # Public: For each cursor, insert a newline at the end of the preceding line.
-  insertNewlineAbove: ->
-    @transact =>
-      bufferRow = @getCursorBufferPosition().row
-      indentLevel = @indentationForBufferRow(bufferRow)
-      onFirstLine = bufferRow is 0
-
-      @moveCursorToBeginningOfLine()
-      @moveCursorLeft()
-      @insertNewline()
-
-      if @shouldAutoIndent() and @indentationForBufferRow(bufferRow) < indentLevel
-        @setIndentationForBufferRow(bufferRow, indentLevel)
-
-      if onFirstLine
-        @moveCursorUp()
-        @moveCursorToEndOfLine()
-
-  # Indent all lines intersecting selections. See {Selection::indent} for more
-  # information.
-  indent: (options={}) ->
-    options.autoIndent ?= @shouldAutoIndent()
-    @mutateSelectedText (selection) -> selection.indent(options)
-
-  # Public: For each selection, if the selection is empty, delete the character
-  # preceding the cursor. Otherwise delete the selected text.
-  backspace: ->
-    @mutateSelectedText (selection) -> selection.backspace()
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Editor::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Editor::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing word that precede the cursor. Otherwise delete the
-  # selected text.
-  deleteToBeginningOfWord: ->
-    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing line that precede the cursor. Otherwise delete the
-  # selected text.
-  deleteToBeginningOfLine: ->
-    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
-
-  # Public: For each selection, if the selection is empty, delete the character
-  # preceding the cursor. Otherwise delete the selected text.
-  delete: ->
-    @mutateSelectedText (selection) -> selection.delete()
-
-  # Public: For each selection, if the selection is not empty, deletes the
-  # selection; otherwise, deletes all characters of the containing line
-  # following the cursor. If the cursor is already at the end of the line,
-  # deletes the following newline.
-  deleteToEndOfLine: ->
-    @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing word following the cursor. Otherwise delete the selected
-  # text.
-  deleteToEndOfWord: ->
-    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
-
-  # Public: Delete all lines intersecting selections.
-  deleteLine: ->
-    @mutateSelectedText (selection) -> selection.deleteLine()
-
-  # Public: Indent rows intersecting selections by one level.
-  indentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.indentSelectedRows()
-
-  # Public: Outdent rows intersecting selections by one level.
-  outdentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
-
-  # Public: Toggle line comments for rows intersecting selections.
-  #
-  # If the current grammar doesn't support comments, does nothing.
-  #
-  # Returns an {Array} of the commented {Range}s.
-  toggleLineCommentsInSelection: ->
-    @mutateSelectedText (selection) -> selection.toggleLineComments()
-
-  # Public: Indent rows intersecting selections based on the grammar's suggested
-  # indent level.
-  autoIndentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
-
-  # If soft tabs are enabled, convert all hard tabs to soft tabs in the given
-  # {Range}.
-  normalizeTabsInBufferRange: (bufferRange) ->
-    return unless @getSoftTabs()
-    @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
-
-  # Public: For each selection, if the selection is empty, cut all characters
-  # of the containing line following the cursor. Otherwise cut the selected
-  # text.
-  cutToEndOfLine: ->
-    maintainClipboard = false
-    @mutateSelectedText (selection) ->
-      selection.cutToEndOfLine(maintainClipboard)
-      maintainClipboard = true
-
-  # Public: For each selection, cut the selected text.
-  cutSelectedText: ->
-    maintainClipboard = false
-    @mutateSelectedText (selection) ->
-      selection.cut(maintainClipboard)
-      maintainClipboard = true
-
-  # Public: For each selection, copy the selected text.
-  copySelectedText: ->
-    maintainClipboard = false
-    for selection in @getSelections()
-      selection.copy(maintainClipboard)
-      maintainClipboard = true
-
-  # Public: For each selection, replace the selected text with the contents of
-  # the clipboard.
-  #
-  # If the clipboard contains the same number of selections as the current
-  # editor, each selection will be replaced with the content of the
-  # corresponding clipboard selection text.
-  #
-  # * `options` See {Selection::insertText}.
-  pasteText: (options={}) ->
-    {text, metadata} = atom.clipboard.readWithMetadata()
-
-    containsNewlines = text.indexOf('\n') isnt -1
-
-    if metadata?.selections? and metadata.selections.length is @getSelections().length
-      @mutateSelectedText (selection, index) ->
-        text = metadata.selections[index]
-        selection.insertText(text, options)
-
-      return
-
-    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
-      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
-        options.indentBasis ?= metadata.indentBasis
-
-    @insertText(text, options)
-
-  # Public: Undo the last change.
-  undo: ->
-    @getCursor().needsAutoscroll = true
-    @buffer.undo(this)
-
-  # Public: Redo the last change.
-  redo: ->
-    @getCursor().needsAutoscroll = true
-    @buffer.redo(this)
-
-  # Public: Fold the most recent cursor's row based on its indentation level.
-  #
-  # The fold will extend from the nearest preceding line with a lower
-  # indentation level up to the nearest following row with a lower indentation
-  # level.
-  foldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @foldBufferRow(bufferRow)
-
-  # Public: Unfold the most recent cursor's row by one level.
-  unfoldCurrentRow: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @unfoldBufferRow(bufferRow)
-
-  # Public: For each selection, fold the rows it intersects.
-  foldSelectedLines: ->
-    selection.fold() for selection in @getSelections()
-
-  # Public: Fold all foldable lines.
-  foldAll: ->
-    @languageMode.foldAll()
-
-  # Public: Unfold all existing folds.
-  unfoldAll: ->
-    @languageMode.unfoldAll()
-
-  # Public: Fold all foldable lines at the given indent level.
-  #
-  # * `level` A {Number}.
-  foldAllAtIndentLevel: (level) ->
-    @languageMode.foldAllAtIndentLevel(level)
-
-  # Public: Fold the given row in buffer coordinates based on its indentation
-  # level.
-  #
-  # If the given row is foldable, the fold will begin there. Otherwise, it will
-  # begin at the first foldable row preceding the given row.
-  #
-  # * `bufferRow` A {Number}.
-  foldBufferRow: (bufferRow) ->
-    @languageMode.foldBufferRow(bufferRow)
-
-  # Public: Unfold all folds containing the given row in buffer coordinates.
-  #
-  # * `bufferRow` A {Number}
-  unfoldBufferRow: (bufferRow) ->
-    @displayBuffer.unfoldBufferRow(bufferRow)
-
-  # Public: Determine whether the given row in buffer coordinates is foldable.
-  #
-  # A *foldable* row is a row that *starts* a row range that can be folded.
-  #
-  # * `bufferRow` A {Number}
-  #
-  # Returns a {Boolean}.
-  isFoldableAtBufferRow: (bufferRow) ->
-    @languageMode.isFoldableAtBufferRow(bufferRow)
-
-  isFoldableAtScreenRow: (screenRow) ->
-    bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
-    @isFoldableAtBufferRow(bufferRow)
-
-  # TODO: Rename to foldRowRange?
-  createFold: (startRow, endRow) ->
-    @displayBuffer.createFold(startRow, endRow)
-
-  # {Delegates to: DisplayBuffer.destroyFoldWithId}
-  destroyFoldWithId: (id) ->
-    @displayBuffer.destroyFoldWithId(id)
-
-  # Remove any {Fold}s found that intersect the given buffer row.
-  destroyFoldsIntersectingBufferRange: (bufferRange) ->
-    for row in [bufferRange.start.row..bufferRange.end.row]
-      @unfoldBufferRow(row)
-
-  # Public: Fold the given buffer row if it isn't currently folded, and unfold
-  # it otherwise.
-  toggleFoldAtBufferRow: (bufferRow) ->
-    if @isFoldedAtBufferRow(bufferRow)
-      @unfoldBufferRow(bufferRow)
-    else
-      @foldBufferRow(bufferRow)
-
-  # Public: Determine whether the most recently added cursor's row is folded.
-  #
-  # Returns a {Boolean}.
-  isFoldedAtCursorRow: ->
-    @isFoldedAtScreenRow(@getCursorScreenRow())
-
-  # Public: Determine whether the given row in buffer coordinates is folded.
-  #
-  # * `bufferRow` A {Number}
-  #
-  # Returns a {Boolean}.
-  isFoldedAtBufferRow: (bufferRow) ->
-    @displayBuffer.isFoldedAtBufferRow(bufferRow)
-
-  # Public: Determine whether the given row in screen coordinates is folded.
-  #
-  # * `screenRow` A {Number}
-  #
-  # Returns a {Boolean}.
-  isFoldedAtScreenRow: (screenRow) ->
-    @displayBuffer.isFoldedAtScreenRow(screenRow)
-
-  # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
-  largestFoldContainingBufferRow: (bufferRow) ->
-    @displayBuffer.largestFoldContainingBufferRow(bufferRow)
-
-  # {Delegates to: DisplayBuffer.largestFoldStartingAtScreenRow}
-  largestFoldStartingAtScreenRow: (screenRow) ->
-    @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
-
-  # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
-  outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+  # * `fn` A {Function} that will be called once for each {Selection}. The first
+  #      argument will be a {Selection} and the second argument will be the
+  #      {Number} index of that selection.
+  mutateSelectedText: (fn) ->
+    @transact => fn(selection, index) for selection, index in @getSelections()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -1099,17 +503,6 @@ class Editor extends Model
     deprecate("Use Editor::duplicateLines() instead")
     @duplicateLines()
 
-  # Public: Mutate the text of all the selections in a single transaction.
-  #
-  # All the changes made inside the given {Function} can be reverted with a
-  # single call to {::undo}.
-  #
-  # * `fn` A {Function} that will be called once for each {Selection}. The first
-  #      argument will be a {Selection} and the second argument will be the
-  #      {Number} index of that selection.
-  mutateSelectedText: (fn) ->
-    @transact => fn(selection, index) for selection, index in @getSelections()
-
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
@@ -1120,6 +513,742 @@ class Editor extends Model
       selection.deleteSelectedText()
       selection.insertText(fn(text))
       selection.setBufferRange(range)
+
+  # Public: Split multi-line selections into one selection per line.
+  #
+  # Operates on all selections. This method breaks apart all multi-line
+  # selections to create multiple single-line selections that cumulatively cover
+  # the same original area.
+  splitSelectionsIntoLines: ->
+    for selection in @getSelections()
+      range = selection.getBufferRange()
+      continue if range.isSingleLine()
+
+      selection.destroy()
+      {start, end} = range
+      @addSelectionForBufferRange([start, [start.row, Infinity]])
+      {row} = start
+      while ++row < end.row
+        @addSelectionForBufferRange([[row, 0], [row, Infinity]])
+      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
+
+  # Public: For each selection, transpose the selected text.
+  #
+  # If the selection is empty, the characters preceding and following the cursor
+  # are swapped. Otherwise, the selected characters are reversed.
+  transpose: ->
+    @mutateSelectedText (selection) ->
+      if selection.isEmpty()
+        selection.selectRight()
+        text = selection.getText()
+        selection.delete()
+        selection.cursor.moveLeft()
+        selection.insertText text
+      else
+        selection.insertText selection.getText().split('').reverse().join('')
+
+  # Public: Convert the selected text to upper case.
+  #
+  # For each selection, if the selection is empty, converts the containing word
+  # to upper case. Otherwise convert the selected text to upper case.
+  upperCase: ->
+    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toUpperCase()
+
+  # Public: Convert the selected text to lower case.
+  #
+  # For each selection, if the selection is empty, converts the containing word
+  # to upper case. Otherwise convert the selected text to upper case.
+  lowerCase: ->
+    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toLowerCase()
+
+  # Convert multiple lines to a single line.
+  #
+  # Operates on all selections. If the selection is empty, joins the current
+  # line with the next line. Otherwise it joins all lines that intersect the
+  # selection.
+  #
+  # Joining a line means that multiple lines are converted to a single line with
+  # the contents of each of the original non-empty lines separated by a space.
+  joinLines: ->
+    @mutateSelectedText (selection) -> selection.joinLines()
+
+  ###
+  Section: Adding Text
+  ###
+
+  # Public: For each selection, replace the selected text with the given text.
+  #
+  # ## Events
+  #
+  #  * `will-insert-text` Emit before the text has been inserted.
+  #    * `event` event {Object}
+  #      * `text` {String} text to be inserted
+  #      * `cancel` {Function} Call to prevent the text from being inserted
+  #  * `did-insert-text` Emit after the text has been inserted.
+  #    * `event` event {Object}
+  #      * `text` {String} text to be inserted
+  #
+  # * `text` A {String} representing the text to insert.
+  # * `options` See {Selection::insertText}.
+  #
+  # Returns a {Range} when the text has been inserted
+  # Returns a {Bool} false when the text has not been inserted
+  insertText: (text, options={}) ->
+    willInsert = true
+    cancel = -> willInsert = false
+    @emit('will-insert-text', {cancel, text})
+
+    if willInsert
+      options.autoIndentNewline ?= @shouldAutoIndent()
+      options.autoDecreaseIndent ?= @shouldAutoIndent()
+      @mutateSelectedText (selection) =>
+        range = selection.insertText(text, options)
+        @emit('did-insert-text', {text, range})
+        range
+    else
+      false
+
+  # Public: For each selection, replace the selected text with a newline.
+  insertNewline: ->
+    @insertText('\n')
+
+  # Public: For each cursor, insert a newline at beginning the following line.
+  insertNewlineBelow: ->
+    @transact =>
+      @moveCursorToEndOfLine()
+      @insertNewline()
+
+  # Public: For each cursor, insert a newline at the end of the preceding line.
+  insertNewlineAbove: ->
+    @transact =>
+      bufferRow = @getCursorBufferPosition().row
+      indentLevel = @indentationForBufferRow(bufferRow)
+      onFirstLine = bufferRow is 0
+
+      @moveCursorToBeginningOfLine()
+      @moveCursorLeft()
+      @insertNewline()
+
+      if @shouldAutoIndent() and @indentationForBufferRow(bufferRow) < indentLevel
+        @setIndentationForBufferRow(bufferRow, indentLevel)
+
+      if onFirstLine
+        @moveCursorUp()
+        @moveCursorToEndOfLine()
+
+  ###
+  Section: Removing Text
+  ###
+
+  # Public: For each selection, if the selection is empty, delete the character
+  # preceding the cursor. Otherwise delete the selected text.
+  backspace: ->
+    @mutateSelectedText (selection) -> selection.backspace()
+
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  backspaceToBeginningOfWord: ->
+    deprecate("Use Editor::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  backspaceToBeginningOfLine: ->
+    deprecate("Use Editor::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
+
+  # Public: For each selection, if the selection is empty, delete all characters
+  # of the containing word that precede the cursor. Otherwise delete the
+  # selected text.
+  deleteToBeginningOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
+
+  # Public: For each selection, if the selection is empty, delete all characters
+  # of the containing line that precede the cursor. Otherwise delete the
+  # selected text.
+  deleteToBeginningOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
+
+  # Public: For each selection, if the selection is empty, delete the character
+  # preceding the cursor. Otherwise delete the selected text.
+  delete: ->
+    @mutateSelectedText (selection) -> selection.delete()
+
+  # Public: For each selection, if the selection is not empty, deletes the
+  # selection; otherwise, deletes all characters of the containing line
+  # following the cursor. If the cursor is already at the end of the line,
+  # deletes the following newline.
+  deleteToEndOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
+
+  # Public: For each selection, if the selection is empty, delete all characters
+  # of the containing word following the cursor. Otherwise delete the selected
+  # text.
+  deleteToEndOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
+
+  # Public: Delete all lines intersecting selections.
+  deleteLine: ->
+    @mutateSelectedText (selection) -> selection.deleteLine()
+
+  ###
+  Section: Searching Text
+  ###
+
+  # {Delegates to: TextBuffer.scan}
+  scan: (args...) -> @buffer.scan(args...)
+
+  # {Delegates to: TextBuffer.scanInRange}
+  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+
+  # {Delegates to: TextBuffer.backwardsScanInRange}
+  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
+
+
+  ###
+  Section: Tab Behavior
+  ###
+
+  # Public: Determine if the buffer uses hard or soft tabs.
+  #
+  # Returns `true` if the first non-comment line with leading whitespace starts
+  # with a space character. Returns `false` if it starts with a hard tab (`\t`).
+  #
+  # Returns a {Boolean}
+  usesSoftTabs: ->
+    for bufferRow in [0..@buffer.getLastRow()]
+      continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+      if match = @buffer.lineForRow(bufferRow).match(/^\s/)
+        return match[0][0] != '\t'
+    undefined
+
+  # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
+  # editor.
+  getSoftTabs: -> @softTabs
+
+  # Public: Enable or disable soft tabs for this editor.
+  #
+  # * `softTabs` A {Boolean}
+  setSoftTabs: (@softTabs) -> @softTabs
+
+  # Public: Toggle soft tabs for this editor
+  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
+
+  # Public: Get the text representing a single level of indent.
+  #
+  # If soft tabs are enabled, the text is composed of N spaces, where N is the
+  # tab length. Otherwise the text is a tab character (`\t`).
+  #
+  # Returns a {String}.
+  getTabText: -> @buildIndentString(1)
+
+  # Public: Get the on-screen length of tab characters.
+  #
+  # Returns a {Number}.
+  getTabLength: -> @displayBuffer.getTabLength()
+
+  # Public: Set the on-screen length of tab characters.
+  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
+
+  # If soft tabs are enabled, convert all hard tabs to soft tabs in the given
+  # {Range}.
+  normalizeTabsInBufferRange: (bufferRange) ->
+    return unless @getSoftTabs()
+    @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
+
+
+
+  ###
+  Section: Soft Wrap Behavior
+  ###
+
+  # Public: Sets the column at which column will soft wrap
+  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
+
+  # Public: Get whether soft wrap is enabled for this editor.
+  getSoftWrap: -> @displayBuffer.getSoftWrap()
+
+  # Public: Enable or disable soft wrap for this editor.
+  #
+  # * `softWrap` A {Boolean}
+  setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
+
+  # Public: Toggle soft wrap for this editor
+  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
+
+
+
+  ###
+  Section: Indentation
+  ###
+
+  # Public: Get the indentation level of the given a buffer row.
+  #
+  # Returns how deeply the given row is indented based on the soft tabs and
+  # tab length settings of this editor. Note that if soft tabs are enabled and
+  # the tab length is 2, a row with 4 leading spaces would have an indentation
+  # level of 2.
+  #
+  # * `bufferRow` A {Number} indicating the buffer row.
+  #
+  # Returns a {Number}.
+  indentationForBufferRow: (bufferRow) ->
+    @indentLevelForLine(@lineForBufferRow(bufferRow))
+
+  # Public: Set the indentation level for the given buffer row.
+  #
+  # Inserts or removes hard tabs or spaces based on the soft tabs and tab length
+  # settings of this editor in order to bring it to the given indentation level.
+  # Note that if soft tabs are enabled and the tab length is 2, a row with 4
+  # leading spaces would have an indentation level of 2.
+  #
+  # * `bufferRow` A {Number} indicating the buffer row.
+  # * `newLevel` A {Number} indicating the new indentation level.
+  # * `options` An {Object} with the following keys:
+  #   * `preserveLeadingWhitespace` `true` to preserve any whitespace already at
+  #      the beginning of the line (default: false).
+  setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
+    if preserveLeadingWhitespace
+      endColumn = 0
+    else
+      endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
+    newIndentString = @buildIndentString(newLevel)
+    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+
+  # Public: Get the indentation level of the given line of text.
+  #
+  # Returns how deeply the given line is indented based on the soft tabs and
+  # tab length settings of this editor. Note that if soft tabs are enabled and
+  # the tab length is 2, a row with 4 leading spaces would have an indentation
+  # level of 2.
+  #
+  # * `line` A {String} representing a line of text.
+  #
+  # Returns a {Number}.
+  indentLevelForLine: (line) ->
+    @displayBuffer.indentLevelForLine(line)
+
+  # Indent all lines intersecting selections. See {Selection::indent} for more
+  # information.
+  indent: (options={}) ->
+    options.autoIndent ?= @shouldAutoIndent()
+    @mutateSelectedText (selection) -> selection.indent(options)
+
+  # Public: Indent rows intersecting selections by one level.
+  indentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.indentSelectedRows()
+
+  # Public: Outdent rows intersecting selections by one level.
+  outdentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
+
+  # Public: Indent rows intersecting selections based on the grammar's suggested
+  # indent level.
+  autoIndentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
+
+  # Constructs the string used for tabs.
+  buildIndentString: (number, column=0) ->
+    if @getSoftTabs()
+      tabStopViolation = column % @getTabLength()
+      _.multiplyString(" ", Math.floor(number * @getTabLength()) - tabStopViolation)
+    else
+      _.multiplyString("\t", Math.floor(number))
+
+
+  ###
+  Section: Undo Operations
+  ###
+
+  # Public: Undo the last change.
+  undo: ->
+    @getCursor().needsAutoscroll = true
+    @buffer.undo(this)
+
+  # Public: Redo the last change.
+  redo: ->
+    @getCursor().needsAutoscroll = true
+    @buffer.redo(this)
+
+  ###
+  Section: Text Mutation Transactions
+  ###
+
+  # Public: Batch multiple operations as a single undo/redo step.
+  #
+  # Any group of operations that are logically grouped from the perspective of
+  # undoing and redoing should be performed in a transaction. If you want to
+  # abort the transaction, call {::abortTransaction} to terminate the function's
+  # execution and revert any changes performed up to the abortion.
+  #
+  # * `fn` A {Function} to call inside the transaction.
+  transact: (fn) -> @buffer.transact(fn)
+
+  # Public: Start an open-ended transaction.
+  #
+  # Call {::commitTransaction} or {::abortTransaction} to terminate the
+  # transaction. If you nest calls to transactions, only the outermost
+  # transaction is considered. You must match every begin with a matching
+  # commit, but a single call to abort will cancel all nested transactions.
+  beginTransaction: -> @buffer.beginTransaction()
+
+  # Public: Commit an open-ended transaction started with {::beginTransaction}
+  # and push it to the undo stack.
+  #
+  # If transactions are nested, only the outermost commit takes effect.
+  commitTransaction: -> @buffer.commitTransaction()
+
+  # Public: Abort an open transaction, undoing any operations performed so far
+  # within the transaction.
+  abortTransaction: -> @buffer.abortTransaction()
+
+  ###
+  Section: Editor Coordinates
+  ###
+
+  # Public: Convert a position in buffer-coordinates to screen-coordinates.
+  #
+  # The position is clipped via {::clipBufferPosition} prior to the conversion.
+  # The position is also clipped via {::clipScreenPosition} following the
+  # conversion, which only makes a difference when `options` are supplied.
+  #
+  # * `bufferPosition` A {Point} or {Array} of [row, column].
+  # * `options` An options hash for {::clipScreenPosition}.
+  #
+  # Returns a {Point}.
+  screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
+
+  # Public: Convert a position in screen-coordinates to buffer-coordinates.
+  #
+  # The position is clipped via {::clipScreenPosition} prior to the conversion.
+  #
+  # * `bufferPosition` A {Point} or {Array} of [row, column].
+  # * `options` An options hash for {::clipScreenPosition}.
+  #
+  # Returns a {Point}.
+  bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
+
+  # Public: Convert a range in buffer-coordinates to screen-coordinates.
+  #
+  # Returns a {Range}.
+  screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
+
+  # Public: Convert a range in screen-coordinates to buffer-coordinates.
+  #
+  # Returns a {Range}.
+  bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
+
+  # Public: Clip the given {Point} to a valid position in the buffer.
+  #
+  # If the given {Point} describes a position that is actually reachable by the
+  # cursor based on the current contents of the buffer, it is returned
+  # unchanged. If the {Point} does not describe a valid position, the closest
+  # valid position is returned instead.
+  #
+  # ## Examples
+  #
+  # ```coffee
+  # editor.clipBufferPosition([-1, -1]) # -> `[0, 0]`
+  #
+  # # When the line at buffer row 2 is 10 characters long
+  # editor.clipBufferPosition([2, Infinity]) # -> `[2, 10]`
+  # ```
+  #
+  # * `bufferPosition` The {Point} representing the position to clip.
+  #
+  # Returns a {Point}.
+  clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
+
+  # Public: Clip the start and end of the given range to valid positions in the
+  # buffer. See {::clipBufferPosition} for more information.
+  #
+  # * `range` The {Range} to clip.
+  #
+  # Returns a {Range}.
+  clipBufferRange: (range) -> @buffer.clipRange(range)
+
+  # Public: Clip the given {Point} to a valid position on screen.
+  #
+  # If the given {Point} describes a position that is actually reachable by the
+  # cursor based on the current contents of the screen, it is returned
+  # unchanged. If the {Point} does not describe a valid position, the closest
+  # valid position is returned instead.
+  #
+  # ## Examples
+  #
+  # ```coffee
+  # editor.clipScreenPosition([-1, -1]) # -> `[0, 0]`
+  #
+  # # When the line at screen row 2 is 10 characters long
+  # editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
+  # ```
+  #
+  # * `bufferPosition` The {Point} representing the position to clip.
+  #
+  # Returns a {Point}.
+  clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+
+
+
+
+  ###
+  Section: Grammars
+  ###
+
+  # Public: Get the current {Grammar} of this editor.
+  getGrammar: ->
+    @displayBuffer.getGrammar()
+
+  # Public: Set the current {Grammar} of this editor.
+  #
+  # Assigning a grammar will cause the editor to re-tokenize based on the new
+  # grammar.
+  setGrammar: (grammar) ->
+    @displayBuffer.setGrammar(grammar)
+
+  # Reload the grammar based on the file name.
+  reloadGrammar: ->
+    @displayBuffer.reloadGrammar()
+
+  ###
+  Section: Syntatic Queries
+  ###
+
+  # Public: Get the syntactic scopes for the given position in buffer
+  # coordinates.
+  #
+  # For example, if called with a position inside the parameter list of an
+  # anonymous CoffeeScript function, the method returns the following array:
+  # `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
+  #
+  # * `bufferPosition` A {Point} or {Array} of [row, column].
+  #
+  # Returns an {Array} of {String}s.
+  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+
+  # Public: Get the range in buffer coordinates of all tokens surrounding the
+  # cursor that match the given scope selector.
+  #
+  # For example, if you wanted to find the string surrounding the cursor, you
+  # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
+  #
+  # Returns a {Range}.
+  bufferRangeForScopeAtCursor: (selector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+
+  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
+  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
+
+  # Public: Get the syntactic scopes for the most recently added cursor's
+  # position. See {::scopesForBufferPosition} for more information.
+  #
+  # Returns an {Array} of {String}s.
+  getCursorScopes: -> @getCursor().getScopes()
+
+  logCursorScope: ->
+    console.log @getCursorScopes()
+
+
+  # Public: Determine if the given row is entirely a comment
+  isBufferRowCommented: (bufferRow) ->
+    if match = @lineForBufferRow(bufferRow).match(/\S/)
+      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
+      new TextMateScopeSelector('comment.*').matches(scopes)
+
+  # Public: Toggle line comments for rows intersecting selections.
+  #
+  # If the current grammar doesn't support comments, does nothing.
+  #
+  # Returns an {Array} of the commented {Range}s.
+  toggleLineCommentsInSelection: ->
+    @mutateSelectedText (selection) -> selection.toggleLineComments()
+
+
+
+
+
+
+
+  ###
+  Section: Clipboard Operations
+  ###
+
+  # Public: For each selection, copy the selected text.
+  copySelectedText: ->
+    maintainClipboard = false
+    for selection in @getSelections()
+      selection.copy(maintainClipboard)
+      maintainClipboard = true
+
+  # Public: For each selection, replace the selected text with the contents of
+  # the clipboard.
+  #
+  # If the clipboard contains the same number of selections as the current
+  # editor, each selection will be replaced with the content of the
+  # corresponding clipboard selection text.
+  #
+  # * `options` See {Selection::insertText}.
+  pasteText: (options={}) ->
+    {text, metadata} = atom.clipboard.readWithMetadata()
+
+    containsNewlines = text.indexOf('\n') isnt -1
+
+    if metadata?.selections? and metadata.selections.length is @getSelections().length
+      @mutateSelectedText (selection, index) ->
+        text = metadata.selections[index]
+        selection.insertText(text, options)
+
+      return
+
+    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
+      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
+        options.indentBasis ?= metadata.indentBasis
+
+    @insertText(text, options)
+
+  # Public: For each selection, cut the selected text.
+  cutSelectedText: ->
+    maintainClipboard = false
+    @mutateSelectedText (selection) ->
+      selection.cut(maintainClipboard)
+      maintainClipboard = true
+
+  # Public: For each selection, if the selection is empty, cut all characters
+  # of the containing line following the cursor. Otherwise cut the selected
+  # text.
+  cutToEndOfLine: ->
+    maintainClipboard = false
+    @mutateSelectedText (selection) ->
+      selection.cutToEndOfLine(maintainClipboard)
+      maintainClipboard = true
+
+
+  ###
+  Section: Folds
+  ###
+
+  # Public: Fold the most recent cursor's row based on its indentation level.
+  #
+  # The fold will extend from the nearest preceding line with a lower
+  # indentation level up to the nearest following row with a lower indentation
+  # level.
+  foldCurrentRow: ->
+    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @foldBufferRow(bufferRow)
+
+  # Public: Unfold the most recent cursor's row by one level.
+  unfoldCurrentRow: ->
+    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @unfoldBufferRow(bufferRow)
+
+  # Public: For each selection, fold the rows it intersects.
+  foldSelectedLines: ->
+    selection.fold() for selection in @getSelections()
+
+  # Public: Fold all foldable lines.
+  foldAll: ->
+    @languageMode.foldAll()
+
+  # Public: Unfold all existing folds.
+  unfoldAll: ->
+    @languageMode.unfoldAll()
+
+  # Public: Fold all foldable lines at the given indent level.
+  #
+  # * `level` A {Number}.
+  foldAllAtIndentLevel: (level) ->
+    @languageMode.foldAllAtIndentLevel(level)
+
+  # Public: Fold the given row in buffer coordinates based on its indentation
+  # level.
+  #
+  # If the given row is foldable, the fold will begin there. Otherwise, it will
+  # begin at the first foldable row preceding the given row.
+  #
+  # * `bufferRow` A {Number}.
+  foldBufferRow: (bufferRow) ->
+    @languageMode.foldBufferRow(bufferRow)
+
+  # Public: Unfold all folds containing the given row in buffer coordinates.
+  #
+  # * `bufferRow` A {Number}
+  unfoldBufferRow: (bufferRow) ->
+    @displayBuffer.unfoldBufferRow(bufferRow)
+
+  # Public: Determine whether the given row in buffer coordinates is foldable.
+  #
+  # A *foldable* row is a row that *starts* a row range that can be folded.
+  #
+  # * `bufferRow` A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldableAtBufferRow: (bufferRow) ->
+    @languageMode.isFoldableAtBufferRow(bufferRow)
+
+  isFoldableAtScreenRow: (screenRow) ->
+    bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
+    @isFoldableAtBufferRow(bufferRow)
+
+  # TODO: Rename to foldRowRange?
+  createFold: (startRow, endRow) ->
+    @displayBuffer.createFold(startRow, endRow)
+
+  # {Delegates to: DisplayBuffer.destroyFoldWithId}
+  destroyFoldWithId: (id) ->
+    @displayBuffer.destroyFoldWithId(id)
+
+  # Remove any {Fold}s found that intersect the given buffer row.
+  destroyFoldsIntersectingBufferRange: (bufferRange) ->
+    for row in [bufferRange.start.row..bufferRange.end.row]
+      @unfoldBufferRow(row)
+
+  # Public: Fold the given buffer row if it isn't currently folded, and unfold
+  # it otherwise.
+  toggleFoldAtBufferRow: (bufferRow) ->
+    if @isFoldedAtBufferRow(bufferRow)
+      @unfoldBufferRow(bufferRow)
+    else
+      @foldBufferRow(bufferRow)
+
+  # Public: Determine whether the most recently added cursor's row is folded.
+  #
+  # Returns a {Boolean}.
+  isFoldedAtCursorRow: ->
+    @isFoldedAtScreenRow(@getCursorScreenRow())
+
+  # Public: Determine whether the given row in buffer coordinates is folded.
+  #
+  # * `bufferRow` A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldedAtBufferRow: (bufferRow) ->
+    @displayBuffer.isFoldedAtBufferRow(bufferRow)
+
+  # Public: Determine whether the given row in screen coordinates is folded.
+  #
+  # * `screenRow` A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldedAtScreenRow: (screenRow) ->
+    @displayBuffer.isFoldedAtScreenRow(screenRow)
+
+  # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
+  largestFoldContainingBufferRow: (bufferRow) ->
+    @displayBuffer.largestFoldContainingBufferRow(bufferRow)
+
+  # {Delegates to: DisplayBuffer.largestFoldStartingAtScreenRow}
+  largestFoldStartingAtScreenRow: (screenRow) ->
+    @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
+
+  # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
+  outermostFoldsInBufferRowRange: (startRow, endRow) ->
+    @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+
+
+
+
+
+  ###
+  Section: Decorations
+  ###
 
   # Public: Get all the decorations within a screen row range.
   #
@@ -1177,6 +1306,10 @@ class Editor extends Model
 
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
+
+  ###
+  Section: Markers
+  ###
 
   # Public: Get the {DisplayBufferMarker} for the given marker id.
   getMarker: (id) ->
@@ -1254,6 +1387,11 @@ class Editor extends Model
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
+
+  ###
+  Section: Cursors
+  ###
+
   # Public: Determine if there are multiple cursors.
   hasMultipleCursors: ->
     @getCursors().length > 1
@@ -1292,6 +1430,164 @@ class Editor extends Model
   # Remove the given cursor from this editor.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
+
+  # Public: Move the cursor to the given position in screen coordinates.
+  #
+  # If there are multiple cursors, they will be consolidated to a single cursor.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  # * `options` An {Object} combining options for {::clipScreenPosition} with:
+  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
+  #     position. Defaults to true.
+  setCursorScreenPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
+
+  # Public: Get the position of the most recently added cursor in screen
+  # coordinates.
+  #
+  # Returns a {Point}.
+  getCursorScreenPosition: ->
+    @getCursor().getScreenPosition()
+
+  # Public: Get the row of the most recently added cursor in screen coordinates.
+  #
+  # Returns the screen row {Number}.
+  getCursorScreenRow: ->
+    @getCursor().getScreenRow()
+
+  # Public: Move the cursor to the given position in buffer coordinates.
+  #
+  # If there are multiple cursors, they will be consolidated to a single cursor.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  # * `options` An {Object} combining options for {::clipScreenPosition} with:
+  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
+  #     position. Defaults to true.
+  setCursorBufferPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
+
+  # Public: Get the position of the most recently added cursor in buffer
+  # coordinates.
+  #
+  # Returns a {Point}.
+  getCursorBufferPosition: ->
+    @getCursor().getBufferPosition()
+
+  # Public: Returns the word surrounding the most recently added cursor.
+  #
+  # * `options` See {Cursor::getBeginningOfCurrentWordBufferPosition}.
+  getWordUnderCursor: (options) ->
+    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
+
+  # Public: Move every cursor up one row in screen coordinates.
+  moveCursorUp: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
+
+  # Public: Move every cursor down one row in screen coordinates.
+  moveCursorDown: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
+
+  # Public: Move every cursor left one column.
+  moveCursorLeft: ->
+    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
+
+  # Public: Move every cursor right one column.
+  moveCursorRight: ->
+    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
+
+  # Public: Move every cursor to the top of the buffer.
+  #
+  # If there are multiple cursors, they will be merged into a single cursor.
+  moveCursorToTop: ->
+    @moveCursors (cursor) -> cursor.moveToTop()
+
+  # Public: Move every cursor to the bottom of the buffer.
+  #
+  # If there are multiple cursors, they will be merged into a single cursor.
+  moveCursorToBottom: ->
+    @moveCursors (cursor) -> cursor.moveToBottom()
+
+  # Public: Move every cursor to the beginning of its line in screen coordinates.
+  moveCursorToBeginningOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
+
+  # Public: Move every cursor to the beginning of its line in buffer coordinates.
+  moveCursorToBeginningOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
+
+  # Public: Move every cursor to the first non-whitespace character of its line.
+  moveCursorToFirstCharacterOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
+  # Public: Move every cursor to the end of its line in screen coordinates.
+  moveCursorToEndOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
+
+  # Public: Move every cursor to the end of its line in buffer coordinates.
+  moveCursorToEndOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfLine()
+
+  # Public: Move every cursor to the beginning of its surrounding word.
+  moveCursorToBeginningOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
+
+  # Public: Move every cursor to the end of its surrounding word.
+  moveCursorToEndOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfWord()
+
+  # Public: Move every cursor to the beginning of the next word.
+  moveCursorToBeginningOfNextWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+
+  # Public: Move every cursor to the previous word boundary.
+  moveCursorToPreviousWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
+
+  # Public: Move every cursor to the next word boundary.
+  moveCursorToNextWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
+
+  # Public: Move every cursor to the beginning of the next paragraph.
+  moveCursorToBeginningOfNextParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
+
+  # Public: Move every cursor to the beginning of the previous paragraph.
+  moveCursorToBeginningOfPreviousParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
+
+  moveCursors: (fn) ->
+    @movingCursors = true
+    fn(cursor) for cursor in @getCursors()
+    @mergeCursors()
+    @movingCursors = false
+    @emit 'cursors-moved'
+
+  cursorMoved: (event) ->
+    @emit 'cursor-moved', event
+    @emit 'cursors-moved' unless @movingCursors
+
+  # Merge cursors that have the same screen position
+  mergeCursors: ->
+    positions = []
+    for cursor in @getCursors()
+      position = cursor.getBufferPosition().toString()
+      if position in positions
+        cursor.destroy()
+      else
+        positions.push(position)
+
+  preserveCursorPositionOnBufferReload: ->
+    cursorPosition = null
+    @subscribe @buffer, "will-reload", =>
+      cursorPosition = @getCursorBufferPosition()
+    @subscribe @buffer, "reloaded", =>
+      @setCursorBufferPosition(cursorPosition) if cursorPosition
+      cursorPosition = null
+
+
+  ###
+  Section: Selections
+  ###
 
   # Add a {Selection} based on the given {DisplayBufferMarker}.
   #
@@ -1442,48 +1738,6 @@ class Editor extends Model
     _.any @getSelections(), (selection) ->
       selection.intersectsBufferRange(bufferRange)
 
-  # Public: Move the cursor to the given position in screen coordinates.
-  #
-  # If there are multiple cursors, they will be consolidated to a single cursor.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` An {Object} combining options for {::clipScreenPosition} with:
-  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
-  #     position. Defaults to true.
-  setCursorScreenPosition: (position, options) ->
-    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
-
-  # Public: Get the position of the most recently added cursor in screen
-  # coordinates.
-  #
-  # Returns a {Point}.
-  getCursorScreenPosition: ->
-    @getCursor().getScreenPosition()
-
-  # Public: Get the row of the most recently added cursor in screen coordinates.
-  #
-  # Returns the screen row {Number}.
-  getCursorScreenRow: ->
-    @getCursor().getScreenRow()
-
-  # Public: Move the cursor to the given position in buffer coordinates.
-  #
-  # If there are multiple cursors, they will be consolidated to a single cursor.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` An {Object} combining options for {::clipScreenPosition} with:
-  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
-  #     position. Defaults to true.
-  setCursorBufferPosition: (position, options) ->
-    @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
-
-  # Public: Get the position of the most recently added cursor in buffer
-  # coordinates.
-  #
-  # Returns a {Point}.
-  getCursorBufferPosition: ->
-    @getCursor().getBufferPosition()
-
   # Public: Get the {Range} of the most recently added selection in screen
   # coordinates.
   #
@@ -1519,150 +1773,6 @@ class Editor extends Model
   # Returns a {String}.
   getSelectedText: ->
     @getLastSelection().getText()
-
-  # Public: Get the text in the given {Range} in buffer coordinates.
-  #
-  # * `range` A {Range} or range-compatible {Array}.
-  #
-  # Returns a {String}.
-  getTextInBufferRange: (range) ->
-    @buffer.getTextInRange(range)
-
-  # Public: Set the text in the given {Range} in buffer coordinates.
-  #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `text` A {String}
-  #
-  # Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
-
-  # Public: Get the {Range} of the paragraph surrounding the most recently added
-  # cursor.
-  #
-  # Returns a {Range}.
-  getCurrentParagraphBufferRange: ->
-    @getCursor().getCurrentParagraphBufferRange()
-
-  # Public: Returns the word surrounding the most recently added cursor.
-  #
-  # * `options` See {Cursor::getBeginningOfCurrentWordBufferPosition}.
-  getWordUnderCursor: (options) ->
-    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
-
-  # Public: Move every cursor up one row in screen coordinates.
-  moveCursorUp: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
-
-  # Public: Move every cursor down one row in screen coordinates.
-  moveCursorDown: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
-
-  # Public: Move every cursor left one column.
-  moveCursorLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
-
-  # Public: Move every cursor right one column.
-  moveCursorRight: ->
-    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
-
-  # Public: Move every cursor to the top of the buffer.
-  #
-  # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToTop: ->
-    @moveCursors (cursor) -> cursor.moveToTop()
-
-  # Public: Move every cursor to the bottom of the buffer.
-  #
-  # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToBottom: ->
-    @moveCursors (cursor) -> cursor.moveToBottom()
-
-  # Public: Move every cursor to the beginning of its line in screen coordinates.
-  moveCursorToBeginningOfScreenLine: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
-
-  # Public: Move every cursor to the beginning of its line in buffer coordinates.
-  moveCursorToBeginningOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
-
-  # Public: Move every cursor to the first non-whitespace character of its line.
-  moveCursorToFirstCharacterOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
-
-  # Public: Move every cursor to the end of its line in screen coordinates.
-  moveCursorToEndOfScreenLine: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
-
-  # Public: Move every cursor to the end of its line in buffer coordinates.
-  moveCursorToEndOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfLine()
-
-  # Public: Move every cursor to the beginning of its surrounding word.
-  moveCursorToBeginningOfWord: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
-
-  # Public: Move every cursor to the end of its surrounding word.
-  moveCursorToEndOfWord: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfWord()
-
-  # Public: Move every cursor to the beginning of the next word.
-  moveCursorToBeginningOfNextWord: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
-
-  # Public: Move every cursor to the previous word boundary.
-  moveCursorToPreviousWordBoundary: ->
-    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
-
-  # Public: Move every cursor to the next word boundary.
-  moveCursorToNextWordBoundary: ->
-    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
-
-  # Public: Move every cursor to the beginning of the next paragraph.
-  moveCursorToBeginningOfNextParagraph: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
-
-  # Public: Move every cursor to the beginning of the previous paragraph.
-  moveCursorToBeginningOfPreviousParagraph: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
-
-  # Public: Scroll the editor to reveal the most recently added cursor if it is
-  # off-screen.
-  #
-  # * `options` An optional hash of options.
-  #   * `center` Center the editor around the cursor if possible. Defauls to true.
-  scrollToCursorPosition: (options) ->
-    @getCursor().autoscroll(center: options?.center ? true)
-
-  pageUp: ->
-    newScrollTop = @getScrollTop() - @getHeight()
-    @moveCursorUp(@getRowsPerPage())
-    @setScrollTop(newScrollTop)
-
-  pageDown: ->
-    newScrollTop = @getScrollTop() + @getHeight()
-    @moveCursorDown(@getRowsPerPage())
-    @setScrollTop(newScrollTop)
-
-  selectPageUp: ->
-    @selectUp(@getRowsPerPage())
-
-  selectPageDown: ->
-    @selectDown(@getRowsPerPage())
-
-  # Returns the number of rows per page
-  getRowsPerPage: ->
-    Math.max(1, Math.ceil(@getHeight() / @getLineHeightInPixels()))
-
-  moveCursors: (fn) ->
-    @movingCursors = true
-    fn(cursor) for cursor in @getCursors()
-    @mergeCursors()
-    @movingCursors = false
-    @emit 'cursors-moved'
-
-  cursorMoved: (event) ->
-    @emit 'cursor-moved', event
-    @emit 'cursors-moved' unless @movingCursors
 
   # Public: Select from the current cursor position to the given position in
   # screen coordinates.
@@ -1788,64 +1898,6 @@ class Editor extends Model
   addSelectionAbove: ->
     @expandSelectionsBackward (selection) -> selection.addSelectionAbove()
 
-  # Public: Split multi-line selections into one selection per line.
-  #
-  # Operates on all selections. This method breaks apart all multi-line
-  # selections to create multiple single-line selections that cumulatively cover
-  # the same original area.
-  splitSelectionsIntoLines: ->
-    for selection in @getSelections()
-      range = selection.getBufferRange()
-      continue if range.isSingleLine()
-
-      selection.destroy()
-      {start, end} = range
-      @addSelectionForBufferRange([start, [start.row, Infinity]])
-      {row} = start
-      while ++row < end.row
-        @addSelectionForBufferRange([[row, 0], [row, Infinity]])
-      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
-
-  # Public: For each selection, transpose the selected text.
-  #
-  # If the selection is empty, the characters preceding and following the cursor
-  # are swapped. Otherwise, the selected characters are reversed.
-  transpose: ->
-    @mutateSelectedText (selection) ->
-      if selection.isEmpty()
-        selection.selectRight()
-        text = selection.getText()
-        selection.delete()
-        selection.cursor.moveLeft()
-        selection.insertText text
-      else
-        selection.insertText selection.getText().split('').reverse().join('')
-
-  # Public: Convert the selected text to upper case.
-  #
-  # For each selection, if the selection is empty, converts the containing word
-  # to upper case. Otherwise convert the selected text to upper case.
-  upperCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toUpperCase()
-
-  # Public: Convert the selected text to lower case.
-  #
-  # For each selection, if the selection is empty, converts the containing word
-  # to upper case. Otherwise convert the selected text to upper case.
-  lowerCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toLowerCase()
-
-  # Convert multiple lines to a single line.
-  #
-  # Operates on all selections. If the selection is empty, joins the current
-  # line with the next line. Otherwise it joins all lines that intersect the
-  # selection.
-  #
-  # Joining a line means that multiple lines are converted to a single line with
-  # the contents of each of the original non-empty lines separated by a space.
-  joinLines: ->
-    @mutateSelectedText (selection) -> selection.joinLines()
-
   # Public: Expand selections to the beginning of their containing word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the
@@ -1896,16 +1948,6 @@ class Editor extends Model
       @setSelectedBufferRange(range)
       range
 
-  # Merge cursors that have the same screen position
-  mergeCursors: ->
-    positions = []
-    for cursor in @getCursors()
-      position = cursor.getBufferPosition().toString()
-      if position in positions
-        cursor.destroy()
-      else
-        positions.push(position)
-
   # Calls the given function with each selection, then merges selections
   expandSelectionsForward: (fn) ->
     @mergeIntersectingSelections =>
@@ -1944,28 +1986,44 @@ class Editor extends Model
 
     _.reduce(@getSelections(), reducer, [])
 
-  preserveCursorPositionOnBufferReload: ->
-    cursorPosition = null
-    @subscribe @buffer, "will-reload", =>
-      cursorPosition = @getCursorBufferPosition()
-    @subscribe @buffer, "reloaded", =>
-      @setCursorBufferPosition(cursorPosition) if cursorPosition
-      cursorPosition = null
 
-  # Public: Get the current {Grammar} of this editor.
-  getGrammar: ->
-    @displayBuffer.getGrammar()
 
-  # Public: Set the current {Grammar} of this editor.
+  ###
+  Section: Scrolling the Editor
+  ###
+
+  # Public: Scroll the editor to reveal the most recently added cursor if it is
+  # off-screen.
   #
-  # Assigning a grammar will cause the editor to re-tokenize based on the new
-  # grammar.
-  setGrammar: (grammar) ->
-    @displayBuffer.setGrammar(grammar)
+  # * `options` An optional hash of options.
+  #   * `center` Center the editor around the cursor if possible. Defauls to true.
+  scrollToCursorPosition: (options) ->
+    @getCursor().autoscroll(center: options?.center ? true)
 
-  # Reload the grammar based on the file name.
-  reloadGrammar: ->
-    @displayBuffer.reloadGrammar()
+  pageUp: ->
+    newScrollTop = @getScrollTop() - @getHeight()
+    @moveCursorUp(@getRowsPerPage())
+    @setScrollTop(newScrollTop)
+
+  pageDown: ->
+    newScrollTop = @getScrollTop() + @getHeight()
+    @moveCursorDown(@getRowsPerPage())
+    @setScrollTop(newScrollTop)
+
+  selectPageUp: ->
+    @selectUp(@getRowsPerPage())
+
+  selectPageDown: ->
+    @selectDown(@getRowsPerPage())
+
+  # Returns the number of rows per page
+  getRowsPerPage: ->
+    Math.max(1, Math.ceil(@getHeight() / @getLineHeightInPixels()))
+
+
+  ###
+  Section: Config
+  ###
 
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent")
@@ -1979,38 +2037,10 @@ class Editor extends Model
     else
       @displayBuffer.setInvisibles(null)
 
-  # Public: Batch multiple operations as a single undo/redo step.
-  #
-  # Any group of operations that are logically grouped from the perspective of
-  # undoing and redoing should be performed in a transaction. If you want to
-  # abort the transaction, call {::abortTransaction} to terminate the function's
-  # execution and revert any changes performed up to the abortion.
-  #
-  # * `fn` A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
 
-  # Public: Start an open-ended transaction.
-  #
-  # Call {::commitTransaction} or {::abortTransaction} to terminate the
-  # transaction. If you nest calls to transactions, only the outermost
-  # transaction is considered. You must match every begin with a matching
-  # commit, but a single call to abort will cancel all nested transactions.
-  beginTransaction: -> @buffer.beginTransaction()
-
-  # Public: Commit an open-ended transaction started with {::beginTransaction}
-  # and push it to the undo stack.
-  #
-  # If transactions are nested, only the outermost commit takes effect.
-  commitTransaction: -> @buffer.commitTransaction()
-
-  # Public: Abort an open transaction, undoing any operations performed so far
-  # within the transaction.
-  abortTransaction: -> @buffer.abortTransaction()
-
-  inspect: ->
-    "<Editor #{@id}>"
-
-  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
+  ###
+  Section: Event Handlers
+  ###
 
   handleTokenization: ->
     @softTabs = @usesSoftTabs() ? @softTabs
@@ -2022,6 +2052,10 @@ class Editor extends Model
   handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
+
+  ###
+  Section: Editor Rendering
+  ###
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
@@ -2104,3 +2138,12 @@ class Editor extends Model
   joinLine: ->
     deprecate("Use Editor::joinLines() instead")
     @joinLines()
+
+  ###
+  Section: Utility
+  ###
+
+  inspect: ->
+    "<Editor #{@id}>"
+
+  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
