@@ -6,7 +6,7 @@ path = require 'path'
 #
 # This is necessary on Windows since it doesn't support shebang `#!` lines.
 #
-# ## Requiring in packages
+# ## Examples
 #
 # ```coffee
 #   {BufferedNodeProcess} = require 'atom'

@@ -4,7 +4,7 @@ ChildProcess = require 'child_process'
 # Public: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
 #
-# ## Requiring in packages
+# ## Examples
 #
 # ```coffee
 # {BufferedProcess} = require 'atom'
@@ -19,25 +19,25 @@ module.exports =
 class BufferedProcess
   # Public: Runs the given command by spawning a new child process.
   #
-  # options - An {Object} with the following keys:
-  #   :command - The {String} command to execute.
-  #   :args - The {Array} of arguments to pass to the command (optional).
-  #   :options - The options {Object} to pass to Node's `ChildProcess.spawn`
-  #              method (optional).
-  #   :stdout - The callback {Function} that receives a single argument which
-  #             contains the standard output from the command. The callback is
-  #             called as data is received but it's buffered to ensure only
-  #             complete lines are passed until the source stream closes. After
-  #             the source stream has closed all remaining data is sent in a
-  #             final call (optional).
-  #   :stderr - The callback {Function} that receives a single argument which
-  #             contains the standard error output from the command. The
-  #             callback is called as data is received but it's buffered to
-  #             ensure only complete lines are passed until the source stream
-  #             closes. After the source stream has closed all remaining data
-  #             is sent in a final call (optional).
-  #   :exit - The callback {Function} which receives a single argument
-  #           containing the exit status (optional).
+  # * `options` An {Object} with the following keys:
+  #   * `command` The {String} command to execute.
+  #   * `args` The {Array} of arguments to pass to the command (optional).
+  #   * `options` The options {Object} to pass to Node's `ChildProcess.spawn`
+  #               method (optional).
+  #   * `stdout` The callback {Function} that receives a single argument which
+  #              contains the standard output from the command. The callback is
+  #              called as data is received but it's buffered to ensure only
+  #              complete lines are passed until the source stream closes. After
+  #              the source stream has closed all remaining data is sent in a
+  #              final call (optional).
+  #   * `stderr` The callback {Function} that receives a single argument which
+  #              contains the standard error output from the command. The
+  #              callback is called as data is received but it's buffered to
+  #              ensure only complete lines are passed until the source stream
+  #              closes. After the source stream has closed all remaining data
+  #              is sent in a final call (optional).
+  #   * `exit` The callback {Function} which receives a single argument
+  #            containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     # Related to joyent/node#2318
@@ -95,9 +95,9 @@ class BufferedProcess
 
   # Helper method to pass data line by line.
   #
-  # stream - The Stream to read from.
-  # onLines - The callback to call with each line of data.
-  # onDone - The callback to call when the stream has closed.
+  # * `stream` The Stream to read from.
+  # * `onLines` The callback to call with each line of data.
+  # * `onDone` The callback to call when the stream has closed.
   bufferStream: (stream, onLines, onDone) ->
     stream.setEncoding('utf8')
     buffered = ''
