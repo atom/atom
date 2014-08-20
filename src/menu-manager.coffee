@@ -17,9 +17,9 @@ class MenuManager
     atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
     atom.packages.on 'activated', => @sortPackagesMenu()
 
-  # Public: Adds the given item definition to the existing template.
+  # Public: Adds the given items to the application menu.
   #
-  # ## Example
+  # ## Examples
   # ```coffee
   #   atom.menu.add [
   #     {
@@ -29,23 +29,22 @@ class MenuManager
   #   ]
   # ```
   #
-  # items - An {Array} of menu item {Object}s containing the keys:
-  #   :label   - The {String} menu label.
-  #   :submenu - An optional {Array} of sub menu items.
-  #   :command - An optional {String} command to trigger when the item is
-  #              clicked.
-  #
-  # Returns nothing.
+  # * `items` An {Array} of menu item {Object}s containing the keys:
+  #   * `label` The {String} menu label.
+  #   * `submenu` An optional {Array} of sub menu items.
+  #   * `command` An optional {String} command to trigger when the item is
+  #               clicked.
   add: (items) ->
     @merge(@template, item) for item in items
     @update()
+    undefined
 
   # Should the binding for the given selector be included in the menu
   # commands.
   #
-  # selector - A {String} selector to check.
+  # * `selector` A {String} selector to check.
   #
-  # Returns true to include the selector, false otherwise.
+  # Returns a {Boolean}, true to include the selector, false otherwise.
   includeSelector: (selector) ->
     try
       return true if document.body.webkitMatchesSelector(selector)
