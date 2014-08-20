@@ -3,7 +3,7 @@
 # An instance of this class is always available as the `atom.deserializers`
 # global.
 #
-# ### Registering a deserializer
+# ## Examples
 #
 # ```coffee
 # class MyPackageView extends View
@@ -24,21 +24,21 @@ class DeserializerManager
 
   # Public: Register the given class(es) as deserializers.
   #
-  # classes - One or more classes to register.
+  # * `classes` One or more classes to register.
   add: (classes...) ->
     @deserializers[klass.name] = klass for klass in classes
 
   # Public: Remove the given class(es) as deserializers.
   #
-  # classes - One or more classes to remove.
+  # * `classes` One or more classes to remove.
   remove: (classes...) ->
     delete @deserializers[name] for {name} in classes
 
   # Public: Deserialize the state and params.
   #
-  # state  - The state {Object} to deserialize.
-  # params - The params {Object} to pass as the second arguments to the
-  #          deserialize method of the deserializer.
+  # * `state` The state {Object} to deserialize.
+  # * `params` The params {Object} to pass as the second arguments to the
+  #            deserialize method of the deserializer.
   deserialize: (state, params) ->
     return unless state?
 
@@ -51,7 +51,7 @@ class DeserializerManager
 
   # Get the deserializer for the state.
   #
-  # state - The state {Object} being deserialized.
+  # * `state` The state {Object} being deserialized.
   get: (state) ->
     return unless state?
 
