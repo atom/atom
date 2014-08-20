@@ -18,13 +18,13 @@ WindowEventHandler = require './window-event-handler'
 #
 # An instance of this class is always available as the `atom` global.
 #
-# ## Useful properties available:
+# ## Properties
 #
 #  * `atom.clipboard`     - A {Clipboard} instance
 #  * `atom.config`        - A {Config} instance
 #  * `atom.contextMenu`   - A {ContextMenuManager} instance
 #  * `atom.deserializers` - A {DeserializerManager} instance
-#  * `atom.keymaps`        - A {KeymapManager} instance
+#  * `atom.keymaps`       - A {KeymapManager} instance
 #  * `atom.menu`          - A {MenuManager} instance
 #  * `atom.packages`      - A {PackageManager} instance
 #  * `atom.project`       - A {Project} instance
@@ -38,8 +38,8 @@ class Atom extends Model
 
   # Public: Load or create the Atom environment in the given mode.
   #
-  # mode - Pass 'editor' or 'spec' depending on the kind of environment you
-  #        want to build.
+  # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
+  #          kind of environment you want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
@@ -119,8 +119,9 @@ class Atom extends Model
     @deserializers = new DeserializerManager()
 
   # Public: Sets up the basic services that should be available in all modes
-  # (both spec and application). Call after this instance has been assigned to
-  # the `atom` global.
+  # (both spec and application).
+  #
+  # Call after this instance has been assigned to the `atom` global.
   initialize: ->
     window.onerror = =>
       @openDevTools()
@@ -191,7 +192,11 @@ class Atom extends Model
 
   # Public: Get the dimensions of this window.
   #
-  # Returns an object with x, y, width, and height keys.
+  # Returns an {Object} with the following keys:
+  #   * `x`      The window's x-position {Number}.
+  #   * `y`      The window's y-position {Number}.
+  #   * `width`  The window's width {Number}.
+  #   * `height` The window's height {Number}.
   getWindowDimensions: ->
     browserWindow = @getCurrentWindow()
     [x, y] = browserWindow.getPosition()
@@ -205,11 +210,11 @@ class Atom extends Model
   # in the dimensions parameter. If x or y are omitted the window will be
   # centered. If height or width are omitted only the position will be changed.
   #
-  # dimensions - An {Object} with the following keys:
-  #   :x - The new x coordinate.
-  #   :y - The new y coordinate.
-  #   :width - The new width.
-  #   :height - The new height.
+  # * `dimensions` An {Object} with the following keys:
+  #   * `x` The new x coordinate.
+  #   * `y` The new y coordinate.
+  #   * `width` The new width.
+  #   * `height` The new height.
   setWindowDimensions: ({x, y, width, height}) ->
     if width? and height?
       @setSize(width, height)
@@ -258,7 +263,7 @@ class Atom extends Model
 
   # Public: Get the load settings for the current window.
   #
-  # Returns an object containing all the load setting key/value pairs.
+  # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
     @constructor.getLoadSettings()
 
@@ -362,23 +367,21 @@ class Atom extends Model
   # Calling this method without an options parameter will open a prompt to pick
   # a file/folder to open in the new window.
   #
-  # options - An {Object} with the following keys:
-  #   :pathsToOpen - An {Array} of {String} paths to open.
-  #   :newWindow   - A {Boolean}, true to always open a new window instead of
-  #                  reusing existing windows depending on the paths to open.
-  #   :devMode     - A {Boolean}, true to open the window in development mode.
-  #                  Development mode loads the Atom source from the locally
-  #                  cloned repository and also loads all the packages in
-  #                  ~/.atom/dev/packages
-  #   :safeMode    - A {Boolean}, true to open the window in safe mode. Safe
-  #                  mode prevents all packages installed to ~/.atom/packages
-  #                  from loading.
+  # * `options` An {Object} with the following keys:
+  #   * `pathsToOpen`  An {Array} of {String} paths to open.
+  #   * `newWindow` A {Boolean}, true to always open a new window instead of
+  #     reusing existing windows depending on the paths to open.
+  #   * `devMode` A {Boolean}, true to open the window in development mode.
+  #     Development mode loads the Atom source from the locally cloned
+  #     repository and also loads all the packages in ~/.atom/dev/packages
+  #   * `safeMode` A {Boolean}, true to open the window in safe mode. Safe
+  #     mode prevents all packages installed to ~/.atom/packages from loading.
   open: (options) ->
     ipc.send('open', options)
 
   # Public: Open a confirm dialog.
   #
-  # ## Example
+  # ## Examples
   #
   # ```coffee
   #   atom.confirm
@@ -389,12 +392,12 @@ class Atom extends Model
   #       Bad:  -> window.alert('bummer')
   # ```
   #
-  # options - An {Object} with the following keys:
-  #   :message - The {String} message to display.
-  #   :detailedMessage - The {String} detailed message to display.
-  #   :buttons - Either an array of strings or an object where keys are
-  #              button names and the values are callbacks to invoke when
-  #              clicked.
+  # * `options` An {Object} with the following keys:
+  #   * `message` The {String} message to display.
+  #   * `detailedMessage` The {String} detailed message to display.
+  #   * `buttons` Either an array of strings or an object where keys are
+  #               button names and the values are callbacks to invoke when
+  #               clicked.
   #
   # Returns the chosen button index {Number} if the buttons option was an array.
   confirm: ({message, detailedMessage, buttons}={}) ->
@@ -457,15 +460,15 @@ class Atom extends Model
 
   # Public: Set the size of current window.
   #
-  # width  - The {Number} of pixels.
-  # height - The {Number} of pixels.
+  # * `width` The {Number} of pixels.
+  # * `height` The {Number} of pixels.
   setSize: (width, height) ->
     @getCurrentWindow().setSize(width, height)
 
   # Public: Set the position of current window.
   #
-  # x - The {Number} of pixels.
-  # y - The {Number} of pixels.
+  # * `x` The {Number} of pixels.
+  # * `y` The {Number} of pixels.
   setPosition: (x, y) ->
     ipc.send('call-window-method', 'setPosition', x, y)
 
@@ -552,7 +555,7 @@ class Atom extends Model
   # This time include things like loading and activating packages, creating
   # DOM elements for the editor, and reading the config.
   #
-  # Returns the number of milliseconds taken to load the window or null
+  # Returns the {Number} of milliseconds taken to load the window or null
   # if the window hasn't finished loading yet.
   getWindowLoadTime: ->
     @loadTime
@@ -584,8 +587,8 @@ class Atom extends Model
   # The globals will be set on the `window` object and removed after the
   # require completes.
   #
-  # id - The {String} module name or path.
-  # globals - An {Object} to set as globals during require (default: {})
+  # * `id` The {String} module name or path.
+  # * `globals` An optinal {Object} to set as globals during require.
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals
