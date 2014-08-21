@@ -247,6 +247,21 @@ describe "ThemeManager", ->
           # from within the theme itself
           expect($(".editor").css("background-color")).toBe "rgb(0, 152, 255)"
 
+    describe "theme classes on the workspace", ->
+      it 'adds theme-* classes to the workspace for each active theme', ->
+        expect(atom.workspaceView).toHaveClass 'theme-atom-dark-ui'
+
+        themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+        atom.config.set('core.themes', ['theme-with-ui-variables'])
+
+        waitsFor ->
+          reloadHandler.callCount > 0
+
+        runs ->
+          # `theme-` twice as it prefixes the name with `theme-`
+          expect(atom.workspaceView).toHaveClass 'theme-theme-with-ui-variables'
+          expect(atom.workspaceView).not.toHaveClass 'theme-atom-dark-ui'
+
   describe "when the user stylesheet changes", ->
     it "reloads it", ->
       [stylesheetRemovedHandler, stylesheetAddedHandler, stylesheetsChangedHandler] = []
