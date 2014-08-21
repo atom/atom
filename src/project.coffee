@@ -184,7 +184,7 @@ class Project extends Model
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      throw new Error("Atom can only handle files < 2MB, for now.")
+      throw new Error("Atom can only handle files < 2MB for now.")
 
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
