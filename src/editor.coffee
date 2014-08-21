@@ -438,7 +438,7 @@ class Editor extends Model
   # Returns the range for the given buffer row.
   #
   # * `row` A row {Number}.
-  # * `options` An options hash with an `includeNewline` key.
+  # * `options` (optional) An options hash with an `includeNewline` key.
   #
   # Returns a {Range}.
   bufferRangeForBufferRow: (row, {includeNewline}={}) -> @buffer.rangeForRow(row, includeNewline)
@@ -707,7 +707,7 @@ class Editor extends Model
   # Public: For each selection, replace the selected text with the given text.
   #
   # * `text` A {String} representing the text to insert.
-  # * `options` See {Selection::insertText}.
+  # * `options` (optional) See {Selection::insertText}.
   #
   # Returns a {Range} when the text has been inserted
   # Returns a {Bool} false when the text has not been inserted
@@ -920,7 +920,7 @@ class Editor extends Model
   #
   # * `bufferRow` A {Number} indicating the buffer row.
   # * `newLevel` A {Number} indicating the new indentation level.
-  # * `options` An {Object} with the following keys:
+  # * `options` (optional) An {Object} with the following keys:
   #   * `preserveLeadingWhitespace` `true` to preserve any whitespace already at
   #      the beginning of the line (default: false).
   setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
@@ -1029,7 +1029,7 @@ class Editor extends Model
   # conversion, which only makes a difference when `options` are supplied.
   #
   # * `bufferPosition` A {Point} or {Array} of [row, column].
-  # * `options` An options hash for {::clipScreenPosition}.
+  # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
@@ -1039,7 +1039,7 @@ class Editor extends Model
   # The position is clipped via {::clipScreenPosition} prior to the conversion.
   #
   # * `bufferPosition` A {Point} or {Array} of [row, column].
-  # * `options` An options hash for {::clipScreenPosition}.
+  # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
@@ -1203,7 +1203,7 @@ class Editor extends Model
   # editor, each selection will be replaced with the content of the
   # corresponding clipboard selection text.
   #
-  # * `options` See {Selection::insertText}.
+  # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
@@ -1462,7 +1462,7 @@ class Editor extends Model
   # Public: Mark the given range in screen coordinates.
   #
   # * `range` A {Range} or range-compatible {Array}.
-  # * `options` See {TextBuffer::markRange}.
+  # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayBufferMarker}.
   markScreenRange: (args...) ->
@@ -1471,7 +1471,7 @@ class Editor extends Model
   # Public: Mark the given range in buffer coordinates.
   #
   # * `range` A {Range} or range-compatible {Array}.
-  # * `options` See {TextBuffer::markRange}.
+  # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayBufferMarker}.
   markBufferRange: (args...) ->
@@ -1480,7 +1480,7 @@ class Editor extends Model
   # Public: Mark the given position in screen coordinates.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` See {TextBuffer::markRange}.
+  # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayBufferMarker}.
   markScreenPosition: (args...) ->
@@ -1489,7 +1489,7 @@ class Editor extends Model
   # Public: Mark the given position in buffer coordinates.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` See {TextBuffer::markRange}.
+  # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayBufferMarker}.
   markBufferPosition: (args...) ->
@@ -1555,7 +1555,7 @@ class Editor extends Model
   # If there are multiple cursors, they will be consolidated to a single cursor.
   #
   # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` An {Object} combining options for {::clipScreenPosition} with:
+  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
   #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   #     position. Defaults to true.
   setCursorScreenPosition: (position, options) ->
@@ -1579,7 +1579,7 @@ class Editor extends Model
   # If there are multiple cursors, they will be consolidated to a single cursor.
   #
   # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` An {Object} combining options for {::clipScreenPosition} with:
+  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
   #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   #     position. Defaults to true.
   setCursorBufferPosition: (position, options) ->
@@ -1594,7 +1594,7 @@ class Editor extends Model
 
   # Public: Returns the word surrounding the most recently added cursor.
   #
-  # * `options` See {Cursor::getBeginningOfCurrentWordBufferPosition}.
+  # * `options` (optional) See {Cursor::getBeginningOfCurrentWordBufferPosition}.
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
@@ -1711,7 +1711,7 @@ class Editor extends Model
   # Add a {Selection} based on the given {DisplayBufferMarker}.
   #
   # * `marker` The {DisplayBufferMarker} to highlight
-  # * `options` An {Object} that pertains to the {Selection} constructor.
+  # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
@@ -1733,7 +1733,7 @@ class Editor extends Model
   # Public: Add a selection for the given range in buffer coordinates.
   #
   # * `bufferRange` A {Range}
-  # * `options` An options {Object}:
+  # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
   #
@@ -1748,7 +1748,7 @@ class Editor extends Model
   # selections, they are reduced to a single selection with the given range.
   #
   # * `bufferRange` A {Range} or range-compatible {Array}.
-  # * `options` An options {Object}:
+  # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
   setSelectedBufferRange: (bufferRange, options) ->
@@ -1758,7 +1758,7 @@ class Editor extends Model
   # selections, they are reduced to a single selection with the given range.
   #
   # * `screenRange` A {Range} or range-compatible {Array}.
-  # * `options` An options {Object}:
+  # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
   setSelectedScreenRange: (screenRange, options) ->
@@ -1768,7 +1768,7 @@ class Editor extends Model
   # selections, they are replaced by new selections with the given ranges.
   #
   # * `bufferRanges` An {Array} of {Range}s or range-compatible {Array}s.
-  # * `options` An options {Object}:
+  # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
@@ -1819,7 +1819,7 @@ class Editor extends Model
   # Public: Get the most recent {Selection} or the selection at the given
   # index.
   #
-  # * `index` Optional. The index of the selection to return, based on the order
+  # * `index` (optional) The index of the selection to return, based on the order
   #   in which the selections were added.
   #
   # Returns a {Selection}.
@@ -2114,7 +2114,7 @@ class Editor extends Model
   # Public: Scroll the editor to reveal the most recently added cursor if it is
   # off-screen.
   #
-  # * `options` An optional hash of options.
+  # * `options` (optional) {Object}
   #   * `center` Center the editor around the cursor if possible. Defauls to true.
   scrollToCursorPosition: (options) ->
     @getCursor().autoscroll(center: options?.center ? true)
