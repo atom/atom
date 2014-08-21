@@ -77,10 +77,11 @@ class Unpublish extends Command
     options = @parseOptions(options.commandArgs)
     [name] = options.argv._
 
-    atIndex = name?.indexOf('@')
-    if atIndex isnt -1
-      version = name.substring(atIndex + 1)
-      name = name.substring(0, atIndex)
+    if name?.length > 0
+      atIndex = name.indexOf('@')
+      if atIndex isnt -1
+        version = name.substring(atIndex + 1)
+        name = name.substring(0, atIndex)
 
     unless name
       try
