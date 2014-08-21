@@ -34,19 +34,18 @@ EditorComponent = React.createClass
   selectionChanged: false
   selectionAdded: false
   scrollingVertically: false
-  refreshingScrollbars: false
-  measuringScrollbars: true
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
   heightAndWidthMeasurementRequested: false
-  measureLineHeightAndDefaultCharWidthWhenShown: false
-  remeasureCharacterWidthsWhenShown: false
   inputEnabled: true
   scopedCharacterWidthsChangeCount: null
   domPollingInterval: 100
   domPollingIntervalId: null
   domPollingPaused: false
+  measureScrollbarsWhenShown: true
+  measureLineHeightAndDefaultCharWidthWhenShown: true
+  remeasureCharacterWidthsWhenShown: false
 
   render: ->
     {focused, showIndentGuide, showLineNumbers, visible} = @state
@@ -64,6 +63,7 @@ EditorComponent = React.createClass
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
       placeholderText = @props.placeholderText if @props.placeholderText? and editor.isEmpty()
+      visible = @isVisible()
 
       scrollHeight = editor.getScrollHeight()
       scrollWidth = editor.getScrollWidth()
@@ -110,7 +110,7 @@ EditorComponent = React.createClass
           editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
-          @visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
+          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
           cursorBlinkPeriod, cursorBlinkResumeDelay, mini
         }
@@ -122,7 +122,7 @@ EditorComponent = React.createClass
           onScroll: @onHorizontalScroll
           scrollLeft: scrollLeft
           scrollWidth: scrollWidth
-          visible: horizontallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+          visible: horizontallyScrollable
           scrollableInOppositeDirection: verticallyScrollable
           verticalScrollbarWidth: verticalScrollbarWidth
           horizontalScrollbarHeight: horizontalScrollbarHeight
@@ -134,7 +134,7 @@ EditorComponent = React.createClass
         onScroll: @onVerticalScroll
         scrollTop: scrollTop
         scrollHeight: scrollHeight
-        visible: verticallyScrollable and not @refreshingScrollbars and not @measuringScrollbars
+        visible: verticallyScrollable
         scrollableInOppositeDirection: horizontallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
@@ -142,7 +142,7 @@ EditorComponent = React.createClass
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
         ref: 'scrollbarCorner'
-        visible: not @refreshingScrollbars and (@measuringScrollbars or horizontallyScrollable and verticallyScrollable)
+        visible: horizontallyScrollable and verticallyScrollable
         measuringScrollbars: @measuringScrollbars
         height: horizontalScrollbarHeight
         width: verticalScrollbarWidth
@@ -170,8 +170,6 @@ EditorComponent = React.createClass
   componentDidMount: ->
     {editor} = @props
 
-    @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
-
     @observeEditor()
     @listenForDOMEvents()
     @listenForCommands()
@@ -179,9 +177,8 @@ EditorComponent = React.createClass
     @subscribe atom.themes, 'stylesheet-added stylesheet-removed stylesheet-updated', @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
-    if @visible = @isVisible()
-      @performInitialMeasurement()
-      @forceUpdate()
+    @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
+    @pollDOM()
 
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
@@ -195,9 +192,9 @@ EditorComponent = React.createClass
     @props.editor.setMini(newProps.mini)
 
   componentWillUpdate: ->
-    wasVisible = @visible
-    @visible = @isVisible()
-    @performInitialMeasurement() if @visible and not wasVisible
+    @updatesPaused = true
+    @checkForVisibilityChange()
+    @updatesPaused = false
 
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
@@ -205,7 +202,6 @@ EditorComponent = React.createClass
     @pendingChanges.length = 0
     @cursorsMoved = false
     @selectionChanged = false
-    @refreshingScrollbars = false
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
@@ -214,19 +210,14 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
-    if @performedInitialMeasurement
-      @measureScrollbars() if @measuringScrollbars
-
-  performInitialMeasurement: ->
-    @updatesPaused = true
-    @measureHeightAndWidth()
+  becameVisible: ->
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @measureScrollbars()
+    @measureHeightAndWidth()
+    @measureScrollbars() if @measureScrollbarsWhenShown
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
-    @updatesPaused = false
     @performedInitialMeasurement = true
 
   requestUpdate: ->
@@ -363,6 +354,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
+    @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
+    @subscribe editor.$horizontalScrollbarHeight.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
     @subscribe editor.$width.changes, @requestUpdate
     @subscribe editor.$defaultCharWidth.changes, @requestUpdate
@@ -778,15 +771,20 @@ EditorComponent = React.createClass
   pollDOM: ->
     return if @domPollingPaused or @updateRequested or not @isMounted()
 
-    wasVisible = @visible
-    if @visible = @isVisible()
-      if wasVisible
-        @measureHeightAndWidth()
-        @sampleFontStyling()
-        @sampleBackgroundColors()
+    unless @checkForVisibilityChange()
+      @sampleBackgroundColors()
+      @measureHeightAndWidth()
+      @sampleFontStyling()
+
+  checkForVisibilityChange: ->
+    if @isVisible()
+      if @wasVisible
+        false
       else
-        @performInitialMeasurement()
-        @forceUpdate()
+        @becameVisible()
+        @wasVisible = true
+    else
+      @wasVisible = false
 
   requestHeightAndWidthMeasurement: ->
     return if @heightAndWidthMeasurementRequested
@@ -812,7 +810,7 @@ EditorComponent = React.createClass
     if position is 'absolute' or height
       if @autoHeight
         @autoHeight = false
-        @forceUpdate()
+        @forceUpdate() unless @updatesPaused
 
       clientHeight =  scrollViewNode.clientHeight
       editor.setHeight(clientHeight) if clientHeight > 0
@@ -835,7 +833,7 @@ EditorComponent = React.createClass
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
 
-    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
+    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily)
       @remeasureCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
@@ -854,29 +852,39 @@ EditorComponent = React.createClass
         @requestUpdate() unless suppressUpdate
 
   measureLineHeightAndDefaultCharWidth: ->
-    if @visible
+    if @isVisible()
       @measureLineHeightAndDefaultCharWidthWhenShown = false
-      @refs.lines.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
+      return
+
+    @refs.lines.measureLineHeightAndDefaultCharWidth()
 
   remeasureCharacterWidths: ->
-    if @visible
+    if @isVisible()
       @remeasureCharacterWidthsWhenShown = false
-      @refs.lines.remeasureCharacterWidths()
     else
       @remeasureCharacterWidthsWhenShown = true
+      return
+
+    @refs.lines.remeasureCharacterWidths()
 
   measureScrollbars: ->
-    return unless @visible
-    @measuringScrollbars = false
+    @measureScrollbarsWhenShown = false
 
     {editor} = @props
-    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
-    width = (scrollbarCornerNode.offsetWidth - scrollbarCornerNode.clientWidth) or 15
-    height = (scrollbarCornerNode.offsetHeight - scrollbarCornerNode.clientHeight) or 15
+    cornerNode = @refs.scrollbarCorner.getDOMNode()
+    originalDisplayValue = cornerNode.style.display
+
+    cornerNode.style.display = 'block'
+
+    width = (cornerNode.offsetWidth - cornerNode.clientWidth) or 15
+    height = (cornerNode.offsetHeight - cornerNode.clientHeight) or 15
+
     editor.setVerticalScrollbarWidth(width)
     editor.setHorizontalScrollbarHeight(height)
+
+    cornerNode.style.display = originalDisplayValue
 
   containsScrollbarSelector: (stylesheet) ->
     for rule in stylesheet.cssRules
@@ -885,24 +893,39 @@ EditorComponent = React.createClass
     false
 
   refreshScrollbars: ->
-    # Believe it or not, proper handling of changes to scrollbar styles requires
-    # three DOM updates.
+    if @isVisible()
+      @measureScrollbarsWhenShown = false
+    else
+      @measureScrollbarsWhenShown = true
+      return
 
-    # Scrollbar style changes won't apply to scrollbars that are already
-    # visible, so first we need to hide scrollbars so we can redisplay them and
-    # force Chromium to apply updates.
-    @refreshingScrollbars = true
-    @forceUpdate()
+    {verticalScrollbar, horizontalScrollbar, scrollbarCorner} = @refs
 
-    # Next, we display only the scrollbar corner so we can measure the new
-    # scrollbar dimensions. The ::measuringScrollbars property will be set back
-    # to false after the scrollbars are measured.
-    @measuringScrollbars = true
-    @forceUpdate()
+    verticalNode = verticalScrollbar.getDOMNode()
+    horizontalNode = verticalScrollbar.getDOMNode()
+    cornerNode = scrollbarCorner.getDOMNode()
 
-    # Finally, we restore the scrollbars based on the newly-measured dimensions
-    # if the editor's content and dimensions require them to be visible.
-    @forceUpdate()
+    originalVerticalDisplayValue = verticalNode.style.display
+    originalHorizontalDisplayValue = horizontalNode.style.display
+    originalCornerDisplayValue = cornerNode.style.display
+
+    # First, hide all scrollbars in case they are visible so they take on new
+    # styles when they are shown again.
+    verticalNode.style.display = 'none'
+    horizontalNode.style.display = 'none'
+    cornerNode.style.display = 'none'
+
+    # Force a reflow
+    cornerNode.offsetWidth
+
+    # Now measure the new scrollbar dimensions
+    @measureScrollbars()
+
+    # Now restore the display value for all scrollbars, since they were
+    # previously hidden
+    verticalNode.style.display = originalVerticalDisplayValue
+    horizontalNode.style.display = originalHorizontalDisplayValue
+    cornerNode.style.display = originalCornerDisplayValue
 
   clearMouseWheelScreenRow: ->
     if @mouseWheelScreenRow?

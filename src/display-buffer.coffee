@@ -31,11 +31,11 @@ class DisplayBuffer extends Model
     scrollTop: 0
     scrollLeft: 0
     scrollWidth: 0
+    verticalScrollbarWidth: 15
+    horizontalScrollbarHeight: 15
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  horizontalScrollbarHeight: 15
-  verticalScrollbarWidth: 15
   scopedCharacterWidthsChangeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->

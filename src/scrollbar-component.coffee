@@ -39,9 +39,9 @@ ScrollbarComponent = React.createClass
 
     switch @props.orientation
       when 'vertical'
-        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection')
+        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection', 'verticalScrollbarWidth')
       when 'horizontal'
-        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection')
+        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection', 'horizontalScrollbarHeight')
 
   componentDidUpdate: ->
     {orientation, scrollTop, scrollLeft} = @props

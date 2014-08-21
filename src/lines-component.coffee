@@ -286,12 +286,14 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
+    return unless @props.performedInitialMeasurement
+
     @clearScopedCharWidths()
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
-    {editor} = @props
-    [visibleStartRow, visibleEndRow] = @props.renderedRowRange
+    {editor, renderedRowRange} = @props
+    [visibleStartRow, visibleEndRow] = renderedRowRange
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
