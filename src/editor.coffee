@@ -53,9 +53,45 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # ## Events
 #
+# ### path-changed
+#
+# Essential: Emit when the buffer's path, and therefore title, has changed.
+#
+# ### title-changed
+#
+# Essential: Emit when the buffer's path, and therefore title, has changed.
+#
+# ### modified-status-changed
+#
+# Extended: Emit when the result of {::isModified} changes.
+#
+# ### soft-wrap-changed
+#
+# Extended: Emit when soft wrap was enabled or disabled.
+#
+# * `softWrap` {Boolean} indicating whether soft wrap is enabled or disabled.
+#
+# ### grammar-changed
+#
+# Extended: Emit when the grammar that interprets and colorizes the text has
+# been changed.
+#
+#
+#
+# ### contents-modified
+#
+# Essential: Emit when the buffer's contents change. It is emit asynchronously
+# 300ms after the last buffer change. This is a good place to handle changes to
+# the buffer without compromising typing performance.
+#
+# ### contents-conflicted
+#
+# Extended: Emitted when the buffer's underlying file changes on disk at a
+# moment when the result of {::isModified} is true.
+#
 # ### will-insert-text
 #
-# Emit before the text has been inserted.
+# Extended: Emit before the text has been inserted.
 #
 # * `event` event {Object}
 #   * `text` {String} text to be inserted
@@ -63,10 +99,85 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # ### did-insert-text
 #
-# Emit after the text has been inserted.
+# Extended: Emit after the text has been inserted.
 #
 # * `event` event {Object}
 #   * `text` {String} text to be inserted
+#
+#
+#
+# ### cursor-moved
+#
+# Essential: Emit when a cursor has been moved. If there are multiple cursors,
+# it will be emit for each cursor.
+#
+# * `event` {Object}
+#   * `oldBufferPosition` {Point}
+#   * `oldScreenPosition` {Point}
+#   * `newBufferPosition` {Point}
+#   * `newScreenPosition` {Point}
+#   * `textChanged` {Boolean}
+#
+# ### cursor-added
+#
+# Extended: Emit when a cursor has been added.
+#
+# * `cursor` {Cursor} that was added
+#
+# ### cursor-removed
+#
+# Extended: Emit when a cursor has been removed.
+#
+# * `cursor` {Cursor} that was removed
+#
+#
+#
+# ### selection-screen-range-changed
+#
+# Essential: Emit when a selection's screen range changes.
+#
+# * `selection`: {Selection} object that has a changed range
+#
+# ### selection-added
+#
+# Extended: Emit when a selection's was added.
+#
+# * `selection`: {Selection} object that was added
+#
+# ### selection-removed
+#
+# Extended: Emit when a selection's was removed.
+#
+# * `selection`: {Selection} object that was removed
+#
+#
+#
+# ### decoration-added
+#
+# Extended: Emit when a {Decoration} is added to the editor.
+#
+# * `decoration` {Decoration} that was added
+#
+# ### decoration-removed
+#
+# Extended: Emit when a {Decoration} is removed from the editor.
+#
+# * `decoration` {Decoration} that was removed
+#
+# ### decoration-changed
+#
+# Extended: Emit when a {Decoration}'s underlying marker changes. Say the user
+# inserts newlines above a decoration. That action will move the marker down,
+# and fire this event.
+#
+# * `decoration` {Decoration} that was added
+#
+# ### decoration-updated
+#
+# Extended: Emit when a {Decoration} is updated via the {Decoration::update} method.
+#
+# * `decoration` {Decoration} that was updated
+#
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
@@ -594,16 +705,6 @@ class Editor extends Model
   ###
 
   # Public: For each selection, replace the selected text with the given text.
-  #
-  # ## Events
-  #
-  #  * `will-insert-text` Emit before the text has been inserted.
-  #    * `event` event {Object}
-  #      * `text` {String} text to be inserted
-  #      * `cancel` {Function} Call to prevent the text from being inserted
-  #  * `did-insert-text` Emit after the text has been inserted.
-  #    * `event` event {Object}
-  #      * `text` {String} text to be inserted
   #
   # * `text` A {String} representing the text to insert.
   # * `options` See {Selection::insertText}.
@@ -1447,6 +1548,7 @@ class Editor extends Model
   # Remove the given cursor from this editor.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
+    @emit 'cursor-removed', cursor
 
   # Public: Move the cursor to the given position in screen coordinates.
   #
