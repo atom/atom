@@ -613,6 +613,7 @@ EditorComponent = React.createClass
 
   onMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
+    return if event.target?.classList.contains('horizontal-scrollbar')
 
     {editor} = @props
     {detail, shiftKey, metaKey, ctrlKey} = event

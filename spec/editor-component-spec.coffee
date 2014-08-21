@@ -1318,6 +1318,12 @@ describe "EditorComponent", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
           expect(editor.isFoldedAtBufferRow 4).toBe false
 
+    describe "when the horizontal scrollbar is interacted with", ->
+      it "clicking on the scrollbar does not move the cursor", ->
+        target = horizontalScrollbarNode
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {target}))
+        expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+
   describe "mouse interactions on the gutter", ->
     gutterNode = null
 
