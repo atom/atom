@@ -94,6 +94,7 @@ class ThemeManager
           console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
 
       Q.all(promises).then =>
+        @addActiveThemeClasses()
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()
         @reloadBaseStylesheets()
@@ -103,9 +104,20 @@ class ThemeManager
     deferred.promise
 
   deactivateThemes: ->
+    @removeActiveThemeClasses()
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  addActiveThemeClasses: ->
+    for pack in @getActiveThemes()
+      atom.workspaceView?[0]?.classList.add("theme-#{pack.name}")
+    return
+
+  removeActiveThemeClasses: ->
+    for pack in @getActiveThemes()
+      atom.workspaceView?[0]?.classList.remove("theme-#{pack.name}")
+    return
 
   refreshLessCache: ->
     @lessCache?.setImportPaths(@getImportPaths())
