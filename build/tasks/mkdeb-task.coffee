@@ -32,7 +32,7 @@ module.exports = (grunt) ->
 
     controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
     desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
-    icon = path.join('resources', 'atom.png')
+    icon = path.join('resources', 'indico.png')
     buildDir = grunt.config.get('atom.buildDir')
 
     cmd = path.join('script', 'mkdeb')

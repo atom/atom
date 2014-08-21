@@ -37,7 +37,7 @@ module.exports = (grunt) ->
 
   [major, minor, patch] = packageJson.version.split('.')
   tmpDir = os.tmpdir()
-  appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
+  appName = if process.platform is 'darwin' then 'indico.app' else 'indico'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   installDir = grunt.option('install-dir')
 
