@@ -375,6 +375,9 @@ class EditorView extends View
     @overlayer.on 'mousedown', (e) =>
       return unless e.which is 1 # only handle the left mouse button
 
+      # CTRL+click brings up the context menu on OSX, so don't handle those either
+      return if e.ctrlKey and process.platform is 'darwin'
+
       @overlayer.hide()
       clickedElement = document.elementFromPoint(e.pageX, e.pageY)
       @overlayer.show()

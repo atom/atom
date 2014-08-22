@@ -610,6 +610,10 @@ EditorComponent = React.createClass
 
     {editor} = @props
     {detail, shiftKey, metaKey, ctrlKey} = event
+
+    # CTRL+click brings up the context menu on OSX, so don't handle those either
+    return if ctrlKey and process.platform is 'darwin'
+
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
