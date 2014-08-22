@@ -1557,6 +1557,7 @@ describe "EditorComponent", ->
           height: 8px;
         }
       """
+      nextAnimationFrame()
 
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
       expect(verticalScrollbarNode.offsetWidth).toBe 8
