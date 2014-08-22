@@ -103,6 +103,12 @@ class AtomApplication
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
+    focusHandler = => @topWindow = window
+    window.browserWindow.on 'focus', focusHandler
+    window.browserWindow.once 'closed', =>
+      @topWindow = null if window is @topWindow
+      window.browserWindow.removeListener 'focus', focusHandler
+
   # Creates server to listen for additional atom application launches.
   #
   # You can run the atom command multiple times, but after the first launch
@@ -312,9 +318,14 @@ class AtomApplication
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions}={}) ->
     {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
 
-    unless devMode
-      existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
-    if existingWindow
+    # Open files in the focused window
+    unless pidToKillWhenClosed or newWindow
+      if fs.statSyncNoException(pathToOpen).isFile?()
+        existingWindow = @topWindow
+
+      existingWindow ?= @windowForPath(pathToOpen) unless devMode
+
+    if existingWindow?
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen, initialLine)
       openedWindow.restore()
