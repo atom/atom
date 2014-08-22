@@ -13,7 +13,7 @@ child_process = require 'child_process'
 # * task:error - Emitted when console.error is called within the task.
 # * task:completed - Emitted when the task has succeeded or failed.
 #
-# ## Requiring in packages
+# ## Examples
 #
 # ```coffee
 #   {Task} = require 'atom'
@@ -24,9 +24,11 @@ class Task
 
   # Public: A helper method to easily launch and run a task once.
   #
-  # taskPath - The {String} path to the CoffeeScript/JavaScript file which
-  #            exports a single {Function} to execute.
-  # args     - The arguments to pass to the exported function.
+  # * `taskPath` The {String} path to the CoffeeScript/JavaScript file which
+  #              exports a single {Function} to execute.
+  # * `args` The arguments to pass to the exported function.
+  #
+  # Returns the created {Task}.
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
     task.once 'task:completed', -> task.terminate()
@@ -43,8 +45,8 @@ class Task
 
   # Public: Creates a task.
   #
-  # taskPath - The {String} path to the CoffeeScript/JavaScript file that
-  #            exports a single {Function} to execute.
+  # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
+  #              exports a single {Function} to execute.
   constructor: (taskPath) ->
     coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
     coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
@@ -81,10 +83,13 @@ class Task
   # Throws an error if this task has already been terminated or if sending a
   # message to the child process fails.
   #
-  # args - The arguments to pass to the function exported by this task's script.
-  # callback - An optional {Function} to call when the task completes.
+  # * `args` The arguments to pass to the function exported by this task's
+  #          script.
+  # * `callback` (optional) A {Function} to call when the task completes.
+  #
+  # Returns undefind.
   start: (args..., callback) ->
-    throw new Error("Cannot start terminated process") unless @childProcess?
+    throw new Error('Cannot start terminated process') unless @childProcess?
 
     @handleEvents()
     if _.isFunction(callback)
@@ -92,20 +97,28 @@ class Task
     else
       args.push(callback)
     @send({event: 'start', args})
+    undefined
 
   # Public: Send message to the task.
   #
   # Throws an error if this task has already been terminated or if sending a
   # message to the child process fails.
   #
-  # message - The message to send to the task.
+  # * `message` The message to send to the task.
+  #
+  # Returns undefined.
   send: (message) ->
-    throw new Error("Cannot send message to terminated process") unless @childProcess?
-    @childProcess.send(message)
+    if @childProcess?
+      @childProcess.send(message)
+    else
+      throw new Error('Cannot send message to terminated process')
+    undefined
 
   # Public: Forcefully stop the running task.
   #
-  # No events are emitted.
+  # No more events are emitted once this method is called.
+  #
+  # Returns undefined.
   terminate: ->
     return unless @childProcess?
 
@@ -114,3 +127,4 @@ class Task
     @childProcess = null
 
     @off()
+    undefined
