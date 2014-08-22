@@ -178,7 +178,7 @@ EditorComponent = React.createClass
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
-    @pollDOM()
+    @checkForVisibilityChange()
 
   componentWillUnmount: ->
     @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
