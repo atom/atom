@@ -2,7 +2,20 @@
 {Model} = require 'theorist'
 {pick} = require 'underscore-plus'
 
-# Public: Represents a selection in the {Editor}.
+# Extended: Represents a selection in the {Editor}.
+#
+# ## Events
+#
+# ### screen-range-changed
+#
+# Extended: Emit when the selection was moved.
+#
+# * `screenRange` {Range} indicating the new screenrange
+#
+# ### destroyed
+#
+# Extended: Emit when the selection was destroyed
+#
 module.exports =
 class Selection extends Model
   cursor: null
@@ -56,8 +69,8 @@ class Selection extends Model
 
   # Public: Modifies the screen range for the selection.
   #
-  # screenRange - The new {Range} to use.
-  # options - A hash of options matching those found in {::setBufferRange}.
+  # * `screenRange` The new {Range} to use.
+  # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editor.bufferRangeForScreenRange(screenRange), options)
 
@@ -67,11 +80,10 @@ class Selection extends Model
 
   # Public: Modifies the buffer {Range} for the selection.
   #
-  # screenRange - The new {Range} to select.
-  # options - An {Object} with the keys:
-  #   :preserveFolds - if `true`, the fold settings are preserved after the
-  #                    selection moves.
-  #   :autoscroll - if `true`, the {Editor} scrolls to the new selection.
+  # * `screenRange` The new {Range} to select.
+  # * `options` (optional) {Object} with the keys:
+  #   * `preserveFolds` if `true`, the fold settings are preserved after the selection moves.
+  #   * `autoscroll` if `true`, the {Editor} scrolls to the new selection.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -141,7 +153,7 @@ class Selection extends Model
 
   # Public: Selects an entire line in the buffer.
   #
-  # row - The line {Number} to select (default: the row of the cursor).
+  # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
     @setBufferRange(@getBufferRange().union(range))
@@ -160,7 +172,7 @@ class Selection extends Model
   # Public: Selects the text from the current cursor position to a given screen
   # position.
   #
-  # position - An instance of {Point}, with a given `row` and `column`.
+  # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     position = Point.fromObject(position)
 
@@ -181,7 +193,7 @@ class Selection extends Model
   # Public: Selects the text from the current cursor position to a given buffer
   # position.
   #
-  # position - An instance of {Point}, with a given `row` and `column`.
+  # * `position` An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
     @modifySelection => @cursor.setBufferPosition(position)
 
@@ -306,14 +318,14 @@ class Selection extends Model
 
   # Public: Replaces text at the current selection.
   #
-  # text - A {String} representing the text to add
-  # options - An {Object} with keys:
-  #   :select - if `true`, selects the newly added text.
-  #   :autoIndent - if `true`, indents all inserted text appropriately.
-  #   :autoIndentNewline - if `true`, indent newline appropriately.
-  #   :autoDecreaseIndent - if `true`, decreases indent level appropriately
-  #                         (for example, when a closing bracket is inserted).
-  #   :undo - if `skip`, skips the undo stack for this operation.
+  # * `text` A {String} representing the text to add
+  # * `options` (optional) {Object} with keys:
+  #   * `select` if `true`, selects the newly added text.
+  #   * `autoIndent` if `true`, indents all inserted text appropriately.
+  #   * `autoIndentNewline` if `true`, indent newline appropriately.
+  #   * `autoDecreaseIndent` if `true`, decreases indent level appropriately
+  #     (for example, when a closing bracket is inserted).
+  #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editor.unfoldBufferRow(oldBufferRange.end.row)
@@ -345,8 +357,8 @@ class Selection extends Model
 
   # Public: Indents the given text to the suggested level based on the grammar.
   #
-  # text - The {String} to indent within the selection.
-  # indentBasis - The beginning indent level.
+  # * `text` The {String} to indent within the selection.
+  # * `indentBasis` The beginning indent level.
   normalizeIndents: (text, indentBasis) ->
     textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
     isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
@@ -378,9 +390,9 @@ class Selection extends Model
   # non-whitespace characters, and otherwise inserts a tab. If the selection is
   # non empty, calls {::indentSelectedRows}.
   #
-  # options - A {Object} with the keys:
-  #   :autoIndent - If `true`, the line is indented to an automatically-inferred
-  #                 level. Otherwise, {Editor::getTabText} is inserted.
+  # * `options` (optional) {Object} with the keys:
+  #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
+  #     level. Otherwise, {Editor::getTabText} is inserted.
   indent: ({ autoIndent }={}) ->
     { row, column } = @cursor.getBufferPosition()
 
@@ -549,16 +561,18 @@ class Selection extends Model
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.
+  #
+  # * `maintainClipboard` {Boolean} (default: false) See {::copy}
   cut: (maintainClipboard=false) ->
     @copy(maintainClipboard)
     @delete()
 
   # Public: Copies the current selection to the clipboard.
   #
-  # If the `maintainClipboard` is set to `true`, a specific metadata property
-  # is created to store each content copied to the clipboard. The clipboard
-  # `text` still contains the concatenation of the clipboard with the
-  # current selection.
+  # * `maintainClipboard` {Boolean} if `true`, a specific metadata property
+  #   is created to store each content copied to the clipboard. The clipboard
+  #   `text` still contains the concatenation of the clipboard with the
+  #   current selection. (default: false)
   copy: (maintainClipboard=false) ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
@@ -598,9 +612,9 @@ class Selection extends Model
 
   # Public: Identifies if a selection intersects with a given buffer range.
   #
-  # bufferRange - A {Range} to check against.
+  # * `bufferRange` A {Range} to check against.
   #
-  # Returns a Boolean.
+  # Returns a {Boolean}
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
 
@@ -612,17 +626,17 @@ class Selection extends Model
 
   # Public: Identifies if a selection intersects with another selection.
   #
-  # otherSelection - A {Selection} to check against.
+  # * `otherSelection` A {Selection} to check against.
   #
-  # Returns a Boolean.
+  # Returns a {Boolean}
   intersectsWith: (otherSelection) ->
     @getBufferRange().intersectsWith(otherSelection.getBufferRange())
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
   #
-  # otherSelection - A {Selection} to merge with.
-  # options - A hash of options matching those found in {::setBufferRange}.
+  # * `otherSelection` A {Selection} to merge with.
+  # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
   merge: (otherSelection, options) ->
     myGoalBufferRange = @getGoalBufferRange()
     otherGoalBufferRange = otherSelection.getGoalBufferRange()
@@ -638,7 +652,7 @@ class Selection extends Model
   #
   # See {Range::compare} for more details.
   #
-  # otherSelection - A {Selection} to compare against.
+  # * `otherSelection` A {Selection} to compare against
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
