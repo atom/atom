@@ -43,8 +43,8 @@ class Decoration
   #
   # * `decorationParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
-  #          be an {Array} of {String}s, where it will return
-  #          true if the decoration's type matches any in the array.
+  #   be an {Array} of {String}s, where it will return true if the decoration's
+  #   type matches any in the array.
   #
   # Returns {Boolean}
   @isType: (decorationParams, type) ->
@@ -71,8 +71,8 @@ class Decoration
   # Public: Check if this decoration is of type `type`
   #
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
-  #          be an {Array} of {String}s, where it will return
-  #          true if the decoration's type matches any in the array.
+  #   be an {Array} of {String}s, where it will return true if the decoration's
+  #   type matches any in the array.
   #
   # Returns {Boolean}
   isType: (type) ->
