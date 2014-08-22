@@ -289,8 +289,7 @@ class AtomApplication
 
   # Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
-    for atomWindow in @windows
-      return atomWindow if atomWindow.containsPath(pathToOpen)
+    _.find @windows, (atomWindow) -> atomWindow.containsPath(pathToOpen)
 
   # Returns the {AtomWindow} for the given ipc event.
   windowForEvent: ({sender}) ->
