@@ -1386,11 +1386,12 @@ class Editor extends Model
   # the marker's state.
   #
   # There are three types of supported decorations:
-  # * `line`: Adds your CSS `class` to the line nodes within the range
+  #
+  # * __line__: Adds your CSS `class` to the line nodes within the range
   #     marked by the marker
-  # * `gutter`: Adds your CSS `class` to the line number nodes within the
+  # * __gutter__: Adds your CSS `class` to the line number nodes within the
   #     range marked by the marker
-  # * `highlight`: Adds a new highlight div to the editor surrounding the
+  # * __highlight__: Adds a new highlight div to the editor surrounding the
   #     range marked by the marker. When the user selects text, the selection is
   #     visualized with a highlight decoration internally. The structure of this
   #     highlight will be:
@@ -1401,20 +1402,19 @@ class Editor extends Model
   #     </div>
   #     ```
   #
+  # ## Arguments
+  #
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
-  #   * `type` There are a few supported decoration types:
-  #     * `gutter`: Applies the decoration to the line numbers spanned by the marker.
-  #     * `line`: Applies the decoration to the lines spanned by the marker.
-  #     * `highlight`: Applies the decoration to a "highlight" behind the marked range.
+  #   * `type` There are a few supported decoration types: `gutter`, `line`, and `highlight`
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, or highlight.
-  #   * `onlyHead` If `true`, the decoration will only be applied to the head
+  #   * `onlyHead` (optional) If `true`, the decoration will only be applied to the head
   #     of the marker. Only applicable to the `line` and `gutter` types.
-  #   * `onlyEmpty` If `true`, the decoration will only be applied if the
+  #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if the
   #     associated marker is empty. Only applicable to the `line` and
   #     `gutter` types.
-  #   * `onlyNonEmpty` If `true`, the decoration will only be applied if the
+  #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied if the
   #     associated marker is non-empty.  Only applicable to the `line` and
   #     gutter types.
   #
