@@ -331,6 +331,7 @@ class AtomApplication
       if fs.statSyncNoException(pathToOpen).isFile?()
         existingWindow = window ? @topWindow
 
+      # Don't reuse windows in dev mode
       existingWindow ?= @windowForPath(pathToOpen) unless devMode
 
     if existingWindow?
