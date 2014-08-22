@@ -371,7 +371,8 @@ class Atom extends Model
   #                  cloned repository and also loads all the packages in
   #                  ~/.atom/dev/packages
   #   :safeMode    - A {Boolean}, true to open the window in safe mode. Safe
-  #                  mode prevents installed packages from loading
+  #                  mode prevents all packages installed to ~/.atom/packages
+  #                  from loading.
   open: (options) ->
     ipc.send('open', options)
 
