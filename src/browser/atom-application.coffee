@@ -327,9 +327,17 @@ class AtomApplication
     {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
 
     unless pidToKillWhenClosed or newWindow
-      # Open files in the specified window or the last focused window
-      if fs.statSyncNoException(pathToOpen).isFile?()
-        existingWindow = window ? @topWindow
+      pathToOpenStat = fs.statSyncNoException(pathToOpen)
+
+      # Default to using the specified window or the last focused window
+      currentWindow = window ? @topWindow
+
+      if pathToOpenStat.isFile?()
+        # Open the file in the current window
+        existingWindow = currentWindow
+      else if pathToOpenStat.isDirectory?()
+        # Open the folder in the current window if it doesn't have a path
+        existingWindow = currentWindow unless currentWindow?.hasProjectPath()
 
       # Don't reuse windows in dev mode
       existingWindow ?= @windowForPath(pathToOpen) unless devMode

@@ -308,6 +308,9 @@ class Atom extends Model
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
     @deserializeEditorWindow()
+
+    @watchProjectPath()
+
     @packages.activate()
     @keymaps.loadUserKeymap()
     @requireUserInitScript()
@@ -346,6 +349,13 @@ class Atom extends Model
       for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
         pack.reloadStylesheets?()
       null
+
+  # Notify the browser project of the window's current project path
+  watchProjectPath: ->
+    onProjectPathChanged = =>
+      ipc.send('window-command', 'project-path-changed', @project.getPath())
+    @subscribe @project, 'path-changed', onProjectPathChanged
+    onProjectPathChanged()
 
   # Public: Open a new Atom window using the given options.
   #
