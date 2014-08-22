@@ -205,13 +205,15 @@ class AtomApplication
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (event, options) =>
+      window = @windowForEvent(event)
       if options?
         if options.pathsToOpen?.length > 0
+          options.window = window
           @openPaths(options)
         else
           new AtomWindow(options)
       else
-        @promptForPath()
+        @promptForPath({window})
 
     ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
       @applicationMenu.update(template, keystrokesByCommand)
@@ -290,6 +292,11 @@ class AtomApplication
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
+  # Returns the {AtomWindow} for the given ipc event.
+  windowForEvent: ({sender}) ->
+    window = BrowserWindow.fromWebContents(sender)
+    _.find @windows, ({browserWindow}) -> window is browserWindow
+
   # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
@@ -302,9 +309,10 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode}) ->
+  #   :window - {AtomWindow} to open file paths in.
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window}) ->
     for pathToOpen in pathsToOpen ? []
-      @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
+      @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window})
 
   # Public: Opens a single path, in an existing window if possible.
   #
@@ -315,13 +323,14 @@ class AtomApplication
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions}={}) ->
+  #   :window - {AtomWindow} to open file paths in.
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
     {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
 
     # Open files in the focused window
     unless pidToKillWhenClosed or newWindow
       if fs.statSyncNoException(pathToOpen).isFile?()
-        existingWindow = @topWindow
+        existingWindow = window ? @topWindow
 
       existingWindow ?= @windowForPath(pathToOpen) unless devMode
 
@@ -455,7 +464,8 @@ class AtomApplication
   #              should be in dev mode or not.
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
-  promptForPath: ({type, devMode, safeMode}={}) ->
+  #   :window - An {AtomWindow} to use for opening a selected file path.
+  promptForPath: ({type, devMode, safeMode, window}={}) ->
     type ?= 'all'
     properties =
       switch type
@@ -464,4 +474,4 @@ class AtomApplication
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
     dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode})
+      @openPaths({pathsToOpen, devMode, safeMode, window})
