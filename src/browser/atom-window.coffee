@@ -49,6 +49,8 @@ class AtomWindow
       @emit 'window:loaded'
       @loaded = true
 
+    @browserWindow.on 'project-path-changed', (@projectPath) =>
+
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
@@ -65,6 +67,8 @@ class AtomWindow
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
       query: {loadSettings: JSON.stringify(loadSettings)}
+
+  hasProjectPath: -> @projectPath?.length > 0
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
