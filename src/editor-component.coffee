@@ -854,20 +854,16 @@ EditorComponent = React.createClass
   measureLineHeightAndDefaultCharWidth: ->
     if @isVisible()
       @measureLineHeightAndDefaultCharWidthWhenShown = false
+      @refs.lines.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
-      return
-
-    @refs.lines.measureLineHeightAndDefaultCharWidth()
 
   remeasureCharacterWidths: ->
     if @isVisible()
       @remeasureCharacterWidthsWhenShown = false
+      @refs.lines.remeasureCharacterWidths()
     else
       @remeasureCharacterWidthsWhenShown = true
-      return
-
-    @refs.lines.remeasureCharacterWidths()
 
   measureScrollbars: ->
     @measureScrollbarsWhenShown = false
