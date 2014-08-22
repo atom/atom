@@ -29,11 +29,17 @@ nextId = -> idCounter++
 #
 # ## Events
 #
-# A couple of events are emitted:
+# ### updated
 #
-# * `destroyed`: When the {Decoration} is destroyed
-# * `updated`: When the {Decoration} is updated via {Decoration::update}.
-#     Event object has properties `oldParams` and `newParams`
+# Extended: When the {Decoration} is updated via {Decoration::update}.
+#
+# * `event` {Object}
+#   * `oldParams` {Object} the old parameters the decoration used to have
+#   * `newParams` {Object} the new parameters the decoration now has
+#
+# ### destroyed
+#
+# Extended: When the {Decoration} is destroyed
 #
 module.exports =
 class Decoration
