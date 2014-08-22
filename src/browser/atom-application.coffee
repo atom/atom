@@ -103,10 +103,10 @@ class AtomApplication
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
-    focusHandler = => @topWindow = window
+    focusHandler = => @lastFocusedWindow = window
     window.browserWindow.on 'focus', focusHandler
     window.browserWindow.once 'closed', =>
-      @topWindow = null if window is @topWindow
+      @lastFocusedWindow = null if window is @lastFocusedWindow
       window.browserWindow.removeListener 'focus', focusHandler
 
   # Creates server to listen for additional atom application launches.
@@ -330,7 +330,7 @@ class AtomApplication
       pathToOpenStat = fs.statSyncNoException(pathToOpen)
 
       # Default to using the specified window or the last focused window
-      currentWindow = window ? @topWindow
+      currentWindow = window ? @lastFocusedWindow
 
       if pathToOpenStat.isFile?()
         # Open the file in the current window
