@@ -63,7 +63,14 @@ parseCommandLine = ->
   options.usage """
     Atom Editor v#{version}
 
-    Usage: atom [options] [file ...]
+    Usage: atom [options] [path ...]
+
+    One or more paths to files or folders to open may be specified.
+
+    File paths will open in the current window.
+
+    Folder paths will open in an existing window if that folder has already been
+    opened or a new window if it hasn't.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
