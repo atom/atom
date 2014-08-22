@@ -833,7 +833,7 @@ EditorComponent = React.createClass
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
 
-    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily)
+    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
       @remeasureCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
