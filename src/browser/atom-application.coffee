@@ -326,8 +326,8 @@ class AtomApplication
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
     {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
 
-    # Open files in the focused window
     unless pidToKillWhenClosed or newWindow
+      # Open files in the specified window or the last focused window
       if fs.statSyncNoException(pathToOpen).isFile?()
         existingWindow = window ? @topWindow
 
