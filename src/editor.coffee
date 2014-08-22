@@ -1394,7 +1394,7 @@ class Editor extends Model
   # * __highlight__: Adds a new highlight div to the editor surrounding the
   #     range marked by the marker. When the user selects text, the selection is
   #     visualized with a highlight decoration internally. The structure of this
-  #     highlight will be:
+  #     highlight will be
   #     ```html
   #     <div class="highlight <your-class>">
   #       <!-- Will be one region for each row in the range. Spans 2 lines? There will be 2 regions. -->
