@@ -281,8 +281,14 @@ class AtomApplication
 
   # Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
+    return unless pathToOpen
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
+
+    for atomWindow in @windows
+      if not atomWindow.getInitialPath()
+        atomWindow.setInitialPath(pathToOpen)
+        return atomWindow
 
   # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->
