@@ -20,11 +20,20 @@ module.exports = (grunt) ->
       true
     classes
 
+  sortClasses = (classes) ->
+    sortedClasses = {}
+    for className in Object.keys(classes).sort()
+      sortedClasses[className] = classes[className]
+    sortedClasses
+
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     docsOutputDir = grunt.config.get('docsOutputDir')
 
     metadata = donna.generateMetadata(['.'])
-    api = _.extend(tello.digest(metadata), getClassesToInclude())
+    api = tello.digest(metadata)
+    _.extend(api.classes, getClassesToInclude())
+    api.classes = sortClasses(api.classes)
+
     apiJson = JSON.stringify(api, null, 2)
     apiJsonPath = path.join(docsOutputDir, 'api.json')
     grunt.file.write(apiJsonPath, apiJson)
