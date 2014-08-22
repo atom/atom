@@ -5,7 +5,7 @@ PaneAxis = require './pane-axis'
 Editor = require './editor'
 PaneView = null
 
-# Public: A container for multiple items, one of which is *active* at a given
+# Extended: A container for multiple items, one of which is *active* at a given
 # time. With the default packages, a tab is displayed for each item and the
 # active item's view is displayed.
 #

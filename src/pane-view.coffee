@@ -5,7 +5,7 @@ PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
 
-# Public: A container which can contains multiple items to be switched between.
+# Extended: A container which can contains multiple items to be switched between.
 #
 # Items can be almost anything however most commonly they're {EditorView}s.
 #
