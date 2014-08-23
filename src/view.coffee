@@ -33,8 +33,8 @@ class View extends Command
       if error?
         callback(error)
       else if response.statusCode is 200
-        {metadata, readme, repository, downloads} = body
-        pack = _.extend({}, metadata, {readme, downloads})
+        {metadata, readme, repository, downloads, stargazers_count} = body
+        pack = _.extend({}, metadata, {readme, downloads, stargazers_count})
         callback(null, pack)
       else
         message = body.message ? body.error ? body
@@ -65,6 +65,8 @@ class View extends Command
         items.push(pack.description.replace(/\s+/g, ' ')) if pack.description
         if pack.downloads >= 0
           items.push(_.pluralize(pack.downloads, 'download'))
+        if pack.stargazers_count >= 0
+          items.push(_.pluralize(pack.stargazers_count, 'star'))
 
         tree(items)
 
