@@ -9,9 +9,32 @@ Q = require 'q'
 Package = require './package'
 {File} = require 'pathwatcher'
 
-# Public: Handles loading and activating available themes.
+# Extended: Handles loading and activating available themes.
 #
 # An instance of this class is always available as the `atom.themes` global.
+#
+# ## Events
+#
+# ### reloaded
+#
+# Extended: Emit when all styles have been reloaded.
+#
+# ### stylesheet-added
+#
+# Extended: Emit when a stylesheet has been added.
+#
+# * `stylesheet` {StyleSheet} object that was removed
+#
+# ### stylesheet-removed
+#
+# Extended: Emit when a stylesheet has been removed.
+#
+# * `stylesheet` {StyleSheet} object that was removed
+#
+# ### stylesheets-changed
+#
+# Extended: Emit anytime any style sheet is added or removed from the editor
+#
 module.exports =
 class ThemeManager
   Emitter.includeInto(this)
@@ -98,7 +121,7 @@ class ThemeManager
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()
         @reloadBaseStylesheets()
-        @emit('reloaded')
+        @emit 'reloaded'
         deferred.resolve()
 
     deferred.promise
@@ -124,7 +147,7 @@ class ThemeManager
 
   # Public: Set the list of enabled themes.
   #
-  # enabledThemeNames - An {Array} of {String} theme names.
+  # * `enabledThemeNames` An {Array} of {String} theme names.
   setEnabledThemes: (enabledThemeNames) ->
     atom.config.set('core.themes', enabledThemeNames)
 
@@ -187,9 +210,8 @@ class ThemeManager
   #
   # This supports both CSS and LESS stylsheets.
   #
-  # stylesheetPath - A {String} path to the stylesheet that can be an absolute
-  #                  path or a relative path that will be resolved against the
-  #                  load path.
+  # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
+  #   path or a relative path that will be resolved against the load path.
   #
   # Returns the absolute path to the required stylesheet.
   requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
