@@ -354,7 +354,7 @@ class Editor extends Model
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
       if match = @buffer.lineForRow(bufferRow).match(/^\s/)
-        return match[0][0] != '\t'
+        return match[0][0] == ' '
     undefined
 
   # Public: Clip the given {Point} to a valid position in the buffer.
