@@ -472,6 +472,19 @@ class EditorView extends View
         @hiddenInput.val(lastInput)
         false
 
+    # Linux second clipboard handling
+    if process.platform is 'linux'
+      @on "mousedown", (e) =>
+        if e.which is 2
+          # Change current cursor position to the click position
+          clickedElement = document.elementFromPoint(e.pageX, e.pageY)
+          e.target = clickedElement
+          e.which = 1
+          $(clickedElement).trigger(e)
+
+          # Paste here
+          @editor.insertText(atom.clipboard.read('selection'))
+
     # Ignore paste event, on Linux is wrongly emitted when user presses ctrl-v.
     @on "paste", -> false
 
@@ -490,6 +503,12 @@ class EditorView extends View
         @editor.mergeIntersectingSelections(reversed: @editor.getLastSelection().isReversed())
         @editor.finalizeSelections()
         @syncCursorAnimations()
+
+        # Linux second clipboard handling
+        if process.platform is 'linux'
+          text = @editor.getSelection().getText()
+          if text.length > 0
+            atom.clipboard.write(text, {}, "selection")
 
     moveHandler = (event = lastMoveEvent) =>
       return unless event?

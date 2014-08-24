@@ -21,19 +21,26 @@ class Clipboard
   #
   # The metadata associated with the text is available by calling
   # {::readWithMetadata}.
-  #
   # text - The {String} to store.
+  #
   # metadata - The additional info to associate with the text.
-  write: (text, metadata) ->
+  #
+  # type - Optional parameter defining a clipboard name. Useful for X11 platforms
+  #        where there is possible to have multiple clipboard buffers.
+  #
+  write: (text, metadata, type) ->
     @signatureForMetadata = @md5(text)
     @metadata = metadata
-    clipboard.writeText(text)
+    clipboard.writeText(text, type)
 
   # Public: Read the text from the clipboard.
   #
+  # type - Optional parameter defining a clipboard name. Useful for X11 platforms
+  #        where there is possible to have multiple clipboard buffers.
+  #
   # Returns a {String}.
-  read: ->
-    clipboard.readText()
+  read: (type) ->
+    clipboard.readText(type)
 
   # Public: Read the text from the clipboard and return both the text and the
   # associated metadata.
