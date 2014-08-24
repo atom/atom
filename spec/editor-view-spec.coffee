@@ -3050,7 +3050,7 @@ describe "EditorView", ->
     it "adds and updates the grammar data attribute based on the current grammar", ->
       editorView.attachToDom()
       editor.setGrammar(atom.syntax.grammarForScopeName('text.plain'))
-      expect(editorView.attr('data-grammar')).toEqual 'text.plain'
+      expect(editorView.attr('data-grammar')).toBe 'text plain'
 
-      editor.setGrammar(atom.syntax.grammarForScopeName('source.javascript'))
-      expect(editorView.attr('data-grammar')).toEqual 'source.javascript'
+      editor.setGrammar(atom.syntax.grammarForScopeName('source.js'))
+      expect(editorView.attr('data-grammar')).toBe 'source js'
