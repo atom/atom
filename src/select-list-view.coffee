@@ -272,7 +272,6 @@ class SelectListView extends View
 
   cancelled: ->
     @filterEditorView.getEditor().setText('')
-    @filterEditorView.updateDisplay()
 
   # Public: Cancel and close this select list view.
   #
