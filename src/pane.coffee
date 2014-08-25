@@ -58,7 +58,7 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
-  isActive: -> @active
+  isActive: -> @container?.getActivePane() is this
 
   isFocused: -> @focused
 
