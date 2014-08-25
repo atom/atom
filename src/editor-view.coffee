@@ -435,12 +435,28 @@ class EditorView extends View
 
     @subscribe atom.themes, 'stylesheets-changed', => @recalculateDimensions()
 
+  getCharAtCursor: ->
+    editor = @getEditor()
+    range = Range.fromPointWithDelta editor.getCursorBufferPosition(), 0, 1
+    editor.getBuffer().getTextInRange range
+
+  convertCharToCursorValue: (ch) ->
+    switch ch
+      when '', '\n', '\r', ' '
+        ch = '&nbsp;'
+      when '\t'
+        ch = '&nbsp;'
+        for i in [1...@getEditor().getTabLength()]
+          ch += '&nbsp;'
+    ch
+
   handleInputEvents: ->
     @on 'cursor:moved', =>
       return unless @isFocused
       cursorView = @getCursorView()
 
       if cursorView.isVisible()
+        cursorView.setCursorValue @convertCharToCursorValue @getCharAtCursor()
         # This is an order of magnitude faster than checking .offset().
         style = cursorView[0].style
         @hiddenInput[0].style.top = style.top

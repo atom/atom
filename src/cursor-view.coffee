@@ -4,7 +4,9 @@ _ = require 'underscore-plus'
 module.exports =
 class CursorView extends View
   @content: ->
-    @div class: 'cursor idle', => @raw '&nbsp;'
+    @div class: 'cursor idle', =>
+      @div outlet: 'cursorValue', style: 'visibility:hidden;', =>
+        @raw '&nbsp;'
 
   @blinkPeriod: 800
 
@@ -45,6 +47,9 @@ class CursorView extends View
   beforeRemove: ->
     @editorView.removeCursorView(this)
     @stopBlinking()
+
+  setCursorValue: (value) ->
+    @cursorValue.html value
 
   updateDisplay: ->
     screenPosition = @getScreenPosition()
