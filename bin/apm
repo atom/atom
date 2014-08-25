@@ -5,7 +5,7 @@ set -e
 initialCwd=`pwd -P`
 
 apmPath=$0
-cd "`dirname "$apmPath"`"
+builtin cd "`dirname "$apmPath"`"
 binDir=`basename "$apmPath"`
 
 # Detect CPU arch.
@@ -31,10 +31,10 @@ fi
 while [ -L "$binDir" ]
 do
   binDir=`readlink "$binDir"`
-  cd "`dirname "$binDir"`"
+  builtin cd "`dirname "$binDir"`"
   binDir=`basename "$binDir"`
 done
 
 binDir=`pwd -P`
-cd "$initialCwd"
+builtin cd "$initialCwd"
 "$binDir/$nodeBin" --harmony_collections "$binDir/../lib/cli.js" "$@"
