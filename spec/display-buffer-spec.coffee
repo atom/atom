@@ -1037,6 +1037,19 @@ describe "DisplayBuffer", ->
         expect(start.top).toBe 5 * 20
         expect(start.left).toBe (4 * 10) + (6 * 11)
 
+    describe 'when there are multiple DisplayBuffers for a buffer', ->
+      describe 'when a marker is created', ->
+        it 'the second display buffer will not emit a marker-created event when the marker has been deleted in the first marker-created event', ->
+          displayBuffer2 = new DisplayBuffer({buffer, tabLength})
+          displayBuffer.on 'marker-created', markerCreated1 = jasmine.createSpy().andCallFake (marker) ->
+            marker.destroy()
+          displayBuffer2.on 'marker-created', markerCreated2 = jasmine.createSpy()
+
+          displayBuffer.markBufferRange([[0, 0], [1, 5]], {})
+
+          expect(markerCreated1).toHaveBeenCalled()
+          expect(markerCreated2).not.toHaveBeenCalled()
+
   describe "decorations", ->
     [marker, decoration, decorationParams] = []
     beforeEach ->
