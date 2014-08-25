@@ -81,7 +81,7 @@ class EditorView extends View
         softWrap: false
         tabLength: 2
         softTabs: true
-        mini: mini
+        mini: @mini
 
     props = defaults({@editor, parentView: this}, props)
     @component = React.renderComponent(EditorComponent(props), @element)
