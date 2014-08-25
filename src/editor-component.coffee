@@ -191,11 +191,6 @@ EditorComponent = React.createClass
   componentWillReceiveProps: (newProps) ->
     @props.editor.setMini(newProps.mini)
 
-  componentWillUpdate: ->
-    @updatesPaused = true
-    @checkForVisibilityChange()
-    @updatesPaused = false
-
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
     selectionChanged = @selectionChanged
@@ -211,6 +206,7 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'editor:display-updated'
 
   becameVisible: ->
+    @updatesPaused = true
     @sampleFontStyling()
     @sampleBackgroundColors()
     @measureHeightAndWidth()
@@ -219,6 +215,8 @@ EditorComponent = React.createClass
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
     @performedInitialMeasurement = true
+    @updatesPaused = false
+    @forceUpdate() if @updateRequestedWhilePaused
 
   requestUpdate: ->
     return unless @isMounted()
