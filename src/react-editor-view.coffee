@@ -81,7 +81,16 @@ class ReactEditorView extends View
     @attached = true
     @component.pollDOM()
     @focus() if @focusOnAttach
+
+    @addGrammarScopeAttribute()
+    @subscribe @editor, 'grammar-changed', =>
+      @addGrammarScopeAttribute()
+
     @trigger 'editor:attached', [this]
+
+  addGrammarScopeAttribute: ->
+    grammarScope = @editor.getGrammar()?.scopeName?.replace(/\./g, ' ')
+    @attr('data-grammar', grammarScope)
 
   scrollTop: (scrollTop) ->
     if scrollTop?
