@@ -1,6 +1,7 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
+Rx = require 'rx'
 PaneAxis = require './pane-axis'
 Editor = require './editor'
 PaneView = null
@@ -89,6 +90,10 @@ class Pane extends Model
   getActiveItem: ->
     @activeItem
 
+  setActiveItem: (@activeItem) ->
+    @activeItemSubject?.onNext(@activeItem)
+    @activeItem
+
   # Public: Returns an {Editor} if the pane item is an {Editor}, or null
   # otherwise.
   getActiveEditor: ->
@@ -126,7 +131,7 @@ class Pane extends Model
   activateItem: (item) ->
     if item?
       @addItem(item)
-      @activeItem = item
+      @setActiveItem(item)
 
   # Public: Adds the item to the pane.
   #
@@ -139,8 +144,9 @@ class Pane extends Model
     return if item in @items
 
     @items.splice(index, 0, item)
+    @didAddItemSubject?.onNext({item, index})
     @emit 'item-added', item, index
-    @activeItem ?= item
+    @setActiveItem(item) unless @getActiveItem()?
     item
 
   # Public: Adds the given items to the pane.
@@ -363,3 +369,17 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  onDidAddItem: (fn) ->
+    @didAddItemSubject ?= new Rx.Subject
+    if fn?
+      @didAddItemSubject.subscribe(fn)
+    else
+      @didAddItemSubject
+
+  observeActiveItem: (fn) ->
+    @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())
+    if fn?
+      @activeItemSubject.subscribe(fn)
+    else
+      @activeItemSubject

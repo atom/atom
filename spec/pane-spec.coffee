@@ -21,39 +21,49 @@ describe "Pane", ->
   describe "construction", ->
     it "sets the active item to the first item", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
-      expect(pane.activeItem).toBe pane.items[0]
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
     it "compacts the items array", ->
       pane = new Pane(items: [undefined, new Item("A"), null, new Item("B")])
-      expect(pane.items.length).toBe 2
-      expect(pane.activeItem).toBe pane.items[0]
+      expect(pane.getItems().length).toBe 2
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
   describe "::addItem(item, index)", ->
     it "adds the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
-      [item1, item2] = pane.items
+      [item1, item2] = pane.getItems()
       item3 = new Item("C")
       pane.addItem(item3, 1)
-      expect(pane.items).toEqual [item1, item3, item2]
+      expect(pane.getItems()).toEqual [item1, item3, item2]
 
     it "adds the item after the active item ", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
-      [item1, item2, item3] = pane.items
+      [item1, item2, item3] = pane.getItems()
       pane.activateItem(item2)
       item4 = new Item("D")
       pane.addItem(item4)
-      expect(pane.items).toEqual [item1, item2, item4, item3]
+      expect(pane.getItems()).toEqual [item1, item2, item4, item3]
 
-    it "sets the active item after adding the first item", ->
-      pane = new Pane
-      item = new Item("A")
+    it "invokes ::onDidAddItem observers with the item and the index", ->
       events = []
-      pane.on 'item-added', -> events.push('item-added')
-      pane.$activeItem.changes.onValue -> events.push('active-item-changed')
+      pane = new Pane
+      item1 = new Item("A")
+      item2 = new Item("B")
+      pane.onDidAddItem (event) -> events.push(event)
 
-      pane.addItem(item)
-      expect(pane.activeItem).toBe item
-      expect(events).toEqual ['item-added', 'active-item-changed']
+      pane.addItem(item1)
+      pane.addItem(item2)
+      expect(events).toEqual [{item: item1, index: 0}, {item: item2, index: 1}]
+
+    it "sets the active item only when adding the first item", ->
+      pane = new Pane
+      item1 = new Item("A")
+      item2 = new Item("B")
+
+      pane.addItem(item1)
+      expect(pane.getActiveItem()).toBe item1
+      pane.addItem(item2)
+      expect(pane.getActiveItem()).toBe item1
 
   describe "::activateItem(item)", ->
     pane = null
@@ -62,30 +72,41 @@ describe "Pane", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
 
     it "changes the active item to the current item", ->
-      expect(pane.activeItem).toBe pane.items[0]
-      pane.activateItem(pane.items[1])
-      expect(pane.activeItem).toBe pane.items[1]
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
+      pane.activateItem(pane.itemAtIndex(1))
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
 
-    it "adds the given item if it isn't present in ::items", ->
+    it "adds the given item if it isn't already in the pane's items", ->
       item = new Item("C")
       pane.activateItem(item)
-      expect(item in pane.items).toBe true
-      expect(pane.activeItem).toBe item
+      expect(item in pane.getItems()).toBe true
+      expect(pane.getActiveItem()).toBe item
+
+    it "invokes ::observeActiveItem observers with the active item", ->
+      observed = []
+      pane.observeActiveItem (activeItem) -> observed.push(activeItem)
+      [item1, item2] = pane.getItems()
+
+      pane.activateItem(item2)
+      item3 = new Item("C")
+      pane.activateItem(item3)
+
+      expect(observed).toEqual [item1, item2, item3]
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
-      [item1, item2, item3] = pane.items
+      [item1, item2, item3] = pane.getItems()
 
-      expect(pane.activeItem).toBe item1
+      expect(pane.getActiveItem()).toBe item1
       pane.activatePreviousItem()
-      expect(pane.activeItem).toBe item3
+      expect(pane.getActiveItem()).toBe item3
       pane.activatePreviousItem()
-      expect(pane.activeItem).toBe item2
+      expect(pane.getActiveItem()).toBe item2
       pane.activateNextItem()
-      expect(pane.activeItem).toBe item3
+      expect(pane.getActiveItem()).toBe item3
       pane.activateNextItem()
-      expect(pane.activeItem).toBe item1
+      expect(pane.getActiveItem()).toBe item1
 
   describe "::activateItemAtIndex(index)", ->
     it "activates the item at the given index", ->
