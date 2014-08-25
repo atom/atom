@@ -50,6 +50,12 @@ class EditorView extends View
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
     useHardwareAcceleration: true
+    confirmCheckoutHeadRevision: true
+    invisibles:
+      eol: '\u00ac'
+      space: '\u00b7'
+      tab: '\u00bb'
+      cr: '\u00a4'
 
   @content: (params) ->
     attributes = params.attributes ? {}
