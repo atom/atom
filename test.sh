@@ -97,6 +97,7 @@ case $OS in
                 echo 'Sorry, we currently dont support this distribution'
                 ;;
             esac
+            source ~/.bashrc
             ;;
     [Dd]arwin)
         echo 'export PYTHONPATH='$PYTHONPATH >> ~/.bashrc
@@ -127,11 +128,10 @@ case $OS in
         ;;
     *)
         echo 'sorry we currently dont support this OS'
+    source ~/.bash_profile
     ;;
     esac
 
-source ~/.bashrc
-source ~/.bash_profile
 
 $REQ/script/build
 $REQ/script/grunt install
