@@ -27,7 +27,7 @@ module.exports = (grunt) ->
       binDir = path.join(installDir, 'bin')
       shareDir = path.join(installDir, 'share', 'atom')
 
-      iconName = path.join(shareDir,'resources','app','resources','atom.png')
+      iconName = path.join(shareDir,'resources','app','resources','indico.png')
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
@@ -42,7 +42,7 @@ module.exports = (grunt) ->
         desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
 
         {description} = grunt.file.readJSON('package.json')
-        iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
+        iconName = path.join(shareDir, 'resources', 'app', 'resources', 'indico.png')
         installDir = path.join(installDir, '.') # To prevent "Exec=/usr/local//share/atom/atom"
         template = _.template(String(fs.readFileSync(desktopFile)))
         filled = template({description, installDir, iconName})
