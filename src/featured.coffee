@@ -39,7 +39,7 @@ class Featured extends Command
         callback(error)
       else if response.statusCode is 200
         packages = body.filter (pack) -> pack?.releases?.latest?
-        packages = packages.map ({readme, metadata, downloads}) -> _.extend({}, metadata, {readme, downloads})
+        packages = packages.map ({readme, metadata, downloads, stargazers_count}) -> _.extend({}, metadata, {readme, downloads, stargazers_count})
         packages = _.sortBy(packages, 'name')
         callback(null, packages)
       else
@@ -66,10 +66,10 @@ class Featured extends Command
         else
           console.log "#{'Featured Atom Packages'.cyan} (#{packages.length})"
 
-        tree packages, ({name, version, description, downloads}) ->
+        tree packages, ({name, version, description, downloads, stargazers_count}) ->
           label = name.yellow
           label += " #{description.replace(/\s+/g, ' ')}" if description
-          label += " (#{_.pluralize(downloads, 'download')})".grey if downloads >= 0
+          label += " (#{_.pluralize(downloads, 'download')}, #{_.pluralize(stargazers_count, 'star')})".grey if downloads >= 0 and stargazers_count >= 0
           label
 
         console.log()
