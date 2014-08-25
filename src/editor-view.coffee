@@ -72,16 +72,16 @@ class EditorView extends View
     if editorOrParams instanceof Editor
       @editor = editorOrParams
     else
-      {@editor, @mini, placeholderText} = editorOrParams
+      {@editor, mini, placeholderText} = editorOrParams
       props ?= {}
-      props.mini = @mini
+      props.mini = mini
       props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
         softWrap: false
         tabLength: 2
         softTabs: true
-        mini: @mini
+        mini: mini
 
     props = defaults({@editor, parentView: this}, props)
     @component = React.renderComponent(EditorComponent(props), @element)
