@@ -60,6 +60,8 @@ class Pane extends Model
 
   isActive: -> @active
 
+  isFocused: -> @focused
+
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true

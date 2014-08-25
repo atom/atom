@@ -32,6 +32,12 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
 
+  getOrientation: -> @orientation
+
+  getChildren: -> @children.slice()
+
+  childAtIndex: (index) -> @children[index]
+
   getViewClass: ->
     if @orientation is 'vertical'
       PaneColumnView ?= require './pane-column-view'
