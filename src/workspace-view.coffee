@@ -9,7 +9,6 @@ scrollbarStyle = require 'scrollbar-style'
 fs = require 'fs-plus'
 Workspace = require './workspace'
 CommandInstaller = require './command-installer'
-EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
 PaneRowView = require './pane-row-view'
@@ -71,8 +70,6 @@ class WorkspaceView extends View
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
     destroyEmptyPanes: true
-    useReactEditor: true
-    useReactMiniEditors: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
