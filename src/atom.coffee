@@ -111,6 +111,7 @@ class Atom extends Model
     remote.getCurrentWindow()
 
   workspaceViewParentSelector: 'body'
+  lastUncaughtError: null
 
   # Call .loadOrCreate instead
   constructor: (@state) ->
@@ -125,6 +126,7 @@ class Atom extends Model
     window.onerror = =>
       @openDevTools()
       @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+      @lastUncaughtError = Array::slice.call(arguments)
       @emit 'uncaught-error', arguments...
 
     @unsubscribe()
