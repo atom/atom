@@ -308,6 +308,9 @@ class Atom extends Model
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
     @deserializeEditorWindow()
+
+    @watchProjectPath()
+
     @packages.activate()
     @keymaps.loadUserKeymap()
     @requireUserInitScript()
@@ -347,13 +350,29 @@ class Atom extends Model
         pack.reloadStylesheets?()
       null
 
+  # Notify the browser project of the window's current project path
+  watchProjectPath: ->
+    onProjectPathChanged = =>
+      ipc.send('window-command', 'project-path-changed', @project.getPath())
+    @subscribe @project, 'path-changed', onProjectPathChanged
+    onProjectPathChanged()
+
   # Public: Open a new Atom window using the given options.
   #
   # Calling this method without an options parameter will open a prompt to pick
   # a file/folder to open in the new window.
   #
   # options - An {Object} with the following keys:
-  #   :pathsToOpen -  An {Array} of {String} paths to open.
+  #   :pathsToOpen - An {Array} of {String} paths to open.
+  #   :newWindow   - A {Boolean}, true to always open a new window instead of
+  #                  reusing existing windows depending on the paths to open.
+  #   :devMode     - A {Boolean}, true to open the window in development mode.
+  #                  Development mode loads the Atom source from the locally
+  #                  cloned repository and also loads all the packages in
+  #                  ~/.atom/dev/packages
+  #   :safeMode    - A {Boolean}, true to open the window in safe mode. Safe
+  #                  mode prevents all packages installed to ~/.atom/packages
+  #                  from loading.
   open: (options) ->
     ipc.send('open', options)
 
