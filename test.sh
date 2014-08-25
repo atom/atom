@@ -33,8 +33,8 @@ mkdir .indico
 cd .indico
 mkdir pypackages
 
-PY_INSTALL_DIR=~/.indico/pypackages/lib/python2.7/site-packages
-PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
+PY_INSTALL_DIR=~/.indico/pypackages/
+PYTHONPATH=$PY_INSTALL_DIR\/lib/python2.7/site-packages:$PYTHONPATH
 set -e
 case $OS in
     [Ll]inux)
@@ -121,7 +121,7 @@ case $OS in
         brew install --with-openblas numpy
         brew install --with-openblas scipy
         brew install matplotlib
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/equirements.txt
+        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
         ;;
