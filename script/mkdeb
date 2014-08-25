@@ -13,21 +13,22 @@ CONTROL_FILE="$3"
 DESKTOP_FILE="$4"
 ICON_FILE="$5"
 DEB_PATH="$6"
+FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
 chmod 755 "$TARGET_ROOT"
 TARGET="$TARGET_ROOT/atom-$VERSION-$ARCH"
 
-mkdir -p "$TARGET/usr"
+mkdir -m $FILE_MODE -p "$TARGET/usr"
 env INSTALL_PREFIX="$TARGET/usr" script/grunt install
 
-mkdir -p "$TARGET/DEBIAN"
+mkdir -m $FILE_MODE -p "$TARGET/DEBIAN"
 cp "$CONTROL_FILE" "$TARGET/DEBIAN/control"
 
-mkdir -p "$TARGET/usr/share/applications"
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/applications"
 cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 
-mkdir -p "$TARGET/usr/share/pixmaps"
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 dpkg-deb -b "$TARGET"

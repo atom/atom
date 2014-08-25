@@ -1,8 +1,5 @@
 {$, View} = require './space-pen-extensions'
-if atom.config.get('core.useReactMiniEditors')
-  EditorView = require './react-editor-view'
-else
-  EditorView = require './editor-view'
+EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
 # Public: Provides a view that renders a list of items with an editor that
@@ -275,7 +272,6 @@ class SelectListView extends View
 
   cancelled: ->
     @filterEditorView.getEditor().setText('')
-    @filterEditorView.updateDisplay()
 
   # Public: Cancel and close this select list view.
   #

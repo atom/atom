@@ -78,6 +78,9 @@ class Task
 
   # Public: Starts the task.
   #
+  # Throws an error if this task has already been terminated or if sending a
+  # message to the child process fails.
+  #
   # args - The arguments to pass to the function exported by this task's script.
   # callback - An optional {Function} to call when the task completes.
   start: (args..., callback) ->
@@ -91,6 +94,9 @@ class Task
     @send({event: 'start', args})
 
   # Public: Send message to the task.
+  #
+  # Throws an error if this task has already been terminated or if sending a
+  # message to the child process fails.
   #
   # message - The message to send to the task.
   send: (message) ->

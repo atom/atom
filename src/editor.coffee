@@ -157,7 +157,8 @@ class Editor extends Model
     toProperty: 'languageMode'
 
   @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
-    '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
+    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
+    'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
@@ -234,10 +235,7 @@ class Editor extends Model
     @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 
   getViewClass: ->
-    if atom.config.get('core.useReactEditor')
-      require './react-editor-view'
-    else
-      require './editor-view'
+    require './editor-view'
 
   destroyed: ->
     @unsubscribe()
@@ -645,7 +643,8 @@ class Editor extends Model
   # text - A {String} representing the text to insert.
   # options - See {Selection::insertText}.
   #
-  # Returns a {Boolean} indicating whether or not the text was inserted.
+  # Returns a {Range} when the text has been inserted
+  # Returns a {Bool} false when the text has not been inserted
   insertText: (text, options={}) ->
     willInsert = true
     cancel = -> willInsert = false

@@ -2,7 +2,18 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-.editor.react {
+.editor, .editor-contents {
+  overflow: hidden;
+  cursor: text;
+  display: -webkit-flex;
+  -webkit-user-select: none;
+  position: relative;
+}
+
+.editor {
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  line-height: 1.3;
+
   .editor-contents {
     width: 100%;
   }
@@ -71,9 +82,19 @@
   }
 
   .gutter {
+    overflow: hidden;
+    text-align: right;
+    cursor: default;
+    min-width: 1em;
+    box-sizing: border-box;
+
+    .line-numbers {
+      position: relative;
+    }
     .line-number {
       white-space: nowrap;
       padding-left: .5em;
+      opacity: 0.6;
 
       .icon-right {
         padding: 0 .4em;
@@ -81,6 +102,9 @@
           text-align: center;
         }
       }
+    }
+    .line-number.cursor-line {
+      opacity: 1;
     }
   }
 }
@@ -94,45 +118,6 @@
     position: absolute;
     color: @text-color-subtle;
   }
-}
-
-.editor {
-  z-index: 0;
-  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  line-height: 1.3;
-}
-
-.editor, .editor-contents {
-  overflow: hidden;
-  cursor: text;
-  display: -webkit-flex;
-  -webkit-user-select: none;
-  position: relative;
-}
-
-.editor .gutter .line-number.cursor-line {
-  opacity: 1;
-}
-
-.editor .gutter {
-  overflow: hidden;
-  text-align: right;
-  cursor: default;
-  min-width: 1em;
-  box-sizing: border-box;
-}
-
-.editor .gutter .line-number {
-  padding-left: .5em;
-  opacity: 0.6;
-}
-
-.editor .gutter .line-numbers {
-  position: relative;
-}
-
-.editor .gutter .line-number.folded.cursor-line {
-  opacity: 1;
 }
 
 .editor .gutter .line-number .icon-right {
@@ -288,23 +273,4 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
-}
-
-.editor.mini:not(.react) {
-  height: auto;
-  line-height: 25px;
-
-  .cursor {
-    width: 2px;
-    line-height: 20px;
-    margin-top: 2px;
-  }
-
-  .gutter {
-    display: none;
-  }
-
-  .scroll-view {
-    overflow: hidden;
-  }
 }
