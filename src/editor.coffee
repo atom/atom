@@ -157,7 +157,8 @@ class Editor extends Model
     toProperty: 'languageMode'
 
   @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
-    '$scrollTop', '$scrollLeft', 'manageScrollPosition', toProperty: 'displayBuffer'
+    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
+    'manageScrollPosition', toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
