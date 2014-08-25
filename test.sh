@@ -33,8 +33,8 @@ mkdir .indico
 cd .indico
 mkdir pypackages
 
-PY_INSTALL_DIR=~/.indico/pypackages/
-PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH\lib/python2.7/site-packages
+PY_INSTALL_DIR=~/.indico/pypackages/lib/python2.7/site-packages
+PYTHONPATH=$PY_INSTALL_DIR:$PYTHONPATH
 set -e
 case $OS in
     [Ll]inux)
@@ -129,3 +129,9 @@ case $OS in
         echo 'sorry we currently dont support this OS'
     ;;
     esac
+
+source ~/.bashrc
+source ~/.bash_profile
+
+$REQ/script/build
+$REQ/script/grunt install
