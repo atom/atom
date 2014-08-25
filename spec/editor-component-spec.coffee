@@ -2164,6 +2164,12 @@ describe "EditorComponent", ->
       setEditorWidthInChars(wrapperView, 10)
       expect(componentNode.querySelector('.scroll-view').offsetWidth).toBe charWidth * 10
 
+  describe "grammar data attributes", ->
+    it "adds and updates the grammar data attribute based on the current grammar", ->
+      expect(wrapperNode.dataset.grammar).toBe 'source js'
+      editor.setGrammar(atom.syntax.nullGrammar)
+      expect(wrapperNode.dataset.grammar).toBe 'text plain null-grammar'
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
