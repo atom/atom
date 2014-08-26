@@ -19,6 +19,10 @@ class Pane extends Model
     activeItem: undefined
     focused: false
 
+  onDidAddItemSubject: null
+  activeItemSubject: null
+  activeObservable: null
+
   # Public: Only one pane is considered *active* at a time. A pane is activated
   # when it is focused, and when focus returns to the pane container after
   # moving to another element such as a panel, it returns to the active pane.
@@ -60,6 +64,13 @@ class Pane extends Model
 
   isActive: -> @container?.getActivePane() is this
 
+  observeActive: (fn) ->
+    @activeObservable ?= @container.observeActivePane().map (activePane) => activePane is this
+    if fn?
+      @activeObservable.subscribe(fn)
+    else
+      @activeObservable
+
   isFocused: -> @focused
 
   # Called by the view layer to indicate that the pane has gained focus.
@@ -75,7 +86,7 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus
   # immediately.
   activate: ->
-    @container?.activePane = this
+    @container?.setActivePane(this)
     @emit 'activated'
 
   getPanes: -> [this]
@@ -146,7 +157,7 @@ class Pane extends Model
     return if item in @items
 
     @items.splice(index, 0, item)
-    @didAddItemSubject?.onNext({item, index})
+    @onDidAddItemSubject?.onNext({item, index})
     @emit 'item-added', item, index
     @setActiveItem(item) unless @getActiveItem()?
     item
@@ -373,11 +384,11 @@ class Pane extends Model
       @splitRight()
 
   onDidAddItem: (fn) ->
-    @didAddItemSubject ?= new Rx.Subject
+    @onDidAddItemSubject ?= new Rx.Subject
     if fn?
-      @didAddItemSubject.subscribe(fn)
+      @onDidAddItemSubject.subscribe(fn)
     else
-      @didAddItemSubject
+      @onDidAddItemSubject
 
   observeActiveItem: (fn) ->
     @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())

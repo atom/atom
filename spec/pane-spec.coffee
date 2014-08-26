@@ -28,6 +28,43 @@ describe "Pane", ->
       expect(pane.getItems().length).toBe 2
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
+  describe "::activate()", ->
+    [container, pane1, pane2] = []
+
+    beforeEach ->
+      container = new PaneContainer(root: new Pane(items: ["A"]))
+      container.getRoot().splitRight()
+      [pane1, pane2] = container.getPanes()
+
+    it "sets the active pane on the container", ->
+      expect(container.getActivePane()).toBe pane2
+      expect(pane1.isActive()).toBe false
+      expect(pane2.isActive()).toBe true
+      pane1.activate()
+      expect(container.getActivePane()).toBe pane1
+      expect(pane1.isActive()).toBe true
+      expect(pane2.isActive()).toBe false
+      pane2.activate()
+      expect(container.getActivePane()).toBe pane2
+      expect(pane1.isActive()).toBe false
+      expect(pane2.isActive()).toBe true
+
+    it "notifies ::observeActivePane subscribers on the container", ->
+      observed = []
+      container.observeActivePane (activePane) -> observed.push(activePane)
+
+      pane1.activate()
+      pane2.activate()
+      expect(observed).toEqual [pane2, pane1, pane2]
+
+    it "notifies ::observeActive subscribers on the pane", ->
+      observed = []
+      pane1.observeActive (active) -> observed.push(active)
+
+      pane1.activate()
+      pane2.activate()
+      expect(observed).toEqual [false, true, false]
+
   describe "::addItem(item, index)", ->
     it "adds the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
@@ -44,7 +81,7 @@ describe "Pane", ->
       pane.addItem(item4)
       expect(pane.getItems()).toEqual [item1, item2, item4, item3]
 
-    it "invokes ::onDidAddItem observers with the item and the index", ->
+    it "notifies ::onDidAddItem subscribers with the item and the index", ->
       events = []
       pane = new Pane
       item1 = new Item("A")
@@ -82,7 +119,7 @@ describe "Pane", ->
       expect(item in pane.getItems()).toBe true
       expect(pane.getActiveItem()).toBe item
 
-    it "invokes ::observeActiveItem observers with the active item", ->
+    it "notifies ::observeActiveItem subscribers with the active item", ->
       observed = []
       pane.observeActiveItem (activeItem) -> observed.push(activeItem)
       [item1, item2] = pane.getItems()

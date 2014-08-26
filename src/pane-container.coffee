@@ -1,6 +1,7 @@
 {find} = require 'underscore-plus'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
+Rx = require 'rx'
 Pane = require './pane'
 
 module.exports =
@@ -45,8 +46,19 @@ class PaneContainer extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
+  setActivePane: (@activePane) ->
+    @activePaneSubject?.onNext(@activePane)
+    @activePane
+
   getActivePane: ->
     @activePane
+
+  observeActivePane: (fn) ->
+    @activePaneSubject ?= new Rx.BehaviorSubject(@getActivePane())
+    if fn?
+      @activePaneSubject.subscribe(fn)
+    else
+      @activePaneSubject
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
@@ -80,7 +92,7 @@ class PaneContainer extends Model
     @previousRoot = root
 
     unless root?
-      @activePane = null
+      @setActivePane(null)
       return
 
     root.parent = this
