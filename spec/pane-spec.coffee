@@ -396,6 +396,19 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [item3, item2, item1, item4]
       expect(itemMovedHandler).toHaveBeenCalledWith(item2, 1)
 
+    it "notifies ::onDidMoveItem observers with the item and its old and new indices", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
+      [item1, item2, item3, item4] = pane.getItems()
+      events = []
+      pane.onDidMoveItem (event) -> events.push(event)
+
+      pane.moveItem(item1, 2)
+      pane.moveItem(item2, 3)
+      expect(events).toEqual [
+        {item: item1, oldIndex: 0, newIndex: 2}
+        {item: item2, oldIndex: 0, newIndex: 3}
+      ]
+
   describe "::moveItemToPane(item, pane, index)", ->
     [container, pane1, pane2] = []
     [item1, item2, item3, item4, item5] = []

@@ -21,6 +21,7 @@ class Pane extends Model
 
   onDidAddItemSubject: null
   onDidRemoveItemSubject: null
+  onDidMoveItemSubject: null
   activeItemSubject: null
   activeObservable: null
 
@@ -199,6 +200,7 @@ class Pane extends Model
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
     @emit 'item-moved', item, newIndex
+    @onDidMoveItemSubject?.onNext({item, oldIndex, newIndex})
 
   # Public: Moves the given item to the given index at another pane.
   moveItemToPane: (item, pane, index) ->
@@ -398,6 +400,13 @@ class Pane extends Model
       @onDidRemoveItemSubject.subscribe(fn)
     else
       @onDidRemoveItemSubject
+
+  onDidMoveItem: (fn) ->
+    @onDidMoveItemSubject ?= new Rx.Subject
+    if fn?
+      @onDidMoveItemSubject.subscribe(fn)
+    else
+      @onDidMoveItemSubject
 
   observeActiveItem: (fn) ->
     @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())
