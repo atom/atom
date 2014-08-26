@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 
 _ = require 'underscore-plus'
-
 async = require 'async'
 
 module.exports = (grunt) ->
@@ -10,18 +9,24 @@ module.exports = (grunt) ->
 
   packageSpecQueue = null
 
+  getAppPath = ->
+    contentsDir = grunt.config.get('atom.contentsDir')
+    switch process.platform
+      when 'darwin'
+        path.join(contentsDir, 'MacOS', 'Atom')
+      when 'linux'
+        path.join(contentsDir, 'atom')
+      when 'win32'
+        path.join(contentsDir, 'atom.exe')
+
   runPackageSpecs = (callback) ->
     failedPackages = []
     rootDir = grunt.config.get('atom.shellAppDir')
-    contentsDir = grunt.config.get('atom.contentsDir')
     resourcePath = process.cwd()
-    if process.platform is 'darwin'
-      appPath = path.join(contentsDir, 'MacOS', 'Atom')
-    else if process.platform is 'win32'
-      appPath = path.join(contentsDir, 'atom.exe')
+    appPath = getAppPath()
 
     packageSpecQueue = async.queue (packagePath, callback) ->
-      if process.platform is 'darwin'
+      if process.platform in ['darwin', 'linux']
         options =
           cmd: appPath
           args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
@@ -57,15 +62,11 @@ module.exports = (grunt) ->
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
-    contentsDir = grunt.config.get('atom.contentsDir')
-    if process.platform is 'darwin'
-      appPath = path.join(contentsDir, 'MacOS', 'Atom')
-    else if process.platform is 'win32'
-      appPath = path.join(contentsDir, 'atom.exe')
+    appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
-    if process.platform is 'darwin'
+    if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
@@ -90,7 +91,7 @@ module.exports = (grunt) ->
 
     # TODO: This should really be parallel on both platforms, however our
     # fixtures step on each others toes currently.
-    if process.platform is 'darwin'
+    if process.platform in ['darwin', 'linux']
       method = async.parallel
     else if process.platform is 'win32'
       method = async.series
