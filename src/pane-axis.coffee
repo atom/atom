@@ -58,9 +58,6 @@ class PaneAxis extends Model
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
 
-  addChild: (child, index=@children.length) ->
-    @children.splice(index, 0, child)
-
   removeChild: (child) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
