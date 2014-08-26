@@ -345,7 +345,7 @@ class AtomApplication
     if existingWindow?
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen, initialLine)
-      openedWindow.restore()
+      openedWindow.restore() if openedWindow.isMinimized()
     else
       if devMode
         try
