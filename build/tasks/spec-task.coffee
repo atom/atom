@@ -25,6 +25,9 @@ module.exports = (grunt) ->
     resourcePath = process.cwd()
     appPath = getAppPath()
 
+    # Ensure application is executable on Linux
+    fs.chmodSync(appPath, '755') if process.platform is 'linux'
+
     packageSpecQueue = async.queue (packagePath, callback) ->
       if process.platform in ['darwin', 'linux']
         options =
