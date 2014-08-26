@@ -22,6 +22,7 @@ class Pane extends Model
   onDidAddItemSubject: null
   onDidRemoveItemSubject: null
   onDidMoveItemSubject: null
+  onWillDestroyItemSubject: null
   activeItemSubject: null
   activeObservable: null
 
@@ -218,6 +219,7 @@ class Pane extends Model
   destroyItem: (item) ->
     if item?
       @emit 'before-item-destroyed', item
+      @onWillDestroyItemSubject?.onNext({item})
       if @promptToSaveItem(item)
         @removeItem(item, true)
         item.destroy?()
@@ -415,6 +417,13 @@ class Pane extends Model
       @onDidMoveItemSubject.subscribe(fn)
     else
       @onDidMoveItemSubject
+
+  onWillDestroyItem: (fn) ->
+    @onWillDestroyItemSubject ?= new Rx.Subject
+    if fn?
+      @onWillDestroyItemSubject.subscribe(fn)
+    else
+      @onWillDestroyItemSubject
 
   observeActiveItem: (fn) ->
     @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())

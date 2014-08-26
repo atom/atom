@@ -207,6 +207,13 @@ describe "Pane", ->
       pane.destroyItem(item2)
       expect(itemRemovedHandler).toHaveBeenCalledWith(item2, 1, true)
 
+    it "notifies ::onWillDestroyItem subscribers", ->
+      events = []
+      pane.onWillDestroyItem (event) -> events.push(event)
+
+      pane.destroyItem(item2)
+      expect(events).toEqual [{item: item2}]
+
     it "notifies ::onDidRemoveItem subscribers", ->
       events = []
       pane.onDidRemoveItem (event) -> events.push(event)
