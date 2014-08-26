@@ -10,12 +10,15 @@ class PaneAxis extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  parent: null
+  container: null
+
   constructor: ({@container, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
     @subscribe @children.onEach (child) =>
-      child.parent = this
-      child.container = @container
+      child.setParent(this)
+      child.setContainer(@container)
       @subscribe child, 'destroyed', => @removeChild(child)
 
     @subscribe @children.onRemoval (child) => @unsubscribe(child)
@@ -31,6 +34,14 @@ class PaneAxis extends Model
   serializeParams: ->
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
+
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
 
   getOrientation: -> @orientation
 

@@ -15,9 +15,11 @@ class Pane extends Model
   Serializable.includeInto(this)
 
   @properties
-    container: undefined
     activeItem: undefined
     focused: false
+
+  parent: null
+  container: null
 
   onDidAddItemSubject: null
   onDidRemoveItemSubject: null
@@ -64,6 +66,14 @@ class Pane extends Model
 
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
+
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
 
   isActive: -> @container?.getActivePane() is this
 

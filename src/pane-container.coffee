@@ -95,9 +95,8 @@ class PaneContainer extends Model
       @setActivePane(null)
       return
 
-    root.parent = this
-    root.container = this
-
+    root.setParent(this)
+    root.setContainer(this)
 
     @activePane ?= root if root instanceof Pane
 
