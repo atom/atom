@@ -65,3 +65,17 @@ describe "PaneContainer", ->
       pane1.destroy()
       expect(container.getRoot()).toBe pane1
       expect(pane1.isDestroyed()).toBe false
+
+  describe "::getActivePane::observeActivePaneItem()", ->
+    it "tracks the active item of the active pane", ->
+      container = new PaneContainer(root: new Pane(items: [new Object]))
+      container.getRoot().splitRight(items: [new Object, new Object])
+      [pane1, pane2] = container.getPanes()
+
+      observed = []
+      container.observeActivePaneItem (item) -> observed.push(item)
+
+      pane2.activateNextItem()
+      pane1.activate()
+
+      expect(observed).toEqual [pane2.itemAtIndex(0), pane2.itemAtIndex(1), pane1.itemAtIndex(0)]

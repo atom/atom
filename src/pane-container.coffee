@@ -16,6 +16,7 @@ class PaneContainer extends Model
     activePane: null
 
   previousRoot: null
+  activePaneItemObservable: null
 
   @behavior 'activePaneItem', ->
     @$activePane
@@ -59,6 +60,14 @@ class PaneContainer extends Model
       @activePaneSubject.subscribe(fn)
     else
       @activePaneSubject
+
+  observeActivePaneItem: (fn) ->
+    @activePaneItemObservable ?=
+      @observeActivePane().flatMapLatest (activePane) -> activePane.observeActiveItem()
+    if fn?
+      @activePaneItemObservable.subscribe(fn)
+    else
+      @activePaneItemObservable
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
