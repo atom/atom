@@ -20,6 +20,7 @@ class Pane extends Model
     focused: false
 
   onDidAddItemSubject: null
+  onDidRemoveItemSubject: null
   activeItemSubject: null
   activeObservable: null
 
@@ -176,7 +177,7 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  removeItem: (item, destroying) ->
+  removeItem: (item, destroyed) ->
     index = @items.indexOf(item)
     return if index is -1
     if item is @activeItem
@@ -187,8 +188,9 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emit 'item-removed', item, index, destroying
-    @container?.itemDestroyed(item) if destroying
+    @emit 'item-removed', item, index, destroyed
+    @onDidRemoveItemSubject.onNext {item, index, destroyed}
+    @container?.itemDestroyed(item) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Moves the given item to the specified index.
@@ -389,6 +391,13 @@ class Pane extends Model
       @onDidAddItemSubject.subscribe(fn)
     else
       @onDidAddItemSubject
+
+  onDidRemoveItem: (fn) ->
+    @onDidRemoveItemSubject ?= new Rx.Subject
+    if fn?
+      @onDidRemoveItemSubject.subscribe(fn)
+    else
+      @onDidRemoveItemSubject
 
   observeActiveItem: (fn) ->
     @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())

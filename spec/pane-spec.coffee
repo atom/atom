@@ -198,6 +198,13 @@ describe "Pane", ->
       pane.destroyItem(item2)
       expect(itemRemovedHandler).toHaveBeenCalledWith(item2, 1, true)
 
+    it "notifies ::onDidRemoveItem observers", ->
+      events = []
+      pane.onDidRemoveItem (event) -> events.push(event)
+
+      pane.destroyItem(item2)
+      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
+
     describe "if the item is modified", ->
       itemUri = null
 
