@@ -458,6 +458,26 @@ describe "Pane", ->
           expect(pane2.isDestroyed()).toBe true
           expect(item4.isDestroyed()).toBe false
 
+  describe "::observeItems()", ->
+    it "invokes subscribers with all current and future items", ->
+      observed = []
+
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+      item3 = new Item("C")
+      item4 = new Item("D")
+
+      subscription = pane.observeItems (item) -> observed.push(item)
+      expect(observed).toEqual [item1, item2]
+
+      pane.addItem(item3)
+      expect(observed).toEqual [item1, item2, item3]
+
+      console.log subscription
+      subscription.dispose()
+      pane.addItem(item4)
+      expect(observed).toEqual [item1, item2, item3]
+
   describe "split methods", ->
     [pane1, container] = []
 

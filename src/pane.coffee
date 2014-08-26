@@ -4,6 +4,7 @@ Serializable = require 'serializable'
 Rx = require 'rx'
 PaneAxis = require './pane-axis'
 Editor = require './editor'
+ArraySubject = require './array-subject'
 PaneView = null
 
 # Public: A container for multiple items, one of which is *active* at a given
@@ -26,6 +27,7 @@ class Pane extends Model
   onDidMoveItemSubject: null
   onWillDestroyItemSubject: null
   activeItemSubject: null
+  itemsSubject: null
   activeObservable: null
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
@@ -111,6 +113,13 @@ class Pane extends Model
   getItems: ->
     @items.slice()
 
+  observeItems: (fn) ->
+    @itemsSubject ?= new ArraySubject(@items)
+    if fn?
+      @itemsSubject.subscribe(fn)
+    else
+      @itemsSubject
+
   # Public: Get the active pane item in this pane.
   #
   # Returns a pane item.
@@ -172,6 +181,7 @@ class Pane extends Model
 
     @items.splice(index, 0, item)
     @onDidAddItemSubject?.onNext({item, index})
+    @itemsSubject?.onNext(item)
     @emit 'item-added', item, index
     @setActiveItem(item) unless @getActiveItem()?
     item
