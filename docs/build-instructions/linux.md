@@ -34,9 +34,9 @@ From the cloned repository directory:
 
  1. Setup:
  	Run the install script with
- 	'''sh
+ 	```sh
 	$ ./setup.sh
-	'''
+	```
 
  2. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
 
