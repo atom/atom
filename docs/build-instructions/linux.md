@@ -33,6 +33,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 From the cloned repository directory:
 
  1. Setup:
+
  	Run the install script with
  	```sh
 	$ ./setup.sh
