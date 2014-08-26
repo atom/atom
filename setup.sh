@@ -88,7 +88,7 @@ case $OS in
                     pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
 
                 else
-                    echo "Sorry, we currently only support Fedora 17 and newer"
+                    echo "Sorry, we currently don\'t support versions older than Fedora 17"
                 fi
                 ;;
             [Uu]buntu | [Dd]ebian | [Mm]int)
