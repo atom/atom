@@ -6,3 +6,4 @@ Visit [indico.io](https://indico.io) to learn more.
 
 * [Linux](docs/build-instructions/linux.md)
 * [OS X](docs/build-instructions/os-x.md)
+* [Windows](docs/build-instructions/windows.md)
