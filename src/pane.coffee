@@ -15,11 +15,11 @@ class Pane extends Model
   Serializable.includeInto(this)
 
   @properties
+    container: null
     activeItem: undefined
     focused: false
 
   parent: null
-  container: null
 
   onDidAddItemSubject: null
   onDidRemoveItemSubject: null
