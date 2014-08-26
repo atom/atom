@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "donna": "~0.0",
+    "donna": "~1.0",
     "tello": "~0.2",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
