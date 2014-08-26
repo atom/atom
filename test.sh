@@ -19,15 +19,27 @@ fi
 if ! which python 2> /dev/null; then
     PYTHON_LOCATION='which: no'
 else
-    PYTHON_LOCATION=`which python`
+    PYTHON_LOCATION=$(which python)
 fi
 if ! which brew 2> /dev/null; then
     BREW_LOCATION='which: no'
 else
-    BREW_LOCATION=`which brew`
+    BREW_LOCATION=$(which brew)
 fi
+if ! which node 2> /dev/null; then
+    NODE_LOCATION='which: no'
+else
+    NODE_LOCATION=$(which node)
+fi
+if ! which npm 2> /dev/null; then
+    NPM_LOCATION='which: no'
+else
+    NPM_LOCATION=$(which npm)
+fi
+
 OS=$(uname -s)
 REQ=`pwd`
+
 cd ~
 mkdir .indico
 cd .indico
@@ -51,7 +63,20 @@ case $OS in
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
                     fi
-                    
+                    if [[ $NODE_LOCATION = 'which: no' ]]; then
+                        yum install nodejs
+                        wget https://www.npmjs.org/install.sh
+                        bash install.sh
+                        rm install.sh
+                        yum remove node-gyp
+                        npm install node-gyp
+                    elif [[ $NPM_LOCATION = 'which: no' ]];
+                        wget https://www.npmjs.org/install.sh
+                        bash install.sh
+                        rm install.sh
+                        yum remove node-gyp
+                        npm install node-gyp
+                    fi
                     yum install freetype
                     yum isntall libpng-dev
                     yum install libxml2
@@ -77,6 +102,23 @@ case $OS in
                     then
                         wget https://bootstrap.pypa.io/get-pip.py
                         python get-pip.py
+                    fi
+                    if [[ $NODE_LOCATION = 'which: no' ]]; then
+                        apt-get install nodejs
+                        $NODE_LOCATION=$(which nodejs)
+                        $NODEJS_LOCATION=${NODE_LOCATION:0:-5}node
+                        ln -s $NODE_LOCATION $NODEJS_LOCATION
+                        wget https://www.npmjs.org/install.sh
+                        bash install.sh
+                        rm install.sh
+                        apt-get remove node-gyp
+                        npm install node-gyp
+                    elif [[ $NPM_LOCATION = 'which: no' ]]
+                        wget https://www.npmjs.org/install.sh
+                        bash install.sh
+                        rm install.sh
+                        apt-get remove node-gyp
+                        npm install node-gyp
                     fi
                     
                     apt-get install freetype*
@@ -113,6 +155,12 @@ case $OS in
             wget https://bootstrap.pypa.io/get-pip.py
             python get-pip.py
         fi
+        if [[ $NODE_LOCATION = 'which: no' ]]
+        then
+            brew install node
+            brew install npm
+            npm update -g
+        fi
         brew update
         brew install -v cmake
         brew install gfortran
@@ -131,7 +179,6 @@ case $OS in
     source ~/.bash_profile
     ;;
     esac
-
 
 $REQ/script/build
 $REQ/script/grunt install
