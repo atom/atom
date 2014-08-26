@@ -191,7 +191,7 @@ class Pane extends Model
         @activatePreviousItem()
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroyed
-    @onDidRemoveItemSubject.onNext {item, index, destroyed}
+    @onDidRemoveItemSubject?.onNext {item, index, destroyed}
     @container?.itemDestroyed(item) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
