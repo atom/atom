@@ -70,7 +70,7 @@ case $OS in
                         rm install.sh
                         yum remove node-gyp
                         npm install node-gyp
-                    elif [[ $NPM_LOCATION = 'which: no' ]];
+                    elif [[ $NPM_LOCATION = 'which: no' ]]; then
                         wget https://www.npmjs.org/install.sh
                         bash install.sh
                         rm install.sh
@@ -113,7 +113,7 @@ case $OS in
                         rm install.sh
                         apt-get remove node-gyp
                         npm install node-gyp
-                    elif [[ $NPM_LOCATION = 'which: no' ]]
+                    elif [[ $NPM_LOCATION = 'which: no' ]]; then
                         wget https://www.npmjs.org/install.sh
                         bash install.sh
                         rm install.sh
