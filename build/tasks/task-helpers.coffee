@@ -65,3 +65,10 @@ module.exports = (grunt) ->
       engines?.atom?
     catch error
       false
+
+  platformSwitch: (callbacks) ->
+    callbacks.unsupported ?= ->
+      grunt.warn new Error("Unsupported platform: #{process.platform}!")
+
+    chosen = callbacks[process.platform] or callbacks.unsupported
+    chosen()
