@@ -17,21 +17,6 @@ WindowEventHandler = require './window-event-handler'
 # Public: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
-#
-# ## Properties
-#
-#  * `atom.clipboard`     - A {Clipboard} instance
-#  * `atom.config`        - A {Config} instance
-#  * `atom.contextMenu`   - A {ContextMenuManager} instance
-#  * `atom.deserializers` - A {DeserializerManager} instance
-#  * `atom.keymaps`       - A {KeymapManager} instance
-#  * `atom.menu`          - A {MenuManager} instance
-#  * `atom.packages`      - A {PackageManager} instance
-#  * `atom.project`       - A {Project} instance
-#  * `atom.syntax`        - A {Syntax} instance
-#  * `atom.themes`        - A {ThemeManager} instance
-#  * `atom.workspace`     - A {Workspace} instance
-#  * `atom.workspaceView` - A {WorkspaceView} instance
 module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
@@ -111,6 +96,42 @@ class Atom extends Model
     remote.getCurrentWindow()
 
   workspaceViewParentSelector: 'body'
+
+  # Public: A {Clipboard} instance
+  clipboard: null
+
+  # Public: A {Config} instance
+  config: null
+
+  # Public: A {ContextMenuManager} instance
+  contextMenu: null
+
+  # Public: A {DeserializerManager} instance
+  deserializers: null
+
+  # Public: A {KeymapManager} instance
+  keymaps: null
+
+  # Public: A {MenuManager} instance
+  menu: null
+
+  # Public: A {PackageManager} instance
+  packages: null
+
+  # Public: A {Project} instance
+  project: null
+
+  # Public: A {Syntax} instance
+  syntax: null
+
+  # Public: A {ThemeManager} instance
+  themes: null
+
+  # Public: A {Workspace} instance
+  workspace: null
+
+  # Public: A {WorkspaceView} instance
+  workspaceView: null
 
   # Call .loadOrCreate instead
   constructor: (@state) ->
