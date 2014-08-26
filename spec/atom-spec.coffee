@@ -493,13 +493,14 @@ describe "the `atom` global", ->
             expect(atom.config.get('core.disabledPackages')).toContain packageName
 
       describe "with themes", ->
+        reloadedHandler = null
+
         beforeEach ->
           waitsForPromise ->
             atom.themes.activateThemes()
 
         afterEach ->
           atom.themes.deactivateThemes()
-          atom.config.unobserve('core.themes')
 
         it ".enablePackage() and .disablePackage() enables and disables a theme", ->
           packageName = 'theme-with-package-file'
@@ -517,13 +518,17 @@ describe "the `atom` global", ->
             expect(atom.config.get('core.themes')).toContain packageName
             expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
-            # disabling of theme
+            reloadedHandler = jasmine.createSpy('reloadedHandler')
+            reloadedHandler.reset()
+            atom.themes.on('reloaded', reloadedHandler)
+
             pack = atom.packages.disablePackage(packageName)
 
           waitsFor ->
-            not (pack in atom.packages.getActivePackages())
+            reloadedHandler.callCount is 1
 
           runs ->
+            expect(atom.packages.getActivePackages()).not.toContain pack
             expect(atom.config.get('core.themes')).not.toContain packageName
             expect(atom.config.get('core.themes')).not.toContain packageName
             expect(atom.config.get('core.disabledPackages')).not.toContain packageName
