@@ -100,9 +100,9 @@ class Project extends Model
       uri
     else
       if fs.isAbsolute(uri)
-        fs.absolute(uri)
+        path.normalize(fs.absolute(uri))
       else if projectPath = @getPath()
-        fs.absolute(path.join(projectPath, uri))
+        path.normalize(fs.absolute(path.join(projectPath, uri)))
       else
         undefined
 

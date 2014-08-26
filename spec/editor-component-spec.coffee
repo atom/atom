@@ -1953,6 +1953,7 @@ describe "EditorComponent", ->
         wrapperView.hide()
 
         component.setFontSize(22)
+        editor.getBuffer().insert([0, 0], 'a') # regression test against atom/atom#3318
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])

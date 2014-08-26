@@ -245,20 +245,13 @@ class EditorView extends View
   getPane: ->
     @parent('.item-views').parents('.pane').view()
 
-  hide: ->
-    super
-    @pollComponentDOM()
-
   show: ->
     super
-    @pollComponentDOM()
+    @component?.checkForVisibilityChange()
 
-  pollComponentDOM: ->
-    return unless @component?
-    valueToRestore = @component.performSyncUpdates
-    @component.performSyncUpdates = true
-    @component.pollDOM()
-    @component.performSyncUpdates = valueToRestore
+  hide: ->
+    super
+    @component?.checkForVisibilityChange()
 
   pageDown: ->
     deprecate('Use editorView.getModel().pageDown()')
