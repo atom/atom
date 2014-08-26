@@ -98,7 +98,7 @@ class PaneContainer extends Model
     root.setParent(this)
     root.setContainer(this)
 
-    @activePane ?= root if root instanceof Pane
+    @setActivePane(root) if not @activePane? and root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
