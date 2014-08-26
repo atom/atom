@@ -65,6 +65,15 @@ describe "Pane", ->
       pane2.activate()
       expect(observed).toEqual [false, true, false]
 
+    it "notifies ::onDidActivate subscribers on the pane", ->
+      eventCount = 0
+      pane1.onDidActivate -> eventCount++
+
+      pane1.activate()
+      pane2.activate()
+      pane1.activate()
+      expect(eventCount).toBe 2
+
   describe "::addItem(item, index)", ->
     it "adds the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])
@@ -198,7 +207,7 @@ describe "Pane", ->
       pane.destroyItem(item2)
       expect(itemRemovedHandler).toHaveBeenCalledWith(item2, 1, true)
 
-    it "notifies ::onDidRemoveItem observers", ->
+    it "notifies ::onDidRemoveItem subscribers", ->
       events = []
       pane.onDidRemoveItem (event) -> events.push(event)
 
@@ -396,7 +405,7 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [item3, item2, item1, item4]
       expect(itemMovedHandler).toHaveBeenCalledWith(item2, 1)
 
-    it "notifies ::onDidMoveItem observers with the item and its old and new indices", ->
+    it "notifies ::onDidMoveItem subscribers with the item and its old and new indices", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
       [item1, item2, item3, item4] = pane.getItems()
       events = []

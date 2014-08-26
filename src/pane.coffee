@@ -90,6 +90,7 @@ class Pane extends Model
   activate: ->
     @container?.setActivePane(this)
     @emit 'activated'
+    @onDidActivateSubject?.onNext()
 
   getPanes: -> [this]
 
@@ -386,6 +387,13 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  onDidActivate: (fn) ->
+    @onDidActivateSubject ?= new Rx.Subject
+    if fn?
+      @onDidActivateSubject.subscribe(fn)
+    else
+      @onDidActivateSubject
 
   onDidAddItem: (fn) ->
     @onDidAddItemSubject ?= new Rx.Subject
