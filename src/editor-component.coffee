@@ -59,6 +59,8 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
 
+      tokenizedLines = editor.linesForScreenRows(renderedStartRow, renderedEndRow - 1)
+
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
@@ -107,7 +109,7 @@ EditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
+          editor, lineHeightInPixels, defaultCharWidth, tokenizedLines, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
